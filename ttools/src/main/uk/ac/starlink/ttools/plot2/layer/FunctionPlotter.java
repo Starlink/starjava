@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +58,12 @@ public class FunctionPlotter extends
     private final FuncAxis[] axes_;
     private static final Pattern TOKEN_REGEXP =
         Pattern.compile( "[A-Za-z_][A-Za-z0-9_]*" );
+
+    /**
+     * Interval in pixels between samples on X/Y axis.
+     * Possibly this should be a style parameter?
+     */
+    private static final double PIXEL_SPACING = 0.25;
  
     /** FunctionPlotter instance for a 2-d plotting surface.  */
     public static final FunctionPlotter PLANE =
@@ -118,6 +125,9 @@ public class FunctionPlotter extends
             public String valueToString( FuncAxis axis ) {
                 return axis.getAxisName();
             }
+            public String getXmlDescription( FuncAxis axis ) {
+                return null;
+            }
         }.setOptionUsage();
     }
 
@@ -153,7 +163,8 @@ public class FunctionPlotter extends
         };
     }
 
-    public FunctionStyle createStyle( ConfigMap config ) {
+    public FunctionStyle createStyle( ConfigMap config )
+            throws ConfigException {
         String xname = config.get( XNAME_KEY );   
         String fexpr = config.get( FEXPR_KEY );
         if ( xname == null || xname.trim().length() == 0 ||
@@ -349,14 +360,16 @@ public class FunctionPlotter extends
             double[] xs = axis.getXValues( surface_ );
             int np = xs.length;
             LineTracer tracer =
-                style_.createLineTracer( g2, surface_.getPlotBounds(), np );
-            Point gpos = new Point();
+                style_.createLineTracer( g2, surface_.getPlotBounds(), np,
+                                         paperType_.isBitmap() );
+            Point2D.Double gpos = new Point2D.Double();
             double[] dpos = new double[ surface_.getDataDimCount() ];
             for ( int ip = 0; ip < np; ip++ ) {
                 double x = xs[ ip ];
                 double f = function.evaluate( x );
                 if ( axis.xfToData( surface_, x, f, dpos ) &&
-                     surface_.dataToGraphics( dpos, false, gpos ) ) {
+                     surface_.dataToGraphics( dpos, false, gpos ) &&
+                     PlotUtil.isPointReal( gpos ) ) {
                     tracer.addVertex( gpos.x, gpos.y );
                 }
             }
@@ -376,11 +389,12 @@ public class FunctionPlotter extends
                 Rectangle plotBounds = psurf.getPlotBounds();
                 int gxlo = plotBounds.x - 1;
                 int gxhi = plotBounds.x + plotBounds.width + 1;
-                Point gpos = new Point( 0, plotBounds.y );
-                double[] xs = new double[ gxhi - gxlo ];
-                for ( int i = 0; i < gxhi - gxlo; i++ ) {
-                    gpos.x = gxlo + i;
-                    xs[ i ] = psurf.graphicsToData( gpos, null )[ 0 ];
+                int np = (int) ( ( gxhi - gxlo ) / PIXEL_SPACING );
+                double[] xs = new double[ np ];
+                Point2D.Double gpos = new Point2D.Double( gxlo, plotBounds.y );
+                for ( int ip = 0; ip < np; ip++ ) {
+                    xs[ ip ] = psurf.graphicsToData( gpos, null )[ 0 ];
+                    gpos.x += PIXEL_SPACING;
                 }
                 return xs;
             }
@@ -400,11 +414,12 @@ public class FunctionPlotter extends
                 Rectangle plotBounds = psurf.getPlotBounds();
                 int gylo = plotBounds.y - 1;
                 int gyhi = plotBounds.y + plotBounds.height + 1;
-                Point gpos = new Point( plotBounds.x, 0 );
-                double[] ys = new double[ gyhi - gylo ];
-                for ( int i = 0; i < gyhi - gylo; i++ ) {
-                    gpos.y = gylo + i;
-                    ys[ i ] = psurf.graphicsToData( gpos, null )[ 1 ];
+                int np = (int) ( ( gyhi - gylo ) / PIXEL_SPACING );
+                double[] ys = new double[ np ];
+                Point2D.Double gpos = new Point2D.Double( plotBounds.x, gylo );
+                for ( int ip = 0; ip < np; ip++ ) {
+                    ys[ ip ] = psurf.graphicsToData( gpos, null )[ 1 ];
+                    gpos.y += PIXEL_SPACING;
                 }
                 return ys;
             }

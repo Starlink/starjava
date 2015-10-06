@@ -22,7 +22,7 @@ public class MultiTest extends TestCase {
 
     public void setUp() {
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
     }
 
     public void testMultiWrite() throws IOException {

@@ -95,7 +95,6 @@ import javax.swing.SwingUtilities;
 /**
 This class provides a labeled box within which to place a data plot.
 
- * <em>
  * <h2>Note</h2>
  * This class has been taken from Ptplot 5.2 
  * (http://ptolemy.eecs.berkeley.edu/java/ptplot/).
@@ -125,7 +124,6 @@ This class provides a labeled box within which to place a data plot.
  * There are several features of PlotBox remaining which TOPCAT is unlikely
  * to use; it would be possible to tidy things up by writing a new class
  * with code copied from here where required.
- * </em>
  *
  * @author   Mark Taylor (Starlink)
 

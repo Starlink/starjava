@@ -53,6 +53,7 @@ import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.WrapperQuerySequence;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.Downloader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -79,6 +80,7 @@ public class UploadMatchPanel extends JPanel {
     private final Action stopAction_;
     private final ToggleButtonModel coverageModel_;
     private final Downloader<CdsUploadMatcher.VizierMeta> metaDownloader_;
+    private final ContentCoding coding_;
     private TopcatModel tcModel_;
     private volatile MatchWorker matchWorker_;
 
@@ -97,6 +99,7 @@ public class UploadMatchPanel extends JPanel {
      */
     public UploadMatchPanel( JProgressBar progBar ) {
         super( new BorderLayout() );
+        coding_ = ContentCoding.GZIP;
         progBar_ = progBar;
         progBar_.setStringPainted( true );
         JComponent main = Box.createVerticalBox();
@@ -441,7 +444,8 @@ public class UploadMatchPanel extends JPanel {
                                                        serviceCoverage );
         }
         UploadMatcher umatcher =
-            new CdsUploadMatcher( url, cdsId, srDeg * 3600., serviceMode );
+            new CdsUploadMatcher( url, cdsId, srDeg * 3600., serviceMode,
+                                  coding_ );
         StoragePolicy storage =
             ControlWindow.getInstance().getTableFactory().getStoragePolicy();
         String outName = tcModel.getID() + "x" + cdsName;

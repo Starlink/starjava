@@ -187,7 +187,7 @@ public class TaskServlet extends HttpServlet {
                            + Stilts.getVersion() + "<br />" );
                 out.println( "<b>STIL version:</b> "
                            + IOUtils.getResourceContents( StarTable.class,
-                                                          "stil.version" )
+                                                          "stil.version", null )
                            + "<br />" );
                 out.println( "<b>JVM:</b> " + InvokeUtils.getJavaVM() );
                 out.println( "</p>" );

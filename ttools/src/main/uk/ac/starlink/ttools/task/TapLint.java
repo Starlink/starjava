@@ -36,6 +36,7 @@ public class TapLint implements Task {
     private final StringMultiParameter stagesParam_;
     private final IntegerParameter repeatParam_;
     private final IntegerParameter truncParam_;
+    private final IntegerParameter maxtableParam_;
     private final BooleanParameter debugParam_;
     private final StringParameter reportParam_;
     private final Parameter[] params_;
@@ -163,6 +164,23 @@ public class TapLint implements Task {
         truncParam_.setIntDefault( 640 );
         paramList.add( truncParam_ );
 
+        maxtableParam_ = new IntegerParameter( "maxtable" );
+        maxtableParam_.setPrompt( "Maximum number of tables "
+                                + "tested individually" );
+        maxtableParam_.setDescription( new String[] {
+            "<p>Limits the number of tables from the service",
+            "that will be tested.",
+            "Currently, this only affects",
+            "stage <code>" + TapLinter.MDQ_NAME + "</code>.",
+            "If the value is left blank (the default),",
+            "or if it is larger than the number of tables actually",
+            "present in the service, it will have no effect.",
+            "</p>",
+        } );
+        maxtableParam_.setMinimum( 1 );
+        maxtableParam_.setNullPermitted( true );
+        paramList.add( maxtableParam_ );
+
         debugParam_ = new BooleanParameter( "debug" );
         debugParam_.setPrompt( "Emit debugging output?" );
         debugParam_.setDescription( new String[] {
@@ -201,6 +219,8 @@ public class TapLint implements Task {
         }
         ReportType[] types = typeList.toArray( new ReportType[ 0 ] );
         int maxRepeat = repeatParam_.intValue( env );;
+        Integer maxTablesObj = maxtableParam_.objectValue( env );
+        int maxTestTables = maxTablesObj == null ? -1 : maxTablesObj.intValue();
         boolean debug = debugParam_.booleanValue( env );
         int maxChar = truncParam_.intValue( env );
         Set<String> stageSet = new HashSet<String>();
@@ -219,6 +239,7 @@ public class TapLint implements Task {
         }
         Reporter reporter =
             new Reporter( out, types, maxRepeat, debug, maxChar );
-        return tapLinter_.createExecutable( reporter, serviceUrl, stageSet );
+        return tapLinter_.createExecutable( reporter, serviceUrl, stageSet,
+                                            maxTestTables );
     }
 }

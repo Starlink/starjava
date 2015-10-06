@@ -5,6 +5,12 @@
  *  History:
  *     13-SEP-2004 (Peter W. Draper):
  *       Original version.
+ *     2012 (Margarida Castro Neves)
+ * 	added getData support
+ *     2013
+ *      added DataLink support 
+ *     2015
+ *	removed getData	support
  */
 package uk.ac.starlink.splat.iface;
 
@@ -370,8 +376,6 @@ public class SpectrumIO
         protected SourceType sourceType;
         protected String idValue;
         protected String idSource;
-        protected String getDataRequest;
-        protected String getDataFormat;
         protected String dataLinkRequest;
         protected String dataLinkFormat;
 
@@ -420,8 +424,6 @@ public class SpectrumIO
             this.coordColumn = coordColumn;
             this.errorColumn = errorColumn;
             this.sourceType = sourceType;
-            this.getDataRequest=null;
-            this.getDataFormat=null; 
             this.dataLinkRequest=null;
             this.dataLinkFormat=null; 
             this.idValue=idValue;
@@ -434,11 +436,9 @@ public class SpectrumIO
             if (serverURL == null )
                 return spectrum;
             
-    //        if (pubdidValue != null && getDataRequest != null ) 
             if (idValue != null && dataLinkRequest != null && ! dataLinkRequest.isEmpty()) 
                 if ( serverURL.endsWith("?"))
                     try {
-                        //return (serverURL+"REQUEST=getData"+URLEncoder.encode(getDataRequest+"&PUBDID="+pubdidValue, "UTF-8"));
                         return (serverURL+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
                        // return (serverURL+"ID="+idValue+);
                     } catch (UnsupportedEncodingException e1) {
@@ -447,11 +447,9 @@ public class SpectrumIO
                     }
                 else
                     try {
-                 //      return (serverURL+"?REQUEST=getData"+getDataRequest+"&PUBDID="+pubdidValue);
                      
                         return (serverURL+ "?"+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
             
-                     //     return (serverURL+"?REQUEST=getData"+URLEncoder.encode(getDataRequest+"&PUBDID="+pubdidValue, "UTF-8"));
                     } catch (UnsupportedEncodingException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -473,21 +471,6 @@ public class SpectrumIO
         public void setType( int type )
         {
             this.type = type;
-        }
-        public void setGetDataFormat( String format )
-        {
-            if (format.contains("fits")) 
-                this.getDataFormat = "FITS";
-            else if (format.contains("votable")) 
-                this.getDataFormat = "XML";
-            else if (format.equalsIgnoreCase("text/plain")) 
-                this.getDataFormat = "TEXT";
-            else if (format.equalsIgnoreCase("text/cvs")) 
-                this.getDataFormat = "TEXT";
-        }
-        public String getGetDataFormat()
-        {
-            return getDataFormat;
         }
         public String getShortName()
         {
@@ -566,10 +549,6 @@ public class SpectrumIO
         {
             this.idValue = idValue; //!!!
         }
-        public String getGetDataRequest()
-        {
-            return getDataRequest;
-        }
 
         public void setDataLinkRequest( String dataLinkRequest )
         {
@@ -580,10 +559,6 @@ public class SpectrumIO
             return dataLinkRequest;
         }
 
-        public void setGetDataRequest( String getDataRequest )
-        {
-            this.getDataRequest = getDataRequest;
-        }
         public String getServerURL()
         {
             return serverURL;

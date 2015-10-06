@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -117,32 +118,29 @@ public class PlaneSurface implements Surface {
     }
 
     public boolean dataToGraphics( double[] dpos, boolean visibleOnly,
-                                   Point gp ) {
-        if ( dpos == null ) {
-            return false;
-        }
-        int gx = xAxis_.dataToGraphics( dpos[ 0 ] );
-        int gy = yAxis_.dataToGraphics( dpos[ 1 ] );
-        if ( visibleOnly &&
-             ( gx < gxlo_ || gx >= gxhi_ || gy < gylo_ || gy >= gyhi_ ) ) {
-            return false;
-        }
-        else {
+                                   Point2D.Double gp ) {
+        double gx = xAxis_.dataToGraphics( dpos[ 0 ] );
+        double gy = yAxis_.dataToGraphics( dpos[ 1 ] );
+        if ( ! visibleOnly ||
+             ( gx >= gxlo_ && gx < gxhi_ && gy >= gylo_ && gy < gyhi_ ) ) {
             gp.x = gx;
             gp.y = gy;
             return true;
         }
+        else {
+            return false;
+        }
     }
 
-    public boolean dataToGraphicsOffset( double[] dpos0, Point gpos0,
+    public boolean dataToGraphicsOffset( double[] dpos0, Point2D.Double gpos0,
                                          double[] dpos1, boolean visibleOnly,
-                                         Point gpos1 ) {
+                                         Point2D.Double gpos1 ) {
         return dataToGraphics( dpos1, visibleOnly, gpos1 );
     }
 
-    public double[] graphicsToData( Point gp, Iterable<double[]> dposIt ) {
-        return new double[] { xAxis_.graphicsToData( gp.x ),
-                              yAxis_.graphicsToData( gp.y ) };
+    public double[] graphicsToData( Point2D gp, Iterable<double[]> dposIt ) {
+        return new double[] { xAxis_.graphicsToData( gp.getX() ),
+                              yAxis_.graphicsToData( gp.getY() ) };
     }
 
     public String formatPosition( double[] dpos ) {
@@ -151,6 +149,10 @@ public class PlaneSurface implements Surface {
             .append( ", " )
             .append( formatPosition( yAxis_, dpos[ 1 ] ) )
             .toString();
+    }
+
+    public Captioner getCaptioner() {
+        return captioner_;
     }
 
     public void paintBackground( Graphics g ) {
@@ -162,14 +164,14 @@ public class PlaneSurface implements Surface {
             for ( int it = 0; it < xticks_.length; it++ ) {
                 Tick tick = xticks_[ it ];
                 if ( tick.getLabel() != null ) {
-                    int gx = xAxis_.dataToGraphics( tick.getValue() );
+                    int gx = (int) xAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gx, gylo_, gx, gyhi_ );
                 }
             }
             for ( int it = 0; it < yticks_.length; it++ ) {
                 Tick tick = yticks_[ it ];
                 if ( tick.getLabel() != null ) {
-                    int gy = yAxis_.dataToGraphics( tick.getValue() );
+                    int gy = (int) yAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gxlo_, gy, gxhi_, gy );
                 }
             }
@@ -222,6 +224,15 @@ public class PlaneSurface implements Surface {
     }
 
     /**
+     * Returns the axis objects used by this surface.
+     *
+     * @return  2-element array giving X,Y axis implementations
+     */
+    public Axis[] getAxes() {
+        return new Axis[] { xAxis_, yAxis_ };
+    }
+
+    /**
      * Returns a plot aspect representing a view of this surface zoomed
      * in some or all dimensions around the given central position.
      *
@@ -230,10 +241,10 @@ public class PlaneSurface implements Surface {
      * @param  yZoom  Y axis zoom factor
      * @return  new aspect
      */
-    PlaneAspect zoom( Point pos, double xZoom, double yZoom ) {
+    PlaneAspect zoom( Point2D pos, double xZoom, double yZoom ) {
         return new PlaneAspect(
-            xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ), xZoom ),
-            yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), yZoom ) );
+            xAxis_.dataZoom( xAxis_.graphicsToData( pos.getX() ), xZoom ),
+            yAxis_.dataZoom( yAxis_.graphicsToData( pos.getY() ), yZoom ) );
     }
 
     /**
@@ -247,14 +258,15 @@ public class PlaneSurface implements Surface {
      * @param   yFlag  true iff panning will operate in Y direction
      * @return  new aspect, or null
      */
-    PlaneAspect pan( Point pos0, Point pos1, boolean xFlag, boolean yFlag ) {
+    PlaneAspect pan( Point2D pos0, Point2D pos1,
+                     boolean xFlag, boolean yFlag ) {
         if ( xFlag || yFlag ) {
             return new PlaneAspect(
-                xFlag ? xAxis_.dataPan( xAxis_.graphicsToData( pos0.x ),
-                                        xAxis_.graphicsToData( pos1.x ) )
+                xFlag ? xAxis_.dataPan( xAxis_.graphicsToData( pos0.getX() ),
+                                        xAxis_.graphicsToData( pos1.getX() ) )
                       : new double[] { dxlo_, dxhi_ },
-                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.y ),
-                                        yAxis_.graphicsToData( pos1.y ) )
+                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.getY() ),
+                                        yAxis_.graphicsToData( pos1.getY() ) )
                       : new double[] { dylo_, dyhi_ } );
         }
         else {
@@ -271,10 +283,10 @@ public class PlaneSurface implements Surface {
      * @return  new aspect
      */
     PlaneAspect center( double[] dpos, boolean xFlag, boolean yFlag ) {
-        Point gp = new Point();
-        return dataToGraphics( dpos, false, gp )
-             ? pan( gp, new Point( ( gxlo_ + gxhi_ ) / 2,
-                                   ( gylo_ + gyhi_ ) / 2 ),
+        Point2D.Double gp = new Point2D.Double();
+        return dataToGraphics( dpos, false, gp ) && PlotUtil.isPointFinite( gp )
+             ? pan( gp, new Point2D.Double( ( gxlo_ + gxhi_ ) * 0.5,
+                                            ( gylo_ + gyhi_ ) * 0.5 ),
                     xFlag, yFlag )
              : null;
     }
@@ -480,7 +492,7 @@ public class PlaneSurface implements Surface {
      */
     public static String formatPosition( Axis axis, double dpos ) {
 
-        /* This could be implemented bettter.
+        /* This could be implemented better.
          * It would be better if the precision determination, and hence
          * the number of digits before and after the decimal point and
          * in the exponent, were determined by the axis (bounds and
@@ -490,29 +502,6 @@ public class PlaneSurface implements Surface {
         /* Work out pixel size in data coordinates by looking at the
          * data position of a point two pixels away. */
         double dp2 = axis.graphicsToData( axis.dataToGraphics( dpos ) + 2 );
-        double prec = Math.abs( dp2 - dpos ) / 2.;
-
-        /* Work out the number of significant figures. */
-        double aval = Math.abs( dpos );
-        int nsf =
-            Math.max( 0, (int) Math.round( -Math.log10( prec / aval ) ) );
-
-        /* Return a formatted string on this basis. */
-        if ( aval >= 1e6 || aval <= 1e-4 ) {
-            return PlotUtil.formatNumber( dpos, "0.#E0", nsf );
-        }
-        else if ( prec >= 0.9 ) {
-            return Long.toString( (long) Math.round( dpos ) );
-        }
-        else {
-            int ndp =
-                (int) Math.round( Math.max( 0, -Math.log10( prec ) ) );
-            if ( ndp == 0 ) {
-                return Long.toString( (long) Math.round( dpos ) );
-            }
-            else {
-                return PlotUtil.formatNumber( dpos, "0.0", ndp );
-            }
-        }
+        return PlotUtil.formatNumber( dpos, Math.abs( dp2 - dpos ) / 2. );
     }
 }

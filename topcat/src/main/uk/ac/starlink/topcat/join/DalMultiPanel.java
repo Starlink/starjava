@@ -65,6 +65,7 @@ import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.ParallelResultRowSequence;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -77,6 +78,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class DalMultiPanel extends JPanel {
 
     private final DalMultiService service_;
+    private final ContentCoding coding_;
     private final JProgressBar progBar_;
     private final JTextField urlField_;
     private final boolean hasCoverage_;
@@ -119,6 +121,7 @@ public class DalMultiPanel extends JPanel {
     public DalMultiPanel( DalMultiService service, JProgressBar progBar ) {
         super( new BorderLayout() );
         service_ = service;
+        coding_ = ContentCoding.GZIP;
         progBar_ = progBar;
         progBar.setStringPainted( true );
         JComponent main = Box.createVerticalBox();
@@ -622,13 +625,19 @@ public class DalMultiPanel extends JPanel {
         if ( decData == null ) {
             throw new NullPointerException( "No Dec column given" );
         }
+        if ( srData == null && ! service_.allowNullSize() ) {
+            throw new NullPointerException( "No "
+                                          + service_.getSizeInfo().getName()
+                                          + " column given" );
+        }
         Number parNum = parallelModel_.getNumber();
         int parallelism = parNum == null ? 1 : parNum.intValue();
         MulticoneMode mcMode = (MulticoneMode) modeSelector_.getSelectedItem();
         StarTableFactory tfact = ControlWindow.getInstance().getTableFactory();
 
         /* Assemble objects based on this information. */
-        ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
+        ConeSearcher searcher =
+            service_.createSearcher( serviceUrl, tfact, coding_ );
         Coverage coverage = coverageModel_.isSelected()
                           ? service_.getCoverage( serviceUrl )
                           : null;

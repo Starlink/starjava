@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
 import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
 import uk.ac.starlink.vo.ConeSearch;
@@ -98,14 +99,20 @@ public class ConeMultiWindow extends DalMultiWindow {
             sizeSelector.setStringValue( "1.0" );
         }
 
+        public boolean allowNullSize() {
+            return false;
+        }
+
         public JComponent getControlPanel() {
             return controlBox_;
         }
 
-        public ConeSearcher createSearcher( URL url, StarTableFactory tfact ) {
+        public ConeSearcher createSearcher( URL url, StarTableFactory tfact,
+                                            ContentCoding coding ) {
             int verb = ((ConeVerbosity) verbSelector_.getSelectedItem())
                       .getLevel();
-            return new ServiceConeSearcher( new ConeSearch( url.toString() ),
+            return new ServiceConeSearcher( new ConeSearch( url.toString(),
+                                                            coding ),
                                             verb, false, tfact );
         }
 

@@ -4,19 +4,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Map;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.ComboBoxModel;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -34,6 +37,8 @@ public class BasicCoordLayerControl extends ConfigControl
     private final PositionCoordPanel coordPanel_;
     private final JComboBox subsetSelector_;
     private final ComboBoxModel dummyComboBoxModel_;
+    private final ReportLogger reportLogger_;
+    private final ConfigStyler styler_;
     private TopcatModel tcModel_;
 
     /**
@@ -48,6 +53,8 @@ public class BasicCoordLayerControl extends ConfigControl
         super( null, plotter.getPlotterIcon() );
         plotter_ = plotter;
         coordPanel_ = coordPanel;
+        reportLogger_ = new ReportLogger( this );
+        styler_ = new ConfigStyler( coordPanel_.getComponent() );
 
         /* Create data selection components. */
         tableSelector_ = new TablesListComboBox();
@@ -101,7 +108,8 @@ public class BasicCoordLayerControl extends ConfigControl
         DataGeom geom = coordPanel_.getDataGeom();
         DataSpec dataSpec = new GuiDataSpec( tcModel_, subset, coordContents );
         ConfigMap config = getConfig();
-        PlotLayer layer = createLayer( plotter_, geom, dataSpec, config );
+        PlotLayer layer =
+            styler_.createLayer( plotter_, geom, dataSpec, config );
         return layer == null ? new PlotLayer[ 0 ] : new PlotLayer[] { layer };
     }
 
@@ -112,6 +120,20 @@ public class BasicCoordLayerControl extends ConfigControl
 
     public LegendEntry[] getLegendEntries() {
         return new LegendEntry[ 0 ];
+    }
+
+    public void submitReports( Map<LayerId,ReportMap> reports ) {
+        PlotLayer[] layers = getPlotLayers();
+        PlotLayer layer = layers.length == 1 ? layers[ 0 ] : null;
+        if ( layer != null ) {
+            ReportMap report = reports.get( LayerId.createLayerId( layer ) );
+            if ( report != null ) {
+                for ( Specifier<ConfigMap> cspec : getConfigSpecifiers() ) {
+                    cspec.submitReport( report );
+                }
+            }
+        }
+        reportLogger_.submitReports( reports );
     }
 
     /**
@@ -153,20 +175,5 @@ public class BasicCoordLayerControl extends ConfigControl
             subselModel.setSelectedItem( RowSubset.ALL );
         }
         subsetSelector_.setModel( subselModel );
-    }
-
-    /**
-     * Creates a new layer from a plotter.
-     *
-     * @param  plotter  plotter
-     * @param  geom  data geom
-     * @param  dataSpec   data spec
-     * @param  config   style configuration
-     */
-    private static <S extends Style>
-            PlotLayer createLayer( Plotter<S> plotter, DataGeom geom,
-                                   DataSpec dataSpec, ConfigMap config ) {
-        S style = plotter.createStyle( config );
-        return plotter.createLayer( geom, dataSpec, style );
     }
 }

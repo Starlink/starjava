@@ -1,355 +1,110 @@
- \documentclass[twoside,11pt]{article}
+\documentclass[twoside,11pt,nolof]{starlink}
+\usepackage{animate}
 
-% ? Specify used packages
-\usepackage{graphicx}        %  Use this one for final production.
-% \usepackage[draft]{graphicx} %  Use this one for drafting.
-% ? End of specify used packages
-
-% Nice fonts -- during development.
-%\usepackage{fancyhdr}
-%\usepackage[latin1]{inputenc}
-%\usepackage{ae}
-%\usepackage{cmbright}
-
-\pagestyle{myheadings}
-\raggedbottom
 
 % -----------------------------------------------------------------------------
 % ? Document identification
 % Fixed part
-\newcommand{\stardoccategory}  {Starlink User Note}
-\newcommand{\stardocinitials}  {SUN}
-\newcommand{\stardocsource}    {sun\stardocnumber}
-\newcommand{\stardoccopyright}
+\stardoccategory    {Starlink User Note}
+\stardocinitials    {SUN}
+\stardocsource      {sun\stardocnumber}
+\stardoccopyright
 {Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the Research Councils \\
-Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council\\
-Copyright \copyright\ 2007-2009 Science and Technology Facilities Council\\
-Copyright \copyright\ 2010-2013 Peter W. Draper\\
-Copyright \copyright\ 2013 German Astrophysical Virtual Observatory (GAVO)
-}
-
-% Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.41}
-\newcommand{\stardocauthors}   {Peter W. Draper, Mark Taylor \& Margarida Castro Neves}
-\newcommand{\stardocdate}      {30 Jan 2013}
-\newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.10-0}
-\newcommand{\stardocmanual}    {User's Manual}
-\newcommand{\stardocabstract}  {
+ Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council \\
+ Copyright \copyright\ 2007-2009 Science and Technology Facilities Council \\
+ Copyright \copyright\ 2010-2015 Peter W. Draper \\
+ Copyright \copyright\ 2013 German Astrophysical Virtual Observatory (GAVO)}
+\stardocnumber      {243.42}
+\stardocauthors     {Peter W. Draper, Mark Taylor \& Margarida Castro Neves}
+\stardocdate        {1 May 2015}
+\stardoctitle       {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
+\stardocversion     {3.11-0}
+\stardocmanual      {User's Manual}
+\stardocabstract {
+\xlabel{abstract}
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
 spectra that can also interact with the Virtual Observatory.
 }
-% ? End of document identification
+\stardocname  {\stardocinitials /\stardocnumber}
 % -----------------------------------------------------------------------------
-
-% +
-%  Name:
-%     sun.tex
-%
-%  Purpose:
-%     Template for Starlink User Note (SUN) documents.
-%     Refer to SUN/199
-%
-%  Authors:
-%     AJC: A.J.Chipperfield (Starlink, RAL)
-%     BLY: M.J.Bly (Starlink, RAL)
-%     PWD: Peter W. Draper (Starlink, Durham University)
-%
-%  History:
-%     17-JAN-1996 (AJC):
-%        Original with hypertext macros, based on MDL plain originals.
-%     16-JUN-1997 (BLY):
-%        Adapted for LaTeX2e.
-%        Added picture commands.
-%     13-AUG-1998 (PWD):
-%        Converted for use with LaTeX2HTML version 98.2 and
-%        Star2HTML version 1.3.
-%      1-FEB-2000 (AJC):
-%        Add Copyright statement in LaTeX
-%     {Add further history here}
-%
-% -
-
-\newcommand{\stardocname}{\stardocinitials /\stardocnumber}
-\markboth{\stardocname}{\stardocname}
-\setlength{\textwidth}{160mm}
-\setlength{\textheight}{230mm}
-\setlength{\topmargin}{-2mm}
-\setlength{\oddsidemargin}{0mm}
-\setlength{\evensidemargin}{0mm}
-\setlength{\parindent}{0mm}
-\setlength{\parskip}{\medskipamount}
-\setlength{\unitlength}{1mm}
-
-% -----------------------------------------------------------------------------
-%  Hypertext definitions.
-%  ======================
-%  These are used by the LaTeX2HTML translator in conjunction with star2html.
-
-%  Comment.sty: version 2.0, 19 June 1992
-%  Selectively in/exclude pieces of text.
-%
-%  Author
-%    Victor Eijkhout                                      <eijkhout@cs.utk.edu>
-%    Department of Computer Science
-%    University Tennessee at Knoxville
-%    104 Ayres Hall
-%    Knoxville, TN 37996
-%    USA
-
-%  Do not remove the %begin{latexonly} and %end{latexonly} lines (used by
-%  LaTeX2HTML to signify text it shouldn't process).
-%begin{latexonly}
-\makeatletter
-\def\makeinnocent#1{\catcode`#1=12 }
-\def\csarg#1#2{\expandafter#1\csname#2\endcsname}
-
-\def\ThrowAwayComment#1{\begingroup
-    \def\CurrentComment{#1}%
-    \let\do\makeinnocent \dospecials
-    \makeinnocent\^^L% and whatever other special cases
-    \endlinechar`\^^M \catcode`\^^M=12 \xComment}
-{\catcode`\^^M=12 \endlinechar=-1 %
- \gdef\xComment#1^^M{\def\test{#1}
-      \csarg\ifx{PlainEnd\CurrentComment Test}\test
-          \let\html@next\endgroup
-      \else \csarg\ifx{LaLaEnd\CurrentComment Test}\test
-            \edef\html@next{\endgroup\noexpand\end{\CurrentComment}}
-      \else \let\html@next\xComment
-      \fi \fi \html@next}
-}
-\makeatother
-
-\def\includecomment
- #1{\expandafter\def\csname#1\endcsname{}%
-    \expandafter\def\csname end#1\endcsname{}}
-\def\excludecomment
- #1{\expandafter\def\csname#1\endcsname{\ThrowAwayComment{#1}}%
-    {\escapechar=-1\relax
-     \csarg\xdef{PlainEnd#1Test}{\string\\end#1}%
-     \csarg\xdef{LaLaEnd#1Test}{\string\\end\string\{#1\string\}}%
-    }}
-
-%  Define environments that ignore their contents.
-\excludecomment{comment}
-\excludecomment{rawhtml}
-\excludecomment{htmlonly}
-
-%  Hypertext commands etc. This is a condensed version of the html.sty
-%  file supplied with LaTeX2HTML by: Nikos Drakos <nikos@cbl.leeds.ac.uk> &
-%  Jelle van Zeijl <jvzeijl@isou17.estec.esa.nl>. The LaTeX2HTML documentation
-%  should be consulted about all commands (and the environments defined above)
-%  except \xref and \xlabel which are Starlink specific.
-
-\newcommand{\htmladdnormallinkfoot}[2]{#1\footnote{#2}}
-\newcommand{\htmladdnormallink}[2]{#1}
-\newcommand{\htmladdimg}[1]{}
-\newcommand{\hyperref}[4]{#2\ref{#4}#3}
-\newcommand{\htmlref}[2]{#1}
-\newcommand{\htmlimage}[1]{}
-\newcommand{\htmladdtonavigation}[1]{}
-
-\newenvironment{latexonly}{}{}
-\newcommand{\latex}[1]{#1}
-\newcommand{\html}[1]{}
-\newcommand{\latexhtml}[2]{#1}
-\newcommand{\HTMLcode}[2][]{}
-
-%  Starlink cross-references and labels.
-\newcommand{\xref}[3]{#1}
-\newcommand{\xlabel}[1]{}
-
-%  LaTeX2HTML symbol.
-\newcommand{\latextohtml}{\LaTeX2\texttt{HTML}}
-
-%  Define command to re-centre underscore for Latex and leave as normal
-%  for HTML (severe problems with \_ in tabbing environments and \_\_
-%  generally otherwise).
-\renewcommand{\_}{\texttt{\symbol{95}}}
-
-% -----------------------------------------------------------------------------
-%  Debugging.
-%  =========
-%  Remove % on the following to debug links in the HTML version using Latex.
-
-% \newcommand{\hotlink}[2]{\fbox{\begin{tabular}[t]{@{}c@{}}#1\\\hline{\footnotesize #2}\end{tabular}}}
-% \renewcommand{\htmladdnormallinkfoot}[2]{\hotlink{#1}{#2}}
-% \renewcommand{\htmladdnormallink}[2]{\hotlink{#1}{#2}}
-% \renewcommand{\hyperref}[4]{\hotlink{#1}{\S\ref{#4}}}
-% \renewcommand{\htmlref}[2]{\hotlink{#1}{\S\ref{#2}}}
-% \renewcommand{\xref}[3]{\hotlink{#1}{#2 -- #3}}
-%end{latexonly}
-% -----------------------------------------------------------------------------
-% ? Document specific \newcommand or \newenvironment commands.
+% Document specific \providecommand or \newenvironment commands.
 
 % SPLAT.
-\newcommand{\SPLAT}{\textsf{SPLAT-VO}}
+\providecommand{\SPLAT}{\textsf{SPLAT-VO}}
 
-% Major graphic (like a screen shot). Needs ".gif" and ".eps" forms.
-% \latexhtml{\includegraphics[width=4.5in]{#1.eps}}{\htmladdimg{#1.gif}}
-\newcommand{\mainfigure}[1]
+
+%%Image stuff picks up .gifs in html format, which are in a different
+%%directory.
+
+
+% Major graphic (like a screen shot).
+\providecommand{\mainfigure}[1]
 {\begin{center}
- \latexhtml{\includegraphics[scale=0.5]{sun243_figures/#1}}{\htmladdimg{#1.gif}}
+    \ifpdf
+    \includegraphics[width=4.5in]{sun243_figures/#1}
+    \else
+    \includegraphics{#1}
+    \fi
  \end{center}
 }
 
-\newcommand{\clippedmainfigure}[1]
-{\begin{center}
- \latexhtml{\includegraphics[scale=0.5,clip=true]{sun243_figures/#1}}{\htmladdimg{#1.gif}}
- \end{center}
+\providecommand{\clippedmainfigure}[1]
+{\begin{quote}
+    \ifpdf
+    \includegraphics[scale=0.5,clip=true]{sun243_figures/#1.eps}
+    \else
+    \includegraphics{#1}
+    \fi
+ \end{quote}
 }
 
 % Inline a graphic (like an icon). Needs ".gif" and ".eps" forms.
-\newcommand{\inline}[1]
-        {\latexhtml{\includegraphics[scale=0.5]{sun243_figures/#1}}
-        {\htmladdimg[align=center]{#1.gif}}}
+
+\providecommand{\inline}[1]
+        {\ifpdf
+          \includegraphics[scale=0.5]{sun243_figures/#1}
+          \else
+          \includegraphics[scale=0.5]{#1}
+          \fi
+        }
 
 % UI elements.
-\newcommand{\menuitem}[1]{\textbf{#1}}
+\renewcommand{\menuitem}[1]{\textbf{#1}}
 \newcommand{\submenuitem}[2]{\latexhtml{\textbf{#1$\rightarrow$#2}}{\textbf{#1->#2}}}
 \newcommand{\subsubmenuitem}[3]{\latexhtml{\textbf{#1$\rightarrow$#2$\rightarrow$#3}}{\textbf{#1->#2->#3}}}
 \newcommand{\labelitem}[1]{\textbf{#1}}
 
 % typed text.
-\newcommand{\hitext}[1]{\texttt{#1}}
+\providecommand{\hitext}[1]{\texttt{#1}}
 
 % i.e.
-\newcommand{\ie}{\textit{i.e.}}
+\providecommand{\ie}{\textit{i.e.}}
 
 % e.g..
-\newcommand{\eg}{\textit{e.g.}}
+\providecommand{\eg}{\textit{e.g.}}
 
 % etc.
-\newcommand{\etc}{\textit{etc.}}
+\providecommand{\etc}{\textit{etc.}}
 
 % Heading for a paragraph section.
-\newcommand{\subheading}[1]{\textbf{\large{#1}}}
+\providecommand{\subheading}[1]{\textbf{\large{#1}}}
 
-% ? End of document specific commands
+% End of document specific commands
 % -----------------------------------------------------------------------------
-%  Title Page.
-%  ===========
-\renewcommand{\thepage}{\roman{page}}
+
 \begin{document}
-\thispagestyle{empty}
 
-%  Latex document header.
-%  ======================
-\begin{latexonly}
-   CCLRC / Rutherford Appleton Laboratory \hfill \textbf{\stardocname}\\
-   {\large Particle Physics \& Astronomy Research Council}\\
-   {\large Starlink Project\\}
-   {\large \stardoccategory\ \stardocnumber}
-   \begin{flushright}
-   \stardocauthors\\
-   \stardocdate
-   \end{flushright}
-   \vspace{-4mm}
-   \rule{\textwidth}{0.5mm}
-   \vspace{5mm}
-   \begin{center}
-      {\LARGE\textbf{\stardoctitle \\ [2.5ex]}}
-   \end{center}
-   \vspace{5mm}
+% In html version, use gif as higher priority than png in order to
+% embed an animated gif.
+\ifpdf
+ \typeout{...pdf version cannot use gif images...}
+\else
+ \typeout{...html version uses gif images ahead of png...}
+ \DeclareGraphicsExtensions{.pdf,.gif,.png,.jpg,.jpeg}
+\fi
 
-% ? Add picture here if required for the LaTeX version.
-\begin{center}
-\includegraphics[scale=0.4]{sun243_figures/frontfigure}
-\end{center}
-% ? End of picture
 
-% ? Heading for abstract if used.
-   %\vspace{10mm}
-   \begin{center}
-      {\Large\textbf{Abstract}}
-   \end{center}
-% ? End of heading for abstract.
-\end{latexonly}
-
-%  HTML documentation header.
-%  ==========================
-\begin{htmlonly}
-   \xlabel{}
-   \begin{rawhtml} <H1 ALIGN=CENTER> <FONT COLOR="#000099">\end{rawhtml}
-      \stardoctitle
-   \begin{rawhtml} </FONT></H1> \end{rawhtml}
-
-% ? Add picture here if required for the hypertext version.
-   \begin{center}
-      \htmladdimg{frontfigure.jpg}
-   \end{center}
-% ? End of picture
-
-   \begin{rawhtml} <P> <I> \end{rawhtml}
-   \stardoccategory\ \stardocnumber \\
-   \stardocauthors \\
-   \stardocdate
-   \begin{rawhtml} </I> </P> <H3> \end{rawhtml}
-      \htmladdnormallink{CCLRC / Rutherford Appleton Laboratory}
-                        {http://www.scitech.ac.uk} \\
-      \htmladdnormallink{Particle Physics \& Astronomy Research Council}
-                        {http://www.scitech.ac.uk} \\
-   \begin{rawhtml} </H3> <H2> \end{rawhtml}
-      \htmladdnormallink{Starlink Project}{http://www.starlink.rl.ac.uk/}
-   \begin{rawhtml} </H2> \end{rawhtml}
-%   \htmladdnormallink{\htmladdimg{source.gif} Retrieve hardcopy}
-%      {http://www.starlink.rl.ac.uk/cgi-bin/hcserver?\stardocsource}\\
-   \htmladdnormallink{\htmladdimg{source.gif} Retrieve hardcopy}
-      {http://star-www.dur.ac.uk/~pdraper/splat/splat-vo/sun243.ps}\\
-
-%  HTML document table of contents.
-%  ================================
-%  Add table of contents header and a navigation button to return to this
-%  point in the document (this should always go before the abstract \section).
-  \label{stardoccontents}
-  \begin{rawhtml}
-    <HR>
-    <H2>Contents</H2>
-  \end{rawhtml}
-  \htmladdtonavigation{\htmlref{\htmladdimg{contents_motif.gif}}
-        {stardoccontents}}
-
-% ? New section for abstract if used.
-  \section{\xlabel{abstract}Abstract}
-% ? End of new section for abstract
-\end{htmlonly}
-
-% -----------------------------------------------------------------------------
-% ? Document Abstract. (if used)
-%  ==================
-\begin{center}
-\stardocabstract
-\end{center}
-% ? End of document abstract
-
-% -----------------------------------------------------------------------------
-% ? Latex Copyright Statement
-%  =========================
-\begin{latexonly}
-\newpage
-\vspace*{\fill}
-\stardoccopyright
-\end{latexonly}
-% ? End of Latex copyright statement
-
-% -----------------------------------------------------------------------------
-% ? Latex document Table of Contents (if used).
-%  ===========================================
-\newpage
-\begin{latexonly}
-  \setlength{\parskip}{0mm}
-  \tableofcontents
-  \setlength{\parskip}{\medskipamount}
-  \markboth{\stardocname}{\stardocname}
-\end{latexonly}
-% ? End of Latex document table of contents
-% -----------------------------------------------------------------------------
-
-\cleardoublepage
-\renewcommand{\thepage}{\arabic{page}}
-\setcounter{page}{1}
-
-% ? Main text
+\scfrontmatter
 
 \section{Overview\xlabel{overview}}
 
@@ -405,9 +160,9 @@ the SAMP protocol.
 If you have any problems with \SPLAT\, then send these to the Starlink user
 support email list at:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
    starlink@jiscmail.ac.uk
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 where hopefully someone can help you.
 
@@ -418,13 +173,13 @@ how to display many spectra. If you're new to \SPLAT\ then do take the
 time to read these through and try out the example commands.
 
 \newpage
-\subsection{Displaying a spectrum}
+\subsection{Displaying a spectrum\xlabel{displaying_a_spectrum}}
 
 To start \SPLAT\ you should just need to type the command:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
   % splat &
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 This assumes that you have \SPLAT\ installed on your system as part of a
 standard Starlink installation. If not then you'll need follow any
@@ -458,9 +213,9 @@ window. Just navigate to your spectrum, select it, and press
 Alternatively you could have supplied the spectrum you want to use on
 the command-line:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
   % splat <spectrum_file> &
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 Which will read the spectrum stored in the named file. \SPLAT\ will read
 spectra stored in most astronomical formats (Starlink NDF, FITS spectra and
@@ -500,7 +255,7 @@ performing the same operation again (\ie\ double click on the
 spectrum name).
 
 \newpage
-\subsection{Displaying more than one spectrum\xlabel{displaying_more_than_one_spectrum}}
+\subsection{Displaying more than one spectrum\label{displaying_more_than_one_spectrum}\xlabel{displaying_more_than_one_spectrum}}
 
 Displaying many spectra at the same time isn't much more difficult
 than the single spectrum case. Just open up several spectra by giving
@@ -1659,16 +1414,19 @@ images that you could combine into a movie of some kind.
  You'll then need to find some software to convert these into a movie.
  The ImageMagick \hitext{convert} command (when suitably configured)
  will convert these files into an MPEG or animated GIF.
- \latexhtml{For reference the image in the on-line version of this
- document was created with the command:}{The image below was created
- with the command (note that the images were also scaled):}
- \begin{quote}
- \begin{verbatim}
+ The image below was created with the command (note that the images were also
+ scaled -- view the html documentation or the pdf documentation in a viewer
+ that supports animation such as Adobe Reader to see the animation.):
+\begin{terminalv}
   % convert -delay 50 -loop 0 SPLAT0.jpg SPLAT1.jpg SPLAT2.jpg \
        splatmovie.gif
- \end{verbatim}
- \end{quote}
- \htmladdimg{splatmovie.gif}
+\end{terminalv}
+
+\ifpdf
+\animategraphics[loop,autoplay]{10}{sun243_figures/splatmovie-}{0}{2}
+\else
+\inline{splatmovie}
+\fi
 \end{quote}
 
 \subheading{Accelerator keys}
@@ -1680,7 +1438,7 @@ images that you could combine into a movie of some kind.
 \end{itemize}
 
 \newpage
-\subsection{The view and modify spectral values window}
+\subsection{The view and modify spectral values window\xlabel{view_modify_window}}
 
 The purpose of this window is to allow you to see the actual data
 values of a spectrum and to make modifications to them.
@@ -1809,7 +1567,7 @@ plots of the spectrum.
 \end{itemize}
 
 \newpage
-\subsection{The spectral coordinate system attributes window}
+\subsection{The spectral coordinate system attributes window\xlabel{spectral_coords_window}}
 
 This window allows you to define the coordinate systems that describe your
 spectra. The most trivial use of these is simply to document what type of
@@ -1891,7 +1649,7 @@ documentation (\xref{SUN/211}{sun211}{ss_specframes}).
 \end{itemize}
 
 \newpage
-\subsection{The data units window}
+\subsection{The data units window\xlabel{data_units_window}}
 
 This window allows you to inspect, set or convert the units of the data values
 of your spectra.
@@ -2099,7 +1857,7 @@ time  & min & minute & 60 s \\
 
 
 \newpage
-\subsection{The simple binary maths window}
+\subsection{The simple binary maths window\xlabel{binary_maths_window}}
 
 \mainfigure{binarymathwindow}
 
@@ -2140,7 +1898,7 @@ quick qualitative arithmetic between real spectra. Artificial spectra
 
 
 \newpage
-\subsection{The simple constant maths window}
+\subsection{The simple constant maths window\xlabel{unary_maths_window}}
 
 \mainfigure{unarymathwindow}
 
@@ -2170,7 +1928,7 @@ is created on the global list.
 \end{itemize}
 
 \newpage
-\subsection{The panner window}
+\subsection{The panner window\xlabel{panner_window}}
 
 \mainfigure{pannerwindow}
 
@@ -2214,7 +1972,7 @@ The following mouse interactions are provided:
 \end{itemize}
 
 \newpage
-\subsection{The plot configuration window}
+\subsection{The plot configuration window\xlabel{config_window}}
 
 This window provides a series of paged controls for configuring the
 plot display area. This help section describes each page in
@@ -2242,7 +2000,7 @@ be in a valid state until you've entered the complete coordinate value).
 
 
 \newpage
-\subsubsection*{Axis Data Limits:}
+\subsubsection*{Axis Data Limits:\xlabel{config_window_limits}}
 
 \mainfigure{configurewindowlimits}
 
@@ -2272,7 +2030,7 @@ those of the visible part of the display area. This is useful to just
 show coordinate axes for what you can see.
 
 \newpage
-\subsubsection*{Title Properties:}
+\subsubsection*{Title Properties:\xlabel{config_window_title}}
 
 \mainfigure{configurewindowtitle}
 
@@ -2302,7 +2060,7 @@ Escape sequences, for instance:
 \end{quote}
 
 \newpage
-\subsubsection*{Axis Label Properties:}
+\subsubsection*{Axis Label Properties:\xlabel{config_window_axis_labels}}
 
 \mainfigure{configurewindowaxislabels}
 
@@ -2317,7 +2075,7 @@ As with the title you can insert any characters from the font, and use
 sub-scripting.
 
 \newpage
-\subsubsection*{Axis Numbers:}
+\subsubsection*{Axis Numbers:\xlabel{config_window_axis_numbers}}
 
 \mainfigure{configurewindowaxisnumbers}
 
@@ -2340,7 +2098,7 @@ ticks, so it may be necessary to increase this value when configuring
 the major tick separation.
 
 \newpage
-\subsubsection*{Axes:}
+\subsubsection*{Axes:\xlabel{config_window_axes}}
 
 \mainfigure{configurewindowaxes}
 
@@ -2354,7 +2112,7 @@ The \labelitem{Log X:} and \labelitem{Log Y:} options are the same as those
 shown in the \labelitem{Limits} pane.
 
 \newpage
-\subsubsection*{Grid Line Properties:}
+\subsubsection*{Grid Line Properties:\xlabel{config_window_grid}}
 
 \mainfigure{configurewindowgrid}
 
@@ -2363,7 +2121,7 @@ or not (not by default). Grid lines are drawn between the major
 ticks. You can also set the thickness, style and colour of the grid lines.
 
 \newpage
-\subsubsection*{Border Line Properties:}
+\subsubsection*{Border Line Properties:\xlabel{config_window_border}}
 
 \mainfigure{configurewindowborder}
 
@@ -2372,7 +2130,7 @@ or not. Border lines are drawn at the data limits of the plot. You can
 also set the thickness, style and colour of the border lines.
 
 \newpage
-\subsubsection*{Tick Properties:}
+\subsubsection*{Tick Properties:\xlabel{config_window_ticks}}
 
 \mainfigure{configurewindowticks}
 
@@ -2403,7 +2161,7 @@ wanted ticks every factor of $10^2$ you'd use $2$.
 This window has no uses in \SPLAT.
 
 \newpage
-\subsubsection*{Graphics Rendering Hints:}
+\subsubsection*{Graphics Rendering Hints:\xlabel{config_window_render}}
 
 \mainfigure{configurewindowrender}
 
@@ -2422,7 +2180,7 @@ a significant performance degradation (so the default is switched off
 for spectra).
 
 \newpage
-\subsubsection*{Edge Drawing Properties:}
+\subsubsection*{Edge Drawing Properties:\xlabel{config_window_edge}}
 
 \mainfigure{configurewindowedges}
 
@@ -2434,7 +2192,7 @@ outside the bounds of the data limits (this is not normally the case,
 unless you've defined data limits of your own).
 
 \newpage
-\subsubsection*{Plot background:}
+\subsubsection*{Plot background:\xlabel{config_window_background}}
 
 \mainfigure{configurewindowbackground}
 
@@ -2442,7 +2200,7 @@ Use this page to select a colour for the background of the plot
 display area.
 
 \newpage
-\subsubsection*{Save or Restore Plot Configurations}
+\subsubsection*{Save or Restore Plot Configurations\xlabel{ave_window}}
 
 \mainfigure{restorewindow}
 
@@ -2469,7 +2227,7 @@ To restore a configuration just select it and press the
 then try deleting this file.
 
 \newpage
-\subsection{The region extraction window}
+\subsection{The region extraction window\xlabel{cutter_window}}
 
 This window is used to cut out or remove sections from the current
 spectrum. The sections are defined as a series of graphics ranges that
@@ -2546,7 +2304,7 @@ result of interpolation. To go back from this change use the
 
 
 \newpage
-\subsection{The polynomial fitting window}
+\subsection{The polynomial fitting window\xlabel{poly_window}}
 
 The polynomial fitting window allows you to fit a polynomial of selected
 degree to various selected ranges of the current spectrum. You can select to
@@ -2692,7 +2450,7 @@ Effectively undoes a \labelitem{Fit (Replace)}.
 
 
 \newpage
-\subsection{The generate spectra from interpolated lines window}
+\subsection{The generate spectra from interpolated lines window\xlabel{interp_window}}
 
 \mainfigure{generateline}
 
@@ -2749,7 +2507,7 @@ Effectively undoes a \labelitem{Generate (Replace)}.
 
 
 \newpage
-\subsection{The spectral line fitting window}
+\subsection{The spectral line fitting window\xlabel{fit_window}}
 
 The spectral line fitting window allows you to measure the wavelength
 and equivalent width of emission or absorption lines and to fit
@@ -2958,7 +2716,7 @@ hash (\#) and are ignored.
  \end{itemize}
 \end{quote}
 
-\subsubsection{Saving the results}
+\subsubsection{Saving the results\xlabel{fit_save_window}}
 \begin{quote}
  The measurements, as shown in the \labelitem{Spectral fitting
  results:} table can be written out to a text file. Just select the
@@ -2967,7 +2725,7 @@ hash (\#) and are ignored.
  very simple, as shown by the following example (long lines are wrapped
  for presentation):
  \begin{quote}
-  \begin{verbatim}
+  \begin{terminalv}
 
 # File created by Starlink SPLAT-VO
 
@@ -2993,7 +2751,7 @@ hash (\#) and are ignored.
 0 0.5308469 0.0120453 4101.668 0.05545499 0.6207013 0.7700358 11.48657 0.3663733
 11.68279 0.4136257 9.687501 0.1166889 0.009053993
 
-  \end{verbatim}
+  \end{terminalv}
  \end{quote}
  So each fit type has a section in which the results for each line are
  shown. Lines are uniquely identified by their \hitext{ID} value.
@@ -3016,7 +2774,7 @@ hash (\#) and are ignored.
 
 
 \newpage
-\subsection{The filter spectrum window}
+\subsection{The filter spectrum window\xlabel{filter_window}}
 
 This window provides the ability to filter the current spectrum
 displayed in a plot.
@@ -3088,7 +2846,7 @@ Effectively undoes the first \labelitem{Filter (Replace)}, since the last
 
 
 \newpage
-\subsection{Quick change of coordinate or data units window}
+\subsection{Quick change of coordinate or data units window\xlabel{change_units_window}}
 
 This window allows you to change the coordinate or data units of the current
 spectrum to a limited number of preset values. You can only change units when
@@ -3159,7 +2917,7 @@ coordinates and/or data units to new ones.
 
 
 \newpage
-\subsection{Flip or shift or redshift a spectrum}
+\subsection{Flip or shift or redshift a spectrum\xlabel{flipper_window}}
 
 This window allows you to do three related jobs.
 \begin{itemize}
@@ -3211,31 +2969,31 @@ label is missing it is set to the wavelength). Very short examples of the
 three types follow:
 
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
  6562.8170
  6583.6000
  6716.4700
  6730.8500
  ...
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
  6562.8170 spectrum1.fits
  6562.8170 spectrum2.fits
  6562.8170 spectrum3.fits
  6562.8170 spectrum4.fits
  ...
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
  6562.8170 HALPHA    spectrum1.fits
  6583.6000 [NII]     spectrum1.fits
  6716.4700 [SII]6717 spectrum2.fits
  6730.8500 [SII]6731 spectrum3.fits
  ...
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 
 Visitor lists are a type of line identifier spectrum, so can have fully
@@ -3294,7 +3052,7 @@ both these areas are written the file \hitext{SPEFO.log} by pressing the
 
 
 \newpage
-\subsection{Region statistics window}
+\subsection{Region statistics window\xlabel{stats_window}}
 
 Using this window you can get simple constantly updated statistics on regions
 of the current spectrum, or fuller statistics for the whole spectrum, or
@@ -3417,7 +3175,7 @@ button.
 \end{itemize}
 
 \newpage
-\subsection{Display stacked spectra}
+\subsection{Display stacked spectra\xlabel{stacker_window}}
 
 \mainfigure{stackerwindow}
 
@@ -3490,7 +3248,7 @@ You can specify a type for all the spectra opened on the command-line using
 the
 \verb|--type| argument. Valid values for \verb|--type| are:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
   fits
   hds
   text
@@ -3498,7 +3256,7 @@ the
   table
   line ids
   guess
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 You free to truncate these values as long as they remain unique (so
 \verb|--type line| will work for line identifiers).
@@ -3511,9 +3269,9 @@ columns of data, separated by whitespace (that is spaces or tabs). Any
 comments in the file must be indicated by a hash sign, blank lines are also
 allowed. The three columns should have the following values:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
   [wavelength] count [error-in-count]
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 The wavelength and error columns being optional (if you don't have a
 wavelength column a simple row index is used, note you cannot have errors
@@ -3590,15 +3348,15 @@ or choose options in the open file dialogue. A command line that uses axis 3 as
 the dispersion axis and steps along axis 2 when choosing image planes might
 look like:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
   % splat --ndaction collapse --dispax 3 --selectax 2 <spectral_cube> &
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 or in shorthand:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
   % splat -n c -d 3 -s 2 <spectral_cube> &
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 If you don't choose a dispersion axis \SPLAT\ will make a good intelligent
 guess about this and step along the first axis that isn't the dispersion axis.
@@ -3606,42 +3364,7 @@ The other possible values for \hitext{ndaction} are \hitext{extract} and
 \hitext{vectorize}. These are described as \hitext{extract all spectra}
 and \hitext{open whole as 1D}, respectively, in the open file dialogue.
 
-%%%% Removed for the moment, may all be changing a lot soon.
-%
-%\section{Extending \SPLAT}
-
-%\SPLAT\ is written in Java (with some JNI interface code to access the
-%Starink NDF and AST libraries) and has a scripting component called
-%\htmladdnormallinkfoot{BeanShell}{http://www.beanshell.org}
-%embedded in it. This provides two useful resources, the ability to
-%extend \SPLAT\ dynamically and to make it respond to remote
-%control commands.
-
-%Extending \SPLAT\ dynamically is done by two orthogonal methods, by
-%`plugins' that are loaded during startup (and are then just part of
-%\SPLAT) and by using \SPLAT\ as a
-%library of routines that you use from your own BeanShell scripts.
-
-%Note that if you are thinking about extending \SPLAT\ then you will
-%need to be familiar with Java and BeanShell (BeanShell uses a Java
-%syntax and has the full Java APIs available to it, so the first
-%condition mostly implies the latter, one of the reasons for choosing
-%BeanShell). Also \SPLAT\ is very likely to change considerably (\ie\
-%the internal APIs cannot be relied on) so don't do anything too
-%serious without contacting the support programmer.
-
-%More (provisional) information about how to proceed in these matters
-%is given in a separate document, that you can only view when you have
-%\SPLAT\ installed. To see this issue the following command:
-%\begin{quote}
-%\begin{verbatim}
-%  % $SPLAT_DIR/apidocs
-%\end{verbatim}
-%\end{quote}
-%The \hitext{apidocs} example scripts are generally useful commands in
-%themselves and as such are briefly documented in the next section.
-
-\section{Command-line control and tools}
+\section{Command-line control and tools\xlabel{command_line}}
 
 \subheading{Remote control}
 
@@ -3692,9 +3415,9 @@ spectra).
 
 To use this you need to do the following:
 \begin{quote}
-\begin{verbatim}
+\begin{terminalv}
   % setenv SPLAT_PLUGINS $SPLAT_DIR/example_plugin3.bsh
-\end{verbatim}
+\end{terminalv}
 \end{quote}
 Now when \SPLAT\ starts it will look for a file
 \hitext{.splat\_autoloads}  in the current directory and if found
@@ -3759,10 +3482,11 @@ The communication architecture of SAMP uses a central ``Hub'' process to pass
 messages between registered applications, so a hub must be running in order
 for the messaging to operate.  If a hub is running when \SPLAT\ starts, or if
 one starts up while \SPLAT\ is in operation, it will connect to it
-automatically.  Other tools have their own policies for connecting to the hub,
-but in general it is a good idea to start a hub first before starting up the
-tools which you want to talk to it.  A hub can be started from within \SPLAT\
-if required.  The \verb+--hub+ or \verb+--exthub+ command-line flags start an
+automatically, unless you have started \SPLAT\ with the \verb+--interop none+
+command-line option.  Other tools have their own policies for connecting to
+the hub, but in general it is a good idea to start a hub first before starting
+up the tools which you want to talk to it.  A hub can be started from within
+\SPLAT\ if required.  The \verb+--hub+ or \verb+--exthub+ command-line flags start an
 ``internal'' or ``external'' hub respectively; the difference is that an
 internal hub will terminate when \SPLAT\ exits, while an external one
 continues running in its own process.  Alternatively, a hub can be started
@@ -3797,7 +3521,7 @@ SAMP MTypes which \SPLAT\ knows about are:
 \end{itemize}
 
 \newpage
-\section{Acknowledgements}
+\section{Acknowledgements\xlabel{acknowledgements}}
 
 \SPLAT\ is written in
 \htmladdnormallinkfoot{Java}{http://java.sun.com} by
@@ -3867,224 +3591,5 @@ This document can be cited as Draper et al, 2013, Starlink User Note 243.
 Finally, many programmers working for Starlink have made contributions to the
 components used in \SPLAT, and many users have reported problems, as well as
 requests for useful features -- thanks to them all.
-
-\section{Changes}
-
-\subsection{3.10-0}
-
-The major change in this release is much improved support for more complex
-SSAP queries. For instance you can now create server groups for more targeted
-queries according to the waveband or data source (theory/archive/survey for
-instance), as well as using your specific tags to create such groups.
-
-It is now also possible to add additional metadata parameters to the queries
-for the currently selected server list.
-
-New SSAP servers not currently registered can now be added  manually.
-
-Access control for servers that use HTTP passwords is now implemented.
-
-Bug fixes in this release include:
-\begin{itemize}
-\item If the SSAP server maximum record limit is reached (MAXREC),
-\SPLAT\ will no longer return an error, it just continues downloading
-spectra to the available limit.
-
-\item The BAND parameter now handles the case when the upper limit is null.
-
-\item TARGETNAME values are now correctly encoded to allow the use of special
-characters ($+$ etc.).
-\end{itemize}
-
-The column name used to select spectral coordinates in tables without any
-other metadata has changed from "wavelength*" to "wave*".
-  
-When changing the spectral coordinates column of a table in the main window
-the change wasn't seen immediately. This issue should now be fixed.
-
-
-\subsection{3.9-8}
-
-A bug in the `remove' \& `remove selected' options in the cutter toolbox has
-been fixed. After the last change the spectrum created did not have a correct
-coordinate value assigned to the removed region. This resulted in a
-non-monotonic spectrum.
-
-A bug in the flip toolbox that always reported the radial velocity as zero in
-the log file has been fixed. The log now also includes whether the values are
-redshifts.
-
-A bug that meant some NDF spectra opened in SPLAT using the `splatdisp'
-command could not be saved to disk. This has been fixed. Note this includes
-spectra sent from GAIA.
-
-\subsection{3.9-7}
-
-The `remove selected' option in the cutter toolbox now handles regions that
-overlap the ends of the spectrum correctly. Previously bad values where added
-to the ends and given poor coordinates.
-
-A single `a' or `A' as a units string is no longer recognised as meaning
-`Angstrom'. This follows the FITS standard where `A' is `Ampere'.
-
-The flip toolbox now correctly records the SPEFO log option RV.  The current
-status of the redshift option is also recorded to the SPEFO log.
-
-\subsection{3.9-6}
-
-Make position and target optional in VO queries. Not all SSAP servers are
-fixated on positions and objects.
-
-Both sidebands are now loaded when a request to load all matching line
-identifiers is made.
-
-The deblend script has been enhanced to also report errors for the parameter
-fits.
-
-\subsection{3.9-2}
-
-The Sesame name resolution service is now the default for SSAP VO queries.
-
-\subsection{3.9-1}
-
-Spectra transmitted using the SAMP and deprecated PLASTIC protocol will now
-only be FITS or VO tables. 1D FITS spectra will no longer be generated.
-
-\subsection{3.9-0}
-
-\SPLAT\ has been updated to use SAMP for interoperability with other
-desktop applications. It is still possible to use PLASTIC, but that
-protocol is now deprecated.
-See \S\ref{interop}.
-
-When opening NDF spectra with redundant axes the position of the
-redundant axes may be reported in the synopsis. This will typically
-be the position on the sky that the spectrum occupied.
-
-SSAP query failures are now reported in more detail.
-
-The offsets applied to spectra during display can now be derived from an
-expression, rather than just using an order with a fixed offset. The
-way that line identifiers are handled when applying offsets is also
-changed. This should stop excessive data limits being used when most
-line identifiers are not displayed.
-
-\subsection{3.8-8}
-
-The line profile fits now include error estimates for the fitting parameters.
-
-An error in the derivates used when fitting the Voigt profile has been
-corrected. This should give closer fits in some cases.
-
-MIME types from SSAP queries may now include trailing attributes.
-
-The SSAP query options have been extended to include TIME, FLUXCALIB
-and WAVECALIB.
-
-The SSAP query options now allow the object name to be passed as part
-of the object, without looking up an RA and Dec. This is suitable
-for searching for solar system objects.
-
-Saving the result spectrum of binary maths operations to FITS format
-should now work. Previously an invalid FITS file was created.
-
-The query SSAP server dialog now offers `select all' and `remove
-unselected' options.
-
-\subsection{3.8-7}
-The cutter tool box now offers simple linear interpolation to replace
-the selected range of values.
-
-The exception dialog will now always display the error trace, previously
-requesting this sometimes caused the dialog to just close.
-
-When attempting to overwrite an NDF that is already opened a suitable
-error message is now displayed, rather than an unhelp report about
-a null exception.
-
-Printing to postscript should make better use of the available space
-and fix a scaling problem with the encapulated option.
-
-\subsection{3.8-6}
-
-A new command-line option `--debuglevel' to control the messages output on the
-terminal has been introduced. By default fewer messages will now be seen
-(especially from the browser window), more can be seen by setting a level
-greater than zero, but that should only be required when helping to diagnose a
-problem.
-
-The errors of a spectrum can now be plotted as the spectral line, not just as
-error bars.
-
-\subsection{3.8-5}
-
-Two new command-line options have been added, `--hub' and `--exthub'.
-These start an internal PLASTIC hub and an external one respectively.
-Note an external hub will persist after SPLAT has been closed down.
-
-\subsection{3.8-4}
-
-When displaying a dual sideband spectrum with the observed band set to LSB the
-axes coordinates for the USB sideband were shown incorrectly. This bug has
-been fixed.
-
-A bug converting the epoch into UTC, in the absence of a DATE-OBS, has been
-fixed in the synopsis. Previously times were reported in TAI.
-
-\subsection{3.8-3}
-
-Standard IR spectral lines from UKIRT have been added to the built-in
-line identifiers (thanks to Andy Adamson).
-
-Line identifier labels in text files can now be quoted using single
-or double quotes.
-
-\subsection{3.8-2}
-
-By default SPLAT searches input spectra for a spectral coordinate system.
-This can lead to unexpected behaviour when attempting to display spectra with
-non-spectral coordinates (by selecting the GRID or PIXEL frames in an NDF), so
-a new command-line flag "--keepcoords" has been introduced to inhibit the
-search for spectral coordinates, and a UI preference Options->Find spectral
-coordinates.
-
-\subsection{3.8-1}
-
-Generated spectra how inherit some of the properties of the parent spectrum
-(line and plotting style).  Rebinned spectra are now displayed with a
-histogram style.
-
-The alignment of sidebands is now not done by default.
-
-An Interop menu has been added to the SSAP query results controls.  This
-allows a table to be transmitted to other applications for further analysis.
-
-The plot spectrum synopsis now includes the number of channels (points in the
-spectrum).
-
-When changing the DSB sideband the labels now include which sideband is the
-observed and which the image.
-
-The readout of the spectral coordinate in a plot should now always have
-sufficient precision so that adjacent values can be distinguished.
-
-Problems displaying spectra sent from GAIA when the plot synopsis is enabled
-(which came out at the wrong size and with the synopsis misplaced) should be
-resolved.
-
-The synopsis should now be placed at the top-left hand corner of the axis for
-all plot aspect ratios.
-
-Data units which dimensionally match one of the preset flux values will now be
-identified and shown as the preset value in the data units and plot units
-toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now be recognised as
-"erg/cm\^2/s/Angstrom".
-
-\subsection{3.8-0}
-
-Added controls to the statistics toolbox so that the TSYS related
-parameters can be set and inspected.
-
-Earlier changes can be found in the news file in the \SPLAT\ distribution.
 
 \end{document}

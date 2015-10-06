@@ -1,19 +1,17 @@
-#!/bin/csh 
+#!/bin/sh
 
 #  Convert Latex SUN254 into hypertext for the on-line docs and help
 #  system.
 
-setenv HTX_EMAIL '<A HREF="mailto:frog@starlink.ac.uk">frog@starlink.ac.uk</A>'
+export HTX_EMAIL='<A HREF="mailto:frog@starlink.ac.uk">frog@starlink.ac.uk</A>'
 
 # make sure we have a clean build
-# 
-\rm -rf sun254.fig/.xvpics
-\rm -rf sun254.fig/*.eps
-\rm -f *.bck
+#
+test -d sun254.fig && rm -rf sun254.fig/.xvpics
+test -d sun254.fig && rm -rf sun254.fig/*.eps
+rm -f *.bck
 
 # rebuild the EPS files
-unalias convert
-
 convert -page A4 -geometry 75% \
     sun254.fig/splash.gif eps:sun254.fig/splash.eps
 
@@ -37,56 +35,62 @@ convert -page A4 -geometry 100% \
 
 convert -page A4 -geometry 100% \
     sun254.fig/fft_marked.gif eps:sun254.fig/fft_marked.eps
- 
+
 convert -page A4 -geometry 100% \
     sun254.fig/fold.gif eps:sun254.fig/fold.eps
- 
+
 convert -page A4 -geometry 100% \
     sun254.fig/fold_and_fit.gif eps:sun254.fig/fold_and_fit.eps
 
 convert -page A4 -geometry 100% \
-    sun254.fig/meta_data2.gif eps:sun254.fig/meta_data2.eps                      
+    sun254.fig/meta_data2.gif eps:sun254.fig/meta_data2.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/combining_series.gif eps:sun254.fig/combining_series.eps          
+    sun254.fig/combining_series.gif eps:sun254.fig/combining_series.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/detrend_popup.gif eps:sun254.fig/detrend_popup.eps                
+    sun254.fig/detrend_popup.gif eps:sun254.fig/detrend_popup.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/detrend_data.gif eps:sun254.fig/detrend_data.eps                  
+    sun254.fig/detrend_data.gif eps:sun254.fig/detrend_data.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/graphics_menu1.gif eps:sun254.fig/graphics_menu1.eps              
+    sun254.fig/graphics_menu1.gif eps:sun254.fig/graphics_menu1.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/graphics_menu2.gif eps:sun254.fig/graphics_menu2.eps              
+    sun254.fig/graphics_menu2.gif eps:sun254.fig/graphics_menu2.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/graphics_save.gif eps:sun254.fig/graphics_save.eps                 
+    sun254.fig/graphics_save.gif eps:sun254.fig/graphics_save.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/arith_functions.gif eps:sun254.fig/arith_functions.eps             
+    sun254.fig/arith_functions.gif eps:sun254.fig/arith_functions.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/fake_data.gif eps:sun254.fig/fake_data.eps                         
+    sun254.fig/fake_data.gif eps:sun254.fig/fake_data.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/sin_arith.gif eps:sun254.fig/sin_arith.eps                         
+    sun254.fig/sin_arith.gif eps:sun254.fig/sin_arith.eps
 convert -page A4 -geometry 100% \
-    sun254.fig/window_data.gif eps:sun254.fig/window_data.eps                                                                                                                
+    sun254.fig/window_data.gif eps:sun254.fig/window_data.eps
+
 # build sun254.htx from the LaTeX file
 #
-latex sun254
-latex sun254
-dvips -o sun254.ps sun254
+
+# This will only work if the TEXINPUTS variable is set for Starlink
+# latexsupport.
+export TEXINPUTS=$STARLINK_DIR/share/latexsupport/:
+pdflatex sun254
+pdflatex sun254
+
 star2html sun254
 hlink
 
 #  make the search db
 #
-if ( -e sun254.htx/icons.html ) then
-  \rm sun254.htx/icons.html
-endif
+if test -e sun254.htx/icons.html; then
+  rm sun254.htx/icons.html
+fi
 
-/work/java/jh2.0/javahelp/bin/jhindexer sun254.htx
+#  Need a jhindexer from javahelp release...
+$STARLINK_DIR/starjava/bin/help/jhindexer sun254.htx
 
-#  Help system docs, these need to be in a jar file so we can 
+#  Help system docs, these need to be in a jar file so we can
 #  access them from javahelp? Figures?
 
 jar cf frog_help.jar FrogHelpSet.hs JavaHelpSearch Map.jhm TOC.xml \
-       sun254.fig sun254.htx 
+       sun254.fig sun254.htx
 mv frog_help.jar ../lib/
 
 echo "Created JavaHelp archives"

@@ -1,9 +1,13 @@
 package uk.ac.starlink.task;
 
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -76,8 +80,10 @@ public class InvokeUtils {
     public static String getJavaVM() {
         try {
             return System.getProperty( "java.vm.name", "???" )
-                 + " version "
-                 + System.getProperty( "java.vm.version", "???" );
+                 + ", version "
+                 + System.getProperty( "java.vm.version", "???" )
+                 + ", JRE "
+                 + System.getProperty( "java.specification.version", "???" );
         }
         catch ( SecurityException e ) {
             return "???";
@@ -139,5 +145,63 @@ public class InvokeUtils {
         List<Parameter> paramList = numbered;
         paramList.addAll( unNumbered );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+    }
+
+    /**
+     * Invokes the main method of a named class with logging configuration
+     * specified on the command line.
+     * The -verbose/+verbose flags and the -debug flag may be
+     * supplied before the target classname and arguments.
+     */
+    public static void main( String[] args ) throws Throwable {
+        String usage = "\n   "
+                     + InvokeUtils.class.getName()
+                     + " [+verbose|-verbose] ..."
+                     + " [-debug]"
+                     + " <main-class>"
+                     + " <arg> ..."
+                     + "\n";
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
+        boolean debug = false;
+        int nverb = 0;
+        for ( Iterator<String> argIt = argList.iterator(); argIt.hasNext(); ) {
+            String arg = argIt.next();
+            if ( "-h".equals( arg ) || "-help".equals( arg ) ) {
+                argIt.remove();
+                System.out.println( usage );
+                return;
+            }
+            if ( "-debug".equals( arg ) ) {
+                argIt.remove();
+                debug = true;
+            }
+            else if ( "-v".equals( arg ) || "-verbose".equals( arg ) ) {
+                argIt.remove();
+                nverb++;
+            }
+            else if ( "+v".equals( arg ) || "+verbose".equals( arg ) ) {
+                argIt.remove();
+                nverb--;
+            }
+            else {
+                break;
+            }
+        }
+        configureLogging( nverb, debug );
+        try {
+            String clazzName = argList.remove( 0 );
+            Class clazz = Class.forName( clazzName );
+            Method mainMethod = clazz.getMethod( "main", String[].class );
+            mainMethod.invoke( (Object) null,
+                               new Object[] {
+                                   argList.toArray( new String[ 0 ] )
+                               } );
+        }
+        catch ( InvocationTargetException e ) {
+            throw e.getCause();
+        }
+        catch ( Throwable e ) {
+            System.err.println( usage );
+        }
     }
 }

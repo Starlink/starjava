@@ -4,9 +4,6 @@ import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.config.ConfigKey;
-import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
-import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 
 /**
  * Sky coordinate system definition.
@@ -260,26 +257,5 @@ public class SkySys {
         return PlotUtil.arrayConcat( includeNull ? new SkySys[] { null }
                                                  : new SkySys[ 0 ],
                                      KNOWN_SYSTEMS );
-    }
-
-    /**
-     * Creates a config key for choosing a sky system.
-     *
-     * @param  meta  config key metadata
-     * @param  includeNull  true iff null is a permitted option
-     * @return  sky system config key
-     */
-    public static ConfigKey<SkySys> createConfigKey( ConfigMeta meta,
-                                                     boolean includeNull ) {
-        return new OptionConfigKey<SkySys>( meta, SkySys.class,
-                                            getKnownSystems( includeNull ) ) {
-            public String valueToString( SkySys sys ) {
-                return sys == null ? "generic" : super.valueToString( sys );
-            }
-            public SkySys stringToValue( String str ) {
-                return "generic".equals( str ) ? null
-                                               : super.stringToValue( str );
-            }
-        };
     }
 }

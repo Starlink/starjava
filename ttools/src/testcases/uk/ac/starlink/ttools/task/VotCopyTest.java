@@ -17,7 +17,9 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -31,10 +33,14 @@ public class VotCopyTest extends TableTestCase {
     final StarTable t2_;
     final StarTable t3_;
     final URL multiLoc_ = getClass().getResource( "multi.vot" );
+    final URL fitsLoc_ = getClass().getResource( "fitsin.vot" );
+    final URL heteroLoc_ = getClass().getResource( "heteroVOTable.xml" );
 
     public VotCopyTest( String name ) throws Exception {
         super( name );
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.ttools.copy" )
+              .setLevel( Level.SEVERE );
         multiDOM_ = checkAndRemoveData( new VOElementFactory()
                                        .makeVOElement( multiLoc_ ),
                                         "TABLEDATA" );
@@ -64,6 +70,19 @@ public class VotCopyTest extends TableTestCase {
 
 
         return new VOElementFactory().makeVOElement( loc );
+    }
+
+    public void testFits() throws Exception {
+
+        /* Tests a specific bug related to IOUtils.skipBytes and
+         * a bug in nom.tam.util.BufferedDataInputStream.
+         * Hopefully fixed shortly after this test was introduced. */
+        MapEnvironment env = new MapEnvironment();
+        File file = File.createTempFile( "votcopy", ".vot" );
+        file.deleteOnExit();
+        env.setValue( "in", fitsLoc_.toString() );
+        env.setValue( "out", file.toString() );
+        new VotCopy().createExecutable( env ).execute();
     }
 
     public void testDOM() throws Exception {
@@ -103,6 +122,48 @@ public class VotCopyTest extends TableTestCase {
         // VOElement fhDom = readDOM( map );
         // matchMultiData( fhDom, true );
         // matchMultiDOM( checkAndRemoveData( fhDom, "FITS" ) );
+    }
+
+    public void testHetero() throws Exception {
+        VOTableBuilder builder = new VOTableBuilder();
+        StarTable t0 =
+            builder.makeStarTable( new URLDataSource( heteroLoc_ ),
+                                   true, StoragePolicy.PREFER_MEMORY );
+        for ( DataFormat datfmt :
+              new DataFormat[] { DataFormat.TABLEDATA,
+                                 DataFormat.BINARY,
+                                 DataFormat.BINARY2,
+                                 DataFormat.FITS } ) {
+            File tmpfile = File.createTempFile( "votcopy", ".vot" );
+            tmpfile.deleteOnExit();
+            MapEnvironment env = new MapEnvironment();
+            env.setValue( "in", heteroLoc_.toString() );
+            env.setValue( "out", tmpfile.toString() );
+            env.setValue( "format", datfmt );
+            env.setValue( "href", Boolean.FALSE );
+            if ( DataFormat.BINARY2.equals( datfmt ) ) {
+                env.setValue( "version", "1.3" );
+            }
+            new VotCopy().createExecutable( env ).execute();
+            StarTable t1 =
+                builder.makeStarTable( new FileDataSource( tmpfile ),
+                                       true, StoragePolicy.PREFER_MEMORY );
+
+            // Skip the equality test for FITS.
+            // Variable-length array cells are currently padded to
+            // their maximum length with zeros, so these cells may not be
+            // the same after copying.
+            //  It would be possible to change this so that a
+            // VariableFitsTableSerializer is used instead of a
+            // StandardFitsTableSerializer when writing it
+            // (see VOSerializer.makeSerializer method).
+            // The FITS serialization is so infrequently used, it hardly
+            // seems worth the effort.
+            if ( DataFormat.FITS != datfmt ) {
+                assertSameData( t0, t1 );
+            }
+            tmpfile.delete();
+        }
     }
 
     private void matchMultiDOM( Element el ) {

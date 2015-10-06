@@ -219,6 +219,10 @@ public class SkySurface implements Surface {
         g2.setColor( color0 );
     }
 
+    public Captioner getCaptioner() {
+        return captioner_;
+    }
+
     /**
      * Attempts to constructs a GridLiner object which can
      * draw grid lines on this plot.
@@ -269,7 +273,7 @@ public class SkySurface implements Surface {
     }
 
     public boolean dataToGraphics( double[] dpos, boolean visibleOnly,
-                                   Point gpos ) {
+                                   Point2D.Double gpos ) {
         double[] rot = rotmat_;
         double sx = dpos[ 0 ];
         double sy = dpos[ 1 ];
@@ -279,8 +283,8 @@ public class SkySurface implements Surface {
         double rz = rot[ 6 ] * sx + rot[ 7 ] * sy + rot[ 8 ] * sz;
         Point2D.Double proj = new Point2D.Double();
         if ( projection_.project( rx, ry, rz, proj ) ) {
-            int xp = (int) ( gXoff_ + proj.x * gZoom_ );
-            int yp = (int) ( gYoff_ - proj.y * gZoom_ );
+            double xp = gXoff_ + proj.x * gZoom_;
+            double yp = gYoff_ - proj.y * gZoom_;
             if ( ! visibleOnly || 
                  ( xp >= gxlo_ && xp < gxhi_ && yp >= gylo_ && yp < gyhi_ ) ) {
                 gpos.x = xp;
@@ -291,9 +295,9 @@ public class SkySurface implements Surface {
         return false;
     }
 
-    public boolean dataToGraphicsOffset( double[] dpos0, Point gpos0,
+    public boolean dataToGraphicsOffset( double[] dpos0, Point2D.Double gpos0,
                                          double[] dpos1, boolean visibleOnly,
-                                         Point gpos1 ) {
+                                         Point2D.Double gpos1 ) {
 
         /* Because sky plots do not in general have continuous coordinates
          * (wrap around) implementing this method is not trivial. */
@@ -301,8 +305,8 @@ public class SkySurface implements Surface {
         /* Get the graphics position of the offset point the
          * straightforward way. */
         boolean aStatus = dataToGraphics( dpos1, visibleOnly, gpos1 );
-        int ax = gpos1.x;
-        int ay = gpos1.y;
+        double ax = gpos1.x;
+        double ay = gpos1.y;
 
         /* Get the graphics position of the point offset from the context
          * point in the opposite direction.  Some shuffling of values
@@ -315,8 +319,8 @@ public class SkySurface implements Surface {
         dpos1[ 0 ] = dp1x;
         dpos1[ 1 ] = dp1y;
         dpos1[ 2 ] = dp1z;
-        int bx = gpos1.x;
-        int by = gpos1.y;
+        double bx = gpos1.x;
+        double by = gpos1.y;
 
         /* Select one or the other to use as the output graphics position,
          * depending on which transformations worked at all, and which ones
@@ -415,12 +419,12 @@ public class SkySurface implements Surface {
      * @param   gpos  point in graphics coordinates
      * @return  point in dimensionless sky projection coordinates
      */
-    private Point2D.Double graphicsToProjected( Point gpos ) {
-        return new Point2D.Double( ( gpos.x - gXoff_ ) / +gZoom_,
-                                   ( gpos.y - gYoff_ ) / -gZoom_ );
+    private Point2D.Double graphicsToProjected( Point2D gpos ) {
+        return new Point2D.Double( ( gpos.getX() - gXoff_ ) / +gZoom_,
+                                   ( gpos.getY() - gYoff_ ) / -gZoom_ );
     }
 
-    public double[] graphicsToData( Point gpos, Iterable<double[]> dposIt ) {
+    public double[] graphicsToData( Point2D gpos, Iterable<double[]> dposIt ) {
         Point2D.Double ppos = graphicsToProjected( gpos );
         if ( projection_.getProjectionShape().contains( ppos ) ) {
             double[] dpos = new double[ 3 ];
@@ -533,7 +537,7 @@ public class SkySurface implements Surface {
      * @param  pos1  destination graphics position
      * @return  panned sky aspect
      */
-    SkyAspect pan( Point pos0, Point pos1 ) {
+    SkyAspect pan( Point2D pos0, Point2D pos1 ) {
         return inBounds( pos0 ) ? projPan( pos0, pos1 ) : null;
     }
 
@@ -555,9 +559,9 @@ public class SkySurface implements Surface {
      * @param   pos  test position
      * @return  true iff pos is within the plot bounds
      */
-    private boolean inBounds( Point pos ) {
-        return pos.x >= gxlo_ && pos.x <= gxhi_
-            && pos.y >= gylo_ && pos.y <= gyhi_;
+    private boolean inBounds( Point2D pos ) {
+        return pos.getX() >= gxlo_ && pos.getX() <= gxhi_
+            && pos.getY() >= gylo_ && pos.getY() <= gyhi_;
     }
 
     /**
@@ -567,10 +571,10 @@ public class SkySurface implements Surface {
      * @return  re-centred sky aspect
      */
     SkyAspect center( double[] dpos ) {
-        Point gp = new Point();
+        Point2D.Double gp = new Point2D.Double();
         return dataToGraphics( dpos, false, gp )
-             ? pan( gp, new Point( ( gxlo_ + gxhi_ ) / 2,
-                                   ( gylo_ + gyhi_ ) / 2 ) )
+             ? pan( gp, new Point2D.Double( ( gxlo_ + gxhi_ ) * 0.5,
+                                            ( gylo_ + gyhi_ ) * 0.5 ) )
              : null;
     }
 
@@ -581,9 +585,9 @@ public class SkySurface implements Surface {
      * @param  pos1  destination graphics position
      * @return  panned sky aspect
      */
-    public SkyAspect flatPan( Point pos0, Point pos1 ) {
-        double xoff1 = xoff_ + ( pos1.x - pos0.x ) / gScale_;
-        double yoff1 = yoff_ + ( pos1.y - pos0.y ) / gScale_;
+    public SkyAspect flatPan( Point2D pos0, Point2D pos1 ) {
+        double xoff1 = xoff_ + ( pos1.getX() - pos0.getX() ) / gScale_;
+        double yoff1 = yoff_ + ( pos1.getY() - pos0.getY() ) / gScale_;
         return createAspect( projection_, rotmat_, zoom_, xoff1, yoff1 );
     }
 
@@ -594,11 +598,11 @@ public class SkySurface implements Surface {
      * @param  factor   zoom factor
      * @return  zoomed sky aspect
      */
-    public SkyAspect flatZoom( Point pos, double factor ) {
+    public SkyAspect flatZoom( Point2D pos, double factor ) {
         double dz = zoom_ * ( 1.0 - factor );
         double zoom1 = zoom_ * factor;
-        double xoff1 = xoff_ + ( pos.x - gXoff_ ) / gZoom_ * dz;
-        double yoff1 = yoff_ + ( pos.y - gYoff_ ) / gZoom_ * dz;
+        double xoff1 = xoff_ + ( pos.getX() - gXoff_ ) / gZoom_ * dz;
+        double yoff1 = yoff_ + ( pos.getY() - gYoff_ ) / gZoom_ * dz;
         return createAspect( projection_, rotmat_, zoom1, xoff1, yoff1 );
     }
 
@@ -612,7 +616,7 @@ public class SkySurface implements Surface {
      * @param  pos1  destination graphics position
      * @return  panned sky aspect
      */
-    public SkyAspect projPan( Point pos0, Point pos1 ) {
+    public SkyAspect projPan( Point2D pos0, Point2D pos1 ) {
         double[] rotmat1 =
             projection_.cursorRotate( rotmat_, graphicsToProjected( pos0 ),
                                                graphicsToProjected( pos1 ) );
@@ -632,7 +636,7 @@ public class SkySurface implements Surface {
      * @param  factor   zoom factor
      * @return  zoomed sky aspect
      */
-    public SkyAspect projZoom( Point pos, double factor ) {
+    public SkyAspect projZoom( Point2D pos, double factor ) {
         Point2D.Double ppos0 = graphicsToProjected( pos );
         Point2D.Double ppos1 = new Point2D.Double( ppos0.x / factor,
                                                    ppos0.y / factor );
@@ -652,9 +656,9 @@ public class SkySurface implements Surface {
      * @param  factor   zoom factor (from current)
      * @return  reframed sky aspect
      */
-    public SkyAspect reframe( Point center, double factor ) {
-        Point surfCenter = new Point( ( gxlo_ + gxhi_ ) / 2,
-                                      ( gylo_ + gyhi_ ) / 2 );
+    public SkyAspect reframe( Point2D center, double factor ) {
+        Point2D surfCenter = new Point2D.Double( ( gxlo_ + gxhi_ ) * 0.5,
+                                                 ( gylo_ + gyhi_ ) * 0.5 );
         double zoom1 = zoom_ * factor;
         Point2D.Double ppos0 = graphicsToProjected( center );
         Point2D.Double ppos1 = graphicsToProjected( surfCenter );

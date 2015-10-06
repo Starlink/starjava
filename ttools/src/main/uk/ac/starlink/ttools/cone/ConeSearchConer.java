@@ -10,7 +10,9 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
+import uk.ac.starlink.ttools.task.ContentCodingParameter;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.ConeSearch;
 
 /**
@@ -27,6 +29,7 @@ public class ConeSearchConer implements Coner {
     private final ChoiceParameter<String> verbParam_;
     private final ChoiceParameter<ServiceType> serviceParam_;
     private final BooleanParameter believeemptyParam_;
+    private final ContentCodingParameter codingParam_;
     private final StringParameter formatParam_;
     private int nside_;
     private static final String BELIEVE_EMPTY_NAME = "emptyok";
@@ -114,6 +117,8 @@ public class ConeSearchConer implements Coner {
             "</p>",
         } );
 
+        codingParam_ = new ContentCodingParameter();
+
         formatParam_ = new StringParameter( "dataformat" );
         formatParam_.setPrompt( "Data format type for DAL outputs" );
         formatParam_.setNullPermitted( true );
@@ -159,6 +164,7 @@ public class ConeSearchConer implements Coner {
             verbParam_,
             formatParam_,
             believeemptyParam_,
+            codingParam_,
         };
     }
 
@@ -178,8 +184,10 @@ public class ConeSearchConer implements Coner {
         URL url = urlParam_.objectValue( env );
         boolean believeEmpty = believeemptyParam_.booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
+        ContentCoding coding = codingParam_.codingValue( env );
         return serviceType
-              .createSearcher( env, url.toString(), believeEmpty, tfact );
+              .createSearcher( env, url.toString(), believeEmpty, tfact,
+                               coding );
     }
 
     public Coverage getCoverage( Environment env ) throws TaskException {
@@ -253,10 +261,14 @@ public class ConeSearchConer implements Coner {
          * @param  believeEmpty  whether to take seriously metadata from
          *         zero-length tables
          * @param  tfact  table factory
+         * @param  coding  controls HTTP-level byte stream compression;
+         *                 implementations may choose to ignore this hint
+         * @return  cone searcher object
          */
         abstract ConeSearcher createSearcher( Environment env, String url,
                                               boolean believeEmpty,
-                                              StarTableFactory tfact )
+                                              StarTableFactory tfact,
+                                              ContentCoding coding )
                 throws TaskException;
 
         /**
@@ -329,9 +341,10 @@ public class ConeSearchConer implements Coner {
 
         public ConeSearcher createSearcher( Environment env, String url,
                                             final boolean believeEmpty,
-                                            StarTableFactory tfact )
+                                            StarTableFactory tfact,
+                                            ContentCoding coding )
                 throws TaskException {
-            return new ServiceConeSearcher( new ConeSearch( url ),
+            return new ServiceConeSearcher( new ConeSearch( url, coding ),
                                             getVerbosity( env ),
                                             believeEmpty, tfact ) {
                 @Override
@@ -388,11 +401,13 @@ public class ConeSearchConer implements Coner {
 
         public ConeSearcher createSearcher( Environment env, String url,
                                             final boolean believeEmpty,
-                                            StarTableFactory tfact )
+                                            StarTableFactory tfact,
+                                            ContentCoding coding )
                 throws TaskException {
             formatParam_.setStringDefault( "image/fits" );
             String format = formatParam_.stringValue( env );
-            return new SiaConeSearcher( url, format, believeEmpty, tfact ) {
+            return new SiaConeSearcher( url, format, believeEmpty, tfact,
+                                        coding ) {
                 @Override
                 protected String getInconsistentEmptyAdvice() {
                     return INCONSISTENT_EMPTY_ADVICE;
@@ -449,10 +464,12 @@ public class ConeSearchConer implements Coner {
 
         public ConeSearcher createSearcher( Environment env, String url,
                                             final boolean believeEmpty,
-                                            StarTableFactory tfact )
+                                            StarTableFactory tfact,
+                                            ContentCoding coding )
                 throws TaskException {
             String format = formatParam_.stringValue( env );
-            return new SsaConeSearcher( url, format, believeEmpty, tfact ) {
+            return new SsaConeSearcher( url, format, believeEmpty, tfact,
+                                        coding ) {
                 @Override
                 protected String getInconsistentEmptyAdvice() {
                     return INCONSISTENT_EMPTY_ADVICE;

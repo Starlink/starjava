@@ -60,21 +60,6 @@ public class ArrayDataTest extends TestCase {
                     assertEquals( ( j + 1 ) * cblock, rin.getFilePointer() );
                 }
             }
-            if ( in instanceof CopyableRandomAccess ) {
-                CopyableRandomAccess crin = (CopyableRandomAccess) in;
-                CopyableRandomAccess crin1 = crin.copyAccess();
-                assertEquals( crin.getFilePointer(), crin1.getFilePointer() );
-                assertEquals( crin.readLong(), crin1.readLong() );
-                assertEquals( crin.readLong(), crin1.readLong() );
-                crin1.readLong();
-                assertEquals( crin.getFilePointer() + 8,
-                              crin1.getFilePointer() );
-                assertTrue( crin.readLong() != crin1.readLong() );
-                crin.seek( 155 );
-                long m0 = crin.readLong();
-                crin1.seek( 155 );
-                assertEquals( m0, crin1.readLong() );
-            }
             in.close();
         }
         file.delete();

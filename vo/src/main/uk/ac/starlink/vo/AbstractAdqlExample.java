@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,12 +19,14 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
     private final String name_;
     private final String description_;
+    private final URL url_;
     private static final int COL_COUNT = 3;
     private static final int ROW_COUNT = 1000;
     private static final Pattern[] RADEC_UCD_REGEXES = new Pattern[] {
         Pattern.compile( "^pos.eq.ra[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
         Pattern.compile( "^pos.eq.dec[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
     };
+    private static final TableMeta DUMMY_TABLE = createDummyTable();
 
     /**
      * Constructor.
@@ -34,6 +37,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     protected AbstractAdqlExample( String name, String description ) {
         name_ = name;
         description_ = description;
+        url_ = null;
     }
 
     public String getName() {
@@ -42,6 +46,10 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
     public String getDescription() {
         return description_;
+    }
+
+    public URL getInfoUrl() {
+        return url_;
     }
 
     /**
@@ -81,37 +89,6 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     }
 
     /**
-     * Fixes a table name so it's suitable for insertion into ADQL.
-     * It is quoted if necessary, but not otherwise.
-     *
-     * @param  tname  raw table name, may include delimiters (schema.table etc)
-     * @return  name suitable for use in ADQL
-     */
-    public static String citeTableName( String tname ) {
-        String[] words = tname.split( "\\." );
-        StringBuffer sbuf = new StringBuffer();
-        for ( int iw = 0; iw < words.length; iw++ ) {
-            if ( iw > 0 ) {
-                sbuf.append( '.' );
-            }
-            sbuf.append( AdqlSyntax.getInstance()
-                                   .quoteIfNecessary( words[ iw ] ) );
-        }
-        return sbuf.toString();
-    }
-
-    /**
-     * Fixes a colum name so it's suitable for insersion into ADQL.
-     * It is quoted if necessary, but not otherwise.
-     *
-     * @param  colName  raw column name, may not include delimiters
-     * @return  name suitable for use in ADQL
-     */
-    public static String citeColumnName( String colName ) {
-        return AdqlSyntax.getInstance().quoteIfNecessary( colName );
-    }
-
-    /**
      * Returns a table ref for a given table and a given language variant.
      *
      * @param  table  table metadata object
@@ -121,11 +98,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                             String lang ) {
         if ( ! isAdql1( lang ) ) {
             return new TableRef() {
-                public String getColumnName( String rawName ) {
-                    return citeColumnName( rawName );
+                public String getColumnName( String cname ) {
+                    return cname;
                 }
                 public String getIntroName() {
-                    return citeTableName( table.getName() );
+                    return table.getName();
                 }
             };
         }
@@ -144,11 +121,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     private static TableRef createAliasedTableRef( final TableMeta table,
                                                    final String alias ) {
         return new TableRef() {
-            public String getColumnName( String rawName ) {
-                return alias + "." + citeColumnName( rawName );
+            public String getColumnName( String cname ) {
+                return alias + "." + cname;
             }
             public String getIntroName() {
-                return citeTableName( table.getName() ) + " AS " + alias;
+                return table.getName() + " AS " + alias;
             }
         };
     }
@@ -200,12 +177,14 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
         /**
          * Returns the text by which a given column in this object's table
-         * should be referred to in ADQL text.
+         * should be referred to in ADQL text.  The input name must be
+         * quoted as appropriate, but additional table qualification
+         * may be added by this method.
          *
-         * @param  rawName  basic column name
-         * @return   quoted column name
+         * @param  cname  basic column name
+         * @return   name for use in ADQL
          */
-        public abstract String getColumnName( String rawName );
+        public abstract String getColumnName( String cname );
 
         /**
          * Returns the text with which this object's table should be
@@ -245,8 +224,10 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
         /**
          * Returns the columns array.
+         * Column names are ADQL-ready as per {@link ColumnMeta#getName}.
          *
-         * @return  array of column names of interest
+         * @return  array of column names of interest,
+         *          each ready for use in ADQL
          */
         public String[] getColumns() {
             return cols_;
@@ -260,9 +241,12 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @return  alias
      */
     private static String getAlias( TableMeta table ) {
-        String subname = table.getName().replaceFirst( "^[^\\.]*\\.", "" );
+        String tname = table.getName();
+        String subname = tname == null
+                       ? null
+                       : tname.replaceFirst( "^[^\\.]*\\.", "" );
         char letter = '\0';
-        if ( subname.length() > 0 ) {
+        if ( subname != null && subname.length() > 0 ) {
             letter = subname.charAt( 0 );
         }
         if ( ( letter >= 'a' && letter <= 'z' ) ||
@@ -311,9 +295,12 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         List<TableWithCols> tlist = new ArrayList<TableWithCols>();
         for ( int i = 0; i < tables.length && tlist.size() < max; i++ ) {
             TableMeta table = tables[ i ];
-            String[] radec = getRaDecDegreesNames( tables[ i ] );
-            if ( radec != null ) {
-                tlist.add( new TableWithCols( table, radec ) );
+            ColumnMeta[] cols = table.getColumns();
+            if ( cols != null ) {
+                String[] radec = getRaDecDegreesNames( cols );
+                if ( radec != null ) {
+                    tlist.add( new TableWithCols( table, radec ) );
+                }
             }
         }
         return tlist.toArray( new TableWithCols[ 0 ] );
@@ -327,8 +314,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @return  2-element array with column names for RA, Dec respectively,
      *          or null if nothing suitable
      */
-    private static String[] getRaDecDegreesNames( TableMeta table ) {
-        ColumnMeta[] cols = table.getColumns();
+    private static String[] getRaDecDegreesNames( ColumnMeta[] cols ) {
         String[] coords = new String[ 2 ];
         int[] scores = new int[ 2 ];
         for ( int ic = 0; ic < cols.length; ic++ ) {
@@ -396,14 +382,18 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
                                        TableMeta table ) {
+                    if ( table == null &&
+                         tables != null && tables.length > 0 ) {
+                        table = tables[ 0 ];
+                    }
                     if ( table == null ) {
-                        return null;
+                        table = DUMMY_TABLE;
                     }
                     return new StringBuffer()
                         .append( "SELECT TOP " )
                         .append( ROW_COUNT )
                         .append( " * FROM " )
-                        .append( citeTableName( table.getName() ) )
+                        .append( table.getName() )
                         .toString();
                 }
             },
@@ -414,16 +404,15 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
                                        TableMeta table ) {
-                    if ( table == null ) {
-                        return null;
-                    }
+                    TableMeta ptable = getPopulatedTable( table, tables );
                     Breaker breaker = createBreaker( lineBreaks );
-                    TableRef tref = createTableRef( table, lang );
-                    ColumnMeta[] cols = table.getColumns();
+                    TableRef tref = createTableRef( ptable, lang );
+                    ColumnMeta[] cols = ptable.getColumns();
                     final String colSelection;
-                    if ( cols != null && cols.length > COL_COUNT ) {
+                    if ( cols != null && cols.length > 0 ) {
                         StringBuffer sbuf = new StringBuffer();
-                        for ( int i = 0; i < COL_COUNT; i++ ) {
+                        for ( int i = 0; i < COL_COUNT && i < cols.length;
+                              i++ ) {
                             if ( i > 0 ) {
                                 sbuf.append( ", " );
                             }
@@ -446,6 +435,48 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "FROM" )
                         .append( ' ' )
                         .append( tref.getIntroName() )
+                        .toString();
+                }
+                private TableMeta getPopulatedTable( TableMeta table,
+                                                     TableMeta[] tables ) {
+                    if ( isPopulated( table ) ) {
+                        return table;
+                    }
+                    if ( tables != null ) {
+                        for ( TableMeta t : tables ) {
+                            if ( isPopulated( t ) ) {
+                                return t;
+                            }
+                        }
+                    }
+                    return DUMMY_TABLE;
+                }
+                private boolean isPopulated( TableMeta table ) {
+                    if ( table != null ) {
+                        ColumnMeta[] cols = table.getColumns();
+                        if ( cols != null ) {
+                            return cols.length >= COL_COUNT;
+                        }
+                    }
+                    return false;
+                }
+            },
+
+            new AbstractAdqlExample( "Count rows",
+                                     "Count the rows in a table" ) {
+                public String getText( boolean lineBreaks, String lang,
+                                       TapCapability tcap, TableMeta[] tables,
+                                       TableMeta table ) {
+                    if ( table == null &&
+                         tables != null && tables.length > 0 ) {
+                        table = tables[ 0 ];
+                    }
+                    if ( table == null ) {
+                        table = DUMMY_TABLE;
+                    }
+                    return new StringBuffer()
+                        .append( "SELECT COUNT(*) FROM " )
+                        .append( table.getName() )
                         .toString();
                 }
             },
@@ -590,5 +621,158 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 }
             },
         };
+    }
+
+    /**
+     * Returns a selection of examples using the TAP_SCHEMA tables.
+     *
+     * @return  example list
+     */
+    public static AdqlExample[] createTapSchemaExamples() {
+        return new AdqlExample[] {
+
+            createSimpleExample(
+                "Table descriptions",
+                "Lists all tables in the service, apart from TAP_SCHEMA, "
+                + "along with their descriptions",
+                new String[] {
+                    "SELECT schema_name, table_name, description",
+                    "FROM tap_schema.tables",
+                    "WHERE schema_name != 'tap_schema'",
+                    "ORDER BY schema_name, table_name",
+                }
+            ),
+
+            createSimpleExample(
+                "Table column counts",
+                "List all tables in the service "
+                + "along with the number of columns for each",
+                new String[] {
+                    "SELECT table_name, count(column_name) AS ntable",
+                    "FROM TAP_SCHEMA.columns",
+                    "GROUP BY table_name",
+                    "ORDER BY ntable desc",
+                }
+            ),
+
+            createSimpleExample(
+                "UCDs in use",
+                "List all the Uniform Content Descriptors appearing in "
+                + "this service, with a count of how many columns "
+                + "each one appears in",
+                new String[] {
+                    "SELECT ucd, count(*) AS ncol",
+                    "FROM tap_schema.columns",
+                    "GROUP BY ucd",
+                    "ORDER BY ucd",
+                }
+            ),
+
+            createSimpleExample(
+                "Tables with Redshifts",
+                "List all tables having a redshift column",
+                new String[] {
+                    "SELECT t.table_name, t.description, c.column_name AS zcol",
+                    "FROM tap_schema.tables AS t",
+                    "JOIN tap_schema.columns AS c USING (table_name)",
+                    "WHERE c.ucd = 'src.redshift'",
+                }
+            ),
+
+            createSimpleExample(
+                "X-Ray QSO observations",
+                "List all quasar-related tables with X-ray-related columns",
+                new String[] {
+                    "SELECT DISTINCT t.table_name",
+                    // should be able to add "t.table_description" here,
+                    // but TAPVizier doesn't like it at time of writing
+                    "FROM tap_schema.tables AS t",
+                    "JOIN tap_schema.columns AS c USING (table_name)",
+                    "WHERE (t.description LIKE '%qso%' " +
+                        "OR t.description LIKE '%quasar%')",
+                    "  AND c.ucd LIKE '%em.X-ray%'",
+                }
+            ),
+
+            createSimpleExample(
+                "J/H/K band observations",
+                "List all tables with columns for all of "
+                + "J, H and K band magnitudes",
+                new String[] {
+                    "SELECT t.table_name AS tname, t.description AS tdesc,",
+                    "       h.column_name AS hcol,",
+                    "       j.column_name AS jcol,",
+                    "       k.column_name AS kcol",
+                    "FROM tap_schema.tables AS t",
+                    "JOIN (SELECT table_name, column_name",
+                    "      FROM tap_schema.columns",
+                    "      WHERE ucd='phot.mag;em.IR.H') AS h"
+                       + " USING (table_name)",
+                    "JOIN (SELECT table_name, column_name",
+                    "      FROM tap_schema.columns",
+                    "      WHERE ucd='phot.mag;em.IR.J') AS j"
+                       + " USING (table_name)",
+                    "JOIN (SELECT table_name, column_name",
+                    "      FROM tap_schema.columns",
+                    "      WHERE ucd='phot.mag;em.IR.K') AS k"
+                       + " USING (table_name)",
+                }
+            ),
+
+        };
+    }
+
+    /**
+     * Creates a static example.
+     * Only name, description and static example text are supplied.
+     *
+     * @param   name  example name
+     * @param   description   example short description
+     * @param   textLines  lines of ADQL text
+     * @return   example
+     */
+    public static AdqlExample createSimpleExample( final String name,
+                                                   final String description,
+                                                   final String[] textLines ) {
+        return new AbstractAdqlExample( name, description ) {
+            public String getText( boolean lineBreaks, String lang,
+                                   TapCapability tcap, TableMeta[] tables,
+                                   TableMeta table ) {
+                if ( lineBreaks ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( String line : textLines ) {
+                        sbuf.append( line )
+                            .append( '\n' );
+                    }
+                    return sbuf.toString();
+                }
+                else {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( String line : textLines ) {
+                        if ( sbuf.length() != 0 ) {
+                            sbuf.append( ' ' );
+                        }
+                        sbuf.append( line.trim().replaceAll( "--.*", "" ) );
+                    }
+                    return sbuf.toString();
+                }
+            }
+        };
+    }
+
+    /**
+     * Creates an uninteresting table which ought to be OK to use for examples.
+     *
+     * @return  metadata table
+     */
+    private static TableMeta createDummyTable() {
+
+        /* TAP_SCHEMA should always be present. */
+        TableMeta table = new TableMeta() {{ name_ = "TAP_SCHEMA.tables"; }};
+        table.setColumns( new ColumnMeta[] {
+            new ColumnMeta() {{ name_ = "table_name"; }},
+            new ColumnMeta() {{ name_ = "schema_name"; }},
+        } );
+        return table;
     }
 }

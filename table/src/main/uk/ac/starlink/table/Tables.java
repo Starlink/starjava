@@ -35,6 +35,28 @@ public class Tables {
                               "Integer value which represents a null" );
 
     /**
+     * ValueInfo which may be used as part of a column's auxiliary metadata
+     * to indicate that the column's data represents, and can be
+     * serialised as, unsigned byte values.  If so, the value is set to
+     * <code>Boolean.TRUE</code> (other values are treated as if absent).
+     * Data representing unsigned byte values will normally be represented
+     * within STIL by Short (16-bit integer) signed values,
+     * since there is no unsigned byte type in java.
+     * However, this flag may be used to indicate that the
+     * values can be serialised to unsigned-byte-capable output formats
+     * (for instance FITS and VOTable) using an unsigned byte serialisation.
+     * This annotation will normally only be honoured if the data type of
+     * the column is (scalar or array) short integer (16-bit) values.
+     * Some care should be exercised in applying this flag or (especially)
+     * modifying values in columns it applies to, that the actual column
+     * value range remains in the unsigned byte data range (0..255),
+     * since otherwise problems will result if it is serialised.
+     */
+    public static final ValueInfo UBYTE_FLAG_INFO =
+        new DefaultValueInfo( "UBYTE_FLAG", Boolean.class,
+                              "If true, data represents unsigned byte values" );
+
+    /**
      * ValueInfo representing Right Ascension. 
      * The units are radians and it is non-nullable.
      */

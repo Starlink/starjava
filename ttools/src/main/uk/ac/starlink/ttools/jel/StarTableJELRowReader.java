@@ -53,7 +53,7 @@ import uk.ac.starlink.table.Tables;
  *
  * <dt>"RANDOM":
  * <dd>The special token "RANDOM" evaluates to a double-precision random
- *     number <code>0<=x<1</code> which is constant for a given row
+ *     number <code>0&lt;=x&lt;1</code> which is constant for a given row
  *     within this reader.  The quality of the random numbers may not
  *     be particularly good.
  *

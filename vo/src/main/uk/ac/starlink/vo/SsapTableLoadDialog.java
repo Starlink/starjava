@@ -17,6 +17,7 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -25,10 +26,11 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  *
  * @author   Mark Taylor
  * @since    2 Feb 2009
- * @see      <http://www.ivoa.net/Documents/latest/SSA.html>
+ * @see      <a href="http://www.ivoa.net/Documents/latest/SSA.html">SSA</a>
  */
 public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
 
+    private final ContentCoding coding_;
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField sizeField_;
@@ -44,7 +46,8 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
         super( "Simple Spectral Access (SSA) Query", "SSA",
                "Get results of a Simple Spectrum Access Protocol query",
                Capability.SSA, true, true );
-        setIconUrl( SsapTableLoadDialog.class.getResource( "ssa.gif" ) );
+        coding_ = ContentCoding.GZIP;
+        setIcon( ResourceIcon.TLD_SSA );
     }
 
     protected Component createQueryComponent() {
@@ -77,7 +80,8 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
         double size = sizeString == null || sizeString.trim().length() == 0
                     ? Double.NaN
                     : sizeField_.getValue();
-        final DalQuery query = new DalQuery( serviceUrl, "SSA", ra, dec, size );
+        final DalQuery query =
+            new DalQuery( serviceUrl, "SSA", ra, dec, size, coding_ );
         query.addArgument( "REQUEST", "queryData" );
         Object format = formatSelector_.getSelectedItem();
         if ( format != null && format.toString().trim().length() > 0 ) {

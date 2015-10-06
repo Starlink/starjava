@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,10 +26,12 @@ import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.LimitByteStore;
-import uk.ac.starlink.util.CountInputStream;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.HeadBufferInputStream;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
@@ -59,6 +60,18 @@ public class TapQuery {
     private final long uploadLimit_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
+
+    /**
+     * Default VOTable serialization format for uploading VOTables
+     * to a TAP service.
+     * The value is currently
+     * {@link uk.ac.starlink.votable.DataFormat#TABLEDATA}.
+     * BINARY would be more efficient and ought to be OK,
+     * but at time of writing at least CADC, and under some circumstances
+     * other services, work properly with TABLEDATA but not BINARY
+     * uploaded tables, so for now conform to the lowest common denominator.
+     */
+    public static final DataFormat DFLT_UPLOAD_SER = DataFormat.TABLEDATA;
 
     /**
      * Private constructor, performs common initialisation and
@@ -92,7 +105,7 @@ public class TapQuery {
      * @param  serviceUrl  base service URL for TAP service
      *                     (excluding "/[a]sync")
      * @param  adql   text of ADQL query
-     * @param  extraParams  key->value map for optional parameters;
+     * @param  extraParams  key-&gt;value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care (may be null)
@@ -110,11 +123,11 @@ public class TapQuery {
      * @param  serviceUrl  base service URL for TAP service
      *                     (excluding "/[a]sync")
      * @param  adql   text of ADQL query
-     * @param  extraParams  key->value map for optional parameters;
+     * @param  extraParams  key-&gt;value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care (may be null)
-     * @param  uploadMap  name->table map of tables to be uploaded to
+     * @param  uploadMap  name-&gt;table map of tables to be uploaded to
      *                    the service for the query (may be null)
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied,
@@ -136,7 +149,7 @@ public class TapQuery {
         StringBuffer ubuf = new StringBuffer();
         if ( uploadMap != null ) {
             if ( vowriter == null ) {
-                vowriter = new VOTableWriter( DataFormat.BINARY, true,
+                vowriter = new VOTableWriter( DFLT_UPLOAD_SER, true,
                                               VOTableVersion.V12 );
             }
             for ( Map.Entry<String,StarTable> upload : uploadMap.entrySet() ) {
@@ -183,7 +196,7 @@ public class TapQuery {
     /**
      * Returns the map of string parameters to be passed to the TAP service.
      *
-     * @return   name->value map for TAP string parameters
+     * @return   name-&gt;value map for TAP string parameters
      */
     public Map<String,String> getStringParams() {
         return stringMap_;
@@ -192,7 +205,7 @@ public class TapQuery {
     /**
      * Returns the map of streamed parameters to be passed to the TAP service.
      *
-     * @return  name->value map for TAP stream parameters
+     * @return  name-&gt;value map for TAP stream parameters
      */
     public Map<String,HttpStreamParam> getStreamParams() {
         return streamMap_;
@@ -202,10 +215,13 @@ public class TapQuery {
      * Executes this query synchronously and returns the resulting table.
      *
      * @param  storage  storage policy for caching table data
+     * @param  coding   configures HTTP compression
      * @return   result table
      */
-    public StarTable executeSync( StoragePolicy storage ) throws IOException {
-        return readResultVOTable( createSyncConnection(), storage );
+    public StarTable executeSync( StoragePolicy storage, ContentCoding coding )
+            throws IOException {
+        return readResultVOTable( createSyncConnection( coding ), coding,
+                                  storage );
     }
 
     /**
@@ -216,21 +232,26 @@ public class TapQuery {
      * Overflow status of a successful result is provided by the return value.
      *
      * @param  sink  table destination
+     * @param  coding   configures HTTP compression
      * @return   true iff the result was marked as overflowed
      */
-    public boolean executeSync( TableSink sink )
+    public boolean executeSync( TableSink sink, ContentCoding coding )
             throws IOException, SAXException {
-        return streamResultVOTable( createSyncConnection(), sink );
+        return streamResultVOTable( createSyncConnection( coding ), coding,
+                                    sink );
     }
 
     /**
      * Opens a URL connection for the result of synchronously executing
      * this query.
      *
+     * @param   coding  HTTP content-coding policy
+     *                  result should be interpreted with same coding
      * @return   HTTP connection containing query result
      */
-    public HttpURLConnection createSyncConnection() throws IOException {
-        return UwsJob.postForm( new URL( serviceUrl_ + "/sync" ),
+    public HttpURLConnection createSyncConnection( ContentCoding coding )
+            throws IOException {
+        return UwsJob.postForm( new URL( serviceUrl_ + "/sync" ), coding,
                                 stringMap_, streamMap_ );
     }
 
@@ -309,11 +330,13 @@ public class TapQuery {
      * In case of job failure, an exception will be thrown instead.
      *
      * @param  uwsJob  started UWS job representing an async TAP query
+     * @param  coding  configures HTTP compression
      * @param  storage  storage policy for caching table data
      * @param  pollMillis  polling interval in milliseconds
      * @return  result table
      */
-    public static StarTable waitForResult( UwsJob uwsJob, StoragePolicy storage,
+    public static StarTable waitForResult( UwsJob uwsJob, ContentCoding coding,
+                                           StoragePolicy storage,
                                            long pollMillis )
             throws IOException, InterruptedException {
         URL resultUrl;
@@ -323,7 +346,8 @@ public class TapQuery {
         catch ( UwsJob.UnexpectedResponseException e ) {
             throw asIOException( e, null );
         }
-        return readResultVOTable( resultUrl.openConnection(), storage );
+        return readResultVOTable( coding.openConnection( resultUrl ), coding,
+                                  storage );
     }
 
     /**
@@ -334,26 +358,16 @@ public class TapQuery {
      *
      * @param  uwsJob  successfully completed UWS job representing 
      *                 an async TAP query
+     * @param  coding  configures HTTP compression
      * @param  storage  storage policy for caching table data
      * @return   the result of reading the TAP result as a table
      */
-    public static StarTable getResult( UwsJob uwsJob, StoragePolicy storage )
+    public static StarTable getResult( UwsJob uwsJob, ContentCoding coding,
+                                       StoragePolicy storage )
             throws IOException {
         URL url = new URL( uwsJob.getJobUrl() + "/results/result" );
-        return readResultVOTable( url.openConnection(), storage );
-    }
-
-    /**
-     * Reads table metadata from a TAP service.
-     *
-     * @param  serviceUrl  base TAP service URL
-     * @return   table metadata
-     */
-    public static TableMeta[] readTableMetadata( URL serviceUrl )
-            throws IOException, SAXException {
-        URL turl = new URL( serviceUrl + "/tables" );
-        logger_.info( "Reading table metadata from " + turl );
-        return TableSetSaxHandler.readTableSet( turl );
+        return readResultVOTable( coding.openConnection( url ), coding,
+                                  storage );
     }
 
     /**
@@ -367,6 +381,50 @@ public class TapQuery {
         URL curl = new URL( serviceUrl + "/capabilities" );
         logger_.info( "Reading capability metadata from " + curl );
         return TapCapability.readTapCapability( curl );
+    }
+
+    /**
+     * Utility method to obtain a single-cell table as the result of a
+     * synchronous TAP query.
+     *
+     * @param   serviceUrl     TAP service URL
+     * @param   adql   query string
+     * @param   clazz   class of required value
+     * @return   single value, or null if no rows
+     * @throws   IOException  if required result cannot be got
+     */
+    public static <T> T scalarQuery( URL serviceUrl, String adql,
+                                     Class<T> clazz )
+            throws IOException {
+        TapQuery tq = new TapQuery( serviceUrl, adql, null );
+        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY,
+                                           ContentCoding.NONE );
+        int ncol = result.getColumnCount();
+        if ( ncol != 1 ) {
+            throw new IOException( "Unexpected column count: "
+                                 + ncol + " != 1" );
+        }
+        result = Tables.randomTable( result );
+        long nrow = result.getRowCount();
+        if ( nrow == 0 ) {
+            return null;
+        }
+        else if ( nrow == 1 ) {
+            Object cell = result.getCell( 0, 0 );
+            if ( cell == null || clazz.isInstance( cell ) ) {
+                @SuppressWarnings("unchecked")
+                T tcell = clazz.cast( cell );
+                return tcell;
+            }
+            else {
+                throw new IOException( "Unexpected type "
+                                     + cell.getClass().getName() + " not "
+                                     + clazz.getName() );
+            }
+        }
+        else {
+            throw new IOException( "Unexpected row count: " + nrow + " > 0 " );
+        }
     }
 
     /**
@@ -528,15 +586,20 @@ public class TapQuery {
      * expressing this), an exception will be thrown.
      *
      * @param   conn  connection to table resource
+     * @param  coding  HTTP content coding policy used to prepare connection
      * @param  storage  storage policy
      * @return   table result of successful query
      */
     public static StarTable readResultVOTable( URLConnection conn,
+                                               ContentCoding coding,
                                                StoragePolicy storage )
             throws IOException {
 
         /* Get input stream. */
-        InputStream in = getVOTableStream( conn );
+        int headSize = 2048;
+        HeadBufferInputStream in =
+            new HeadBufferInputStream( getVOTableStream( conn, coding ),
+                                       headSize );
 
         /* Read the result as a VOTable DOM. */
         VOElement voEl;
@@ -545,9 +608,22 @@ public class TapQuery {
                   .makeVOElement( in, conn.getURL().toString() );
         }
         catch ( SAXException e ) {
+            StringBuffer sbuf = new StringBuffer()
+                .append( "TAP response is not a VOTable" );
+            byte[] buf = in.getHeadBuffer();
+            int nb = Math.min( in.getReadCount(), buf.length );
+            if ( nb > 0 ) {
+                sbuf.append( " - " )
+                    .append( new String( buf, 0, nb, "UTF-8" ) );
+                if ( nb == buf.length ) {
+                    sbuf.append( " ..." );
+                }
+            }
             throw (IOException)
-                  new IOException( "TAP response is not a VOTable" )
-                 .initCause( e );
+                  new IOException( sbuf.toString() ).initCause( e );
+        }
+        finally {
+            in.close();
         }
 
         /* Navigate the DOM to find the status and table of interest. */
@@ -604,13 +680,15 @@ public class TapQuery {
      * Overflow status of a successful result is provided by the return value.
      *
      * @param   conn  connection to table resource
+     * @param  coding  HTTP content coding policy used to prepare connection
      * @param   sink   destination for table result of succesful query
      * @return   true iff the result was marked as overflowed
      */
     public static boolean streamResultVOTable( URLConnection conn,
+                                               ContentCoding coding,
                                                TableSink sink )
             throws IOException, SAXException {
-        InputStream in = getVOTableStream( conn );
+        InputStream in = getVOTableStream( conn, coding );
         boolean overflow =
             DalResultStreamer.streamResultTable( new InputSource( in ), sink );
         return overflow;
@@ -621,9 +699,11 @@ public class TapQuery {
      * a VOTable.
      *
      * @param  conn  connection to result of TAP service call
+     * @param  coding  HTTP content coding policy used to prepare connection
      * @return  stream containing a response table (error or result)
      */
-    public static InputStream getVOTableStream( URLConnection conn )
+    public static InputStream getVOTableStream( URLConnection conn,
+                                                ContentCoding coding )
             throws IOException {
 
         /* Follow 303 redirects as required. */
@@ -632,37 +712,78 @@ public class TapQuery {
         /* Get an input stream representing the content of the resource.
          * HttpURLConnection may provide this from the getInputStream or
          * getErrorStream method, depending on the response code. */
-        InputStream in = null;
         try { 
-            in = conn.getInputStream();
+            return coding.getInputStream( conn );
         }
         catch ( IOException e ) {
-            if ( conn instanceof HttpURLConnection ) {
-                in = ((HttpURLConnection) conn).getErrorStream();
-            }
-            if ( in == null ) {
-                throw e;
-            }
-        }
 
-        /* Log result size if required. */
-        final Level countLevel = Level.CONFIG;
-        if ( logger_.isLoggable( countLevel ) ) {
-            in = new CountInputStream( in ) {
-                @Override
-                public void close() throws IOException {
-                    logger_.log( countLevel, getReadCount() + " bytes read" );
-                    super.close();
+            /* In case of an error (non-200 response code), the connection's
+             * error stream really should contain a VOTable.
+             * But sometimes it doesn't, either because of incorrect
+             * implementation or because the error is generated at the
+             * HTTP rather than TAP level.  If the content-type looks like
+             * it is a VOTable, return it in a stream.
+             * Otherwise, grab all the useful information from
+             * the connection and bundle it up as the message content
+             * of an IOException. */
+            InputStream errStrm = coding.getErrorStream( conn );
+            if ( isVOTableType( conn.getContentType() ) && errStrm != null ) {
+                return errStrm;
+            }
+            else {
+                StringBuffer sbuf = new StringBuffer()
+                    .append( "Non-VOTable service error response" );
+                if ( conn instanceof HttpURLConnection ) {
+                    HttpURLConnection hconn = (HttpURLConnection) conn;
+                    sbuf.append( " " )
+                        .append( hconn.getResponseCode() )
+                        .append( ": " )
+                        .append( hconn.getResponseMessage() );
                 }
-            };
+                if ( errStrm != null ) {
+                    byte[] buf = new byte[ 2048 ];
+                    int count = errStrm.read( buf );
+                    if ( count > 0 ) {
+                        sbuf.append( " - " )
+                            .append( new String( buf, 0, count, "UTF-8" ) );
+                        if ( errStrm.read() >= 0 ) {
+                            sbuf.append( " ..." );
+                        }
+                    }
+                }
+                try {
+                    errStrm.close();
+                }
+                catch ( IOException e2 ) {
+                    // never mind
+                }
+                throw (IOException) new IOException( sbuf.toString() )
+                                   .initCause( e );
+            }
         }
-        return in;
+    }
+
+    /**
+     * Tries to determines whether a MIME type (probably) indicates VOTable
+     * content or not.
+     *
+     * @param  contentType  content-type string
+     * @return  false if the contentType really doesn't look like VOTable
+     */
+    private static boolean isVOTableType( String contentType ) {
+        if ( contentType == null ) {
+            return true;
+        }
+        String ctype = contentType.trim().toLowerCase();
+        return ctype.indexOf( "xml" ) >= 0
+            || ctype.indexOf( "votable" ) >= 0;
     }
 
     /**
      * Takes a URLConnection and repeatedly follows 303 redirects
      * until a non-303 status is achieved.  Infinite loops are defended
-     * against.
+     * against.  The Accept-Encoding header, if present, is propagated
+     * to redirect targets.
      *
      * @param  conn   initial URL connection
      * @return   target URL connection
@@ -702,7 +823,16 @@ public class TapQuery {
             if ( ! ( conn1 instanceof HttpURLConnection ) ) {
                 return conn1;
             }
+
+            /* Propagate the Accept-Encoding header to the redirect target,
+             * otherwise it will get lost. */
+            String acceptEncoding =
+                hconn.getRequestProperty( ContentCoding.ACCEPT_ENCODING );
             hconn = (HttpURLConnection) conn1; 
+            if ( acceptEncoding != null ) {
+                hconn.setRequestProperty( ContentCoding.ACCEPT_ENCODING,
+                                          acceptEncoding );
+            }
         }
         return hconn;
     }

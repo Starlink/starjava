@@ -13,6 +13,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -183,6 +184,9 @@ public class SkyAxisController
                 logger_.warning( e.getMessage() );
             }
             entry_.getResolveField().setText( "" );
+        }
+
+        public void submitReport( ReportMap report ) {
         }
 
         public boolean isXFill() {

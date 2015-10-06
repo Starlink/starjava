@@ -7,6 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,6 +17,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Parses an XML document which describes Tabular Data as prescribed by
@@ -32,12 +34,16 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class TableSetSaxHandler extends DefaultHandler {
 
-    private TableMeta[] tables_;
+    private SchemaMeta[] schemas_;
+    private TableMeta[] nakedTables_;
+    private List<SchemaMeta> schemaList_;
     private List<TableMeta> tableList_;
     private List<ColumnMeta> columnList_;
     private List<ForeignMeta> foreignList_;
     private List<ForeignMeta.Link> linkList_;
+    private List<TableMeta> nakedTableList_;
     private List<String> flagList_;
+    private SchemaMeta schema_;
     private TableMeta table_;
     private ColumnMeta column_;
     private ForeignMeta foreign_;
@@ -54,24 +60,38 @@ public class TableSetSaxHandler extends DefaultHandler {
     }
 
     /** 
-     * Returns the array of table metadata objects which have been
+     * Returns the array of schema metadata objects which have been
      * read by this parser.  Only non-empty following a parse.
      *
-     * @return   table descriptions
+     * @return   fully populated table metadata
      */
-    public TableMeta[] getTables() {
-        return tables_;
+    public SchemaMeta[] getSchemas() {
+        return schemas_;
+    }
+
+    /**
+     * Returns the array of table metadata objects which were found
+     * outside of any schema.  Only non-empty following a parse.
+     *
+     * @return  table metadata
+     */
+    public TableMeta[] getNakedTables() {
+        return nakedTables_;
     }
 
     @Override
     public void startDocument() {
-        tableList_ = new ArrayList<TableMeta>();
+        schemaList_ = new ArrayList<SchemaMeta>();
+        nakedTableList_ = new ArrayList<TableMeta>();
+        tableList_ = nakedTableList_;
     }
 
     @Override
     public void endDocument() {
-        tables_ = tableList_.toArray( new TableMeta[ 0 ] );
-        tableList_ = null;
+        schemas_ = schemaList_.toArray( new SchemaMeta[ 0 ] );
+        schemaList_ = null;
+        nakedTables_ = nakedTableList_.toArray( new TableMeta[ 0 ] );
+        nakedTableList_ = null;
     }
 
     @Override
@@ -79,7 +99,11 @@ public class TableSetSaxHandler extends DefaultHandler {
                               Attributes atts ) {
         txtbuf_.setLength( 0 );
         String tname = getTagName( uri, localName, qName );
-        if ( "table".equals( tname ) ) {
+        if ( "schema".equals( tname ) ) {
+            schema_ = new SchemaMeta();
+            tableList_ = new ArrayList<TableMeta>();
+        }
+        else if ( "table".equals( tname ) ) {
             table_ = new TableMeta();
             String type = atts.getValue( "", "type" );
             if ( type != null ) {
@@ -137,14 +161,24 @@ public class TableSetSaxHandler extends DefaultHandler {
         }
         else if ( "table".equals( tname ) ) {
             assert table_ != null;
-            table_.columns_ = columnList_.toArray( new ColumnMeta[ 0 ] );
+            table_.setColumns( columnList_.toArray( new ColumnMeta[ 0 ] ) );
             columnList_ = null;
-            table_.foreignKeys_ = foreignList_.toArray( new ForeignMeta[ 0 ] );
+            table_.setForeignKeys( foreignList_
+                                  .toArray( new ForeignMeta[ 0 ] ) );
             foreignList_ = null;
             if ( tableList_ != null ) {
                 tableList_.add( table_ );
             }
             table_ = null;
+        }
+        else if ( "schema".equals( tname ) ) {
+            assert schema_ != null;
+            schema_.setTables( tableList_.toArray( new TableMeta[ 0 ] ) );
+            tableList_ = nakedTableList_;
+            if ( schemaList_ != null ) {
+                schemaList_.add( schema_ );
+            }
+            schema_ = null;
         }
         else if ( link_ != null ) {
             if ( "fromColumn".equals( tname ) ) {
@@ -202,6 +236,20 @@ public class TableSetSaxHandler extends DefaultHandler {
                 table_.utype_ = txt;
             }
         }
+        else if ( schema_ != null ) {
+            if ( "name".equals( tname ) ) {
+                schema_.name_ = txt;
+            }
+            else if ( "title".equals( tname ) ) {
+                schema_.title_ = txt;
+            }
+            else if ( "description".equals( tname ) ) {
+                schema_.description_ = txt;
+            }
+            else if ( "utype".equals( tname ) ) {
+                schema_.utype_ = txt;
+            }
+        }
     }
 
     @Override
@@ -249,11 +297,61 @@ public class TableSetSaxHandler extends DefaultHandler {
 
     /**
      * Uses an instance of this class to read an XML document from a given
-     * URL and extract the TableMeta objects from it.
+     * URL and extract the SchemaMeta objects it represents.
      *
      * @param  url  containing a TableSet document or similar
+     * @param  coding  configures HTTP content-coding
+     * @return   array of schema metadata objects giving table metadata
      */
-    public static TableMeta[] readTableSet( URL url )
+    public static SchemaMeta[] readTableSet( URL url, ContentCoding coding )
+            throws IOException, SAXException {
+        TableSetSaxHandler handler = populateHandler( url, coding );
+        List<SchemaMeta> schemaList = new ArrayList<SchemaMeta>();
+        schemaList.addAll( Arrays.asList( handler.getSchemas() ) );
+        TableMeta[] nakedTables = handler.getNakedTables();
+        int nNaked = nakedTables.length;
+        if ( nNaked > 0 ) {
+            logger_.warning( "Using " + nNaked
+                           + " tables declared outside of any schema" );
+            SchemaMeta dummySchema = new SchemaMeta();
+            dummySchema.name_ = "<no_schema>";
+            dummySchema.setTables( nakedTables );
+            schemaList.add( dummySchema );
+        }
+        return schemaList.toArray( new SchemaMeta[ 0 ] );
+    }
+
+    /**
+     * Uses an instance of this class to read an XML document from a given
+     * URL and extracts a flat list of all the TableMeta objects it
+     * represents.
+     * This includes all the tables in schemas, as well as any outside
+     * any <code>&lt;schema&gt;</code> element.
+     *
+     * @param  url  containing a TableSet document or similar
+     * @param  coding  configures HTTP content-coding
+     * @return  flat list of all tables
+     */
+    public static TableMeta[] readTables( URL url, ContentCoding coding )
+            throws IOException, SAXException {
+        TableSetSaxHandler handler = populateHandler( url, coding );
+        List<TableMeta> tlist = new ArrayList<TableMeta>();
+        for ( SchemaMeta schema : handler.getSchemas() ) {
+            tlist.addAll( Arrays.asList( schema.getTables() ) );
+        }
+        tlist.addAll( Arrays.asList( handler.getNakedTables() ) );
+        return tlist.toArray( new TableMeta[ 0 ] );
+    }
+    
+    /**
+     * Uses an instance of this class to parse the document at a given URL.
+     *
+     * @param  url  containing a TableSet document or similar
+     * @param  coding  configures HTTP content-coding
+     * @return   handler containing located items
+     */
+    public static TableSetSaxHandler populateHandler( URL url,
+                                                      ContentCoding coding )
             throws IOException, SAXException {
         SAXParserFactory spfact = SAXParserFactory.newInstance();
         SAXParser parser;
@@ -270,6 +368,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         }
         TableSetSaxHandler tsHandler = new TableSetSaxHandler();
         URLConnection conn = url.openConnection();
+        coding.prepareRequest( conn );
         if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
             int code = hconn.getResponseCode();
@@ -278,10 +377,11 @@ public class TableSetSaxHandler extends DefaultHandler {
                                      + " " + hconn.getResponseMessage() + ")" );
             }
         }
-        InputStream in = new BufferedInputStream( conn.getInputStream() );
+        InputStream in =
+            new BufferedInputStream( coding.getInputStream( conn ) );
         try {
             parser.parse( in, tsHandler );
-            return tsHandler.getTables();
+            return tsHandler;
         }
         finally {
             in.close();
@@ -295,14 +395,25 @@ public class TableSetSaxHandler extends DefaultHandler {
      */
     public static void main( String[] args ) throws IOException, SAXException {
         java.io.PrintStream out = System.out;
-        TableMeta[] tables = readTableSet( new URL( args[ 0 ] ) );
-        for ( int it = 0; it < tables.length; it++ ) {
-            TableMeta table = tables[ it ];
-            out.println( table.getName() );
-            ColumnMeta[] cols = table.getColumns();
-            for ( int ic = 0; ic < cols.length; ic++ ) {
-                ColumnMeta col = cols[ ic ];
-                out.println( "    " + col.getName() );
+        TableSetSaxHandler tsHandler =
+            populateHandler( new URL( args[ 0 ] ), ContentCoding.GZIP );
+        for ( SchemaMeta schema : tsHandler.getSchemas() ) {
+            out.println( schema.getName() );
+            for ( TableMeta table : schema.getTables() ) {
+                out.println( "    " + table.getName() );
+                for ( ColumnMeta col : table.getColumns() ) {
+                    out.println( "        " + col.getName() );
+                }
+            }
+        }
+        TableMeta[] nakedTables = tsHandler.getNakedTables();
+        if ( nakedTables.length > 0 ) {
+            out.println( "No schema: " );
+            for ( TableMeta table : nakedTables ) {
+                out.println( "    " + table.getName() );
+                for ( ColumnMeta col : table.getColumns() ) {
+                    out.println( "        " + col.getName() );
+                }
             }
         }
     }

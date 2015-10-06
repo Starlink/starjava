@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.cone;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.DalQuery;
 
 /**
@@ -20,6 +21,7 @@ public class SiaConeSearcher extends DalConeSearcher implements ConeSearcher {
     private final String serviceUrl_;
     private final String imgFormat_;
     private final StarTableFactory tfact_;
+    private final ContentCoding coding_;
 
     /**
      * Constructor.
@@ -30,18 +32,22 @@ public class SiaConeSearcher extends DalConeSearcher implements ConeSearcher {
      * @param   believeEmpty  whether empty tables are considered to
      *          contain correct metadata
      * @param   tfact   table factory
+     * @param   coding  controls HTTP-level byte stream encoding
      */
     public SiaConeSearcher( String serviceUrl, String imgFormat,
-                            boolean believeEmpty, StarTableFactory tfact ) {
+                            boolean believeEmpty, StarTableFactory tfact,
+                            ContentCoding coding ) {
         super( "SIA", "1.0", believeEmpty );
         serviceUrl_ = serviceUrl;
         imgFormat_ = imgFormat;
         tfact_ = tfact;
+        coding_ = coding;
     }
 
     public StarTable performSearch( double ra, double dec, double sr )
             throws IOException {
-        DalQuery query = new DalQuery( serviceUrl_, "SIA", ra, dec, sr * 2 );
+        DalQuery query =
+            new DalQuery( serviceUrl_, "SIA", ra, dec, sr * 2, coding_ );
         if ( imgFormat_ != null && imgFormat_.trim().length() > 0 ) {
             query.addArgument( "FORMAT", imgFormat_ );
         }

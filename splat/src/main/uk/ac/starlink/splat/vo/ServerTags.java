@@ -13,28 +13,28 @@ import java.util.ArrayList;
 
 public class ServerTags {
       
-       private String name = null;
-       private ArrayList<String> tags;
+       private String tagname = null;
+       private ArrayList<String> servers;
         
        public ServerTags() {
         // empty constructor
        }
         
-       public ServerTags( String name, ArrayList<String> tags ) {
-           this.name = name;
-           this.tags = tags;
+       public ServerTags( String name, ArrayList<String> servers ) {
+           this.tagname = name;
+           this.servers = servers;
        }
-       public String getName() {
-           return this.name;
+       public String getTagname() {
+           return this.tagname;
        }
-       public void setName( String name ) {
-            this.name = name;
+       public void setTagname( String name ) {
+            this.tagname = name;
        }
-       public ArrayList<String> getTags() {
-            return this.tags;
+       public ArrayList<String> getServers() {
+            return this.servers;
        }
-       public void setTags( ArrayList<String> tags ) {
-            this.tags = tags;
+       public void setServers( ArrayList<String> servers ) {
+            this.servers = servers;
        }
        
 }

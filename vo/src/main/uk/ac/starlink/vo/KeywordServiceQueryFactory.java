@@ -1,6 +1,5 @@
 package uk.ac.starlink.vo;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -34,9 +32,8 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     private final JComponent queryPanel_;
     private final RegistrySelector regSelector_;
     private final JTextField keywordField_;
-    private final JButton andButton_;
+    private final AndButton andButton_;
     private final Map<ResourceField,JCheckBox> fieldSelMap_;
-    private boolean or_;
 
     /**
      * Constructs a query factory which looks for services with a particular
@@ -93,29 +90,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         queryPanel_.add( Box.createVerticalStrut( 5 ) );
 
         /* And/Or toggle button. */
-        andButton_ = new JButton() {
-            private Dimension prefSize_ = new Dimension( 0, 0 );
-            public String getText() {
-                return or_ ? "Or" : "And";
-            }
-            public Dimension getPreferredSize() {
-                Dimension psize = super.getPreferredSize();
-                if ( psize == null ) {
-                    return null;
-                }
-                prefSize_ =
-                    new Dimension( Math.max( prefSize_.width, psize.width ),
-                                   Math.max( prefSize_.height, psize.height ) );
-                return prefSize_;
-            }
-        };
-        andButton_.setToolTipText( "Toggles whether keywords are combined "
-                                 + "using AND or OR for registry search" );
-        andButton_.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                or_ = ! or_;
-            }
-        } );
+        andButton_ = new AndButton( true );
  
         /* Keywords selector. */
         JComponent keywordLine = Box.createHorizontalBox();
@@ -150,11 +125,13 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
             matchLine.add( checkBox );
             fieldSelMap_.put( rf, checkBox );
         }
+        matchLine.add( Box.createHorizontalGlue() );
         queryPanel_.add( matchLine );
     }
 
     public RegistryQuery getQuery() throws MalformedURLException {
-        String conjunction = or_ ? "or" : "and";
+        boolean isAnd = andButton_.isAnd();
+        String conjunction = isAnd ? "and" : "or";
         String keyText = keywordField_.getText();
         String[] keywords = ( keyText == null || keyText.trim().length() == 0 )
                           ? new String[ 0 ]
@@ -167,7 +144,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         }
         RegistryProtocol proto = regSelector_.getModel().getProtocol();
         ResourceField[] fields = rfList.toArray( new ResourceField[ 0 ] );
-        return proto.createKeywordQuery( keywords, fields, or_, capability_,
+        return proto.createKeywordQuery( keywords, fields, ! isAnd, capability_,
                                          getUrl() );
     }
 

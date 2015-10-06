@@ -650,8 +650,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             }
             else {
                 ArrayWriter aw =
-                    ArrayWriter.createArrayWriter( cinfo.getContentClass(),
-                                                   allowSignedByte );
+                    ArrayWriter.createArrayWriter( cinfo, allowSignedByte );
                 if ( aw != null ) {
                     return new FixedArrayColumnWriter( aw, shape );
                 }

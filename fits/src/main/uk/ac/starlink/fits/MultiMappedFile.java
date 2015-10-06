@@ -21,7 +21,7 @@ import nom.tam.util.RandomAccess;
  * @since    9 Jan 2007
  */
 public class MultiMappedFile extends AbstractArrayDataIO
-                             implements CopyableRandomAccess {
+                             implements RandomAccess {
 
     private final FileChannel channel_;
     private final FileChannel.MapMode mode_;
@@ -72,13 +72,6 @@ public class MultiMappedFile extends AbstractArrayDataIO
                             int blockBytes )
             throws IOException {
         this( openChannel( file, mode ), mode, blockBytes );
-    }
-
-    public CopyableRandomAccess copyAccess() throws IOException {
-        CopyableRandomAccess copy =
-            new MultiMappedFile( channel_, mode_, blockBytes_ );
-        copy.seek( this.getFilePointer() );
-        return copy;
     }
 
     public void seek( long offsetFromStart ) throws IOException {

@@ -36,6 +36,14 @@ public class JELActivator implements Activator {
         /* Get a RowReader. */
         rowReader_ = tcModel_.createJELRowReader();
 
+        /* Set its failOnNull flag true; for activation actions the
+         * side-effects are important rather than the results,
+         * so it's important not to evaluate functions with bogus
+         * (zero-instead-of-null) parameters in this context.
+         * The default behaviour, which is evaluating them and
+         * ignoring the result, is not sufficient here. */
+        rowReader_.setFailOnNull( true );
+
         /* Compile the expression. */
         Library lib = TopcatJELUtils.getLibrary( rowReader_, true );
         compEx_ = Evaluator.compile( expression, lib, null );

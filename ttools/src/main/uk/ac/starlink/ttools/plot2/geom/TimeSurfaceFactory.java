@@ -248,41 +248,30 @@ public class TimeSurfaceFactory
      */
     private static ConfigKey<TimeFormat> createTimeFormatKey() {
         TimeFormat[] formats = TimeFormat.getKnownFormats();
-        StringBuffer sbuf = new StringBuffer();
-        double unixSec = 1331613420;
-        double secPrecision = 60 * 60 * 4;
-        for ( TimeFormat format : formats ) {
-            sbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( format.getFormatName() )
-                .append( "</code>" )
-                .append( ": " )
-                .append( format.getFormatDescription() )
-                .append( " (e.g. \"" )
-                .append( format.formatTime( unixSec, secPrecision ) )
-                .append( "\")" )
-                .append( "</li>" )
-                .append( "\n" );
-        }
         ConfigMeta meta = new ConfigMeta( "tformat", "Time Format" );
         meta.setShortDescription( "Time display format" );
         meta.setXmlDescription( new String[] {
             "<p>Selects the way in which time values are represented",
             "when using them to label the time axis.",
             "</p>",
-            "<p>Available options are",
-            "<ul>",
-            sbuf.toString(),
-            "</ul>",
-            "</p>",
         } );
         OptionConfigKey<TimeFormat> key =
-                new OptionConfigKey( meta, TimeFormat.class, formats ) {
+                new OptionConfigKey<TimeFormat>( meta, TimeFormat.class,
+                                                 formats ) {
+            private final double unixSec = 1331613420;
+            private final double secPrecision = 60 * 60 * 4;
             public String valueToString( TimeFormat format ) {
-                return format.getFormatName();
+                return format.getFormatName().toLowerCase();
             } 
+            public String getXmlDescription( TimeFormat format ) {
+                return format.getFormatDescription()
+                     + " (e.g. \""
+                     + format.formatTime( unixSec, secPrecision )
+                     + "\")";
+            }
         };
         key.setOptionUsage();
+        key.addOptionsXml();
         return key;
     }
 

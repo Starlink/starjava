@@ -5,7 +5,6 @@
 
 <toc version="1.0">
    <tocitem target="Frog.SplashPage"        text="FROG help system"/>
-   <tocitem target="Frog.Abstract"          text="Abstract"/>
    <tocitem target="Frog.Overview"          text="Overview"/>             
    <tocitem target="Frog.GettingStarted"    text="Getting started">        
      <tocitem target="Frog.DisplaySeries"   text="Displaying a time series"/>  
@@ -27,7 +26,7 @@
    </tocitem>
    <tocitem target="Frog.FoldAndBin"        text="Folding and binning data"/>             
    <tocitem target="Frog.FittingData"       text="Fitting data"/>             
-   <tocitem target="Frog.Annotating"        text="Annotating your polots"/>             
+   <tocitem target="Frog.Annotating"        text="Annotating your plots"/>             
    <tocitem target="Frog.WebServices"       text="WebServices">        
      <tocitem target="Frog.Display"         text="Displaying a time series using web services"/>  
      <tocitem target="Frog.FFT"             text="Creating a Fourier Transform using web services"/> 
@@ -36,9 +35,4 @@
    <tocitem target="Frog.Future"            text="Future improvements"/>       
    <tocitem target="Frog.Acknowledgments"   text="Acknowledgments"/>       
    <tocitem target="Frog.Changes"           text="Changes">          
-     <tocitem target="Frog.ThisRelease"       text="This Release"/>          
-   </tocitem>   
-   <tocitem target="Frog.GPLLicense"        text="License agreement"/>    
-   <tocitem target="Frog.AboutThisDocument" text="About this document"/>    
-  
 </toc>

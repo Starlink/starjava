@@ -1,33 +1,53 @@
 package uk.ac.starlink.topcat;
 
+import edu.stanford.ejalbert.BrowserLauncher;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.URL;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.JList;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.vo.AbstractAdqlExample;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
+import uk.ac.starlink.vo.AuxServiceFinder;
+import uk.ac.starlink.vo.GlotsServiceFinder;
+import uk.ac.starlink.vo.TapCapability;
+import uk.ac.starlink.vo.TapMetaPolicy;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapQueryPanel;
+import uk.ac.starlink.vo.TapServiceFinder;
 import uk.ac.starlink.vo.TapTableLoadDialog;
+import uk.ac.starlink.vo.UrlHandler;
 import uk.ac.starlink.vo.UwsJob;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableVersion;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * TapTableLoadDialog subclass customised for use with TOPCAT.
@@ -36,10 +56,18 @@ import uk.ac.starlink.vo.UwsJob;
  * @since    18 Jan 2011
  */
 public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
+
     private final RegistryDialogAdjuster adjuster_;
-    private AdqlExample[] examples_;
+    private AdqlExample[] uploadExamples_;
+    private UrlHandler urlHandler_;
     private volatile DeletionPolicy deletionPolicy_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
+
+    /**
+     * Constructor.
+     */
     public TopcatTapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "tap", false );
     }
@@ -48,30 +76,165 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         Component comp = super.createQueryComponent();
         adjuster_.adjustComponent();
 
-        /* Add menu for configurable job deletion. */
+        /* Add menu for TAP-specific items. */
         List<JMenu> menuList =
             new ArrayList<JMenu>( Arrays.asList( super.getMenus() ) );
-        JMenu delMenu = new JMenu( "Deletion" );
-        delMenu.setMnemonic( KeyEvent.VK_D );
+        JMenu tapMenu = new JMenu( "TAP" );
+        tapMenu.setMnemonic( KeyEvent.VK_T );
+        menuList.add( 0, tapMenu );
+        setMenus( menuList.toArray( new JMenu[ 0 ] ) );
+
+        /* Add reload action. */
+        tapMenu.add( getReloadAction() );
+
+        /* Add sub-menu for job deletion. */
+        JMenu delMenu = new JMenu( "Job Deletion" );
         ButtonGroup delButtGroup = new ButtonGroup();
-        DeletionPolicy[] delPolicies = DeletionPolicy.values();
-        for ( int i = 0; i < delPolicies.length; i++ ) {
-            final DeletionPolicy policy = delPolicies[ i ];
-            Action act = new AbstractAction( policy.name_ ) {
+        for ( DeletionPolicy p : DeletionPolicy.values() ) {
+            final DeletionPolicy delPolicy = p;
+            Action act = new AbstractAction( delPolicy.name_ ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    deletionPolicy_ = policy;
+                    deletionPolicy_ = delPolicy;
                 }
             };
-            act.putValue( Action.SHORT_DESCRIPTION, policy.description_ );
+            act.putValue( Action.SHORT_DESCRIPTION, delPolicy.description_ );
             JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
             delButtGroup.add( menuItem );
             delMenu.add( menuItem );
-            if ( policy == DeletionPolicy.DEFAULT ) { // default
+            if ( delPolicy == DeletionPolicy.DEFAULT ) { // default
                 menuItem.doClick();
             }
         }
-        menuList.add( 0, delMenu );
-        setMenus( menuList.toArray( new JMenu[ 0 ] ) );
+        tapMenu.add( delMenu );
+
+        /* Add sub-menu for TAP metadata acquisition policy. */
+        JMenu metaMenu = new JMenu( "Metadata Acquisition" );
+        ButtonGroup metaButtGroup = new ButtonGroup();
+        for ( TapMetaPolicy p : TapMetaPolicy.getStandardInstances() ) {
+            final TapMetaPolicy metaPolicy = p;
+            Action act = new AbstractAction( metaPolicy.getName() ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setMetaPolicy( metaPolicy );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          metaPolicy.getDescription() );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            metaButtGroup.add( menuItem );
+            metaMenu.add( menuItem );
+            if ( metaPolicy == TapMetaPolicy.getDefaultInstance() ) {
+                menuItem.doClick();
+            }
+        }
+        tapMenu.add( metaMenu );
+
+        /* Add sub-menu for output format preference. */
+        JMenu ofmtMenu = new JMenu( "Response Format" );
+        ButtonGroup ofmtButtGroup = new ButtonGroup();
+        Map<String,String> ofmtMap = new LinkedHashMap<String,String>();
+        ofmtMap.put( "Service Default", null );
+        String tapregextStd = TapCapability.TAPREGEXT_STD_URI;
+        ofmtMap.put( "TABLEDATA", tapregextStd + "#output-votable-td" );
+        ofmtMap.put( "BINARY", tapregextStd + "#output-votable-binary" );
+        ofmtMap.put( "BINARY2", tapregextStd + "#output-votable-binary2" );
+        for ( Map.Entry<String,String> entry : ofmtMap.entrySet() ) {
+            String optName = entry.getKey();
+            final String ofmtId = entry.getValue();
+            Action act = new AbstractAction( optName ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setPreferredOutputFormat( ofmtId );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          "Request TAP results in " + ofmtId
+                        + " format if supported" );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            ofmtButtGroup.add( menuItem );
+            ofmtMenu.add( menuItem );
+            if ( optName.equals( "BINARY2" ) ) {
+                menuItem.doClick();
+            }
+        }
+        tapMenu.add( ofmtMenu );
+
+        /* Add sub-menu for upload format preference. */
+        JMenu ufmtMenu = new JMenu( "Upload Format" );
+        ButtonGroup ufmtButtGroup = new ButtonGroup();
+        boolean hasDflt = false;
+        for ( DataFormat datfmt :
+              new DataFormat[] { DataFormat.TABLEDATA,
+                                 DataFormat.BINARY,
+                                 DataFormat.BINARY2 } ) {
+            String fname = datfmt.toString();
+            VOTableVersion version = datfmt == DataFormat.BINARY2
+                                   ? VOTableVersion.V13
+                                   : VOTableVersion.V12;
+            final VOTableWriter vowriter =
+                new VOTableWriter( datfmt, true, version );
+            Action act = new AbstractAction( fname ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setVOTableWriter( vowriter );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          "Upload tables using VOTable " + fname
+                        + " serialization" );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            ufmtButtGroup.add( menuItem );
+            ufmtMenu.add( menuItem );
+            if ( datfmt == (DataFormat) TapQuery.DFLT_UPLOAD_SER ) {
+                menuItem.doClick();
+                hasDflt = true;
+            }
+        }
+        assert hasDflt;
+        tapMenu.add( ufmtMenu );
+
+        /* Add sub-menu for by-type service finder implementation. */
+        JMenu finderMenu = new JMenu( "Service Discovery" );
+        Map<String,TapServiceFinder> finderMap =
+            new LinkedHashMap<String,TapServiceFinder>();
+        finderMap.put( "GLoTS", new GlotsServiceFinder() );
+        finderMap.put( "Reg Prototype", new AuxServiceFinder() );
+        ButtonGroup finderButtGroup = new ButtonGroup();
+        for ( Map.Entry<String,TapServiceFinder> entry :
+              finderMap.entrySet() ) {
+            String optName = entry.getKey();
+            final TapServiceFinder finder = entry.getValue();
+            Action act = new AbstractAction( optName ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setServiceFinder( finder );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          "Locate services using " + optName );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            finderButtGroup.add( menuItem );
+            finderMenu.add( menuItem );
+            if ( optName.equals( finderMap.keySet().iterator().next() ) ) {
+                menuItem.doClick();
+            }
+        }
+        tapMenu.add( finderMenu );
+
+        /* Add menu item for HTTP-level compression. */
+        final JCheckBoxMenuItem codingButton =
+            new JCheckBoxMenuItem( "HTTP gzip" );
+        codingButton.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                setContentCoding( codingButton.isSelected()
+                                      ? ContentCoding.GZIP
+                                      : ContentCoding.NONE );
+            }
+        } );
+        codingButton.setToolTipText( "Determines whether HTTP-level compression"
+                                   + " is used for results of TAP and metadata"
+                                   + " queries" );
+        codingButton.setSelected( true );
+        tapMenu.add( codingButton );
+
+        /* Prepare a handler for clickable URLs. */
+        urlHandler_ = createUrlHandler();
 
         return comp;
     }
@@ -135,7 +298,9 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
              * read (is stored locally) before deleting the job, since
              * otherwise subsequent attempts might be made to read it from
              * its URL, which would no longer be there. */
-            StarTable table = TapQuery.waitForResult( tapJob, storage, 4000 );
+            StarTable table =
+                TapQuery.waitForResult( tapJob, getContentCoding(),
+                                        storage, 4000 );
             if ( table != null ) {
                 table = storage.randomTable( table );
             }
@@ -160,26 +325,51 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
-        return new TapQueryPanel( getExamples() ) {
-            @Override
-            protected AdqlValidator.ValidatorTable[] getExtraTables() {
+        final TapQueryPanel tqp = new TapQueryPanel( urlHandler_ );
+        tqp.addCustomExamples( "Upload", getUploadExamples() );
 
-                /* Return a list of tables in the TAP_UPLOAD schema which may
-                 * be used in ADQL as well as those declared by the service. */
-                TopcatModel[] tcModels = getTopcatModels();
-                List<AdqlValidator.ValidatorTable> vtList =
-                    new ArrayList<AdqlValidator.ValidatorTable>();
-                for ( int it = 0; it < tcModels.length; it++ ) {
-                    TopcatModel tcModel = tcModels[ it ];
-                    String[] aliases = getUploadAliases( tcModel );
-                    for ( int ia = 0; ia < aliases.length; ia++ ) {
-                        String tname = "TAP_UPLOAD." + aliases[ ia ];
-                        vtList.add( toValidatorTable( tcModel, tname ) );
-                    }
-                }
-                return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+        /* Make sure the panel is kept up to date with the list of
+         * tables known by the application. */
+        ControlWindow.getInstance().getTablesListModel()
+                     .addListDataListener( new ListDataListener() {
+            public void intervalAdded( ListDataEvent evt ) {
+                updateTopcatTables();
             }
-        };
+            public void intervalRemoved( ListDataEvent evt ) {
+                updateTopcatTables();
+            }
+            public void contentsChanged( ListDataEvent evt ) {
+                updateTopcatTables();
+            }
+            private void updateTopcatTables() {
+                if ( tqp != null ) {
+                    tqp.setExtraTables( createTopcatValidatorTables() );
+                }
+            }
+        } );
+        tqp.setExtraTables( createTopcatValidatorTables() );
+        return tqp;
+    }
+
+    /**
+     * Returns a list of tables in the TAP_UPLOAD schema which may
+     * be used in ADQL as well as those declared by the service.
+     *
+     * @return   list of validation tables corresponding to topcat tables
+     */
+    private AdqlValidator.ValidatorTable[] createTopcatValidatorTables() {
+        TopcatModel[] tcModels = getTopcatModels();
+        List<AdqlValidator.ValidatorTable> vtList =
+            new ArrayList<AdqlValidator.ValidatorTable>();
+        String upSchemaName = "TAP_UPLOAD";
+        for ( TopcatModel tcModel : getTopcatModels() ) {
+            String[] aliases = getUploadAliases( tcModel );
+            for ( int ia = 0; ia < aliases.length; ia++ ) {
+                String tname = upSchemaName + "." + aliases[ ia ];
+                vtList.add( toValidatorTable( tcModel, tname, upSchemaName ) );
+            }
+        }
+        return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
     }
 
     /**
@@ -220,22 +410,19 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     }
 
     /**
-     * Returns a lazily constructed list of ADQL examples suitable for
-     * this window. It includes basic and upload-based examples.
+     * Returns a lazily constructed list of examples of ADQL queries involving
+     * table upload suitable for this window.
      *
      * @return   example list
      */
-    private AdqlExample[] getExamples() {
-        if ( examples_ == null ) {
-            List<AdqlExample> exampleList = new ArrayList<AdqlExample>();
-            exampleList.addAll( Arrays.asList( AbstractAdqlExample
-                                              .createSomeExamples() ) );
-            JList tcList = ControlWindow.getInstance().getTablesList();
-            exampleList.addAll( Arrays.asList( UploadAdqlExample
-                                              .createSomeExamples( tcList ) ) );
-            examples_ = exampleList.toArray( new AdqlExample[ 0 ] );
+    private AdqlExample[] getUploadExamples() {
+        if ( uploadExamples_ == null ) {
+            uploadExamples_ =
+                UploadAdqlExample
+               .createSomeExamples( ControlWindow.getInstance()
+                                                 .getTablesList() );
         }
-        return examples_;
+        return uploadExamples_;
     }
 
     /**
@@ -244,35 +431,56 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
      *
      * @param  tcModel  loaded table
      * @param  tname  schema-qualified table name
+     * @param  sname  schema name
      * @return   table metadata object suitable for passing to validator
      */
     private static AdqlValidator.ValidatorTable
-            toValidatorTable( TopcatModel tcModel, final String tname ) {
-        StarTable dataTable = tcModel.getDataModel();
-        int ncol = dataTable.getColumnCount();
-        final AdqlValidator.ValidatorColumn[] vcols =
-            new AdqlValidator.ValidatorColumn[ ncol ];
-        final AdqlValidator.ValidatorTable vtable =
-                new AdqlValidator.ValidatorTable() {
-            public String getName() {
-                return tname;
+            toValidatorTable( TopcatModel tcModel, final String tname,
+                              final String sname ) {
+        final StarTable dataTable = tcModel.getDataModel();
+        final List<String> colList = new AbstractList<String>() {
+            public int size() {
+                return dataTable.getColumnCount();
             }
-            public AdqlValidator.ValidatorColumn[] getColumns() {
-                return vcols;
+            public String get( int index ) {
+                return dataTable.getColumnInfo( index ).getName();
             }
         };
-        for ( int ic = 0; ic < ncol; ic++ ) {
-            final String cname = dataTable.getColumnInfo( ic ).getName();
-            vcols[ ic ] = new AdqlValidator.ValidatorColumn() {
-                public String getName() {
-                    return cname;
-                }
-                public AdqlValidator.ValidatorTable getTable() {
-                    return vtable;
-                }
-            };
+        return new AdqlValidator.ValidatorTable() {
+            public String getTableName() {
+                return tname;
+            }
+            public String getSchemaName() {
+                return sname;
+            }
+            public Collection<String> getColumnNames() {
+                return colList;
+            }
+        };
+    }
+
+    /**
+     * Tries on a best-efforts basis to returns a handler
+     * that launches a browser when a URL is clicked.
+     *
+     * @return  browser launcher handler, or null if it can't be done
+     */
+    private static UrlHandler createUrlHandler() {
+        final BrowserLauncher launcher;
+        try {
+            launcher = new BrowserLauncher();
         }
-        return vtable;
+        catch ( Exception e ) {
+            logger_.log( Level.WARNING,
+                         "Trouble invoking BrowserLauncher: " + e, e );
+            return null;
+        }
+        launcher.setNewWindowPolicy( false );
+        return new UrlHandler() {
+            public void clickUrl( URL url ) {
+                launcher.openURLinBrowser( url.toString() );
+            }
+        };
     }
 
     /**

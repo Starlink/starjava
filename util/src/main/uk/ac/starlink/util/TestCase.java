@@ -195,7 +195,17 @@ public class TestCase extends junit.framework.TestCase {
             for ( int i = 0; i < nel; i++ ) {
                 Object v1 = Array.get( expected, i );
                 Object v2 = Array.get( actual, i );
-                if ( v1 != v2 ) { 
+                if ( v1 == null && v2 == null ) {
+                    // ok
+                }
+                else if ( v1 == null || v2 == null ) {
+                    assertEquals( itemMismatchMessage( message, i ), v1, v2 );
+                }
+                else if ( v1.getClass().isArray() && v2.getClass().isArray() ) {
+                    assertArrayEquals( itemMismatchMessage( message, i ),
+                                       v1, v2 );
+                }
+                else if ( ! v1.equals( v2 ) ) {
                     assertEquals( itemMismatchMessage( message, i ), v1, v2 );
                 }
             }

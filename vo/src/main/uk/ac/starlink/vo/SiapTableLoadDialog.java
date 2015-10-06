@@ -17,6 +17,7 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -25,10 +26,11 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  *
  * @author   Mark Taylor (Starlink)
  * @since    5 Dec 2005
- * @see      <http://www.ivoa.net/Documents/latest/SIA.html>
+ * @see      <a href="http://www.ivoa.net/Documents/latest/SIA.html">SIA</a>
  */
 public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
 
+    private final ContentCoding coding_;
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField sizeField_;
@@ -45,7 +47,8 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
         super( "Simple Image Access (SIA) Query", "SIA",
                "Get results of a Simple Image Access Protocol query",
                Capability.SIA, true, true );
-        setIconUrl( SiapTableLoadDialog.class.getResource( "sia.gif" ) );
+        coding_ = ContentCoding.GZIP;
+        setIcon( ResourceIcon.TLD_SIA );
     }
 
     protected Component createQueryComponent() {
@@ -76,7 +79,8 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
         double ra = raField_.getValue();
         double dec = decField_.getValue();
         double size = sizeField_.getValue();
-        final DalQuery query = new DalQuery( serviceUrl, "SIA", ra, dec, size );
+        final DalQuery query =
+            new DalQuery( serviceUrl, "SIA", ra, dec, size, coding_ );
         Object format = formatSelector_.getSelectedItem();
         if ( format != null && format.toString().trim().length() > 0 ) {
             query.addArgument( "FORMAT", format.toString() );

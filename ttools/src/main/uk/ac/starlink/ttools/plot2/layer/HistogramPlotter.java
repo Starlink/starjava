@@ -3,9 +3,9 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -21,6 +21,10 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportKey;
+import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -33,7 +37,6 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
-import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
@@ -56,6 +59,41 @@ public class HistogramPlotter
     private final CoordGroup histoCoordGrp_;
     private final int icX_;
     private final int icWeight_;
+
+    /** ReportKey for histogram bins. */
+    public static final ReportKey<BinBag> BINS_KEY =
+        new ReportKey<BinBag>( new ReportMeta( "bins", "Bins" ), BinBag.class,
+                               false );
+
+    /** ReportKey for actual bin width. */
+    public static final ReportKey<Double> BINWIDTH_KEY =
+        new ReportKey<Double>( new ReportMeta( "binwidth", "Bin Width" ),
+                               Double.class, false );
+
+    /** Config key for bin size configuration. */
+    public static final ConfigKey<BinSizer> BINSIZER_KEY =
+        BinSizer.createSizerConfigKey(
+            new ConfigMeta( "binsize", "Bin Size" )
+           .setStringUsage( "+<width>|-<count>" )
+           .setShortDescription( "Bin size specification" )
+           .setXmlDescription( new String[] {
+                "<p>Configures the width of histogram bins.",
+                "If the supplied string is a positive number,",
+                "it is interpreted as a fixed width in the data coordinates",
+                "of the X axis",
+                "(if the X axis is logarithmic, the value is a fixed factor).",
+                "If it is a negative number, then it will be interpreted",
+                "as the approximate number of bins to display across",
+                "the width of the plot",
+                "(though an attempt is made to use only round numbers",
+                "for bin widths).",
+                "</p>",
+                "<p>When setting this value graphically,",
+                "you can use either the slider to adjust the bin count",
+                "or the numeric entry field to fix the bin width.",
+                "</p>",
+            } )
+        , BINWIDTH_KEY, 30, true, false );
 
     /** Config key for bar line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =
@@ -82,31 +120,6 @@ public class HistogramPlotter
             } )
         , 0, 0, 1, false );
 
-    /** Config key for cumulative histogram flag. */
-    public static final ConfigKey<Boolean> CUMULATIVE_KEY =
-        new BooleanConfigKey(
-            new ConfigMeta( "cumulative", "Cumulative" )
-           .setShortDescription( "Cumulative histogram?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the histogram bars plotted are calculated",
-                "cumulatively;",
-                "each bin includes the counts from all previous bins.",
-                "</p>",
-            } )
-        );
-
-    /** Config key for normalised histogram flag. */
-    public static final ConfigKey<Boolean> NORM_KEY =
-        new BooleanConfigKey(
-            new ConfigMeta( "norm", "Normalised" )
-           .setShortDescription( "Normalised histogram?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the counts in each plotted histogram are",
-                "normalised so that the sum of all bars is 1.",
-                "</p>",
-            } )
-        );
-
     /**
      * Constructor.
      *
@@ -116,20 +129,7 @@ public class HistogramPlotter
     public HistogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
         xCoord_ = xCoord;
         if ( hasWeight ) {
-            weightCoord_ =
-                FloatingCoord.createCoord(
-                    new InputMeta( "weight", "Weight" )
-                   .setShortDescription( "Non-unit weighting of data points" )
-                   .setXmlDescription( new String[] {
-                        "<p>Weighting of data points.",
-                        "If supplied, each point contributes a value",
-                        "to the histogram equal to the data value",
-                        "multiplied by this coordinate.",
-                        "If not supplied, the effect is the same as",
-                        "supplying a fixed value of one.",
-                        "</p>",
-                    } )
-                , false );
+            weightCoord_ = FloatingCoord.WEIGHT_COORD;
             histoCoordGrp_ =
                 CoordGroup
                .createPartialCoordGroup( new Coord[] { xCoord, weightCoord_ },
@@ -159,7 +159,7 @@ public class HistogramPlotter
     }
 
     public Icon getPlotterIcon() {
-        return ResourceIcon.PLOT_HISTO;
+        return ResourceIcon.FORM_HISTOGRAM;
     }
 
     public String getPlotterDescription() {
@@ -174,10 +174,10 @@ public class HistogramPlotter
         return new ConfigKey[] {
             StyleKeys.COLOR,
             StyleKeys.TRANSPARENCY,
-            BinSizer.BINSIZER_KEY,
-            CUMULATIVE_KEY,
-            NORM_KEY,
+            BINSIZER_KEY,
             PHASE_KEY,
+            StyleKeys.CUMULATIVE,
+            StyleKeys.NORMALISE,
             StyleKeys.BAR_FORM,
             THICK_KEY,
             StyleKeys.DASH,
@@ -192,14 +192,18 @@ public class HistogramPlotter
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         BarStyle.Form barForm = config.get( StyleKeys.BAR_FORM );
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
-        boolean cumulative = config.get( CUMULATIVE_KEY );
-        boolean norm = config.get( NORM_KEY );
+        boolean cumulative = config.get( StyleKeys.CUMULATIVE );
+        Normalisation norm = config.get( StyleKeys.NORMALISE );
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
-        BinSizer sizer = config.get( BinSizer.BINSIZER_KEY );
+        BinSizer sizer = config.get( BINSIZER_KEY );
         double binPhase = config.get( PHASE_KEY );
         return new HistoStyle( color, barForm, placement, cumulative, norm,
                                thick, dash, sizer, binPhase );
+    }
+
+    public boolean hasReports() {
+        return false;
     }
 
     /**
@@ -214,9 +218,10 @@ public class HistogramPlotter
             final double binPhase = style.phase_;
             final BinSizer sizer = style.sizer_;
             final boolean cumul = style.cumulative_;
-            final boolean norm = style.norm_;
+            final Normalisation norm = style.norm_;
             Color color = style.color_;
-            final boolean isOpaque = color.getAlpha() == 255;
+            final boolean isOpaque = color.getAlpha() == 255
+                                 && style.barForm_.isOpaque();
             LayerOpt layerOpt = new LayerOpt( color, isOpaque );
             return new AbstractPlotLayer( this, histoDataGeom_, dataSpec,
                                           style, layerOpt ) {
@@ -224,7 +229,7 @@ public class HistogramPlotter
                                               Map<AuxScale,Range> auxRanges,
                                               final PaperType paperType ) {
                     if ( ! ( surface instanceof PlaneSurface ) ) {
-                        throw new IllegalArgumentException( "Not plane surface"
+                        throw new IllegalArgumentException( "Not plane surface "
                                                           + surface );
                     }
                     final PlaneSurface pSurf = (PlaneSurface) surface;
@@ -273,6 +278,15 @@ public class HistogramPlotter
                                     return isOpaque;
                                 }
                             } );
+                        }
+                        public ReportMap getReport( Object plan ) {
+                            ReportMap report = new ReportMap();
+                            if ( plan instanceof HistoPlan ) {
+                                BinBag bbag = ((HistoPlan) plan).binBag_;
+                                report.put( BINS_KEY, bbag );
+                                report.put( BINWIDTH_KEY, bbag.getBinWidth() );
+                            }
+                            return report;
                         }
                     };
                 }
@@ -327,6 +341,17 @@ public class HistogramPlotter
     }
 
     /**
+     * Returns the DataSpec coord index used for the weighting data
+     * for this plotter.  If weighting is not supported, a negative
+     * value is returned.
+     *
+     * @return   weight coord index, or -1
+     */
+    public int getWeightCoordIndex() {
+        return icWeight_;
+    }
+
+    /**
      * Reads histogram data from a given data set.
      *
      * @param   xlog  false for linear scaling, true for logarithmic
@@ -341,7 +366,7 @@ public class HistogramPlotter
                              DataStore dataStore ) {
         BinBag binBag = new BinBag( xlog, binWidth, binPhase, point );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        if ( weightCoord_ == null ) {
+        if ( weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ ) ) {
             while ( tseq.next() ) {
                 double x = xCoord_.readDoubleCoord( tseq, icX_ );
                 binBag.addToBin( x, 1 );
@@ -351,7 +376,7 @@ public class HistogramPlotter
             while ( tseq.next() ) {
                 double x = xCoord_.readDoubleCoord( tseq, icX_ );
                 double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                double weight = Double.isNaN( w ) ? 1 : w;
+                double weight = Double.isNaN( w ) ? 0 : w;
                 binBag.addToBin( x, weight );
             }
         }
@@ -375,7 +400,7 @@ public class HistogramPlotter
         g.setColor( style.color_ );
         BarStyle barStyle = style.barStyle_;
         boolean cumul = style.cumulative_;
-        boolean norm = style.norm_;
+        Normalisation norm = style.norm_;
         Rectangle clip = surface.getPlotBounds();
         int xClipMin = clip.x - 64;
         int xClipMax = clip.x + clip.width + 64;
@@ -384,13 +409,13 @@ public class HistogramPlotter
         double[][] dataLimits = surface.getDataLimits();
         double dxMin = dataLimits[ 0 ][ 0 ];
         double dxMax = dataLimits[ 0 ][ 1 ];
-        double dyMin = dataLimits[ 1 ][ 0 ];
-        double dyMax = dataLimits[ 1 ][ 1 ];
         boolean[] flipFlags = surface.getFlipFlags();
         final boolean xflip = flipFlags[ 0 ];
         final boolean yflip = flipFlags[ 1 ];
-        Point p0 = new Point();
-        Point p1 = new Point();
+        boolean ylog = surface.getLogFlags()[ 1 ];
+       
+        Point2D.Double p0 = new Point2D.Double();
+        Point2D.Double p1 = new Point2D.Double();
         double[] dpos0 = new double[ 2 ];
         double[] dpos1 = new double[ 2 ];
         int lastGx1 = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
@@ -412,19 +437,21 @@ public class HistogramPlotter
 
                  /* Transform the corners of each bar to graphics coords. */
                  dpos0[ 0 ] = dxlo;
-                 dpos0[ 1 ] = 0;
+                 dpos0[ 1 ] = ylog ? Double.MIN_VALUE : 0;
                  dpos1[ 0 ] = dxhi;
                  dpos1[ 1 ] = dy;
                  if ( surface.dataToGraphics( dpos0, false, p0 ) &&
-                      surface.dataToGraphics( dpos1, false, p1 ) ) {
+                      ! Double.isNaN( p0.x ) &&
+                      surface.dataToGraphics( dpos1, false, p1 ) &&
+                      ! Double.isNaN( p1.x ) ) {
 
                     /* Clip them so they are not too far off the plot region;
                      * attempting to draw ridiculously large rectangles can
                      * give AWT a headache. */
-                    int gx0 = clip( p0.x, xClipMin, xClipMax );
-                    int gx1 = clip( p1.x, xClipMin, xClipMax );
-                    int gy0 = clip( p0.y, yClipMin, yClipMax );
-                    int gy1 = clip( p1.y, yClipMin, yClipMax );
+                    int gx0 = clip( (int) p0.x, xClipMin, xClipMax );
+                    int gx1 = clip( (int) p1.x, xClipMin, xClipMax );
+                    int gy0 = clip( (int) p0.y, yClipMin, yClipMax );
+                    int gy1 = clip( (int) p1.y, yClipMin, yClipMax );
 
                     /* Draw the trailing edge of the previous bar if
                      * necessary. */
@@ -507,7 +534,7 @@ public class HistogramPlotter
         private final BarStyle.Form barForm_;
         private final BarStyle.Placement placement_;
         private final boolean cumulative_;
-        private final boolean norm_;
+        private final Normalisation norm_;
         private final int thick_;
         private final float[] dash_;
         private final BinSizer sizer_;
@@ -522,7 +549,7 @@ public class HistogramPlotter
          * @param  barForm  bar form
          * @param  placement  bar placement
          * @param  cumulative  whether to plot cumulative bars
-         * @param  norm    whether to normalise vertical scale
+         * @param  norm    normalisation mode for the vertical scale
          * @param  thick   line thickness (only relevant for some forms)
          * @param  dash    line dash pattern (only relevant for some forms)
          * @param  sizer   determines bin widths
@@ -530,7 +557,7 @@ public class HistogramPlotter
          */
         public HistoStyle( Color color, BarStyle.Form barForm,
                            BarStyle.Placement placement,
-                           boolean cumulative, boolean norm,
+                           boolean cumulative, Normalisation norm,
                            int thick, float[] dash,
                            BinSizer sizer, double phase ) {
             color_ = color;
@@ -566,11 +593,11 @@ public class HistogramPlotter
         }
 
         /**
-         * Returns normalised flag.
+         * Returns normalisation mode.
          *
-         * @return  true iff counts are normalised
+         * @return  normalisation mode for count axis
          */
-        public boolean isNormalised() {
+        public Normalisation getNormalisation() {
             return norm_;
         }
 
@@ -585,7 +612,7 @@ public class HistogramPlotter
             code = 23 * code + barForm_.hashCode();
             code = 23 * code + placement_.hashCode();
             code = 23 * code + ( cumulative_ ? 11 : 13 );
-            code = 23 * code + ( norm_ ? 17 : 19 );
+            code = 23 * code + PlotUtil.hashCode( norm_ );
             code = 23 * code + thick_;
             code = 23 * code + Arrays.hashCode( dash_ );
             code = 23 * code + sizer_.hashCode();
@@ -601,7 +628,7 @@ public class HistogramPlotter
                     && this.barForm_.equals( other.barForm_ )
                     && this.placement_.equals( other.placement_ )
                     && this.cumulative_ == other.cumulative_
-                    && this.norm_ == other.norm_
+                    && PlotUtil.equals( this.norm_, other.norm_ )
                     && this.thick_ == other.thick_
                     && Arrays.equals( this.dash_, other.dash_ )
                     && this.sizer_.equals( other.sizer_ )

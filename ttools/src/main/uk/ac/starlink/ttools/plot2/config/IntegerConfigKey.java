@@ -5,6 +5,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -73,14 +74,15 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
      * @param  hi    maximum of slider range
      * @param  log   true for logarithmic scale, false for linear
      */
-    public static IntegerConfigKey createSliderKey( ConfigMeta meta, int dflt,
+    public static IntegerConfigKey createSliderKey( ConfigMeta meta,
+                                                    final int dflt,
                                                     final double lo,
                                                     final double hi,
                                                     final boolean log ) {
         return new IntegerConfigKey( meta, dflt ) {
             public Specifier<Integer> createSpecifier() {
                 final Specifier<Double> slidey =
-                    new SliderSpecifier( lo, hi, log );
+                    new SliderSpecifier( lo, hi, log, dflt );
                 return new ConversionSpecifier<Double,Integer>( slidey ) {
                     protected Integer inToOut( Double dVal ) {
                         if ( dVal == null ) {
@@ -139,6 +141,9 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
         public void setSpecifiedValue( Integer value ) {
             spinner_.setValue( value );
             fireAction();
+        }
+
+        public void submitReport( ReportMap report ) {
         }
     }
 }

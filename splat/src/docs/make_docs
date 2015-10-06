@@ -1,0 +1,69 @@
+#!/bin/sh
+
+#  Make documentation. Requires a functional Starlink with working htlatex
+#  build system.
+
+export HTX_EMAIL='<A HREF="mailto:starlink@jiscmail.ac.uk">starlink@jiscmail.ac.uk</A>'
+
+#  Copy figures into place.
+test -d sun243.htx || mkdir sun243.htx
+cp gifs/* sun243.htx
+
+#  Help system docs, these need to be in a jar file so we can access them from
+#  javahelp. Split into more sections so that pages are not so long and better
+#  related to the help-on-window concept.
+star2html -splitlevel 3 sun243.tex
+
+#  Stop the navigation elements from appearing at the top and bottom of the
+#  pages (not needed javahelp has a permanently displayed index). 
+#  If javahelp worked with CSS this would be enough:
+#     cat sun243.htx/sun243.css | sed '/^div\.crosslinks{/N;s/block/none/'
+#  but it doesn't so we have to process all files with nasty across-line
+#  character range with greedy issues, so off to perl we go...
+for f in sun243.htx/*.html; do 
+    rm -f tmp.html
+    cat $f | perl -0pe 's/<div\ class="crosslinks".*?>TOC.*?<\/div>//sg' > tmp.html
+    mv -f tmp.html $f
+done
+
+#  Edit Map.jhm.in to reference the correct files for our TOC.
+rm -f Map.jhm
+touch Map.jhm
+cat Map.jhm.in | \
+while read line; do
+    match=$(echo $line | grep -o 'xref_[^"]*')
+    if [ $? = 0 ]; then
+        file=$(grep -l $match sun243.htx/*.html)
+        echo $line | sed "s,$match,$file#$match," >> Map.jhm
+    else
+        echo "$line" >> Map.jhm
+    fi
+done
+
+#  Update the searchable database.
+$STARLINK_DIR/starjava/bin/help/jhindexer sun243.htx
+
+#  Put everything into a jar file.
+jar cf splat_help.jar sun243.htx HelpSet.hs TOC.xml Map.jhm JavaHelpSearch
+mv splat_help.jar ../lib
+
+echo "Created JavaHelp archives"
+
+#  Normal docs. Note remove files that change trivially to stop
+#  unneccesary updates.
+star2html -c "$COPYRIGHT" sun243.tex
+tar cf sun243.htx_tar sun243.htx
+gzip -f -9 sun243.htx_tar
+
+star2html -c "$COPYRIGHT" programming.tex
+tar cf programming.htx_tar programming.htx
+gzip -f -9 programming.htx_tar
+
+echo "Created hypertext archives"
+
+#  PDF documentation.
+export TEXINPUTS=$STARLINK_DIR/share/latexsupport/:
+pdflatex sun243
+pdflatex sun243
+
+exit

@@ -150,7 +150,7 @@ public abstract class VOTableVersion {
     public abstract boolean allowXtype();
 
     /**
-     * Returns a number->version map for all known versions.
+     * Returns a number-&gt;version map for all known versions.
      * The map keys are version number strings like "1.1".
      * The order of entries in this map is in ascending order
      * of version number.

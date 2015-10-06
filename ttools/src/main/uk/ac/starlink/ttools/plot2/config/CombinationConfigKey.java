@@ -5,6 +5,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Config key that can select zero or more items from a short fixed list.
@@ -212,6 +213,9 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
             if ( change ) {
                 fireAction();
             }
+        }
+
+        public void submitReport( ReportMap report ) {
         }
     }
 }

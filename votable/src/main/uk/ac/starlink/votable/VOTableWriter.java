@@ -32,6 +32,19 @@ import uk.ac.starlink.util.IOUtils;
  * latter three cases may be either inline as base64 encoded CDATA or
  * to a separate stream.
  *
+ * <p>A couple of Auxiliary metadata items of the ColumnInfo metadata
+ * from written tables are respected:
+ * <ul>
+ * <li>{@link uk.ac.starlink.table.Tables#NULL_VALUE_INFO}:
+ *     sets the value of "magic" blank value for
+ *     integer columns</li>
+ * <li>{@link uk.ac.starlink.table.Tables#UBYTE_FLAG_INFO}:
+ *     if set to <code>Boolean.TRUE</code> and if the column has content class
+ *     <code>Short</code> or <code>short[]</code>, the data will be written 
+ *     with <code>datatype="unsignedByte"</code> instead of
+ *     (signed 16-bit) <code>"short"</code>.</li>
+ * </ul>
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
@@ -408,7 +421,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         writer.newLine();
         writer.write( " !  VOTable written by STIL version "
                     + IOUtils.getResourceContents( StarTable.class,
-                                                   "stil.version" )
+                                                   "stil.version", null )
                     + " (" + VOSerializer.formatText( getClass().getName() )
                     + ")" );
         writer.newLine();

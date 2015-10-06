@@ -24,31 +24,12 @@ public class SkySysConfigKey extends OptionConfigKey<SkySys> {
         return sys == null ? "generic" : super.valueToString( sys );
     }
 
-    public SkySys stringToValue( String str ) {
+    public SkySys stringToValue( String str ) throws ConfigException {
         return "generic".equals( str ) ? null
                                        : super.stringToValue( str );
     }
 
-    /**
-     * Returns XML text describing the available non-null options.
-     *
-     * @return   options description
-     */
-    public static String getDescribedOptionsXml() {
-        StringBuffer sbuf = new StringBuffer()
-            .append( "<p>" )
-            .append( "Available options are:\n" )
-            .append( "<ul>\n" );
-        for ( SkySys sys : SkySys.getKnownSystems( false ) ) {
-            sbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( sys.getSysName() )
-                .append( "</code>: " )
-                .append( sys.getSysDescription() )
-                .append( "</li>\n" );
-        }
-        sbuf.append( "</ul>\n" )
-            .append( "</p>" );
-        return sbuf.toString();
+    public String getXmlDescription( SkySys sys ) {
+        return sys == null ? null :  sys.getSysDescription();
     }
 }

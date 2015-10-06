@@ -33,6 +33,7 @@ import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
@@ -43,6 +44,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.func.Strings;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Range;
@@ -64,6 +66,7 @@ import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.KeySet;
@@ -116,7 +119,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private final BooleanParameter legopaqueParam_;
     private final DoubleArrayParameter legposParam_;
     private final StringMultiParameter legseqParam_;
+    private final StringParameter titleParam_;
     private final StringParameter auxlabelParam_;
+    private final DoubleParameter auxcrowdParam_;
     private final BooleanParameter auxvisibleParam_;
     private final BooleanParameter bitmapParam_;
     private final Parameter<Compositor> compositorParam_;
@@ -320,7 +325,20 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         legseqParam_.setNullPermitted( true );
         plist.add( legseqParam_ );
 
+        titleParam_ = new StringParameter( "title" );
+        titleParam_.setPrompt( "Title for plot" );
+        titleParam_.setDescription( new String[] {
+            "<p>Text of a title to be displayed at the top of the plot.",
+            "If null, the default, no title is shown",
+            "and there's more space for the graphics.",
+            "</p>",
+        } );
+        titleParam_.setNullPermitted( true );
+        plist.add( titleParam_ );
+
         plist.addAll( getKeyParams( StyleKeys.AUX_RAMP.getKeys() ) );
+        plist.add( new ConfigParameter( StyleKeys.SHADE_LOW ) );
+        plist.add( new ConfigParameter( StyleKeys.SHADE_HIGH ) );
 
         auxlabelParam_ = new StringParameter( "auxlabel" );
         auxlabelParam_.setUsage( "<text>" );
@@ -332,6 +350,24 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         } );
         auxlabelParam_.setNullPermitted( true );
         plist.add( auxlabelParam_ );
+
+        auxcrowdParam_ = new DoubleParameter( "auxcrowd" );
+        auxcrowdParam_.setUsage( "<factor>" );
+        auxcrowdParam_.setPrompt( "Tick crowding on aux axis" );
+        auxcrowdParam_.setDescription( new String[] {
+            "<p>Determines how closely the tick marks are spaced",
+            "on the Aux axis, if visible.",
+            "The default value is 1, meaning normal crowding.",
+            "Larger values result in more ticks,",
+            "and smaller values fewer ticks.",
+            "Tick marks will not however be spaced so closely that",
+            "the labels overlap each other,",
+            "so to get very closely spaced marks you may need to",
+            "reduce the font size as well.",
+            "</p>",
+        } );
+        auxcrowdParam_.setDoubleDefault( 1 );
+        plist.add( auxcrowdParam_ );
 
         auxvisibleParam_ = new BooleanParameter( "auxvisible" );
         auxvisibleParam_.setPrompt( "Display aux colour ramp?" );
@@ -902,10 +938,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   suffix  suffix associated with layer
      * @return  array of plot finder for layer-specific parameters
      */
-    private ParameterFinder[] getLayerParameterFinders( Environment env,
-                                                        PlotContext context,
-                                                        final LayerType layer,
-                                                        final String suffix )
+    private ParameterFinder[]
+            getLayerParameterFinders( Environment env,
+                                      final PlotContext context,
+                                      final LayerType layer,
+                                      final String suffix )
             throws TaskException {
         List<ParameterFinder> finderList = new ArrayList<ParameterFinder>();
 
@@ -938,6 +975,17 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     } );
                 }
             }
+        }
+
+        /* Layer geometry-specific parameters. */
+        Parameter[] geomParams = context.getGeomParameters( suffix );
+        for ( int igp = 0; igp < geomParams.length; igp++ ) {
+            final int igp0 = igp;
+            finderList.add( new ParameterFinder<Parameter>() {
+                public Parameter createParameter( String sfix ) {
+                    return context.getGeomParameters( sfix )[ igp0 ];
+                }
+            } );
         }
 
         /* Layer non-positional parameters. */
@@ -1127,6 +1175,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final float[] legpos = legend == null
                              ? null
                              : legposParam_.floatsValue( env );
+        final String title = titleParam_.stringValue( env );
 
         /* We have all we need.  Construct and return the object
          * that can do the plot. */
@@ -1146,8 +1195,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                                     boolean caching ) {
                 PlotDisplay panel =
                     PlotDisplay
-                   .createPlotDisplay( layers, surfFact, surfConfig,
-                                       legend, legpos, shadeFact, shadeFixRange,
+                   .createPlotDisplay( layers, surfFact, surfConfig, legend,
+                                       legpos, title, shadeFact, shadeFixRange,
                                        ptsel, compositor, dataStore,
                                        surfaceAuxRange, navigable, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
@@ -1157,8 +1206,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
             public Icon createPlotIcon( DataStore dataStore ) {
                 return AbstractPlot2Task
-                      .createPlotIcon( layers, surfFact, surfConfig,
-                                       legend, legpos, shadeFact, shadeFixRange,
+                      .createPlotIcon( layers, surfFact, surfConfig, legend,
+                                       legpos, title, shadeFact, shadeFixRange,
                                        ptsel, compositor, dataStore,
                                        xpix, ypix, insets, forceBitmap );
             }
@@ -1427,11 +1476,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         Captioner captioner = getCaptioner( env );
         ConfigMap auxConfig = createBasicConfigMap( env, rampKeys.getKeys() );
         RampKeySet.Ramp ramp = rampKeys.createValue( auxConfig );
+        double crowd = auxcrowdParam_.doubleValue( env );
 
         /* Really, I should default this from the value of the first
          * layer aux data value. */
         String label = auxlabelParam_.objectValue( env );
-        return ramp.createShadeAxisFactory( captioner, label );
+        return RampKeySet
+              .createShadeAxisFactory( ramp, captioner, label, crowd );
     }
 
     /**
@@ -1492,7 +1543,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Work out the requested style. */
         @SuppressWarnings("unchecked")
         Plotter<S> splotter = (Plotter<S>) plotter;
-        S style = splotter.createStyle( config );
+        S style;
+        try {
+            style = splotter.createStyle( config );
+        }
+        catch ( ConfigException e ) {
+            throw new UsageException( e.getConfigKey().getMeta().getShortName()
+                                    + ": " + e.getMessage(), e );
+        }
 
         /* Return a layer based on these. */
         return splotter.createLayer( geom, dataSpec, style );
@@ -1831,6 +1889,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
+     * @param  title    plot title, or null
      * @param  shadeFact  gets shader axis from range, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
@@ -1848,8 +1907,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     private static <P,A> Icon createPlotIcon( PlotLayer[] layers,
                                               SurfaceFactory<P,A> surfFact,
-                                              ConfigMap config,
-                                              Icon legend, float[] legPos,
+                                              ConfigMap config, Icon legend,
+                                              float[] legPos, String title,
                                               ShadeAxisFactory shadeFact,
                                               Range shadeFixRange,
                                               PaperTypeSelector ptsel,
@@ -1865,7 +1924,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         PlotUtil.logTime( logger_, "Range", t0 );
         A aspect = surfFact.createAspect( profile, config, ranges );
         return createPlotIcon( layers, surfFact, profile, aspect,
-                               legend, legPos, shadeFact, shadeFixRange,
+                               legend, legPos, title, shadeFact, shadeFixRange,
                                ptsel, compositor, dataStore, xpix, ypix,
                                insets, forceBitmap );
     }
@@ -1883,6 +1942,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
+     * @param  title   plot title or null
      * @param  shadeFact  gets shader axis from range, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
@@ -1900,8 +1960,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     public static <P,A> Icon createPlotIcon( PlotLayer[] layers,
                                              SurfaceFactory<P,A> surfFact,
-                                             P profile, A aspect,
-                                             Icon legend, float[] legPos,
+                                             P profile, A aspect, Icon legend,
+                                             float[] legPos, String title,
                                              ShadeAxisFactory shadeFact,
                                              Range shadeFixRange,
                                              PaperTypeSelector ptsel,
@@ -1928,12 +1988,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             dataBounds = PlotPlacement
                         .calculateDataBounds( extBounds, surfFact, profile,
                                               aspect, withScroll, legend,
-                                              legPos, shadeAxis );
+                                              legPos, title, shadeAxis );
         }
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
         Decoration[] decs =
-            PlotPlacement.createPlotDecorations( dataBounds, legend, legPos,
-                                                 shadeAxis );
+            PlotPlacement.createPlotDecorations( surf, legend, legPos,
+                                                 title, shadeAxis );
         PlotPlacement placer = new PlotPlacement( extBounds, surf, decs );
         LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
         PaperType paperType = forceBitmap

@@ -14,7 +14,7 @@ import uk.ac.starlink.table.ValueInfo;
  * sphere.
  * The tuples it uses are five-element arrays of {@link java.lang.Number}
  * objects, as follows:
- * </p>
+ *
  * <ol>
  * <li>alpha: right ascension coordinate of ellipse centre in radians
  * <li>delta: declination coordinate of ellipse centre in radians

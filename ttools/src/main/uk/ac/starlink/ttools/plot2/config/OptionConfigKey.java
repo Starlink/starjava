@@ -5,6 +5,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Config key for use with items that can be chosen from a list of options.
@@ -15,7 +16,7 @@ import javax.swing.JRadioButton;
  * @author   Mark Taylor
  * @since    23 Feb 2013
  */
-public class OptionConfigKey<T> extends ConfigKey<T> {
+public abstract class OptionConfigKey<T> extends ConfigKey<T> {
 
     private final T[] options_;
     private final boolean useRadio_;
@@ -77,11 +78,24 @@ public class OptionConfigKey<T> extends ConfigKey<T> {
     }
 
     /**
+     * Returns a description in XML of the given option value.
+     * This, along with {@link #valueToString},
+     * is used by the {@link #getOptionsXml} method to assemble
+     * a described list of the options.
+     *
+     * @param  value   possible value of this key
+     * @return  short snippet of XML (not wrapped in any outer element)
+     *          describing the value; may be null if no description required
+     *          or available
+     */
+    public abstract String getXmlDescription( T value );
+
+    /**
      * Calls <code>valueToString</code> repeatedly looking for a match.
      * This means that if <code>valueToString</code> is overridden it
      * is usually not necessary to override this method.
      */
-    public T stringToValue( String txt ) {
+    public T stringToValue( String txt ) throws ConfigException {
         if ( txt == null || txt.trim().length() == 0 ) {
             return null;
         }
@@ -179,9 +193,17 @@ public class OptionConfigKey<T> extends ConfigKey<T> {
         sbuf.append( "<p>The available options are:\n" )
             .append( "<ul>\n" );
         for ( T option : getOptions() ) {
+            String name = valueToString( option );
+            String description = getXmlDescription( option );
             sbuf.append( "<li><code>" )
-                .append( valueToString( option ) )
-                .append( "</code></li>\n" );
+                .append( name )
+                .append( "</code>" );
+            if ( description != null ) {
+                sbuf.append( ": " )
+                    .append( description );
+            }
+            sbuf.append( "</li>" )
+                .append( "\n" );
         }
         sbuf.append( "</ul>\n" )
             .append( "</p>\n" );
@@ -251,6 +273,9 @@ public class OptionConfigKey<T> extends ConfigKey<T> {
                     return;
                 }
             }
+        }
+
+        public void submitReport( ReportMap report ) {
         }
     }
 }

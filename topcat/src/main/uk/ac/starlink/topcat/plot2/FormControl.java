@@ -5,16 +5,19 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
-import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -35,6 +38,8 @@ public abstract class FormControl implements Control {
     private SubsetConfigManager subManager_;
     private FormStylePanel stylePanel_;
     private JComponent panel_;
+    private ConfigStyler styler_;
+    private ReportPanel reportPanel_;
 
     /**
      * Constructor.
@@ -74,8 +79,28 @@ public abstract class FormControl implements Control {
         if ( panel_ == null ) {
             panel_ = new JPanel( new BorderLayout() );
             panel_.add( getCoordPanel(), BorderLayout.NORTH );
+            if ( getPlotter().hasReports() ) {
+                reportPanel_ = new ReportPanel();
+                reportPanel_.setBorder( AuxWindow
+                                       .makeTitledBorder( "Report" ) );
+                panel_.add( reportPanel_, BorderLayout.SOUTH );
+            }
         }
         return panel_;
+    }
+
+    /**
+     * Returns this component's ConfigStyler.
+     *
+     * @return  config styler
+     */
+    private synchronized ConfigStyler getStyler() {
+
+        /* Constructed lazily because it needs the component. */
+        if ( styler_ == null ) {
+            styler_ = new ConfigStyler( getPanel() );
+        }
+        return styler_;
     }
 
     /**
@@ -104,9 +129,10 @@ public abstract class FormControl implements Control {
      * @param  tcModel   topcat model
      * @param  subManager  subset manager with info about the row subsets
      *                     for <code>tcModel</code>
+     * @param  subStack   subset stack controlling/displaying subset visibility
      */
-    public void setTable( TopcatModel tcModel,
-                          SubsetConfigManager subManager ) {
+    public void setTable( TopcatModel tcModel, SubsetConfigManager subManager,
+                          SubsetStack subStack ) {
         JComponent panel = getPanel();
 
         /* Clear out an old style panel if there was one. */
@@ -131,7 +157,7 @@ public abstract class FormControl implements Control {
             ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
             FormStylePanel sp =
                 new FormStylePanel( keys, baseConfigger_, plotterFact,
-                                    subManager, tcModel );
+                                    subManager, subStack, tcModel );
             if ( stylePanel_ != null ) {
                 sp.configureFrom( stylePanel_ );
             }
@@ -175,33 +201,19 @@ public abstract class FormControl implements Control {
      *                   set up for the given subset
      * @param  subset   row subset in the current table for which the
      *                  layer is to be plotted
-     * @return   new plot layer
+     * @return   new plot layer, may be null in case of incorrect GUI config
      */
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   RowSubset subset ) {
-        return createLayer( getPlotter(), geom, dataSpec, subset );
-    }
-
-    /**
-     * Creates a plot layer.
-     *
-     * @param  geom  data position geometry
-     * @param  dataSpec  data specification, which must contain any data
-     *                   required by this control's extra coords and be
-     *                   set up for the given subset
-     * @param  subset   row subset in the current table for which the
-     *                  layer is to be plotted
-     * @param   new plot layer
-     */
-    private <S extends Style>
-            PlotLayer createLayer( Plotter<S> plotter, DataGeom geom,
-                                   DataSpec dataSpec, RowSubset subset ) {
-        ConfigMap config = stylePanel_.getConfig( subset );
-        config.putAll( getExtraConfig() );
-        S style = plotter.createStyle( config );
-        assert style.equals( plotter.createStyle( config ) );
-        assert style.hashCode() == plotter.createStyle( config ).hashCode();
-        return plotter.createLayer( geom, dataSpec, style );
+        if ( stylePanel_ != null ) {
+            ConfigMap config = stylePanel_.getConfig( subset );
+            config.putAll( getExtraConfig() );
+            return getStyler()
+                  .createLayer( getPlotter(), geom, dataSpec, config );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -241,9 +253,18 @@ public abstract class FormControl implements Control {
         return getPlotter().getPlotterIcon();
     }
 
-    private JComponent createPanel() {
-        JComponent panel = new JPanel( new BorderLayout() );
-        panel.add( getCoordPanel(), BorderLayout.NORTH );
-        return panel;
+    /**
+     * Accepts plot reports generated by plotting layers.
+     * The supplied map is indexed by RowSubset.
+     *
+     * @param  reports  map of row subsets to plot reports
+     */
+    public void submitReports( Map<RowSubset,ReportMap> reports ) {
+        if ( reportPanel_ != null ) {
+            reportPanel_.submitReports( reports );
+        }
+        if ( stylePanel_ != null ) {
+            stylePanel_.submitReports( reports );
+        }
     }
 }

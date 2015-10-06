@@ -2,7 +2,6 @@ package uk.ac.starlink.votable;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.xml.transform.dom.DOMSource;
@@ -11,7 +10,6 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
-import nom.tam.util.BufferedFile;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.ColFitsStarTable;
 import uk.ac.starlink.fits.FitsConstants;
@@ -20,9 +18,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
-import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -73,13 +69,6 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
             throw new TableFormatException( "Can't locate numbered HDU" );
         }
 
-        /* See if the data source is an uncompressed file. */
-        if ( ! ( datsrc instanceof FileDataSource ) ||
-             datsrc.getCompression() != Compression.NONE ) {
-            throw new TableFormatException( "Not uncompressed file on disk" );
-        }
-        File file = ((FileDataSource) datsrc).getFile();
-
         /* See if the data looks like colfits format. */
         if ( ! isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException(
@@ -90,7 +79,7 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
         Header hdr = new Header();
         long dataPos;
         TableElement tableMeta;
-        BufferedFile in = new BufferedFile( file.toString() );
+        ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc );
         try {
             long[] pos = new long[ 1 ];
             tableMeta = readMetadata( in, pos );
@@ -109,7 +98,8 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
         }
 
         /* Get the table itself from the next HDU. */
-        StarTable tableData = new ColFitsStarTable( file, hdr, dataPos );
+        StarTable tableData =
+            new ColFitsStarTable( datsrc, hdr, dataPos, false );
 
         /* If we got a TABLE element, combine the metadata from that and
          * the data from the FITS table to provide the output table. */

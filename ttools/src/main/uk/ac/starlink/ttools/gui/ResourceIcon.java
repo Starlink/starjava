@@ -36,14 +36,19 @@ public class ResourceIcon {
         PLOT_LINE = readIcon( "plot-line.gif" ),
         PLOT_LABEL = readIcon( "plot-label.gif" ),
         PLOT_SPECTRO = readIcon( "plot-spectro.gif" ),
-        PLOT_HISTO = readIcon( "plot-histo.gif" ),
+        FORM_HISTOGRAM = readIcon( "form-histogram.gif" ),
+        FORM_KDE = readIcon( "form-kde.gif" ),
+        FORM_KNN = readIcon( "form-knn.gif" ),
+        FORM_DENSOGRAM = readIcon( "form-densogram.gif" ),
         PLOT_LINK2 = readIcon( "plot-link2.gif" ),
         FORM_MARK = readIcon( "form-mark.gif" ),
         FORM_SIZE = readIcon( "form-size.gif" ),
+        FORM_SIZEXY = readIcon( "form-sizexy.gif" ),
         FORM_ELLIPSE = readIcon( "form-ellipse2.gif" ),
         FORM_ERROR = readIcon( "form-error.gif" ),
         FORM_ERROR1 = readIcon( "form-error1.gif" ),
         FORM_VECTOR = readIcon( "form-vector.gif" ),
+        FORM_LINEARFIT = readIcon( "form-linearfit.gif" ),
         FORM_LINK2 = readIcon( "form-link2.gif" ),
         FORM_LINK3 = readIcon( "form-link3.gif" ),
         FORM_MARKS2 = readIcon( "form-marks2.gif" ),
@@ -61,9 +66,10 @@ public class ResourceIcon {
         CLICK2 = readIcon( "click2.gif" ),
         CLICK3 = readIcon( "click3.gif" ),
         MOUSE_WHEEL = readIcon( "mwheel.gif" ),
+        ZERO = readIcon( "ozero.png" ),
 
         /* Placeholder and terminator. */
-        DO_WHAT = readIcon( "burst.gif" );
+        TTOOLS_DOWHAT = readIcon( "burst.gif" );
 
     /**
      * Private constructor prevents instantiation.

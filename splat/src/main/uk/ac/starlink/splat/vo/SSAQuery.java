@@ -57,6 +57,9 @@ public class SSAQuery
     /** Radius of the query */
     private double queryRadius = 0.0;
 
+    /** maximum number of records */
+    private int queryMaxrec = 0;
+
     /** The format of any returned spectra, we ask for this. */
     private String queryFormat = null;
 
@@ -82,7 +85,7 @@ public class SSAQuery
     private StarTable starTable = null;
     
     /** The StarTable formed from the getData Parameters of the query */
-    private GetDataTable getDataTable = null;
+   // private GetDataTable getDataTable = null;
     
     /** The DataLink input parameters  */
     private DataLinkParams dataLinkParams = null;
@@ -114,6 +117,7 @@ public class SSAQuery
         this.queryDec = q.queryDec;
         this.targetName = q.targetName; 
         this.queryRadius = q.queryRadius ;
+        this.queryMaxrec = q.queryMaxrec ;
         this.queryFormat = q.queryFormat ;
         this.waveCalib = q.waveCalib ;
         this.fluxCalib = q.fluxCalib ;
@@ -122,7 +126,7 @@ public class SSAQuery
         this.queryTimeUpper = q.queryTimeUpper ;
         this.queryTimeLower = q.queryTimeLower ;
         this.starTable = q.starTable; 
-        this.getDataTable = q.getDataTable; 
+     //   this.getDataTable = q.getDataTable; 
 
     }
   
@@ -184,17 +188,25 @@ public class SSAQuery
     {
         this.queryRadius = queryRadius / 60.0;
     }
-
+    /**
+     * Set the maximum numbre of records returned by the query
+     */
+    public void setMaxrec( int maxrec )
+    {
+        this.queryMaxrec = maxrec;
+    }
+    
     /**
      * Set the format that we want the spectra in. For SPLAT we clearly
      * require spectral data in FITS (VOTable will also do when we know how to
      * deal with spectral coordinates), but we cannot use that by default as
      * one of the servers currently doesn't support that query. Formats are
      * MIME types (application/fits, application/x-votable+xml etc.).
+     * @throws UnsupportedEncodingException 
      */
-    public void setFormat( String queryFormat )
+    public void setFormat( String queryFormat ) throws UnsupportedEncodingException
     {
-        this.queryFormat = queryFormat;
+       this.queryFormat = URLEncoder.encode(queryFormat,"UTF-8");
     }
 
     /**
@@ -284,18 +296,18 @@ public class SSAQuery
     /**
      * Set the StarTable created as a result of downloading the VOTables GETDATA table.
      */
-    public void setGetDataTable( GetDataTable gdTable )
+/*    public void setGetDataTable( GetDataTable gdTable )
     {
         this.getDataTable = gdTable;
-    }
+    }*/
 
     /**
      * Get then getDataTable, if defined, if not return null.
      */
-    public GetDataTable getGetDataTable()
+ /*   public GetDataTable getGetDataTable()
     {
         return getDataTable;
-    }
+    }*/
     
     /**
      * Set the DataLink parameters
@@ -306,7 +318,7 @@ public class SSAQuery
     }
 
     /**
-     * Get then getDataTable, if defined, if not return null.
+     * Get then DataLink parameters, if defined, if not return null.
      */
     public DataLinkParams getDataLinkParams()
     {
@@ -359,6 +371,8 @@ public class SSAQuery
         }
         if (queryRadius > 0)
             buffer.append( "&SIZE=" + queryRadius );
+        if (queryMaxrec > 0)
+            buffer.append( "&MAXREC=" + queryMaxrec );
 
         //  The spectral bandpass. SSAP spec allows "lower/upper" range,
         //  or bounded from above or below.
@@ -433,7 +447,7 @@ public class SSAQuery
                 String param = paramdata[i].substring(0, paramdata[i].indexOf("="));
                 if ( !param.equals("TARGETNAME") && !param.equals("POS") && !param.equals("SIZE") && 
                         !param.equals("BAND") && !param.equals("TIME") && !param.equals("FORMAT") && 
-                        !param.equals("WAVECALIB") && !param.equals("FLUXCALIB")) 
+                        !param.equals("WAVECALIB") && !param.equals("FLUXCALIB") && !param.equals("MAXREC")) 
                     extp.add(param);
             }
         

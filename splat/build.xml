@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.10-"/>
+  <property name="version" value="3.11-1beta"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -100,7 +100,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
-  <property name="source.version" value="1.5"/>
+  <property name="source.version" value="1.6"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -545,15 +545,19 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="i386"/>
     </antcall>
+<!--  removed old stuff 
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="sparc"/>
     </antcall>
+-->
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="x86"/>
     </antcall>
+<!--  removed old stuff 
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="ppc"/>
     </antcall>
+-->
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="amd64"/>
     </antcall>

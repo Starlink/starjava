@@ -13,6 +13,7 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Table load dialogue which allows cone searches.  Cone search services
@@ -23,6 +24,7 @@ import uk.ac.starlink.table.gui.TableLoader;
  */
 public class ConeSearchDialog extends SkyDalTableLoadDialog {
 
+    private final ContentCoding coding_;
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField srField_;
@@ -36,7 +38,8 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
         super( "Cone Search", "Cone",
                "Obtain source catalogues using cone search web services",
                Capability.CONE, true, false );
-        setIconUrl( ConeSearchDialog.class.getResource( "cone.gif" ) );
+        coding_ = ContentCoding.GZIP;
+        setIcon( ResourceIcon.TLD_CONE );
     }
 
     protected Component createQueryComponent() {
@@ -52,7 +55,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
     public TableLoader createTableLoader() {
         String serviceUrl = getServiceUrl();
         checkUrl( serviceUrl );
-        final ConeSearch coner = new ConeSearch( serviceUrl );
+        final ConeSearch coner = new ConeSearch( serviceUrl, coding_ );
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();

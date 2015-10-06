@@ -2,8 +2,12 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
 import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportKey;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -22,29 +26,6 @@ public abstract class BinSizer {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
-    public static final ConfigKey<BinSizer> BINSIZER_KEY =
-        new BinSizerConfigKey(
-            new ConfigMeta( "binsize", "Bin Size" )
-           .setStringUsage( "+<width>|-<count>" )
-           .setShortDescription( "Bin size specification" )
-           .setXmlDescription( new String[] {
-                "<p>Configures the width of histogram bins.",
-                "If the supplied string is a positive number,",
-                "it is interpreted as a fixed width in the data coordinates",
-                "of the X axis",
-                "(if the X axis is logarithmic, the value is a fixed factor).",
-                "If it is a negative number, then it will be interpreted",
-                "as the approximate number of bins to display across",
-                "the width of the plot",
-                "(though an attempt is made to use only round numbers",
-                "for bin widths).",
-                "</p>",
-                "<p>When setting this value graphically,",
-                "you can use either the slider to adjust the bin count",
-                "or the numeric entry field to fix the bin width.",
-                "</p>",
-            } )
-        , 20 );
 
     /**
      * Provides a bin width value for a given axis data range.
@@ -80,6 +61,50 @@ public abstract class BinSizer {
     public static BinSizer createCountBinSizer( double nbin,
                                                 boolean rounding ) {
         return new CountBinSizer( nbin, rounding );
+    }
+
+    /**
+     * Constructs a config key for acquiring BinSizers.
+     *
+     * @param   meta  key metadata
+     * @param   widthReportKey  report key giving bin width in data coordinates
+     * @param   dfltNbin  default bin count
+     * @param  rounding  true to prefer round numbers for output bin widths
+     * @param  allowZero  true iff zero is an allowed width
+     * @return  new config key
+     */
+    public static ConfigKey<BinSizer>
+            createSizerConfigKey( ConfigMeta meta,
+                                  ReportKey<Double> widthReportKey,
+                                  int dfltNbin, boolean rounding,
+                                  boolean allowZero ) {
+        return new BinSizerConfigKey( meta, widthReportKey, dfltNbin,
+                                      rounding, allowZero );
+    }
+
+    /**
+     * Returns an XML string describing in general terms how to operate
+     * the BinSizer config key.
+     *
+     * @return  XML &lt;p&gt; element(s)
+     */
+    public static String getConfigKeyDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>If the supplied value is a positive number",
+            "it is interpreted as a fixed width in the data coordinates",
+            "of the X axis",
+            "(if the X axis is logarithmic, the value is a fixed factor).",
+            "If it is a negative number, then it will be interpreted",
+            "as the approximate number of smooothing widths that fit",
+            "in the width of the visible plot",
+            "(i.e. plot width / smoothing width).",
+            "If the value is zero, no smoothing is applied.",
+            "</p>",
+            "<p>When setting this value graphically,",
+            "you can use either the slider to adjust the bin count",
+            "or the numeric entry field to fix the bin width.",
+            "</p>",
+        } );
     }
 
     /**
@@ -182,17 +207,31 @@ public abstract class BinSizer {
      */
     private static class BinSizerConfigKey extends ConfigKey<BinSizer> {
 
+        private final ReportKey<Double> widthReportKey_;
+        private final int dfltNbin_;
+        private final boolean rounding_;
+        private final boolean allowZero_;
+
         /**
          * Constructor.
          *
          * @param   meta  key metadata
-         * @parma   dlftNbin  default bin count
+         * @param   widthReportKey  report key giving bin width in data coords
+         * @param   dlftNbin  default bin count
+         * @param  rounding  true to prefer round numbers for output bin widths
+         * @param  allowZero  true iff zero is an allowed width
          */
-        BinSizerConfigKey( ConfigMeta meta, int dfltNbin ) {
-            super( meta, BinSizer.class, new CountBinSizer( dfltNbin, true ) );
+        BinSizerConfigKey( ConfigMeta meta, ReportKey<Double> widthReportKey,
+                           int dfltNbin, boolean rounding, boolean allowZero ) {
+            super( meta, BinSizer.class,
+                   new CountBinSizer( dfltNbin, rounding ) );
+            widthReportKey_ = widthReportKey;
+            dfltNbin_ = dfltNbin;
+            rounding_ = rounding;
+            allowZero_ = allowZero;
         }
 
-        public BinSizer stringToValue( String txt ) {
+        public BinSizer stringToValue( String txt ) throws ConfigException {
             double dval;
             try {
                 dval = Double.valueOf( txt.trim() );
@@ -201,15 +240,18 @@ public abstract class BinSizer {
                 throw new ConfigException( this,
                                            "\"" + txt + "\" not numeric", e );
             }
-            if ( dval > 0 ) {
+            if ( dval > 0 ||
+                 dval == 0 && allowZero_ ) {
                 return new FixedBinSizer( dval );
             }
             else if ( dval <= -1 ) {
-                return new CountBinSizer( -dval, true );
+                return new CountBinSizer( -dval, rounding_ );
             }
             else {
-                String msg = "Bad sizer value " + dval
-                           + " - should be >0 (fixed) or <1 (-bin_count)";
+                String msg =
+                    "Bad sizer value " + dval + " - should be " +
+                    ( allowZero_ ? ">=" : ">" ) + "0 (fixed) " +
+                    "or <=-1 (-bin_count)";
                 throw new ConfigException( this, msg );
             }
         }
@@ -229,42 +271,108 @@ public abstract class BinSizer {
         }
 
         public Specifier<BinSizer> createSpecifier() {
-            final SliderSpecifier sliderSpecifier =
-                    new SliderSpecifier( 400, 2, true, true );
-            return new SpecifierPanel<BinSizer>( true ) {
-                protected JComponent createComponent() {
-                    sliderSpecifier.addActionListener( getActionForwarder() );
-                    return sliderSpecifier.getComponent();
+            return new BinSizerSpecifier( widthReportKey_, dfltNbin_,
+                                          rounding_, allowZero_, 1000 );
+        }
+    }
+
+    /**
+     * Specifier for BinSizer values.
+     */
+    public static class BinSizerSpecifier extends SpecifierPanel<BinSizer> {
+
+        private final ReportKey<Double> widthReportKey_;
+        private final boolean rounding_;
+        private final boolean allowZero_;
+        private final SliderSpecifier sliderSpecifier_;
+        private final int maxCount_;
+
+        /**
+         * Constructor.
+         *
+         * @param   widthReportKey  report key giving bin width in data coords
+         * @param   dlftNbin  default bin count
+         * @param  rounding  true to prefer round numbers for output bin widths
+         * @param  allowZero  true iff zero is an allowed width
+         * @param   maxCount   maximum  count value
+         */
+        BinSizerSpecifier( ReportKey<Double> widthReportKey, int dfltNbin,
+                           boolean rounding, boolean allowZero, int maxCount ) {
+            super( true );
+            widthReportKey_ = widthReportKey;
+            rounding_ = rounding;
+            allowZero_ = allowZero;
+            maxCount_ = maxCount;
+            double reset = dfltNbin == 0 ? maxCount : dfltNbin;
+            sliderSpecifier_ =
+                new SliderSpecifier( 2, maxCount, true, reset, true,
+                                     SliderSpecifier.TextOption.ENTER );
+        }
+
+        protected JComponent createComponent() {
+            sliderSpecifier_.addActionListener( getActionForwarder() );
+            return sliderSpecifier_.getComponent();
+        }
+
+        public BinSizer getSpecifiedValue() {
+            double dval = Double.NaN;
+            if ( ! sliderSpecifier_.isSliderActive() ) {
+                dval = sliderSpecifier_.getTextValue();
+            }
+            if ( Double.isNaN( dval ) ||
+                 dval == 0 && ! allowZero_ ) {
+                dval = - sliderSpecifier_.getSliderValue();
+                if ( allowZero_ && dval == - maxCount_ ) {
+                    dval = 0;
                 }
-                public BinSizer getSpecifiedValue() {
-                    if ( ! sliderSpecifier.isSliderActive() ) {
-                        double txtval = sliderSpecifier.getTextValue();
-                        if ( txtval > 0 ) {
-                            return new FixedBinSizer( txtval );
-                        }
-                        else if ( txtval < 0 ) {
-                            return new CountBinSizer( -txtval, true );
-                        }
-                    }
-                    return new CountBinSizer( sliderSpecifier.getSliderValue(),
-                                              true );
-                }
-                public void setSpecifiedValue( BinSizer sizer ) {
-                    if ( sizer instanceof CountBinSizer ) {
-                        double nbin = ((CountBinSizer) sizer).nbin_;
-                        sliderSpecifier.setSliderActive( true );
-                        sliderSpecifier.setSpecifiedValue( nbin );
-                    }
-                    else if ( sizer instanceof FixedBinSizer ) {
-                        double bw = ((FixedBinSizer) sizer).binWidth_;
-                        sliderSpecifier.setSliderActive( false );
-                        sliderSpecifier.setSpecifiedValue( bw );
-                    }
-                    else {
-                        logger_.warning( "Can't reset to unknown sizer type" );
-                    }
-                }
-            };
+            }
+            return dval >= 0 ? new FixedBinSizer( dval )
+                             : new CountBinSizer( - dval, rounding_ );
+        }
+
+        public void setSpecifiedValue( BinSizer sizer ) {
+            if ( sizer instanceof CountBinSizer ) {
+                double nbin = ((CountBinSizer) sizer).nbin_;
+                sliderSpecifier_.setSliderActive( true );
+                sliderSpecifier_.setSpecifiedValue( nbin );
+            }
+            else if ( sizer instanceof FixedBinSizer ) {
+                double bw = ((FixedBinSizer) sizer).binWidth_;
+                sliderSpecifier_.setSliderActive( false );
+                sliderSpecifier_.setSpecifiedValue( bw );
+            }
+            else {
+                logger_.warning( "Can't reset to unknown sizer type" );
+            }
+        }
+
+        public void submitReport( ReportMap report ) {
+            Double objval = report == null ? null
+                                           : report.get( widthReportKey_ );
+            double dval = objval == null ? Double.NaN : objval.doubleValue();
+            displayBinWidth( dval );
+        }
+
+        /**
+         * May display the current width in data coordinates in the
+         * text field of this specifier's GUI.
+         * The displayed value will only be affectedif the slider,
+         * rather than the text field, is currently active.
+         * This method can be used to reflect the actual width in data
+         * coordinates that corresponds to the slider's current value,
+         * if known, since the specifier itself is not able to determine that.
+         *
+         * @param  fixVal  the fixed positive bin width currently selected
+         */
+        private void displayBinWidth( double fixVal ) {
+            if ( sliderSpecifier_.isSliderActive() ) {
+                String txt = Double.isNaN( fixVal )
+                           ? ""
+                           : Float.toString( (float) fixVal );
+                JTextField txtField = sliderSpecifier_.getTextField();
+                txtField.setText( txt );
+                txtField.setCaretPosition( 0 );
+            }
         }
     }
 }

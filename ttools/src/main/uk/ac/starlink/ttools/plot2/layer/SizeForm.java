@@ -1,8 +1,8 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
@@ -48,23 +48,14 @@ public class SizeForm implements ShapeForm {
                 "<p>Size to draw each sized marker.",
                 "Units are pixels unless auto-scaling is in effect,",
                 "in which case units are arbitrary.",
+                "The plotted size is also affected by the",
+                "<code>" + StyleKeys.SCALE_PIX.getMeta().getShortName()
+                         + "</code>",
+                "value.",
                 "</p>",
             } )
         , false );
-
-    private static ConfigKey<Double> SCALE_KEY =
-        DoubleConfigKey.createSliderKey(
-            new ConfigMeta( "maxsize", "Max Marker Size" )
-           .setStringUsage( "<pixels>" )
-           .setShortDescription( "Maximum marker size in pixels" )
-           .setXmlDescription( new String[] {
-                "<p>Sets the maximum marker size in pixels.",
-                "This scales the sizes of all the plotted markers.",
-                "</p>",
-            } )
-        , 16, 2, 64, false );
     private static final AuxScale SIZE_SCALE = new AuxScale( "globalsize" );
-
     private static final SizeForm instance_ = new SizeForm();
 
     /**
@@ -88,24 +79,34 @@ public class SizeForm implements ShapeForm {
     public String getFormDescription() {
         return PlotUtil.concatLines( new String[] {
             "<p>Plots a marker of fixed shape but variable size",
-            "at each postion.",
+            "at each position.",
             "The size is determined by an additional input data value.",
             "</p>",
-            "<p>The marker size is scaled according to the values",
-            "of the data.",
-            "The data range in the visible part of the plot is determined,",
-            "the maximum value is assigned to the maximum marker size,",
-            "and the size of each marker is determined as",
-            "(data value)/(max data value).",
-            "Currently data values of zero always correspond to",
+            "<p>The actual size of the markers depends on the setting of the",
+            "<code>" + StyleKeys.AUTOSCALE_PIX.getMeta().getShortName()
+                     + "</code>",
+            "parameter.",
+            "If autoscaling is off, then the basic size of each marker",
+            "is the input data value in units of pixels.",
+            "If autoscaling is on, then the data values are gathered",
+            "for all the currently visible points, and a scaling factor",
+            "is applied so that the largest ones will be a sensible size",
+            "(a few tens of pixels).",
+            "This basic size can be further adjusted with the",
+            "<code>" + StyleKeys.SCALE_PIX.getMeta().getShortName()
+                     + "</code> factor.",
+            "</p>",
+            "<p>Currently data values of zero always correspond to",
             "marker size of zero, negative data values are not represented,",
             "and the mapping is linear.",
+            "An absolute maximum of",
+            Integer.toString( PlotUtil.MAX_MARKSIZE ),
+            "pixels is also imposed on marker sizes.",
             "Other options may be introduced in future.",
             "</p>",
-            "<p>Note the scaling to size is in terms of screen dimensions",
-            "(pixels).",
-            "For sizes that correspond to actual data values,",
-            "Error plotting may be more appropriate.",
+            "<p>Note: for marker sizes that correspond to data values",
+            "in data coordinates,",
+            "you may find Error plotting more appropriate.",
             "</p>",
         } );
     }
@@ -119,23 +120,26 @@ public class SizeForm implements ShapeForm {
     public ConfigKey[] getConfigKeys() {
         return new ConfigKey[] {
             StyleKeys.MARK_SHAPE,
-            SCALE_KEY,
+            StyleKeys.SCALE_PIX,
+            StyleKeys.AUTOSCALE_PIX
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
-        double scale = config.get( SCALE_KEY );
+        boolean isAutoscale = config.get( StyleKeys.AUTOSCALE_PIX );
+        double scale = config.get( StyleKeys.SCALE_PIX )
+                     * ( isAutoscale ? PlotUtil.DEFAULT_MAX_PIXELS : 1 );
         final AuxScale autoscale;
         boolean isGlobal = true;
-        boolean isAutoscale = true;
         if ( isAutoscale ) {
             autoscale = isGlobal ? SIZE_SCALE : new AuxScale( "size1" );
         }
         else {
             autoscale = null;
         }
-        return new SizeOutliner( shape, scale, autoscale );
+        return new SizeOutliner( shape, scale, autoscale,
+                                 PlotUtil.MAX_MARKSIZE );
     }
 
     /**
@@ -148,7 +152,7 @@ public class SizeForm implements ShapeForm {
     }
 
     /**
-     * Returns the column index in a tuple sequenc at which the size
+     * Returns the column index in a tuple sequence at which the size
      * coordinate will be found.
      *
      * @param  geom  position geometry
@@ -159,22 +163,13 @@ public class SizeForm implements ShapeForm {
     }
 
     /**
-     * Indicates whether a value is a usable number.
-     *
-     * @param  value  value to test
-     * @return  true iff <code>value</code> is non-NaN and non-infinite
-     */
-    private static boolean isFinite( double value ) {
-        return ! Double.isNaN( value ) && ! Double.isInfinite( value );
-    }
-
-    /**
      * Outliner implementation for use with SizeForm.
      */
     public static class SizeOutliner extends PixOutliner {
         private final MarkShape shape_;
         private final AuxScale autoscale_;
         private final double scale_;
+        private final int sizeLimit_;
         private final Icon icon_;
         private final Map<Integer,Glyph> glyphMap_;
 
@@ -186,12 +181,16 @@ public class SizeForm implements ShapeForm {
          * @param  autoscale   key used for autoscaling;
          *                     may be shared with other layers,
          *                     private to this layer, or null for no autoscale
+         * @param  sizeLimit  maximum size in pixels of markers;
+         *                    if it's too large, plots may be slow or
+         *                    run out of memory
          */
         public SizeOutliner( MarkShape shape, double scale,
-                             AuxScale autoscale ) {
+                             AuxScale autoscale, int sizeLimit ) {
             shape_ = shape;
             scale_ = scale;
             autoscale_ = autoscale;
+            sizeLimit_ = sizeLimit;
             icon_ = MarkForm.createLegendIcon( shape, 4 );
             glyphMap_ = new HashMap<Integer,Glyph>();
         }
@@ -203,7 +202,11 @@ public class SizeForm implements ShapeForm {
         public Map<AuxScale,AuxReader> getAuxRangers( DataGeom geom ) {
             Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
             if ( autoscale_ != null ) {
-                map.put( autoscale_, new SizeAuxReader( geom ) );
+                AuxReader sizeReader =
+                    new FloatingCoordAuxReader( SIZE_COORD,
+                                                getSizeCoordIndex( geom ),
+                                                geom, true );
+                map.put( autoscale_, sizeReader );
             }
             return map;
         }
@@ -213,7 +216,7 @@ public class SizeForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType2D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gpos = new Point();
+            final Point2D.Double gpos = new Point2D.Double();
             final int icSize = getSizeCoordIndex( geom );
             final double scale = scale_ * getBaseScale( surface, auxRanges );
             return new ShapePainter() {
@@ -223,11 +226,11 @@ public class SizeForm implements ShapeForm {
                          surface.dataToGraphics( dpos, true, gpos ) ) {
                         double size =
                             SIZE_COORD.readDoubleCoord( tseq, icSize );
-                        if ( isFinite( size ) ) {
+                        if ( PlotUtil.isFinite( size ) ) {
                             int isize = (int) Math.round( size * scale );
                             Glyph glyph = getGlyph( isize );
                             paperType.placeGlyph( paper, gpos.x, gpos.y,
-                                                  getGlyph( isize ), color );
+                                                  glyph, color );
                         }
                     }
                 }
@@ -239,7 +242,7 @@ public class SizeForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gpos = new Point();
+            final Point2D.Double gpos = new Point2D.Double();
             final double[] zloc = new double[ 1 ];
             final int icSize = getSizeCoordIndex( geom );
             final double scale = scale_ * getBaseScale( surface, auxRanges );
@@ -250,7 +253,7 @@ public class SizeForm implements ShapeForm {
                          surface.dataToGraphicZ( dpos, true, gpos, zloc ) ) {
                         double size =
                             SIZE_COORD.readDoubleCoord( tseq, icSize );
-                        if ( isFinite( size ) ) {
+                        if ( PlotUtil.isFinite( size ) ) {
                             int isize = (int) Math.round( size * scale );
                             double dz = zloc[ 0 ];
                             Glyph glyph = getGlyph( isize );
@@ -268,7 +271,8 @@ public class SizeForm implements ShapeForm {
                 SizeOutliner other = (SizeOutliner) o;
                 return this.shape_.equals( other.shape_ )
                     && this.scale_ == other.scale_
-                    && PlotUtil.equals( this.autoscale_,  other.autoscale_ );
+                    && PlotUtil.equals( this.autoscale_,  other.autoscale_ )
+                    && this.sizeLimit_ == other.sizeLimit_;
             }
             else {
                 return false;
@@ -281,6 +285,7 @@ public class SizeForm implements ShapeForm {
             code = 23 * code + shape_.hashCode();
             code = 23 * code + Float.floatToIntBits( (float) scale_ );
             code = 23 * code + PlotUtil.hashCode( autoscale_ );
+            code = 23 * code + sizeLimit_;
             return code;
         }
 
@@ -297,10 +302,10 @@ public class SizeForm implements ShapeForm {
          * @return  new or re-used glyph
          */
         private Glyph getGlyph( int isize ) {
-            isize = Math.max( 0, isize );
+            isize = Math.min( sizeLimit_, Math.max( 0, isize ) );
             Glyph glyph = glyphMap_.get( isize );
             if ( glyph == null ) {
-                glyph = MarkForm.createMarkGlyph( shape_, isize );
+                glyph = MarkForm.createMarkGlyph( shape_, isize, true );
                 glyphMap_.put( isize, glyph );
             }
             return glyph;
@@ -325,44 +330,6 @@ public class SizeForm implements ShapeForm {
             }
             else {
                 return 1;
-            }
-        }
-    }
-
-    /**
-     * Reads coordinate data to determine the range of size coordinate
-     * values encountered.
-     * This is used during plot preparation if autoscaling is in effect
-     * so that the range of sizes in the data can be determined, and
-     * a suitable scaling factor can be applied. 
-     */
-    private static class SizeAuxReader implements AuxReader {
-
-        final DataGeom geom_;
-        final int icSize_;
-        final double[] dpos_;
-        final Point gpos_;
-
-        /**
-         * Constructor.
-         *
-         * @param  geom  position coordinate geometry
-         */
-        SizeAuxReader( DataGeom geom ) {
-            geom_ = geom;
-            icSize_ = getSizeCoordIndex( geom );
-            dpos_ = new double[ geom.getDataDimCount() ];
-            gpos_ = new Point();
-        }
-
-        public void updateAuxRange( Surface surface, TupleSequence tseq,
-                                    Range range ) {
-            if ( geom_.readDataPos( tseq, 0, dpos_ ) &&
-                 surface.dataToGraphics( dpos_, true, gpos_ ) ) {
-                double size = SIZE_COORD.readDoubleCoord( tseq, icSize_ );
-                if ( isFinite( size ) ) {
-                    range.submit( size );
-                }
             }
         }
     }

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Config key for boolean values.
@@ -45,7 +46,7 @@ public class BooleanConfigKey extends ConfigKey<Boolean> {
         this( meta, false );
     }
 
-    public Boolean stringToValue( String txt ) {
+    public Boolean stringToValue( String txt ) throws ConfigException {
         txt = txt.toLowerCase();
         if ( TRUE_STRINGS.contains( txt ) ) {
             return Boolean.TRUE;
@@ -80,6 +81,8 @@ public class BooleanConfigKey extends ConfigKey<Boolean> {
             public void setSpecifiedValue( Boolean v ) {
                 checkBox_.setSelected( Boolean.TRUE.equals( v ) );
                 fireAction();
+            }
+            public void submitReport( ReportMap report ) {
             }
         };
     }

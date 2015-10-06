@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Color;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
@@ -14,10 +13,12 @@ import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -60,11 +61,11 @@ public class ShaderControl extends ConfigControl {
         configger_ = configger;
         ActionListener forwarder = getActionForwarder();
 
-        AutoConfigSpecifier axisSpecifier =
-                new AutoConfigSpecifier( new ConfigKey[] {
-            AUXVISIBLE_KEY,
-            AUXLABEL_KEY,
-        } );
+        AutoConfigSpecifier axisSpecifier = new AutoConfigSpecifier(
+            new ConfigKey[] { AUXVISIBLE_KEY, AUXLABEL_KEY,
+                              StyleKeys.AUX_CROWD },
+            new ConfigKey[] { AUXVISIBLE_KEY, AUXLABEL_KEY, }
+        );
         labelSpecifier_ = axisSpecifier.getAutoSpecifier( AUXLABEL_KEY );
         visibleSpecifier_ = axisSpecifier.getAutoSpecifier( AUXVISIBLE_KEY );
         labelSpecifier_.setAutoValue( null );
@@ -79,10 +80,20 @@ public class ShaderControl extends ConfigControl {
 
         rangeSpecifier_ = new ConfigSpecifier( new ConfigKey[] {
             StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH, StyleKeys.SHADE_SUBRANGE,
-        } );
+        } ) {
+            @Override
+            protected void checkConfig( ConfigMap config )
+                    throws ConfigException {
+                checkRangeSense( config, "Aux",
+                                 StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH );
+            }
+        };
         rangeSpecifier_.addActionListener( forwarder );
 
-        addSpecifierTab( "Map", new ConfigSpecifier( RAMP_KEYS.getKeys() ) );
+        ConfigKey[] shaderKeys =
+            PlotUtil.arrayConcat( RAMP_KEYS.getKeys(),
+                                  new ConfigKey[] { StyleKeys.AUX_NULLCOLOR } );
+        addSpecifierTab( "Map", new ConfigSpecifier( shaderKeys ) );
         addSpecifierTab( "Ramp", axisSpecifier );
         addSpecifierTab( "Range", rangeSpecifier_ );
     }
@@ -94,15 +105,10 @@ public class ShaderControl extends ConfigControl {
      */
     public Range getFixRange() {
         ConfigMap rangeConfig = rangeSpecifier_.getSpecifiedValue();
-        double lo = toDouble( rangeConfig.get( StyleKeys.SHADE_LOW ) );
-        double hi = toDouble( rangeConfig.get( StyleKeys.SHADE_HIGH ) );
-        if ( lo > hi ) {
-            hi = Double.NaN;
-            rangeSpecifier_.getSpecifier( StyleKeys.SHADE_HIGH )
-                           .setSpecifiedValue( new Double( hi ) );
-            Toolkit.getDefaultToolkit().beep();
-        }
-        return new Range( lo, hi );
+        return new Range( PlotUtil
+                         .toDouble( rangeConfig.get( StyleKeys.SHADE_LOW ) ),
+                          PlotUtil
+                         .toDouble( rangeConfig.get( StyleKeys.SHADE_HIGH ) ) );
     }
 
     /**
@@ -134,15 +140,17 @@ public class ShaderControl extends ConfigControl {
                 }
             };
         }
-        final String label = config.get( AUXLABEL_KEY );
-        final Captioner captioner =
+        String label = config.get( AUXLABEL_KEY );
+        double crowd = config.get( StyleKeys.AUX_CROWD ).doubleValue();
+        Captioner captioner =
             StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
-        return ramp.createShadeAxisFactory( captioner, label );
+        return RampKeySet
+              .createShadeAxisFactory( ramp, captioner, label, crowd );
     }
 
     public boolean isLog() {
-        return RAMP_KEYS.createValue( getConfig() ).isLog();
+        return RAMP_KEYS.createValue( getConfig() ).getScaling().isLogLike();
     }
 
     /**
@@ -187,15 +195,5 @@ public class ShaderControl extends ConfigControl {
             }
         }
         return false;
-    }
-
-    /**
-     * Turns a Double object into a primitive.
-     *
-     * @param  dval  object
-     * @return   primitive
-     */
-    private static double toDouble( Double dval ) {
-        return dval == null ? Double.NaN : dval.doubleValue();
     }
 }

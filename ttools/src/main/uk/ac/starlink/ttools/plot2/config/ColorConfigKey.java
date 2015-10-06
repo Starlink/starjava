@@ -61,16 +61,15 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
     /**
      * Returns a metadata object suitable for use with a ColorConfigKey.
      *
-     * @param  item  one-word name for the item to be coloured,
-     *               for instance "grid"
+     * @param  shortName  key name for use in command-line interface
+     * @param  longName  key name for use in GUI
      * @param  theItem   description of the item to use in free-form text,
      *                   for instance "the plot grid"
      * @return  colour config metadata
      */
-    public static ConfigMeta createColorMeta( String item, String theItem ) {
-        ConfigMeta meta =
-            new ConfigMeta( item + "color",
-                            ConfigMeta.capitalise( item ) + " Color" );
+    public static ConfigMeta createColorMeta( String shortName, String longName,
+                                              String theItem ) {
+        ConfigMeta meta = new ConfigMeta( shortName, longName );
         meta.setStringUsage( "<rrggbb>|red|blue|..." );
         meta.setShortDescription( "Color of " + theItem );
         StringBuffer nameList = new StringBuffer();

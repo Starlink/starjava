@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
@@ -34,6 +35,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 public class PairLinkForm implements ShapeForm {
 
     private static final PairLinkForm instance_ = new PairLinkForm();
+    private static final LineXYShape LINE_SHAPE = LineXYShape.getInstance();
 
     /**
      * Private constructor prevents instantiation.
@@ -110,7 +112,7 @@ public class PairLinkForm implements ShapeForm {
      * @return  glyph
      */
     private static Glyph getLineGlyph( int gx, int gy ) {
-        return LineGlyph.getLineGlyph( gx, gy );
+        return LINE_SHAPE.getGlyph( (short) gx, (short) gy );
     }
 
     /**
@@ -184,8 +186,10 @@ public class PairLinkForm implements ShapeForm {
             int ndim = surface.getDataDimCount();
             final double[] dpos1 = new double[ ndim ];
             final double[] dpos2 = new double[ ndim ];
-            final Point gp1 = new Point();
-            final Point gp2 = new Point();
+            final Point2D.Double gp1 = new Point2D.Double();
+            final Point2D.Double gp2 = new Point2D.Double();
+            final Point gp1i = new Point();
+            final Point gp2i = new Point();
             final int npc = geom.getPosCoords().length;
             final Rectangle bounds = surface.getPlotBounds();
             return new ShapePainter() {
@@ -196,13 +200,18 @@ public class PairLinkForm implements ShapeForm {
                      * plot bounds. */
                     if ( geom.readDataPos( tseq, 0, dpos1 ) &&
                          surface.dataToGraphics( dpos1, false, gp1 ) &&
+                         PlotUtil.isPointFinite( gp1 ) &&
                          geom.readDataPos( tseq, npc, dpos2 ) &&
                          surface.dataToGraphics( dpos2, false, gp2 ) &&
-                         lineMightCross( bounds, gp1, gp2 ) ) {
-                        Glyph glyph = getLineGlyph( gp2.x - gp1.x,
-                                                    gp2.y - gp1.y );
-                        paperType.placeGlyph( paper, gp1.x, gp1.y, glyph,
-                                              color );
+                         PlotUtil.isPointFinite( gp2 ) ) {
+                        PlotUtil.quantisePoint( gp1, gp1i );
+                        PlotUtil.quantisePoint( gp2, gp2i );
+                        if ( lineMightCross( bounds, gp1i, gp2i ) ) {
+                            Glyph glyph = getLineGlyph( gp2i.x - gp1i.x,
+                                                        gp2i.y - gp1i.y );
+                            paperType.placeGlyph( paper, gp1i.x, gp1i.y,
+                                                  glyph, color );
+                        }
                     }
                 }
             };
@@ -215,8 +224,10 @@ public class PairLinkForm implements ShapeForm {
             int ndim = surface.getDataDimCount();
             final double[] dpos1 = new double[ ndim ];
             final double[] dpos2 = new double[ ndim ];
-            final Point gp1 = new Point();
-            final Point gp2 = new Point();
+            final Point2D.Double gp1 = new Point2D.Double();
+            final Point2D.Double gp2 = new Point2D.Double();
+            final Point gp1i = new Point();
+            final Point gp2i = new Point();
             final double[] dz1 = new double[ 1 ];
             final double[] dz2 = new double[ 1 ];
             final int npc = geom.getPosCoords().length;
@@ -239,9 +250,11 @@ public class PairLinkForm implements ShapeForm {
                          surface.dataToGraphicZ( dpos1, false, gp1, dz1 ) &&
                          surface.dataToGraphicZ( dpos2, false, gp2, dz2 ) ) {
                         double z = 0.5 * ( dz1[ 0 ] + dz2[ 0 ] );
-                        Glyph glyph = getLineGlyph( gp2.x - gp1.x,
-                                                    gp2.y - gp1.y );
-                        paperType.placeGlyph( paper, gp1.x, gp1.y, z, glyph,
+                        PlotUtil.quantisePoint( gp1, gp1i );
+                        PlotUtil.quantisePoint( gp2, gp2i );
+                        Glyph glyph = getLineGlyph( gp2i.x - gp1i.x,
+                                                    gp2i.y - gp1i.y );
+                        paperType.placeGlyph( paper, gp1i.x, gp1i.y, z, glyph,
                                               color );
                     }
                 }

@@ -141,7 +141,7 @@ public abstract class ErrorRenderer {
                                                    new BarCapper( 3 ) ) ),
     } );
 
-    private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
+    private static final ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
         DEFAULT,
         EXAMPLE,
@@ -149,22 +149,41 @@ public abstract class ErrorRenderer {
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
-    private static ErrorRenderer[] OPTIONS_ELLIPSE = new ErrorRenderer[] {
+    private static final ErrorRenderer[] OPTIONS_ELLIPSE = new ErrorRenderer[] {
         new OpenEllipse( "Ellipse", false ),
         new OpenEllipse( "Crosshair Ellipse", true ),
         new FilledEllipse( "Filled Ellipse" ),
         new OpenRectangle( "Rectangle", false ),
         new OpenRectangle( "Crosshair Rectangle", true ),
         new FilledRectangle( "Filled Rectangle" ),
+        new Triangle( "Open Triangle", false ),
+        new Triangle( "Filled Triangle", true ),
         DEFAULT,
         EXAMPLE,
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
-    private static ErrorRenderer[] OPTIONS_VECTOR = new ErrorRenderer[] {
+    private static final ErrorRenderer[] OPTIONS_SIZEXY = new ErrorRenderer[] {
+        new OpenRectangle( "Open Rectangle", false ),
+        new FilledRectangle( "Filled Rectangle" ),
+        new OpenRectangle( "Crosshair Rectangle", true ),
+        new OpenEllipse( "Open Ellipse", false ),
+        new FilledEllipse( "Filled Ellipse" ),
+        new OpenEllipse( "Crosshair Ellipse", true ),
+        DEFAULT,
+        EXAMPLE,
+    };
+
+    private static final ErrorRenderer[] OPTIONS_VECTOR = new ErrorRenderer[] {
         new CappedLine( "Small Arrow", true, new ArrowCapper( 3 ) ),
         new CappedLine( "Medium Arrow", true, new ArrowCapper( 4 ) ),
         new CappedLine( "Large Arrow", true, new ArrowCapper( 5 ) ),
+        new Dart( "Small Open Dart", false, 2 ),
+        new Dart( "Medium Open Dart", false, 4 ),
+        new Dart( "Large Open Dart", false, 6 ),
+        new Dart( "Small Filled Dart", true, 2 ),
+        new Dart( "Medium Filled Dart", true, 4 ),
+        new Dart( "Large Filled Dart", true, 6 ),
         DEFAULT,
         EXAMPLE,
     };
@@ -429,6 +448,17 @@ public abstract class ErrorRenderer {
      */
     public static ErrorRenderer[] getOptionsEllipse() {
         return OPTIONS_ELLIPSE.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which is suitable for
+     * applications that plot a shape with independently variable
+     * horizontal and vertical extents.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptionsSizeXY() {
+        return OPTIONS_SIZEXY.clone();
     }
 
     /**
@@ -849,6 +879,266 @@ public abstract class ErrorRenderer {
             box.x = x;
             box.y = y;
             return box;
+        }
+    }
+
+    /**
+     * ErrorRenderer which renders an isosceles triangle with a fixed-length
+     * base centered at the data point and a point at the offset point.
+     * Works for any dimensionality.
+     */
+    private static class Dart extends ErrorRenderer {
+
+        private final boolean isFill_;
+        private final int basepix_;
+        private final Icon legend_;
+        private final int[] vys_;
+        private final Stroke stroke_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  renderer name
+         * @param  isFill  true for a filled triangle, false for open
+         * @param  basepix  half-length of triangle base in pixels
+         */
+        public Dart( String name, boolean isFill, int basepix ) {
+            super( name );
+            isFill_ = isFill;
+            basepix_ = basepix;
+            legend_ = new ErrorRendererIcon( this, 2 );
+            vys_ = new int[] { basepix_, 0, -basepix_ };
+            stroke_ = new BasicStroke( 1, BasicStroke.CAP_ROUND,
+                                       BasicStroke.JOIN_ROUND );
+        }
+
+        public boolean supportsDimensionality( int ndim ) {
+            return ndim > 0;
+        }
+
+        public Icon getLegendIcon() {
+            return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad, ypad );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return modes != null && ErrorMode.allBlank( modes );
+        }
+
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
+            Rectangle box = new Rectangle();
+            int np = xoffs.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                int xoff = xoffs[ ip ];
+                int yoff = yoffs[ ip ];
+                if ( xoff != 0 || yoff != 0 ) {
+                    box.add( xoff, yoff );
+                    Point bp = getBaseVertex( xoff, yoff );
+                    box.add( bp.x, bp.y );
+                    box.add( -bp.x, -bp.y );
+                    box.width++;
+                    box.height++;
+                }
+            }
+            box.x = x;
+            box.y = y;
+            return box;
+        }
+
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
+            Drawing drawing = new Drawing( clip );
+            int np = xoffs.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                int xoff = xoffs[ ip ];
+                int yoff = yoffs[ ip ];
+                if ( xoff != 0 || yoff != 0 ) {
+                    Point bp = getBaseVertex( xoff, yoff );
+                    int x1 = x + xoff;
+                    int y1 = y + yoff;
+                    int x2 = x + bp.x;
+                    int y2 = y + bp.y;
+                    int x3 = x - bp.x;
+                    int y3 = y - bp.y;
+                    if ( isFill_ ) {
+                        drawing.fill( new Polygon( new int[] { x1, x2, x3 },
+                                                   new int[] { y1, y2, y3 },
+                                                   3 ) );
+                    }
+                    else {
+                        drawing.drawLine( x1, y1, x2, y2 );
+                        drawing.drawLine( x2, y2, x3, y3 );
+                        drawing.drawLine( x3, y3, x1, y1 );
+                    }
+                }
+            }
+            return drawing;
+        }
+
+        public void drawErrors( Graphics g, int x, int y,
+                                int[] xoffs, int[] yoffs ) {
+            Rectangle clip = g.getClipBounds();
+            Graphics2D g2 = (Graphics2D) g;
+            Stroke stroke0 = g2.getStroke();
+            g2.setStroke( stroke_ );
+            double dmax = 4 * Math.max( clip.width, clip.height );
+            int np = xoffs.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                double dx = xoffs[ ip ];
+                double dy = yoffs[ ip ];
+                if ( dx != 0 || dy != 0 ) {
+                    double dleng = Math.min( Math.hypot( dx, dy ), dmax );
+                    AffineTransform trans0 = g2.getTransform();
+                    g2.translate( x, y );
+                    g2.rotate( Math.atan2( dy, dx ) );
+                    int[] xs = new int[] { 0, (int) Math.round( dleng ), 0 };
+                    if ( isFill_ ) {
+                        g2.fillPolygon( xs, vys_, 3 );
+                    }
+                    else {
+                        g2.drawPolygon( xs, vys_, 3 );
+                    }
+                    g2.setTransform( trans0 );
+                }
+            }
+            g2.setStroke( stroke0 );
+        }
+
+        /**
+         * Returns the coordinates of one vertex on the base of the triangle,
+         * given the coordinates of its apex.  The base line is considered
+         * to be centered on the origin.  The coordinates of the other
+         * vertex is determined by negating both the returned X and Y
+         * coordinates.
+         *
+         * @param  xoff  apex X coordinate
+         * @param  yoff  apex Y coordinate
+         * @return   coordinates of one base vertex
+         */
+        private Point getBaseVertex( int xoff, int yoff ) {
+            double dx = xoff;
+            double dy = yoff;
+            double dscale = 1.0 / Math.hypot( dx, dy );
+            return new Point( - (int) Math.round( basepix_ * dy * dscale ),
+                              + (int) Math.round( basepix_ * dx * dscale ) );
+        }
+    }
+
+    /**
+     * Error renderer which renders an isosceles triangle, centered
+     * on the data point, with a variable-length base.
+     * Used like an ellipse/rectangle/oblong (2d only).
+     */
+    private static class Triangle extends ErrorRenderer {
+
+        private final boolean isFill_;
+        private final Icon legend_;
+        private final Stroke stroke_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  renderer name
+         * @param  isFill  true for a filled triangle, false for open
+         */
+        public Triangle( String name, boolean isFill ) {
+            super( name );
+            isFill_ = isFill;
+            legend_ = new ErrorRendererIcon( this, 2 );
+            stroke_ = new BasicStroke( 1, BasicStroke.CAP_ROUND,
+                                       BasicStroke.JOIN_ROUND );
+        }
+
+        public boolean supportsDimensionality( int ndim ) {
+            return ndim == 2;
+        }
+
+        public Icon getLegendIcon() {
+            return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad, ypad );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return modes != null && ErrorMode.allBlank( modes );
+        }
+
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
+            return getTriangle( x, y, xoffs, yoffs ).getBounds();
+        }
+
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
+            Polygon triangle = getTriangle( x, y, xoffs, yoffs );
+            Drawing drawing = new Drawing( clip );
+            if ( isFill_ ) {
+                drawing.fill( triangle );
+            }
+            else {
+                int[] xs = triangle.xpoints;
+                int[] ys = triangle.ypoints;
+                drawing.drawLine( xs[ 1 ], ys[ 1 ], xs[ 2 ], ys[ 2 ] );
+                drawing.drawLine( xs[ 2 ], ys[ 2 ], xs[ 0 ], ys[ 0 ] );
+                drawing.drawLine( xs[ 0 ], ys[ 0 ], xs[ 1 ], ys[ 1 ] );
+            }
+            return drawing;
+        }
+
+        public void drawErrors( Graphics g, int x, int y,
+                                int[] xoffs, int[] yoffs ) {
+            Rectangle clip = g.getClipBounds();
+            int dmax = 4 * Math.max( clip.width, clip.height );
+            boolean ok = true;
+            for ( int ip = 0; ip < 4 && ok; ip++ ) {
+                ok = ok && Math.abs( xoffs[ ip ] ) < dmax
+                        && Math.abs( yoffs[ ip ] ) < dmax;
+            }
+            if ( ! ok ) {
+                xoffs = xoffs.clone();
+                yoffs = yoffs.clone();
+                for ( int ip = 0; ip < 4; ip++ ) {
+                    xoffs[ ip ] =
+                        Math.min( dmax, Math.max( -dmax, xoffs[ ip ] ) );
+                    yoffs[ ip ] =
+                        Math.min( dmax, Math.max( -dmax, yoffs[ ip ] ) );
+                }
+            }
+            Polygon triangle = getTriangle( x, y, xoffs, yoffs );
+            if ( isFill_ ) {
+                g.fillPolygon( triangle );
+            }
+            else {
+                g.drawPolygon( triangle );
+            }
+        }
+
+        /**
+         * Returns a polygon representing the required triangle.
+         *
+         * @param   x  data point X coordinate
+         * @param   y  data point Y coordinate
+         * @param  xoffs  offset point X coordinates (xlo, ylo, xhi, yhi)
+         * @param  yoffs  offset point Y coordinates (xlo, ylo, xhi, yhi)
+         */
+        private Polygon getTriangle( int x, int y, int[] xoffs, int[] yoffs ) {
+            int[] xs = new int[ 3 ];
+            int[] ys = new int[ 3 ];
+            xs[ 0 ] = x + xoffs[ 1 ];
+            ys[ 0 ] = y + yoffs[ 1 ];
+            xs[ 1 ] = x + xoffs[ 0 ] + xoffs[ 2 ];
+            ys[ 1 ] = y + yoffs[ 0 ] + yoffs[ 2 ];
+            xs[ 2 ] = x + xoffs[ 0 ] + xoffs[ 3 ];
+            ys[ 2 ] = y + yoffs[ 0 ] + yoffs[ 3 ];
+            return new Polygon( xs, ys, 3 );
         }
     }
 

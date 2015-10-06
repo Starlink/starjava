@@ -11,7 +11,9 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.votable.VOStarTable;
@@ -27,7 +29,8 @@ public class ColumnMetadataStage implements Stage {
 
     private final TapRunner tapRunner_;
     private final MetadataHolder metaHolder_;
-    private final int maxTables_;
+    private int maxTables_;
+    private static final AdqlSyntax syntax_ = AdqlSyntax.getInstance();
 
     /**
      * Constructor.
@@ -45,13 +48,32 @@ public class ColumnMetadataStage implements Stage {
         maxTables_ = maxTables;
     }
 
+    /**
+     * Resets the limit on the number of tables to test.
+     *
+     * @param  maxTables  limit on the number of tables to test,
+     *                    or &lt;=0 for no limit
+     */
+    public void setMaxTestTables( int maxTables ) {
+        maxTables_ = maxTables;
+    }
+
     public String getDescription() {
         return "Check table query result columns against declared metadata";
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
-        TableMeta[] tmetas = metaHolder_.getTableMetadata();
-        if ( tmetas == null || tmetas.length == 0 ) {
+        SchemaMeta[] smetas = metaHolder_.getTableMetadata();
+        List<TableMeta> tlist = new ArrayList<TableMeta>();
+        if ( smetas != null ) {
+            for ( SchemaMeta smeta : smetas ) {
+                for ( TableMeta tmeta : smeta.getTables() ) {
+                    tlist.add( tmeta );
+                }
+            }
+        }
+        TableMeta[] tmetas = tlist.toArray( new TableMeta[ 0 ] );
+        if ( tmetas.length == 0 ) {
             reporter.report( FixedCode.F_NOTM,
                              "No table metadata available"
                            + " (earlier stages failed/skipped?)"
@@ -68,6 +90,29 @@ public class ColumnMetadataStage implements Stage {
         }
         new Checker( reporter, serviceUrl, tapRunner_, tmetas ).run();
         tapRunner_.reportSummary( reporter );
+    }
+
+    /**
+     * Returns the essence of a column name.
+     * The result is the string that ought to be equal to the name of the
+     * same column when it appears somewhere else.
+     *
+     * <p>Currently, this does two things: flattens case and unquotes
+     * quoted names (delimited identifiers).
+     * This is a bit tricky or debatable or controversial.
+     * In general unquoting column names is not supposed to be something
+     * the client can do for itself, because there may be strange
+     * server-specific rules.  But it's pretty clear how it would be done
+     * if it could be done, and pragmatically it doesn't make sense to
+     * flag an error if a column declared in the metadata with name '"size"'
+     * comes back in a result table with name 'size'.  So this is probably
+     * the right thing to do for comparisons.
+     *
+     * @param   colName  column name
+     * @return   normalised column name
+     */
+    public static String normaliseColumnName( String colName ) {
+        return syntax_.unquote( colName ).toLowerCase();
     }
 
     /**
@@ -159,13 +204,15 @@ public class ColumnMetadataStage implements Stage {
                 new LinkedHashMap<String,ColumnMeta>();
             for ( int ic = 0; ic < colMetas.length; ic++ ) {
                 ColumnMeta colMeta = colMetas[ ic ];
-                declaredMap.put( normalize( colMeta.getName() ), colMeta );
+                declaredMap.put( normaliseColumnName( colMeta.getName() ),
+                                 colMeta );
             }
             Map<String,ColumnInfo> resultMap =
                 new LinkedHashMap<String,ColumnInfo>();
             for ( int ic = 0; ic < result.getColumnCount(); ic++ ) {
                 ColumnInfo colInfo = result.getColumnInfo( ic );
-                resultMap.put( normalize( colInfo.getName() ), colInfo );
+                resultMap.put( normaliseColumnName( colInfo.getName() ),
+                               colInfo );
             }
 
             /* Check for columns declared but not in result. */
@@ -231,7 +278,8 @@ public class ColumnMetadataStage implements Stage {
             for ( String cname : bothList ) {
                 String dName = declaredMap.get( cname ).getName();
                 String rName = resultMap.get( cname ).getName();
-                if ( ! dName.equals( rName ) ) {
+                if ( ! syntax_.unquote( dName )
+                      .equals( syntax_.unquote( rName ) ) ) {
                     String msg = new StringBuilder()
                         .append( "Declared/result column " )
                         .append( "capitalization mismatch in table " )
@@ -269,16 +317,6 @@ public class ColumnMetadataStage implements Stage {
                     reporter_.report( FixedCode.E_CTYP, msg );
                 }
             }
-        }
-
-        /**
-         * Flattens case for column names.
-         *
-         * @param   name  column name
-         * @param   name with case folded
-         */
-        private String normalize( String name ) {
-            return name.toLowerCase();
         }
     }
 }

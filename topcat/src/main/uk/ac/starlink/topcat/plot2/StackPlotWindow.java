@@ -34,6 +34,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.OverlayLayout;
@@ -45,6 +47,7 @@ import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.HelpAction;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SubsetConsumer;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -57,17 +60,20 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
+import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.CachedDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -108,7 +114,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final BlobPanel2 blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
+    private final Action resizeAction_;
     private final boolean canSelectPoints_;
+    private final JMenu exportMenu_;
+    private final ToggleButtonModel sketchModel_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -141,6 +150,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackModel_ = stack_.getStackModel();
         MultiConfigger configger = new MultiConfigger();
         axisController_ = plotTypeGui.createAxisController( stack_ );
+        final FrameControl frameControl = new FrameControl();
+        Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
+            public PlotPosition getItem() {
+                return frameControl.getPlotPosition();
+            }
+        };
+        Factory<String> titleFact = new Factory<String>() {
+            public String getItem() {
+                return frameControl.getPlotTitle();
+            }
+        };
         ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
         surfFact_ = axisController_.getSurfaceFactory();
         configger.addConfigger( axisController_ );
@@ -167,11 +187,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return legendControl.getLegendPosition();
             }
         };
-        ToggleButtonModel sketchModel =
+        sketchModel_ =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "
                                  + "data when navigating very large plots" );
-        sketchModel.setSelected( true );
+        sketchModel_.setSelected( true );
         showProgressModel_ =
             new ToggleButtonModel( "Show Plot Progress", ResourceIcon.PROGRESS,
                                    "Report progress for slow plots in the "
@@ -188,8 +208,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
             new PlotPanel<P,A>( storeFact, axisController_, layerFact,
-                                legendFact, legendPosFact,
-                                shaderControl, sketchModel,
+                                posFact, legendFact, legendPosFact, titleFact,
+                                shaderControl, sketchModel_,
                                 plotType.getPaperTypeSelector(), compositor,
                                 placeProgressBar().getModel(),
                                 showProgressModel_ );
@@ -198,6 +218,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * that might change the plot appearance.  Each of these controls
          * is forwarding actions from all of its constituent controls. */
         stackModel_.addPlotActionListener( plotPanel_ );
+        frameControl.addActionListener( plotPanel_ );
         legendControl.addActionListener( plotPanel_ );
         axisController_.addActionListener( plotPanel_ );
         shaderControl.addActionListener( plotPanel_ );
@@ -307,7 +328,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         };
 
         /* Prepare the plot rescale action. */
-        Action resizeAction =
+        resizeAction_ =
                 new BasicAction( "Rescale", ResourceIcon.RESIZE,
                                  "Rescale plot to view all plotted data" ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -355,6 +376,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         JToolBar stackToolbar = new JToolBar();
         final ControlStackPanel stackPanel =
             new ControlStackPanel( stack_, stackToolbar );
+        stackPanel.addFixedControl( frameControl );
         Control[] axisControls = axisController_.getControls();
         for ( int i = 0; i < axisControls.length; i++ ) {
             stackPanel.addFixedControl( axisControls[ i ] );
@@ -466,14 +488,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         getToolBar().add( fromVisibleAction_ );
         getToolBar().add( replotAction );
-        getToolBar().add( resizeAction );
+        getToolBar().add( resizeAction_ );
         if ( axlockModel != null ) {
             getToolBar().add( axlockModel.createToolbarButton() );
         }
-        getToolBar().add( sketchModel.createToolbarButton() );
+        getToolBar().add( sketchModel_.createToolbarButton() );
         getToolBar().add( showProgressModel_.createToolbarButton() );
         getToolBar().add( exportAction );
-        getToolBar().addSeparator();
         for ( int i = 0; i < stackActions.length; i++ ) {
             stackToolbar.add( stackActions[ i ] );
         }
@@ -502,19 +523,18 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( replotAction );
-        plotMenu.add( resizeAction );
+        plotMenu.add( resizeAction_ );
         if ( axlockModel != null ) {
             plotMenu.add( axlockModel.createMenuItem() );
         }
-        plotMenu.add( sketchModel.createMenuItem() );
+        plotMenu.add( sketchModel_.createMenuItem() );
         plotMenu.add( showProgressModel_.createMenuItem() );
         plotMenu.add( navdecModel.createMenuItem() );
         getJMenuBar().add( plotMenu );
-        JMenu exportMenu = new JMenu( "Export" );
-        exportMenu.setMnemonic( KeyEvent.VK_E );
-        exportMenu.add( exportAction );
-        getJMenuBar().add( exportMenu );
-
+        exportMenu_ = new JMenu( "Export" );
+        exportMenu_.setMnemonic( KeyEvent.VK_E );
+        exportMenu_.add( exportAction );
+        getJMenuBar().add( exportMenu_ );
 
         /* Set default component dimensions. */
         displayPanel.setMinimumSize( new Dimension( 150, 150 ) );
@@ -572,6 +592,100 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     public ControlManager getControlManager() {
         return controlManager_;
+    }
+
+    /**
+     * Returns this window's PlotPanel.
+     *
+     * @return  plot panel
+     */
+    public PlotPanel getPlotPanel() {
+        return plotPanel_;
+    }
+
+    /**
+     * Returns this window's AxisController.
+     *
+     * @return  axis controller
+     */
+    public AxisController getAxisController() {
+        return axisController_;
+    }
+
+    /**
+     * Returns this window's Export menu.
+     *
+     * @return  export menu
+     */
+    public JMenu getExportMenu() {
+        return exportMenu_;
+    }
+
+    /**
+     * Returns the button model controlling whether intermediate plots are
+     * shown while assembling large/slow plots.
+     *
+     * @return  sketch button model
+     */
+    public ToggleButtonModel getSketchModel() {
+        return sketchModel_;
+    }
+
+    /**
+     * Adds an action that is logically associated with rescaling the plot.
+     * This takes the given action and inserts it into the toolbar and
+     * menus in appropriate places.
+     *
+     * @param  act  action to add
+     */
+    public void insertRescaleAction( Action act ) {
+
+        /* Insert into the toolbar.  Try to put it after the existing
+         * Resize action, but if for some reason that doesn't exist,
+         * the new one will just get appended at the end. */
+        JToolBar toolbar = getToolBar();
+        JButton actButton = toolbar.add( act );
+        List<Component> comps =
+            new ArrayList<Component>( Arrays
+                                     .asList( toolbar.getComponents() ) );
+        int iresize = -1;
+        for ( int i = 0; i < comps.size() && iresize < 0; i++ ) {
+            Component comp = comps.get( i );
+            if ( comp instanceof JButton &&
+                 isResizeAction( ((JButton) comp).getAction() ) ) {
+                iresize = i;
+            }
+        }
+        if ( iresize >= 0 ) {
+            comps.remove( actButton );
+            comps.add( iresize + 1, actButton );
+            toolbar.removeAll();
+            for ( Component c : comps ) {
+                toolbar.add( c );
+            }
+        }
+
+        /* Insert into menus as appropriate.  Any place the resize action
+         * is found, place the new one after it. */
+        JMenuBar menuBar = getJMenuBar();
+        for ( int im = 0; im < menuBar.getMenuCount(); im++ ) {
+            JMenu menu = menuBar.getMenu( im );
+            for ( int ii = 0; ii < menu.getItemCount(); ii++ ) {
+                JMenuItem item = menu.getItem( ii );
+                if ( item != null && isResizeAction( item.getAction() ) ) {
+                    menu.insert( act, ii + 1 );
+                }
+            }
+        }
+    }
+
+    /**
+     * Tests whether a given action corresponds to the Resize action.
+     *
+     * @return   true iff act is the Resize action
+     */
+    private boolean isResizeAction( Action act ) {
+        return act == resizeAction_;
     }
 
     @Override
@@ -665,9 +779,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                 /* Prepare for iteration. */
                 TableCloud[] tclouds = pointCloud.getTableClouds();
-                double[] dpos = new double[ surface.getDataDimCount() ];
-                Point gp = new Point();
-                double thresh2 = 4 * 4;
                 Map<TopcatModel,Double> closeMap =
                     new HashMap<TopcatModel,Double>();
                 Map<TopcatModel,Long> indexMap =
@@ -678,26 +789,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     TableCloud tcloud = tclouds[ ic ];
                     DataGeom geom = tcloud.getDataGeom();
                     int iPosCoord = tcloud.getPosCoordIndex();
-                    TopcatModel tcModel = tcloud.getTopcatModel();
                     TupleSequence tseq =
                         tcloud.createTupleSequence( dataStore );
-
-                    /* Iterate over each position in the cloud. */
-                    while ( tseq.next() ) {
-                        if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
-                             surface.dataToGraphics( dpos, true, gp ) ) {
-
-                            /* If the point is within a given threshold of our
-                             * reference point, and it's closer than any other
-                             * point we've encountered so far for the current
-                             * table, record it. */
-                            double dist2 = gp.distanceSq( point );
-                            if ( dist2 < thresh2 ) {
-                                Double c2 = closeMap.get( tcModel );
-                                if ( c2 == null || c2.doubleValue() > dist2 ) {
-                                    closeMap.put( tcModel, dist2 );
-                                    indexMap.put( tcModel, tseq.getRowIndex() );
-                                }
+                    IndicatedRow indicated =
+                        PlotUtil.getClosestRow( surface, geom, iPosCoord, tseq,
+                                                point );
+                    if ( indicated != null ) {
+                        long index = indicated.getIndex();
+                        double distance = indicated.getDistance();
+                        if ( distance <= PlotUtil.NEAR_PIXELS ) {
+                            TopcatModel tcModel = tcloud.getTopcatModel();
+                            Double closest = closeMap.get( tcModel );
+                            if ( closest == null || distance < closest ) {
+                                closeMap.put( tcModel, distance );
+                                indexMap.put( tcModel, index );
                             }
                         }
                     }
@@ -708,7 +813,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                 /* Return a map of the closest row to the reference position
                  * for each visible table (only populated for each table if the
-                 * point is within a given threshold - currently 4 pixels). */
+                 * point is within a given threshold, NEAR_PIXELS. */
                 return indexMap;
             }
         };
@@ -1107,6 +1212,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             plotPanel_.createPartialGuiPointCloud().getTableClouds().length > 0;
         blobAction_.setEnabled( hasPoints );
         fromVisibleAction_.setEnabled( hasPoints || hasPartialPoints );
+
+        /* Update plot reports. */
+        PlotLayer[] layers = plotPanel_.getPlotLayers();
+        ReportMap[] reports = plotPanel_.getReports();
+        int nl = layers.length;
+        assert nl == reports.length;
+        Map<LayerId,ReportMap> rmap = new HashMap<LayerId,ReportMap>();
+        for ( int il = 0; il < nl; il++ ) {
+            rmap.put( LayerId.createLayerId( layers[ il ] ), reports[ il ] );
+        }
+        axisController_.submitReports( rmap );
+        for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
+            control.submitReports( rmap );
+        }
 
         /* Initiate updating point count, which may be slow. */
         final Factory<String> counter = createCounter();

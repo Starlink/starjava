@@ -103,11 +103,18 @@ public class CdfDomains {
         }
         public double toUnixSeconds( Object value ) {
             if ( value instanceof Long ) {
-                long tt2kMillis = ((Long) value).longValue();
+                long timeTt2k = ((Long) value).longValue();
+                long tt2kMillis = timeTt2k / 1000000;
+                int plusNanos = (int) ( timeTt2k % 1000000 );
+                if ( plusNanos < 0 ) {
+                    tt2kMillis--;
+                    plusNanos += 1000000;
+                }
                 int index = TtScaler.getScalerIndex( tt2kMillis, scalers_,
                                                      iLastScaler_ );
                 iLastScaler_ = index;
-                return scalers_[ index ].tt2kToUnixMillis( tt2kMillis ) * 1e-3;
+                return scalers_[ index ].tt2kToUnixMillis( tt2kMillis ) * 1e-3
+                     + plusNanos * 1e-9;
             }
             else {
                 return Double.NaN;

@@ -21,9 +21,15 @@ import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.Anchor;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
+import uk.ac.starlink.ttools.plot2.layer.XYShape;
+import uk.ac.starlink.ttools.plot2.layer.XYShapes;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
@@ -35,7 +41,6 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
 public class StyleKeys {
 
     private static final MarkShape[] SHAPES = createShapes();
-    private static final Shader[] DENSITY_SHADERS = createDensityShaders();
 
     /** Config key for marker shape. */
     public static final ConfigKey<MarkShape> MARK_SHAPE =
@@ -48,6 +53,9 @@ public class StyleKeys {
                 "</p>",
             } )
         , MarkShape.class, SHAPES, MarkShape.FILLED_CIRCLE ) {
+        public String getXmlDescription( MarkShape shape ) {
+            return null;
+        }
         public Specifier<MarkShape> createSpecifier() {
             return new ComboBoxSpecifier<MarkShape>( MarkStyleSelectors
                                                     .createShapeSelector() );
@@ -74,10 +82,38 @@ public class StyleKeys {
         }
     };
 
+    private static final XYShape[] XYSHAPES = XYShapes.getXYShapes();
+
+    /** Config key for XY shape. */
+    public static final ConfigKey<XYShape> XYSHAPE =
+        new OptionConfigKey<XYShape>(
+            new ConfigMeta( "shape", "Shape" )
+           .setShortDescription( "Marker shape" )
+           .setXmlDescription( new String[] {
+            } )
+        , XYShape.class, XYSHAPES ) {
+        public String getXmlDescription( XYShape shape ) {
+            return null;
+        }
+        public Specifier<XYShape> createSpecifier() {
+            JComboBox shapeSelector = new RenderingComboBox( XYSHAPES ) {
+                @Override
+                protected Icon getRendererIcon( Object shape ) {
+                    return XYShape.createIcon( (XYShape) shape, 20, 12, true );
+                }
+                protected String getRendererText( Object shape ) {
+                    return null;
+                }
+            };
+            return new ComboBoxSpecifier<XYShape>( shapeSelector );
+        }
+    }.setOptionUsage()
+     .addOptionsXml();
+
     /** Config key for style colour. */
     public static final ConfigKey<Color> COLOR =
         new ColorConfigKey( ColorConfigKey
-                           .createColorMeta( "", "plotted data" ),
+                           .createColorMeta( "color", "Color", "plotted data" ),
                             Color.RED, false );
 
     /** Config key for the opacity limit of transparent plots.
@@ -150,21 +186,24 @@ public class StyleKeys {
     /** Config key for axis grid colour. */
     public static final ConfigKey<Color> GRID_COLOR =
         new ColorConfigKey( ColorConfigKey
-                           .createColorMeta( "grid", "the plot grid" ),
+                           .createColorMeta( "gridcolor", "Grid Color",
+                                             "the plot grid" ),
                             Color.LIGHT_GRAY, false );
 
     /** Config key for axis label colour. */
     public static final ConfigKey<Color> AXLABEL_COLOR =
         new ColorConfigKey(
             ColorConfigKey 
-           .createColorMeta( "label",
+           .createColorMeta( "labelcolor", "Label Color",
                              "axis labels and other plot annotations" )
             , Color.BLACK, false );
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
-        BarStyle.FORM_FILLED,
         BarStyle.FORM_OPEN,
+        BarStyle.FORM_FILLED,
+        BarStyle.FORM_SEMIFILLED,
         BarStyle.FORM_TOP,
+        BarStyle.FORM_SEMITOP,
         BarStyle.FORM_SPIKE,
     };
 
@@ -175,9 +214,15 @@ public class StyleKeys {
            .setShortDescription( "Histogram bar shape" )
            .setXmlDescription( new String[] {
                 "<p>How histogram bars are represented.",
+                "Note that options using transparent colours",
+                "may not render very faithfully",
+                "to some vector formats like PDF and EPS.",
                 "</p>",
             } )
-        , BarStyle.Form.class, BARFORMS ) {
+        , BarStyle.Form.class, BARFORMS, BarStyle.FORM_SEMIFILLED ) {
+            public String getXmlDescription( BarStyle.Form barForm ) {
+                return null;
+            }
             public Specifier<BarStyle.Form> createSpecifier() {
                 JComboBox formSelector = new RenderingComboBox( BARFORMS ) {
                     protected Icon getRendererIcon( Object form ) {
@@ -185,6 +230,71 @@ public class StyleKeys {
                     }
                 };
                 return new ComboBoxSpecifier<BarStyle.Form>( formSelector );
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
+
+    private static final FillMode[] FILLMODES = new FillMode[] {
+        FillMode.SOLID, FillMode.LINE, FillMode.SEMI,
+    };
+    private static final int[] FILLMODE_ICON_DATA = new int[] {
+        1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 9, 7, 8, 7, 5, 5,
+        6, 7, 8, 9, 11, 11, 10, 11, 12, 11, 9, 7, 5, 4, 2, 1, 1, 0,
+    };
+
+    /** Config key for KDE fill mode. */
+    public static final ConfigKey<FillMode> FILL =
+        new OptionConfigKey<FillMode>(
+            new ConfigMeta( "fill", "Fill" )
+           .setShortDescription( "Fill mode" )
+           .setXmlDescription( new String[] {
+                "<p>How the density function is represented.",
+                "</p>",
+            } )
+            , FillMode.class, FILLMODES, FillMode.SEMI
+         ) {
+            public String getXmlDescription( FillMode fillMode ) {
+                return fillMode.getDescription();
+            }
+            public Specifier<FillMode> createSpecifier() {
+                JComboBox fillSelector = new RenderingComboBox( FILLMODES ) {
+                    protected Icon getRendererIcon( Object fillmode ) {
+                        return ((FillMode) fillmode)
+                              .createIcon( FILLMODE_ICON_DATA, Color.BLACK,
+                                           new BasicStroke(), 2 );
+                    }
+                };
+                return new ComboBoxSpecifier<FillMode>( fillSelector );
+            }
+         }.setOptionUsage()
+          .addOptionsXml();
+
+    /** Config key for cumulative histogram flag. */
+    public static final ConfigKey<Boolean> CUMULATIVE =
+        new BooleanConfigKey(
+            new ConfigMeta( "cumulative", "Cumulative" )
+           .setShortDescription( "Cumulative histogram?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the histogram bars plotted are calculated",
+                "cumulatively;",
+                "each bin includes the counts from all previous bins.",
+                "</p>",
+            } )
+        );
+
+    /** Config key for histogram normalisation mode. */
+    public static final ConfigKey<Normalisation> NORMALISE =
+        new OptionConfigKey<Normalisation>(
+            new ConfigMeta( "normalise", "Normalise" )
+           .setShortDescription( "Normalisation mode" )
+           .setXmlDescription( new String[] {
+                "<p>Defines how, if at all, the bars of histogram-like plots",
+                "are normalised.",
+                "</p>",
+            } )
+        , Normalisation.class, Normalisation.values(), Normalisation.NONE ) {
+            public String getXmlDescription( Normalisation norm ) {
+                return norm.getDescription();
             }
         }.setOptionUsage()
          .addOptionsXml();
@@ -229,7 +339,11 @@ public class StyleKeys {
                 "</p>",
             } )
         , Anchor.class, new Anchor[] { Anchor.W, Anchor.E, Anchor.N, Anchor.S, }
-        ).setOptionUsage()
+        ) {
+           public String getXmlDescription( Anchor anchor ) {
+               return null;
+           }
+        }.setOptionUsage()
          .addOptionsXml();
 
     /** Config key for scaling level mode. */ 
@@ -243,7 +357,11 @@ public class StyleKeys {
                 "</p>",
             } )
             , LevelMode.class, LevelMode.MODES, LevelMode.LINEAR
-        ).setOptionUsage()
+        ) {
+            public String getXmlDescription( LevelMode mode ) {
+                return mode.getDescription();
+            }
+        }.setOptionUsage()
          .addOptionsXml();
 
     /** Config key for vector marker style. */
@@ -279,6 +397,10 @@ public class StyleKeys {
                                                ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
+    /** Config key for aux axis tick crowding. */
+    public static final ConfigKey<Double> AUX_CROWD =
+        PlaneSurfaceFactory.createAxisCrowdKey( "Aux" );
+
     /** Config key for aux shader lower limit. */
     public static final ConfigKey<Double> SHADE_LOW =
         PlaneSurfaceFactory.createAxisLimitKey( "Aux", false );
@@ -292,76 +414,58 @@ public class StyleKeys {
         new SubrangeConfigKey( SubrangeConfigKey
                               .createAxisSubMeta( "aux", "Aux" ) );
 
-    /** Config key for density shader colour map. */
-    public static final ConfigKey<Shader> DENSITY_SHADER =
-        new ShaderConfigKey(
-            new ConfigMeta( "densemap", "Map" )
-           .setShortDescription( "Color map for density shading" )
-           .setXmlDescription( new String[] {
-                "<p>Color map used to indicate point density.",
-                "</p>",
-            } )
-            , DENSITY_SHADERS, DENSITY_SHADERS[ 0 ]
-        ).appendShaderDescription()
-         .setOptionUsage();
-
-    /** Config key for restricting the range of a density shader colour map. */
-    public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
-        new SubrangeConfigKey( SubrangeConfigKey
-                              .createShaderClipMeta( "dense", "Density" ) );
-                             
-    /** Config key for density shader subrange. */
-    public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
-        new SubrangeConfigKey( SubrangeConfigKey
-                              .createAxisSubMeta( "dense", "Density" ) );
-
-    /** Config key for density shader log flag. */
-    public static final ConfigKey<Boolean> DENSITY_LOG =
-        new BooleanConfigKey(
-            new ConfigMeta( "denselog", "Log" )
-           .setShortDescription( "Logarithmic density scale?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the scale used for shading points according",
-                "to density is logarithmic, if false, it's linear.",
-                "</p>",
-            } )
-        , Boolean.TRUE );
-
-    /** Config key for density shader flip flag. */
-    public static final ConfigKey<Boolean> DENSITY_FLIP =
-        new BooleanConfigKey(
-            new ConfigMeta( "denseflip", "Flip" )
-           .setShortDescription( "Flip density scale?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the sense of the scale used for shading points",
-                "according to density is reversed",
-                "(the colour ramp is flipped).",
-                "</p>",
-            } )
-        , Boolean.FALSE );
+    /** Config key for aux null colour. */
+    public static final ConfigKey<Color> AUX_NULLCOLOR =
+        createNullColorKey( "aux", "Aux" );
 
     private static final String SCALE_NAME = "scale";
+    private static final String AUTOSCALE_NAME = "autoscale";
 
-    /** Config key for sized marker scaling. */
+    /** Config key for scaling of markers in data space. */
     public static final ConfigKey<Double> SCALE =
-        DoubleConfigKey
-       .createSliderKey(
+        new DoubleConfigKey(
             new ConfigMeta( SCALE_NAME, "Scale" )
            .setStringUsage( "<factor>" )
            .setShortDescription( "Marker size multiplier" )
            .setXmlDescription( new String[] {
                 "<p>Affects the size of variable-sized markers",
-                "like vectors and ellipes.",
+                "like vectors and ellipses.",
                 "The default value is 1, smaller or larger values",
                 "multiply the visible sizes accordingly.",
                 "</p>",
             } )
-        , 1, 1e-7, 1e7, true );
+        , 1.0 ) {
+            public Specifier<Double> createSpecifier() {
+                return new SliderSpecifier( 1e-4, 1e+4, true, 1.0, false,
+                                            SliderSpecifier.TextOption
+                                                           .ENTER_ECHO );
+            }
+        };
 
-    /** Config key for sized marker autoscale flag. */
+    /** Config key for scaling of markers in pixel space. */
+    public static final ConfigKey<Double> SCALE_PIX =
+        new DoubleConfigKey(
+            new ConfigMeta( SCALE_NAME, "Scale" )
+           .setStringUsage( "<factor>" )
+           .setShortDescription( "Marker size multiplier" )
+           .setXmlDescription( new String[] {
+                "<p>Scales the size of variable-sized markers.",
+                "The default is 1, smaller or larger values",
+                "multiply the visible sizes accordingly.",
+                "</p>",
+            } )
+        , 1.0 ) {
+            public Specifier<Double> createSpecifier() {
+                return new SliderSpecifier( 1e-2, 1e+2, true, 1.0, false,
+                                            SliderSpecifier.TextOption
+                                                           .ENTER_ECHO );
+            }
+        };
+
+    /** Config key for autoscale flag for markers in data space. */
     public static final ConfigKey<Boolean> AUTOSCALE =
         new BooleanConfigKey(
-            new ConfigMeta( "autoscale", "Auto Scale" )
+            new ConfigMeta( AUTOSCALE_NAME, "Auto Scale" )
            .setShortDescription( "Scale marker sizes automatically?" )
            .setXmlDescription( new String[] {
                 "<p>Determines whether the default size of variable-sized",
@@ -370,7 +474,7 @@ public class StyleKeys {
                 "If true, then the sizes of all the plotted markers",
                 "are examined, and some dynamically calculated factor is",
                 "applied to them all to make them a sensible size",
-                "(by default, the larges ones will be a few tens of pixels).",
+                "(by default, the largest ones will be a few tens of pixels).",
                 "If false, the sizes will be the actual input values",
                 "interpreted in data coordinates.",
                 "</p>",
@@ -378,6 +482,33 @@ public class StyleKeys {
                 "approximately the same screen size during zoom operations;",
                 "if it's off, they will keep the same size",
                 "in data coordinates.",
+                "</p>",
+                "<p>Marker size is also affected by the",
+                "<code>" + SCALE_NAME + "</code> parameter.",
+                "</p>",
+            } )
+        , Boolean.TRUE );
+
+    /** Config key for autoscale flag for markers in pixel space. */
+    public static final ConfigKey<Boolean> AUTOSCALE_PIX =
+        new BooleanConfigKey(
+            new ConfigMeta( AUTOSCALE_NAME, "Auto Scale" )
+           .setShortDescription( "Scale marker sizes automatically?" )
+           .setXmlDescription( new String[] {
+                "<p>Determines whether the basic size",
+                "of variable sized markers is automatically",
+                "scaled to have a sensible size.",
+                "If true, then the sizes of all the plotted markers",
+                "are examined, and some dynamically calculated factor is",
+                "applied to them all to make them a sensible size",
+                "(by default, the largest ones will be a few tens of pixels).",
+                "If false, the sizes will be the actual input values",
+                "in units of pixels.",
+                "</p>",
+                "<p>If auto-scaling is off, then markers will keep",
+                "exactly the same screen size during pan and zoom operations;",
+                "if it's on, then the visible sizes will change according",
+                "to what other points are currently plotted.",
                 "</p>",
                 "<p>Marker size is also affected by the",
                 "<code>" + SCALE_NAME + "</code> parameter.",
@@ -445,7 +576,19 @@ public class StyleKeys {
     public static final CaptionerKeySet CAPTIONER = new CaptionerKeySet();
 
     /** Config key set for global Aux axis colour ramp. */
-    public static final RampKeySet AUX_RAMP = new RampKeySet( "aux", "Aux" );
+    public static final RampKeySet AUX_RAMP =
+        new RampKeySet( "aux", "Aux",
+                        createAuxShaders(), Scaling.LINEAR, false );
+
+    /** Config key set for density shading. */
+    public static final RampKeySet DENSITY_RAMP =
+        new RampKeySet( "dense", "Density",
+                        createDensityShaders(), Scaling.LOG, true );
+
+    /** Config key set for spectrogram shading. */
+    public static final RampKeySet SPECTRO_RAMP =
+        new RampKeySet( "spectro", "Spectral",
+                        createAuxShaders(), Scaling.LINEAR, true );
 
     /**
      * Private constructor prevents instantiation.
@@ -521,6 +664,30 @@ public class StyleKeys {
     }
 
     /**
+     * Returns a key for acquiring a colour used in place of a shading ramp
+     * colour in case that the input data is null.
+     *
+     * @param  axname  short form of axis name, used in text parameter names
+     * @param  axName  long form of axis name, used in descriptions
+     * @return  new key
+     */
+    public static ConfigKey<Color> createNullColorKey( String axname,
+                                                       String axName ) {
+        return new ColorConfigKey(
+            ColorConfigKey.createColorMeta( axname.toLowerCase() + "nullcolor",
+                                            "Null Color",
+                                            "points with a null value of the "
+                                          + axName + " coordinate" )
+           .appendXmlDescription( new String[] {
+                "<p>If the value is null, then points with a null",
+                axName,
+                "value will not be plotted at all.",
+                "</p>",
+            } )
+            , Color.GRAY, true );
+    }
+
+    /**
      * Returns a config key for line thickness with a given default value.
      *
      * @param  dfltThick  default value for line width in pixels
@@ -543,32 +710,10 @@ public class StyleKeys {
     }
 
     /**
-     * Obtains a shader from a config map given appropriate keys.
-     *
-     * @param  config  config map
-     * @param  baseShaderKey   key for extracting a shader
-     * @param  clipKey   key for extracting a clip range of a shader
-     * @return  shader with clip applied if appropriate
-     */
-    public static Shader createShader( ConfigMap config,
-                                       ConfigKey<Shader> baseShaderKey,
-                                       ConfigKey<Subrange> clipKey ) {
-        Shader shader = config.get( baseShaderKey );
-        if ( shader == null ) {
-            return null;
-        }
-        Subrange clip = config.get( clipKey );
-        return Subrange.isIdentity( clip )
-             ? shader
-             : Shaders.stretch( shader,
-                                (float) clip.getLow(), (float) clip.getHigh() );
-    }
-
-    /**
      * Creates a config key for a multipoint shape.
      *
      * @param   shortName   one-word name
-     * @parma   longName   GUI name
+     * @param   longName   GUI name
      * @param   renderers   renderer options
      * @param   modes   error mode objects, used with renderers to draw icon
      * @return  new key
@@ -635,7 +780,7 @@ public class StyleKeys {
             Shaders.RED_BLUE,
             Shaders.LUT_BRG,
             Shaders.invert( Shaders.LUT_HEAT ),
-            Shaders.invert( Shaders.LUT_COLD ),
+            Shaders.invert( Shaders.LUT_COLD ), 
             Shaders.invert( Shaders.LUT_LIGHT ),
             Shaders.WHITE_BLACK,
             Shaders.SCALE_V,
@@ -646,6 +791,54 @@ public class StyleKeys {
             Shaders.BREWER_BUPU,
             Shaders.BREWER_ORRD,
             Shaders.BREWER_PUBU,
+            Shaders.BREWER_PURD,
+        };
+    }
+
+    /**
+     * Returns a list of shaders suitable for aux axis shading.
+     *
+     * @return  shaders
+     */
+    public static Shader[] createAuxShaders() {
+        return new Shader[] {
+            Shaders.LUT_RAINBOW,
+            Shaders.LUT_GLNEMO2,
+            Shaders.LUT_PASTEL,
+            Shaders.LUT_ACCENT,
+            Shaders.LUT_GNUPLOT,
+            Shaders.LUT_GNUPLOT2,
+            Shaders.LUT_CUBEHELIX,
+            Shaders.LUT_SPECXB2Y,
+            Shaders.LUT_SET1,
+            Shaders.LUT_PAIRED,
+            Shaders.CYAN_MAGENTA,
+            Shaders.RED_BLUE,
+            Shaders.LUT_BRG,
+            Shaders.LUT_HEAT,
+            Shaders.LUT_COLD,
+            Shaders.LUT_LIGHT,
+            Shaders.LUT_COLOR,
+            Shaders.WHITE_BLACK,
+            Shaders.LUT_STANDARD,
+            Shaders.LUT_RAINBOW3,
+            Shaders.createMaskShader( "Mask", 0f, 1f, true ),
+            Shaders.FIX_HUE,
+            Shaders.TRANSPARENCY,
+            Shaders.FIX_INTENSITY,
+            Shaders.FIX_RED,
+            Shaders.FIX_GREEN,
+            Shaders.FIX_BLUE,
+            Shaders.HSV_H,
+            Shaders.HSV_S,
+            Shaders.HSV_V,
+            Shaders.FIX_Y,
+            Shaders.FIX_U,
+            Shaders.FIX_V, 
+            Shaders.BREWER_BUGN,
+            Shaders.BREWER_BUPU,
+            Shaders.BREWER_ORRD,
+            Shaders.BREWER_PUBU, 
             Shaders.BREWER_PURD,
         };
     }

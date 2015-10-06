@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2.config;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,6 +7,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -24,114 +24,207 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 public class RampKeySet implements KeySet<RampKeySet.Ramp> {
 
     private final ConfigKey<Shader> shaderKey_;
-    private final ConfigKey<Subrange> subrangeKey_;
-    private final ConfigKey<Boolean> logKey_;
+    private final ConfigKey<Subrange> shadeclipKey_;
     private final ConfigKey<Boolean> flipKey_;
-    private final ConfigKey<Color> nullcolorKey_;
+    private final ConfigKey<Double> quantiseKey_;
+    private final OptionConfigKey<Scaling> scalingKey_;
+    private final ConfigKey<Subrange> dataclipKey_;
+    private final ConfigKey[] keys_;
 
     /**
      * Constructor.
      *
-     * @param  axname  short form of axis name
-     * @param  axName  long form of axis name
+     * @param  axname  short form of axis name, used in text parameter names
+     * @param  axName  long form of axis name, used in descriptions
+     * @param  shaders  array of preset shader options
+     * @param  dfltScaling  default scaling function
+     * @param  hasDataclip  true iff a data subrange key is to be included
      */
-    public RampKeySet( String axname, String axName ) {
+    public RampKeySet( String axname, String axName, Shader[] shaders,
+                       Scaling dfltScaling, boolean hasDataclip ) {
+        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+
+        List<Shader> shaderList = new ArrayList<Shader>();
+        shaderList.addAll( Arrays.asList( shaders ) );
+        shaderList.addAll( Arrays.asList( Shaders.getCustomShaders() ) );
         shaderKey_ = new ShaderConfigKey(
-            new ConfigMeta( axname + "map", axName + "Map" )
+            new ConfigMeta( axname + "map", axName + " Shader" )
            .setShortDescription( "Color map for " + axName + " shading" )
            .setXmlDescription( new String[] {
-                "<p>Color map used for " + axName + " axis shading.",
+                "<p>Color map used for",
+                axName,
+                "axis shading.",
                 "</p>",
             } )
-            , createAuxShaders(), Shaders.LUT_RAINBOW
+            , shaderList.toArray( new Shader[ 0 ] ), shaderList.get( 0 )
         ).appendShaderDescription()
          .setOptionUsage();
-        subrangeKey_ =
+        keyList.add( shaderKey_ );
+
+        shadeclipKey_ =
             new SubrangeConfigKey( SubrangeConfigKey
                                   .createShaderClipMeta( axname, axName ) );
-        logKey_ = PlaneSurfaceFactory.createAxisLogKey( axName );
-        flipKey_ = PlaneSurfaceFactory.createAxisFlipKey( axName );
-        nullcolorKey_ = new ColorConfigKey(
-            ColorConfigKey.createColorMeta( axname + "null",
-                                            "points with a null value of the "
-                                          + axName + " coordinate" )
-           .appendXmlDescription( new String[] {
-                "<p>If the value is null, then points with a null",
-                axName,
-                "value will not be plotted at all.",
-                "</p>",
-            } )
-            , Color.GRAY, true );
+        keyList.add( shadeclipKey_ );
+
+        ConfigMeta flipMeta = new ConfigMeta( axname + "flip", "Shader Flip" );
+        flipMeta.setShortDescription( "Flip " + axName + " colour ramp?" );
+        flipMeta.setXmlDescription( new String[] {
+            "<p>If true, the colour map on the",
+            axName,
+            "axis will be reversed.",
+            "</p>",
+        } );
+        flipKey_ = new BooleanConfigKey( flipMeta );
+        keyList.add( flipKey_ );
+
+        ConfigMeta quantiseMeta =
+            new ConfigMeta( axname + "quant", "Shader Quantise" );
+        quantiseMeta.setShortDescription( axName + " colour map quantisation" );
+        quantiseMeta.setXmlDescription( new String[] {
+            "<p>Allows the colour map used for the",
+            axName,
+            "axis to be quantised.",
+            "If an integer value N is chosen",
+            "then the colour map will be viewed as N discrete evenly-spaced",
+            "levels,",
+            "so that only N different colours will appear in the plot.",
+            "This can be used to generate a contour-like effect,",
+            "and may make it easier to trace the boundaries of",
+            "regions of interest by eye.",
+            "</p>",
+            "<p>If left blank, the colour map is",
+            "nominally continuous (though in practice it may be quantised",
+            "to a medium-sized number like 256).",
+            "</p>",
+        } );
+        quantiseKey_ = new DoubleConfigKey( quantiseMeta, Double.NaN ) {
+            final double LIMIT = 64;
+            public Specifier<Double> createSpecifier() {
+                return new SliderSpecifier( 2, LIMIT, true, LIMIT, true,
+                                            SliderSpecifier.TextOption
+                                                           .ENTER_ECHO ) {
+                    @Override
+                    public Double getSpecifiedValue() {
+                        double v = super.getSpecifiedValue();
+                        return v < LIMIT ? v : Double.NaN;
+                    }
+                    @Override
+                    public void setSpecifiedValue( Double dval ) {
+                        super.setSpecifiedValue( dval < LIMIT ? dval : LIMIT );
+                    }
+                };
+            }
+        };
+        keyList.add( quantiseKey_ );
+
+        ConfigMeta scalingMeta = new ConfigMeta( axname + "func", "Scaling" );
+        scalingMeta.setShortDescription( axName + " scaling function" );
+        scalingMeta.setXmlDescription( new String[] {
+            "<p>Defines the way that values in the",
+            axName,
+            "range are mapped to the selected colour ramp.",
+            "</p>",
+        } );
+        scalingKey_ = new OptionConfigKey<Scaling>( scalingMeta, Scaling.class,
+                                                    Scaling.getStretchOptions(),
+                                                    dfltScaling ) {
+            public String getXmlDescription( Scaling scaling ) {
+                return scaling.getDescription();
+            }
+        };
+        scalingKey_.setOptionUsage();
+        scalingKey_.addOptionsXml();
+        keyList.add( scalingKey_ );
+
+        dataclipKey_ =
+            new SubrangeConfigKey( SubrangeConfigKey
+                                  .createAxisSubMeta( axname, axName ) );
+        if ( hasDataclip ) {
+            keyList.add( dataclipKey_ );
+        }
+
+        keys_ = keyList.toArray( new ConfigKey[ 0 ] );
     }
 
     public ConfigKey[] getKeys() {
-        return new ConfigKey[] {
-            shaderKey_,
-            subrangeKey_,
-            logKey_,
-            flipKey_,
-            nullcolorKey_,
-        };
+        return keys_;
     }
 
     public Ramp createValue( ConfigMap config ) {
-        final Shader shader =
-            StyleKeys.createShader( config, shaderKey_, subrangeKey_ );
-        final boolean log = config.get( logKey_ );
-        final boolean flip = config.get( flipKey_ );
-        final Color nullcolor = config.get( nullcolorKey_ );
+
+        /* Determine configured shader instance. */
+        Shader shader = config.get( shaderKey_ );
+        Subrange shadeclip = config.get( shadeclipKey_ );
+        boolean isFlip = config.get( flipKey_ );
+        double quantise = config.get( quantiseKey_ );
+        if ( ! Subrange.isIdentity( shadeclip ) ) {
+            shader = Shaders.stretch( shader, (float) shadeclip.getLow(),
+                                              (float) shadeclip.getHigh() );
+        }
+        if ( isFlip ) {
+            shader = Shaders.invert( shader );
+        }
+        if ( quantise > 1 && quantise < 256 ) {
+            shader = Shaders.quantise( shader, quantise );
+        }
+
+        /* Determine configured scaling instance. */
+        Scaling scaling = config.get( scalingKey_ );
+        Subrange dataclip = config.get( dataclipKey_ );
+        if ( ! Subrange.isIdentity( dataclip ) ) {
+            scaling = Scaling.subrangeScaling( scaling, dataclip );
+        }
+
+        /* Construct and return a Ramp instance. */
+        final Shader shader0 = shader;
+        final Scaling scaling0 = scaling;
         return new Ramp() {
             public Shader getShader() {
-                return shader;
+                return shader0;
             }
-            public boolean isLog() {
-                return log;
-            }
-            public boolean isFlip() {
-                return flip;
-            }
-            public Color getNullColor() {
-                return nullcolor;
-            }
-            public ShadeAxisFactory
-                    createShadeAxisFactory( final Captioner captioner,
-                                            final String label ) {
-                return new ShadeAxisFactory() {
-                    public boolean isLog() {
-                        return log;
-                    }
-                    public ShadeAxis createShadeAxis( Range range ) {
-                        if ( range == null ) {
-                            range = new Range();                
-                        }
-                        double[] bounds = range.getFiniteBounds( log );
-                        double lo = bounds[ 0 ];
-                        double hi = bounds[ 1 ];
-                        return new ShadeAxis( shader, log, flip, lo, hi,
-                                              label, captioner );
-                    }
-                };
+            public Scaling getScaling() {
+                return scaling0;
             }
         };
     }
 
     /**
-     * Defines ramp characteristics.
+     * Creates a ShadeAxisFactory for a given ramp.
      *
-     * <p>Possibly the code could be simplified by combining the functions
-     * of this class and ShadeAxisFactory.
+     * @param  ramp   ramp
+     * @param  captioner  shader ramp captioner
+     * @param  label   shader ramp label
+     * @param  crowding   tick crowding factor (1 is normal)
+     * @return   new factory
+     */
+    public static ShadeAxisFactory
+            createShadeAxisFactory( Ramp ramp, final Captioner captioner,
+                                    final String label,
+                                    final double crowding ) {
+        final Shader shader = ramp.getShader();
+        final Scaling scaling = ramp.getScaling();
+        final boolean isLog = scaling.isLogLike();
+        return new ShadeAxisFactory() {
+            public boolean isLog() {
+                return isLog;
+            }
+            public ShadeAxis createShadeAxis( Range range ) {
+                if ( range == null ) {
+                    range = new Range();
+                }
+                double[] bounds = range.getFiniteBounds( isLog );
+                double lo = bounds[ 0 ];
+                double hi = bounds[ 1 ];
+                return new ShadeAxis( shader, scaling, lo, hi,
+                                      label, captioner, crowding );
+            }
+        };
+    }
+
+    /**
+     * Defines ramp characteristics by aggregating a Shader and a Scaling.
      */
     public interface Ramp {
-
-        /**
-         * Creates a ShadeAxisFactory for this ramp.
-         *
-         * @param  captioner  shader ramp captioner
-         * @param  label   shader ramp label
-         * @return   new factory
-         */
-        ShadeAxisFactory createShadeAxisFactory( Captioner captioner,
-                                                 String label );
 
         /**
          * Returns this ramp's shader.
@@ -141,76 +234,11 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         Shader getShader();
 
         /**
-         * Indicates whether this ramp is logarithmic.
+         * Returns the scaling function used to map data values to
+         * the shader range.
          *
-         * @return   true for logarithmic scaling, false for linear
+         * @return  scaling
          */
-        boolean isLog();
-
-        /**
-         * Indicates whether this ramp is inverted.
-         *
-         * @return   true if the ramp is flipped
-         */
-        boolean isFlip();
-
-        /**
-         * Returns the colour in which items with no ramp data value
-         * should be painted.
-         * 
-         * @return  null colour; if null, blank values are not painted
-         */
-        Color getNullColor();
-    }
-
-    /**
-     * Returns a list of shaders suitable for aux axis shading.
-     *
-     * @return  shaders
-     */
-    private static Shader[] createAuxShaders() {
-        List<Shader> shaderList = new ArrayList<Shader>();
-        shaderList.addAll( Arrays.asList( new Shader[] {
-            Shaders.LUT_RAINBOW,
-            Shaders.LUT_GLNEMO2,
-            Shaders.LUT_PASTEL,
-            Shaders.LUT_ACCENT,
-            Shaders.LUT_GNUPLOT,
-            Shaders.LUT_GNUPLOT2,
-            Shaders.LUT_CUBEHELIX,
-            Shaders.LUT_SPECXB2Y,
-            Shaders.LUT_SET1,
-            Shaders.LUT_PAIRED,
-            Shaders.CYAN_MAGENTA,
-            Shaders.RED_BLUE,
-            Shaders.LUT_BRG,
-            Shaders.LUT_HEAT,
-            Shaders.LUT_COLD,
-            Shaders.LUT_LIGHT,
-            Shaders.LUT_COLOR,
-            Shaders.WHITE_BLACK,
-            Shaders.LUT_STANDARD,
-            Shaders.LUT_RAINBOW3,
-            Shaders.createMaskShader( "Mask", 0f, 1f, true ),
-            Shaders.FIX_HUE,
-            Shaders.TRANSPARENCY,
-            Shaders.FIX_INTENSITY,
-            Shaders.FIX_RED,
-            Shaders.FIX_GREEN,
-            Shaders.FIX_BLUE,
-            Shaders.HSV_H,
-            Shaders.HSV_S,
-            Shaders.HSV_V,
-            Shaders.FIX_Y,
-            Shaders.FIX_U,
-            Shaders.FIX_V,
-            Shaders.BREWER_BUGN,
-            Shaders.BREWER_BUPU,
-            Shaders.BREWER_ORRD,
-            Shaders.BREWER_PUBU,
-            Shaders.BREWER_PURD,
-        } ) );
-        shaderList.addAll( Arrays.asList( Shaders.getCustomShaders() ) );
-        return shaderList.toArray( new Shader[ 0 ] );
+        Scaling getScaling();
     }
 }

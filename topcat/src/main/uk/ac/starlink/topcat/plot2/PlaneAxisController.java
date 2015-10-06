@@ -5,7 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
@@ -46,7 +48,18 @@ public class PlaneAxisController
 
         /* Range tab. */
         addAspectConfigTab( "Range",
-                            new ConfigSpecifier( surfFact.getAspectKeys() ) );
+                            new ConfigSpecifier( surfFact.getAspectKeys() ) {
+            @Override
+            protected void checkConfig( ConfigMap config )
+                    throws ConfigException {
+                checkRangeSense( config, "X",
+                                 PlaneSurfaceFactory.XMIN_KEY,
+                                 PlaneSurfaceFactory.XMAX_KEY );
+                checkRangeSense( config, "Y",
+                                 PlaneSurfaceFactory.YMIN_KEY,
+                                 PlaneSurfaceFactory.YMAX_KEY );
+            }
+        } );
 
         /* Grid tab. */
         mainControl.addSpecifierTab( "Grid",

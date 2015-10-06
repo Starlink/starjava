@@ -37,7 +37,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
 
     /**
      * Constructs a new query window, which on user completion will 
-     * append a new column to the viewer <tt>tableviewer<tt> at the
+     * append a new column to the viewer <tt>tableviewer</tt> at the
      * column index <tt>insertIndex</tt>.
      *
      * @param   tcModel      model containing the table data

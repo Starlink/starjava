@@ -9,7 +9,7 @@ package jsky.util;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.DVResolver;
+import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 
@@ -24,7 +24,7 @@ import java.lang.Math;
  *
  * @author Allan Brighton
  */
-public class JavaExpr implements DVResolver {
+public class JavaExpr extends DVMap {
 
     // the compiled expression
     private CompiledExpression _expr;
@@ -87,7 +87,7 @@ public class JavaExpr implements DVResolver {
      * @param exprStr contains the expression string
      * @param resolver used to resolve variable names in expressions
      */
-    public JavaExpr(String exprStr, DVResolver resolver) throws Throwable {
+    public JavaExpr(String exprStr, DVMap resolver) throws Throwable {
         _dynLib[0] = resolver.getClass();
 
         // The namespace is defined by constructing the library class
@@ -101,12 +101,12 @@ public class JavaExpr implements DVResolver {
     }
 
 
-    /** Implements the DVResolver interface */
+    /** Implements the DVMap interface */
     public String getTypeName(String name) {
         return "Double";
     }
 
-    /** Called by reflection for the DVResolver interface to get the value of the named variable */
+    /** Called by reflection for the DVMap interface to get the value of the named variable */
     public double getDoubleProperty(String name) {
         for (int i = 0; i < _numVars; i++) {
             VarValue v = (VarValue) _vars.get(i);

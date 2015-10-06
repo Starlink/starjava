@@ -9,7 +9,6 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
@@ -145,7 +144,7 @@ public class FitsConstants {
     /**
      * Indicates whether the supplied buffer is the start of a FITS file.
      * Its contents is checked against the FITS 'magic number', which is
-     * the ASCII string "<tt>SIMPLE&nbsp&nbsp;=</tt>".
+     * the ASCII string "<tt>SIMPLE&nbsp;&nbsp;=</tt>".
      *
      * @param   buffer  a byte buffer containing
      *          the start of a file to test
@@ -178,29 +177,12 @@ public class FitsConstants {
         if ( datsrc instanceof FileDataSource && 
              datsrc.getCompression() == Compression.NONE ) {
             File file = ((FileDataSource) datsrc).getFile();
-            try {
-                MappedFile mf = new MappedFile( file.toString() );
-                logger.config( "Mapping file " + file );
-                return mf;
-            }
-            catch ( MappedFile.FileTooLongException e ) {
-                logger.info( file + " too long for monolithic map" );
-                if ( Loader.is64Bit() ) {
-                    logger.info( file + " - mapping in blocks" );
-                    return new MultiMappedFile( file,
-                                                FileChannel.MapMode.READ_ONLY,
-                                                1024 * 1024 * 256 );
-                }
-                else {
-                    logger.info( "Won't try mapping in blocks on 32-bit JVM" );
-                    logger.warning( "Might be faster on a 64-bit OS/JVM" );
-                    return new BufferedFile( file.getPath(), "r" );
-                }
-            }
+            return new BufferedFile( file.getPath(), "r" );
         }
-        mappableWarning( datsrc );
-        logger.config( "Buffering stream " + datsrc.getName() );
-        return new BufferedDataInputStream( datsrc.getInputStream() );
+        else {
+            logger.config( "Buffering stream " + datsrc.getName() );
+            return new BufferedDataInputStream( datsrc.getInputStream() );
+        }
     }
 
     /**
@@ -365,34 +347,6 @@ public class FitsConstants {
         }
         else {
             return ( ( nel / FITS_BLOCK ) + 1 ) * FITS_BLOCK;
-        }
-    }
-
-    /**
-     * Writes suitable messages through the logging system about a DataSource
-     * that contains FITS, concerning whether it is mappable (hence efficient
-     * to read).
-     *
-     * @param   datsrc  data source containing FITS
-     */
-    public static void mappableWarning( DataSource datsrc ) throws IOException {
-        String msg = null;
-        Level level = Level.INFO;
-        if ( datsrc instanceof FileDataSource &&
-             datsrc.getCompression() != Compression.NONE ) {
-            File file = ((FileDataSource) datsrc).getFile();
-            msg = "Can't map compressed FITS file " + file + "; "
-                + "uncompress it for better performance";
-            level = file.length() > 10 * 1024 * 1024 ? Level.WARNING
-                                                     : Level.INFO;
-        }
-        else if ( ! ( datsrc instanceof FileDataSource ) ) {
-            msg = "Can't map FITS stream " + datsrc.getName() + "; "
-                + "use local uncompressed file for better performance";
-            level = Level.INFO;
-        }
-        if ( msg != null ) {
-            logger.log( level, msg );
         }
     }
 

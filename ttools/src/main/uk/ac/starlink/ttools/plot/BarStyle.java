@@ -22,9 +22,11 @@ public class BarStyle extends DefaultStyle implements Icon {
 
     private static final int ICON_HEIGHT = 12;
     private static final int ICON_WIDTH = 8;
+    private static final float BODY_FADE = 0.25f;
+    private static final float LINE_FADE = 0.50f;
 
     /** Bar form using open rectangles. */
-    public static final Form FORM_OPEN = new Form( "Open" ) {
+    public static final Form FORM_OPEN = new Form( "Open", true ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             Graphics2D g2 = (Graphics2D) g;
             int thickness = ( g2.getStroke() instanceof BasicStroke )
@@ -43,21 +45,21 @@ public class BarStyle extends DefaultStyle implements Icon {
     };
 
     /** Bar form using filled rectangles. */
-    public static final Form FORM_FILLED = new Form( "Filled" ) {
+    public static final Form FORM_FILLED = new Form( "Filled", true ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             g.fillRect( x, y, Math.max( width - 1, 1 ), height );
         }
     };
 
     /** Bar form using filled 3d rectangles. */
-    public static final Form FORM_FILLED3D = new Form( "Filled 3D" ) {
+    public static final Form FORM_FILLED3D = new Form( "Filled 3D", true ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             g.fill3DRect( x, y, Math.max( width - 1, 1 ), height, true );
         }
     };
 
     /** Bar form drawing only the tops of the bars. */
-    public static final Form FORM_TOP = new Form( "Steps" ) {
+    public static final Form FORM_TOP = new Form( "Steps", true ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             g.drawLine( x, y, x + width, y );
         }
@@ -67,13 +69,54 @@ public class BarStyle extends DefaultStyle implements Icon {
     };
 
     /** Bar form using 1-d spikes. */
-    public static final Form FORM_SPIKE = new Form( "Spikes" ) {
+    public static final Form FORM_SPIKE = new Form( "Spikes", true ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setStroke( getStroke( g2.getStroke(), BasicStroke.CAP_ROUND,
                                      BasicStroke.JOIN_MITER ) );
             int xpos = x + width / 2;
             g2.drawLine( xpos, y + height, xpos, y );
+        }
+    };
+
+    /** Bar form with an outline and a transparent inside. */
+    public static final Form FORM_SEMIFILLED = new Form( "Semi Filled",
+                                                         false ) {
+        public void drawBar( Graphics g, int x, int y, int width, int height ) {
+            Graphics2D g2 = (Graphics2D) g;
+            Color color0 = g2.getColor();
+            g2.setColor( fade( color0, BODY_FADE ) );
+            g2.fillRect( x, y, width, height + 1 );
+            int thickness = ( g2.getStroke() instanceof BasicStroke )
+                          ? (int) ((BasicStroke) g2.getStroke()).getLineWidth()
+                          : 1;
+            int x0 = x;
+            int y0 = y + height;
+            int x1 = x0 + width;
+            int y1 = y;
+            int[] xp = new int[] { x0, x0, x1, x1, };
+            int[] yp = new int[] { y0, y1, y1, y0, };
+            g2.setColor( fade( color0, LINE_FADE ) );
+            g2.drawPolyline( xp, yp, 4 );
+            g2.setColor( color0 );
+        }
+    };
+
+    /** Bar form with steps and a transparent inside. */
+    public static final Form FORM_SEMITOP = new Form( "Semi Steps", false ) {
+        public void drawBar( Graphics g, int x, int y, int width, int height ) {
+            Color color0 = g.getColor();
+            g.setColor( fade( color0, BODY_FADE ) );
+            g.fillRect( x, y, width, height + 1 );
+            g.setColor( fade( color0, 0.50f ) );
+            g.drawLine( x, y, x + width, y );
+            g.setColor( color0 );
+        }
+        public void drawEdge( Graphics g, int x, int y1, int y2 ) {
+            Color color0 = g.getColor();
+            g.setColor( fade( color0, LINE_FADE ) );
+            g.drawLine( x, y1, x, y2 );
+            g.setColor( color0 );
         }
     };
 
@@ -207,13 +250,27 @@ public class BarStyle extends DefaultStyle implements Icon {
     }
 
     /**
+     * Scales the alpha component of a given colour.
+     *
+     * @param  color  basic colour
+     * @param   alpha  scaling to apply to alpha
+     * @return  faded colour
+     */
+    private static Color fade( Color color, float alpha ) {
+        float[] rgba = color.getComponents( null );
+        return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] * alpha );
+    }
+
+    /**
      * Describes the form of a bar style, that is what each bar looks like.
      */
     public static abstract class Form {
         private final String name_;
+        private final boolean isOpaque_;
 
-        protected Form( String name ) {
+        protected Form( String name, boolean isOpaque ) {
             name_ = name;
+            isOpaque_ = isOpaque;
         }
 
         /**
@@ -251,6 +308,17 @@ public class BarStyle extends DefaultStyle implements Icon {
          */
         public void drawEdge( Graphics g, int x, int y1, int y2 ) {
             // no action
+        }
+
+        /**
+         * Indicates whether this bar form is as opaque as the colour of
+         * the supplied graphics context.  If it adjusts the alpha of the
+         * supplied colour, it must return false.
+         *
+         * @return  true iff alpha is not adjusted
+         */
+        public boolean isOpaque() {
+            return isOpaque_;
         }
 
         public String toString() {

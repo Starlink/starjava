@@ -18,6 +18,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Registry Query implementation that uses TAP to access a Relational Registry.
@@ -31,6 +32,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
 
     private final URL tapUrl_;
     private final String adql_;
+    private final ContentCoding coding_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -51,6 +53,9 @@ public class RegTapRegistryQuery implements RegistryQuery {
     /** TAP endpoint for GAVO registry hosted at AIP. */
     public static final String AIP_REG = "http://gavo.aip.de/tap";
 
+    /** TAP endpoint for registry hosted at ObsPM, synced with GAVO. */
+    public static final String PARIS_REG = "http://voparis-cdpp.obspm.fr/tap";
+
     /** TAP endpoint for INAF registry (not sure if this is permanent). */
     public static final String INAF_REG =
         "http://ia2-vo.oats.inaf.it:8080/registry";
@@ -60,6 +65,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
         GAVO_REG,
         ARI_REG,
         AIP_REG,
+        PARIS_REG,
     };
 
     /** Description of metadata item describing registry location. */
@@ -107,6 +113,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
     public RegTapRegistryQuery( String tapurl, String standardId,
                                 String adqlWhere ) {
         tapUrl_ = Ri1RegistryQuery.toUrl( tapurl );
+        coding_ = ContentCoding.GZIP;
 
         /* SELECT clause.  The columns are required both to support the
          * restrictions we need to make and to provide information to
@@ -200,7 +207,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
         QuerySink sink = new QuerySink();
         boolean overflow;
         try {
-            overflow = query.executeSync( sink );
+            overflow = query.executeSync( sink, coding_ );
         }
         catch ( SAXException e ) {
             throw (IOException) new IOException( e.getMessage() )
@@ -329,7 +336,8 @@ public class RegTapRegistryQuery implements RegistryQuery {
         TapQuery query =
             new TapQuery( Ri1RegistryQuery.toUrl( regUrl ), adql, null );
         logger_.info( adql );
-        StarTable table = query.executeSync( StoragePolicy.PREFER_MEMORY );
+        StarTable table = query.executeSync( StoragePolicy.PREFER_MEMORY,
+                                             ContentCoding.NONE );
         List<String> urlList = new ArrayList<String>();
         RowSequence rseq = table.getRowSequence();
         while ( rseq.next() ) {
@@ -351,7 +359,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
         String contactEmail_;
         String publisherName_;
         String[] subjects_;
-        Map<Integer,RegCapabilityInterface> capMap_;
+        Map<Object,RegCapabilityInterface> capMap_;
 
         /**
          * Constructor.
@@ -369,7 +377,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
             title_ = title;
             refUrl_ = refUrl;
             subjects_ = subjects;
-            capMap_ = new LinkedHashMap<Integer,RegCapabilityInterface>();
+            capMap_ = new LinkedHashMap<Object,RegCapabilityInterface>();
         }
 
         public String getIdentifier() {
@@ -476,7 +484,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
             final String baseRole = getString( row, "base_role" );
             final String roleName = getString( row, "role_name" );
             final String email = getString( row, "email" );
-            final Number intfIndex = (Number) getEntry( row, "intf_index" );
+            final Object intfIndex = getEntry( row, "intf_index" );
             final String accessUrl = getString( row, "access_url" );
             final String standardId = getString( row, "standard_id" );
             final String capType = getString( row, "cap_type" );
@@ -503,9 +511,9 @@ public class RegTapRegistryQuery implements RegistryQuery {
                 resource.publisherName_ = roleName;
             }
             if ( intfIndex != null ) {
-                Integer ix = new Integer( intfIndex.intValue() );
-                if ( ! resource.capMap_.containsKey( ix ) ) {
-                    resource.capMap_.put( ix, new RegCapabilityInterface() {
+                if ( ! resource.capMap_.containsKey( intfIndex ) ) {
+                    resource.capMap_.put( intfIndex,
+                                          new RegCapabilityInterface() {
                         public String getAccessUrl() {
                             return accessUrl;
                         }

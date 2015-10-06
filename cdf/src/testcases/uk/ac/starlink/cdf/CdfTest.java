@@ -2,14 +2,18 @@ package uk.ac.starlink.cdf;
 
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.bristol.star.cdf.EpochFormatter;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.TestCase;
@@ -114,6 +118,49 @@ public class CdfTest extends TestCase {
                            0.5f );
         assertArrayEquals( new float[] { Float.NaN, Float.NaN },
                            geo.getCell( 3, ihpv ) );
+    }
+
+    public void testDomain() throws IOException {
+        StarTable tst = readTable( "test.cdf" );
+        assertEquals( 17, tst.getColumnCount() );
+        int icEp = 11;
+        int icEp16 = 12;
+        int icTt2k = 14;
+        ColumnInfo epInfo = tst.getColumnInfo( icEp );
+        ColumnInfo ep16Info = tst.getColumnInfo( icEp16 );
+        ColumnInfo tt2kInfo = tst.getColumnInfo( icTt2k );
+        assertEquals( "ep", epInfo.getName() );
+        assertEquals( "ep16", ep16Info.getName() );
+        assertEquals( "tt2000", tt2kInfo.getName() );
+        assertEquals( Double.class, epInfo.getContentClass() );
+        assertEquals( double[].class, ep16Info.getContentClass() );
+        assertArrayEquals( new int[] { 2 }, ep16Info.getShape() );
+        assertEquals( Long.class, tt2kInfo.getContentClass() );
+        TimeMapper epMapper = getSingleTimeMapper( epInfo );
+        TimeMapper ep16Mapper = getSingleTimeMapper( ep16Info );
+        TimeMapper tt2kMapper = getSingleTimeMapper( tt2kInfo );
+
+        // These dates obtained by running NASA cdfdump on the test file
+        assertEquals( "1998-01-02 03:04:05.666",
+                      getDate( tst.getCell( 1, icEp ), epMapper ) );
+        assertEquals( "2004-11-29 15:55:23.030",
+                      getDate( tst.getCell( 0, icEp16 ), ep16Mapper ) );
+        assertEquals( "2008-12-31 23:59:58.123",
+                      getDate( tst.getCell( 0, icTt2k ), tt2kMapper ) );
+    }
+
+    private TimeMapper getSingleTimeMapper( ValueInfo info ) {
+        DomainMapper[] mappers = info.getDomainMappers();
+        assertEquals( 1, mappers.length );
+        DomainMapper mapper = mappers[ 0 ];
+        assertTrue( mapper instanceof TimeMapper );
+        return (TimeMapper) mapper;
+    }
+
+    private String getDate( Object tval, TimeMapper tmapper ) {
+        long unixMillis = (long) ( tmapper.toUnixSeconds( tval ) * 1e3 );
+        return new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS" )
+              .format( new Date( unixMillis ) );
     }
 
     private CdfStarTable readTable( String name ) throws IOException {

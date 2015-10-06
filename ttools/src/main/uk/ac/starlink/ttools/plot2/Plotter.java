@@ -77,6 +77,15 @@ public interface Plotter<S extends Style> {
     S createStyle( ConfigMap config ) throws ConfigException;
 
     /**
+     * Indicates whether the drawings produced by this plotter will
+     * return general interest report information to upstream plotting code.
+     *
+     * @return   true if the plot report may return interesting information
+     * @see   Drawing#getReport
+     */
+    boolean hasReports();
+
+    /**
      * Creates a PlotLayer based on the given geometry, data and style.
      *
      * <p>The <code>style</code> parameter is the result of a call to

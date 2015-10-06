@@ -102,6 +102,15 @@ public class GuiDataSpec extends AbstractDataSpec {
         };
     }
 
+    public boolean isCoordBlank( int icoord ) {
+        for ( String expr : contents_[ icoord ].getDataLabels() ) {
+            if ( expr != null && expr.trim().length() > 0 ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Returns the topcat model supplying the data for this data spec.
      *
@@ -118,6 +127,17 @@ public class GuiDataSpec extends AbstractDataSpec {
      */
     public RowSubset getRowSubset() {
         return subset_;
+    }
+
+    /**
+     * Returns the strings supplied by the user to identify the user values
+     * corresponding to a particular coordinate.
+     *
+     * @param   ic   coord index
+     * @return   array of user input strings
+     */
+    public String[] getCoordDataLabels( int ic ) {
+        return contents_[ ic ].getDataLabels();
     }
 
     /**

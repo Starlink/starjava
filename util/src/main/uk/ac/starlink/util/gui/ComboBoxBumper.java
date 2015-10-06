@@ -27,9 +27,13 @@ public class ComboBoxBumper extends JPanel {
 
     private final JComboBox comboBox_;
     private final Action[] bumpActions_;
-    private static Icon DEC_ICON =
+
+    /** Icon for decrement button. */
+    public static Icon DEC_ICON =
         new ImageIcon( ImageHolder.class.getResource( "dec.gif" ) );
-    private static Icon INC_ICON =
+
+    /** Icon for increment button. */
+    public static Icon INC_ICON =
         new ImageIcon( ImageHolder.class.getResource( "inc.gif" ) );
 
     /**

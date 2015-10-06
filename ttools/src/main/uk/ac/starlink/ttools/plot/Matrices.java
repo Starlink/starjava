@@ -111,7 +111,7 @@ public class Matrices {
      * Calculates the modulus of a vector.
      *
      * @param  v  input vector
-     * @return  <code>|v|
+     * @return  <code>|v|</code>
      */
     public static double mod( double[] v ) {
         double m2 = 0;

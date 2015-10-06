@@ -53,7 +53,7 @@ public abstract class ChoiceConfigKey<T> extends ConfigKey<T> {
      * Returns a mutable map giving the currently available known options
      * and their string values.
      *
-     * @return   current name->value map of known options
+     * @return   current name-&gt;value map of known options
      */
     public Map<String,T> getOptionMap() {
         return optMap_;
@@ -90,7 +90,7 @@ public abstract class ChoiceConfigKey<T> extends ConfigKey<T> {
      */
     public abstract String stringifyValue( T value );
 
-    public T stringToValue( String sval ) {
+    public T stringToValue( String sval ) throws ConfigException {
         if ( sval == null || sval.length() == 0 ) {
             if ( nullPermitted_ ) {
                 return null; 

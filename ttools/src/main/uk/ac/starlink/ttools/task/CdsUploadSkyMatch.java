@@ -30,6 +30,7 @@ import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Upload matcher that uses CDS's Xmatch service.
@@ -46,6 +47,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
     private final ChoiceParameter<UserFindMode> findParam_;
     private final IntegerParameter chunkParam_;
     private final IntegerParameter maxrecParam_;
+    private final ContentCodingParameter codingParam_;
     private final URLParameter urlParam_;
     private final BooleanParameter usemocParam_;
     private final BooleanParameter presortParam_;
@@ -188,6 +190,9 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         maxrecParam_.setIntDefault( -1 );
         paramList.add( maxrecParam_ );
 
+        codingParam_ = new ContentCodingParameter();
+        paramList.add( codingParam_ );
+
         urlParam_ = new URLParameter( "serviceurl" );
         urlParam_.setPrompt( "URL for CDS Xmatch service" );
         urlParam_.setDescription( new String[] {
@@ -277,13 +282,14 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         boolean oneToOne = userMode.isOneToOne();
         int blocksize = chunkParam_.intValue( env );
         long maxrec = maxrecParam_.intValue( env );
+        ContentCoding coding = codingParam_.codingValue( env );
         URL url = urlParam_.objectValue( env );
         final Coverage coverage = usemocParam_.booleanValue( env )
                                 ? UrlMocCoverage.getVizierMoc( cdsName, -1 )
                                 : null;
         final boolean presort = presortParam_.booleanValue( env );
         UploadMatcher umatcher =
-            new CdsUploadMatcher( url, cdsId, sr, serviceMode );
+            new CdsUploadMatcher( url, cdsId, sr, serviceMode, coding );
         String tableName = "xmatch(" + cdsIdToTableName( cdsId ) + ")";
         JoinFixAction inFixAct =
             fixcolsParam_.getJoinFixAction( env, insuffixParam_ );

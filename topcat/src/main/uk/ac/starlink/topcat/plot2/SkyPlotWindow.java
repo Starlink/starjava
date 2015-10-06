@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -17,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.geom.SkyAspect;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
@@ -33,8 +35,8 @@ public class SkyPlotWindow
        extends StackPlotWindow<SkySurfaceFactory.Profile,SkyAspect> {
     private static final SkyPlotType PLOT_TYPE = SkyPlotType.getInstance();
     private static final ConfigKey<SkySys> DATASYS_KEY =
-        SkySys.createConfigKey( new ConfigMeta( "datasys", "Data Sky System" ),
-                                false );
+        new SkySysConfigKey( new ConfigMeta( "datasys", "Data Sky System" ),
+                             false );
 
     /**
      * Constructor.
@@ -43,6 +45,7 @@ public class SkyPlotWindow
      */
     public SkyPlotWindow( Component parent ) {
         super( "Sky Plot", parent, PLOT_TYPE, new SkyPlotTypeGui() );
+        getToolBar().addSeparator();
         addHelp( "SkyPlotWindow" );
     }
 

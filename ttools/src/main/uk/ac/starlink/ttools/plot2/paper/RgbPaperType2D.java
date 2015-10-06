@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Abstract RgbPaperType subclass for 2-dimensional plots.
@@ -31,8 +32,10 @@ public abstract class RgbPaperType2D extends RgbPaperType
         super( name, upLayer );
     }
 
-    public void placeGlyph( Paper paper, int gx, int gy, Glyph glyph,
+    public void placeGlyph( Paper paper, double dx, double dy, Glyph glyph,
                             Color color ) {
+        int gx = PlotUtil.ifloor( dx );
+        int gy = PlotUtil.ifloor( dy );
         ((RgbPaper2D) paper).placeGlyph( gx, gy, glyph, color );
     }
 

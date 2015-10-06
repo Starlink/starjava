@@ -12,6 +12,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.DataFormat;
@@ -41,6 +42,7 @@ public class TapUploadMatcher implements UploadMatcher {
     private final String[] tapCols_;
     private final ServiceFindMode serviceMode_;
     private final int pollMillis_ = 10000;
+    private final ContentCoding coding_;
 
     private static final String TABLE_ID = "up";
     private static final String ID_NAME = "tapupload_id";
@@ -63,11 +65,13 @@ public class TapUploadMatcher implements UploadMatcher {
      * @param  tapCols    column names from the remote table to be included
      *                    in the output table; if null, all are included
      * @param  serviceMode  type of match
+     * @param  coding     configures HTTP compression for result
      */
     public TapUploadMatcher( URL serviceUrl, String tableName,
                              String raExpr, String decExpr,
                              String radiusDegExpr, boolean isSync,
-                             String[] tapCols, ServiceFindMode serviceMode ) {
+                             String[] tapCols, ServiceFindMode serviceMode,
+                             ContentCoding coding ) {
         serviceUrl_ = serviceUrl;
         tableName_ = tableName;
         raExpr_ = raExpr;
@@ -76,6 +80,7 @@ public class TapUploadMatcher implements UploadMatcher {
         isSync_ = isSync;
         tapCols_ = tapCols;
         serviceMode_ = serviceMode;
+        coding_ = coding;
         if ( ! Arrays.asList( getSupportedServiceModes() )
                      .contains( serviceMode ) ) {
             throw new IllegalArgumentException( "Unsupported mode: "
@@ -100,7 +105,7 @@ public class TapUploadMatcher implements UploadMatcher {
                           voWriter );
         final URLConnection conn;
         if ( isSync_ ) {
-            conn = tapQuery.createSyncConnection();
+            conn = tapQuery.createSyncConnection( coding_ );
         }
         else {
 
@@ -116,7 +121,7 @@ public class TapUploadMatcher implements UploadMatcher {
                 throw (IOException)
                       new IOException( "Interrupted" ).initCause( e );
             }
-            conn = url.openConnection();
+            conn = coding_.openConnection( url );
         }
 
         /* There is, as far as I can tell, no way to write ADQL that gives
@@ -135,7 +140,7 @@ public class TapUploadMatcher implements UploadMatcher {
 
         /* Pass the results to the output sink. */
         try {
-            return TapQuery.streamResultVOTable( conn, rawResultSink )
+            return TapQuery.streamResultVOTable( conn, coding_, rawResultSink )
                 || ( (rawResultSink instanceof LimitRowSink) &&
                      ((LimitRowSink) rawResultSink).isTruncated() );
         }

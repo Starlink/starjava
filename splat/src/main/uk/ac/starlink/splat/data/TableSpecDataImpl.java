@@ -51,7 +51,7 @@ public class TableSpecDataImpl
     protected int dataColumn = -1;
 
     /** Index of the column containing the data errors */
-    private int errorColumn = -1;
+    protected int errorColumn = -1;
 
     /** Names of all the columns in the table */
     protected String[] columnNames = null;
@@ -564,8 +564,8 @@ public class TableSpecDataImpl
         //  data types. The default, if the matching fails, is to use the
         //  first and second (whatever that means) columns that are numeric
         //  types and do not look for any errors. Do not allow spaces in 
-        //  column names. These cause trouble with lists of names (PLASTIC).
-        columnInfos = Tables.getColumnInfos( starTable ); 
+        //  column names. These cause trouble with lists of names.
+        columnInfos = Tables.getColumnInfos( starTable );
         columnNames = new String[columnInfos.length];
         for ( int i = 0; i < columnNames.length; i++ ) {
             columnNames[i] = columnInfos[i].getName().replaceAll( "\\s", "_" );

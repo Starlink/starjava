@@ -2,20 +2,17 @@ package uk.ac.starlink.fits;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
-import nom.tam.util.BufferedFile;
+import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
-import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
 
 /**
  * Implementation of the <code>TableBuilder</code> interface which reads
@@ -56,15 +53,9 @@ public class ColFitsTableBuilder implements TableBuilder {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
 
-        if ( ! ( datsrc instanceof FileDataSource ) ||
-             datsrc.getCompression() != Compression.NONE ) {
-            throw new TableFormatException( "Not uncompressed file on disk" );
-        }
-
-        File file = ((FileDataSource) datsrc).getFile();
+        ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc );
         long pos = 0;
         Header hdr = new Header();
-        BufferedFile in = new BufferedFile( file.toString() );
         try {
             pos += FitsConstants.skipHDUs( in, 1 );
             pos += FitsConstants.readHeader( hdr, in );
@@ -81,6 +72,6 @@ public class ColFitsTableBuilder implements TableBuilder {
             in.close();
         }
 
-        return new ColFitsStarTable( file, hdr, pos );
+        return new ColFitsStarTable( datsrc, hdr, pos, false );
     }
 }

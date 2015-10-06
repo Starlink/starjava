@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
@@ -29,7 +28,9 @@ import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.Subrange;
+import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Scaler;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -407,6 +408,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     binDrawing_.paintData( binPlan, paper, dataStore );
                 }
             }
+
+            public ReportMap getReport( Object plan ) {
+                return null;
+            }
         }
 
         /**
@@ -575,6 +580,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
             }
 
+            public ReportMap getReport( Object plan ) {
+                return null;
+            }
+
             /**
              * Returns the alpha level to use given a specified transparency
              * level and a grid of pixel counts.
@@ -706,7 +715,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
                 /* Clone this array before modifying it in-place.
                  * Trashing the data wouldn't hurt this time,
-                 * the plan may get re-used later. */
+                 * but the plan may get re-used later. */
                 int[] counts = getBinCounts( plan ).clone();
                 IndexColorModel colorModel = createColorModel( shader_ );
                 scaleLevels( counts, colorModel.getMapSize() - 1 );
@@ -729,16 +738,21 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 for ( int i = 0; i < n; i++ ) {
                     max = Math.max( max, buf[ i ] );
                 }
-                CountScaler scaler = scaling_.createScaler( max, nlevel );
 
                 /* Leave 0 as 0 - this is transparent (no plot).
                  * Values >= 1 map to range 1..nlevel. */
-                double nl1 = nlevel - 1;
-                for ( int i = 0; i < n; i++ ) {
-                    int b = buf[ i ];
-                    if ( b > 0 ) {
-                        buf[ i ] =
-                            1 + (int) Math.round( nl1 * scaler.scale( b - 1 ) );
+                if ( max > 0 ) {
+                    max = Math.max( max, PlotUtil.MIN_RAMP_UNIT );
+                    CountScaler scaler =
+                        new CountScaler( scaling_, max, nlevel );
+                    if ( max == 1 && scaler.scaleCount( 1 ) == 1 ) {
+                        // special case: array is already in the required form
+                        // (zeros and ones), no action required
+                    }
+                    else {
+                        for ( int i = 0; i < n; i++ ) {
+                            buf[ i ] = scaler.scaleCount( buf[ i ] );
+                        }
                     }
                 }
             }
@@ -787,24 +801,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert model.getPixelSize() == 8;
             return model;
         }
-    }
-
-    /**
-     * Defines a scaling strategy.
-     */
-    @Equality
-    public static interface Scaling {
-
-        /**
-         * Returns a count scaler to use for a given maximum input count
-         * value and number of levels.
-         *
-         * @param   max  maximum value in input count data
-         *               (minimum is implicitly zero)
-         * @param  nlevel  number of levels in output array
-         * @return  new scaler
-         */
-        CountScaler createScaler( int max, int nlevel );
     }
 
     /**
@@ -861,13 +857,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static class AutoDensityMode extends AbstractDensityMode {
 
-        /** Auto scaling - asinh-like with a small but visible delta. */
-        private static final Scaling AUTO_SCALING = new Scaling() {
-            public CountScaler createScaler( int max, int nlevel ) {
-                return CountScaler.createScaler( max, 0.0625 );
-            }
-        };
-
         /**
          * Constructor.
          */
@@ -904,7 +893,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             Shader baseShader = Shaders.stretch( Shaders.SCALE_V, 1f, 0.2f );
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
-            return new DensityStamper( densityShader, AUTO_SCALING );
+            return new DensityStamper( densityShader, Scaling.AUTO );
         }
     }
 
@@ -913,6 +902,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * affecting the appearance.
      */
     private static class CustomDensityMode extends AbstractDensityMode {
+
+        private static final RampKeySet RAMP_KEYS = StyleKeys.DENSITY_RAMP;
 
         /**
          * Constructor.
@@ -942,112 +933,20 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public ConfigKey[] getConfigKeys() {
-            return new ConfigKey[] {
-                StyleKeys.COLOR,
-                StyleKeys.DENSITY_SHADER,
-                StyleKeys.DENSITY_SHADER_CLIP,
-                StyleKeys.DENSITY_LOG,
-                StyleKeys.DENSITY_FLIP,
-                StyleKeys.DENSITY_SUBRANGE,
-            };
+            List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+            keyList.add( StyleKeys.COLOR );
+            keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+            return keyList.toArray( new ConfigKey[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {
             Color baseColor = config.get( StyleKeys.COLOR );
-            Shader baseShader =
-                StyleKeys.createShader( config, StyleKeys.DENSITY_SHADER,
-                                                StyleKeys.DENSITY_SHADER_CLIP );
-            boolean logFlag = config.get( StyleKeys.DENSITY_LOG );
-            boolean flipFlag = config.get( StyleKeys.DENSITY_FLIP );
-            Subrange subrange = config.get( StyleKeys.DENSITY_SUBRANGE );
+            RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
+            Shader baseShader = ramp.getShader();
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
-            if ( flipFlag ) {
-                densityShader = Shaders.invert( densityShader );
-            }
-            Scaling scaling = new CustomScaling( subrange, logFlag, false );
+            Scaling scaling = ramp.getScaling();
             return new DensityStamper( densityShader, scaling );
-        }
-
-        /**
-         * Scaling strategy that can be adjusted by user preference.
-         */
-        private static class CustomScaling implements Scaling {
-            final Subrange subrange_;
-            final boolean logFlag_;
-            final boolean showAll_;
-
-            /**
-             * Constructor.
-             *
-             * @param  subrange  defines a region of the full data range
-             *                   over which the colour scale should run
-             * @param  logFlag  true for log scaling, false for linear
-             * @param  showAll  I'm not really sure what this does
-             */
-            CustomScaling( Subrange subrange, boolean logFlag,
-                           boolean showAll ) {
-                subrange_ = subrange;
-                logFlag_ = logFlag;
-                showAll_ = showAll;
-            }
-
-            public CountScaler createScaler( int max, int nlevel ) {
-                double[] range =
-                    PlotUtil.scaleRange( 1, max, subrange_, logFlag_ );
-                final int lo = (int) Math.round( range[ 0 ] );
-                final int hi = (int) Math.round( range[ 1 ] );
-                final double dlo = lo;
-                final double dhi = hi;
-                final double min = ( showAll_ || lo == 1 )
-                                 ? 1.0 / (double) nlevel
-                                 : 0;
-                final double scale = logFlag_
-                                   ? ( 1.0 - min ) / Math.log( dhi / dlo )
-                                   : ( 1.0 - min ) / ( dhi - dlo );
-                return new CountScaler() {
-                    public double scale( int c ) {
-                        if ( c == 0 ) {
-                            return 0;
-                        }
-                        else if ( c <= lo ) {
-                            return min;
-                        }
-                        else if ( c >= hi ) {
-                            return 1;
-                        }
-                        else {
-                            double val =
-                                 min + scale * ( logFlag_ ? Math.log( c / dlo )
-                                                          : ( c - dlo ) );
-                            assert val >= 0 && val <= 1 : val;
-                            return val;
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof CustomScaling ) {
-                    CustomScaling other = (CustomScaling) o;
-                    return this.subrange_.equals( other.subrange_ )
-                        && this.logFlag_ == other.logFlag_
-                        && this.showAll_ == other.showAll_;
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public int hashCode() {
-                int code = 99;
-                code = 23 * code + subrange_.hashCode();
-                code = 23 * code + ( logFlag_ ? 5 : 7 );
-                code = 23 * code + ( showAll_ ? 13 : 19 );
-                return code;
-            }
         }
     }
 
@@ -1059,7 +958,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         private final boolean reportAuxKeys_;
 
         private static final AuxScale SCALE = AuxScale.COLOR;
-        private static final RampKeySet rampKeys_ = StyleKeys.AUX_RAMP;
+        private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
         private static final String scaleName = SCALE.getName();
         private static final FloatingCoord SHADE_COORD =
             FloatingCoord.createCoord(
@@ -1111,8 +1010,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public ConfigKey[] getConfigKeys() {
             List<ConfigKey> list = new ArrayList<ConfigKey>();
             if ( reportAuxKeys_ ) {
-                list.addAll( Arrays.asList( rampKeys_.getKeys() ) );
+                list.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
             }
+            list.add( StyleKeys.AUX_NULLCOLOR );
             if ( transparent_ ) {
                 list.add( StyleKeys.AUX_OPAQUE );
             }
@@ -1120,17 +1020,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public Stamper createStamper( ConfigMap config ) {
-            RampKeySet.Ramp ramp = rampKeys_.createValue( config );
+            RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
             Shader shader = ramp.getShader();
-            boolean shadeLog =  ramp.isLog();
-            boolean shadeFlip = ramp.isFlip();
-            Color nullColor = ramp.getNullColor();
+            Scaling scaling = ramp.getScaling();
+            Color nullColor = config.get( StyleKeys.AUX_NULLCOLOR );
             double opaque = transparent_
                           ? config.get( StyleKeys.AUX_OPAQUE )
                           : 1;
             float scaleAlpha = 1f / (float) opaque;
             Color baseColor = config.get( StyleKeys.COLOR );
-            return new ShadeStamper( shader, shadeLog, shadeFlip, baseColor,
+            return new ShadeStamper( shader, scaling, baseColor,
                                      nullColor, scaleAlpha );
         }
 
@@ -1144,8 +1043,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert dataSpec.getCoord( iShadeCoord ) == SHADE_COORD;
             ShadeStamper shStamper = (ShadeStamper) stamper;
             final Shader shader = shStamper.shader_;
-            final boolean shadeLog = shStamper.shadeLog_;
-            final boolean shadeFlip = shStamper.shadeFlip_;
+            final Scaling scaling = shStamper.scaling_;
             final Color baseColor = shStamper.baseColor_;
             final Color nullColor = shStamper.nullColor_;
             final float scaleAlpha = shStamper.scaleAlpha_;
@@ -1157,20 +1055,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 @Override
                 public Map<AuxScale,AuxReader> getAuxRangers() {
                     Map<AuxScale,AuxReader> map = super.getAuxRangers();
-                    final double[] dpos = new double[ geom.getDataDimCount() ];
-                    final Point gpos = new Point();
-                    map.put( SCALE, new AuxReader() {
-                        public void updateAuxRange( Surface surface,
-                                                    TupleSequence tseq,
-                                                    Range range ) {
-                            if ( geom.readDataPos( tseq, 0, dpos ) &&
-                                 surface.dataToGraphics( dpos, true, gpos ) ) {
-                                range.submit( SHADE_COORD
-                                             .readDoubleCoord( tseq,
-                                                               iShadeCoord ) );
-                            }
-                        }
-                    } );
+                    AuxReader shadeReader =
+                        new FloatingCoordAuxReader( SHADE_COORD, iShadeCoord,
+                                                    geom, true );
+                    map.put( SCALE, shadeReader );
                     map.putAll( outliner.getAuxRangers( geom ) );
                     return map;
                 }
@@ -1178,16 +1066,30 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                               Map<AuxScale,Range> auxRanges,
                                               PaperType paperType ) {
                     Range shadeRange = auxRanges.get( SCALE );
-                    RangeScaler scaler =
-                        RangeScaler.createScaler( shadeLog, shadeFlip,
-                                                  shadeRange );
-                    ColorKit kit = new ColorKit( iShadeCoord, shader, scaler,
-                                                 baseColor, nullColor,
-                                                 scaleAlpha );
+                    Scaler scaler =
+                        Scaling.createRangeScaler( scaling, shadeRange );
                     DrawSpec drawSpec =
                         new DrawSpec( surface, geom, dataSpec, outliner,
                                       auxRanges, paperType );
-                    return new AuxDrawing( drawSpec, kit );
+
+                    // A possible optimisation would be in the case that we
+                    // have an opaque 2D plot to return a planned drawing,
+                    // where the plan is a double[] array of aux values.
+                    // This would allow fast changes to the colour map,
+                    // like for density plots.  Would take some code,
+                    // but nothing that hasn't been done already.
+                    // See classes PixOutliner, PixelImage, Gridder etc.
+                    // if ( scaleAlpha == 1f &&
+                    //      paperType.isBitmap() &&
+                    //      paperType instanceof PaperType2D ) {
+                    //     return new AuxGridDrawing2D( drawSpec, iShadeCoord,
+                    //                                  shader, scaler,
+                    //                                  baseColor, nullColor );
+                    // }
+                    ColorKit kit =
+                        new AuxColorKit( iShadeCoord, shader, scaler,
+                                         baseColor, nullColor, scaleAlpha );
+                    return drawSpec.createDrawing( kit );
                 }
             };
         }
@@ -1196,11 +1098,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * Encapsulates information about how to colour data points for
          * AuxShadingMode.
          */
-        private static class ColorKit {
+        private static class AuxColorKit implements ColorKit {
 
             private final int icShade_;
             private final Shader shader_;
-            private final RangeScaler scaler_;
+            private final Scaler scaler_;
             private final Color scaledNullColor_;
             private final float scaleAlpha_;
             private final float[] baseRgba_;
@@ -1222,8 +1124,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  scaleAlpha  alpha scaling for output colours;
              *                     1 means opaque
              */
-            ColorKit( int icShade, Shader shader, RangeScaler scaler,
-                      Color baseColor, Color nullColor, float scaleAlpha ) {
+            AuxColorKit( int icShade, Shader shader, Scaler scaler,
+                         Color baseColor, Color nullColor, float scaleAlpha ) {
                 icShade_ = icShade;
                 shader_ = shader;
                 scaler_ = scaler;
@@ -1238,16 +1140,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 lastScale_ = Float.NaN;
             }
 
-            /**
-             * Returns the colour to use for plotting the current row of
-             * a supplied tuple sequence.
-             *
-             * @param  tseq  tuple sequence positioned at the row of interest
-             * @return  plotting colour, or null to omit point
-             */
-            Color readColor( TupleSequence tseq ) {
+            public Color readColor( TupleSequence tseq ) {
                 double auxVal = SHADE_COORD.readDoubleCoord( tseq, icShade_ );
-                float scaleVal = (float) scaler_.scale( auxVal );
+                float scaleVal = (float) scaler_.scaleValue( auxVal );
 
                 /* If null input return special null output value. */
                 if ( Float.isNaN( scaleVal ) ) {
@@ -1287,37 +1182,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                  : null;
             }
         }
-
-        /**
-         * Drawing implementation used by AuxShadingMode.
-         */
-        private static class AuxDrawing extends UnplannedDrawing {
-            private final DrawSpec drawSpec_;
-            private final ColorKit kit_;
-
-            /**
-             * Constructor.
-             *
-             * @param  drawSpec  common drawing attributes
-             * @param  kit  object that knows how to colour points per row
-             */
-            AuxDrawing( DrawSpec drawSpec, ColorKit kit ) {
-                drawSpec_ = drawSpec;
-                kit_ = kit;
-            }
-
-            public void paintData( Paper paper, DataStore dataStore ) { 
-                Outliner.ShapePainter painter = drawSpec_.painter_;
-                TupleSequence tseq =
-                    dataStore.getTupleSequence( drawSpec_.dataSpec_ );
-                while ( tseq.next() ) {
-                    Color color = kit_.readColor( tseq );
-                    if ( color != null ) {
-                        painter.paintPoint( tseq, color, paper );
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -1325,8 +1189,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     public static class ShadeStamper implements Stamper {
         final Shader shader_;
-        final boolean shadeLog_;
-        final boolean shadeFlip_;
+        final Scaling scaling_;
         final Color baseColor_;
         final Color nullColor_;
         final float scaleAlpha_;
@@ -1335,9 +1198,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * Constructor.
          *
          * @param  shader  colour shader 
-         * @param  shadeLog  true for logarithmic shading scale,
-         *                   false for linear
-         * @param  shadeFlip  true to invert direction of shading scale
+         * @param  scaling   scaling function from data to shade value
          * @param  baseColor  colour to use for adjustments in case of
          *                    non-absolute shader
          * @param  nullColor  colour to use for null aux coordinate,
@@ -1345,12 +1206,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param  scaleAlpha  factor to scale output colour alpha by;
          *                     1 means opaque
          */
-        public ShadeStamper( Shader shader, boolean shadeLog,
-                             boolean shadeFlip, Color baseColor,
+        public ShadeStamper( Shader shader, Scaling scaling, Color baseColor,
                              Color nullColor, float scaleAlpha ) {
             shader_ = shader;
-            shadeLog_ = shadeLog;
-            shadeFlip_ = shadeFlip;
+            scaling_ = scaling;
             baseColor_ = baseColor;
             nullColor_ = nullColor;
             scaleAlpha_ = scaleAlpha;
@@ -1366,8 +1225,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             if ( o instanceof ShadeStamper ) {
                 ShadeStamper other = (ShadeStamper) o;
                 return this.shader_.equals( other.shader_ )
-                    && this.shadeLog_ == other.shadeLog_
-                    && this.shadeFlip_ == other.shadeFlip_
+                    && this.scaling_.equals( other.scaling_ )
                     && PlotUtil.equals( this.baseColor_, other.baseColor_ )
                     && PlotUtil.equals( this.nullColor_, other.nullColor_ )
                     && this.scaleAlpha_ == other.scaleAlpha_;
@@ -1381,8 +1239,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public int hashCode() {
             int code = 7301;
             code = 23 * code + shader_.hashCode();
-            code = 23 * code + ( shadeLog_ ? 5 : 7 );
-            code = 23 * code + ( shadeFlip_ ? 11 : 13 );
+            code = 23 * code + scaling_.hashCode();
             code = 23 * code + PlotUtil.hashCode( baseColor_ );
             code = 23 * code + PlotUtil.hashCode( nullColor_ );
             code = 23 * code + Float.floatToIntBits( scaleAlpha_ );
@@ -1464,7 +1321,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         /**
-         * Generates a bin plan for this draw spec.
+         * Utiliity method that generates a bin plan for this draw spec.
          * 
          * @param  knownPlans  known plans
          * @param  dataStore  data storage
@@ -1476,6 +1333,44 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                   .calculateBinPlan( surface_, geom_, auxRanges_, dataStore,
                                      dataSpec_, knownPlans );
         }
+
+        /**
+         * Utility method that creates an unplanned drawing
+         * using this spec's state where points are coloured
+         * from the data in accordance with a supplied ColorKit.
+         *
+         * @param  kit  maps data points to data colour
+         * @return new drawing
+         */
+        public Drawing createDrawing( final ColorKit kit ) {
+            return new UnplannedDrawing() {
+                public void paintData( Paper paper, DataStore dataStore ) {
+                    TupleSequence tseq =
+                        dataStore.getTupleSequence( dataSpec_ );
+                    while ( tseq.next() ) {
+                        Color color = kit.readColor( tseq );
+                        if ( color != null ) {
+                            painter_.paintPoint( tseq, color, paper );
+                        }
+                    }
+                }
+            };
+        }
+    }
+
+    /**
+     * Rule for colouring points according to data values.
+     */
+    private interface ColorKit {
+
+        /**
+         * Acquires a colour appropriate for the current element of
+         * a given tuple sequence.
+         *
+         * @param  tseq  tuple sequence positioned at the row of interest
+         * @return  plotting colour, or null to omit point
+         */
+        Color readColor( TupleSequence tseq );
     }
 
     /**
@@ -1569,6 +1464,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     return true;
                 }
             } );
+        }
+
+        public ReportMap getReport( Object plan ) {
+            return null;
         }
 
         /**

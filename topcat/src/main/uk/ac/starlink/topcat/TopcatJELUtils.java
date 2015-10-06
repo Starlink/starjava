@@ -9,7 +9,6 @@ import gnu.jel.CompilationException;
 import gnu.jel.Library;
 import gnu.jel.DVMap;
 import java.util.Date;
-import java.util.Hashtable;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
@@ -56,9 +55,8 @@ public class TopcatJELUtils extends JELUtils {
         Class[] dynamicLib = new Class[] { rowReader.getClass() };
         Class[] dotClasses = new Class[ 0 ];
         DVMap resolver = rowReader;
-        Hashtable cnmap = null;
         Library lib = new Library( staticLib, dynamicLib, dotClasses,
-                                   resolver, cnmap );
+                                   resolver, null );
 
         if ( activation ) {
             /* Mark the System.exec methods as dynamic.  This is a bit obscure;
@@ -172,6 +170,9 @@ public class TopcatJELUtils extends JELUtils {
         }
         else if ( prim == double.class ) {
             return Double.class;
+        }
+        else if ( prim == void.class ) {
+            return Void.class;
         }
         else {
             throw new IllegalArgumentException( prim + " is not primitive" );

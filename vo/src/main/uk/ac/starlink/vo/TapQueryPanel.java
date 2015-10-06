@@ -8,39 +8,61 @@ import adql.query.TextPosition;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.net.MalformedURLException;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.MenuElement;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
 import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 
 /**
  * Panel for display of a TAP query for a given TAP service.
@@ -50,104 +72,260 @@ import javax.swing.text.PlainDocument;
  */
 public class TapQueryPanel extends JPanel {
 
-    private URL serviceUrl_;
-    private Thread metaFetcher_;
-    private Thread capFetcher_;
-    private Throwable parseError_;
-    private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
-    private final JLabel serviceLabel_;
-    private final JLabel countLabel_;
-    private final JToggleButton syncToggle_;
     private final Action examplesAct_;
     private final Action parseErrorAct_;
-    private final AdqlExampleAction[] exampleActs_;
+    private final JPopupMenu examplesMenu_;
+    private final JMenu daliExampleMenu_;
+    private final JTabbedPane textTabber_;
+    private final JComponent controlBox_;
+    private final TapExampleLine exampleLine_;
+    private final CaretListener caretForwarder_;
+    private final List<CaretListener> caretListeners_;
+    private final Map<ParseTextArea,UndoManager> undoerMap_;
+    private final AdqlTextAction clearAct_;
+    private final AdqlTextAction interpolateColumnsAct_;
+    private final AdqlTextAction interpolateTableAct_;;
+    private final Action undoAct_;
+    private final Action redoAct_;
+    private final Action addTabAct_;
+    private final Action copyTabAct_;
+    private final Action removeTabAct_;
+    private final Action titleTabAct_;
+    private final DelegateAction prevExampleAct_;
+    private final DelegateAction nextExampleAct_;
+    private TapServiceKit serviceKit_;
+    private Throwable parseError_;
+    private AdqlValidator.ValidatorTable[] extraTables_;
+    private AdqlValidator validator_;
+    private ParseTextArea textPanel_;
+    private int iCustomExampleMenu_;
+    private int iTab_;
+    private UndoManager undoer_;
+
+    private static final KeyStroke[] UNDO_KEYS = new KeyStroke[] {
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.META_MASK ),
+    };
+    private static final KeyStroke[] REDO_KEYS = new KeyStroke[] {
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK
+                                             | Event.SHIFT_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.META_MASK
+                                             | Event.SHIFT_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Y, Event.CTRL_MASK ),
+    };
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
      *
-     * @param   examples   list of example queries to be made available
-     *          from the examples menu
+     * @param   urlHandler  handles URLs that the user clicks on; may be null
      */
-    public TapQueryPanel( AdqlExample[] examples ) {
+    public TapQueryPanel( UrlHandler urlHandler ) {
         super( new BorderLayout() );
 
         /* Prepare a panel for table metadata display. */
-        tmetaPanel_ = new TableSetPanel();
+        tmetaPanel_ = new TableSetPanel( urlHandler );
+        tmetaPanel_.addPropertyChangeListener( TableSetPanel.SCHEMAS_PROPERTY,
+                                               new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                validator_ = null;
+                validateAdql();
+            }
+        } );
 
         /* Prepare a panel to contain service capability information. */
         tcapPanel_ = new TapCapabilityPanel();
 
-        /* Prepare a panel to contain user-entered ADQL text. */
-        textPanel_ = new ParseTextArea();
-        textPanel_.setEditable( true );
-        textPanel_.setFont( Font.decode( "Monospaced" ) );
-        JComponent textScroller = new JScrollPane( textPanel_ );
+        /* Prepare a component to contain user-entered ADQL text. */
+        textTabber_ = new JTabbedPane();
+        textTabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                updateTextTab();
+            }
+        } );
 
-        /* Button for selecting sync/async mode of query. */
-        syncToggle_ = new JCheckBox( "Synchronous", true );
-        syncToggle_.setToolTipText( "Determines whether the TAP query will "
-                                  + "be carried out in synchronous (selected) "
-                                  + "or asynchronous (unselected) mode" );
+        /* Support ADQL text undo/redo. */
+        undoerMap_ = new HashMap<ParseTextArea,UndoManager>();
+        UndoManager undoer0 = new UndoManager();
+        undoer0.setLimit( 0 );
+        undoerMap_.put( null, undoer0 );
+        undoer_ = undoer0;
+        undoAct_ = new AbstractAction( "Undo", ResourceIcon.ADQL_UNDO ) {
+            public void actionPerformed( ActionEvent evt ) {
+                try {
+                    undoer_.undo();
+                }
+                catch ( CannotUndoException e ) {
+                }
+                updateUndoState();
+            }
+        };
+        undoAct_.putValue( Action.SHORT_DESCRIPTION,
+                           "Undo most recent edit to text" );
+        undoAct_.putValue( Action.ACCELERATOR_KEY, UNDO_KEYS[ 0 ] );
+        redoAct_ = new AbstractAction( "Redo", ResourceIcon.ADQL_REDO ) {
+            public void actionPerformed( ActionEvent evt ) {
+                try {
+                    undoer_.redo();
+                }
+                catch ( CannotUndoException e ) {
+                }
+                updateUndoState();
+            }
+        };
+        redoAct_.putValue( Action.SHORT_DESCRIPTION,
+                           "Redo most recently undone edit to text" );
+        redoAct_.putValue( Action.ACCELERATOR_KEY, REDO_KEYS[ 0 ] );
+
+        /* Actions for adding and removing text entry tabs. */
+        addTabAct_ = new AbstractAction( "Add Tab", ResourceIcon.ADQL_ADDTAB ) {
+            public void actionPerformed( ActionEvent evt ) {
+                addTextTab();
+            }
+        };
+        addTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                             "Add a new ADQL entry tab" );
+        copyTabAct_ = new AbstractAction( "Copy Tab",
+                                          ResourceIcon.ADQL_COPYTAB ) {
+            public void actionPerformed( ActionEvent evt ) {
+                String text = textPanel_ == null ? null : textPanel_.getText();
+                addTextTab();
+                textPanel_.setText( text );
+            }
+        };
+        copyTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                              "Add a new ADQL entry tab, with initial content "
+                            + "copied from the currently visible one" );
+        removeTabAct_ = new AbstractAction( "Remove Tab",
+                                            ResourceIcon.ADQL_REMOVETAB ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( textTabber_.getTabCount() > 1 ) {
+                    undoerMap_.remove( textPanel_ );
+                    textTabber_.removeTabAt( textTabber_.getSelectedIndex() );
+                }
+                updateTextTab();
+            }
+        };
+        removeTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                                "Delete the currently visible ADQL entry tab" );
+        titleTabAct_ = new AbstractAction( "Title Tab",
+                                           ResourceIcon.ADQL_TITLETAB ) {
+            public void actionPerformed( ActionEvent evt ) {
+                int itab = textTabber_.getSelectedIndex();
+                if ( itab >= 0 ) {
+                    Object response =
+                        JOptionPane
+                       .showInputDialog( TapQueryPanel.this,
+                                         "Tab Title", "Re-title Edit Tab",
+                                         JOptionPane.QUESTION_MESSAGE, null,
+                                         null, textTabber_.getTitleAt( itab ) );
+                    if ( response instanceof String ) {
+                        String title = ((String) response).trim();
+                        if ( title.length() > 0 ) {
+                            textTabber_.setTitleAt( itab, title );
+                        }
+                    }
+                }
+            }
+        };
+        titleTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                               "Re-title the currently visible "
+                             + "ADQL entry tab" );
 
         /* Action to display parse error text. */
-        parseErrorAct_ = new AbstractAction( "Parse Errors" ) {
+        parseErrorAct_ = new AbstractAction( "Parse Errors",
+                                             ResourceIcon.ADQL_ERROR ) {
             public void actionPerformed( ActionEvent evt ) {
                 showParseError();
             }
         };
         parseErrorAct_.putValue( Action.SHORT_DESCRIPTION,
-                                 "Show details of error parsing "
-                               + "current query ADQL text" );
-        setParseError( null );
+                                 "Show details of error "
+                               + "parsing current query text" );
 
         /* Action to clear text in ADQL panel. */
-        final AdqlTextAction clearAct =
-                new AdqlTextAction( "Clear",
-                                    "Clear currently visible ADQL text "
-                                  + "from editor" ) {
+        clearAct_ = new AdqlTextAction( "Clear", true );
+        clearAct_.putValue( Action.SMALL_ICON, ResourceIcon.ADQL_CLEAR );
+        clearAct_.putValue( Action.SHORT_DESCRIPTION,
+                            "Delete currently visible ADQL text from editor" );
+        clearAct_.setAdqlText( "" );
+        clearAct_.setEnabled( false );
+
+        /* Prepare to warn listeners when the visible ADQL text changes. */
+        caretListeners_ = new ArrayList<CaretListener>();
+        caretForwarder_ = new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
+                clearAct_.setEnabled( textPanel_.getDocument()
+                                                .getLength() > 0 );
+                validateAdql();
+                for ( CaretListener l : caretListeners_ ) {
+                    l.caretUpdate( evt );
+                }
+            }
         };
-        clearAct.setAdqlText( "" );
-        clearAct.setEnabled( false );
-        textPanel_.getDocument().addDocumentListener( new DocumentListener() {
-            public void changedUpdate( DocumentEvent evt ) {
+
+        /* Action to insert table name. */
+        interpolateTableAct_ = new AdqlTextAction( "Insert Table", false );
+        interpolateTableAct_.putValue( Action.SMALL_ICON,
+                                       ResourceIcon.ADQL_INSERTTABLE );
+        interpolateTableAct_.putValue( Action.SHORT_DESCRIPTION,
+                                       "Insert name of currently selected "
+                                     + "table into ADQL text panel" );
+        tmetaPanel_.addPropertyChangeListener( TableSetPanel
+                                              .TABLE_SELECTION_PROPERTY,
+                                               new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                TableMeta tmeta = tmetaPanel_.getSelectedTable();
+                String txt = tmeta == null ? null : tmeta.getName();
+                interpolateTableAct_.setAdqlText( txt );
             }
-            public void insertUpdate( DocumentEvent evt ) {
-                changed();
-            }
-            public void removeUpdate( DocumentEvent evt ) {
-                changed();
-            }
-            private void changed() {
-                clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
-                String text = textPanel_.getText();
-                if ( text.trim().length() > 0 ) {
-                    AdqlValidator validator = getValidator();
-                    try {
-                        validator.validate( text );
-                        setParseError( null );
+        } );
+
+        /* Action to insert column names. */
+        interpolateColumnsAct_ = new AdqlTextAction( "Insert Columns", false );
+        interpolateColumnsAct_.putValue( Action.SMALL_ICON,
+                                         ResourceIcon.ADQL_INSERTCOLS );
+        interpolateColumnsAct_.putValue( Action.SHORT_DESCRIPTION,
+                                         "Insert names of currently selected "
+                                       + "columns into ADQL text panel" );
+        tmetaPanel_.addPropertyChangeListener( TableSetPanel
+                                              .COLUMNS_SELECTION_PROPERTY,
+                                               new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                ColumnMeta[] cmetas = tmetaPanel_.getSelectedColumns();
+                StringBuffer sbuf = new StringBuffer();
+                for ( int i = 0; i < cmetas.length; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ", " );
                     }
-                    catch ( Throwable e ) {
-                        setParseError( e );
-                    }
+                    sbuf.append( cmetas[ i ].getName() );
                 }
-                else {
-                    setParseError( null );
-                }
+                String txt = sbuf.length() == 0 ? null : sbuf.toString();
+                interpolateColumnsAct_.setAdqlText( txt );
             }
         } );
 
         /* Action for examples menu. */
-        final JPopupMenu examplesMenu = new JPopupMenu( "Examples" );
-        int nex = examples.length;
-        exampleActs_ = new AdqlExampleAction[ nex ];
-        for ( int ie = 0; ie < nex; ie++ ) {
-            exampleActs_[ ie ] = new AdqlExampleAction( examples[ ie ] );
-            examplesMenu.add( exampleActs_[ ie ] );
-        }
+        daliExampleMenu_ = new JMenu( "Service-Provided" );
+        setDaliExamples( null );
+        examplesMenu_ = new JPopupMenu( "Examples" );
+        examplesMenu_.add( createExampleMenu( "Basic",
+                                              AbstractAdqlExample
+                                             .createSomeExamples() ) );
+        iCustomExampleMenu_ = examplesMenu_.getSubElements().length;
+        examplesMenu_.add( daliExampleMenu_ );
+        examplesMenu_.add( createExampleMenu( "TAP_SCHEMA",
+                                              AbstractAdqlExample
+                                             .createTapSchemaExamples() ) );
+        examplesMenu_.add( createExampleMenu( "ObsTAP",
+                                              DataModelAdqlExample
+                                             .createObsTapExamples() ) );
+        examplesMenu_.add( createExampleMenu( "RegTAP",
+                                              DataModelAdqlExample
+                                             .createRegTapExamples() ) );
         examplesAct_ = new AbstractAction( "Examples" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Object src = evt.getSource();
@@ -161,45 +339,69 @@ public class TapQueryPanel extends JPanel {
                      * the state of constituent components, but it needs
                      * a lot of listeners and plumbing. */
                     configureExamples();
-                    examplesMenu.show( comp, 0, 0 );
+                    examplesMenu_.show( comp, 0, 0 );
                 }
             }
         };
         examplesAct_.putValue( Action.SHORT_DESCRIPTION,
-                               "Choose from example ADQL quries" );
+                               "Choose from example ADQL queries" );
+
+        /* Set up the line which displays control and display of
+         * ADQL example text and information. */
+        exampleLine_ = new TapExampleLine( urlHandler );
+        prevExampleAct_ =
+            new DelegateAction( null, ComboBoxBumper.DEC_ICON,
+                                "Previous example in group" );
+        nextExampleAct_ =
+            new DelegateAction( null, ComboBoxBumper.INC_ICON,
+                                "Next example in group" );
+        addCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
+                exampleLine_.setExample( null, null );
+                prevExampleAct_.setDelegate( null );
+                nextExampleAct_.setDelegate( null );
+            }
+        } );
+        JComponent exampleBox = Box.createHorizontalBox();
+        exampleBox.setBorder( BorderFactory.createEmptyBorder( 4, 0, 2, 0 ) );
+        exampleBox.add( new JButton( examplesAct_ ) );
+        exampleBox.add( Box.createHorizontalStrut( 5 ) );
+        exampleBox.add( createIconButton( prevExampleAct_ ) );
+        exampleBox.add( Box.createHorizontalStrut( 2 ) );
+        exampleBox.add( createIconButton( nextExampleAct_ ) );
+        exampleBox.add( Box.createHorizontalStrut( 5 ) );
+        exampleBox.add( exampleLine_ );
+
+        /* Prepare initial ADQL entry text panel. */
+        addTextTab();
+        setParseError( null );
 
         /* Controls for ADQL text panel. */
+        JToolBar toolbar = new JToolBar();
+        toolbar.setFloatable( false );
+        toolbar.setBorderPainted( false );
+        for ( Action act : getEditActions() ) {
+            toolbar.add( act );
+        }
+        controlBox_ = Box.createHorizontalBox();
         Box buttLine = Box.createHorizontalBox();
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
-        buttLine.add( syncToggle_ );
+        buttLine.add( controlBox_ );
         buttLine.add( Box.createHorizontalGlue() );
-        buttLine.add( new JButton( examplesAct_ ) );
-        buttLine.add( Box.createHorizontalStrut( 5 ) );
-        buttLine.add( new JButton( clearAct ) );
-        buttLine.add( Box.createHorizontalStrut( 5 ) );
-        buttLine.add( new JButton( parseErrorAct_ ) );
+        buttLine.add( toolbar );
 
         /* Place components on ADQL panel. */
         JComponent adqlPanel = new JPanel( new BorderLayout() );
         adqlPanel.add( buttLine, BorderLayout.NORTH );
-        adqlPanel.add( textScroller, BorderLayout.CENTER );
+        adqlPanel.add( textTabber_, BorderLayout.CENTER );
+        adqlPanel.add( exampleBox, BorderLayout.SOUTH );
         JComponent qPanel = new JPanel( new BorderLayout() );
         qPanel.add( tcapPanel_, BorderLayout.NORTH );
         qPanel.add( adqlPanel, BorderLayout.CENTER );
 
-        /* Prepare a panel for the TAP service heading. */
-        serviceLabel_ = new JLabel();
-        countLabel_ = new JLabel();
-        JComponent tableHeading = Box.createHorizontalBox();
-        tableHeading.add( new JLabel( "Service: " ) );
-        tableHeading.add( serviceLabel_ );
-        tableHeading.add( Box.createHorizontalStrut( 10 ) );
-        tableHeading.add( countLabel_ );
-
         /* Arrange the components in a split pane. */
         final JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
         JComponent servicePanel = new JPanel( new BorderLayout() );
-        servicePanel.add( tableHeading, BorderLayout.NORTH );
         servicePanel.add( tmetaPanel_, BorderLayout.CENTER );
         adqlPanel.setBorder(
             BorderFactory.createTitledBorder(
@@ -208,14 +410,16 @@ public class TapQueryPanel extends JPanel {
         servicePanel.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
-                "Table Metadata" ) );
+                "Metadata" ) );
         tcapPanel_.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
                 "Service Capabilities" ) );
         splitter.setTopComponent( servicePanel );
         splitter.setBottomComponent( qPanel );
-        splitter.setResizeWeight( 0.8 );
+        servicePanel.setPreferredSize( new Dimension( 500, 500 ) );
+        adqlPanel.setPreferredSize( new Dimension( 500, 200 ) );
+        splitter.setResizeWeight( 0.6 );
         add( splitter, BorderLayout.CENTER );
     }
 
@@ -230,15 +434,6 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Returns the text panel used for the ADQL text entered by the user.
-     *
-     * @return   ADQL text entry component
-     */
-    public JTextComponent getAdqlPanel() {
-        return textPanel_;
-    }
-
-    /**
      * Returns the text currently entered in the ADQL text component.
      *
      * @return  adql text supplied by user
@@ -248,153 +443,173 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Indicates whether synchronous operation has been selected.
+     * Sets the TAP service access used by this panel.
+     * Calling this will unconditionally initiate an asynchronous attempt
+     * to fill in service metadata from the given service.
      *
-     * @return   true for sync, false for async
+     * @param  serviceKit   defines TAP service
      */
-    public boolean isSynchronous() {
-        return syncToggle_.isSelected();
-    }
+    public void setServiceKit( final TapServiceKit serviceKit ) {
+        serviceKit_ = serviceKit;
 
-    /**
-     * Sets a short text string describing the TAP service used by this panel.
-     *
-     * @param  serviceHeading  short, human-readable label for the
-     *         service this panel relates to
-     */
-    public void setServiceHeading( String serviceHeading ) {
-        serviceLabel_.setText( serviceHeading );
-    }
-
-    /**
-     * Reload table and capability metadata from the server.
-     */
-    public void reload() {
-        if ( serviceUrl_ != null ) {
-            setServiceUrl( serviceUrl_.toString() );
-        }
-    }
-
-    /**
-     * Sets the service URL for the TAP service used by this panel.
-     * Calling this will initiate an asynchronous attempt to fill in
-     * service metadata from the service at the given URL.
-     *
-     * @param  serviceUrl  base URL for a TAP service
-     */
-    public void setServiceUrl( final String serviceUrl ) {
-
-        /* Prepare the URL where we can find the TableSet document. */
-        final URL url;
-        try {
-            url = new URL( serviceUrl );
-        }
-        catch ( MalformedURLException e ) {
-            return;
-        }
-        serviceUrl_ = url;
+        /* Outdate service-related state. */
+        validator_ = null;
 
         /* Dispatch a request to acquire the table metadata from
          * the service. */
-        setTables( null );
-        tmetaPanel_.showFetchProgressBar( "Fetching Table Metadata" );
-        metaFetcher_ = new Thread( "Table metadata fetcher" ) {
-            public void run() {
-                final Thread fetcher = this;
-                final TableMeta[] tableMetas;
-                try {
-                    tableMetas = TapQuery.readTableMetadata( url );
-                }
-                catch ( final Exception e ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            if ( fetcher == metaFetcher_ ) {
-                                tmetaPanel_.showFetchFailure( url + "/tables",
-                                                              e );
-                            }
-                        }
-                    } );
-                    return;
-                }
+        tmetaPanel_.setServiceKit( serviceKit );
 
-                /* On success, install this information in the GUI. */
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( fetcher == metaFetcher_ ) {
-                            setTables( tableMetas );
-                        }
-                    }
-                } );
-            }
-        };
-        metaFetcher_.setDaemon( true );
-        metaFetcher_.start();
-
-        /* Dispatch a request to acquire the service capability information
-         * from the service. */
-        tcapPanel_.setCapability( null );
-        capFetcher_ = new Thread( "Table capability fetcher" ) {
-            public void run() {
-                final Thread fetcher = this;
-                final TapCapability cap;
-                try {
-                    cap = TapQuery.readTapCapability( url );
+        /* Dispatch request for other information from the service. */
+        if ( serviceKit != null ) {
+            serviceKit.acquireCapability( new ResultHandler<TapCapability>() {
+                public boolean isActive() {
+                    return serviceKit_ == serviceKit;
                 }
-                catch ( final Exception e ) {
-                    logger_.warning( "Failed to acquire TAP service capability "
-                                   + "information" );
-                    return;
+                public void showWaiting() {
+                    tcapPanel_.setCapability( null );
+                    tmetaPanel_.setCapability( null );
+                    validator_ = null;
                 }
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( fetcher == capFetcher_ ) {
-                            tcapPanel_.setCapability( cap );
-                        }
-                    }
-                } );
-            }
-        };
-        capFetcher_.setDaemon( true );
-        capFetcher_.start();
+                public void showResult( TapCapability tcap ) {
+                    tcapPanel_.setCapability( tcap );
+                    tmetaPanel_.setCapability( tcap );
+                    validator_ = null;
+                }
+                public void showError( IOException error ) {
+                    logger_.log( Level.WARNING,
+                                 "Failed to acquire TAP service capability "
+                               + "information: " + error, error );
+                }
+            } );
+            serviceKit.acquireExamples( new ResultHandler<DaliExample[]>() {
+                public boolean isActive() {
+                    return serviceKit_ == serviceKit;
+                }
+                public void showWaiting() {
+                    setDaliExamples( null );
+                }
+                public void showResult( DaliExample[] daliExamples ) {
+                    setDaliExamples( daliExamples );
+                }
+                public void showError( IOException error ) {
+                    logger_.info( "No TAP examples: " + error );
+                    setDaliExamples( new DaliExample[ 0 ] );
+                }
+            } );
+        }
     }
 
     /**
-     * Returns any extra tables available for valid queries.
+     * Sets a list of extra tables available for valid queries.
      * By default ADQL validation is done on a list of tables acquired
-     * by reading the service's declared table metadata.
-     * Subclasses which override this method can arrange for additional
-     * tables to be passed by the validator.
-     * This method is called immediately prior to any validation attempt.
-     * The default implementation returns an empty array.
+     * by reading the service's declared table metadata,
+     * but additional tables may be added for consideration using this call.
      *
-     * @return   array of additional tables to be passed by the validator
+     * @param   extraTables  additional tables to be passed by the validator
      */
-    protected AdqlValidator.ValidatorTable[] getExtraTables() {
-        return new AdqlValidator.ValidatorTable[ 0 ];
+    public void setExtraTables( AdqlValidator.ValidatorTable[] extraTables ) {
+        extraTables_ = extraTables;
+        validator_ = null;
+        validateAdql();
     }
 
     /**
-     * Sets the metadata panel to display a given set of table metadata.
+     * Returns an array of GUI actions related to editing the ADQL text.
      *
-     * @param  tmetas  table metadata list; null if no metadata is available
+     * @return  edit action list
      */
-    private void setTables( TableMeta[] tmetas ) {
+    public Action[] getEditActions() {
+        return new Action[] {
+            addTabAct_, copyTabAct_, removeTabAct_, titleTabAct_,
+            clearAct_, undoAct_, redoAct_,
+            interpolateTableAct_, interpolateColumnsAct_,
+            parseErrorAct_,
+        };
+    }
 
-        /* Populate table metadata JTable. */
-        tmetaPanel_.setTables( tmetas );
+    /**
+     * Adds a given control to the line of buttons displayed at the top
+     * of this panel.
+     *
+     * @param  comp  component to add
+     */
+    public void addControl( JComponent comp ) {
+        controlBox_.add( comp );
+    }
 
-        /* Display number of tables. */
-        String countText;
-        if ( tmetas == null ) {
-            countText = "";
+    /**
+     * Adds a listener for changes to the text in the displayed ADQL
+     * text entry panel.
+     * This uses a CaretListener rather than (what might be more
+     * appropriate) DocumentListener because the DocumentListener
+     * interface looks too hairy, especially for use by components
+     * that are themselves behaving asynchronously.
+     *
+     * @param  listener  listener to add
+     */
+    public void addCaretListener( CaretListener listener ) {
+        caretListeners_.add( listener );
+    }
+
+    /**
+     * Removes a listener previously added with addCaretListener.
+     *
+     * @param  listener  listener to remove
+     */
+    public void removeCaretListener( CaretListener listener ) {
+        caretListeners_.remove( listener );
+    }
+
+    /**
+     * Adds a submenu to the examples menu giving a list of custom ADQL
+     * example queries.
+     *
+     * @param  menuName  name of submenu
+     * @param  examples  example list
+     */
+    public void addCustomExamples( String menuName, AdqlExample[] examples ) {
+        examplesMenu_.insert( createExampleMenu( menuName, examples ),
+                              iCustomExampleMenu_++ );
+        configureExamples();
+    }
+
+    /**
+     * Creates a new menu for display of ADQL example queries.
+     * Menu items not only install their own ADQL in the text panel,
+     * they also configure the Previous/Next actions to invoke the
+     * adjacent items in the menu.
+     *
+     * @param  name  menu name
+     * @param  examples  list of examples
+     * @return   new menu
+     */
+    private JMenu createExampleMenu( final String name,
+                                     final AdqlExample[] examples ) {
+        final int nex = examples.length;
+        final AdqlExampleAction[] exActs = new AdqlExampleAction[ nex ];
+        for ( int i = 0; i < nex; i++ ) {
+            final int iex = i;
+            final AdqlExample ex = examples[ iex ];
+            final String label = name + " " + ( iex + 1 ) + "/" + nex;
+            exActs[ iex ] = new AdqlExampleAction( ex ) {
+                @Override
+                public void actionPerformed( ActionEvent evt ) {
+                    super.actionPerformed( evt );
+                    exampleLine_.setExample( ex, label );
+                    if ( iex > 0 ) {
+                        prevExampleAct_.setDelegate( exActs[ iex - 1 ] );
+                    }
+                    if ( iex < nex - 1 ) {
+                        nextExampleAct_.setDelegate( exActs[ iex + 1 ] );
+                    }
+                }
+            };
         }
-        else if ( tmetas.length == 1 ) {
-            countText = "(1 table)";
+        JMenu menu = new JMenu( name );
+        for ( AdqlExampleAction act : exActs ) {
+            menu.add( act );
         }
-        else {
-            countText = "(" + tmetas.length + " tables)";
-        }
-        countLabel_.setText( countText );
+        return menu;
     }
 
     /**
@@ -402,16 +617,245 @@ public class TapQueryPanel extends JPanel {
      * to set up example queries.
      */
     private void configureExamples() {
-        String lang = tcapPanel_.getQueryLanguage();
+        String lang = tcapPanel_.getQueryLanguageName();
         TapCapability tcap = tcapPanel_.getCapability();
-        TableMeta[] tables = tmetaPanel_.getTables();
-        TableMeta table = tmetaPanel_.getSelectedTable();
-        for ( int ie = 0; ie < exampleActs_.length; ie++ ) {
-            AdqlExampleAction exAct = exampleActs_[ ie ];
-            String adql =
-                exAct.getExample().getText( true, lang, tcap, tables, table );
-            exAct.setAdqlText( adql );
+        SchemaMeta[] schemas = tmetaPanel_.getSchemas();
+        final TableMeta[] tables;
+        if ( schemas != null ) {
+            List<TableMeta> tlist = new ArrayList<TableMeta>();
+            for ( SchemaMeta schema : schemas ) {
+                tlist.addAll( Arrays.asList( schema.getTables() ) );
+            }
+            tables = tlist.toArray( new TableMeta[ 0 ] );
         }
+        else {
+            tables = null;
+        }
+        TableMeta table = tmetaPanel_.getSelectedTable();
+        configureExamples( examplesMenu_, lang, tcap, tables, table );
+    }
+
+    /**
+     * Configures the examples displayed in the contents of a given menu.
+     * The examples are configured to provide the correct text,
+     * and the enabled status of the menu items is set appropriately.
+     *
+     * @param   menu  parent of menu items to configure
+     * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
+     * @param  tcap  TAP capability object
+     * @param  tables  table metadata set
+     * @param  table  currently selected table
+     * @return   number of descendents of the supplied menu that are
+     *           enabled for use
+     */
+    private static int configureExamples( MenuElement menu, String lang,
+                                          TapCapability tcap,
+                                          TableMeta[] tables,
+                                          TableMeta table ) {
+        int nActive = 0;
+        for ( MenuElement el : menu.getSubElements() ) {
+            if ( el instanceof JMenuItem ) {
+                Action act = ((JMenuItem) el).getAction();
+                if ( act instanceof AdqlExampleAction ) {
+                    AdqlExampleAction exAct = (AdqlExampleAction) act;
+                    String adql = exAct.getExample()
+                                 .getText( true, lang, tcap, tables, table );
+                    exAct.setAdqlText( adql );
+                    if ( exAct.isEnabled() ) {
+                        nActive++;
+                    }
+                }
+            }
+            int nSubActive = configureExamples( el, lang, tcap, tables, table );
+            if ( el instanceof JMenu ) {
+                ((JMenu) el).setEnabled( nSubActive > 0 );
+            }
+            nActive += nSubActive;
+        }
+        return nActive;
+    }
+
+    /**
+     * Sets the list of examples to be included in the service-specific
+     * examples sub-menu.
+     *
+     * @param  examples  example list, may be null
+     */
+    private void setDaliExamples( DaliExample[] daliExamples ) {
+        JMenu menu = daliExampleMenu_;
+        menu.removeAll();
+        menu.setEnabled( daliExamples != null && daliExamples.length > 0 );
+        if ( daliExamples != null ) {
+
+            /* Prepare an array of AdqlExample instances based on the
+             * DaliExamples. */
+            int nex = daliExamples.length;
+            AdqlExample[] adqlExamples = new AdqlExample[ nex ];
+            for ( int iex = 0; iex < nex; iex++ ) {
+                final DaliExample daliEx = daliExamples[ iex ];
+                String name = daliEx.getName();
+                final String adql = getExampleQueryText( daliEx );
+                adqlExamples[ iex ] = new AbstractAdqlExample( name, null ) {
+                    public String getText( boolean lineBreaks, String lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables,
+                                           TableMeta table ) {
+                        return adql;
+                    }
+                    public URL getInfoUrl() {
+                        return daliEx.getUrl();
+                    }
+                };
+            }
+
+            /* Create a menu from these; this call does more than simply
+             * wrap the actions into a menu, so use this call and then
+             * pull the menu items out into a different menu later. */
+            JMenu dummyMenu =
+                createExampleMenu( menu.getText(), adqlExamples );
+            while ( dummyMenu.getItemCount() > 0 ) {
+                JMenuItem item = dummyMenu.getItem( 0 );
+                dummyMenu.remove( 0 );
+                menu.add( item );
+            }
+        }
+        tmetaPanel_.setHasExamples( daliExamples != null &&
+                                    daliExamples.length > 0 );
+    }
+
+    /**
+     * Returns the ADQL text corresponding to the query part of an example.
+     * Implementation is contentious; override it if you want.
+     *
+     * @param  daliEx  example object
+     * @return   ADQL query text
+     */
+    public String getExampleQueryText( DaliExample daliEx ) {
+
+        /* At time of writing (Aug 2015) there is dispute about how example
+         * query text is correctly encoded into RDFa at the /examples
+         * endpoint of a TAP service.
+         * Here we take a belt and braces approach - look for a query
+         * marked up in either of the two standard(?) ways. */
+ 
+        /* If a TAP Note 1.0-style "property='query'" element is present,
+         * use that. */
+        String propQuery = daliEx.getProperties().get( "query" );
+        if ( propQuery != null ) {
+            return propQuery;
+        }
+
+        /* Otherwise, if a DALI 1.0-style generic-parameter key/value
+         * property pair is present, use that. */
+        String genericQuery = daliEx.getGenericParameters().get( "QUERY" );
+        if ( genericQuery != null ) {
+            return genericQuery;
+        }
+
+        /* Or nothing. */
+        return null;
+    }
+
+    /**
+     * Performs best-efforts validation on the ADQL currently visible
+     * in the query text entry field, updating the GUI accordingly.
+     * This validation is currently performed synchronously on the
+     * Event Dispatch Thread.
+     */
+    private void validateAdql() {
+        String text = textPanel_.getText();
+        if ( text.trim().length() > 0 ) {
+            AdqlValidator validator = getValidator();
+            try {
+                validator.validate( text );
+                setParseError( null );
+            }
+            catch ( Throwable e ) {
+                setParseError( e );
+            }
+        }
+        else {
+            setParseError( null );
+        }
+    }
+
+    /**
+     * Adds a new tab containing a text panel in the editing area,
+     * for entry of ADQL text.
+     */
+    private void addTextTab() {
+        ParseTextArea textPanel = new ParseTextArea();
+        textPanel.setEditable( true );
+        textPanel.setFont( Font.decode( "Monospaced" ) );
+        InputMap inputMap = textPanel.getInputMap();
+        for ( KeyStroke key : UNDO_KEYS ) {
+            inputMap.put( key, undoAct_ );
+        }
+        for ( KeyStroke key : REDO_KEYS ) {
+            inputMap.put( key, redoAct_ );
+        }
+        final UndoManager undoer = new UndoManager();
+        textPanel.getDocument()
+                 .addUndoableEditListener( new UndoableEditListener() {
+            public void undoableEditHappened( UndoableEditEvent evt ) {
+                undoer.addEdit( evt.getEdit() );
+                updateUndoState();
+            }
+        } );
+        undoerMap_.put( textPanel, undoer );
+        String tabName = Integer.toString( ++iTab_ );
+        textTabber_.addTab( tabName, new JScrollPane( textPanel ) );
+        textTabber_.setSelectedIndex( textTabber_.getTabCount() - 1 );
+        assert textPanel_ == textPanel;
+    }
+
+    /**
+     * Updates the GUI as appropriate when the currently visible ADQL
+     * text entry tab may have changed.
+     */
+    private void updateTextTab() {
+        if ( textPanel_ != null ) {
+            textPanel_.removeCaretListener( caretForwarder_ );
+        }
+        textPanel_ = (ParseTextArea)
+                     ((JScrollPane) textTabber_.getSelectedComponent())
+                    .getViewport().getView();
+        textPanel_.addCaretListener( caretForwarder_ );
+        undoer_ = undoerMap_.get( textPanel_ );
+        Caret caret = textPanel_.getCaret();
+        final int dot = caret.getDot();
+        final int mark = caret.getMark();
+        caretForwarder_.caretUpdate( new CaretEvent( textPanel_ ) {
+            public int getDot() {
+                return dot;
+            }
+            public int getMark() {
+                return mark;
+            }
+        } );
+        updateTabState();
+        updateUndoState();
+        validateAdql();
+    }
+
+    /**
+     * Updates the state of undo actions,
+     * invoked if the undo state may have changed.
+     */
+    private void updateUndoState() {
+        undoAct_.setEnabled( undoer_.canUndo() );
+        redoAct_.setEnabled( undoer_.canRedo() );
+    }
+
+    /**
+     * Updates the state of actions related to text tab manipulation,
+     * invoked if tabs may have been added or removed.
+     */
+    private void updateTabState() {
+        copyTabAct_.setEnabled( textPanel_ != null );
+        removeTabAct_.setEnabled( textPanel_ != null &&
+                                  textTabber_.getTabCount() > 1 );
+        titleTabAct_.setEnabled( textTabber_.getSelectedIndex() >= 0 );
     }
 
     /**
@@ -420,21 +864,98 @@ public class TapQueryPanel extends JPanel {
      * @return  ADQL validator
      */
     private AdqlValidator getValidator() {
+        if ( validator_ == null ) {
+            List<AdqlValidator.ValidatorTable> vtList =
+                new ArrayList<AdqlValidator.ValidatorTable>();
+            SchemaMeta[] schemas = tmetaPanel_.getSchemas();
+            if ( schemas != null ) {
+                AdqlValidator.ValidatorTable[] serviceTables =
+                    createValidatorTables( schemas );
+                vtList.addAll( Arrays.asList( serviceTables ) );
+            }
+            if ( extraTables_ != null ) {
+                vtList.addAll( Arrays.asList( extraTables_ ) );
+            }
+            AdqlValidator.ValidatorTable[] vtables =
+                vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+            TapLanguage tapLang = tcapPanel_.getQueryLanguage();
+            validator_ = AdqlValidator.createValidator( vtables, tapLang );
+        }
+        return validator_;
+    }
 
-        /* Prepare a list of table metadata objects to inform the validator
-         * what tables and columns are available. */
+    /**
+     * Turns a list of schemas into a list of ValidatorTables.
+     * These validator tables are capable of scheduling requests for
+     * unavailable column metadata followed by repeat validation operations
+     * (see implementation).
+     *
+     * @param   schemas  schema metadata objects populated with tables
+     * @return  validator tables representing schema content
+     */
+    private AdqlValidator.ValidatorTable[]
+            createValidatorTables( SchemaMeta[] schemas ) {
         List<AdqlValidator.ValidatorTable> vtList =
             new ArrayList<AdqlValidator.ValidatorTable>();
-        TableMeta[] tmetas = tmetaPanel_.getTables();
-        for ( int it = 0; it < tmetas.length; it++ ) {
-            vtList.add( AdqlValidator.toValidatorTable( tmetas[ it ] ) );
-        }
-        vtList.addAll( Arrays.asList( getExtraTables() ) );
-        AdqlValidator.ValidatorTable[] vtables =
-            vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+        int nNoName = 0;
+        for ( SchemaMeta smeta : schemas ) {
+            final String sname = smeta.getName();
+            for ( TableMeta tmeta : smeta.getTables() ) {
+                final TableMeta tmeta0 = tmeta;
+                final String tname = tmeta0.getName();
+                if ( tname != null && tname.trim().length() > 0 ) {
+                    vtList.add( new AdqlValidator.ValidatorTable() {
+                        public String getSchemaName() {
+                            return sname;
+                        }
+                        public String getTableName() {
+                            return tname;
+                        }
+                        public Collection<String> getColumnNames() {
+                            ColumnMeta[] cmetas = tmeta0.getColumns();
 
-        /* Construct and return a validator. */
-        return new AdqlValidator( vtables, true );
+                            /* If the table knows its columns, report them. */
+                            if ( cmetas != null ) {
+                                Collection<String> list = new HashSet<String>();
+                                for ( ColumnMeta cmeta : cmetas ) {
+                                    list.add( cmeta.getName() );
+                                }
+                                return list;
+                            }
+
+                            /* Otherwise, return null to indicate that no
+                             * column information is available,
+                             * but also schedule a request
+                             * to acquire the column information
+                             * and subsequently have another go at validating
+                             * the ADQL; this method will have been called by
+                             * a current validation attempt, but next time it
+                             * should be able to report the columns. */
+                            else {
+                                TapServiceKit serviceKit =
+                                    tmetaPanel_.getServiceKit();
+                                if ( serviceKit != null ) {
+                                    serviceKit.onColumns( tmeta0,
+                                                          new Runnable() {
+                                        public void run() {
+                                            validateAdql();
+                                        }
+                                    } );
+                                }
+                                return null;
+                            }
+                        }
+                    } );
+                }
+                else {
+                    nNoName++;
+                }
+            }
+        }
+        if ( nNoName > 0 ) {
+            logger_.warning( "Ignoring " + nNoName + " nameless tables" );
+        }
+        return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
     }
 
     /**
@@ -461,26 +982,54 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Returns a button for a given action, with a shape suitable for a
+     * little icon in a row of tools.
+     *
+     * @param   act  action
+     * @return  icon
+     */
+    private static JButton createIconButton( Action act ) {
+        JButton butt = new JButton( act ) {
+            @Override
+            public Dimension getMaximumSize() {
+                return new Dimension( super.getMaximumSize().width,
+                                      Integer.MAX_VALUE );
+            }
+        };
+        butt.setMargin( new Insets( 2, 2, 2, 2 ) );
+        return butt;
+    }
+
+    /**
      * Action which replaces the current content of the ADQL text entry
      * area with some fixed string.
      */
     private class AdqlTextAction extends AbstractAction {
+        private final boolean replace_;
         private String text_;
 
         /**
          * Constructor.
          *
          * @param  name  action name
-         * @param  description   action short description
+         * @param  replace  true to replace entire contents,
+         *                  false to insert at current position,
          */
-        public AdqlTextAction( String name, String description ) {
+        public AdqlTextAction( String name, boolean replace ) {
             super( name );
-            putValue( SHORT_DESCRIPTION, description );
+            replace_ = replace;
             setAdqlText( null );
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            textPanel_.setText( text_ );
+            if ( replace_ ) {
+                textPanel_.setText( text_ );
+                textPanel_.setCaretPosition( 0 );
+            }
+            else {
+                textPanel_.insert( text_, textPanel_.getCaretPosition() );
+            }
+            textPanel_.requestFocusInWindow();
         }
 
         /**
@@ -507,7 +1056,8 @@ public class TapQueryPanel extends JPanel {
          * @param   example  the example which this action will display
          */
         public AdqlExampleAction( AdqlExample example ) {
-            super( example.getName(), example.getDescription() );
+            super( example.getName(), true );
+            putValue( SHORT_DESCRIPTION, example.getDescription() );
             example_ = example;
         }
 
@@ -518,6 +1068,47 @@ public class TapQueryPanel extends JPanel {
          */
         public AdqlExample getExample() {
             return example_;
+        }
+
+        @Override
+        public void actionPerformed( ActionEvent evt ) {
+            super.actionPerformed( evt );
+        }
+    }
+
+    /**
+     * Action which delegates some of its behaviour to an underlying and
+     * dynamically set action.
+     */
+    private class DelegateAction extends AbstractAction {
+        private Action act_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  action name
+         * @param  icon   icon
+         * @param  descrip   action short_description
+         */
+        DelegateAction( String name, Icon icon, String descrip ) {
+            super( name );
+            putValue( SMALL_ICON, icon );
+            putValue( SHORT_DESCRIPTION, descrip );
+            setDelegate( null );
+        }
+
+        /**
+         * Sets the delegate.
+         *
+         * @param  act  new delegate, may be null
+         */
+        public void setDelegate( Action act ) {
+            act_ = act;
+            setEnabled( act_ != null );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            act_.actionPerformed( evt );
         }
     }
 

@@ -116,6 +116,15 @@ public class JELDataSpec extends AbstractDataSpec {
         }
     }
 
+    public boolean isCoordBlank( int icoord ) {
+        for ( String expr : coordValues_[ icoord ].getExpressions() ) {
+            if ( expr != null && expr.trim().length() > 0 ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Attempts to create a UserDataReader which evaluates the JEL expressions
      * for this spec.  If compilation of the expressions fails, a

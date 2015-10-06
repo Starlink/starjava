@@ -1,17 +1,26 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import junit.framework.TestCase;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.util.ContentCoding;
 
 public class TapTester extends TestCase {
 
     public void testExamples() throws IOException, SAXException {
         AdqlExample[] examples = AbstractAdqlExample.createSomeExamples();
-        TableMeta[] tables =
+        SchemaMeta[] schemas =
             TableSetSaxHandler
-           .readTableSet( TapTester.class
-                         .getResource( "gavo_tables.xml" ) );
+           .readTableSet( TapTester.class.getResource( "gavo_tables.xml" ),
+                          ContentCoding.NONE );
+        List<TableMeta> tableList = new ArrayList<TableMeta>();
+        for ( SchemaMeta schema : schemas ) {
+            tableList.addAll( Arrays.asList( schema.getTables() ) );
+        }
+        TableMeta[] tables = tableList.toArray( new TableMeta[ 0 ] );
         TapCapability tcap =
             TapCapability
            .readTapCapability( TapTester.class

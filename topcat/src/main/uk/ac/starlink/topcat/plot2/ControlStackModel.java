@@ -97,13 +97,13 @@ public class ControlStackModel extends AbstractListModel {
     }
 
     /**
-     * Returns a list of the controls which can contribute layers to the plot.
-     * These are ones which are LayerControls and are known to
-     * generate non-empty layer lists.
+     * Returns a list of the controls which can contribute layers to the plot,
+     * that is LayerControls.
      * If the <code>activeOnly</code> parameter is set, it is restricted
-     * further to controls which are currently marked as active.
+     * further to controls which are currently marked as active and
+     * which are known to contribute at least one layer.
      *
-     * @param   activeOnly   if true, return only active controls;
+     * @param   activeOnly   if true, return only controls contributing layers;
      *                       if false, return all
      * @return   layer controls that would contribute to a plot
      */
@@ -111,11 +111,12 @@ public class ControlStackModel extends AbstractListModel {
         List<LayerControl> list = new ArrayList<LayerControl>();
         for ( int ic = 0; ic < getSize(); ic++ ) {
             Control control = getControlAt( ic );
-            if ( control instanceof LayerControl &&
-                 ( ! activeOnly || isControlActive( control ) ) ) {
-                LayerControl layerControl = (LayerControl) control;
-                if ( layerControl.getPlotLayers().length > 0 ) {
-                    list.add( layerControl );
+            if ( control instanceof LayerControl ) {
+                LayerControl lc = (LayerControl) control;
+                if ( ! activeOnly ||
+                     ( isControlActive( lc ) &&
+                       lc.getPlotLayers().length > 0 ) ) {
+                    list.add( lc );
                 }
             }
         }

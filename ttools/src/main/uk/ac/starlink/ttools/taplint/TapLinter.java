@@ -15,7 +15,7 @@ import java.util.Set;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
-import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 
 /**
  * Organises validation stages for TAP validator.
@@ -41,6 +41,9 @@ public class TapLinter {
     private final UploadStage uploadStage_;
     private final ObsTapStage obstapStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
+
+    /** Name of the MDQ stage. */
+    public static final String MDQ_NAME = "MDQ";
 
     /**
      * Constructor.
@@ -91,7 +94,7 @@ public class TapLinter {
         colMetaStage_ =
             new ColumnMetadataStage( VotLintTapRunner
                                     .createGetSyncRunner( false ),
-                                     declaredMetaHolder, 0 );
+                                     declaredMetaHolder, -1 );
         uploadStage_ =
             new UploadStage( VotLintTapRunner.createAsyncRunner( 500, true ),
                              tcapStage_ );
@@ -115,7 +118,7 @@ public class TapLinter {
         stageSet_.add( "QPO", postQueryStage_, true );
         stageSet_.add( "QAS", asyncQueryStage_, true );
         stageSet_.add( "UWS", jobStage_, true );
-        stageSet_.add( "MDQ", colMetaStage_, true );
+        stageSet_.add( MDQ_NAME, colMetaStage_, true );
         stageSet_.add( "OBS", obstapStage_, true );
         stageSet_.add( "UPL", uploadStage_, true );
     }
@@ -123,7 +126,7 @@ public class TapLinter {
     /**
      * Returns an ordered map of the validation stages defined by this class.
      *
-     * @return  ordered code->stage map
+     * @return  ordered code-&gt;stage map
      */
     public Map<String,Stage> getKnownStages() {
         return Collections
@@ -148,11 +151,14 @@ public class TapLinter {
      * @param  serviceUrl  TAP service URL
      * @param  stageCodeSet  unordered collection of code strings indicating
      *         which stages should be run
+     * @param  maxTestTables  limit on the number of tables to test,
+     *                        or &lt;=0 for no limit
      * @return   tap validator executable
      */
     public Executable createExecutable( final Reporter reporter,
                                         final URL serviceUrl,
-                                        Set<String> stageCodeSet )
+                                        Set<String> stageCodeSet,
+                                        int maxTestTables )
             throws TaskException {
 
         /* Prepare a checked and ordered sequence of codes determining
@@ -179,6 +185,7 @@ public class TapLinter {
 
         /* Other initialisation. */
         tapSchemaMetadata_.setReporter( reporter );
+        colMetaStage_.setMaxTestTables( maxTestTables );
 
         /* Create and return an executable which will run the
          * requested stages. */
@@ -277,11 +284,11 @@ public class TapLinter {
             holders_ = holders;
         }
 
-        public TableMeta[] getTableMetadata() {
+        public SchemaMeta[] getTableMetadata() {
             for ( int ih = 0; ih < holders_.length; ih++ ) {
-                TableMeta[] tmetas = holders_[ ih ].getTableMetadata();
-                if ( tmetas != null && tmetas.length > 0 ) {
-                    return tmetas;
+                SchemaMeta[] smetas = holders_[ ih ].getTableMetadata();
+                if ( smetas != null && smetas.length > 0 ) {
+                    return smetas;
                 }
             }
             return null;

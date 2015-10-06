@@ -94,29 +94,27 @@ public class System {
      * @return  short report string
      */
     static String execute( Executor executor ) {
-        String msg = "";
+        String msg = executor.getLine();
         try {
             int status = executor.executeSynchronously();
             String out = executor.getOut();
             String err = executor.getErr();
+            if ( out.length() > 0 ) {
+                java.lang.System.out.print( out );
+            }
             if ( err.length() > 0 ) {
-                msg = "\n" + err;
+                java.lang.System.err.print( err );
             }
-            else if ( out.length() > 0 ) {
-                msg = "\n" + out;
-            }
-            else if ( status != 0 ) {
-                msg = " (error)";
-            }
+            msg += status == 0 ? " (ok)" : " (error)";
         }
         catch ( InterruptedException e ) {
-            msg = " (interrupted)";
+            msg += " (interrupted)";
         }
         catch ( IOException e ) {
-            msg = " ("
-                + ( e.getMessage() == null ? e.toString() : e.getMessage() )
-                + ")";
+            msg += " ("
+                 + ( e.getMessage() == null ? e.toString() : e.getMessage() )
+                 + ")";
         }
-        return executor.getLine() + msg;
+        return msg;
     }
 }

@@ -72,7 +72,7 @@ public class Corner implements Comparable {
      * Factory method giving one of the cube corners.
      * The <code>index</code> determines which corner you get.
      *
-     * @param   index  corner ID; 0 <= index < 8
+     * @param   index  corner ID; 0 &lt;= index &lt; 8
      */
     public static Corner getCorner( int index ) {
         return CORNERS[ index ];

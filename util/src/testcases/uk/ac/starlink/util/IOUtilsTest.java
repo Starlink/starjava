@@ -96,11 +96,12 @@ public class IOUtilsTest extends TestCase {
     }
 
     public void testGetResourceContents() {
-        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
         assertEquals( "some-text",
-                      IOUtils.getResourceContents( getClass(), "resource" ) );
+                      IOUtils.getResourceContents( getClass(), "resource",
+                                                   Level.CONFIG ) );
         assertEquals( "?",
-                      IOUtils.getResourceContents( getClass(), "not.resource" ) );
+                      IOUtils.getResourceContents( getClass(), "not.resource",
+                                                   Level.CONFIG ) );
     }
 
     public void testCopy() throws IOException {

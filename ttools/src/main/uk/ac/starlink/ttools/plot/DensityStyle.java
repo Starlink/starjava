@@ -64,7 +64,7 @@ public abstract class DensityStyle implements Style, Icon {
     /**
      * Defines how the style looks.
      * This converts an unsigned byte value (that is a value in the
-     * range 0-255 got by doing <code>value=0x000000ff&level</code>)
+     * range 0-255 got by doing <code>value=0x000000ff&amp;level</code>)
      * to a bitmask which can be OR-ed with an existing integer to
      * give a 32-type ARGB colour value.
      *

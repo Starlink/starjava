@@ -58,7 +58,7 @@ public abstract class DefaultStyle implements Style {
     /**
      * Sets the line width associated with this style.
      *
-     * @param  width  line width (>=1)
+     * @param  width  line width (&gt;=1)
      */
     public void setLineWidth( int width ) {
         lineWidth_ = width;

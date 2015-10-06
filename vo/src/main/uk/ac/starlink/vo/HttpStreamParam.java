@@ -18,7 +18,7 @@ public interface HttpStreamParam {
      * Note these should generally include the Content-Type unless it is
      * text/plain.  The Content-Disposition should not be included.
      *
-     * @return   name->value HTTP header map
+     * @return   name-&gt;value HTTP header map
      */
     Map<String,String> getHttpHeaders();
 

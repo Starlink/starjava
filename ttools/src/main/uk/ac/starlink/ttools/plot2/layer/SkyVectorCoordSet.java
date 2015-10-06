@@ -75,9 +75,9 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
         }
         else {
             double theta = Math.asin( xyz0[ 2 ] );
-            double xi = dLat;
-            double eta = preMultCosLat_ ? dLon
-                                        : dLon * Math.cos( theta );
+            double xi = preMultCosLat_ ? dLon
+                                       : dLon * Math.cos( theta );
+            double eta = dLat;
             double[] xyz1 = xyzExtras[ 0 ];
             new TangentPlaneTransformer( xyz0 ).displace( xi, eta, xyz1 );
             return true;

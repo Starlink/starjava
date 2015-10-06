@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.config;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Config key for double precision values.
@@ -30,12 +31,25 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
     }
 
     public String valueToString( Double value ) {
-        return ( value == null || Double.isNaN( value.doubleValue() ) )
-             ? ""
-             : value.toString();
+        if ( value == null ) {
+            return "";
+        }
+        else {
+            double dval = value.doubleValue();
+            if ( Double.isNaN( dval ) ) {
+                return "";
+            }
+            int ival = (int) dval;
+            if ( ival == dval ) {
+                return Integer.toString( ival );
+            }
+            else {
+                return Double.toString( dval );
+            }
+        }
     }
 
-    public Double stringToValue( String txt ) {
+    public Double stringToValue( String txt ) throws ConfigException {
         if ( txt == null || txt.trim().length() == 0 ) {
             return new Double( Double.NaN );
         }
@@ -107,13 +121,14 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
      * @param  log  true for logarithmic slider scale, false for linear
      * @return  key
      */
-    public static DoubleConfigKey createSliderKey( ConfigMeta meta, double dflt,
+    public static DoubleConfigKey createSliderKey( ConfigMeta meta,
+                                                   final double dflt,
                                                    final double lo,
                                                    final double hi,
                                                    final boolean log ) {
         return new DoubleConfigKey( meta, dflt ) {
             public Specifier<Double> createSpecifier() {
-                return new SliderSpecifier( lo, hi, log );
+                return new SliderSpecifier( lo, hi, log, dflt );
             }
         };
     }
@@ -160,6 +175,9 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
                 checkBox_.setSelected( true );
             }
             fireAction();
+        }
+
+        public void submitReport( ReportMap report ) {
         }
     }
 }

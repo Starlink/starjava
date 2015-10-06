@@ -100,8 +100,11 @@ public class CsvStarTable extends StreamStarTable {
         if ( row0.length == ncol ) {
             boolean isDataRow = true;
             for ( int icol = 0; icol < ncol; icol++ ) {
-                isDataRow = isDataRow
-                         && decoders[ icol ].isValid( row0[ icol ] );
+                String cell = row0[ icol ];
+                if ( cell != null && cell.length() > 0 ) {
+                    isDataRow = isDataRow
+                             && decoders[ icol ].isValid( cell );
+                }
             }
 
             /* If it is a data row, present it to the row evaluator like

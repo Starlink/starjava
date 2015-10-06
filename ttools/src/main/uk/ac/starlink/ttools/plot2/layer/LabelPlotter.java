@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -21,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.CaptionerKeySet;
@@ -115,7 +117,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
      * Constructor.
      */
     public LabelPlotter() {
-        super( "Label", ResourceIcon.PLOT_LABEL, LABEL_CGRP );
+        super( "Label", ResourceIcon.PLOT_LABEL, LABEL_CGRP, false );
     }
 
     public String getPlotterDescription() {
@@ -140,7 +142,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public LabelStyle createStyle( ConfigMap config ) {
+    public LabelStyle createStyle( ConfigMap config ) throws ConfigException {
         int iclimit = config.get( CROWDLIMIT_KEY );
         if ( iclimit < 1 || iclimit > MAX_CROWDLIMIT ) {
             throw new ConfigException( CROWDLIMIT_KEY,
@@ -266,6 +268,10 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             LabelPlan<T> labelPlan = (LabelPlan<T>) plan;
             paintMap( labelPlan.map_, paper );
         }
+
+        public ReportMap getReport( Object plan ) {
+            return null;
+        }
     }
 
     /**
@@ -389,16 +395,19 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         Map<Point,String> createMap( DataStore dataStore, GridMask gridMask ) {
             Map<Point,String> map = new LinkedHashMap<Point,String>();
             double[] dpos = new double[ surface_.getDataDimCount() ];
-            Point gp = new Point();
+            Point2D.Double gp = new Point2D.Double();
+            Point gpi = new Point();
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             while ( tseq.next() ) {
                 if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                     surface_.dataToGraphics( dpos, true, gp ) &&
-                     gridMask.isFree( gp ) ) {
-                    String label =
-                        LABEL_COORD.readStringCoord( tseq, icLabel_ );
-                    if ( label != null && label.trim().length() > 0 ) {
-                        map.put( new Point( gp ), label );
+                     surface_.dataToGraphics( dpos, true, gp ) ) {
+                    PlotUtil.quantisePoint( gp, gpi );
+                    if ( gridMask.isFree( gpi ) ) {
+                        String label =
+                            LABEL_COORD.readStringCoord( tseq, icLabel_ );
+                        if ( label != null && label.trim().length() > 0 ) {
+                            map.put( new Point( gpi ), label );
+                        }
                     }
                 }
             }
@@ -448,22 +457,25 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                                           GridMask gridMask ) {
             Map<Point,DepthString> map = new LinkedHashMap<Point,DepthString>();
             double[] dpos = new double[ surface_.getDataDimCount() ];
-            Point gp = new Point();
+            Point2D.Double gp = new Point2D.Double();
+            Point gpi = new Point();
             double[] depthArr = new double[ 1 ];
             CubeSurface surf = (CubeSurface) surface_;
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             while ( tseq.next() ) {
                 if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                     surf.dataToGraphicZ( dpos, true, gp, depthArr ) &&
-                     gridMask.isFree( gp ) ) {
-                    String label =
-                        LABEL_COORD.readStringCoord( tseq, icLabel_ );
-                    if ( label != null && label.trim().length() > 0 ) {
-                        double depth = depthArr[ 0 ];
-                        if ( ! map.containsKey( gp ) ||
-                             depth < map.get( gp ).depth_ ) {
-                            map.put( new Point( gp ),
-                                     new DepthString( label, depth ) );
+                     surf.dataToGraphicZ( dpos, true, gp, depthArr ) ) {
+                    PlotUtil.quantisePoint( gp, gpi );
+                    if ( gridMask.isFree( gpi ) ) {
+                        String label =
+                            LABEL_COORD.readStringCoord( tseq, icLabel_ );
+                        if ( label != null && label.trim().length() > 0 ) {
+                            double depth = depthArr[ 0 ];
+                            if ( ! map.containsKey( gp ) ||
+                                 depth < map.get( gpi ).depth_ ) {
+                                map.put( new Point( gpi ),
+                                         new DepthString( label, depth ) );
+                            }
                         }
                     }
                 }

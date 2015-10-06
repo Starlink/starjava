@@ -35,9 +35,11 @@ public abstract class SimpleDecalPlotter<S extends Style>
      * @param   name   plotter name
      * @param   icon   plotter icon
      * @param   cgrp   coordinate group
+     * @param   hasReports  whether plot reports are generated
      */
-    protected SimpleDecalPlotter( String name, Icon icon, CoordGroup cgrp ) {
-        super( name, icon, cgrp );
+    protected SimpleDecalPlotter( String name, Icon icon, CoordGroup cgrp,
+                                  boolean hasReports ) {
+        super( name, icon, cgrp, hasReports );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -59,7 +61,8 @@ public abstract class SimpleDecalPlotter<S extends Style>
                             paperType.placeDecal( paper, new Decal() {
                                 public void paintDecal( Graphics g ) {
                                     paintData2D( surface, dataStore,
-                                                 geom, dataSpec, style, g );
+                                                 geom, dataSpec, style, g,
+                                                 paperType );
                                 }
                                 public boolean isOpaque() {
                                     return isOpaque;
@@ -86,10 +89,12 @@ public abstract class SimpleDecalPlotter<S extends Style>
      * @param   surface  plot surface
      * @param   dataStore  data storage object
      * @param   geom  data geometry
-     * @param  style  plot style
+     * @param   style  plot style
      * @param   g  graphics context
+     * @param   paperType  paper type
      */
     protected abstract void paintData2D( Surface surface, DataStore dataStore,
                                          DataGeom geom, DataSpec dataSpec,
-                                         S style, Graphics g );
+                                         S style, Graphics g,
+                                         PaperType paperType );
 }

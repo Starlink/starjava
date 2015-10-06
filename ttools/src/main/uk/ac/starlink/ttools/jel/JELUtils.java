@@ -9,7 +9,7 @@ import gnu.jel.Parser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
@@ -66,7 +66,7 @@ public class JELUtils {
                            : new Class[] { reader.getClass() };
         Class[] dotClasses = new Class[ 0 ];
         DVMap resolver = reader;
-        Hashtable cnmap = null;
+        HashMap cnmap = null;
         return new Library( staticLib, dynamicLib, dotClasses,
                             resolver, cnmap );
     }
@@ -178,7 +178,7 @@ public class JELUtils {
      * @param   expr  string representation of the expression
      * @return  class which evaluation of <tt>expr</tt> using <tt>lib</tt>
      *          will return
-     * @throws  CompilationExpression  if <tt>expr</tt> cannot be compiled
+     * @throws  CompilationException  if <tt>expr</tt> cannot be compiled
      */
     public static Class getExpressionType( Library lib, StarTable table,
                                            String expr )

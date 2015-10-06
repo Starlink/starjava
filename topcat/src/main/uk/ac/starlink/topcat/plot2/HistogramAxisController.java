@@ -1,19 +1,36 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.awt.BorderLayout;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportKey;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.AbstractKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
+import uk.ac.starlink.ttools.plot2.layer.Pixel1dPlotter;
 
 /**
  * Axis control for histogram window.
@@ -25,13 +42,10 @@ public class HistogramAxisController
         extends CartesianAxisController<PlaneSurfaceFactory.Profile,
                                         PlaneAspect> {
 
-    /** Keys to control common bar configuration for all histogram layers. */
-    private static final ConfigKey[] BAR_KEYS = new ConfigKey[] {
-        BinSizer.BINSIZER_KEY,
-        HistogramPlotter.PHASE_KEY,
-        HistogramPlotter.CUMULATIVE_KEY,
-        HistogramPlotter.NORM_KEY,
-    };
+    private final BinSizer.BinSizerSpecifier binWidthSpecifier_;
+    private final BinSizer.BinSizerSpecifier smoothWidthSpecifier_;
+    private final JLabel histoCountLabel_;
+    private final JLabel kdeCountLabel_;
 
     /**
      * Constructor.
@@ -59,7 +73,18 @@ public class HistogramAxisController
 
         /* Range tab. */
         addAspectConfigTab( "Range",
-                            new ConfigSpecifier( surfFact.getAspectKeys() ) );
+                            new ConfigSpecifier( surfFact.getAspectKeys() ) {
+            @Override
+            protected void checkConfig( ConfigMap config )
+                    throws ConfigException {
+                checkRangeSense( config, "X",
+                                 PlaneSurfaceFactory.XMIN_KEY,
+                                 PlaneSurfaceFactory.XMAX_KEY );
+                checkRangeSense( config, "Y",
+                                 PlaneSurfaceFactory.YMIN_KEY,
+                                 PlaneSurfaceFactory.YMAX_KEY );
+            }
+        } );
 
         /* Grid tab. */
         mainControl.addSpecifierTab( "Grid",
@@ -85,11 +110,36 @@ public class HistogramAxisController
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
 
-
         /* Bars control. */
+        ConfigSpecifier hbarSpecifier = new ConfigSpecifier( new ConfigKey[] {
+            HistogramPlotter.BINSIZER_KEY,
+            HistogramPlotter.PHASE_KEY,
+        } );
+        binWidthSpecifier_ =
+            getSliderSpecifier( hbarSpecifier, HistogramPlotter.BINSIZER_KEY );
+        assert binWidthSpecifier_ != null;
+        histoCountLabel_ = new JLabel();
+        addCountLabel( hbarSpecifier.getComponent(),
+                       "Visible Histograms", histoCountLabel_ );
+        ConfigSpecifier kbinSpecifier = new ConfigSpecifier( new ConfigKey[] {
+            Pixel1dPlotter.SMOOTHSIZER_KEY,
+            Pixel1dPlotter.KERNEL_KEY,
+        } );
+        smoothWidthSpecifier_ =
+            getSliderSpecifier( kbinSpecifier, Pixel1dPlotter.SMOOTHSIZER_KEY );
+        assert smoothWidthSpecifier_ != null;
+        kdeCountLabel_ = new JLabel();
+        addCountLabel( kbinSpecifier.getComponent(),
+                       "Visible KDEs", kdeCountLabel_ );
+        ConfigSpecifier genSpecifier = new ConfigSpecifier( new ConfigKey[] {
+            StyleKeys.CUMULATIVE,
+            StyleKeys.NORMALISE,
+        } );
         ConfigControl barControl =
-            new ConfigControl( "Bars", ResourceIcon.HISTOBARS );
-        barControl.addSpecifierTab( "Bars", new ConfigSpecifier( BAR_KEYS ) );
+            new ConfigControl( "Bins", ResourceIcon.HISTOBARS );
+        barControl.addSpecifierTab( "Histogram", hbarSpecifier );
+        barControl.addSpecifierTab( "KDE", kbinSpecifier );
+        barControl.addSpecifierTab( "General", genSpecifier );
         addControl( barControl );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
@@ -128,10 +178,10 @@ public class HistogramAxisController
             }
             else {
                 if ( state0.isCumulative_ != state1.isCumulative_ ||
-                     state0.isNorm_ != state1.isNorm_ ) {
+                     state0.norm_ != state1.norm_ ) {
                     return true;
                 }
-                else if ( ! state0.sizer_.equals( state1.sizer_ ) &&
+                else if ( ! PlotUtil.equals( state0.sizer_, state1.sizer_ ) &&
                           ! state0.isCumulative_ ) {
                     return true;
                 }
@@ -140,6 +190,77 @@ public class HistogramAxisController
                 }
             }
         }
+    }
+
+    @Override
+    public void submitReports( Map<LayerId,ReportMap> reports ) {
+        updateBinSizerText( HistogramPlotter.BINWIDTH_KEY,
+                            binWidthSpecifier_, histoCountLabel_, reports );
+        updateBinSizerText( Pixel1dPlotter.SMOOTHWIDTH_KEY,
+                            smoothWidthSpecifier_, kdeCountLabel_, reports );
+    }
+
+    /**
+     * Updates the state of the GUI to reflect the current actual
+     * bin/smoothing widths.  This is is useful visual feedback for
+     * the user, but can only be known as a result of performing
+     * the plot.
+     *
+     * @param   key  report key giving the actual width in data coordinates
+     *               extracted from a BinSizer config item
+     * @param   specifier   specifier from which the BinSizer value is acquired
+     * @param   countLabel   label to be updated with number of layers with
+     *                       the relevant type
+     * @param   reports   reports obtained from doing the plot
+     */
+    private static void
+            updateBinSizerText( ReportKey<Double> key,
+                                BinSizer.BinSizerSpecifier specifier,
+                                JLabel countLabel,
+                                Map<LayerId,ReportMap> reports ) {
+
+        /* See if we have a value for the actual width for the relevant
+         * config item. */
+        double dval = Double.NaN;
+        int count = 0;
+        for ( ReportMap report : reports.values() ) {
+            Double value = report == null ? null : report.get( key );
+            double dval0 = value == null ? Double.NaN : value.doubleValue();
+            if ( ! Double.isNaN( dval0 ) ) {
+                assert Double.isNaN( dval ) || dval0 == dval
+                     : key + " not unique?";
+                dval = dval0;
+                count++;
+            }
+        }
+
+        /* Report number of layers of this type. */
+        countLabel.setText( Integer.toString( count ) );
+
+        /* If so, pass it to the relevant specifier for display. */
+        if ( specifier != null ) {
+            ReportMap report = new ReportMap();
+            report.put( key, new Double( dval ) );
+            specifier.submitReport( report );
+        }
+    }
+
+    /**
+     * Returns a typed specifier used to acquire the value for a BinSizer
+     * config item.  Null is returned if the specifier can't be found or
+     * is of the wrong type.
+     *
+     * @param  cs  config specifier expected to hold the relevant item
+     * @param  key   config key for the relevant item 
+     * @return    bin sizer specifier, or null
+     */
+    private static BinSizer.BinSizerSpecifier
+            getSliderSpecifier( ConfigSpecifier cs, ConfigKey<BinSizer> key ) {
+        Specifier<BinSizer> spec = cs.getSpecifier( key );
+        assert spec instanceof BinSizer.BinSizerSpecifier;
+        return spec instanceof BinSizer.BinSizerSpecifier
+             ? (BinSizer.BinSizerSpecifier) spec
+             : null;
     }
 
     /**
@@ -151,21 +272,68 @@ public class HistogramAxisController
      */
     private static BarState getBarState( PlotLayer[] layers ) {
 
-        /* Just find one histogram layer and use the state from that.
-         * For now that is sufficient, since there is no mechanism to
-         * modify these config items per layer in this plot. */
-        for ( int il = 0; il < layers.length; il++ ) {
-            Style style = layers[ il ].getStyle();
+        /* Get the state from one representative layer, since at present
+         * configuration of these items is per-window not per-layer.
+         * There is code here to assert that this is still the case,
+         * i.e. that the BarState is consistent across all layers;
+         * subsequent changes to the GUI could invalidate those assertions
+         * in which case we have to rethink the role of the bar state. */
+        BinSizer sizer = null;
+        Boolean cumul = null;
+        Normalisation norm = null;
+        boolean hasBars = false;
+        for ( PlotLayer layer : layers ) {
+            BinSizer sizer1 = null;
+            Boolean cumul1 = null;
+            Normalisation norm1 = null;
+            Style style = layer.getStyle();
+            final boolean layerHasBars;
             if ( style instanceof HistogramPlotter.HistoStyle ) {
+                layerHasBars = true;
                 HistogramPlotter.HistoStyle hstyle =
                     (HistogramPlotter.HistoStyle) style;
-                BinSizer sizer = hstyle.getBinSizer();
-                boolean cumul = hstyle.isCumulative();
-                boolean norm = hstyle.isNormalised();
-                return new BarState( sizer, cumul, norm );
+                sizer1 = hstyle.getBinSizer();
+                cumul1 = hstyle.isCumulative();
+                norm1 = hstyle.getNormalisation();
             }
+            else if ( style instanceof
+                      AbstractKernelDensityPlotter.KDenseStyle ) {
+                layerHasBars = true;
+                AbstractKernelDensityPlotter.KDenseStyle dstyle =
+                    (AbstractKernelDensityPlotter.KDenseStyle) style;
+                cumul1 = dstyle.isCumulative();
+                norm1 = dstyle.getNormalisation();
+            }
+            else {
+                layerHasBars = false;
+            }
+            if ( layerHasBars ) {
+                assert sizer == null || sizer1 == null
+                             || sizer.equals( sizer1 );
+                assert cumul == null || cumul.equals( cumul1 );
+                assert norm == null || norm.equals( norm1 );
+                sizer = sizer1;
+                cumul = cumul1;
+                norm = norm1;
+            }
+            hasBars = hasBars || layerHasBars;
         }
-        return null;
+        return hasBars ? new BarState( sizer, cumul, norm ) : null;
+    }
+
+    /**
+     * Adds a heading/JLabel pair to the bottom of a given component.
+     *
+     * @param  panel  panel to add to
+     * @param  labelHead   text of heading
+     * @param  labelComp   component to add under heading
+     */
+    private static void addCountLabel( JComponent panel, String labelHead,
+                                       JLabel labelComp ) {
+        JComponent holder = new JPanel( new BorderLayout() );
+        holder.add( new LineBox( labelHead, labelComp ), BorderLayout.NORTH );
+        holder.setBorder( BorderFactory.createEmptyBorder( 10, 0, 5, 0 ) );
+        panel.add( holder );
     }
 
     /**
@@ -209,11 +377,11 @@ public class HistogramAxisController
     private static class BarState {
         final BinSizer sizer_;
         final boolean isCumulative_;
-        final boolean isNorm_;
-        BarState( BinSizer sizer, boolean isCumulative, boolean isNorm ) {
+        final Normalisation norm_;
+        BarState( BinSizer sizer, boolean isCumulative, Normalisation norm ) {
             sizer_ = sizer;
             isCumulative_ = isCumulative;
-            isNorm_ = isNorm;
+            norm_ = norm;
         }
     }
 }

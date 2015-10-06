@@ -3,7 +3,8 @@ package uk.ac.starlink.ttools.taplint;
 import java.io.IOException;
 import java.net.URL;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableSetSaxHandler;
 
 /**
@@ -17,7 +18,7 @@ import uk.ac.starlink.vo.TableSetSaxHandler;
 public class TapSchemaMetadataHolder implements MetadataHolder {
 
     private Reporter reporter_;
-    private TableMeta[] metadata_;
+    private SchemaMeta[] metadata_;
 
     /**
      * Constructor.
@@ -34,7 +35,7 @@ public class TapSchemaMetadataHolder implements MetadataHolder {
         reporter_ = reporter;
     }
 
-    public TableMeta[] getTableMetadata() {
+    public SchemaMeta[] getTableMetadata() {
         if ( metadata_ == null ) {
             metadata_ = readSchemaMetadata();
         }
@@ -45,7 +46,7 @@ public class TapSchemaMetadataHolder implements MetadataHolder {
      * Does the work for reading the metadata from a file which should be
      * present on the classpath.
      */
-    private TableMeta[] readSchemaMetadata() {
+    private SchemaMeta[] readSchemaMetadata() {
         URL schemaTablesUrl = TapSchemaMetadataHolder.class
                              .getResource( "TAP_SCHEMA_tables.xml" );
         if ( schemaTablesUrl == null ) {
@@ -53,14 +54,15 @@ public class TapSchemaMetadataHolder implements MetadataHolder {
         }
         else {
             try {
-                TableMeta[] tmetas =
-                    TableSetSaxHandler.readTableSet( schemaTablesUrl );
+                SchemaMeta[] smetas =
+                    TableSetSaxHandler.readTableSet( schemaTablesUrl,
+                                                     ContentCoding.NONE );
                 if ( reporter_ != null ) {
                     reporter_.report( FixedCode.I_SCHM,
                                       "Using standard TAP_SCHEMA tables for "
                                     + "metadata" );
                 }
-                return tmetas;
+                return smetas;
             }
             catch ( IOException e ) {
                 return null;

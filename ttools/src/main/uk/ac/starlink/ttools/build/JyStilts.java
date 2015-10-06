@@ -599,6 +599,28 @@ public class JyStilts {
         lineList.add( "        while rowseq.next():" );
         lineList.add( "            yield rowseq.getCell(icol)" );
 
+        /* Add row count method. */
+        lineList.add( "    def count_rows(self):" );
+        lineList.add( "        '''Returns the number of rows in this table." );
+        lineList.add( "        For random access tables it calls getRowCount" );
+        lineList.add( "        which returns the value directly." );
+        lineList.add( "        For non-random tables it may have to iterate "
+                            + "over the rows." );
+        lineList.add( "        That could be slow, though it should be "
+                            + "much faster than iterating" );
+        lineList.add( "        over this table as an iterable itself, "
+                            + "since the cell data" );
+        lineList.add( "        does not need to be made available.'''" );
+        lineList.add( "        nrow = self.getRowCount();" );
+        lineList.add( "        if nrow >= 0:" );
+        lineList.add( "            return nrow" );
+        lineList.add( "        else:" );
+        lineList.add( "            nr = 0" );
+        lineList.add( "            rseq = self.getRowSequence()" );
+        lineList.add( "            while rseq.next():" );
+        lineList.add( "                nr += 1" );
+        lineList.add( "            return nr" );
+
         /* Row wrapper. */
         lineList.add( "    def _create_row(self, array):" );
         lineList.add( "        row = _JyRow(array)" );

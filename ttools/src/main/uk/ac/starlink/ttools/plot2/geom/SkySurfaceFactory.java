@@ -78,9 +78,10 @@ public class SkySurfaceFactory
                 "and the coordinates are converted from data to view system",
                 "before being plotted.",
                 "</p>",
-                SkySysConfigKey.getDescribedOptionsXml(),
             } )
-            , false ).setOptionUsage();
+            , false )
+       .setOptionUsage()
+       .addOptionsXml();
 
     /** Config key to determine whether grid lines are drawn. */
     public static final ConfigKey<Boolean> GRID_KEY =
@@ -198,7 +199,7 @@ public class SkySurfaceFactory
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public Profile createProfile( ConfigMap config ) throws ConfigException {
+    public Profile createProfile( ConfigMap config ) {
         Projection proj = config.get( PROJECTION_KEY );
         boolean reflect = config.get( REFLECT_KEY );
         SkySys viewSystem = config.get( VIEWSYS_KEY );
@@ -301,22 +302,8 @@ public class SkySurfaceFactory
         ConfigMeta meta = new ConfigMeta( "projection", "Projection" );
         Projection[] projs = SkyAspect.getProjections();
         meta.setShortDescription( "Sky coordinate projection" );
-        StringBuffer sbuf = new StringBuffer();
-        for ( Projection proj : projs ) {
-            sbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( proj.getProjectionName() )
-                .append( "</code>" )
-                .append( ": " )
-                .append( proj.getProjectionDescription() )
-                .append( "</li>\n" );
-        }
         meta.setXmlDescription( new String[] {
             "<p>Sky projection used to display the plot.",
-            "The options are:",
-            "<ul>",
-            sbuf.toString(),
-            "</ul>",
             "</p>",
         } );
         OptionConfigKey<Projection> key =
@@ -325,8 +312,12 @@ public class SkySurfaceFactory
             public String valueToString( Projection proj ) {
                 return proj.getProjectionName().toLowerCase();
             }
+            public String getXmlDescription( Projection proj ) {
+                return proj.getProjectionDescription();
+            }
         };
         key.setOptionUsage();
+        key.addOptionsXml();
         return key;
     }
 
@@ -341,32 +332,6 @@ public class SkySurfaceFactory
         ConfigMeta meta =
             new ConfigMeta( "labelpos", "Grid Label Positioning" );
         meta.setShortDescription( "Position of sky grid labels" );
-        StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "<li><code>" )
-            .append( auto )
-            .append( "</code>: " )
-            .append( "Uses " )
-            .append( "<code>" )
-            .append( SkyAxisLabellers.EXTERNAL.getLabellerName() )
-            .append( "</code>" )
-            .append( " or " )
-            .append( "<code>" )
-            .append( SkyAxisLabellers.INTERNAL.getLabellerName() )
-            .append( "</code>" )
-            .append( " policy according to whether " )
-            .append( "the sky fills the plot bounds or not" )
-            .append( "</li>\n" );
-        for ( SkyAxisLabeller labeller : labellers ) {
-            if ( labeller != null ) {
-                sbuf.append( "<li>" )
-                    .append( "<code>" )
-                    .append( labeller.getLabellerName() )
-                    .append( "</code>" )
-                    .append( ": " )
-                    .append( labeller.getLabellerDescription() )
-                    .append( "</li>\n" );
-            }
-        }
         meta.setXmlDescription( new String[] {
             "<p>Controls whether and where the numeric annotations",
             "of the lon/lat axes are displayed.",
@@ -375,11 +340,6 @@ public class SkySurfaceFactory
             "but other options exist to force labelling internally",
             "or externally to the plot region,",
             "or to remove numeric labels altogether.",
-            "</p>",
-            "<p>Available options are:",
-            "<ul>",
-            sbuf.toString(),
-            "</ul>",
             "</p>",
         } );
         OptionConfigKey<SkyAxisLabeller> key =
@@ -390,8 +350,22 @@ public class SkySurfaceFactory
             public String valueToString( SkyAxisLabeller labeller ) {
                 return labeller == null ? auto : labeller.getLabellerName();
             }
+            public String getXmlDescription( SkyAxisLabeller labeller ) {
+                if ( labeller == null ) {
+                    return "Uses <code>"
+                         + SkyAxisLabellers.EXTERNAL.getLabellerName()
+                         + "</code> or <code>"
+                         + SkyAxisLabellers.INTERNAL.getLabellerName()
+                         + "</code> policy according to whether "
+                         + "the sky fills the plot bounds or not";
+                }
+                else {
+                    return labeller.getLabellerDescription();
+                }
+            }
         };
         key.setOptionUsage();
+        key.addOptionsXml();
         return key;
     }
 

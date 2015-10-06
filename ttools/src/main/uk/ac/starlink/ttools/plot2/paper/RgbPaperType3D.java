@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Abstract RgbPaperType subclass for 3-dimensional plots.
@@ -15,6 +16,7 @@ public abstract class RgbPaperType3D extends RgbPaperType
                                      implements PaperType3D {
 
     /**
+     * Constructor.
      *
      * @param  name  paper type name
      * @param  upLayer  true to render layers in ascending order,
@@ -24,8 +26,10 @@ public abstract class RgbPaperType3D extends RgbPaperType
         super( name, upLayer );
     }
 
-    public void placeGlyph( Paper paper, int gx, int gy, double dz,
+    public void placeGlyph( Paper paper, double dx, double dy, double dz,
                             Glyph glyph, Color color ) {
+        int gx = PlotUtil.ifloor( dx );
+        int gy = PlotUtil.ifloor( dy );
         ((RgbPaper3D) paper).placeGlyph( gx, gy, dz, glyph, color );
     }
 

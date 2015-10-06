@@ -18,6 +18,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
@@ -60,27 +61,41 @@ public class QueryStage implements Stage {
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
-        TableMeta[] tmetas = metaHolder_.getTableMetadata();
+        SchemaMeta[] smetas = metaHolder_.getTableMetadata();
         String[] adqlLangs = capHolder_ == null
                            ? null
                            : getAdqlLanguages( capHolder_ );
-        if ( tmetas == null || tmetas.length == 0 ) {
+        if ( smetas == null || smetas.length == 0 ) {
             reporter.report( FixedCode.F_NOTM,
                              "No table metadata available "
                            + "(earlier stages failed/skipped?) "
                            + "- will not run test queries" );
             return;
         }
-        List<TableMeta> tmList = new ArrayList<TableMeta>();
-        for ( int i = 0; i < tmetas.length; i++ ) {
-            TableMeta tmeta = tmetas[ i ];
-            if ( ! tmeta.getName().toUpperCase().startsWith( "TAP_SCHEMA." ) ) {
-                tmList.add( tmeta );
+        List<TableMeta> allTables = new ArrayList<TableMeta>();
+        List<TableMeta> dataTables = new ArrayList<TableMeta>();
+        for ( SchemaMeta smeta : smetas ) {
+            for ( TableMeta tmeta : smeta.getTables() ) {
+                allTables.add( tmeta );
+                String tname = tmeta.getName();
+                boolean isTapSchema =
+                    tname != null &&
+                    tname.toUpperCase().startsWith( "TAP_SCHEMA." );
+                if ( ! isTapSchema ) {
+                    dataTables.add( tmeta ); 
+                }
             }
         }
-        if ( ! tmList.isEmpty() ) {
-            tmetas = tmList.toArray( new TableMeta[ 0 ] );
+        if ( allTables.size() == 0 ) {
+            reporter.report( FixedCode.F_NOTM,
+                             "No table metadata available "
+                           + "(earlier stages failed/skipped?) "
+                           + "- will not run test queries" );
+            return;
         }
+        TableMeta[] tmetas =
+            ( dataTables.size() > 0 ? dataTables : allTables )
+           .toArray( new TableMeta[ 0 ] );
         new Querier( reporter, serviceUrl, tmetas, adqlLangs ).run();
         runDuffQuery( reporter, serviceUrl );
         tapRunner_.reportSummary( reporter );
@@ -258,7 +273,7 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to test
          */
         private void runOneColumn( TableMeta tmeta ) {
-            if ( ! checkHasColumns( tmeta ) ) {
+            if ( ! checkIsQueryable( tmeta ) ) {
                 return;
             }
             final int nr0 = 10;
@@ -345,12 +360,15 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to run tests on
          */
         private void runSomeColumns( TableMeta tmeta ) {
-            if ( ! checkHasColumns( tmeta ) ) {
+            if ( ! checkIsQueryable( tmeta ) ) {
                 return;
             }
 
             /* Assemble column specifiers for the query. */
             String talias = tmeta.getName().substring( 0, 1 );
+            if ( ! AdqlSyntax.getInstance().isIdentifier( talias ) ) {
+                talias = "t";
+            }
             List<ColSpec> clist = new ArrayList<ColSpec>();
             int ncol = tmeta.getColumns().length;
             int step = Math.max( 1, ncol / 11 );
@@ -361,9 +379,6 @@ public class QueryStage implements Stage {
                     cspec.setRename( "taplint_c_" + ( ix + 1 ) );
                 }
                 if ( ix % 3 == 2 ) {
-                    cspec.setQuoted( true );
-                }
-                if ( ix % 5 == 3 ) {
                     cspec.setTableAlias( talias );
                 }
                 clist.add( cspec );
@@ -403,7 +418,7 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to run tests on
          */
         private void runJustMeta( TableMeta tmeta ) {
-            if ( ! checkHasColumns( tmeta ) ) {
+            if ( ! checkIsQueryable( tmeta ) ) {
                 return;
             }
 
@@ -465,21 +480,30 @@ public class QueryStage implements Stage {
         }
 
         /**
-         * Checks that at least one column exists in a table metadata item.
+         * Checks that a table satisfies minimal requirements for making
+         * ADQL queries; it must have a name and at least one column.
          * If not, a FAILURE report is made and false is returned.
          *
          * @param   tmeta  table metadata object
-         * @return  true iff tmeta has at least one column
+         * @return  true iff tmeta has a name and at least one column
          */
-        private boolean checkHasColumns( TableMeta tmeta ) {
+        private boolean checkIsQueryable( TableMeta tmeta ) {
+            String tname = tmeta.getName();
+            boolean hasName = tname != null && tname.length() > 0;
+            if ( ! hasName ) {
+                reporter_.report( FixedCode.F_TBLA,
+                                  "Table has no name"
+                                + ", impossible to phrase ADQL queries" );
+            }
             boolean hasColumns = tmeta.getColumns().length > 0;
             if ( ! hasColumns ) {
                 reporter_.report( FixedCode.F_ZCOL,
-                                  "No columns known for table "
-                                + tmeta.getName() );
-       
+                                  "No columns known for "
+                                + ( tname == null ? "unnamed table"
+                                                  : tname ) 
+                                + ", can't make column queries" );
             }
-            return hasColumns;
+            return hasName && hasColumns;
         }
 
         /**
@@ -514,9 +538,11 @@ public class QueryStage implements Stage {
             for ( int ic = 0; ic < ncol; ic++ ) {
                 ColSpec cspec = colSpecs[ ic ];
                 ColumnInfo cinfo = table.getColumnInfo( ic );
-                String qName = cspec.getResultName();
-                String rName = cinfo.getName();
-                if ( ! qName.equalsIgnoreCase( rName ) ) {
+                String qName = ColumnMetadataStage
+                              .normaliseColumnName( cspec.getResultName() );
+                String rName = ColumnMetadataStage
+                              .normaliseColumnName( cinfo.getName() );
+                if ( ! qName.equals( rName ) ) {
                     String msg = new StringBuffer()
                        .append( "Query/result column name mismatch " )
                        .append( "for column #" )
@@ -565,7 +591,6 @@ public class QueryStage implements Stage {
         private final ColumnMeta cmeta_;
         private String talias_;
         private String rename_;
-        private boolean quote_;
 
         /**
          * Constructor.
@@ -583,15 +608,6 @@ public class QueryStage implements Stage {
          */
         ColumnMeta getColumnMeta() {
             return cmeta_;
-        }
-
-        /**
-         * Sets whether the column name should be quoted in ADQL.
-         *
-         * @param  quote   true for quoting, false for not
-         */
-        public void setQuoted( boolean quote ) {
-            quote_ = quote;
         }
 
         /**
@@ -621,18 +637,15 @@ public class QueryStage implements Stage {
          * @return  query column specifier
          */
         String getQueryText() {
-            AdqlSyntax syntax = AdqlSyntax.getInstance();
             StringBuffer sbuf = new StringBuffer();
             if ( talias_ != null ) {
-                sbuf.append( syntax.quoteIfNecessary( talias_ ) )
+                sbuf.append( talias_ )
                     .append( "." );
             }
-            String cname = cmeta_.getName();
-            sbuf.append( quote_ ? syntax.quote( cname )
-                                : syntax.quoteIfNecessary( cname ) );
+            sbuf.append( cmeta_.getName() );
             if ( rename_ != null ) {
                 sbuf.append( " AS " )
-                    .append( syntax.quoteIfNecessary( rename_ ) );
+                    .append( rename_ );
             }
             return sbuf.toString();
         }

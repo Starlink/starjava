@@ -9,6 +9,7 @@ import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -133,6 +134,9 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
             logger_.warning( "Attempt to set unlisted value " + value
                            + " failed" );
         }
+    }
+
+    public void submitReport( ReportMap report ) {
     }
 
     /**

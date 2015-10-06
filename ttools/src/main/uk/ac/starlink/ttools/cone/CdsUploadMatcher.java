@@ -21,6 +21,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.HttpStreamParam;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -42,6 +43,7 @@ public class CdsUploadMatcher implements UploadMatcher {
     private final String tableId_;
     private final double srArcsec_;
     private final ServiceFindMode serviceMode_;
+    private final ContentCoding coding_;
     private final boolean uploadFirst_;
 
     /** URL for the CDS Xmatch service. */
@@ -69,13 +71,16 @@ public class CdsUploadMatcher implements UploadMatcher {
      * @param  tableId      identifier of remote table
      * @param  srArcsec     match radius in arcseconds
      * @param  serviceMode  type of match
+     * @param  coding       configures HTTP compression for result
      */
     public CdsUploadMatcher( URL serviceUrl, String tableId, double srArcsec,
-                             ServiceFindMode serviceMode ) {
+                             ServiceFindMode serviceMode,
+                             ContentCoding coding ) {
         serviceUrl_ = serviceUrl;
         tableId_ = tableId;
         srArcsec_ = srArcsec;
         serviceMode_ = serviceMode;
+        coding_ = coding;
         uploadFirst_ = serviceMode_ != ServiceFindMode.BEST_REMOTE;
     }
 
@@ -140,9 +145,9 @@ public class CdsUploadMatcher implements UploadMatcher {
         /* Invoke the service using HTTP POST, and stream the output
          * to the supplied table sink. */
         URLConnection conn =
-            UwsJob.postForm( serviceUrl_, stringMap, streamMap );
+            UwsJob.postForm( serviceUrl_, coding_, stringMap, streamMap );
         try {
-            return TapQuery.streamResultVOTable( conn, rawResultSink );
+            return TapQuery.streamResultVOTable( conn, coding_, rawResultSink );
         }
         catch ( SAXException e ) {
             throw (IOException)
@@ -192,7 +197,7 @@ public class CdsUploadMatcher implements UploadMatcher {
         String url = XMATCH_URL + "/tables?action=getPrettyNames";
         logger_.info( "Reading VizieR aliases from " + url );
         List<String> aliasList = new ArrayList<String>();
-        BufferedReader rdr = getLineReader( url );
+        BufferedReader rdr = getLineReader( url, ContentCoding.NONE );
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
                 aliasList.add( line );
@@ -218,7 +223,7 @@ public class CdsUploadMatcher implements UploadMatcher {
         String url = XMATCH_URL + "/tables?action=getVizieRTableNames";
         logger_.info( "Reading VizieR table names from " + url );
         List<String> nameList = new ArrayList<String>();
-        BufferedReader rdr = getLineReader( url );
+        BufferedReader rdr = getLineReader( url, ContentCoding.GZIP );
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
                 String name = line.replaceAll( "[\\[\\]\",]", "" ).trim();
@@ -249,7 +254,8 @@ public class CdsUploadMatcher implements UploadMatcher {
         query.addArgument( "tabName", vizName );
         URL url = query.toURL();
         logger_.info( "Reading " + vizName + " metadata from " + url );
-        InputStream in = new BufferedInputStream( url.openStream() );
+        InputStream in =
+            new BufferedInputStream( ContentCoding.NONE.openStream( url ) );
         JSONObject infoObj;
         try {
             JSONTokener jt = new JSONTokener( in );
@@ -355,13 +361,15 @@ public class CdsUploadMatcher implements UploadMatcher {
      * suitable for VizieR output.
      *
      * @param  urltxt  target URL
+     * @param  coding  defines HTTP-level compression
      * @return  UTF8 reader
      */
-    private static BufferedReader getLineReader( String urltxt )
+    private static BufferedReader getLineReader( String urltxt,
+                                                 ContentCoding coding )
             throws IOException {
         URL url = new URL( urltxt );
-        return new BufferedReader( new InputStreamReader( url.openStream(),
-                                                          "utf8" ) );
+        InputStream in = coding.openStream( url );
+        return new BufferedReader( new InputStreamReader( in, "utf8" ) );
     }
 
     /**

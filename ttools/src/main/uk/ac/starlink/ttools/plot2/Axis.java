@@ -8,11 +8,12 @@ import java.awt.geom.AffineTransform;
 /**
  * Does geometry and drawing for a straight line axis.
  * Linear and logarithmic scales are supported; obtain one using
- * the {@link #createAxis} factory method.
+ * the {@link #createAxis createAxis} factory method.
  *
  * @author   Mark Taylor
  * @since    12 Feb 2013
  */
+@Equality
 public abstract class Axis {
 
     private final int glo_;
@@ -29,6 +30,12 @@ public abstract class Axis {
      * @param   dhi  maximum data coordinate
      */
     protected Axis( int glo, int ghi, double dlo, double dhi ) {
+        if ( ! ( glo < ghi ) ) {
+            throw new IllegalArgumentException( "Bad graphics bounds" );
+        }
+        if ( ! ( dlo < dhi ) ) {
+            throw new IllegalArgumentException( "Bad data bounds" );
+        }
         glo_ = glo;
         ghi_ = ghi;
         dlo_ = dlo;
@@ -41,7 +48,7 @@ public abstract class Axis {
      * @param   d  data coordinate
      * @return  graphics coordinate
      */
-    public abstract int dataToGraphics( double d );
+    public abstract double dataToGraphics( double d );
 
     /**
      * Converts a graphics position on this axis to a data coordinate.
@@ -49,7 +56,7 @@ public abstract class Axis {
      * @param   g  graphics coordinate
      * @return   data coordinate
      */
-    public abstract double graphicsToData( int g );
+    public abstract double graphicsToData( double g );
 
     /**
      * Returns the data bounds that result from performing an axis zoom
@@ -70,6 +77,35 @@ public abstract class Axis {
      * @return   2-element array giving new new data min/max coordinates
      */
     public abstract double[] dataPan( double d0, double d1 );
+
+    /**
+     * Returns the axis graphics bounds.
+     * The first element of the result (<code>glo</code>)
+     * is always strictly less than the second (<code>ghi</code>).
+     *
+     * @return  2-element array giving the graphics min/max coordinates
+     */
+    public int[] getGraphicsLimits() {
+        return new int[] { glo_, ghi_ };
+    }
+
+    /**
+     * Returns the axis data bounds.
+     * The first element of the result (<code>dlo</code>)
+     * is always strictly less than the second (<code>dhi</code>).
+     *
+     * @return  2-element array giving the data min/max coordinates
+     */
+    public double[] getDataLimits() {
+        return new double[] { dlo_, dhi_ };
+    }
+
+    /**
+     * Indicates whether the scaling on this axis is linear.
+     *
+     * @return  true  iff this axis is linear
+     */
+    public abstract boolean isLinear();
 
     /**
      * Draws an axis title and supplied tickmarks.
@@ -137,7 +173,7 @@ public abstract class Axis {
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
             String label = tick.getLabel();
-            double gx = dataToGraphics( tick.getValue() );
+            int gx = (int) dataToGraphics( tick.getValue() );
             double tx = invert ? ghi_ - gx : gx - glo_;
             AffineTransform tTrans =
                 AffineTransform.getTranslateInstance( tx, 0 );
@@ -280,11 +316,15 @@ public abstract class Axis {
             b_ = ( flip ? ghi : glo ) - a_ * dlo;
         }
 
-        public int dataToGraphics( double d ) {
-            return (int) ( b_ + a_ * d );
+        public boolean isLinear() {
+            return true;
         }
 
-        public double graphicsToData( int g ) {
+        public double dataToGraphics( double d ) {
+            return b_ + a_ * d;
+        }
+
+        public double graphicsToData( double g ) {
             return ( g - b_ ) * a1_;
         }
 
@@ -294,6 +334,30 @@ public abstract class Axis {
 
         public double[] dataPan( double d0, double d1 ) {
             return pan( dlo_, dhi_, d0, d1, false );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 2359;
+            code = 23 * code + Float.floatToIntBits( (float) a_ );
+            code = 23 * code + Float.floatToIntBits( (float) b_ );
+            code = 23 * code + Float.floatToIntBits( (float) dlo_ );
+            code = 23 * code + Float.floatToIntBits( (float) dhi_ );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof LinearAxis ) { 
+                LinearAxis other = (LinearAxis) o;
+                return this.a_ == other.a_
+                    && this.b_ == other.b_
+                    && this.dlo_ == other.dlo_
+                    && this.dhi_ == other.dhi_;
+            }
+            else {
+                return false;
+            }
         }
     }
 
@@ -328,11 +392,21 @@ public abstract class Axis {
             a1_ = 1.0 / a_;
         }
 
-        public int dataToGraphics( double d ) {
-            return (int) ( b_ + a_ * Math.log( d ) );
+        public boolean isLinear() {
+            return false;
         }
 
-        public double graphicsToData( int g ) {
+        public double dataToGraphics( double d ) {
+
+            /* Check explicitly for zero values and return a NaN rather than
+             * -Infinity.  This is a bit questionable, and there may be a
+             * case for changing the behaviour, but it avoids having to
+             * make a number of checks for infinite values downstream. */
+            return d > 0 ? b_ + a_ * Math.log( d )
+                         : Double.NaN;
+        }
+
+        public double graphicsToData( double g ) {
             return Math.exp( ( g - b_ ) * a1_ );
         }
 
@@ -342,6 +416,30 @@ public abstract class Axis {
 
         public double[] dataPan( double d0, double d1 ) {
             return pan( dlo_, dhi_, d0, d1, true );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = -242442;
+            code = 23 * code + Float.floatToIntBits( (float) a_ );
+            code = 23 * code + Float.floatToIntBits( (float) b_ );
+            code = 23 * code + Float.floatToIntBits( (float) dlo_ );
+            code = 23 * code + Float.floatToIntBits( (float) dhi_ );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof LogAxis ) {
+                LogAxis other = (LogAxis) o;
+                return this.a_ == other.a_
+                    && this.b_ == other.b_
+                    && this.dlo_ == other.dlo_
+                    && this.dhi_ == other.dhi_;
+            }
+            else {
+                return false;
+            }
         }
     }
 
@@ -359,11 +457,19 @@ public abstract class Axis {
                                 double d0, double d1, boolean isLog ) {
         if ( isLog ) {
             double d10 = d0 / d1;
-            return new double[] { dlo * d10, dhi * d10 };
+            double plo = dlo * d10;
+            double phi = dhi * d10;
+            return plo > Double.MIN_VALUE && phi < Double.MAX_VALUE
+                 ? new double[] { plo, phi }
+                 : new double[] { dlo, dhi };
         }
         else {
             double d10 = d1 - d0;
-            return new double[] { dlo - d10, dhi - d10 };
+            double plo = dlo - d10;
+            double phi = dhi - d10;
+            return plo > -Double.MAX_VALUE && phi < +Double.MAX_VALUE
+                 ? new double[] { plo, phi }
+                 : new double[] { dlo, dhi };
         }
     }
 
@@ -381,13 +487,19 @@ public abstract class Axis {
                                  double d0, double factor, boolean isLog ) {
         if ( isLog ) {
             double f1 = 1. / factor;
-            return new double[] { d0 * Math.pow( dlo / d0, f1 ),
-                                  d0 * Math.pow( dhi / d0, f1 ) };
+            double zlo = d0 * Math.pow( dlo / d0, f1 );
+            double zhi = d0 * Math.pow( dhi / d0, f1 );
+            return zlo > Double.MIN_VALUE && zhi < Double.MAX_VALUE
+                 ? new double[] { zlo, zhi }
+                 : new double[] { dlo, dhi };
         }
         else {
             double f1 = 1. / factor;
-            return new double[] { d0 + ( dlo - d0 ) * f1,
-                                  d0 + ( dhi - d0 ) * f1 };
+            double zlo = d0 + ( dlo - d0 ) * f1;
+            double zhi = d0 + ( dhi - d0 ) * f1;
+            return zlo > -Double.MAX_VALUE && zhi < +Double.MAX_VALUE
+                 ? new double[] { zlo, zhi }
+                 : new double[] { dlo, dhi };
         }
     }
 }

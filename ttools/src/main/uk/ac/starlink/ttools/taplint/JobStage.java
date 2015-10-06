@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ByteList;
+import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -64,15 +66,33 @@ public class JobStage implements Stage {
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
-        TableMeta[] tmetas = metaHolder_.getTableMetadata();
-        if ( tmetas == null || tmetas.length == 0 ) {
+        SchemaMeta[] smetas = metaHolder_.getTableMetadata();
+        TableMeta tmeta = getFirstTable( metaHolder_.getTableMetadata() );
+        if ( tmeta == null ) {
             reporter.report( FixedCode.F_NOTM,
                              "No table metadata available "
                            + "(earlier stages failed/skipped? "
                            + " - will not attempt UWS tests" );
             return;
         }
-        new UwsRunner( reporter, serviceUrl, tmetas[ 0 ], pollMillis_ ).run();
+        new UwsRunner( reporter, serviceUrl, tmeta, pollMillis_ ).run();
+    }
+
+    /**
+     * Returns the first available table from a given list of schemas.
+     *
+     * @param   smetas  table set metadata
+     * @return  metadata for first available table
+     */
+    private TableMeta getFirstTable( SchemaMeta[] smetas ) {
+        if ( smetas != null ) {
+            for ( SchemaMeta smeta : smetas ) {
+                for ( TableMeta tmeta : smeta.getTables() ) {
+                    return tmeta;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -525,7 +545,8 @@ public class JobStage implements Stage {
             int code;
             String responseMsg;
             try {
-                HttpURLConnection conn = UwsJob.postUnipartForm( url, map );
+                HttpURLConnection conn =
+                    UwsJob.postUnipartForm( url, ContentCoding.NONE, map );
                 code = conn.getResponseCode();
                 responseMsg = conn.getResponseMessage();
             }

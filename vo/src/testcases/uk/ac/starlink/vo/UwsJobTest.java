@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import junit.framework.TestCase;
+import uk.ac.starlink.util.ContentCoding;
 
 public class UwsJobTest extends TestCase {
 

@@ -154,12 +154,12 @@ public class SuperJar {
         for ( int ij = 0; ij < jarDeps_.length; ij++ ) {
             File jfile = jarDeps_[ ij ];
             String jtail = jfile.getName();
-            Manifest manifest = readManifest( jfile );
+            Manifest inManifest = readManifest( jfile );
 
             /* If it's a jar file (has a manifest), doctor the manifest
              * to get the classpath right, and then copy entries. */
-            if ( manifest != null ) {
-                String[] cpents = getClassPath( manifest );
+            if ( inManifest != null ) {
+                String[] cpents = getClassPath( inManifest );
                 StringBuffer cpbuf = new StringBuffer();
                 for ( int ic = 0; ic < cpents.length; ic++ ) {
                     String cptail = new File( cpents[ ic ] ).getName();
@@ -170,17 +170,20 @@ public class SuperJar {
                         cpbuf.append( cptail );
                     }
                 }
-                manifest.getMainAttributes()
-                        .put( Attributes.Name.CLASS_PATH, cpbuf.toString() );
+                Attributes atts = inManifest.getMainAttributes();
+                atts.put( Attributes.Name.CLASS_PATH, cpbuf.toString() );
+                Manifest outManifest = new Manifest();
+                outManifest.getMainAttributes().putAll( atts );
                 zout.putNextEntry( new ZipEntry( jtail ) );
-                JarOutputStream jout = new JarOutputStream( zout, manifest );
+                JarOutputStream jout = new JarOutputStream( zout, outManifest );
                 JarInputStream jin =
                     new JarInputStream(
                         new BufferedInputStream(
                             new FileInputStream( jfile ) ) );
                 for ( JarEntry jent; ( jent = jin.getNextJarEntry() ) != null;
                       jin.closeEntry() ) {
-                    if ( ! excludeEntry( jent ) ) {
+                    if ( ! excludeEntry( jent ) &&
+                         ! jent.getName().startsWith( "META-INF" ) ) {
                         jout.putNextEntry( jent );
                         IOUtils.copy( jin, jout );
                         jout.closeEntry();

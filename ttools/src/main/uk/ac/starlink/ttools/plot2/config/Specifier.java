@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.event.ActionListener;
 import javax.swing.JComponent;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Can acquire a typed value from the GUI.
@@ -41,6 +42,18 @@ public interface Specifier<V> {
      * @param  value  new value
      */
     void setSpecifiedValue( V value );
+
+    /**
+     * Accepts information about a completed plot that was drawn with
+     * input from this specifier.
+     * In many cases, the implementation of this method will be a no-op,
+     * but it gives this object a chance to update its state or its
+     * component's appearance based on the way the plot was actually drawn,
+     * which may provide information not otherwise available to this object.
+     *
+     * @param  report   report of a plot partially specified by this object
+     */
+    void submitReport( ReportMap report );
 
     /**
      * Adds a listener which will be informed when the user interacts with

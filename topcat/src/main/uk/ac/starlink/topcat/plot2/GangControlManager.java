@@ -4,10 +4,9 @@ import gnu.jel.CompilationException;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -27,6 +26,8 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
+import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 
 /**
@@ -46,7 +47,7 @@ public class GangControlManager implements ControlManager {
     private final Configger baseConfigger_;
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
-    private final SortedMap<Integer,List<Plotter>> plotterMap_;
+    private final Map<CoordsType,List<Plotter>> plotterMap_;
     private final Action[] stackActs_;
 
     private static final Logger logger_ =
@@ -78,48 +79,39 @@ public class GangControlManager implements ControlManager {
 
         /* Split the list up by the number of positional coordinates
          * they have. */
-        plotterMap_ = new TreeMap<Integer,List<Plotter>>();
-        plotterMap_.put( 0, new ArrayList<Plotter>() );
-        plotterMap_.put( 1, new ArrayList<Plotter>() );
-        plotterMap_.put( 2, new ArrayList<Plotter>() );
+        plotterMap_ = new LinkedHashMap<CoordsType,List<Plotter>>();
+        for ( CoordsType ctyp : CoordsType.values() ) {
+            plotterMap_.put( ctyp, new ArrayList<Plotter>() );
+        }
         Plotter[] plotters = plotType_.getPlotters();
         for ( int i = 0; i < plotters.length; i++ ) {
             Plotter plotter = plotters[ i ];
-            int npos = plotter.getCoordGroup().getPositionCount();
-            if ( ! plotterMap_.containsKey( npos ) ) {
-                plotterMap_.put( npos, new ArrayList<Plotter>() );
+            CoordsType ctyp = CoordsType.getInstance( plotter );
+            plotterMap_.get( ctyp ).add( plotter );
+        }
+
+        /* Add gang controls grouping suitably categorised plotters. */
+        for ( CoordsType ctyp : CoordsType.values() ) {
+            if ( ctyp.getIcon() != null &&
+                 ! plotterMap_.get( ctyp ).isEmpty() ) {
+                String actName = "Add " + ctyp.getTypeTitle() + " Control";
+                String actDescrip = "Add a new " + ctyp.getTypeDescription()
+                                  + " plot control to the stack";
+                final CoordsType ctyp0 = ctyp;
+                stackActList.add( new LayerControlAction( actName,
+                                                          ctyp.getIcon(),
+                                                          actDescrip,
+                                                          stack_ ) {
+                    public LayerControl createLayerControl() {
+                        return createGangControl( ctyp0, true );
+                    }
+                } );
             }
-            plotterMap_.get( npos ).add( plotter );
         }
 
-        /* Add an action for single-position plotters. */
-        if ( ! plotterMap_.get( 1 ).isEmpty() ) {
-            final Icon icon1 = ResourceIcon.PLOT_DATA;
-            stackActList.add( new LayerControlAction(
-                                  "Add Position Control", icon1,
-                                  "Add a new positional plot control"
-                                  + " to the stack", stack_ ) {
-                public LayerControl createLayerControl() {
-                    return createGangControl( 1, icon1, true );
-                }
-            } );
-        }
-
-        /* Add an action for double-position plotters. */
-        if ( ! plotterMap_.get( 2 ).isEmpty() ) {
-            final Icon icon2 = ResourceIcon.PLOT_PAIR;
-            stackActList.add( new LayerControlAction(
-                                  "Add Pair Control", icon2,
-                                  "Add a new pair position plot control"
-                                  + " to the stack", stack_ ) {
-                public LayerControl createLayerControl() {
-                    return createGangControl( 2, icon2, true );
-                }
-            } );
-        }
-    
-        /* Add actions for non-positional plotters. */
-        for ( Plotter plotter : plotterMap_.get( 0 ) ) {
+        /* Add single controls for miscellaneous plotters. */
+        assert CoordsType.MISC.getIcon() == null;
+        for ( Plotter plotter : plotterMap_.get( CoordsType.MISC ) ) {
             Action stackAct =
                 LayerControlAction
                .createPlotterAction( plotter, stack, nextSupplier_,
@@ -132,14 +124,7 @@ public class GangControlManager implements ControlManager {
                                + plotter.getPlotterName() );
             }
         }
-
-        /* For now, we don't take steps to present triple-positional plotters
-         * and beyond, because there aren't any.  But warn if some arise. */
         stackActs_ = stackActList.toArray( new Action[ 0 ] );
-        int unused = plotterMap_.tailMap( new Integer( 3 ) ).size();
-        if ( unused > 0 ) {
-            logger_.warning( unused + " plotters not presented in GUI" );
-        }
     }
 
     public Action[] getStackActions() {
@@ -271,8 +256,8 @@ public class GangControlManager implements ControlManager {
 
         /* Create the control. */
         int npos = lcmd.getPlotter().getCoordGroup().getPositionCount();
-        Icon icon = npos == 1 ? ResourceIcon.PLOT_DATA : ResourceIcon.PLOT_PAIR;
-        MultiFormLayerControl control = createGangControl( npos, icon, false );
+        CoordsType ctyp = CoordsType.getInstance( lcmd.getPlotter() );
+        MultiFormLayerControl control = createGangControl( ctyp, false );
 
         /* Set the table. */
         control.setTopcatModel( lcmd.getTopcatModel() );
@@ -314,19 +299,21 @@ public class GangControlManager implements ControlManager {
     /**
      * Creates a new empty gang layer control.
      *
-     * @param   npos  number of groups of positional coordinates for entry
+     * @param   ctyp  common coordinate set type
+     * @param   autoPlot  true to attempt a plot without further
+     *                    user interaction
      * @return   gang control, or null if it would be useless
      */
-    private MultiFormLayerControl createGangControl( int npos, Icon icon,
+    private MultiFormLayerControl createGangControl( CoordsType ctyp,
                                                      boolean autoPlot ) {
-        List<Plotter> plotterList = plotterMap_.get( npos );
+        List<Plotter> plotterList = plotterMap_.get( ctyp );
         if ( plotterList != null && plotterList.size() > 0 ) {
             PositionCoordPanel coordPanel =
-                plotTypeGui_.createPositionCoordPanel( npos );
-            boolean autoPop = npos == 1;
+                ctyp.createPositionCoordPanel( plotType_, plotTypeGui_ );
+            boolean autoPop = ctyp.isAutoPopulate();
             MultiFormLayerControl control = 
                 new MultiFormLayerControl( coordPanel, autoPop, nextSupplier_,
-                                           tcListener_, icon,
+                                           tcListener_, ctyp.getIcon(),
                                            plotterList
                                           .toArray( new Plotter[ 0 ] ),
                                            baseConfigger_ );
@@ -337,6 +324,149 @@ public class GangControlManager implements ControlManager {
         }
         else {
             return null;
+        }
+    }
+
+    /**
+     * Categorises the kind of plot.
+     * This categorisation is used to determine what kinds of
+     * plots can be grouped together in the same GangControl.
+     */
+    private enum CoordsType {
+
+        /** Plotter with a single positional coordinate. */
+        SINGLE_POS( ResourceIcon.PLOT_DATA, "Position", "positional", true ) {
+            public PositionCoordPanel
+                    createPositionCoordPanel( PlotType plotType,
+                                              PlotTypeGui plotTypeGui ) {
+                return plotTypeGui.createPositionCoordPanel( 1 );
+            }
+        },
+
+        /** Plotter with two positional coordinates. */
+        DOUBLE_POS( ResourceIcon.PLOT_PAIR, "Pair", "pair position", false ) {
+            public PositionCoordPanel
+                    createPositionCoordPanel( PlotType plotType,
+                                              PlotTypeGui plotTypeGui ) {
+                return plotTypeGui.createPositionCoordPanel( 2 );
+            }
+        },
+
+        /** Histogram-like plotter. */
+        WEIGHTED_HISTO( ResourceIcon.PLOT_HISTO, "Histogram",
+                        "optionally weighted histogram", true ) {
+            public PositionCoordPanel
+                    createPositionCoordPanel( PlotType plotType,
+                                              PlotTypeGui plotTypeGui ) {
+                Coord[] coords = {
+                    plotType.getPointDataGeoms()[ 0 ].getPosCoords()[ 0 ],
+                    FloatingCoord.WEIGHT_COORD,
+                };
+                return new SimplePositionCoordPanel( coords, null );
+            }
+        },
+
+        /** Plotter not covered by other categories. */
+        MISC( null, null, null, false ) {
+            public PositionCoordPanel
+                    createPositionCoordPanel( PlotType plotType,
+                                              PlotTypeGui plotTypeGui ) {
+                return null;
+            }
+        };
+
+        private final Icon icon_;
+        private final String tName_;
+        private final String tname_;
+        private final boolean isAutoPop_;
+
+        /**
+         * Constructor.
+         *
+         * @param  icon  icon
+         * @param  tName  short (one word?) label describing this type
+         * @param  tname  short phrase describing this type
+         * @param  isAutoPop  whether to autopopulate coordinates for this type
+         */
+        CoordsType( Icon icon, String tName, String tname, boolean isAutoPop ) {
+            icon_ = icon;
+            tName_ = tName;
+            tname_ = tname;
+            isAutoPop_ = isAutoPop;
+        }
+
+        /**
+         * Returns a generic icon suitable for this type of coordinate set.
+         *
+         * @return  icon
+         */
+        public Icon getIcon() {
+            return icon_;
+        }
+
+        /**
+         * Returns a short (one-word?), capitalised string labelling this type.
+         *
+         * @return  title
+         */
+        public String getTypeTitle() {
+            return tName_;
+        }
+
+        /**
+         * Returns a short phrase describing this type.
+         *
+         * @return  short description
+         */
+        public String getTypeDescription() {
+            return tname_;
+        }
+
+        /**
+         * Indicates whether GUIs associated with this plot type are
+         * suitable for autopopulating with default columns.
+         *
+         * @return  true iff autopopulation is a good idea
+         */
+        public boolean isAutoPopulate() {
+            return isAutoPop_;
+        }
+
+        /**
+         * Returns a new PositionCoordPanel that can be common to all plotters
+         * grouped in this category.
+         *
+         * @param   plotType  plot specifics
+         * @param   plotTypeGui  gui plot specifics
+         */
+        public abstract PositionCoordPanel
+                createPositionCoordPanel( PlotType plotType,
+                                          PlotTypeGui plotTypeGui );
+
+        /**
+         * Categorises plotters in terms of this enum.
+         *
+         * @param  plotter  plotter to categorise
+         * @return  instance of this class corresponding to plotter, not null
+         */
+        public static CoordsType getInstance( Plotter plotter ) {
+            CoordGroup cgrp = plotter.getCoordGroup();
+            int npos = cgrp.getPositionCount();
+            if ( npos == 1 ) {
+                return CoordsType.SINGLE_POS;
+            }
+            else if ( npos == 2 ) {
+                return CoordsType.DOUBLE_POS;
+            }
+            else if ( cgrp.isSinglePartialPosition() &&
+                      cgrp.getExtraCoords().length == 2 &&
+                      cgrp.getExtraCoords()[ 1 ]
+                           == FloatingCoord.WEIGHT_COORD ) {
+                return CoordsType.WEIGHTED_HISTO;
+            }
+            else {
+                return CoordsType.MISC;
+            }
         }
     }
 }

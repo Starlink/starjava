@@ -50,8 +50,7 @@ public class Ri1RegistryTableLoadDialog extends AbstractTableLoadDialog {
                "Imports a table describing the result of querying a registry"
              + " using the RI1.0 interface"
              + "; using RegTAP is usually a better idea." );
-        setIconUrl( Ri1RegistryTableLoadDialog.class
-                                              .getResource( "registry.gif" ) );
+        setIcon( ResourceIcon.TLD_REGISTRY );
     }
 
     protected Component createQueryComponent() {

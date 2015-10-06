@@ -169,7 +169,7 @@ public class StarResultSet {
      * Callers may need to worry about synchronization.
      *
      * @param  lrow  row index (0-based)
-     * @throws  UnsupportedOperationExcepion  for non-random result sets
+     * @throws  UnsupportedOperationException  for non-random result sets
      */
     public void setRowIndex( long lrow ) throws IOException {
         if ( isRandom_ ) {

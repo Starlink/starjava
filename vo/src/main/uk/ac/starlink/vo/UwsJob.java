@@ -16,12 +16,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Job submitted using the Universal Worker Service pattern.
@@ -343,7 +345,8 @@ public class UwsJob {
                                     Map<String,HttpStreamParam> streamParamMap )
             throws IOException {
         HttpURLConnection hconn =
-            postForm( new URL( jobListUrl ), stringParamMap, streamParamMap );
+            postForm( new URL( jobListUrl ), ContentCoding.NONE,
+                      stringParamMap, streamParamMap );
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {  // 303
             String msg = "Non-" + HttpURLConnection.HTTP_SEE_OTHER + " response"
@@ -373,7 +376,7 @@ public class UwsJob {
             throws IOException {
         Map<String,String> paramMap = new HashMap<String,String>();
         paramMap.put( name, value );
-        return postUnipartForm( url, paramMap );
+        return postUnipartForm( url, ContentCoding.NONE, paramMap );
     }
 
     /**
@@ -382,37 +385,50 @@ public class UwsJob {
      * parameters, and posts them in an appropriate way.
      *
      * @param   url   destination URL
-     * @param   stringParams  name->value map for POST parameters;
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
+     * @param   stringParams  name-&gt;value map for POST parameters;
      *          values will be URL encoded as required
-     * @param   streamParams  name->parameter map for POST parameters
+     * @param   streamParams  name-&gt;parameter map for POST parameters
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postForm( URL url, Map<String,String> stringParams,
+                  postForm( URL url, ContentCoding coding,
+                            Map<String,String> stringParams,
                             Map<String,HttpStreamParam> streamParams )
             throws IOException {
+        if ( logger_.isLoggable( Level.CONFIG ) ) {
+            logger_.config( "Doing something like: "
+                          + getCurlPostEquivalent( url, coding, stringParams,
+                                                   streamParams ) );
+        }
         return ( streamParams == null || streamParams.isEmpty() )
-             ? postUnipartForm( url, stringParams )
-             : postMultipartForm( url, stringParams, streamParams, null );
+             ? postUnipartForm( url, coding, stringParams )
+             : postMultipartForm( url, coding, stringParams, streamParams,
+                                  null );
     }
 
     /**
-     * Performs an HTTP form POST with a name->value map of parameters.
+     * Performs an HTTP form POST with a name-&gt;value map of parameters.
      * They are posted with MIME type "application/x-www-form-urlencoded".
      *
      * @param   url  destination URL
-     * @param   paramMap   name->value map of parameters; values will be
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
+     * @param   paramMap   name-&gt;value map of parameters; values will be
      *          encoded as required
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postUnipartForm( URL url, Map<String,String> paramMap )
+                  postUnipartForm( URL url, ContentCoding coding,
+                                   Map<String,String> paramMap )
             throws IOException {
         HttpURLConnection hconn = openHttpConnection( url );
         byte[] postBytes = toPostedBytes( paramMap );
         hconn.setRequestMethod( "POST" );
         hconn.setRequestProperty( "Content-Type",
                                   "application/x-www-form-urlencoded" );
+        coding.prepareRequest( hconn );
         // We could stream this request, which would seem tidier.
         // However, that inhibits automatic handling of 401 Unauthorized
         // responses if a java.net.Authenticator is in use, and the 
@@ -434,17 +450,22 @@ public class UwsJob {
     }
 
     /**
-     * Performs an HTTP form POST with a name->value map and a name->stream
-     * map of parameters.  The form is written in multipart/form-data format.
+     * Performs an HTTP form POST with a name-&gt;value map and a
+     * name-&gt;stream map of parameters.
+     * The form is written in multipart/form-data format.
      * See <a href="http://www.ietf.org/rfc/rfc2046.txt">RFC 2046</a> Sec 5.1.
      *
-     * @param   stringMap   name->value map of parameters
-     * @param   streamMap   name->stream map of parameters
+     * @param   url  destination URL
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
+     * @param   stringMap   name-&gt;value map of parameters
+     * @param   streamMap   name-&gt;stream map of parameters
      * @param  boundary  multipart boundary; if null a default value is used
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postMultipartForm( URL url, Map<String,String> stringMap,
+                  postMultipartForm( URL url, ContentCoding coding,
+                                     Map<String,String> stringMap,
                                      Map<String,HttpStreamParam> streamMap,
                                      String boundary )
             throws IOException {
@@ -462,6 +483,7 @@ public class UwsJob {
         hconn.setRequestProperty( "Content-Type",
                                   "multipart/form-data"
                                 + "; boundary=\"" + boundary + "\"" );
+        coding.prepareRequest( hconn );
         hconn.setInstanceFollowRedirects( false );
         hconn.setDoOutput( true );
         logger_.info( "POST params to " + url );
@@ -521,6 +543,75 @@ public class UwsJob {
     }
 
     /**
+     * Returns a snippet of text representing a shell invocation of the
+     * <code>curl(1)</code> command that posts a query corresponding
+     * to the given parameters.
+     *
+     * <p>This can be a useful diagnostic tool when attempting to
+     * reproduce service invocations.  Use with care however,
+     * the returned string is not guaranteed to do exactly what
+     * this java code does.
+     *
+     * @param   url   destination URL
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
+     * @param   stringParams  name-&gt;value map for POST parameters;
+     *          values will be URL encoded as required
+     * @param   streamParams  name-&gt;parameter map for POST parameters
+     * @return   line of pseudo-shell script giving curl invocation
+     * @see   <a href="http://curl.haxx.se/">curl</a>
+     * @see   #postForm
+     */
+    public static String
+            getCurlPostEquivalent( URL url, ContentCoding coding,
+                                   Map<String,String> stringParams,
+                                   Map<String,HttpStreamParam> streamParams ) {
+        StringBuffer sbuf = new StringBuffer()
+            .append( "curl" )
+            .append( " --url " )
+            .append( url )
+            .append( " --location " );
+        if ( coding == ContentCoding.GZIP ) {
+            sbuf.append( " --compress" );
+        }
+        for ( Map.Entry<String,String> entry : stringParams.entrySet() ) {
+            sbuf.append( " --form " )
+                .append( entry.getKey() )
+                .append( '=' )
+                .append( shellEscape( entry.getValue() ) );
+        }
+        for ( String key : streamParams.keySet() ) {
+            sbuf.append( " --form " )
+                .append( key )
+                .append( "=" )
+                .append( "@<..data..>" );
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Escapes a given text string to make it usable as a word in a
+     * (generic) un*x shell-scripting language.
+     * Implementation may not be bullet-proof.
+     *
+     * @param  txt  raw text
+     * @return  escaped text
+     */
+    private static String shellEscape( String txt ) {
+        txt = txt.trim().replaceAll( "\\s+", " " );
+        if ( ! txt.matches( ".*[ $?'\"].*" ) ) {
+            return txt;
+        }
+        if ( txt.indexOf( "'" ) < 0 ) {
+            return "'" + txt + "'";
+        }
+        if ( txt.indexOf( '"' ) < 0 ) {
+            return '"' + txt + '"';
+        }
+        return "'" + txt.replaceAll( "'", "'\"'\"'" ) + "'";
+    }
+
+    /**
      * Opens a URL connection as an HttpURLConnection.
      * If the connection is not HTTP, an IOException is thrown.
      *
@@ -540,7 +631,7 @@ public class UwsJob {
     }
 
     /**
-     * Encodes a name->value mapping as an array of bytes suitable for
+     * Encodes a name-&gt;value mapping as an array of bytes suitable for
      * "application/x-www-form-urlencoded" transmission.
      *
      * @param   paramMap  name-&gt;value mapping

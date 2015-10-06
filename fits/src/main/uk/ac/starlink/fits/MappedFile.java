@@ -30,7 +30,7 @@ import uk.ac.starlink.util.Loader;
  * so that accessing a single datum distant from (or before) the last
  * datum accessed always results in filling a whole buffer.
  *
- * <h4>Limitations:</h4>
+ * <h3>Limitations:</h3>
  * <ul>
  * <li>Files larger than Integer.MAX_VALUE bytes may not currently be accessed
  * <li>Access to very large files may fail if virtual memory runs out
@@ -39,8 +39,7 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor (Starlink)
  * @since    30 Aug 2002
  */
-public class MappedFile extends AbstractArrayDataIO
-                        implements CopyableRandomAccess {
+public class MappedFile extends AbstractArrayDataIO implements RandomAccess {
 
     private final ByteBuffer niobuf_;
     private int size_;
@@ -105,10 +104,6 @@ public class MappedFile extends AbstractArrayDataIO
 
     public long getFilePointer() {
         return (long) niobuf_.position();
-    }
-
-    public CopyableRandomAccess copyAccess() throws IOException {
-        return new MappedFile( niobuf_.duplicate() );
     }
 
     public int skipBytes( int toSkip ) {

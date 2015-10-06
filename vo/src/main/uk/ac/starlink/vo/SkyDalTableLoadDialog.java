@@ -11,7 +11,8 @@ import javax.swing.JPanel;
  * @author   Mark Taylor
  * @since    17 Jan 2011
  */
-public abstract class SkyDalTableLoadDialog extends DalTableLoadDialog {
+public abstract class SkyDalTableLoadDialog extends DalTableLoadDialog
+                                            implements DalLoader {
 
     private final String protoName_;
     private SkyPositionEntry skyEntry_;

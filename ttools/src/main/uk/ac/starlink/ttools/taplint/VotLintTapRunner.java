@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.votlint.VotLintContentHandler;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLintEntityResolver;
 import uk.ac.starlink.util.Compression;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.MultiplexInvocationHandler;
 import uk.ac.starlink.util.StarEntityResolver;
@@ -524,6 +525,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                                                          TapQuery tq )
                     throws IOException {
                 return UwsJob.postForm( new URL( tq.getServiceUrl() + "/sync" ),
+                                        ContentCoding.NONE,
                                         tq.getStringParams(),
                                         tq.getStreamParams() );
             }
@@ -559,6 +561,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                 else {
                     return UwsJob
                           .postForm( new URL( tq.getServiceUrl() + "/sync" ),
+                                     ContentCoding.NONE,
                                      tq.getStringParams(),
                                      tq.getStreamParams() );
                 }

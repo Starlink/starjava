@@ -155,6 +155,9 @@ public class WordsParameter extends Parameter<String[]> {
      * @return  array of objects matching <code>words</code>
      */
     private Object[] parseWords( String[] words ) throws TaskException {
+        if ( words == null ) {
+            return null;
+        }
         WordParser parser = getWordParser();
         if ( parser != null ) {
             Object[] parsedWords = new Object[ words.length ];

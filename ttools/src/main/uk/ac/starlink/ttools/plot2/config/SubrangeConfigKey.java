@@ -8,6 +8,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Subrange;
 
 /**
@@ -53,7 +54,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         return format( value.getLow(), 3 ) + "," + format( value.getHigh(), 3 );
     }
 
-    public Subrange stringToValue( String txt ) {
+    public Subrange stringToValue( String txt ) throws ConfigException {
         String[] limits = txt.split( "," );
         if ( limits.length == 2 ) {
             String slo = limits[ 0 ].trim();
@@ -159,6 +160,9 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         public void setSpecifiedValue( Subrange subrange ) {
             slider_.setLowValue( unscale( subrange.getLow() ) );
             slider_.setHighValue( unscale( subrange.getHigh() ) );
+        }
+
+        public void submitReport( ReportMap report ) {
         }
 
         /**

@@ -19,7 +19,7 @@ public interface ExtApp {
     * For this calls or callbacks, the "external" application has to
     * create a new VOTable column giving an unique identifier for each object
     * that it has sent. This column has to be described by the following
-    * VOTable FIELD tag : <FIELD name="_OID" type="hidden">. It is strongly
+    * VOTable FIELD tag: &lt;FIELD name="_OID" type="hidden"&gt;. It is strongly
     * recommended to add an unambigus prefix to avoid conflicts with the
     * assignations done by the "external" application and its own assignations.
     * The unicity has to be maintained during all the session. It means that

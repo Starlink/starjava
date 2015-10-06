@@ -1,23 +1,15 @@
 package uk.ac.starlink.fits;
 
 import java.awt.datatransfer.DataFlavor;
-import java.io.DataInput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import nom.tam.fits.AsciiTable;
 import nom.tam.fits.AsciiTableHDU;
-import nom.tam.fits.BinaryTable;
-import nom.tam.fits.BinaryTableHDU;
-import nom.tam.fits.BasicHDU;
 import nom.tam.fits.Data;
-import nom.tam.fits.Fits;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.TableHDU;
@@ -35,7 +27,6 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -284,7 +275,8 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         }
         String xtension = hdr.getStringValue( "XTENSION" );
         if ( "BINTABLE".equals( xtension ) ) {
-            BintableStarTable.streamStarTable( hdr, in, sink );
+            BasicInput input = InputFactory.createSequentialInput( in );
+            BintableStarTable.streamStarTable( hdr, input, sink );
             return true;
         }
         else if ( "TABLE".equals( xtension ) ) {
@@ -427,22 +419,11 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
 
         /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */
         if ( "BINTABLE".equals( xtension ) ) {
-            if ( strm instanceof RandomAccess ) {
-                StarTable table =
-                    BintableStarTable
-                   .makeRandomStarTable( hdr, (RandomAccess) strm );
-                ((RandomAccess) strm).seek( afterpos );
-                return new TableResult( table, afterpos, true, isEof( strm ) );
-            }
-            else {
-                StarTable table =
-                    BintableStarTable
-                   .makeSequentialStarTable( hdr, datsrc, datpos );
-                for ( long iskip = datasize; iskip > 0; ) {
-                    iskip -= strm.skip( iskip );
-                }
-                return new TableResult( table, afterpos, false, isEof( strm ) );
-            }
+            InputFactory inFact =
+                InputFactory.createFactory( datsrc, datpos, datasize );
+            StarTable table = BintableStarTable.createTable( hdr, inFact );
+            IOUtils.skipBytes( strm, datasize );
+            return new TableResult( table, afterpos );
         }
 
         /* If it's a TABLE HDU (ASCII table) make a FitsStarTable. */
@@ -451,14 +432,13 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             tdata.read( strm );
             tdata.getData();
             TableHDU thdu = new AsciiTableHDU( hdr, (Data) tdata );
-            return new TableResult( new FitsStarTable( thdu ),
-                                    afterpos, false, isEof( strm ) );
+            return new TableResult( new FitsStarTable( thdu ), afterpos );
         }
 
         /* It's not a table HDU - skip over it and return no table. */
         else {
             IOUtils.skipBytes( strm, datasize );
-            return new TableResult( null, afterpos, false, isEof( strm ) );
+            return new TableResult( null, afterpos );
         }
     }
 
@@ -600,28 +580,14 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
          * thread, as they are encountered.
          */
         private void multiLoad() throws IOException, FitsException {
-            ArrayDataInput in = null;
+            ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc_ );
             try {
                 long pos = 0L;
                 boolean done = false;
                 for ( int ihdu = 0; ! done ; ihdu++ ) {
-                    if ( in == null ) {
-                        in = FitsConstants.getInputStreamStart( datsrc_ );
-                        if ( pos > 0 ) {
-                            if ( in instanceof RandomAccess ) {
-                                ((RandomAccess) in).seek( pos );
-                            }
-                            else {
-                                IOUtils.skipBytes( in, pos );
-                            }
-                        }
-                    }
                     TableResult tres = attemptReadTable( in, datsrc_, pos );
                     StarTable table = tres.table_;
                     pos = tres.afterPos_;
-                    if ( tres.streamUsed_ ) {
-                        in = null;
-                    }
                     if ( table != null ) {
                         if ( table.getName() == null ) {
                             table.setName( datsrc_.getName() + "#" + ihdu );
@@ -639,7 +605,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                         }
                         tqueue_.addTable( table );
                     }
-                    done = tres.streamEnded_;
+                    done = isEof( in );
                 }
             }
             finally {
@@ -657,8 +623,6 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
     private static class TableResult {
         final StarTable table_;
         final long afterPos_;
-        final boolean streamUsed_;
-        final boolean streamEnded_;
 
         /**
          * Constructor.
@@ -667,18 +631,10 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
          *                null if the HDU was not a table type
          * @param  afterPos  position in stream of first byte following the
          *                   HDU just read
-         * @param  streamUsed  it is only safe to use the stream for other
-         *               purposes following the read attempt if this is
-         *               false
-         * @param  streamEnded  true only if there are known to be no
-         *               more bytes in the stream
          */
-        TableResult( StarTable table, long afterPos, boolean streamUsed,
-                     boolean streamEnded ) {
+        TableResult( StarTable table, long afterPos ) {
             table_ = table;
             afterPos_ = afterPos;
-            streamUsed_ = streamUsed;
-            streamEnded_ = streamEnded;
         }
     }
 }

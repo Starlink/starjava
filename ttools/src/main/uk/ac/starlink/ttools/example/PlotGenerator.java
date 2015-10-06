@@ -46,6 +46,7 @@ public class PlotGenerator<P,A> {
     private final A aspect_;
     private final Icon legend_;
     private final float[] legPos_;
+    private final String title_;
     private final ShadeAxisFactory shadeFact_;
     private final Range shadeFixRange_;
     private final PaperTypeSelector ptSel_;
@@ -66,6 +67,7 @@ public class PlotGenerator<P,A> {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
+     * @param  title   plot title, or null if not required
      * @param  shadeFact creates shader axis, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
@@ -82,7 +84,7 @@ public class PlotGenerator<P,A> {
      */
     public PlotGenerator( PlotLayer[] layers,
                           SurfaceFactory<P,A> surfFact, P profile, A aspect,
-                          Icon legend, float[] legPos,
+                          Icon legend, float[] legPos, String title,
                           ShadeAxisFactory shadeFact, Range shadeFixRange,
                           PaperTypeSelector ptSel, Compositor compositor,
                           DataStore dataStore, int xpix, int ypix,
@@ -93,6 +95,7 @@ public class PlotGenerator<P,A> {
         aspect_ = aspect;
         legend_ = legend;
         legPos_ = legPos;
+        title_ = title;
         shadeFact_ = shadeFact;
         shadeFixRange_ = shadeFixRange;
         ptSel_ = ptSel;
@@ -120,7 +123,7 @@ public class PlotGenerator<P,A> {
                                           boolean caching ) {
         PlotDisplay display = 
             new PlotDisplay( layers_, surfFact_, profile_, aspect_, legend_,
-                             legPos_, shadeFact_, shadeFixRange_,
+                             legPos_, title_, shadeFact_, shadeFixRange_,
                              ptSel_, compositor_, dataStore_,
                              surfaceAuxRange, navigator, caching );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
@@ -156,8 +159,8 @@ public class PlotGenerator<P,A> {
      */
     public Icon createIcon( boolean forceBitmap ) {
         return AbstractPlot2Task
-              .createPlotIcon( layers_, surfFact_, profile_, aspect_,
-                               legend_, legPos_, shadeFact_, shadeFixRange_,
+              .createPlotIcon( layers_, surfFact_, profile_, aspect_, legend_,
+                               legPos_, title_, shadeFact_, shadeFixRange_,
                                ptSel_, compositor_, dataStore_,
                                xpix_, ypix_, dataInsets_, forceBitmap );
     }

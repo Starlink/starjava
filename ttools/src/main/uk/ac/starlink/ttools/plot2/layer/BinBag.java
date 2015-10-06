@@ -83,10 +83,10 @@ public class BinBag {
      * Returns a sorted iterator over all bins with non-zero values.
      *
      * @param   cumulative  true for bins of a cumulative histogram
-     * @param   normalised  true for bins of a normalised histogram (sum to 1)
+     * @param   norm  normalisation mode
      * @return  sorted iterator over bins
      */
-    public Iterator<Bin> binIterator( boolean cumulative, boolean normalised ) {
+    public Iterator<Bin> binIterator( boolean cumulative, Normalisation norm ) {
 
         /* Avoid some edge cases by returning an empty iterator immediately
          * in case of no bins. */
@@ -115,16 +115,18 @@ public class BinBag {
          * and adjust the values to be cumulative if so requested. */
         final double[] binValues = new double[ nbin ];
         double total = 0;
+        double max = 0;
         for ( int ib = 0; ib < nbin; ib++ ) {
             double value = valueMap_.get( binIndices[ ib ] ).value_;
             binValues[ ib ] = cumulative ? total + value : value;
             total += value;
+            max = Math.max( max, Math.abs( value ) );
         }
 
-        /* If normalised values are requested rescale them using the
-         * final total. */
-        if ( normalised ) {
-            double scale = 1. / total;
+        /* Normalise. */
+        double bw = log_ ? Math.log( binWidth_ ) : binWidth_;
+        double scale = norm.getScaleFactor( total, max, bw, cumulative );
+        if ( scale != 1.0 ) {
             for ( int ib = 0; ib < nbin; ib++ ) {
                 binValues[ ib ] *= scale;
             }
@@ -183,6 +185,48 @@ public class BinBag {
                 }
             };
         }
+    }
+
+    /**
+     * Iterates over all the bins defined by this bin bag in a given
+     * data interval.  The contents of each bin, if any, are irrelevant
+     * to this operation.
+     *
+     * @param   lo   lower bound of interest
+     * @param   hi   upper bound of interest
+     * @return   iterator in sequence over 2-element (low,high) bin range
+     *           arrays that together cover the supplied (lo,hi) range
+     */
+    public Iterator<double[]> barIterator( double lo, double hi ) {
+        final int ibin0 = mapper_.getBinIndex( lo );
+        final int ibin1 = mapper_.getBinIndex( hi );
+        return new Iterator<double[]>() {
+            int ib = ibin0;
+            public boolean hasNext() {
+                return ib <= ibin1;
+            }
+            public double[] next() {
+                if ( ib <= ibin1 ) {
+                    return mapper_.getBinLimits( ib++ );
+                }
+                else {
+                    throw new NoSuchElementException();
+                }
+            }
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    /**
+     * Returns the bin width used by this histogram model.
+     * It's additive for linear and multiplicative for logarithmic.
+     *
+     * @return  bin width
+     */
+    public double getBinWidth() {
+        return binWidth_;
     }
 
     /**

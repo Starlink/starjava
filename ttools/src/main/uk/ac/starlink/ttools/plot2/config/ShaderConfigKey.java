@@ -38,6 +38,10 @@ public class ShaderConfigKey extends OptionConfigKey<Shader> {
         return name.toLowerCase().replaceAll( " ", "_" );
     }
 
+    public String getXmlDescription( Shader shader ) {
+        return null;
+    }
+
     public Specifier<Shader> createSpecifier() {
         JComboBox comboBox = new JComboBox( getOptions() );
         comboBox.setSelectedItem( getDefaultValue() );

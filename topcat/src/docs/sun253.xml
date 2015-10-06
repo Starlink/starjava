@@ -66,6 +66,7 @@
   <!ENTITY FIG.SkyColumnQueryWindow '&figs;SkyColumnQueryWindow.gif'>
   <!ENTITY FIG.SyntheticSubsetQueryWindow 
            '&figs;SyntheticSubsetQueryWindow.gif'>
+  <!ENTITY FIG.ClassifyWindow '&figs;ClassifyWindow.gif'>
   <!ENTITY FIG.MethodWindow '&figs;MethodWindow.gif'>
   <!ENTITY FIG.HtmlWindow '&figs;HtmlWindow.gif'>
   <!ENTITY FIG.LogWindow '&figs;LogWindow.gif'>
@@ -159,16 +160,26 @@
   <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
   <!ENTITY FIG.form_mark '&figs;form_mark.gif'>
   <!ENTITY FIG.form_size '&figs;form_size.gif'>
+  <!ENTITY FIG.form_sizexy '&figs;form_sizexy.gif'>
   <!ENTITY FIG.form_vector '&figs;form_vector.gif'>
   <!ENTITY FIG.form_error '&figs;form_error.gif'>
   <!ENTITY FIG.form_ellipse '&figs;form_ellipse.gif'>
   <!ENTITY FIG.form_line '&figs;form_line.gif'>
+  <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
+  <!ENTITY FIG.form_histogram '&figs;form_histogram.gif'>
+  <!ENTITY FIG.form_kde '&figs;form_kde.gif'>
+  <!ENTITY FIG.form_knn '&figs;form_knn.gif'>
+  <!ENTITY FIG.form_densogram '&figs;form_densogram.gif'>
   <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
   <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
   <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
-  <!ENTITY FIG.ConfigControl_histobars '&figs;ConfigControl_histobars.gif'>
+  <!ENTITY FIG.size_tab '&figs;size_tab.gif'>
+  <!ENTITY FIG.title_tab '&figs;title_tab.gif'>
+  <!ENTITY FIG.BinsControl_histogram '&figs;BinsControl_histogram.gif'>
+  <!ENTITY FIG.BinsControl_kde '&figs;BinsControl_kde.gif'>
+  <!ENTITY FIG.BinsControl_general '&figs;BinsControl_general.gif'>
   <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
   <!ENTITY FIG.PlaneAxisControl_navigation
                '&figs;PlaneAxisControl_navigation.gif'>
@@ -229,14 +240,23 @@
             <ref id="SpectrogramLayerControl">Spectrogram Layer Control</ref>'>
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
+  <!ENTITY FORM.sizexy '&IMG.FORM_SIZEXY; <ref id="form-sizexy">SizeXY</ref>'>
   <!ENTITY FORM.vector '&IMG.FORM_VECTOR; <ref id="form-vector">Vector</ref>'>
   <!ENTITY FORM.error '&IMG.FORM_ERROR; <ref id="form-error">Error Bars</ref>'>
   <!ENTITY FORM.ellipse '&IMG.FORM_ELLIPSE;
                         <ref id="form-ellipse">Ellipse</ref>'>
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
+  <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
+                          <ref id="form-linearfit">Linear Fit</ref>'>
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
+  <!ENTITY FORM.histogram '&IMG.FORM_HISTOGRAM;
+                          <ref id="form-histogram">Histogram</ref>'>
+  <!ENTITY FORM.kde '&IMG.FORM_KDE; <ref id="form-kde">KDE</ref>'>
+  <!ENTITY FORM.knn '&IMG.FORM_KNN; <ref id="form-knn">KNN</ref>'>
+  <!ENTITY FORM.densogram '&IMG.FORM_DENSOGRAM;
+                          <ref id="form-densogram">Densogram</ref>'>
   <!ENTITY FORM.marks2 '&IMG.FORM_MARKS2; <ref id="form-marks2">Marks</ref>'>
   <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
@@ -264,7 +284,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>13 November 2014</docdate>
+<docdate>17 August 2015</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -355,7 +375,8 @@ Here is a summary of its main capabilities:
 <li>Concatenate the rows of existing tables to create new ones</li>
 <li>Acquire tables from web services, external filestores or other 
     customisable sources</li>
-<li>Perform single and multiple queries to Virtual Observatory services</li>
+<li>Perform single and multiple queries to Virtual Observatory services
+    including TAP services</li>
 <li>Interoperate with other desktop tools using SAMP</li>
 <li>Write modified tables out in original or different format</li>
 </ul>
@@ -1047,8 +1068,9 @@ with (<code>colfits-plus</code>) and without (<code>colfits-basic</code>)
 metadata stored as a VOTable byte array in the primary HDU.
 </p>
 
-<p>Colfits format is only available for data which stored as an
-uncompressed file in the file system (not, for instance, from a URL).
+<p>For performance reasons, it is advisable to access colfits files
+uncompressed on disk. Reading them from a remote URL, or in gzipped form,
+may be rather slow (in earlier versions it was not supported at all).
 </p>
 
 </subsubsubsect>
@@ -1300,6 +1322,8 @@ on which it was based was not obtained directly from Microsoft.
     followed for such a row as for data rows.
     </li> 
 </ul>
+Note that you can <em>not</em> use a "<code>#</code>" character
+(or anything else) to introduce "comment" lines.
 </p>
 
 <p>This format is not detected automatically - you must specify that
@@ -1920,6 +1944,16 @@ allowed:
         These are a bit different to normal URLs - see
         <ref id="inSql"/> and <ref id="outSql"/>.</p></dd>
 </dl>
+</p>
+
+<p>It is also possible to use the special value "<code>-</code>"
+to mean standard input; 
+in this case the file format must be specified explicitly
+using the <code>-f</code> flag,
+and not all formats can be streamed from stdin.
+Finally, the form "<code>&lt;syscmd</code>" or equivalently
+"<code>syscmd|</code>" may be used to read from the standard output
+of a shell pipeline (probably only works on Unix-like systems).
 </p>
 
 <p>As with the GUI-based load dialogues, data compression in any of the
@@ -3294,12 +3328,11 @@ and others.
 
 <p>SAMP and PLASTIC do much the same job as each other, and work in much
 the same way.  SAMP is an evolution of PLASTIC with a number of
-technical improvements, and so PLASTIC is now deprecated in favour
-of SAMP.
-It is not necessary for users to understand the differences between the two, 
-but in general a tool using SAMP can communicate with other tools using SAMP,
-and the same with PLASTIC, but in most cases interoperation between
-PLASTIC and SAMP tools will not work.
+technical improvements, and PLASTIC has been deprecated in favour
+of SAMP since around 2009.
+PLASTIC is therefore of mainly historical interest,
+though TOPCAT can still run in PLASTIC mode on request,
+if you need it to communicate with older tools that can only speak PLASTIC.
 </p>
 
 <p>The communication architecture of the two protocols is basically the same:
@@ -3308,27 +3341,19 @@ so a hub must be running in order for the messaging to operate.
 If a hub is running when TOPCAT starts,
 or if one starts up while TOPCAT is in operation,
 it will connect to it automatically.
-A hub can be started from within TOPCAT if required - details of how to
-do this are given in the <ref id="sampControl">SAMP</ref> and 
-<ref id="plasticControl">PLASTIC</ref> sections below.
-Other tools will have their own policies for connecting to the hub,
-but in general it is a good idea to start a hub first
-before starting up the tools which you want to talk to it.
+If no SAMP hub is running, TOPCAT will set one up during application startup.
 </p>
 
 <p>TOPCAT can work in either SAMP or PLASTIC mode, but not both at once.
 It determines which mode to use at startup:
 if the <code>-samp</code> or <code>-plastic</code> flag is supplied
 on the command line the corresponding mode will be used;
-otherwise if a running SAMP or PLASTIC hub can be found,
-the corresponding mode is used, otherwise it defaults to SAMP.
+otherwise it will try to use SAMP.
 It is easy to tell which mode is being used by looking at the 
 <ref id="ControlWindow">Control Window</ref>;
 in SAMP mode the <ref id="sampPanel">SAMP panel</ref> displaying connection
 and message status is visible at the bottom of the right hand panel
 (there are a few other changes to the GUI as well).
-Facilities for communications monitoring are considerably better in
-SAMP than in PLASTIC mode.
 </p>
 
 <p>This communication has two aspects to it: on the one hand
@@ -3403,6 +3428,11 @@ by other SAMP applications.
 
 <subsect id="plasticControl">
 <subhead><title>PLASTIC control</title></subhead>
+
+<p><em>Note: the PLASTIC protocol has been deprecated in favour
+of SAMP since about 2009, and this functionality, though still present,
+is of mostly historical interest.</em>
+</p>
 
 <p>You can view and control operations relating to the PLASTIC hub
 from the <label>Interop</label> menu in the 
@@ -3955,9 +3985,8 @@ The meaning of the flags is as follows:
 
 <dt>-samp</dt>
 <dd><p>Forces TOPCAT to use SAMP for tool interoperability
-    (see <ref id="interop"/>).  This is the default, but PLASTIC mode 
-    instead of SAMP will otherwise be chosen if a PLASTIC hub but no SAMP
-    hub is running on startup.
+    (see <ref id="interop"/>).  SAMP rather than PLASTIC is the
+    default, so this flag has no effect.
     </p></dd>
 
 <dt>-plastic</dt>
@@ -3970,7 +3999,7 @@ The meaning of the flags is as follows:
     SAMP or PLASTIC hub (SAMP by default), if no hub is already
     running, and the <code>-nohub</code> flag prevents this from happening.
     The default behaviour, when neither of these flags is given,
-    is currently (since v3.8) to start a hub automatically for
+    is to start a hub automatically for
     SAMP but not for PLASTIC.  The hub will terminate when TOPCAT does,
     or can be shut down manually with the 
     <label>Interop|Stop Internal Hub</label> (&IMG.NO_HUB;) menu item.
@@ -4350,6 +4379,14 @@ The following ones have special significance within TOPCAT:
     see <docxref doc="sun252" loc="storagePolicy"/>.
     The default is "<code>adaptive</code>", which means storing smaller
     tables in memory, and larger ones on disk.
+    </p></dd>
+
+<dt><code>startable.unmap</code></dt>
+<dd><p>Determines whether and how unmapping of memory mapped buffers is done.
+    Possible values are "<code>sun</code>" (the default) or "<code>none</code>".
+    In most cases you are advised to leave this alone, but in the event of
+    unmapping-related JVM crashes (not expected!), setting it to 
+    <code>none</code> may help.
     </p></dd>
 
 <dt><code>startable.writers</code></dt>
@@ -5443,7 +5480,8 @@ functions.  They are grouped as follows:
 
     <dt>&IMG.PLOT2_HISTOGRAM;
         <ref id="HistogramPlotWindow">Histogram Plot</ref></dt>
-    <dd><p>Displays a window for plotting 1D histograms.
+    <dd><p>Displays a window for plotting 1D histograms and
+        kernel density estimates.
         </p></dd>
 
     <dt>&IMG.PLOT2_PLANE; <ref id="PlanePlotWindow">Plane Plot</ref></dt>
@@ -6352,20 +6390,27 @@ can be edited by double-clicking on them in the normal way.
     consisting of the last <m>N</m> rows of the table.
     </p></dd>
 
-<dt>&IMG.DELETE; Remove Subset</dt>
-<dd><p>Deletes one of the subsets in the list.
-    Once deleted, a subset cannot be recovered.
-    Note that attempts to use its name or _ID in algebraic expressions
-    which you add or modify in the future will fail, though its use in 
-    existing expressions will continue to work.
-    </p></dd>
-
 <dt>&IMG.INVERT; Invert Subset</dt>
 <dd><p>Creates a new subset which is the complement of the selected one.
     The new one will include all the rows which are excluded by the
     selected one (and vice versa).
     To use this action, first select a subset by clicking on its row
     in the JTable.
+    </p></dd>
+
+<dt>&IMG.CLASSIFY; Classify By Column</dt>
+<dd><p>Pops up the
+    <ref id="ClassifyWindow">Column Classification Window</ref>,
+    which can add a set of mutually exclusive subsets based on the contents
+    of a given column or expression.
+    </p></dd>
+
+<dt>&IMG.DELETE; Remove Subset</dt>
+<dd><p>Deletes one of the subsets in the list.
+    Once deleted, a subset cannot be recovered.
+    Note that attempts to use its name or _ID in algebraic expressions
+    which you add or modify in the future will fail, though its use in 
+    existing expressions will continue to work.
     </p></dd>
 
 <dt>&IMG.TO_COLUMN; To Column</dt>
@@ -6700,6 +6745,7 @@ More may be introduced in future releases.
     <li>Pair data point links</li>
     <li>Contours</li>
     <li>Variable size markers</li>
+    <li>Kernel density estimates</li>
     </ul>
     </p></dd>
 
@@ -6769,15 +6815,12 @@ the columns, and you're off.
 </p>
 
 <p>Some features from the old-style plots that are <em>not</em>
-currently (v4.1) available in the new-style plots are:
+currently available in the new-style plots are:
 <ul>
 <li>the stacked line plot</li>
 <li>true RGB density maps (though density shading modes will often do as good
     or a better job)</li>
 <li>fogging in 3D plots</li>
-<li>linear correlation</li>
-<li>plot titles</li>
-<li>histogram export as a table</li>
 </ul>
 The intention is to introduce some of all of these in a future release,
 possibly informed by user demand.
@@ -6837,7 +6880,8 @@ adding and removing controls from the stack.
 <dt>Fixed controls:</dt>
 <dd><p>These control the overall plot appearance.
     In the above figure, the fixed controls
-    <label>Axes</label> (&IMG.AXIS_EDIT;) and
+    <label>Frame</label> (&IMG.FRAME_CONFIG;),
+    <label>Axes</label> (&IMG.AXIS_CONFIG;) and
     <label>Legend</label> (&IMG.LEGEND;) are visible.
     </p>
     <p>The different fixed controls are described in
@@ -7188,6 +7232,9 @@ generally contain two sub-panels for defining the style details,
     styles, for instance different shapes for different subsets,
     you can select a subset here and alter style details for
     that subset only, overriding the Global settings above.
+    The <label>Visible</label> checkbox indicates and controls
+    whether the subset selected for specific configuration is
+    currently visible in the plot.
     </p></dd>
 </dl>
 </p>
@@ -7422,10 +7469,55 @@ Those common to all plot types are described in the following subsections,
 though some plot types may also have their own.
 </p>
 
+<subsubsubsect id="FrameControl">
+<subhead><title>Frame</title></subhead>
+
+<p>The <label>Frame</label> control (&IMG.FRAME_CONFIG;)
+controls the graphical area on which the plot graphic is drawn.
+It contains two tabs, <label>Size</label> and <label>Title</label>.
+</p>
+
+<figure>
+<caption><px>Frame control Size tab</px></caption>
+<figureimage src="&FIG.size_tab;"/>
+</figure>
+
+<p>The <label>Size</label> tab allows you to set the geometry of the
+generated plot in pixels.  By default, the plot is simply resized to
+fit the current size and shape of the window.  However, if you fill
+in the <label>Outer width</label> and/or <label>Outer height</label>
+fields, the size will instead be fixed to the given dimension in pixels.
+Note if you pick a large value, you may need to manually resize the
+window to see all of the plot.
+Similarly, the <label>border</label> fields fix the number of pixels
+surrounding the data region of the plot; if these are left blank,
+as by default, these borders are sized to accommodate the things
+that have to fit in them
+(such as axis annotations and the Aux axis colour ramp).
+</p>
+
+<p>The main use for this tab is to fix the size and alignment
+of the generated images if you want to export a series of
+similar plots.
+</p>
+
+<figure>
+<caption><px>Frame control Title tab</px></caption>
+<figureimage src="&FIG.title_tab;"/>
+</figure>
+
+<p>The <label>Title</label> tab allows you to give a title for the plot.
+If text is filled in the <label>Plot Title</label> field,
+and if the <label>Title Visible</label> checkbox is checked,
+then the given text will appear at the top of the plot.
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="AxesControl">
 <subhead><title>Axes</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;)
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;)
 has a number of tabs specific to the particular plot type.
 These tabs allow you to configure things like the axis ranges,
 linear/log axis scaling, axis labelling, grid drawing,
@@ -7515,23 +7607,37 @@ are coloured by data value to represent an additional dimension in the data.
 <p>The <label>Map</label> tab controls the aux axis colour map.
 It has the following options:
 <dl>
-<dt>Shader</dt>
+<dt>Aux Shader</dt>
 <dd><p>Select the colour map from a list of options.
     </p></dd>
-<dt>Shade Clip</dt>
+<dt>Shader Clip</dt>
 <dd><p>Select a sub-range of the full colour map above.
     By default the whole colour map is used, but if you want the range
     of colours in the plot to be formed from only a part of the colour
     band shown in the <label>Shader</label> control,
     you can move the handles in from the end of this slider.
     </p></dd>
-<dt>Shade Log</dt>
-<dd><p>Whether the aux scale should map linearly or logarithmically
-    into the colour map.
-    </p></dd>
-<dt>Shade Flip</dt>
+<dt>Shader Flip</dt>
 <dd><p>Whether the aux scale should map forwards or backwards
     into the colour map.
+    </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of aux data values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
     </p></dd>
 <dt>Null Colour</dt>
 <dd><p>What colour should be used to represent points with a null value
@@ -7566,7 +7672,10 @@ It has the following options:
     The associated <label>Auto</label> option, if selected, uses the
     name of one of the coordinates supplying aux data;
     deselect Auto if you want to enter a label by hand.
-</p></dd>
+    </p></dd>
+<dt>Aux Tick Crowding</dt>
+<dd><p>The slider influences how many tick marks are drawn on the colour ramp.
+    </p></dd>
 </dl>
 </p>
 
@@ -7814,7 +7923,8 @@ but the detail panels are divided into these parts:
 <subhead><title>Histogram Layer Control</title></subhead>
 
 <p>The <label>Histogram</label> layer control (&IMG.PLOT_HISTO;),
-allows you to plot a 1-dimensional histogram.
+allows you to make a 1-dimensional histogram-like plots
+(weighted and unweighted histograms, various kinds of Kernel Density Estimates).
 It is the main control in the
 <ref id="HistogramPlotWindow">Histogram</ref> plot window,
 but is also available  in the <ref id="PlanePlotWindow">Plane</ref>
@@ -7827,8 +7937,8 @@ in the control panel toolbar,
 or the corresponding item in the <label>Layers</label> menu.
 </p>
 
-<p>Each instance of this control in the stack can plot a histogram
-of a particular quantity from a particular table.
+<p>Each instance of this control in the stack can make histogram-like
+plots of a particular quantity from a particular table.
 The value to be histogrammed, and optionally an associated weighting term,
 are defined in the <label>Positions</label> tab using column names
 or expressions.
@@ -7836,7 +7946,8 @@ However, the control can generate multiple layers from these coordinates;
 the <label>Subsets</label> tab controls which subsets are plotted
 and how each one is identified,
 and the <label>Form</label> tab provides many options for what graphics
-will be plotted based on the positions.
+will be plotted based on the sample values specified in the
+Position tab.
 </p>
 
 <p>This control is a Table Data control as described in
@@ -7852,8 +7963,9 @@ are described in more detail below.
 </figure>
 
 <p>In the <label>Position</label> tab you enter the value of the
-<label>X</label> value, the one which is to be binned to generate
-the histogram.  This may be a table column name or an expression.
+<label>X</label> value, the one whose values along the X axis
+will be used to generate the plots.
+This may be a table column name or an expression.
 You may also optionally fill in a column name or expression in
 the <label>Weight</label> field.  This weights the values as they
 are counted; each table row contributes a height value of the 
@@ -7867,44 +7979,48 @@ If Weight is not filled in, a value of 1 is assumed.
 </figure>
 
 <p>The <label>Form</label> tab lets you define how the specified
-data set is plotted.  The <label>Global Style</label> and
+data set is plotted.
+The stack on the left gives a list of forms currently included in the plot,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>When first added, the stack contains a single entry,
+<label>Histogram</label>, which plots a simple histogram.
+The colour is by default determined by the setting in the
+<label>Subsets</label> tab.
+This may be all you need, but if you want to use other histogram-like
+plots such as Kernel Density Estimates, you can add new forms to the stack
+by clicking on one of the buttons in the toolbar in the tab.
+You can remove a form with the <label>Remove</label> (&IMG.DELETE;) button
+in the same toolbar.
+You can also activate/deactivate them with the checkbox
+and move them up and down with the drag handle as usual.
+The available forms are currently the
+&FORM.histogram; and some variants on the idea of a Kernel Density Estimate:
+&FORM.kde;, &FORM.knn; and &FORM.densogram;.
+</p>
+
+<p>The <label>Global Style</label> and
 <label>Subset Style</label> sub-panels control shared and per-subset
-configration as described in <ref id="tableDataControl"/>.
-The specific configuration options are:
-<dl>
-<dt>Transparency</dt>
-<dd><p>How transparent the bars are.
-    </p></dd>
-<dt>Bar Form</dt>
-<dd><p>Type of histogram bars: filled, open, steps, spikes etc.
-    </p></dd>
-<dt>Thickness</dt>
-<dd><p>Controls line thickness where applicable.
-    This is only relevant for bar styles that draw a finite thickness
-    line, so has no effect for Filled bars.
-    </p></dd>
-<dt>Dash</dt>
-<dd><p>Controls the dash pattern of the line (solid, dots, dashes etc).
-    This is only relevant for bar styles that draw a finite thickness
-    line, so has no effect for Filled bars.
-    </p></dd>
-</dl>
+configuration specific to the selected form
+as described in <ref id="tableDataControl"/>.
 </p>
 
 <p>Histograms have some additional configuration items,
-as described in the <ref id="ConfigControl_histobars">Bars</ref>
+as described in the
+<ref id="ConfigControl_histobins">Bins</ref> (&IMG.HISTOBARS;)
 fixed control.
 When a histogram layer control is used in the
 <ref id="HistogramPlotWindow">Histogram window</ref>,
 those configuration items are found in the 
-<label>Bars</label> fixed control, where they control the settings
+<label>Bins</label> fixed control, where they control the settings
 for all the histogram layers in the plot.
 However, if you use a histogram layer in a
 <ref id="PlanePlotWindow">Plane</ref> plot,
 those items will appear as additional items in the <label>Form</label> tab
 and can be controlled separately for each histogram.
 </p>
-
 
 </subsubsubsect>
 
@@ -7977,16 +8093,44 @@ It has the following fields:
 <p>The <label>Style</label> allows you to configure the way the spectrogram
 is plotted.  It has the following fields:
 <dl>
-<dt>Shader</dt>
+<dt>Spectral Shader</dt>
 <dd><p>Select the colour map from a list of options.
     </p></dd>
-<dt>Shade Log</dt>
-<dd><p>Whether the aux scale should map linearly or logarithmically
+<dt>Shader Clip</dt>
+<dd><p>Select a sub-range of the full colour map above.
+    By default the whole colour map is used, but if you want the range
+    of colours in the plot to be formed from only a part of the colour
+    band shown in the <label>Shader</label> control,
+    you can move the handles in from the end of this slider.
+    </p></dd>
+<dt>Shader Flip</dt>
+<dd><p>Whether the spectral values should map forwards or backwards
     into the colour map.
     </p></dd>
-<dt>Shade Flip</dt>
-<dd><p>Whether the aux scale should map forwards or backwards
-    into the colour map.
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+ the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of spectral data values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
+    </p></dd>
+<dt>Spectral Subrange</dt>
+<dd><p>Adjusts the range of the spectral coordinate over which the
+    colour map is applied.  By default the colour map is scaled using
+    limits found from the spectral data values themselves,
+    but you can restrict the range using this slider.
     </p></dd>
 <dt>Null Colour</dt>
 <dd><p>What colour should be used to represent spectral samples with a null
@@ -8166,13 +8310,21 @@ whose size varies according to a supplied data coordinate.
 The marker size thus represents an additional dimension of the plot.
 </p>
 
-<p>The marker size is scaled according to the values of the data.
-The data range in the visible part of the plot is determined,
-the maximum value is assigned to the maximum marker size,
-and the size of each marker is determined as (data value)/(max data value).
-Currently data values of zero always correspond to marker size of zero,
+<p>The actual size of the markers depends on the setting of the
+<label>Auto Scale</label> option.
+If autoscaling is off, then the basic size of each
+marker is the input data value in units of pixels.
+If autoscaling is on, then the data values are gathered for
+all the currently visible points, and a scaling factor is applied
+so that the largest ones will be a sensible size (a few tens of pixels).
+This basic size can be further adjusted with the <label>Scale</label> slider.
+</p>
+
+<p>Currently data values of zero always correspond to marker size of zero,
 negative data values are not represented, and the mapping is linear.
-Other options may be introduced in future.
+An absolute maximum size on markers <!--PlotUtil.MAX_MARKSIZE-->
+is also imposed.
+Other options may be introduced in future. 
 </p>
 
 <p>Note the scaling to size is in terms of screen dimensions (pixels).
@@ -8189,13 +8341,104 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 <dd><p>The size coordinate data values.
     Fill this in with a column name or expression from the table
     just like for the positional coordinates.
+    The units are either pixels or arbitrary, according to
+    the <label>Auto Scale</label> setting.
     </p></dd>
 <dt>Shape</dt>
 <dd><p>Marker shape from a list of options.
     </p></dd>
-<dt>Max Marker Size</dt>
-<dd><p>Scales the maximum marker size in pixels.
-    Slide this along to scale the sizes of all the markers up or down.
+<dt>Scale</dt>
+<dd><p>Scales the size of variable-sized markers.
+    Adjusting the slider will make all markers larger or smaller.
+    Alternatively you can enter a scale factor in the text field.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>Determines whether the basic size of variable sized markers is
+    automatically scaled to have a sensible size. If checked, then the sizes
+    of all the plotted markers are examined, and some dynamically calculated
+    factor is applied to them all to make them a sensible size (by default,
+    the largest ones will be a few tens of pixels).
+    If unchecked, the sizes will be the actual input values in units of pixels.
+    </p>
+    <p>If auto-scaling is off, then markers will keep exactly the same
+    screen size during pan and zoom operations;
+    if it's on, then the visible sizes will change according
+    to what other points are currently plotted. 
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-sizexy">
+<subhead><title>SizeXY Form</title></subhead>
+
+<figure>
+<caption><px>SizeXY form configuration panel</px></caption>
+<figureimage src="&FIG.form_sizexy;"/>
+</figure>
+
+<p>The <label>SizeXY</label> form (&IMG.FORM_SIZEXY;)
+plots a shaped marker whose width and height vary independently
+acoording to two supplied data coordinates.
+The marker shape can thus encode two additional dimensions of the plot.
+</p>
+
+<p>The actual size of the markers depends on the setting of the
+<label>Auto Scale</label> option.
+If autoscaling is off, the basic dimensions of each marker are given by
+the input data values in units of pixels. If autoscaling is on, the data
+values are gathered for all the currently visible points, and scaling
+factors are applied so that the largest ones will be a sensible size
+(a few tens of pixels). This autoscaling happens independently for the
+X and Y directions. The basic sizes can be further adjusted with the
+<label>Scale</label> slider.
+</p>
+
+<p>Currently data values of zero always correspond to marker extent of zero,
+negative data values are not represented, and the mapping is linear.
+An absolute maximum size on markers <!--PlotUtil.MAX_MARKSIZE-->
+is also imposed.
+Other options may be introduced in future.
+</p>
+
+<p>Note the scaling to size is in terms of screen dimensions (pixels).
+For sizes that correspond to actual data values,
+the <ref id="form-error">Error</ref> form may be more appropriate.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>X/Y Size</dt>
+<dd><p>For width and height respectively, the size coordinate data values.
+    Fill in with a column name or expression from the table
+    just like for the positional coordinates.
+    The units are either pixels or arbitrary, according to
+    the <label>Auto Scale</label> setting.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Scales the size of variable-sized markers.
+    Adjusting the slider will make all markers larger or smaller.
+    Alternatively you can enter a scale factor in the text field.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>Determines whether the basic size of variable sized markers is
+    automatically scaled to have a sensible size. If checked, then the sizes
+    of all the plotted markers are examined, and some dynamically calculated
+    factor is applied to them all to make them a sensible size (by default,
+    the largest ones will be a few tens of pixels).
+    If unchecked, the sizes will be the actual input values in units of pixels.
+    </p>
+    <p>If auto-scaling is off, then markers will keep exactly the same
+    screen size during pan and zoom operations;
+    if it's on, then the visible sizes will change according
+    to what other points are currently plotted. 
     </p></dd>
 </dl>
 </p>
@@ -8245,7 +8488,8 @@ This scaling can be adjusted or turned off using the
 <dt>Scale</dt>
 <dd><p>Changes the factor by which all vector sizes are scaled.
     If the arrows are too small, slide it right, if they are too big,
-    slide it left.  The scale is logarithmic.
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
     </p></dd>
 <dt>Auto Scale</dt>
 <dd><p>If selected, this option will determine the default arrow scale size
@@ -8316,7 +8560,7 @@ see the <ref id="form-ellipse">Ellipse</ref> form).
 </figure>
 
 <p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
-draws an ellipse (or rectangle, or other similar figure) defined by 
+draws an ellipse (or rectangle, triangle, or other similar figure) defined by 
 major and minor radii and an optional rotation angle.
 </p>
 
@@ -8346,7 +8590,8 @@ major and minor radii and an optional rotation angle.
 <dt>Scale</dt>
 <dd><p>Changes the factor by which all ellipse sizes are scaled.
     If the ellipses are too small, slide it right, if they are too big,
-    slide it left.  The scale is logarithmic.
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
     </p></dd>
 <dt>Auto Scale</dt>
 <dd><p>If selected, this option will determine the default ellipse scale size
@@ -8386,6 +8631,72 @@ scribble on the screen.
     </p></dd>
 <dt>Antialiasing</dt>
 <dd><p>If true, pixels are blurred to give the line a smoother appearance.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-linearfit">
+<subhead><title>Linear Fit Form</title></subhead>
+
+<figure>
+<caption><px>Linear Fit configuration panel</px></caption>
+<figureimage src="&FIG.form_linearfit;"/>
+<!-- Data from VizieR J/A+A/320/79/table4 -->
+</figure>
+
+<p>The <label>Linear Fit</label> form (&IMG.FORM_LINEARFIT;)
+determines a least-squares best fit of a line to the data points,
+optionally weighted by a given value, and plots the corresponding line.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>Weighting to apply to each point.
+    If left blank, no weighting (equivalent to unit weighting) is applied.
+    If independent sampling errors <code>E</code> are available for each point,
+    a suitable value for this may be <code>1./(E*E)</code>
+    (equivalently <code>pow(E,-2)</code>).
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Line thickness in pixels.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Dash pattern.  The line is solid by default.
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>If true, pixels are blurred to give the line a smoother appearance.
+    </p></dd>
+</dl>
+</p>
+
+<p>As well as drawing the line onto the plot,
+the calculated fitting coefficients are
+displayed at the bottom of the form configuration panel,
+under the heading <label>Report</label>.
+Note the coefficients are calculated by subset, and
+are only displayed for one subset at a time.
+To see the calculated values, select the subset of interest in
+the <label>Subset</label> selector.
+The reported items are:
+<dl>
+<dt>Equation</dt>
+<dd><p>The equation of the line.
+    The basic linear equation is <code>y=m*x+c</code>,
+    but if one or both of the axes are plotted logarithmically,
+    the fit is performed to take account of this, and the equation
+    is displayed accordingly.
+    </p></dd>
+<dt>c</dt>
+<dd><p>The constant intercept of the line on the Y axis.
+    </p></dd>
+<dt>m</dt>
+<dd><p>The line gradient.
+    </p></dd>
+<dt>Correlation</dt>
+<dd><p>Pearson's product moment correlation coefficient.
     </p></dd>
 </dl>
 </p>
@@ -8498,6 +8809,546 @@ so they don't look very beautiful in exported vector output formats
 
 </subsubsubsect>
 
+<subsubsubsect id="form-histogram">
+<subhead><title>Histogram Form</title></subhead>
+
+<figure>
+<caption><px>Histogram form configuration panel</px></caption>
+<figureimage src="&FIG.form_histogram;"/>
+</figure>
+
+<p>The <label>Histogram</label> form (&IMG.FORM_HISTOGRAM;)
+plots a histogram generated by binning samples along the X axis.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>Selects the basic colour for the dataset.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the bars or line.
+    For bar styles which are already partially transparent,
+    this fades them further.
+    </p></dd>
+<dt>Bar Form</dt>
+<dd><p>Type of histogram bars: filled, open, steps, spikes etc.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness where applicable.
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for solid bars.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Controls the dash pattern of the line (solid, dots, dashes etc).
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for solid bars.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Bin Size</dt>
+<dd><p>A scale for the width of bins that are shown on the screen.
+    There are two ways to specify this.
+    If the left-hand radio button is selected, the adjacent slider will
+    adjust the bin size, which is also affected by the actual width of
+    the plotting window in pixels.  Slide the slider left to get narrower
+    bins or right to get wider ones.
+    If the right-hand radio button is selected, you can enter a numeric
+    value giving the actual width in data units of each bar
+    (for a logarithmic X axis this value is a factor).
+    </p></dd>
+<dt>Bin Phase</dt>
+<dd><p>Controls where the horizontal zero point for binning is set.
+    For instance if your bin size is 1, it controls whether bins
+    boundaries are at 0, 1, 2, ..  or 0.5, 1.5, 2.5, ... etc.
+    If the slider is at either end of the scale, there will be a bin
+    boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+
+
+</subsubsubsect>
+
+<subsubsubsect id="form-kde">
+<subhead><title>KDE Form</title></subhead>
+
+<figure>
+<caption><px>KDE form configuration panel</px></caption>
+<figureimage src="&FIG.form_kde;"/>
+</figure>
+
+<p>The <label>KDE</label> form (&IMG.FORM_KDE;)
+plots a discrete Kernel Density Estimate giving a smoothed
+frequency of data values along the horizontal axis,
+using a fixed-width smoothing kernel.
+(for a variable-bandwidth kernel, see <ref id="form-knn">KNN</ref>).
+This is a generalisation of a histogram in which the bins are always
+1 pixel wide, and a smoothing kernel is applied to each bin. The width
+and shape of the kernel may be varied.
+</p>
+
+<p>This is suitable for cases where the division into discrete bins done
+by a normal histogram is unnecessary or troublesome.
+</p>
+
+<p>Note this is not a true Kernel Density Estimate, since, for performance
+reasons, the smoothing is applied to the (pixel-width) bins rather
+than to each data sample. The deviation from a true KDE caused by this
+quantisation will be at the pixel level, hence in most cases not visually
+apparent.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>Selects the basic colour for the dataset.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the bars or line.
+    For bar styles which are already partially transparent,
+    this fades them further.
+    </p></dd>
+<dt>Fill</dt>
+<dd><p>Determines how the density function is represented.
+    The options are:
+    <ul>
+    <li><label>solid</label>:
+        area between level and axis is filled with solid colour
+        </li>
+    <li><label>line</label>:
+        level is marked by a wiggly line
+        </li>
+    <li><label>semi</label>:
+        level is marked by a wiggly line, and area below it is filled
+        with a transparent colour
+        </li>
+    </ul>
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness where applicable.
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for <label>solid</label> filling.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width for kernel density estimation. This is
+    the characteristic width of the kernel function to be convolved with
+    the density to produce the visible plot.
+    </p>
+    <p>Sliding the slider to the right makes the kernel width larger.
+    The width in data units is shown in the text field on the right
+    (if the X axis is logarithmic, this is a factor).
+    Alternatively you can click the radio button near the text field,
+    and enter the width in data units directly.
+    </p></dd>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-knn">
+<subhead><title>KNN Form</title></subhead>
+
+<figure>
+<caption><px>KNN form configuration panel</px></caption>
+<figureimage src="&FIG.form_knn;"/>
+</figure>
+
+<p>The <label>KNN</label> form (&IMG.FORM_KNN;)
+plots a discrete Kernel Density Estimate giving a smoothed
+frequency of data values along the horizontal axis, using an adaptive
+(K-Nearest-Neighbours) smoothing kernel. This is a generalisation of a
+histogram in which the bins are always 1 pixel wide, and a 
+variable-bandwidth smoothing kernel is applied to each bin
+(for a fixed-bandwidth kernel, see <ref id="form-kde">KDE</ref>).
+</p>
+
+<p>The K-Nearest-Neighbour figure gives the number of points in each
+direction to determine the width of the smoothing kernel for smoothing
+each bin. Upper and lower limits for the kernel width are also supplied;
+if the upper and lower limits are equal, this is equivalent to a
+fixed-width kernel.
+</p>
+
+<p>Note this is not a true Kernel Density Estimate, since, for performance
+reasons, the smoothing is applied to the (pixel-width) bins rather
+than to each data sample. The deviation from a true KDE caused by this
+quantisation will be at the pixel level, hence in most cases not visually
+apparent.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>Selects the basic colour for the dataset.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the bars or line.
+    For bar styles which are already partially transparent,
+    this fades them further.
+    </p></dd>
+<dt>Knn K</dt>
+<dd><p>Sets the number of nearest neighbours to count away from a sample
+    point to determine the width of the smoothing kernel at that point.
+    For the symmetric case this is the total of nearest neighbours summed
+    over both directions, and for the asymmetric case it is the number in
+    a single direction.
+    The threshold is actually the weighted total of samples;
+    for unweighted (weight=1) bins that is equivalent to the number of samples.
+    </p></dd>
+<dt>Symmetric</dt>
+<dd><p>If checked, the nearest neigbour search is carried out in both
+    directions, and the kernel is symmetric. If unchecked, the nearest
+    neigbour search is carried out separately in the positive and negative
+    directions, and the kernel width is accordingly different in the
+    positive and negative directions.
+    </p></dd>
+<dt>Min Smoothing</dt>
+<dd><p>Fixes the minimum size of the smoothing kernel. This functions as a
+    lower limit on the distance that is otherwise determined by searching
+    for the K nearest neighbours at each sample point.
+    </p>
+    <p>You can either use the slider, or check the radio button on the right
+    and enter the value in data units directly.
+    </p></dd>
+<dt>Max Smoothing</dt>
+<dd><p>Fixes the maximum size of the smoothing kernel. This functions as an
+    upper limit on the distance that is otherwise determined by searching
+    for the K nearest neighbours at each sample point.
+    </p>
+    <p>You can either use the slider, or check the radio button on the right
+    and enter the value in data units directly.
+    </p></dd>
+<dt>Fill</dt>
+<dd><p>Determines how the density function is represented.
+    The options are:
+    <ul>
+    <li><label>solid</label>:
+        area between level and axis is filled with solid colour
+        </li>
+    <li><label>line</label>:
+        level is marked by a wiggly line
+        </li>
+    <li><label>semi</label>:
+        level is marked by a wiggly line, and area below it is filled
+        with a transparent colour
+        </li>
+    </ul>
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness where applicable.
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for <label>solid</label> filling.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-densogram">
+<subhead><title>Densogram Form</title></subhead>
+
+<figure>
+<caption><px>Densogram form configuration panel</px></caption>
+<figureimage src="&FIG.form_densogram;"/>
+</figure>
+
+<p>The <label>Densogram</label> form (&IMG.FORM_DENSOGRAM;)
+represents smoothed density of data values along the horizontal axis using
+a colourmap. This is like a Kernel Density Estimate (smoothed histogram
+with bins 1 pixel wide), but instead of representing the data extent
+vertically as bars or a line, values are represented by a fixed-size
+pixel-width column of a colour from a colour map. A smoothing kernel,
+whose width and shape may be varied, is applied to each data point.
+</p>
+
+<p>This is a rather unconventional way to represent density data, and this
+plotting mode is probably not very useful. But hey, nobody's forcing
+you to use it.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>The base colour for the data set.
+    Only certain shader colour maps respect this value, for others it
+    is ignored.</p></dd>
+<dt>Density Shader</dt>                  
+<dd><p>The colour map for displaying density values.
+    There are two types, relative and absolute.
+    Relative maps have names marked by a star ("*"), and alter the
+    basic dataset colour, for instance by darkening or lightening it,
+    while absolute maps (the rest) ignore the basic dataset colour altogether.
+    For a single-dataset plot, the absolute maps are best, but for
+    multiple subsets it may be less confusing to use a relative one.
+    </p></dd>
+<dt>Shader Clip</dt>
+<dd><p>Select only a part of the colour map selected above.
+    By default the whole colour map is used, but if you want the range
+    of colours in the plot to be formed from only a part of the colour
+    band shown in the <label>Shader</label> control,
+    you can move the handles in from the end of this slider.
+    </p></dd>
+<dt>Shader Flip</dt>
+<dd><p>Whether the density scale should map forwards or backwards
+    into the colour map.
+    </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of density values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
+    </p></dd>
+<dt>Density Subrange</dt>
+<dd><p>Adjusts the density range over which the colour
+    map is applied.  By default the colour map is scaled using limits
+    found from the data density in the plot (the most dense few pixels are
+    ignored), but you can restrict the range using this slider.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Height of the density bar in pixels.
+    </p></dd>
+<dt>Position</dt>
+<dd><p>Determines where on the plot region the density bar appears. The value
+    should be in the range 0..1; zero corresponds to the bottom of the
+    plot and one to the top.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width for kernel density estimation. This is
+    the characteristic width of the kernel function to be convolved with
+    the density to produce the visible plot.
+    </p>
+    <p>Sliding the slider to the right makes the kernel width larger.
+    The width in data units is shown in the text field on the right
+    (if the X axis is logarithmic, this is a factor).
+    Alternatively you can click the radio button near the text field,
+    and enter the width in data units directly.
+    </p></dd>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-marks2">
 <subhead><title>Pair Marks Form</title></subhead>
 
@@ -8547,7 +9398,6 @@ and plots a line linking the two points in a position pair.
 
 <p>Configuration options are:
 <dl>
-<dt>Shading Mode</dt>
 <dt>Shading Mode</dt>
 <dd><p>See <ref id="ShapeMode"/>.
     </p></dd>
@@ -8748,7 +9598,7 @@ shapes plotted.
 <p>This is like <ref id="mode-auto">Auto</ref> mode, but with more
 user-configurable options.  The options are:
 <dl>
-<dt>Map</dt>
+<dt>Density Shader</dt>
 <dd><p>The colour map for displaying density values.
     There are two types, relative and absolute.
     Relative maps have names marked by a star ("*"), and alter the
@@ -8757,22 +9607,36 @@ user-configurable options.  The options are:
     For a single-dataset plot, the absolute maps are best, but for
     multiple subsets it may be less confusing to use a relative one.
     </p></dd>
-<dt>Map Clip</dt>
+<dt>Shader Clip</dt>
 <dd><p>Select only a part of the colour map selected above.
     By default the whole colour map is used, but if you want the range
     of colours in the plot to be formed from only a part of the colour
     band shown in the <label>Shader</label> control,
     you can move the handles in from the end of this slider.
     </p></dd>
-<dt>Log</dt>
-<dd><p>Selects whether the colour map should be applied linearly or
-    logarithmically to the range of densities.  The default is logarithmic.
+<dt>Shader Flip</dt>
+<dd><p>Whether the density scale should map forwards or backwards
+    into the colour map.
     </p></dd>
-<dt>Flip</dt>
-<dd><p>Selects whether the colour map should be applied forwards or
-    backwards to the range of densities.
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
     </p></dd>
-<dt>Sub-range</dt>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of density values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
+    </p></dd>
+<dt>Density Subrange</dt>
 <dd><p>Adjusts the density range over which the colour
     map is applied.  By default the colour map is scaled using limits
     found from the data density in the plot (the most dense few pixels are
@@ -8851,26 +9715,74 @@ layers will be completely obscured.
 </figure>
 
 <p>The <label>Histogram Plot</label> (&IMG.PLOT2_HISTOGRAM;)
-plots 1-dimensional histograms.
-In many respects it is like the <ref id="PlanePlotWindow">Plane Plot</ref>,
-but it has an additional fixed control
-<ref id="ConfigControl_histobars">Bars</ref>
+plots 1-dimensional histograms and some variants on the idea of a
+1-dimensional Kernel Density Estimate.
+In many respects it works like the <ref id="PlanePlotWindow">Plane Plot</ref>,
+but it has a restricted set of plot types
+and an additional fixed control
+<ref id="ConfigControl_histobins">Bins</ref>,
 and the scrolling works a bit differently.
 </p>
 
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
 for features common to all plotting windows.
-The following subsections describe
-<ref id="histogramNavigation">navigation</ref>,
-<ref id="HistogramAxisControl">axis configuration</ref> and
-<ref id="ConfigControl_histobars">bar configuration</ref>.
 </p>
 
-<p>The Histogram Plot offers only the following plot controls:
+<p>The following non-standard action is available from the toolbar
+as well as the <label>Plot</label> menu:
+<dl>
+
+<dt>&IMG.RESIZE_Y; Rescale Y</dt>
+<dd><p>Adjusts the vertical range of the visible data region
+    to accommodate all the histogram bars in the currently
+    visible horizontal region of the plot.
+    The horizontal range is not changed.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>In addition, the histogram window lets you export the binned data as
+a new table, either saving it or loading it directly into TOPCAT's
+table list.
+The following actions are available in the <label>Export</label> menu;
+note they only apply to histograms proper, not to KDEs:
+<dl>
+
+<dt>&IMG.HISTO_SAVE; Save as Table</dt>
+<dd><p>The bin counts/sums corresponding to the currently plotted histogram
+    will be written to disk in tabular form.  The first two columns give
+    the lower and upper bounds of each bin, and the subsequent columns
+    give the occupancies of each bin for each plotted data set.
+    If only one dataset is plotted, there will only be three columns.
+    </p></dd>
+
+<dt>&IMG.HISTO_IMPORT; Import as Table</dt>
+<dd><p>Assembles a table as per the <label>Save</label> option above,
+    but rather than writing it to disk imports it directly into TOPCAT,
+    where it can be manipulated in all the usual ways.
+    </p></dd>
+</dl>
+</p>
+
+<p>The Histogram Plot offers the following plot controls:
 <ul>
-<li>&CONTROL.histogram;</li>
+<li>&CONTROL.histogram;, with these form options:
+    <ul>
+    <li>&FORM.histogram;</li>
+    <li>&FORM.kde;</li>
+    <li>&FORM.knn;</li>
+    <li>&FORM.densogram;</li>
+    </ul>
+    </li>
 <li>&CONTROL.function;</li>
 </ul>
+</p>
+
+<p>The following subsections describe
+<ref id="histogramNavigation">navigation</ref>,
+<ref id="HistogramAxisControl">axis configuration</ref> and
+<ref id="ConfigControl_histobins">bin configuration</ref>.
 </p>
 
 <subsubsubsect id="histogramNavigation">
@@ -8936,15 +9848,37 @@ the Y=0 line to stay anchored to the bottom of the plot when zooming.
 
 </subsubsubsect>
 
-<subsubsubsect id="ConfigControl_histobars">
-<subhead><title>Bars Control</title></subhead>
+<subsubsubsect id="ConfigControl_histobins">
+<subhead><title>Bins Control</title></subhead>
 
-<p>The <label>Bars</label> control (&IMG.HISTOBARS;)
-is found in the control stack of the Histogram window.
-It configures the common placement and calculation of the bars for
-all the histogram layers displayed.
-It has the following fields:
+<p>The <label>Bins</label> control (&IMG.HISTOBARS;)
+is found in the control stack of the 
+<ref id="HistogramPlotWindow">Histogram</ref> window.
+It configures the common placement and calculation of some options
+for all the histogram-like layers displayed.
+Being able to set these values in common for all displayed layers
+of a similar type can be convenient, but if you need to use different
+parameters for different datasets, you can plot the same layer forms
+in the <ref id="PlanePlotWindow">Plane</ref> window
+(which has no fixed Bins control) instead.
+</p>
+
+<p>There are three tabs:
+<label>Histogram</label>,
+<label>KDE</label> and
+<label>General</label>.
+</p>
+
+<figure>
+<caption><px>Histogram tab of histogram window Bins fixed control</px></caption>
+<figureimage src="&FIG.BinsControl_histogram;"/>
+</figure>
+
+<p>The <label>Histogram</label> tab affects all
+<ref id="form-histogram">Histogram</ref> layers,
+and has the following controls:
 <dl>
+
 <dt>Bin Size</dt>
 <dd><p>A scale for the width of bins that are shown on the screen.
     There are two ways to specify this.
@@ -8956,6 +9890,7 @@ It has the following fields:
     value giving the actual width in data units of each bar
     (for a logarithmic X axis this value is a factor).
     </p></dd>
+
 <dt>Bin Phase</dt>
 <dd><p>Controls where the horizontal zero point for binning is set.
     For instance if your bin size is 1, it controls whether bins
@@ -8963,21 +9898,101 @@ It has the following fields:
     If the slider is at either end of the scale, there will be a bin
     boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
     </p></dd>
-<dt>Cumulative</dt>
-<dd><p>If true, the bars plotted are calculated cumulatively;
-    each bin includes the counts from all previous bins.
+</dl>
+</p>
+
+<figure>
+<caption><px>KDE tab of histogram window Bins fixed control</px></caption>
+<figureimage src="&FIG.BinsControl_kde;"/>
+</figure>
+
+<p>The <label>KDE</label> (Kernel Density Estimate) tab affects all
+<ref id="form-kde">KDE</ref>,
+<ref id="form-knn">KNN</ref> and
+<ref id="form-densogram">Densogram</ref> layers,
+and has the following controls:
+<dl>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width for kernel density estimation. This is
+    the characteristic width of the kernel function to be convolved with
+    the density to produce the visible plot.
+    </p>
+    <p>Sliding the slider to the right makes the kernel width larger.
+    The width in data units is shown in the text field on the right
+    (if the X axis is logarithmic, this is a factor).
+    Alternatively you can click the radio button near the text field,
+    and enter the width in data units directly.
+    </p>
+    <p>Note this affects KDE and Densogram layers,
+    but <em>not</em> KNN layers, which have their own smoothing controls.
     </p></dd>
-<dt>Normalized</dt>
-<dd><p>If true, the counts in each plotted histogram are normalised to
-    sum to a value of 1.
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
     </p></dd>
 </dl>
 </p>
 
 <figure>
-<caption><px>Bars fixed control in Histogram Window</px></caption>
-<figureimage src="&FIG.ConfigControl_histobars;"/>
+<caption><px>General tab of histogram window Bins fixed control</px></caption>
+<figureimage src="&FIG.BinsControl_general;"/>
 </figure>
+
+<p>The <label>General</label> tab affects all histogram-like layers,
+and has the following controls:
+<dl>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
 
 </subsubsubsect>
 
@@ -8999,23 +10014,18 @@ see the <label>Coords</label> tab of the
 <ref id="PlaneAxisControl">Axes</ref> control.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="planeNavigation">navigation</ref> and
-<ref id="PlaneAxisControl">axis configuration</ref>.
-</p>
-
 <p>The Plane Plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
     <li>&FORM.ellipse;</li>
     <li>&FORM.line;</li>
+    <li>&FORM.linearfit;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     </ul></li>
@@ -9027,6 +10037,13 @@ The following subsections describe
 <li>&CONTROL.histogram;</li>
 <li>&CONTROL.function;</li>
 </ul>
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="planeNavigation">navigation</ref> and
+<ref id="PlaneAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="planeNavigation">
@@ -9092,8 +10109,8 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
 <subsubsubsect id="PlaneAxisControl">
 <subhead><title>Plane Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-plane plot window has six tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+plane plot window has the following tabs:
 </p>
 
 <figure>
@@ -9284,19 +10301,13 @@ as the coordinates you are supplying, you can ignore leave these
 values as their default (both Equatorial) and no conversion will be done.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="skyNavigation">navigation</ref> and
-<ref id="SkyAxisControl">axis configuration</ref>.
-</p>
-
 <p>The sky plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.ellipse;</li>
     <li>&FORM.label;</li>
@@ -9308,6 +10319,13 @@ The following subsections describe
     <li>&FORM.link2;</li>
     </ul></li>
 </ul>
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="skyNavigation">navigation</ref> and
+<ref id="SkyAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="skyNavigation">
@@ -9371,8 +10389,8 @@ tab of the <ref id="SkyAxisControl">Axes control</ref>.
 <subsubsubsect id="SkyAxisControl">
 <subhead><title>Sky Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-sky plot window has five tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+sky plot window has the following tabs:
 </p>
 
 <figure>
@@ -9553,19 +10571,13 @@ see the <label>Coords</label> tab of the
 <ref id="CubeAxisControl">Axes</ref> control.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="cubeNavigation">navigation</ref> and
-<ref id="CubeAxisControl">axis configuration</ref>.
-</p>
-
 <p>The cube plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
     <li>&FORM.ellipse;</li>
@@ -9586,6 +10598,13 @@ This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
 at the "right" place in the 3-d space.  The same applies to a lesser
 extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="cubeNavigation">navigation</ref> and
+<ref id="CubeAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="cubeNavigation">
@@ -9665,8 +10684,8 @@ tab of the <ref id="CubeAxisControl">Axes control</ref>.
 <subsubsubsect id="CubeAxisControl">
 <subhead><title>Cube Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-cube plot window has seven tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+cube plot window has the following tabs:
 </p>
 
 <figure>
@@ -9865,19 +10884,13 @@ In many respects this works like the
 <label>Radius</label>.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="sphereNavigation">navigation</ref> and
-<ref id="SphereAxisControl">axis configuration</ref>.
-</p>
-
 <p>The sphere plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     </ul></li>
@@ -9894,6 +10907,13 @@ This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
 at the "right" place in the 3-d space.  The same applies to a lesser
 extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="sphereNavigation">navigation</ref> and
+<ref id="SphereAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="sphereNavigation">
@@ -9969,8 +10989,8 @@ tab of the <ref id="SphereAxisControl">Axes control</ref>.
 <subsubsubsect id="SphereAxisControl">
 <subhead><title>Sphere Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-sphere plot window has five tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+sphere plot window has the following tabs:
 </p>
 
 <figure>
@@ -10132,13 +11152,6 @@ stacked vertically using the same horizontal axis,
 but at present it doesn't do that.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="timeNavigation">navigation</ref> and
-<ref id="TimeAxisControl">axis configuration</ref>.
-</p>
-
 <p>The Time Plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
@@ -10152,6 +11165,13 @@ The following subsections describe
 <li>&CONTROL.spectrogram;</li>
 <li>&CONTROL.function;</li>
 </ul>
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="timeNavigation">navigation</ref> and
+<ref id="TimeAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="timeNavigation">
@@ -10223,8 +11243,8 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
 <subsubsubsect id="TimeAxisControl">
 <subhead><title>Time Axes Control</title></subhead>
 
-<p>The <label>Axes</label> (&IMG.AXIS_EDIT;) for the
-time plot window has six tabs.
+<p>The <label>Axes</label> (&IMG.AXIS_CONFIG;) for the
+time plot window has the following tabs:
 </p>
 
 <figure>
@@ -11304,7 +12324,7 @@ be identified in the legend which appears alongside the plot
 </dl>
 </p>
 
-<p>The <label>Bars</label> panel describes the form of the bars to be
+<p>The <label>Bins</label> panel describes the form of the bars to be
 plotted for each data set.
 <dl>
 <dt>Colour</dt>
@@ -15105,8 +16125,9 @@ VO data access windows.
 <figureimage src="&FIG.RegistryPanel;"/>
 </figure>
 
-<p>The Registry Query Panel appears in all VO query windows and 
-allows you to search for entries
+<p>The Registry Query Panel appears in all VO query windows
+(though by default the TAP window uses an alternative registry search panel)
+and allows you to search for entries
 in <ref id="registry">the Registry</ref> representing data services
 of the type appropriate to the window.
 Note that if you know the service URL for the service that you want
@@ -15182,8 +16203,8 @@ This consists of the following parts:
     By default the Short Name, Title, Subjects and ID fields are matched - 
     click the checkboxes to change the selection
     </p></dd>
-<dt>Submit Query button</dt>
-<dd><p>When the other fields have been filled in, hit the Submit button
+<dt>Find Services button</dt>
+<dd><p>When the other fields have been filled in, hit the Find button
     and the registry will be searched to find data services that match
     the constraints you have given.
     </p></dd>
@@ -15197,7 +16218,7 @@ a manageable number of these.  There are thousands of cone searches
 however, so for the cone search windows you need to fill in a query
 and submit it yourself.
 In either case, you can resubmit a query 
-(hit the <label>Cancel Query</label> button first if necessary)
+(hit the <label>Cancel</label> button first if necessary)
 to make another selection of registry entries.
 </p>
 
@@ -15787,12 +16808,13 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 
 <figure>
 <caption><px>Table Access Protocol Window</px></caption>
-<figureimage src="&FIG.TapTableLoadDialog;"/>
+<figureimage src="&FIG.TapTableLoadDialog_query;"/>
 </figure>
 
 <p>The Table Access Protocol (TAP) load window can be opened using the
 <label>TAP Query</label> button (&IMG.TAP_DIALOG;)
-in the Control Window's toolbar or <label>VO</label> menu,
+in the <ref id="ControlWindow">Control Window</ref>'s toolbar
+or <label>VO</label> menu,
 or the Load Window's toolbar.
 It allows you to use the TAP protocol to
 make freeform queries of remote database services 
@@ -15804,34 +16826,36 @@ but using the IVOA-endorsed TAP standard means that you can use
 the same interface for many different remote datasets.
 </p>
 
-<p>TAP is more involved than the other VO protocols implemented by TOPCAT,
-and this window is correspondingly more complicated than the Cone, SIA
-and SSA dialogues, though it does share some features with them.
+<p>Using TAP is one of the more complicated things you can do in TOPCAT,
+but it's well worth getting to grips with because of the
+capabilities it gives you for customised access to all kinds of remote data.
 </p>
 
 <p>In order to interrogate the remote database you will have to
 write queries in Astronomical Data Query Language (ADQL).
-This is a powerful tool, but to do complicated things in it 
-is not trivial.  ADQL is essentially a particular dialect of SQL,
-so if you know SQL already, you should be able to write ADQL queries.
-If you have used systems like SDSS's CasJobs, the concept
-should be quite familiar.
+ADQL is essentially a particular dialect of SQL,
+so if you have used SQL before, you should be able to write ADQL queries.
 A tutorial on writing ADQL/SQL is beyond the scope of this manual,
-but the <ref id="TapTableLoadDialog_query">Enter Query</ref> tab
+but the <ref id="TapTableLoadDialog_query">Use Service</ref> tab
 provides an <label>Examples</label> menu which
 will give you a good start in using it.
-You can find a nice introduction written by Markus Demleitner of GAVO
-at <webref url="http://docs.g-vo.org/adql"/>.
+You can find some introductions and tutorials elsewhere,
+for instance at
+<webref url="http://docs.g-vo.org/adql"/> (Markus Demleitner) or
+<webref url="http://is.gd/ADQLTutorial"/> (Simon Murphy).
+Some TAP services also provide tutorials or examples on their web pages.
 </p>
 
 <p>Once your query is written, you can submit it in either
 <em>synchronous</em> or <em>asynchronous</em> mode.
-Synchronous queries begin to execute right away and must be relatively short;
+Synchronous queries begin to execute right away and should have a
+relatively short runtime;
 asynchronous queries are submitted to a server, run for a potentially 
 long time, and retrieve the result later.
 </p>
 
-<p>The window is composed of four tabs, of which you can see one at a time.
+<p>The window is composed of four tabs, of which you can see one at a time
+(some of these tabs themselves contain tabbed parts).
 You will use two or three of them when submitting a TAP query.
 Each tab is described in more detail in the following subsections,
 but an overview of their operation is like this:
@@ -15840,12 +16864,12 @@ but an overview of their operation is like this:
 <dd><p>Chooses the TAP service you wish to query, either using a registry
     search or by entering the service URL directly.
     Once you have chosen a service you can move to the
-    <label>Enter Query</label> tab.
+    <label>Use Service</label> tab.
     </p></dd>
-<dt><ref id="TapTableLoadDialog_query">Enter Query</ref> tab</dt>
+<dt><ref id="TapTableLoadDialog_query">Use Service</ref> tab</dt>
 <dd><p>Displays information about the service and the tables it holds,
     and allows you to enter the text of the query and submit the job.
-    If the job is submitted synchronously, load will begin directly,
+    If the job is submitted synchronously, loading will begin directly,
     but in the asynchronous case, you will move to the
     <label>Running Jobs</label> tab.
     </p></dd>
@@ -15865,68 +16889,153 @@ tab will be visible, and when an asynchronous query has been submitted the
 <label>Running Jobs</label> tab will be visible.
 If you want to submit another query to the same service,
 or use a different service,
-just select <label>Enter Query</label> or 
+just select <label>Use Service</label> or 
 <label>Select Service</label> respectively,
 by clicking on the appropriate tab at the top.
 </p>
 
-<p>This window offers one menu additional to the standard
-<ref id="RegistryPanel">VO windows</ref> menus:
+<p>This window offers some menus additional to the standard
+<ref id="RegistryPanel">VO window</ref> menus:
 <dl>
-<dt>Deletion menu</dt>
-<dd><p>Allows you to choose when asynchronously submitted jobs will
-    by default be
-    deleted from the server.  Once they are deleted they will no longer
-    be visible in the <label>Running Jobs</label> tab.  If they are not
-    deleted in this way, they will stay on the server until they are
-    deleted according to the server's deletion policy.  Choose one of
-    the available options:
-    <ul>
-    <li><strong>On Completion:</strong>
-        deleted when it has completed with either success or error status
-        </li>
-    <li><strong>On Exit:</strong>
-        deleted when TOPCAT shuts down
-        </li>
-    <li><strong>Never:</strong>
-        not deleted (except according to server policy)
-        </li>
-    </ul>
-    You can override these settings once a job has started
-    by using the controls at the bottom of the 
-    <ref id="TapTableLoadDialog_jobs">running jobs</ref> tab.
-    The settings in this menu affect the default value of the
-    <label>Delete On Exit</label> checkbox.
-    If you want to <ref id="TapTableLoadDialog_resume">resume</ref>
-    the job in a later session, you'll have to make sure that the
-    job is not deleted on completion or exit.
+<dt>TAP menu</dt>
+<dd><p>This contains some configuration options specific to Table Access
+    Protocol service interaction.  It has the following sub-items:
+    <dl>
+    <dt>Reload (&IMG.REDO;)</dt>
+    <dd><p>Reloads information displayed in the window from the server.
+        This may be updating job status information or reloading table
+        or service metadata; the exact behaviour depends on which tab
+        is currently visible.
+        </p></dd>
+    <dt>Job Deletion submenu</dt>
+    <dd><p>Allows you to choose when asynchronously submitted jobs will
+        by default be
+        deleted from the server.  Once they are deleted they will no longer
+        be visible in the <label>Running Jobs</label> tab.  If they are not
+        deleted in this way, they will stay on the server until they are
+        deleted according to the server's deletion policy.  Choose one of
+        the available options:
+        <ul>
+        <li><strong>On Completion:</strong>
+            deleted when it has completed with either success or error status
+            </li>
+        <li><strong>On Exit:</strong>
+            deleted when TOPCAT shuts down
+            </li>
+        <li><strong>Never:</strong>
+            not deleted (except according to server policy)
+            </li>
+        </ul>
+        You can override these settings once a job has started
+        by using the controls at the bottom of the 
+        <ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab.
+        The settings in this menu affect the default value of the
+        <label>Delete On Exit</label> checkbox.
+        If you want to <ref id="TapTableLoadDialog_resume">resume</ref>
+        the job in a later session, you'll have to make sure that the
+        job is not deleted on completion or exit.
+        </p></dd>
+    <dt>Metadata Acquisition submenu</dt>
+    <dd><p>Controls how the application loads service metadata - information
+        about the tables and columns provided by the service.
+        The following options are available:
+        <ul>
+        <li><label>Auto:</label>
+            make a sensible decision; this generally means
+            <label>TAP_SCHEMA_C</label> for services with very many tables,
+            and <label>TableSet</label> otherwise.
+            </li>
+        <li><label>TableSet:</label>
+            reads the document at the <code>/tables</code> endpoint of
+            the TAP service; all table metadata is loaded up front.
+            </li>
+        <li><label>TAP_SCHEMA_C:</label>
+            reads metadata from TAP_SCHEMA tables;
+            all schemas, tables and foreign keys are read at once,
+            columns are read only when required.
+            </li>
+        <li><label>TAP_SCHEMA_CF:</label>
+            reads metadata from TAP_SCHEMA tables;
+            all schemas and tables are read at once,
+            columns and foreign keys are read only when required.
+            </li>
+        <li><label>TAP_SCHEMA:</label>
+            reads all metadata at once from the TAP_SCHEMA tables.
+            </li>
+        <li><label>VizieR:</label>
+            uses the 2-stage TableSet from <code>/tables</code>
+            as implemented (at time of writing) by the TAPVizieR service;
+            columns are read only when required
+            (experimental, may be withdrawn).
+            </li>
+        <li><label>CADC:</label>
+            uses the 2-stage TableSet from <code>/tables</code>
+            as implemented (at time of writing) by CADC services;
+            columns are read only when required
+            (experimental, may be withdrawn).
+            </li>
+        </ul>
+        You will usually want to stick with the default
+        value of <label>Auto</label>.
+        However, if you're on a slow link, and it's taking a long time
+        to display any metadata for medium-sized services, you might want
+        to switch to TAP_SCHEMA_C/CF, or VizieR for talking to TAPVizier.
+        </p></dd>
+    <dt>Response Format submenu</dt>
+    <dd><p>Configures how the application requests that VOTable results
+        are to be returned.  The options
+        (<label>TABLEDATA</label>,
+         <label>BINARY</label>,
+         <label>BINARY2</label>)
+        correspond to the different defined VOTable serialization formats.
+        The selected format is only actually requested if the service
+        has indicated support for it, otherwise the service default is used.
+        </p></dd>
+    <dt>Upload Format submenu</dt>
+    <dd><p>Configures how tables are transmitted to the service for upload
+        if an upload query
+        (one involving a <code>TAP_UPLOAD.*</code> table) is performed.
+        The options
+        (<label>TABLEDATA</label>,
+         <label>BINARY</label>,
+         <label>BINARY2</label>)
+        correspond to the different defined VOTable serialization formats.
+        The choice shouldn't affect any results, but it may affect
+        required bandwidth and some services may (though shouldn't)
+        have non-standard requirements for serialization format.
+        </p></dd>
+    <dt>Service Discovery</dt>
+    <dd><p>Configures how TOPCAT searches for available TAP services.
+        There are currently two options,
+        <label>GLoTS</label>, which uses the Global TAP Schema
+        service list maintained by GAVO, and
+        <label>Reg Prototype</label> which uses a proposed convention
+        based on the IVOA Registry.  You are advised to use the default
+        value (currently GLoTS) unless you understand what you're doing here.
+        </p></dd>
+    <dt>HTTP gzip</dt>
+    <dd><p>If checked, this option sends <code>Accept-Encoding: gzip</code>
+        headers with most of the HTTP requests when communicating with the
+        TAP service.  That ought to reduce required bandwidth considerably,
+        but only if the service chooses to honour this request.
+        The setting should have no effect on the actual results,
+        but may affect performance.
+        </p></dd>
+    </dl>
     </p></dd>
+    <dt>Edit menu</dt>
+    <dd><p>Provides options concerned with editing ADQL text.
+        This is only active when the
+        <label>Use Service</label> tab is visible, and it is described
+        in <ref id="TapTableLoadDialog_query">that section</ref>.
+        </p></dd>
 </dl>
 </p>
 
-<p>The additional menu items are:
-<dl>
-<dt>&IMG.KEEP_OPEN;: Stay Open</dt>
-<dd><p>Makes sure that the window is not automatically closed after it
-    loads a table.
-    </p></dd>
-<dt>&IMG.REDO;: Reload</dt>
-<dd><p>Reloads information displayed in the window from the server.
-    This may be updating job status information or reloading table
-    or service metadata; the exact behaviour depends on which tab
-    is currently visible.
-    </p></dd>
-</dl>
-</p>
-
-<p><strong>Note:</strong> The TAP dialogue has been introduced at version
-3.8 of TOPCAT, at a time
-when most available TAP services are quite new and may not fully conform
-to the standard, and usage patterns are still settling down.
-For this reason you may find that some TAP services visible do not
-behave quite as expected; it is also possible that in future versions
-the user interface will change in line with changing service profiles
-or in the light of user experience.
+<p><strong>Note:</strong> TAP is a complex protocol, and at time of
+writing, many TAP services still do not provide full and error-free
+implementations.  Unexpected behaviour may be a result of service
+implementation deficiencies.  Hopefully that will improve over time.
 </p>
 
 <subsubsubsect id="TapTableLoadDialog_service">
@@ -15937,99 +17046,199 @@ or in the light of user experience.
 <figureimage src="&FIG.TapTableLoadDialog_service;"/>
 </figure>
 
-<p>The <label>Select Service</label> tab of the TAP load dialogue
+<p>The <label>Select Service</label> tab of the
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 allows you to choose which TAP service you wish to query.
 You need to do this before submitting a new TAP query.
-This tab is essentially the same as the 
-<ref id="RegistryPanel">Registry Query Panel</ref> of the other
-VO query windows.
-Having queried the registry, click on one of the rows to enter its
-service URL in the <label>TAP URL</label> field at the bottom.
+</p>
+
+<p>There are two separate tabs within the <label>Locate TAP Service</label>
+sub-panel, corresponding to two different ways to select the service
+you want to use.
+<dl>
+<dt>By Table Properties</dt>
+<dd><p>Use this tab to find TAP services that contain particular tables,
+    or tables relating to particular topics.
+    When first opened (or if no search terms are entered),
+    it shows a list by name of all the known TAP services,
+    ordered by the number of tables they contain.
+    If you enter one or more search terms in the <label>Keywords</label>
+    field and hit <label>Find Services</label> (or return),
+    then the list will be redisplayed as a tree in which the children
+    of each service are the tables whose name and/or description matches
+    the search terms you entered
+    (click on the node handles to display/hide the children).
+    You can choose whether to match the <label>Table Name</label> or
+    <label>Table Description</label> using the <label>Match Fields</label>
+    checkboxes;
+    basic <label>Service</label> metadata can also be matched
+    (just name, title, ID; for more complex searches by service metadata
+    use the By Service Properties tab, described below).
+    Clicking the <label>And</label>/<label>Or</label> button to
+    toggle its value determines whether the text from the
+    displayed tables/service text are required to match
+    all of your search terms, or just one of them.
+    When you've decided which service you want to use, click it, and
+    its access URL will be filled in the <label>TAP URL</label> selector
+    at the bottom.  Clicking on a table will automatically select its
+    parent service.
+    If you double-click on a service it will take you directly to
+    the Use Service tab.
+    </p></dd>
+
+<dt>By Service Properties</dt>
+<dd><p>Use this tab to find TAP services based on properties
+    of the service itself, such as the service name or publisher.
+    It is the same as the 
+    <ref id="RegistryPanel">Registry Query Panel</ref> of the other
+    VO query windows.
+    Having queried the registry, click on one of the rows to enter its
+    service URL in the <label>TAP URL</label> field at the bottom.
+    At time of writing there are only about a hundred TAP services registered,
+    so it's feasible to query the registry for them all
+    (hit <label>Find Services</label> without entering any keywords),
+    and choose the one you want by eye, perhaps sorting the displayed services
+    by one of the metadata items (click on the column header to sort).
+    </p></dd>
+   
+</dl>
 </p>
 
 <p>If you know the URL of the TAP service you wish to query, you can
-enter it directly into the <label>TAP URL</label> field without a 
-registry search.
-</p>
-
-<p>At time of writing, there are only a couple of dozen TAP services 
-registered, and it is feasible to query the registry for them all,
-by clicking the <label>Submit Query</label> button without entering
-any search terms.
-Note however that for technical reasons (the registry records for 
-some of these services are large) the search can take a while
-(typically 30sec on a fast link).
+enter it directly into the <label>TAP URL</label> field at the bottom
+of the window without a registry search.
+This field remembers URLs previously entered into it,
+so if you click the little down-arrow on the right, you can easily
+return to services you visited earlier in the same session.
+The state (entered ADQL etc) of those sessions is also retained.
 </p>
 
 <p>Once a service URL has been chosen in one of these ways, you can
-click the <label>Enter Query</label> button at the bottom 
+click the <label>Use Service</label> button at the bottom 
 (or equivalently the tab header at the top), 
 and you will be moved to the
-<ref id="TapTableLoadDialog_query">Enter Query</ref> tab.
+<ref id="TapTableLoadDialog_query">Use Service</ref> tab.
 </p>
 
 </subsubsubsect>
 
 <subsubsubsect id="TapTableLoadDialog_query">
-<subhead><title>Enter Query tab</title></subhead>
+<subhead><title>Use Service tab</title></subhead>
 
 <figure>
-<caption><px>TAP window with Enter Query tab visible</px></caption>
+<caption><px>TAP window with Use Service tab visible</px></caption>
 <figureimage src="&FIG.TapTableLoadDialog_query;"/>
 </figure>
 
-<p>The <label>Enter Query</label> tab of the TAP load dialogue
+<p>The <label>Use Service</label> tab of the 
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 displays information about the service you have selected to query,
-principally what tables are available and what columns they have,
+including what tables are available and what columns they contain,
 and allows you to enter the query text and some additional options
 about how the query is to be executed.
 The panel has three parts: 
-<label>Table Metadata</label>,
+<label>Metadata</label>,
 <label>Service Capabilities</label>, and
 <label>ADQL Text</label>.
 </p>
 
-<p>The <label>Table Metadata</label> panel displays information about
+<p>The <label>Metadata</label> panel displays information about
 the tables held by the selected service.
-When the panel is first displayed the service is contacted to obtain
-this information, and a progress bar will appear until it has arrived.
-If the service does not provide it in an appropriate form, nothing
-can be shown; it's still possible to submit a query, but you'll need
-some other way of knowing what tables and columns are available.
-Once the metadata has loaded, the following information will be
-available:
+On the left of the panel is a searchable tree summarising the
+schemas and tables in the service, and on the right are some tabs
+containing more detail.
+Note all this information has to be loaded from the server,
+so in some cases you may have to wait before it is visible.
+</p>
+
+<p>The tree on the left contains a listing of the service's <em>Schemas</em>,
+and under them the <em>Tables</em> they contain.
+A Schema in this context is just a subject grouping that
+contains one or more tables.
+Each schema notes in brackets the number of tables it contains;
+you can reveal or hide the tables by clicking on the schema node's handle.
+If the service contains only a small number of tables it may be
+convenient just to scroll up and down to see them all.
+But for services with hundreds or thousands of tables, 
+you may need to restrict the displayed tables to those you're interested in.
+To do this, type one or more search terms into the <label>Keywords</label>
+field.  The nodes displayed in the tree will be filtered to include only
+those that match the search terms as you type them.
+The <label>Name</label> and <label>Descrip</label> checkboxes indicate
+whether you want your search terms to match tables/schemas by name
+and/or by description.
+The <label>And</label>/<label>Or</label> toggle button determines
+whether each displayed table/schema has to match all of the search
+terms or just one.
+So for instance if you want to list just two tables, you can type in
+both table full names, uncheck the Descrip control,
+and set the toggle button to "Or".
+</p>
+
+<p>To the right of the tree is a tabbed panel giving detail relating
+to the currently selected tree node.
+Select a tree node by clicking on it.
+Each tab has a little circle next to the title which may be empty
+or filled, according to whether it contains information.
+If it's empty it's either because that information doesn't make sense
+for the selected node in the tree
+(e.g. if a schema is selected, there is no column information)
+or because the information has not been retrieved from the service;
+either it's on its way and will be filled in later, or there's an error.
+The tabs are as follows:
 <dl>
 <dt>Service</dt>
-<dd><p>The service URL selected in the Select Service tab.
-    It also notes the number of tables available from this service.
+<dd><p>Provides various items of information about the TAP service itself,
+    gathered from the service and its registry record if available.
+    This includes the service's name, Service URL, Reference URL,
+    curation and contact information, detailed description,
+    declared data models, and listing with description of any
+    service-specific User-Defined Functions it supports.
+    This may provide some useful reference information
+    for writing queries (available UDFs especially).
+    If a Reference URL or Examples URL are provided,
+    clicking on the URLs or the little link icon (&IMG.EXTLINK;)
+    in the panel will try to open the relevant pages in
+    an external web browser (or you can copy and paste them yourself).
+    The content of this tab is not sensitive to which node of the tree
+    is currently selected.
+    </p></dd>
+<dt>Schema</dt>
+<dd><p>Provides a textual description of the currently selected schema,
+    or the schema of the currently selected table.
+    A schema is just a higher-level grouping of tables within the TAP service.
+    Depending on how the service has arranged its tables this may or may
+    not provide useful information that's not available at the table level.
     </p></dd>
 <dt>Table</dt>
-<dd><p>This selector contains an entry for each table contained in the
-    remote database.  There may be just one, or there may be hundreds.
-    When you select one, information about it is displayed below.
-    An expanded title or description may also be displayed next to the
-    selector - hovering over this description with the mouse 
-    may provide further detail in a tool tip.
+<dd><p>Provides a textual description of the currently selected table (if any).
     </p></dd>
 <dt>Columns</dt>
-<dd><p>Tabulates metadata about each of the columns in the remote
-    table selected in the Table selector above.
-    Column names, types, descriptions, UCDs etc are shown.
-    Columns which are known to be indexed within the remote database
-    have the "Indexed" column ticked; this may help to to formulate
-    efficient queries.
+<dd><p>Tabulates a list of all the columns in the currently selected table;
+    column names, data types, units, descriptions, UCDs, and possibly other
+    metadata are shown.  This is generally the information you will need
+    to know about a table before you can write queries.
+    You can sort the entries by clicking on the column header
+    (clicking cycles between <em>ascending</em>, <em>descending</em>,
+    and <em>unsorted</em>),
+    so for instance to list the columns in alphabetical order click on
+    the <label>Name</label> column header,
+    or to group together all the columns with units of <code>mag</code>
+    click on the <label>Unit</label> column header.
+    If no table is selected in the tree, this tab will be empty.
     </p></dd>
 <dt>Foreign Keys</dt>
 <dd><p>If the service provides information about foreign keys
     (links between fields in different tables in the database)
-    they will be tabulated here.  They may help you to formulate
-    efficient queries.
+    they will be tabulated here for the currently selected table.
+    They may help you to formulate efficient queries.
+    If no table is selected in the tree, this tab will be empty.
     </p></dd>
 </dl>
 </p>
 
 <p>The <label>Service Capabilities</label> panel shows capability
-metadata that the service provides about itself; again, this has to
+metadata that the service provides about itself. This has to
 be loaded from the server and may not appear immediately.
 It contains the following information:
 <dl>
@@ -16052,7 +17261,7 @@ It contains the following information:
     the <code>nnn</code> limit may override the value supplied here.
     </p></dd>
 <dt>Uploads</dt>
-<dd><p>Indicates if table uploads are permitted, and perhaps what is the
+<dd><p>Indicates whether table uploads are permitted, and perhaps what is the
     largest upload size (in terms of rows and/or bytes) which will be
     accepted.
     See below for more about table uploads.
@@ -16064,73 +17273,235 @@ It contains the following information:
 query text for the request.
 It has the following parts:
 <dl>
-<dt>Synchronous checkbox</dt>
-<dd><p>Determines whether your job will be executed on the server in
-    synchronous or asychronous mode (check the box for synchronous).
-    Synchronous means that TOPCAT sends the query to the server and
-    waits for the result as the response of the same HTTP request.
-    It's simpler and faster, but if the job takes a long time,
-    the request may time out and the results be lost.
-    In asynchronous mode TOPCAT sends the query to the server and gets
-    a message back telling it where to look for information about the
-    job's progress; TOPCAT then keeps polling the server to find out 
-    when it has completed.
-    Synchronous is suitable for short jobs (it may typically execute
+<dt>Mode selector</dt>
+<dd><p>Provides the following options to control how your job is executed:
+    Synchronous, Asynchronous or Quick Look.
+    <ul>
+    <li><label>Synchronous</label> means that TOPCAT sends the query
+        to the server and
+        waits for the result as the response of the same HTTP request.
+        It's simpler and faster than async, but if the job takes a long time,
+        the request may time out and the results be lost.
+        </li>
+    <li><label>Asynchronous</label> means that TOPCAT sends the query
+        to the server and gets
+        a message back telling it where to look for information about the
+        job's progress; the application then keeps polling the server
+        to find out when it has completed.
+        </li>
+    <li><label>Quick Look</label> runs the query as for Synchronous mode
+        above, but when the result comes back it is just displayed in
+        a new popup window rather than loading it into TOPCAT for
+        further analysis.
+        </li>
+    </ul>
+    Synchronous mode is suitable for short jobs (it may typically execute
     with a few seconds less delay), but for longer jobs aysnchronous is
     more reliable.  It is possible to submit an asynchronous job
     on one day from one machine, and pick up the results on a different
     day from another machine, using another invocation of TOPCAT or of
-    a different application altogther.
+    a different application altogether.
+    Quick look is good if you just want to see the result but don't want
+    to do any detailed analysis of it.  One example is if you just want
+    to know the number of rows in a table
+    (<code>SELECT COUNT(*) FROM table</code>);
+    the result of the query is the row count in a one-column, one-row table,
+    and there's not much point loading that table into TOPCAT.
     </p></dd>
-<dt>Examples button</dt>
-<dd><p>This button presents you with a short menu of example queries.
-    These are tailored to the table metadata obtained for this service,
-    and, where appropriate, to the table currently selected by the
-    Table selector and/or the table list in the Control Window,
-    so they should in most cases be runnable as they stand
-    (though there is no guarantee they will produce useful results).
-    A better idea though is to use them as starting points for your
-    own queries.  By picking one which is something like what you want
-    to do, you can hopefully work out the syntax for the query you need
-    without having to read the ADQL specification.
-    Some of the options in the list may be disabled,
-    depending on what capabilities the service has declared.
-    In some cases, especially ones using geometric functions, the
-    service may reject the example, since TOPCAT can't always tell
-    which functions are supported by the server.
+<dt>Edit toolbar</dt>
+<dd><p>This contains a number of actions that affect the 
+    <label>Text Entry panel</label>:
+    <dl>
+    <dt>&IMG.ADQL_ADDTAB; Add Tab</dt>
+    <dd><p>Adds a new blank editing tab, so you can start editing a new query
+        without affecting any existing ones.
+        </p></dd>
+    <dt>&IMG.ADQL_COPYTAB; Copy Tab</dt>
+    <dd><p>Adds a new editing tab with text initially copied from that
+        in the currently visible one.
+        </p></dd>
+    <dt>&IMG.ADQL_REMOVETAB; Remove Tab</dt>
+    <dd><p>Deletes the currently visible tab.
+        </p></dd>
+    <dt>&IMG.ADQL_TITLETAB; Title Tab</dt>
+    <dd><p>Sets the title of the currently visible tab.
+        By default the titles are consecutive integers (the first is "1",
+        the second "2" etc), but you can give them more meaningful names
+        if you like.
+        </p></dd>
+    <dt>&IMG.ADQL_CLEAR; Clear</dt>
+    <dd><p>Erases all the text in the currently visible tab.
+        The text can be retrieved using the Undo action.
+        </p></dd>
+    <dt>&IMG.ADQL_UNDO; Undo</dt>
+    <dd><p>Undoes the most recent editing action in the currently visible tab.
+        You can do the same thing from the keyboard using
+        <label>Ctrl-Z</label>.
+        </p></dd>
+    <dt>&IMG.ADQL_REDO; Redo</dt>
+    <dd><p>Reverses the most recent Undo action in the currently visible tab.
+        You can do the same thing from the keyboard using
+        <label>Ctrl-Shift-Z</label> or <label>Ctrl-Y</label>.
+        </p></dd>
+    <dt>&IMG.ADQL_INSERTTABLE; Insert Table</dt>
+    <dd><p>Inserts into the text at the current cursor position
+        the name of the table (if any) that is currently selected
+        in the metadata tree above.
+        This is a convenience that may save some typing,
+        especially for long or complicated table names.
+        </p></dd>
+    <dt>&IMG.ADQL_INSERTCOLS; Insert Columns</dt>
+    <dd><p>Inserts into the text at the current cursor position
+        a comma-separated list of the names of any columns that
+        are currently selected in the <label>Columns</label>
+        tab of the Metadata panel above.
+        In order to select columns, click on the rows in the Columns panel;
+        you may need to hold down the Ctrl key while clicking
+        or something similar (depends on your OS) to select more than one.
+        Columns are inserted in the text in the order they were selected.
+        This is a convenience that may save some typing,
+        but note that you may still need to edit the inserted text,
+        for instance to add table name/alias prefixes.
+        </p></dd>
+    <dt>&IMG.ADQL_ERROR; Parse Errors</dt>
+    <dd><p>If this button is enabled, it means that the parser has detected
+        an error in the currently visible ADQL text.
+        The error will usually be highlighted in pink in the editing panel.
+        Clicking this button pops up the actual parser error message,
+        which may give you more idea what's wrong.
+        </p></dd>
+    </dl>
+    These actions are also available from the <label>Edit</label> menu.
     </p></dd>
-<dt>Clear button</dt>
-<dd><p>Clicking this button clears any text currently shown in the
-    text entry field.
+<dt>Text Entry panel</dt>
+<dd><p>This panel is where you type ADQL text that forms the query to send
+    to the TAP service for execution.
+    The <label>Edit</label> actions described above, along with
+    Undo/Redo actions from the keyboard, can also help.
+    You can have multiple queries on the go at once in different tabs;
+    add/remove/retitle tabs with the toolbar actions, and move between
+    them by clicking on the tab headers at the top.
+    The tab you can see is the one that will be executed if you hit
+    the <label>Run Query</label> button.
+    </p>
+    <p>As you enter the query text, it will be checked for syntax errors.
+    If an error is found, the place in the text which appears
+    to have caused it
+    will be highlighted in pink (as in the figure above).
+    To see more detail on the error,
+    click the <label>Parse Errors (&IMG.ADQL_ERROR;)</label> button.
+    The checking itself is reasonably reliable, but the position of the
+    highlighted error, and the text of the error message, can sometimes
+    be a bit misleading, so don't take the details too seriously.
+    The error highlighting is just used as a warning, you are not prevented
+    from submitting a query marked as erroneous, since
+    in some cases TAP services may accept ADQL which is not strictly correct,
+    and in some cases the error checking may not be perfect.
+    Note also that for various reasons the service may not be able to
+    accept all queries that count as syntactically valid ADQL,
+    so even if TOPCAT doesn't report any errors, the service may still
+    respond with an error message.
     </p></dd>
-<dt>Parse Errors button</dt>
-<dd><p>If a syntax error is detected in the entered ADQL text, it
-    will be highlighted in the text field, and this button will be
-    enabled.  Clicking this button will show a popup window with 
-    more detail on the error.
-    </p></dd>
-<dt>Text entry field</dt>
-<dd><p>This is where you enter the text of the ADQL query you wish to make.
-    The syntax of ADQL (Astronomical Data Query Language) is defined by an
-    <webref url="http://www.ivoa.net/Documents/latest/ADQL.html"
-            >IVOA Recommendation</webref>;
-    it is effectively a dialect of SQL, but a good way to write a query
-    is to start with one of the examples from the <label>Examples</label>
-    button above.
-    If any errors are detected in the syntax of the ADQL as entered,
-    they are highlighted in pink as in the figure above.
+<dt>Examples line</dt>
+<dd><p>Clicking on the <label>Examples</label> button
+    at the bottom left of the panel will pop up a menu
+    that allows you to select from a number of example ADQL queries.
+    If you select one, the relevant ADQL text will be pasted into
+    the editing panel; you should be able to hit the <label>Run Query</label>
+    button straight away and execute it to get a result.
+    In some cases the example text is influenced by the
+    table you're currently looking at in the metadata panel.
+    Until you are experienced with ADQL,
+    starting from one of these examples and editing it to taste
+    is often a good way to write a query of your own.
+    </p>
+    <p>The Examples menu is divided into a number of sub-menus,
+    though not all will be enabled for all services.
+    The sub-menus are:
+    <ul>
+    <li><label>Basic:</label>
+        Basic examples that should be applicable to most services.
+        </li>
+    <li><label>Upload:</label>
+        Examples that involve uploading a tables from TOPCAT to the TAP
+        server and executing queries using it.
+        Only enabled if the service supports table uploads and
+        at least one table is currently loaded into TOPCAT.
+        </li>
+    <li><label>Service-Provided:</label>
+        Examples provided by the TAP service.
+        These are likely to provide some insight into the kinds of query
+        that make sense and make good use of the particular tables
+        available from the service,
+        so it is often instructive to look at these.
+        Only enabled if the service actually provides some examples
+        (at time of writing, not many do, but hopefully this will improve).
+        <em>Note to TAP service implementers:
+        at time of writing, there are two variants of the standard way
+        for services to provide examples
+        (<webref url="http://www.ivoa.net/documents/DALI/">DALI</webref>
+        sec 2.3 and
+        <webref url="http://www.ivoa.net/documents/Notes/TAPNotes/20131213/NOTE-TAPNotes-1.0-20131213.html#tf-examples"
+                >TAPNotes</webref> sec 4.2.1),
+        and it's not clear which is preferred.
+        For now, TOPCAT will recognise either.</em>
+        </li>
+    <li><label>TAP_SCHEMA:</label>
+        Examples using the tables in the TAP_SCHEMA schema,
+        which describes metadata about the tables in the service.
+        You can use these to do things like count tables or columns
+        in the current service,
+        or locate tables with columns having particular physical meaning.
+        </li>
+    <li><label>ObsTAP:</label>
+        Examples using the IVOA
+        <webref url="http://www.ivoa.net/documents/ObsCore/index.html"
+                >ObsCore</webref> data model
+        (<code>ivoa.obscore</code> table),
+        which describes astronomical observations in a standardised way.
+        You can use these to do things like search for all observations
+        at a particular sky position, or observation time, or waveband etc.
+        Only available if the service declares support for the ObsCore
+        data model.
+        </li>
+    <li><label>RegTAP:</label>
+        Examples using the IVOA
+        <webref url="http://www.ivoa.net/documents/RegTAP/"
+                >RegTAP</webref> data model
+        (tables in the <code>rr</code> schema).
+        You can use these to do things like search for
+        all TAP services containing tables having columns with particular
+        physical meanings,
+        or all cone search services relating to particular wavebands, etc.
+        You can use queries like this to perform more sophisticated searches
+        for TAP services than you can do using the
+        <ref id="TapTableLoadDialog_service">Select Service</ref> tab.
+        Only available if the TAP service declares support for the RegTAP
+        data model (i.e. if it hosts an IVOA searchable registry).
+        </li>
+    </ul>
+    </p>
+    <p>When you select an example from one of the sub-menus,
+    its name and title will be displayed to the right of the Examples button.
+    Little left and right arrow buttons
+    allow you to cycle through the examples in the current submenu
+    so you can browse what's available.
+    </p>
+    <p>Some examples come with additional explanation on the web.
+    If the example you're currently looking at has such additional
+    documentation then the <label>Info</label> &IMG.EXTLINK; button
+    to the right will be enabled, and clicking on that should open
+    the relevant page in a browser on your desktop.
     </p></dd>
 </dl>
 </p>
 
-<p>Some services permit <label>Table Uploads</label>
-(at time of writing only the GAVO service implements this capability,
-but hopefully more will do so in future).
+<p>Some TAP services permit <label>Table Uploads</label>.
 What this means is that you can upload tables from TOPCAT into the
 remote database and perform queries on your table directly.
 In this way you can perform joins between your own tables
 (anything loaded into TOPCAT) and any of the tables in the remote
-database.  This is extremely powerful feature.
+database.  This is an extremely powerful feature.
 To take advantage of it, you just need to use a special form for
 the table name to reference a TOPCAT-based table:
 you write "<code>TAP_UPLOAD.t&lt;n&gt;</code>", where
@@ -16139,33 +17510,31 @@ that is the number before the colon in the
 <ref id="ControlWindow">Control Window</ref> Table List.
 So, if a table identified as "<code>1: messier.xml</code>"
 in the table list, you can reference it in ADQL as
-"<code>TAP_UPLOAD.t1</code>".
+"<code>TAP_UPLOAD.t1</code>" - see the <label>Upload</label>
+sub-menu of the <label>Examples</label> menu described above for
+some examples.
 Note the table uploaded in this way is the 
 <ref id="apparent">Apparent Table</ref> corresponding to the
-given ID number.
-</p>
-
-<p>As you enter the query text, it will be checked for syntax errors.
-If an error is found, the place in the text which appears to have caused it
-will be highlighted in pink (as in the figure above).
-To see more detail on the error, click the <label>Parse Errors</label> button.
-The checking itself is reasonably reliable, but the position of the
-highlighted error, and the text of the error message, can sometimes
-be a bit misleading, so don't take the details too seriously.
-The error highlighting is just used as a warning, you are not prevented
-from submitting a query marked as erroneous, since
-in some cases TAP services may accept ADQL which is not strictly correct,
-and in some cases the error checking may not be perfect.
+given ID number, i.e. current subset and column selections apply.
+It's a good idea to ensure that any table you are uploading has
+columns with sensible names, otherwise the service may rename the
+columns or otherwise have trouble handling it.
 </p>
 
 <p>Having entered suitable query text,
-click the <label>OK</label> button at the bottom of the window
-to submit the job.  When you do this, one of two things will happen.
-In synchronous mode, the <ref id="LoadWindow">Load Window</ref> will appear,
-and the progress will indicate when loading is complete in the normal way.
-In asynchronous mode, you will be taken to the
+click the <label>Run Query</label> button at the bottom of the window
+to submit the job.  What happens then depends on the <label>Query Mode</label>
+described above:
+in <label>Synchronous</label> mode,
+the <ref id="LoadWindow">Load Window</ref> will appear
+with a load progress indicator,
+and when it's done the table will be loaded into TOPCAT in the usual way.
+In <label>Asynchronous</label> mode, you will be taken to the
 <ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab
-where you can see the progress of your submitted job.
+where you can see the progress of your submitted job;
+when it's ready it will be loaded into TOPCAT.
+In <label>Quick Look</label> mode, a window will pop up to display
+the results when they are ready.
 </p>
 
 
@@ -16179,7 +17548,8 @@ where you can see the progress of your submitted job.
 <figureimage src="&FIG.TapTableLoadDialog_jobs;"/>
 </figure>
 
-<p>The <label>Running Jobs</label> tab of the TAP load dialogue
+<p>The <label>Running Jobs</label> tab of the 
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 shows a list of the asynchronous jobs you have submitted,
 with information about their current progress.
 </p>
@@ -16284,7 +17654,8 @@ have all been deleted), this tab is inaccessible.
 <figureimage src="&FIG.TapTableLoadDialog_resume;"/>
 </figure>
 
-<p>The <label>Resume Job</label> tab of the TAP load dialogue
+<p>The <label>Resume Job</label> tab of the 
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 allows you to continue execution of an asynchronous job which was started
 outside of this run of TOPCAT, either during an earlier TOPCAT run,
 or using some other mechanism.
@@ -16629,7 +18000,7 @@ in the control window will indicate the action you have configured.
     web server which provides these images, retrieve the image, and
     display it in an image viewer window.
     Unfortunately at present the viewer window is an internal one;
-    it does not display in an external SAMP/PLASTIC viewer.
+    it does not display in an external SAMP viewer.
     </p></dd>
 
 <dt>View URL as Image</dt>
@@ -17273,6 +18644,120 @@ the fields, a popup window will give you a message describing the
 problem.
 </p>
 
+</subsubsect>
+
+<subsubsect id="ClassifyWindow">
+<subhead><title>Column Classification Window</title></subhead>
+
+<figure>
+<caption><px>Column Classification Window</px></caption>
+<figureimage src="&FIG.ClassifyWindow;"/>
+</figure>
+
+<p>The Column Classification Window takes a column or other algebraic
+expression, and generates a number of mutually exclusive 
+<ref id="subsets">Row Subsets</ref> based on its contents.
+For instance if you have a column with different integer values
+representing different object types, this window will let you
+add a new subset to the table for each of the distinct values (object types)
+appearing in the table.  Each subset contains rows with a single
+value of the classification expression you supply.
+In the above example, a new subset will be created for each
+of the four most commonly-occurring constellations in the table.
+</p>
+
+<p>You can activate this dialogue using the
+<label>Classify By Column</label> (&IMG.CLASSIFY;) button in the
+<ref id="SubsetWindow">Subsets Window</ref>.
+</p>
+
+<p>In the <label>Query</label> panel, you specify the 
+expression you want to classify on.
+You can select a simple column name from the drop-down list,
+or type in an algebraic expression as described in <ref id="jel"/>.
+If you want to classify on ranges of values rather than exact
+equivalence you can use an expression that rounds to an integer,
+for instance "<code>toInteger(RMAG/2.0)*2</code>" would give you subsets
+corresponding to bins of width 2 in magnitude.
+When you have entered the expression, you may need to click the
+<label>Classify</label> button to start the classification
+(or it may happen automatically).
+The classification will often complete straight away,
+but for large tables it could take a noticeable amount of time,
+in which case a progress bar is shown at the bottom of the window.
+You can stop a long-running classification in progress with the
+<label>Stop</label> button.
+If you have a very large table with many distinct categories in the given
+column, the process can take a lot of memory - if the application runs out
+of memory, a warning will pop up and the classification will not complete.
+</p>
+
+<p>When the classification has run, the results are displayed in
+the <label>Results</label> panel.
+Two fields control the way these results are displayed:
+<dl>
+<dt>Number of Categories</dt>
+<dd><p>Since in general there may be a large number of different values
+    in the column of interest (as many as there are rows), only the
+    few most popular ones are shown.
+    This field controls the maximum number shown,
+    you can adjust it as required.
+    The fixed value after the entry field shows the total number of
+    distinct values discovered in the data;
+    increasing the field's value beyond this value will have no further effect.
+    </p></dd>
+<dt>Subset name prefix</dt>
+<dd><p>Defines the prefix added to the column values to give the default
+    name for each subset that will be added to the table.
+    The application tries to come up with something sensible
+    based on the classification expression, but doesn't always succeed.
+    If you type in a new prefix here, all the subsets listed below 
+    are given new default names accordingly.
+    </p></dd>
+</dl>
+</p>
+
+<p>The results are displayed in a table, each row corresponding to
+a Row Subset that can be added to the table based on the classification.
+The subsets are shown in decreasing order of popularity
+(the subset containing the most rows is listed first).
+The final row, labelled "<label>other</label>", groups all the
+rows which are not in any of the other currently selected and displayed
+subsets.
+The following columns are shown:
+<dl>
+<dt>Count</dt>
+<dd><p>Number of rows in the subset.
+    </p></dd>
+<dt>Value</dt>
+<dd><p>The classification value shared by all rows in the subset.
+    </p></dd>
+<dt>Subset Name</dt>
+<dd><p>The name of the subset that will be added.
+    The applicaiton tries to come up with sensible default names,
+    but doesn't always succeed - you can edit this field as required.
+    If the name matches the name of any subset already present in the table,
+    when the new subset is added it will replace the old one.
+    </p></dd>
+<dt>Add Subset?</dt>
+<dd><p>If this box is checked, the <label>Add Subsets</label> button below
+    will add a subset corresponding to this row; if not, it will be ignored.
+    If unchecked, the rows from this subset are considered part of the
+    <label>other</label> subset listed at the bottom
+    (you can see the <label>Count</label> field in the <label>other</label>
+    row adjusting when you include or exclude subsets by checking/uncheking
+    this box).
+    </p></dd>
+</dl>
+</p>
+
+<p>When you have adjusted subset names and selected the ones you want
+to add, click the <label>Add Subsets</label> button at the bottom,
+and one subset will be added to the table for each of the items with the
+<label>Add Subset?</label> checkbox ticked.
+If you don't want to add any of these subsets after all,
+just hit <label>Cancel</label> or close the window.
+</p>
 
 </subsubsect>
 
@@ -17648,6 +19133,7 @@ Some of the notable contributers are these:
 <li>Christoph Deil (MPI Heidelberg)</li>
 <li>Markus Demleitner (ARI Heidelberg)</li>
 <li>Sebastien Derriere (CDS)</li>
+<li>Emilio Donoso (ICATE)</li>
 <li>Peter Draper (Starlink, Durham)</li>
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
@@ -17662,6 +19148,7 @@ Some of the notable contributers are these:
 <li>Tim Jenness (JACH)</li>
 <li>JJ Kavelaars (NRC)</li>
 <li>Gerard Lemson (MPE Garching)</li>
+<li>Mark Mahabir (Leicester)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
 <li>Gr&#x00e9;gory Mantelet (ARI)</li>
 <li>Ben Maughan (Bristol)</li>
@@ -17677,10 +19164,14 @@ Some of the notable contributers are these:
 <li>Fran&#x00e7;ois-Xavier Pineau (CDS)</li>
 <li>Roy Platon (RAL)</li>
 <li>James Price (Bristol)</li>
+<li>Paul Price (Princeton)</li>
 <li>Anita Richards (Jodrell Bank)</li>
+<li>Kristin Riebe (AIP)</li>
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
+<li>Juan Carlos Segovia (ESAC)</li>
+<li>Petr &#x0160;koda (AIAS, CZ)</li>
 <li>Mattia Vaccari (Western Cape)</li>
 <li>Juande Sandander Vela (IAA-CSIC)</li>
 <li>Mike Watson (Leicester)</li>
@@ -20469,9 +21960,401 @@ introduced since the last version:
     </dl>
     </p></dd>
 
+<dt>Version 4.2-2 (6 February 2015)</dt>
+<dd><p>
+    <dl>
+    <dt>Plotting enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="form-linearfit">Linear Fitting</ref> form for
+            Plane plot.
+            This reinstates behaviour available from old plot windows,
+            but it provides some more options, like point weighting.</li>
+        <li>New <ref id="form-sizexy">SizeXY</ref> form,
+            which allows plotting (optionally autoscaled) markers
+            with horizontal and vertical extents
+            independently determined by input data.</li>
+        <li>New <ref id="FrameControl">Frame</ref> fixed control
+            in plot windows with two tabs,
+            <label>Size</label> and <label>Title</label>.
+            Size allows explicit setting of output plot dimensions
+            and alignment in pixels - can be useful when exporting plots.
+            Title lets you add a text title at the top of the plot.</li>
+        <li>New <label>Save</label>/<label>Import</label> options in
+            <ref id="HistogramPlotWindow">Histogram window</ref>
+            allow you to export histogram bin data as a new table
+            (this reinstates behaviour available from old plot windows).</li>
+        <li>More flexibility when assigning colour maps, in the
+            <ref id="ShaderControl">Aux Axis</ref> control,
+            <ref id="mode-density">Density</ref> shading mode, and
+            <ref id="SpectrogramLayerControl">Spectrogram</ref> layer control.
+            These now provide a <label>Scaling</label> option allowing use of
+            Square and Sqrt mappings as well as Linear and Logarithmic,
+            and a <label>Quantise</label> slider allowing quantisation of
+            the colour map to discrete levels.</li>
+        <li><label>Rescale Y</label> button added to
+            <ref id="HistogramPlotWindow">Histogram</ref> window.</li>
+        <li>Histogram normalisation option adjusted
+            so that total area under bars,
+            rather than total height of bars, is fixed.</li>
+        <li>Tick Crowding configuration option added to
+            <ref id="ShaderControl">Aux Axis control</ref> Ramp tab.
+            Also changed default for Aux axis to use fewer ticks.</li>
+        <li>Some "dart" options (fixed-base open or filled triangles)
+            added for plotting <ref id="form-vector">vectors</ref>.</li>
+        <li>Some "triangle" options (variable-base open or filled triangles)
+            added for plotting <ref id="form-ellipse">ellipses</ref>.</li>
+        <li>Max Marker Size option replaced with with Autoscaling option in
+            plot <ref id="form-size">Size</ref> form.
+            You can now optionally turn off autoscaling and specify marker size
+            in pixels instead.</li>
+        <li>Every slider control in plot windows now has a little button
+            on the right that resets it to its default value.</li>
+        <li>The text labels for configuration options and coordinate
+            entry fields in the plot windows now provide a tooltip 
+            of the form "<code>name=value</code>".
+            These strings give the STILTS parameter assignment
+            corresponding to the current setting.</li>
+        </ul>
+        </p></dd>
+    <dt>Other enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="ClassifyWindow">Column Classification Window</ref>
+            lets you add mutually exclusive subsets
+            based on column contents.</li>
+        </ul>
+        </p></dd>
+    <dt>FITS I/O:</dt>
+    <dd><p>
+        <ul>
+        <li>Reworked part of the FITS input implementation,
+            in particular adjusting the way memory mapping is done to reduce
+            resource requirements on some platforms.
+            If you notice any difference, it should be reduced virtual and
+            perhaps resident memory usage, and some (~10%?) performance
+            improvements, when reading large FITS/colfits files.
+            However, please report anything that appears to be working worse
+            than before.</li>
+        <li>Colfits files can now be accessed from streams,
+            not just uncompressed disk files
+            (though that's not necessarily a good idea).</li>
+        </ul>
+        </p></dd>
+    <dt>MacOS packaging</dt>
+    <dd><p>Some changes have been made to the MacOS DMG file/application
+        bundle.  I believe these are at worst harmless, but pre-release
+        testing of platform-specific features is patchy, so problems are
+        possible - please report if you find any, or if the following items
+        don't seem to be working.
+        <ul>
+        <li>OSX application bundle adjusted so that the DMG file
+            <em>should</em> work on any MacOS with
+            either legacy Apple Java 6 or
+            Oracle/OpenJDK Java 7+ installed.</li>
+        <li>OSX application bundle adjusted (I think) so that application
+           working directory is user's home directory.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed a query bug (missing <code>REQUEST=queryData</code> parameter)
+            in the <ref id="SsaMultiWindow">Multiple SSA Query</ref> window.
+            This long-standing bug would have stopped this window working at all
+            with well-behaved SSA services.</li>
+        <li>Fixed error in fits-var output
+            (PCOUNT header card did not include block alignment gap).</li>
+        <li>Graphics coordinates are now calculated in floating point
+            rather than as integers.  This fixes problems that could
+            cause scaled vectors, ellipses etc to be drawn with shapes
+            or orientations badly wrong due to rounding errors.
+            It also improves plotting of analytic functions, especially 
+            to vector contexts (PDF/EPS).</li>
+        <li>Fix some problems to do with zooming to very large/small
+            plot axis ranges.</li>
+        <li>Hide error bars (etc) that would extend to negative values
+            on logarithmic axes; previously they were being drawn in anomalous
+            places.</li>
+        <li>Fix Aux axis positioning for 3D plots so that the numeric labels
+            don't get snipped off at top and bottom.</li>
+        <li>Add a hack that allows LDAC FITS tables to be treated sensibly
+            in auto-format-detection mode.</li>
+        <li>Make VOTable handling more robust against unknown (illegal)
+            datatypes.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Version 4.2-3 (14 April 2015)</dt>
+<dd><p>
+    <dl>
+    <dt>Histogram enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>New Kernel Density Estimate plotting option variants
+            added in the Histogram and Plane plot windows:
+            <ref id="form-kde">KDE</ref>,
+            <ref id="form-knn">KNN</ref> and
+            <ref id="form-densogram">Densogram</ref>.</li>
+        <li>More flexible normalisation options for histogram/KDE plots:
+            normalise by area, maximum bar height, or total bar height.</li>
+        <li>The Bars fixed control is now relabelled 
+            <ref id="ConfigControl_histobins">Bins</ref>,
+            and has separate tabs for Histogram, KDE and General controls.</li>
+        <li>The existing Bin Size slider, and new kernel Smoothing sliders,
+            now display current width in data units as the slider is moved.</li>
+        <li>More bar styles are available for Histogram plots;
+            <label>Semi Filled</label> (the new default) and
+            <label>Semi Steps</label> options make it easier to understand
+            multiple overplotted data sets.
+            Note Semi Steps does not currently export very nicely
+            to PDF/EPS.</li>
+        <li>Sketch mode is switched off by default.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>More slider controls have options allowing explicit entry
+            of values from the keyboard (colour map quantisation,
+            marker/vector/ellipse scaling values).</li>
+        <li>More slider controls have text value readout displays
+            alongside the slider
+            (colour map quantisation,
+            marker size/errorbar scaling values).</li>
+        <li>Column data read in as unsigned bytes will now be written out as
+            unsigned bytes where the output format permits;
+            previously they were forced to 16-bit signed integers.
+            This affects FITS, VOTable and CDF I/O handlers.</li>
+        <li>The Subset Styles panel in
+            <ref id="tableDataControl">table data layer controls</ref>
+            now has a <label>Visible</label> checkbox
+            indicating whether the subset undergoing
+            subset-specific configuration is currently visible in the plot.</li>
+        <li>Be less strict about recognising colfits files
+            (tolerate implicit TDIMn headers).</li>
+        <li>Tables specified on the <ref id="tableLocation">command line</ref>
+            may now use syntax that reads data from a unix pipeline.</li>
+        <li>OSX application bundle fixed to run application in user's home
+            directory (broken in previous version).</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix minor ADQL parse failure when using TAP tables
+            named without explicit schema prefix by service.</li>
+        <li>Fix regression bug (from v4.2-2) that caused problems in Histogram
+            and Spectrogram layers:
+            <em>New subset from visible</em> action wasn't working,
+            and the displayed point count was always zero.</li>
+        <li>Work round FITS read bug that could cause problems
+            for VOTables using inline FITS serialization,
+            and possibly elsewhere.</li>
+        <li>Fix bug that caused trouble when auto-ranging a plot 
+            with a single sky position.</li> 
+        <li>Catch and report the error properly if the user enters
+            a bad explicit axis range (max value &lt;= min value).</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Version 4.3 (17 August 2015)</dt>
+<dd><p>
+    <dl>
+    <dt>TAP client enhancements:</dt>
+    <dd><p>The TAP client GUI and implementation in the
+        <ref id="TapTableLoadDialog">TAP Load Window</ref>
+        have been much improved.
+        As well as being generally more capable and easy to use,
+        the GUI is now quite usable for services providing very large
+        datasets, for instance TAPVizieR (~30,000 tables).
+        In detail:
+        <ul>
+        <li>TAP service discovery is now done by default by requesting
+            search terms relating to the <em>tables</em>,
+            rather than the <em>services</em>, that you're interested in.
+            The old (by service) GUI is still available in a different tab.</li>
+        <li>The TAP metadata display has been reorganised; schemas and
+            tables are displayed in a searchable tree on the left of the panel,
+            with details of the currently highlighted schema/table
+            in tabs on the right.
+            Organisation of tables at the schema level is now visible.
+            Much more information about the schemas and tables is available,
+            and it's displayed better.</li>
+        <li>The Columns and Foreign Keys metadata display tables can now
+            be sorted by clicking on column headers.</li>
+        <li>Much more information about the TAP service is displayed,
+            including a full service description and listing of available
+            geometry functions, user-defined functions and data models
+            (if the service/registry provides this information).</li>
+        <li>For large services, metadata acquisition is now done as required
+            on a table-by-table basis, rather than attempting to download
+            all the metadata up front.
+            This works much better for services with very many tables.</li>
+        <li>The query entry panel has many new features,
+            including multiple query entry tabs,
+            full query text Undo/Redo, and limited support
+            for pasting table and column names that have been
+            selected in the GUI.</li>
+        <li>A new <label>Quick Look</label> mode has been introduced alongside
+            the Synchronous and Asynchronous modes, to execute a query
+            whose result is displayed but not loaded into TOPCAT.</li>
+        <li>The <label>Examples</label> menu has been extended to include
+            various sub-menus with more ADQL query examples appropriate
+            to the current service,
+            including examples provided by the service itself for
+            services supporting the (somewhat) standard
+            <code>/examples</code> endpoint.</li>
+        <li>The Examples menu GUI has been modified to facilitate browsing,
+            and a button is provided to link to web pages describing the
+            selected example in more detail.</li>
+        <li>The <label>TAP</label> menu has new options for configuring
+            <label>Metadata Acquisition</label>,
+            <label>Response Format</label>,
+            <label>Upload Format</label>,
+            <label>Service Discovery</label>, and
+            <label>HTTP-level compression</label>.
+            The old Deletion menu has been moved under this TAP menu
+            as <label>Job Deletion</label>.</li>
+        <li>Where supported by the service, the BINARY2 VOTable serialization
+            is used by default to retrieve TAP results,
+            which should reduce bandwidth and (marginally) improve handling
+            of null values.</li>
+        <li>For upload queries, tables are now by default uploaded
+            to the service using the TABLEDATA rather than BINARY
+            VOTable serialization.  BINARY ought to work, but at least
+            some services (e.g. CADC) currently fail with BINARY uploads.
+            The default can be changed using the
+            <label>TAP|Upload Format</label> menu item.</li>
+        <li>There is a change in the way that TAP service metadata
+            is interpreted: table/column names are now expected
+            to be delimited if required.  An attempt is made to fix up names
+            that not delimited when they obviously should be.
+            May cause some ADQL examples to work incorrectly in the presence
+            of non-compliant service table metadata reports.</li>
+        <li>The ADQL syntax highlighting is now sensitive to User-Defined
+            Functions declared by the service (if any are declared),
+            so that misuse of UDFs or use of non-existent UDFs can signalled.
+            This is thanks to an upgrade to Gr&#x00e9;gory Mantelet's
+            ADQL parser library.</li>
+        <li>Improve error reporting in the face of non-VOTable
+            TAP error responses.
+            In many cases this makes it much easier to see what's going wrong
+            with a TAP query.</li>
+        <li>As a diagnostic tool, when making TAP queries,
+            a log message giving a roughly equivalent <code>curl(1)</code>
+            command is now issued at the CONFIG level
+            (visible using flags <code>-verbose -verbose</code>).</li>
+        </ul>
+        </p></dd>
+
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix a serious bug in processing of FITS bit vector
+            (<code>TFORMn='rX'</code>) columns.
+            Values read from these columns are presented as a
+            <code>boolean[]</code> array.  In all previous versions of STIL
+            the bits have appeared in that array in the wrong sequence
+            (LSB..MSB per byte rather than the other way round).
+            Apologies to anyone who may have got incorrect science results
+            from this error in the past, and thanks to Paul Price for helping
+            to diagnose it.</li>
+        <li>Fix a less serious bug with <code>TFORMn='rX'</code> processing;
+            attempting to read a single-element bit vector column
+            (<code>TFORMn=1X</code> or <code>X</code>) previously
+            resulted in an error making the file unreadable.
+            Values read from such columns are now presented as 
+            Boolean scalars.</li>
+        <li>Fix a VOTable reading bug relating to bit vector columns
+            (<code>datatype="bit"</code>) appearing in BINARY/BINARY2
+            serializations.  This one was more obvious, it would usually
+            generate an error when attempting to read the file.</li>
+        <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.
+            This was giving completely wrong (deep future) labels when using
+            TIME_TT2000 columns in time plots.</li>
+        <li>Fix sky plot vector bug: delta latitude and delta longitude values
+            were being used the wrong way round.</li>
+        <li>Upgrade JEL to v2.0.2.
+            Fixes problem with evaluating void-typed expressions
+            (especially user-supplied activation actions),
+            and possibly some other obscure bugs.</li>
+        <li>Prevent submission of multi-cone/SIA queries for which the
+            Search Radius parameter is blank.</li>
+        </ul>
+        </p></dd>
+
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Added some functions to the 
+            <ref id="Arrays">Arrays</ref> class
+            that return array-valued results from array-valued parameters:
+            <code>add</code>, <code>subtract</code>,
+            <code>multiply</code>, <code>divide</code>,
+            <code>reciprocal</code>, <code>condition</code>.</li>
+        <li>HTTP-level compression is now requested
+            (<code>Accept-Encoding gzip</code> request headers included)
+            in most places where it makes sense.
+            This should substantially reduce required bandwidth in
+            communications with HTTP services that support this.</li>
+        <li>When clicking on the headers of columns to sort the rows
+            in displayed JTables that show registry services and VizieR
+            catalogues, clicks now cycle between three options
+            (up, down, none) rather than just two (up, down).</li>
+        <li>Minor improvement to version reporting
+            (reports java specification version,
+             no longer issues warning for absent revision string).</li>
+        <li>Update JCDF library to v1.1
+            (minor changes to do with leap seconds).</li>
+        <li>Now only runs in PLASTIC mode if the <code>-plastic</code> flag is
+            set explicitly (otherwise runs in the default SAMP mode).
+            Previously it ran in PLASTIC mode if a <code>.plastic</code>
+            lockfile was present.</li>
+        <li>Activation action summary messages are now written via an INFO
+            log message rather than just printing to standard output.
+            To see them you now need to run the application with the
+            <code>-verbose</code> flag.
+            The various <ref id="System"><code>exec</code></ref> functions
+            however do now write their output direct to stdout/stderr
+            rather than including them in a return value.</li>
+        <li>Custom Code activation action invocation behaviour has subtly
+            changed when one of the values in the expression is from
+            an integer or boolean column, and that column has a blank value.
+            In that case, it's not possible to represent the column value
+            properly to the function
+            (since integer/boolean values can't be null).
+            Previously, the function was invoked with a zero/false value where
+            the null would have been.  Now, the function is not invoked at all.
+            Note this only applies to Activation Actions (which are expected to
+            have side-effects); expressions evaluated as column values etc
+            are, as previously, executed but the result is ignored.
+            </li>
+        <li>Modify the heuristics that determine whether the first row of
+            a CSV file is a header.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix error reporting bug when a non-VOTable response is received
+        from a TAP service.</li>
+    <li>Fix TAP service location bug that caused an error if searching
+        in By Tables tab with only Service field selected.</li>
+    <li>Fix bug in ADQL parsing that failed to recognise column names that
+        are delimited identifiers when qualified by table names.</li>
+    <li>Bugfix updates to ADQL library:
+        disallow use of spurious schema names for tables with no schema name;
+        disallow table-qualified names in ORDER/GROUP BY clauses.</li>
+    <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-Gb)
+        CDF files.</li>
     </ul>
     </p></dd>
 

@@ -18,11 +18,13 @@ import javax.swing.JComponent;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -54,6 +56,7 @@ public abstract class FormLayerControl
     private final SubsetConfigManager subsetManager_;
     private final TopcatListener tcListener_;
     private final SubsetStack subStack_;
+    private final ReportLogger reportLogger_;
     private TopcatModel tcModel_;
 
     /**
@@ -77,6 +80,7 @@ public abstract class FormLayerControl
         super( null, controlIcon );
         posCoordPanel_ = posCoordPanel;
         autoPopulate_ = autoPopulate;
+        reportLogger_ = new ReportLogger( this );
         final TopcatListener externalTcListener = tcListener;
 
         /* Set up a selector for which table to plot. */
@@ -189,7 +193,10 @@ public abstract class FormLayerControl
                         PlotUtil.arrayConcat( posContents, extraContents );
                     DataSpec dspec =
                         new GuiDataSpec( tcModel_, subset, contents );
-                    layerList.add( fc.createLayer( geom, dspec, subset ) );
+                    PlotLayer layer = fc.createLayer( geom, dspec, subset );
+                    if ( layer != null ) {
+                        layerList.add( layer );
+                    }
                 }
             }
         }
@@ -219,6 +226,37 @@ public abstract class FormLayerControl
             }
         }
         return entries.toArray( new LegendEntry[ 0 ] );
+    }
+
+    public void submitReports( Map<LayerId,ReportMap> reports ) {
+        RowSubset[] subsets = subStack_.getSelectedSubsets();
+        GuiCoordContent[] posContents = posCoordPanel_.getContents();
+        if ( tcModel_ == null || posContents == null || subsets == null ) {
+            return;
+        }
+        DataGeom geom = posCoordPanel_.getDataGeom();
+        for ( FormControl fc : getActiveFormControls() ) {
+            Map<RowSubset,ReportMap> sreports =
+                new LinkedHashMap<RowSubset,ReportMap>();
+            GuiCoordContent[] extraContents = fc.getExtraCoordContents();
+            if ( extraContents != null ) {
+                GuiCoordContent[] contents =
+                    PlotUtil.arrayConcat( posContents, extraContents );
+                for ( RowSubset rset : subsets ) {
+                    DataSpec dspec =
+                        new GuiDataSpec( tcModel_, rset, contents );
+                    PlotLayer layer = fc.createLayer( geom, dspec, rset );
+                    if ( layer != null ) {
+                        ReportMap report =
+                            reports.get( LayerId.createLayerId( layer ) );
+                        if ( report != null ) {
+                            sreports.put( rset, report );
+                        }
+                    }
+                }
+            }
+            fc.submitReports( sreports );
+        }
     }
 
     /**
@@ -328,7 +366,7 @@ public abstract class FormLayerControl
         posCoordPanel_.setTable( tcModel_, autoPopulate_ );
         FormControl[] fcs = getActiveFormControls();
         for ( int ifc = 0; ifc < fcs.length; ifc++ ) {
-            fcs[ ifc ].setTable( tcModel_, subsetManager_ );
+            fcs[ ifc ].setTable( tcModel_, subsetManager_, subStack_ );
         }
 
         /* If there is no new table, just clear the list of subsets

@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.config;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * SpecifierPanel subclass that uses a text field for input.
@@ -55,5 +56,8 @@ public class TextFieldSpecifier<V> extends SpecifierPanel<V> {
     public void setSpecifiedValue( V value ) {
         txtField_.setText( key_.valueToString( value ) );
         fireAction();
+    }
+
+    public void submitReport( ReportMap report ) {
     }
 }

@@ -36,7 +36,7 @@ public class ThicknessComboBox extends RenderingComboBox {
     /**
      * Returns the currently selected thickness.
      *
-     * @return    thickness (>=1)
+     * @return    thickness (&gt;=1)
      */
     public int getSelectedThickness() {
         return getSelectedIndex() + 1;

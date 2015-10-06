@@ -15,6 +15,7 @@ import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.SsaConeSearcher;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
@@ -102,13 +103,19 @@ public class SsaMultiWindow extends DalMultiWindow {
             sizeSelector.setStringValue( "" );
         }
 
+        public boolean allowNullSize() {
+            return true;
+        }
+
         public JComponent getControlPanel() {
             return controlBox_;
         }
 
-        public ConeSearcher createSearcher( URL url, StarTableFactory tfact ) {
+        public ConeSearcher createSearcher( URL url, StarTableFactory tfact,
+                                            ContentCoding coding ) {
             String format = (String) formatSelector_.getSelectedItem();
-            return new SsaConeSearcher( url.toString(), format, false, tfact );
+            return new SsaConeSearcher( url.toString(), format, false, tfact,
+                                        coding );
         }
 
         public boolean hasCoverages() {

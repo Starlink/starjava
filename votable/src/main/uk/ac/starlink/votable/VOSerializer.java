@@ -502,17 +502,24 @@ public abstract class VOSerializer {
                                                    boolean magicNulls,
                                                    boolean allowXtype ) {
         ValueInfo badKey = Tables.NULL_VALUE_INFO;
+        ValueInfo ubyteKey = Tables.UBYTE_FLAG_INFO;
         int ncol = table.getColumnCount();
         final ColumnInfo[] colInfos = new ColumnInfo[ ncol ];
         int modified = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo cinfo = new ColumnInfo( table.getColumnInfo( icol ) );
+            boolean isUbyte =
+                Boolean.TRUE
+               .equals( cinfo.getAuxDatumValue( ubyteKey, Boolean.class ) );
             Class clazz = cinfo.getContentClass();
             if ( magicNulls && cinfo.isNullable() && 
                  Number.class.isAssignableFrom( clazz ) &&
                  cinfo.getAuxDatum( badKey ) == null ) {
                 Number badValue;
-                if ( clazz == Byte.class || clazz == Short.class ) {
+                if ( isUbyte ) {
+                    badValue = new Short( (short) 0xff );
+                }
+                else if ( clazz == Byte.class || clazz == Short.class ) {
                     badValue = new Short( Short.MIN_VALUE );
                 }
                 else if ( clazz == Integer.class ) {

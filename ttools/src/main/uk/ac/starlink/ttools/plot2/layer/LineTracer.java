@@ -5,7 +5,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.GeneralPath;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Draws lines composed of a sequence of points, submitted one at a time.
@@ -13,11 +16,12 @@ import java.awt.Stroke;
  * followed by a call to {@link #flush}.
  *
  * <p>Sub-sequences of the point sequence are aggregated in supplied work
- * arrays and plotted using <code>Graphics2D.drawPolyLine</code>.
+ * arrays and plotted using <code>Graphics2D.draw(Shape)</code>.
  * This is superior to the more obvious strategy of calling
  * <code>Graphics.drawLine</code> for every pair of points.
- * It is probably faster, and it is necessary to get the dashing right
- * for dashed strokes, otherwise the dash starts anew for each edge.
+ * It is probably faster, it can work with non-integer coordinates,
+ * and it is necessary to get the dashing right for dashed strokes,
+ * otherwise the dash starts anew for each edge.
  * This class does some other useful things like avoid attempts to plot
  * lines which are extremely long or which are known to be outside the clip.
  *
@@ -30,18 +34,17 @@ public class LineTracer {
     private final int xhi_;
     private final int ylo_;
     private final int yhi_;
-    private final int xVeryLo_;
-    private final int xVeryHi_;
-    private final int yVeryLo_;
-    private final int yVeryHi_;
+    private final double xVeryLo_;
+    private final double xVeryHi_;
+    private final double yVeryLo_;
+    private final double yVeryHi_;
     private final Graphics2D g2_;
     private final int nwork_;
-    private final int[] xWork_;
-    private final int[] yWork_;
+    private final double[] xWork_;
+    private final double[] yWork_;
     private int iLine_;
     private boolean lastInclude_;
-    private int lastX_;
-    private int lastY_;
+    private VertexStore lastVertex_;
     private int lastRegionX_;
     private int lastRegionY_;
 
@@ -59,9 +62,13 @@ public class LineTracer {
      * @param   stroke  line stroke
      * @param   antialias  whether lines are to be antialiased
      * @param   nwork  workspace array size
+     * @param   isPixel   if true, the graphics context is considered to be
+     *                    pixellised, allowing some optimisations to be made
+     *                    that should not be visible
      */
     public LineTracer( Graphics g, Rectangle bounds, Color color,
-                       Stroke stroke, boolean antialias, int nwork ) {
+                       Stroke stroke, boolean antialias, int nwork,
+                       boolean isPixel ) {
         nwork_ = nwork;
         xlo_ = bounds.x;
         xhi_ = bounds.x + bounds.width;
@@ -86,25 +93,19 @@ public class LineTracer {
         yVeryHi_ = yhi_ + huge;
 
         /* Set up workspace arrays and plotting state. */
-        xWork_ = new int[ nwork_ ];
-        yWork_ = new int[ nwork_ ];
-        lastX_ = Integer.MIN_VALUE;
-        lastY_ = Integer.MIN_VALUE;
+        xWork_ = new double[ nwork_ ];
+        yWork_ = new double[ nwork_ ];
+        lastVertex_ = createVertexStore( isPixel );
         lastInclude_ = true;
     }
 
     /**
      * Adds a point to the sequence to be plotted.
      *
-     * <p>At present points are submitted as integer x, y coordinates since
-     * that's how the rest of the plotting system works.  However, if it
-     * gets upgraded to floating point, the implementation here should
-     * change, perhaps using a {@link java.awt.geom.PathIterator}.
-     *
-     * @param  px  graphics X coordinate
-     * @param  py  graphics Y coordinate
+     * @param  dx  graphics X coordinate
+     * @param  dy  graphics Y coordinate
      */
-    public void addVertex( int px, int py ) {
+    public void addVertex( double dx, double dy ) {
 
         /* This method does various calculations to optimise the points
          * that will be sent to the graphics context with drawPolyLine.
@@ -114,7 +115,7 @@ public class LineTracer {
          * doing it here. */
 
         /* Don't plot points on top of each other. */
-        if ( px != lastX_ || py != lastY_ ) {
+        if ( ! lastVertex_.equalsVertex( dx, dy ) ) {
 
             /* Work out for X and Y whether the current point is within
              * the plot bounds or on one side or the other, and compare
@@ -126,8 +127,8 @@ public class LineTracer {
              * the line might cross the bounds, so plot it.
              * The arithmetic of the region function makes it easy to
              * work this out. */
-            int regionX = getRegion( px, xlo_, xhi_ );
-            int regionY = getRegion( py, ylo_, yhi_ );
+            int regionX = getRegion( dx, xlo_, xhi_ );
+            int regionY = getRegion( dy, ylo_, yhi_ );
             boolean include = regionX * lastRegionX_ != 1
                            && regionY * lastRegionY_ != 1;
             if ( include ) {
@@ -136,11 +137,11 @@ public class LineTracer {
                  * point to the plot list so that we're drawing from the
                  * right place to the current point. */
                 if ( ! lastInclude_ ) {
-                    addIncludedVertex( lastX_, lastY_ );
+                    addIncludedVertex( lastVertex_.getX(), lastVertex_.getY() );
                 }
 
                 /* Draw to the current point. */
-                addIncludedVertex( px, py );
+                addIncludedVertex( dx, dy );
             }
 
             /* If this pair will not be plotted, take the opportunity to
@@ -151,8 +152,7 @@ public class LineTracer {
 
             /* Save information about the current point since it will form
              * part of the next line segment. */
-            lastX_ = px;
-            lastY_ = py;
+            lastVertex_.setVertex( dx, dy );
             lastInclude_ = include;
             lastRegionX_ = regionX;
             lastRegionY_ = regionY;
@@ -167,7 +167,7 @@ public class LineTracer {
      */
     public void flush() {
         if ( iLine_ > 1 ) {
-            g2_.drawPolyline( xWork_, yWork_, iLine_ );
+            g2_.draw( createLineShape( xWork_, yWork_, iLine_ ) );
         }
         iLine_ = 0;
     }
@@ -179,14 +179,14 @@ public class LineTracer {
      * @param   x  X graphics coordinate
      * @param   y  Y graphics coordinate
      */
-    private void addIncludedVertex( int x, int y ) {
+    private void addIncludedVertex( double x, double y ) {
 
         /* If we've filled up the points buffer, flush it.
          * In this case, copy the last point in the full buffer as
          * the first point in the new one so that the lines join up. */
         if ( iLine_ == nwork_ ) {
-            int x0 = xWork_[ iLine_ - 1 ];
-            int y0 = yWork_[ iLine_ - 1 ];
+            double x0 = xWork_[ iLine_ - 1 ];
+            double y0 = yWork_[ iLine_ - 1 ];
             flush();
             xWork_[ 0 ] = x0;
             yWork_[ 0 ] = y0;
@@ -218,9 +218,117 @@ public class LineTracer {
      * @param   hi    region upper bound
      * @return  region code
      */
-    private int getRegion( int point, int lo, int hi ) {
+    private static int getRegion( double point, int lo, int hi ) {
         return point >= lo ? ( point < hi ? 0 
                                           : +1 )
                            : -1;
+    }
+
+    /**
+     * Turns an array of coordinates into a Shape representing line
+     * segments joining them.
+     *
+     * @param  xs  X coordinates
+     * @param  ys  Y coordinates
+     * @param  np  number of points (used length of xs and ys arrays)
+     * @return    polyline shape
+     */
+    private static Shape createLineShape( double[] xs, double[] ys, int np ) {
+        GeneralPath path = new GeneralPath( GeneralPath.WIND_NON_ZERO, np );
+        path.moveTo( (float) xs[ 0 ], (float) ys[ 0 ] );
+        for ( int ip = 1; ip < np; ip++ ) {
+            path.lineTo( (float) xs[ ip ], (float) ys[ ip ] );
+        }
+        return path;
+    }
+
+    /**
+     * Returns a vertex store suitable for a given context.
+     *
+     * @param  isPixel  true iff graphics are to be treated as pixellated
+     * @return   new vertex store
+     */
+    private static VertexStore createVertexStore( boolean isPixel ) {
+        if ( isPixel ) {
+            return new VertexStore() {
+                private int gx_ = Integer.MIN_VALUE;
+                private int gy_ = Integer.MIN_VALUE;
+                public double getX() {
+                    return gx_;
+                }
+                public double getY() {
+                    return gy_;
+                }
+                public void setVertex( double x, double y ) {
+                    gx_ = toInt( x );
+                    gy_ = toInt( y );
+                }
+                public boolean equalsVertex( double x, double y ) {
+                    return toInt( x ) == gx_ && toInt( y ) == gy_;
+                }
+                private int toInt( double d ) {
+                    return PlotUtil.ifloor( d );
+                }
+            };
+        }
+        else {
+            return new VertexStore() {
+                private double dx_ = Double.NaN;
+                private double dy_ = Double.NaN;
+                public double getX() {
+                    return dx_;
+                }
+                public double getY() {
+                    return dy_;
+                }
+                public void setVertex( double x, double y ) {
+                    dx_ = x;
+                    dy_ = y;
+                }
+                public boolean equalsVertex( double x, double y ) {
+                    return x == dx_ && y == dy_;
+                }
+            };
+        }
+    }
+
+    /**
+     * Stores a graphics position.
+     */
+    private static interface VertexStore {
+
+        /**
+         * Returns the current X coordinate.
+         *
+         * @return  x
+         */
+        double getX();
+
+        /**
+         * Returns the current Y coordinate.
+         *
+         * @return  y
+         */
+        double getY();
+
+        /**
+         * Sets the current coordinates.
+         *
+         * @param   dx   X coordinate
+         * @param   dy   Y coordinate
+         */
+        void setVertex( double dx, double dy );
+
+        /**
+         * Determines whether the current position is equal
+         * (as near as makes no difference in the context of this object)
+         * to the given coordinates.
+         *
+         * @param   dx  X coordinate to test
+         * @param   dy  Y coordinate to test
+         * @return  true  iff supplied coordinates are close to the
+         *                current vertex
+         */
+        boolean equalsVertex( double dx, double dy );
     }
 }

@@ -23,6 +23,7 @@ public class CubePlotWindow
      */
     public CubePlotWindow( Component parent ) {
         super( "Cube Plot", parent, PLOT_TYPE, PLOT_GUI );
+        getToolBar().addSeparator();
         addHelp( "CubePlotWindow" );
     }
 

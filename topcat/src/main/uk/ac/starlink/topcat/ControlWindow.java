@@ -134,7 +134,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.util.gui.StringPaster;
 import uk.ac.starlink.vo.ConeSearchDialog;
-import uk.ac.starlink.vo.DalTableLoadDialog;
+import uk.ac.starlink.vo.DalLoader;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
@@ -1158,14 +1158,14 @@ public class ControlWindow extends AuxWindow
      *
      * @param  ids  array of candidate ivo:-type resource identifiers to load
      * @param  msg  text to explain to the user what's being loaded
-     * @param  dalLoadDialogClass   DalTableLoadDialog subclass for
+     * @param  dalLoaderClass   DalLoader subclass for
      *         dialogues which may be affected by the loaded IDs
      * @param  dalMultiWindowClass  DalMultiWindow subclass for
      *         dialogues which may be affected by the loaded IDs
      */
     public boolean acceptResourceIdList(
                        String[] ids, String msg,
-                       Class<? extends DalTableLoadDialog> dalLoadDialogClass,
+                       Class<? extends DalLoader> dalLoaderClass,
                        Class<? extends DalMultiWindow> dalMultiWindowClass ) {
         boolean accepted = false;
 
@@ -1173,8 +1173,8 @@ public class ControlWindow extends AuxWindow
         if ( loadWindow_ != null ) {
             TableLoadDialog[] tlds = loadWindow_.getKnownDialogs();
             for ( int i = 0; i < tlds.length; i++ ) {
-                if ( loadDialogMatches( tlds[ i ], dalLoadDialogClass ) ) {
-                    boolean acc = ((DalTableLoadDialog) tlds[ i ])
+                if ( loadDialogMatches( tlds[ i ], dalLoaderClass ) ) {
+                    boolean acc = ((DalLoader) tlds[ i ])
                                  .acceptResourceIdList( ids, msg );
                     accepted = accepted || acc;
                 }
@@ -1489,12 +1489,26 @@ public class ControlWindow extends AuxWindow
      */
     private static TopcatCommunicator
                    attemptCreateCommunicator( ControlWindow control ) {
-        if ( "plastic".equals( interopType_ ) ) {
+        if ( "none".equals( interopType_ ) ) {
+            logger_.info( "Run with no interop" );
+            return null;
+        }
+        else if ( "plastic".equals( interopType_ ) ) {
             logger_.info( "Run in PLASTIC mode by request" );
             return new PlasticCommunicator( control );
         }
-        else if ( "samp".equals( interopType_ ) ) {
-            logger_.info( "Run in SAMP mode by request" );
+        else {
+            final String msg;
+            if ( "samp".equals( interopType_ ) ) {
+                msg = "Run in SAMP mode by request";
+            }
+            else {
+                assert interopType_ == null;
+                msg = DefaultClientProfile.getProfile().isHubRunning()
+                    ? "SAMP hub running - run in SAMP mode"
+                    : "Run in SAMP mode by default";
+            }
+            logger_.info( msg );
             try {
                 return new SampCommunicator( control );
             }
@@ -1502,44 +1516,7 @@ public class ControlWindow extends AuxWindow
                 throw new RuntimeException( "SAMP config failed", e );
             }
         }
-        else if ( "none".equals( interopType_ ) ) {
-            logger_.info( "Run with no interop" );
-            return null;
-        }
-        else {
-            assert interopType_ == null;
-            if ( DefaultClientProfile.getProfile().isHubRunning() ) {
-                logger_.info( "SAMP hub running - run in SAMP mode" );
-                try {
-                    return new SampCommunicator( control );
-                }
-                catch ( IOException e ) {
-                    logger_.warning( "SAMP setup failed: " + e );
-                    logger_.info( "Fall back to PLASTIC" );
-                    return new PlasticCommunicator( control );
-                }
-            }
-            else if ( PlasticUtils.isHubRunning() ) {
-                logger_.info( "PLASTIC hub running - run in PLASTIC mode" );
-                return new PlasticCommunicator( control );
-            }
-            else {
-                TopcatCommunicator comm;
-                try {
-                    comm = new SampCommunicator( control );
-                }
-                catch ( IOException e ) {
-                    logger_.warning( "SAMP setup failed: " + e );
-                    logger_.info( "Fall back to PLASTIC" );
-                    comm = new PlasticCommunicator( control );
-                }
-                logger_.info( "Run in " + comm.getProtocolName()
-                            + " mode by default" );
-                return comm;
-            }
-        }
     }
-
 
     /**
      * General control actions.

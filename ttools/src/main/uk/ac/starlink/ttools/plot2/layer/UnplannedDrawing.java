@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.plot2.Drawing;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 
@@ -27,6 +28,10 @@ public abstract class UnplannedDrawing implements Drawing {
     public void paintData( Object plan, Paper paper, DataStore dataStore ) {
         assert plan == null;
         paintData( paper, dataStore );
+    }
+
+    public ReportMap getReport( Object plan ) {
+        return null;
     }
 
     /**

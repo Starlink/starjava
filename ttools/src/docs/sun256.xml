@@ -132,7 +132,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>13 November 2014</docdate>
+<docdate>17 August 2015</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -1007,6 +1007,14 @@ on the command line is equivalent to having the following in your
     tables in memory, and larger ones on disk.
     </p></dd>
 
+<dt><code>startable.unmap</code></dt>
+<dd><p>Determines whether and how unmapping of memory mapped buffers is done.
+    Possible values are "<code>sun</code>" (the default) or "<code>none</code>".
+    In most cases you are advised to leave this alone, but in the event of
+    unmapping-related JVM crashes (not expected!), setting it to
+    <code>none</code> may help.
+    </p></dd>
+
 <dt><code>startable.writers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table format output
     handler classes (see <docxref doc="sun252" loc="pluggableIO"/>).
@@ -1489,6 +1497,15 @@ to use the various <code>cmd_*</code> commands etc for table processing.
 
 <p>Second, some additional utility methods are defined:
 <dl>
+<dt><code>count_rows()</code></dt>
+<dd><p>Returns the number of rows in the table in the most efficient
+    way possible.  If the table is random-access or otherwise knows
+    its row count without further calculation, that value is returned.
+    Otherwise, the rows are iterated over without reading, which may take
+    some time but should be much more efficient than iterating over
+    the table as an iterable, since the row cell data itself is not
+    retrieved.
+    </p></dd>
 <dt><code>columns()</code></dt>
 <dd><p>Returns a tuple of the column descriptors for the table.
     Each item in the tuple is an instance of the
@@ -1556,7 +1573,7 @@ as described above.
 <verbatim><![CDATA[
    >>> import stilts
    >>> xsc = stilts.tread('/data/table/2mass_xsc.xml')  # read table
-   >>> xsc.mode_count()                                 # count rows and cols
+   >>> xsc.mode_count()                                 # show rows/column count
    columns: 6   rows: 1646844
    >>> print xsc.columns()                              # full info on columns
    (id(String), ra(Double)/degrees, dec(Double)/degrees, jmag(Double)/mag, hmag(Double)/mag, kmag(Double)/mag)
@@ -1569,12 +1586,14 @@ as described above.
    19433000+4003190
    >>> print row['ra'], row['dec']                      # cells by col name
    295.875 40.055286
-   >>> print len(xsc)                                   # count rows
+   >>> print len(xsc)                                   # count rows, maybe slow
    1646844
-   >>> print len(xsc+xsc)                               # concatenate
-   3293688
-   >>> print len(xsc*100)
-   164684400
+   >>> print xsc.count_rows()                           # count rows efficiently
+   1646844L
+   >>> print (xsc+xsc).count_rows()                     # concatenate
+   3293688L
+   >>> print (xsc*10000).count_rows()
+   16468440000L
    >>> for row in xsc:                  # select rows using python commands
    ...     if row[4] - row[3] > 3.0:
    ...         print row[0]
@@ -1790,7 +1809,7 @@ by parameters with the following names (or similar ones):
 The values of these parameters are discussed in more detail below.
 </p>
 
-<subsect>
+<subsect id="location-syntax">
 <subhead><title>Table Locations</title></subhead>
 
 <p>The location of tables for input and output are usually given using
@@ -1812,8 +1831,13 @@ These are often, but not always, filenames.  The possibilities are these:
     <dt><code>ftp:</code></dt>
     <dd><p>Read from anonymous FTP resources.</p></dd>
     <dt><code>file:</code></dt>
-    <dd><p>Read from local files; not particularly useful since you can
-        do much the same using just the filename.</p></dd>
+    <dd><p>Read from local files.
+        This is not particularly useful since you can
+        do much the same using just the filename.
+        There is a difference: using this form forces reads to be sequential
+        rather than random access, which may allow you to experience
+        a different set of different performance characteristics
+        and bugs.</p></dd>
     <dt><code>jar:</code></dt>
     <dd><p>Specialised protocol for looking inside Java Archive files -
         see <webref url="&URL.J2SE_DOCS;api/java/net/JarURLConnection.html"
@@ -1850,6 +1874,21 @@ These are often, but not always, filenames.  The possibilities are these:
 <dd><p>The special location "-" (minus sign) indicates standard input 
     (for reading) or standard output (for writing).
     This allows you to use STILTS commands in a normal Unix pipeline.
+    </p></dd>
+
+<dt>System command ("<code>&lt;</code><em>syscmd</em>" or
+                    "<em>syscmd</em><code>|</code>)</dt>
+<dd><p>If the location starts with a "<code>&lt;</code>" character
+    or ends with a "<code>|</code>" character,
+    the rest of the string is taken as a command line to be executed
+    by the system shell.
+    For instance a location like
+    "<code>&lt;cat header.txt data.txt</code>"
+    (or equivalently
+    "<code>cat header.txt data.txt|</code>")
+    could be used to prepend a header line to an ASCII data file
+    before it is passed to the STILTS ASCII-format input handler.
+    Note this syntax will probably only work on Unix-like systems.
     </p></dd>
 </dl>
 </p>
@@ -1956,7 +1995,7 @@ The following list gives the values usually allowed for this
     in particular it may be considerably more efficient for very large, and
     especially very wide tables where not all of the columns are required
     at any one time.
-    Only available for uncompressed files on disk.
+    Only likely to be efficient for uncompressed files on disk.
     </p></dd>
 
 <dt><code>votable</code></dt>
@@ -7801,7 +7840,7 @@ stilts tpipe omode=meta cmd=&indirection.char;commands.lis http://archive.org/da
 <dt><verbatim>
 stilts tpipe in=survey.fits 
              cmd='select "skyDistanceDegrees(hmsToDegrees(RA),dmsToDegrees(DEC), \
-                                             hmsToDegrees(2,28,11),dmsToDegrees(-6,49,45) \
+                                             hmsToDegrees(2,28,11),dmsToDegrees(-6,49,45)) \
                           &lt; 5./60."' \
              omode=count
 </verbatim></dt>
@@ -7945,7 +7984,7 @@ you can probably find it by using <code>tmatch2</code>.
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of using <code>tmatch2</code>
+<p>Here are some examples of using <code>tskymatch2</code>
 
 <dl>
 
@@ -10036,9 +10075,268 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
+<dt>Version 3.0-2 (6 February 2015)</dt>
+<dd><p>
+    <dl>
+    <dt>Plotting enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>Linear fitting of points is now available using the 
+            <ref id="layer-linearfit">linearfit</ref> layer type for
+            <code>plot2plane</code>.  Points may be weighted.</li>
+        <li>You can add titles to plots using the new <code>title</code>
+            parameter.</li>
+        <li>New plot layer type
+            <ref id="layer-sizexy"><code>sizexy</code></ref>
+            allows plotting (optionally autoscaled)
+            markers with horizontal and vertical extents
+            independently determined by input data.</li>
+        <li>More flexibility when assigning colour maps, in 
+            <ref id="shading-aux">aux</ref> and
+            <ref id="shading-density">density</ref> shading modes, and
+            <ref id="layer-spectrogram">spectrogram</ref> layer.
+            New parameters <code>*func</code> allow assignment of
+            different data-&gt;ramp mapping functions
+            (sqrt and square as well as linear and logarithmic),
+            and new parameters <code>*quant</code> allow quantisation
+            of the colour map to discrete levels.</li>
+        <li>Replace <code>maxsizeN</code> parameter with <code>autoscaleN</code>
+            for <ref id="layer-size"><code>size</code></ref> plot layer type.
+            You can now optionally turn off autoscaling and specify marker size
+            in pixels instead.</li>
+        <li>Add <code>auxcrowd</code> parameter to plot2 tasks to influence
+            tick crowding on aux axis colour ramp.  Also adjust default to use
+            fewer ticks.</li>
+        <li>Add some "dart" options (fixed-base open or filled triangles)
+            for plotting vectors (see <code>arrowN</code> parameter in
+            layers like
+            <ref id="layer-xyvector"><code>xyvector</code></ref>).</li>
+        <li>Add some "triangle" options (variable-base open or filled triangles)
+            for plotting ellipses (see <code>ellipseN</code> parameter in layers
+            like <ref id="layer-xyellipse"><code>xyellipse</code></ref>).</li>
+        <li>Histogram normalisation option adjusted
+            so that total area under bars,
+            rather than total height of bars, is fixed.</li>
+        <li>The <code>PlotDisplay</code> class that forms the result of
+            plot2 commands can now have <code>PointSelectionListener</code>s
+            registered on it.  This lets you determine what point a user
+            has clicked on if you're using the plotting classes from
+            third party java code.</li>
+        </ul>
+        </p></dd>
+    <dt>FITS I/O:</dt>
+    <dd><p>
+        <ul>
+        <li>Reworked part of the FITS table input implementation, 
+            in particular adjusting the way memory mapping is done to reduce
+            resource requirements on some platforms.
+            If you notice any difference, it should be reduced virtual and
+            perhaps resident memory usage, and some (~10%?) performance 
+            improvements, when reading large FITS/colfits files.
+            If you were previously having problems
+            with large memory allocations leading to
+            disk thrashing and system lockup when scanning files
+            larger than RAM (this didn't happen on all OSes),
+            these will hopefully have gone away.
+            However, please report anything that appears to be working worse
+            than before, or continued memory usage issues.</li>
+        <li>Colfits files can now be accessed from streams,
+            not just uncompressed disk files
+            (though that's not necessarily a good idea).</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed a query bug (missing <code>REQUEST=queryData</code> parameter)
+            in the multi-SSA mode (<code>servicetype=ssa</code>) of
+            <code>coneskymatch</code>.
+            This long-standing bug would have stopped this command working
+            at all with well-behaved SSA services.</li>
+        <li>Fixed error in fits-var output
+            (PCOUNT header card did not include block alignment gap).</li>
+        <li>Graphics coordinates are now calculated in floating point 
+            rather than as integers.  This fixes problems that could 
+            cause scaled vectors, ellipses etc to be drawn with shapes
+            or orientations badly wrong due to rounding errors.
+            It also improves plotting of analytic functions, especially
+            to vector contexts (PDF/EPS).</li>
+        <li>Fix some problems to do with zooming to very large/small
+            plot axis ranges.</li>
+        <li>Hide error bars (etc) that would extend to negative values
+            on logarithmic axes; previously they were being drawn in anomalous
+            places.</li>
+        <li>Fix NullPointerException bug when null value was supplied to
+            multi-word parameter (e.g. <code>tcube</code>).</li>
+        <li>Fix Aux axis positioning for 3D plots so that the numeric labels 
+            don't get snipped off at top and bottom.</li>
+        <li>Add a hack that allows LDAC FITS tables to be treated sensibly
+            in auto-format-detection mode.</li>
+        <li>Make VOTable handling more robust against unknown (illegal)
+            datatypes.</li>
+        <li>Add missing parameters <code>auxmax</code>, <code>auxmin</code>
+            to plotting task documentation.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Version 3.0-3 (14 April 2015)</dt>
+<dd><p>
+    <ul>
+    <li>New System Command option for
+        <ref id="location-syntax">input table syntax</ref>;
+        you can now use "<code>&lt;syscmd</code>" or "<code>syscmd|</code>"
+        to supply input byte streams from Un*x pipelines.</li>
+    <li>Add new Kernel Density Estimate plot layer types
+        <ref id="layer-kde">kde</ref>,
+        <ref id="layer-knn">knn</ref> and
+        <ref id="layer-densogram">densogram</ref>
+        for <code>plot2plane</code>.</li>
+    <li>More histogram normalisation options provided.
+        Instead of just <code>true</code>/<code>false</code>,
+        the <code>normalisation</code>
+        parameter of the <ref id="layer-histogram">histogram</ref> layer
+        now has the options
+        <code>none</code>, <code>height</code>,
+        <code>area</code> and <code>maximum</code>.
+        This allows both the area normalisation introduced in v3.0-2,
+        and the height normalisation used in earlier versions
+        which it replaced.</li>
+    <li>More histogram bar style options provided;
+        the <ref id="layer-histogram">histogram</ref> <code>barform</code>
+        parameter now provides the options
+        <code>semi_filled</code> (the new default) and <code>semi_steps</code>.
+        These give outlined partially transparent bars, which make it
+        much easier to see what's going on in multi-dataset histograms.
+        Note <code>semi_steps</code> does not currently export very nicely
+        to PDF/EPS.
+        Similar options are also available in the new KDE plots.</li>
+    <li>Column data read in as unsigned bytes will now be written out as
+        unsigned bytes where the output format permits; 
+        previously they were forced to 16-bit signed integers.
+        This affects FITS, VOTable and CDF I/O handlers.</li>
+    <li>Add <code>count_rows()</code> method to JyStilts 
+        <ref id="jytable">table</ref> objects, which for non-random tables
+        may be much more efficient than <code>len()</code>.</li>
+    <li>Be less strict about recognising colfits files
+        (tolerate implicit TDIMn headers).</li>
+    <li><code>taplint</code> is now aware of, and performs some checks
+        related to, schema-level table metadata declared by TAP services.</li>
+    <li>Work round FITS read bug that could cause problems for VOTables using
+        inline FITS serialization, and possibly elsewhere.</li>
+    <li>Fix bug that caused trouble when auto-ranging a plot
+        with a single sky position.</li>
+    </ul>
+    </p></dd>
+
+<dt>Version 3.0-4 (17 August 2015)</dt>
+<dd><p>
+    <dl>
+    <dt>Bugfixes (some significant):</dt>
+    <dd><p>
+        <ul>
+        <li>Fix a serious bug in processing of FITS bit vector
+            (<code>TFORMn='rX'</code>) columns.
+            Values read from these columns are presented as a
+            <code>boolean[]</code> array.  In all previous versions of STIL
+            the bits have appeared in that array in the wrong sequence
+            (LSB..MSB per byte rather than the other way round).
+            Apologies to anyone who may have got incorrect science results
+            from this error in the past, and thanks to Paul Price for helping
+            to diagnose it.</li>
+        <li>Fix a less serious bug with <code>TFORMn='rX'</code> processing;
+            attempting to read a single-element bit vector column
+            (<code>TFORMn=1X</code> or <code>X</code>) previously
+            resulted in an error making the file unreadable.
+            Values read from such columns are now presented as
+            Boolean scalars.</li>
+        <li>Fix a VOTable reading bug relating to bit vector data
+            (<code>datatype="bit"</code>) appearing in BINARY/BINARY2
+            serializations.  This one was more obvious, it would usually
+            generate an error when attempting to read the file.</li>
+        <li>Fix serious bug in time conversion for CDF TIME_TT2000
+            data types.</li>
+        <li>Fix a bug in <code>votcopy</code> that converted columns from
+            datatype <code>unsignedByte</code> to <code>short</code> when
+            transforming.  Since v3.0-3 this is no longer necessary.
+            In the case of converting to a binary serialization,
+            since v3.0-3 this was causing it to generate unreadable VOTable
+            output.</li>
+        <li>Fix a bug in <code>votcopy</code> that failed to handle
+            columns with datatype <code>bit</code>.  In the case of
+            converting to a binary serialization, these were in all previous
+            versions generating unreadable VOTable output.
+            Now they convert them to columns with datatype
+            <code>boolean</code> (not perfect, but better).</li>
+        <li>Fix <code>skyvector</code> bug:
+            <code>dlat</code> and <code>dlon</code>
+            values were being used the wrong way round.</li>
+        <li>Upgrade JEL to v2.0.2.
+            Fixes problem with evaluating void-typed expressions,
+            and possibly some other obscure bugs.</li>
+        <li>Some taplint bug fixes.</li>
+        </ul>
+        </p></dd>
+    <dt>Behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Changes to the way that TAP service table/column name reports are
+            interpreted (to conform to original intention of TAP standard).
+            Taplint now checks that table/column names from TAP_SCHEMA
+            and /tables
+            endpoint are regular-or-delimited-identifiers, but no longer
+            submits example queries using supplied column names wrapped in
+            additional quotes.</li>
+        <li>Modify the heuristics that determine whether the first row of
+            a CSV file is a header.</li>
+        </ul>
+        </p></dd>
+    <dt>Enhancements (mostly minor):</dt>
+    <dd><p>
+        <ul>
+        <li>Added some functions to the
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
+            that return array-valued results from array-valued parameters:
+            <code>add</code>, <code>subtract</code>,
+            <code>multiply</code>, <code>divide</code>,
+            <code>reciprocal</code>, <code>condition</code>.</li>
+        <li>Improve error reporting in the face of non-VOTable 
+            TAP error responses.
+            In many cases this makes it much easier to see what's going wrong
+            with a TAP query.</li>
+        <li>As a diagnostic tool, when making TAP queries,
+            a log message giving a roughly equivalent <code>curl(1)</code>
+            command is now issued at the CONFIG level
+            (visible using flags <code>-verbose -verbose</code>).</li>
+        <li>New <code>taplint</code> parameter <code>maxtable</code>
+            limits the number of tables tested in the stage that
+            queries data from each individual table (<code>MDQ</code>).
+            May be useful for very large services.</li>
+        <li>New <code>tapquery</code> parameter <code>upvotformat</code>
+            to determine what VOTable serialization variant is used to
+            transmit uploaded tables to the TAP server.
+            Previously uploads were always BINARY which ought to work,
+            but the parameter now defaults to TABLEDATA,
+            since some services (e.g. CADC)
+            currently fail with binary uploads.</li>
+        <li>Minor improvement to version reporting
+            (reports java specification version,
+             no longer issues warning for absent revision string).</li>
+        <li>Update JCDF library to v1.1
+            (minor changes to do with leap seconds).</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix error reporting bug when a non-VOTable response is received
+        from a TAP service.</li>
+    <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-2Gb)
+        CDF files.</li>
     </ul>
     </p></dd>
 

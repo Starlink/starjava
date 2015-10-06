@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Point2D;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -62,6 +63,18 @@ public class PlotUtil {
         PdfGraphicExporter
        .createExternalFontExporter( PlotUtil.class
                                    .getResource( LATEX_FONT_PATHS ) );
+
+    /** Maximum distance from a click to a clicked-on position. */
+    public static final double NEAR_PIXELS = 4.0;
+
+    /** Maximum size for autoscaled variable-size markers. */
+    public static final int DEFAULT_MAX_PIXELS = 20;
+
+    /** Absolute maximum number of pixels per marker. */
+    public static final short MAX_MARKSIZE = 100;
+
+    /** Minimum number of input differences that fill up a colour ramp. */
+    public static final int MIN_RAMP_UNIT = 12;
 
     /** Amount of padding added to data ranges for axis scaling. */
     private static final double PAD_FRACTION = 0.02;
@@ -161,7 +174,7 @@ public class PlotUtil {
      * time and the time when this method is called.
      * If the elapsed time is zero, nothing is logged.
      *
-     * @param  logger   log message destaination
+     * @param  logger   log message destination
      * @param  phase  name of step to log time of
      * @param  start   start {@link java.lang.System#currentTimeMillis
      *                              currentTimeMillis}
@@ -208,6 +221,76 @@ public class PlotUtil {
             sbuf.append( line ).append( '\n' );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Turns a Number object into a double primitive.
+     * If the supplied value is null, Double.NaN is returned.
+     *
+     * @param  value  number object
+     * @return   primitive value
+     */
+    public static double toDouble( Number value ) {
+        return value == null ? Double.NaN : value.doubleValue();
+    }
+
+    /**
+     * Indicates whether a value is a definite number.
+     *
+     * @param  value  value to test
+     * @return  true iff <code>value</code> is non-NaN and non-infinite
+     */
+    public static boolean isFinite( double value ) {
+        return ! Double.isNaN( value ) && ! Double.isInfinite( value );
+    }
+
+    /**
+     * Determines whether both coordinates of a graphics position are
+     * definite numbers.
+     *
+     * @param  gp  position to test
+     * @return  true  iff X and Y coordinates are both non-NaN and non-infinite
+     */
+    public static boolean isPointFinite( Point2D.Double gp ) {
+        return isFinite( gp.x ) && isFinite( gp.y );
+    }
+
+    /**
+     * Determines whether both coordinates of a graphics position are
+     * not NaNs.
+     *
+     * @param  gp  position to test
+     * @return  true iff X and Y coordinates are both non-NaN
+     */
+    public static boolean isPointReal( Point2D.Double gp ) {
+        return ! Double.isNaN( gp.x ) && ! Double.isNaN( gp.y );
+    }
+
+    /**
+     * Maps a floating point graphics position to an integer graphics
+     * position, that is a 2-dimensional grid cell index.
+     * It does this by calling {@link #ifloor} on both coordinates.
+     * The input coordinates must not be NaN.
+     *
+     * @param   dpos   input definite floating point graphics position
+     * @param   gpos   output graphics position object
+     */
+    public static void quantisePoint( Point2D.Double dpos, Point gpos ) {
+        gpos.x = ifloor( dpos.x );
+        gpos.y = ifloor( dpos.y );
+    }
+
+    /**
+     * Determines the integer not larger than a given non-NaN
+     * floating point value.
+     * 
+     * @param  x  definite floating point value
+     * @return  floor of input
+     * @see   java.lang.Math#floor
+     */
+    public static int ifloor( double x ) {
+        int y = (int) x;
+        return x >= 0 || x == y || y == Integer.MIN_VALUE ? y : y - 1;
     }
 
     /**
@@ -290,7 +373,7 @@ public class PlotUtil {
 
         /* Pad the ranges with a bit of space. */
         for ( int idim = 0; idim < nDataDim; idim++ ) {
-            padRange( ranges[ idim ], logFlags[ idim ], PAD_FRACTION );
+            padRange( ranges[ idim ], logFlags[ idim ] );
         }
 
         /* Return the ranges. */
@@ -301,17 +384,17 @@ public class PlotUtil {
      * Pads a data range to provide a bit of extra space at each end.
      * If one of the limits is near to zero, it is padded to zero
      * instead of adding a fixed amount.
+     * A standard padding fraction is used.
      *
      * @param  range  range to pad
      * @param  logFlag  true for logarithmic scaling, false for linear
-     * @param  padFrac  fraction to add to range for padding purposes.
      */
-    private static void padRange( Range range, boolean logFlag,
-                                  double padFrac ) {
+    public static void padRange( Range range, boolean logFlag ) {
         double[] bounds = range.getBounds();
         double lo = bounds[ 0 ];
         double hi = bounds[ 1 ];
         if ( lo < hi ) {
+            double padFrac = PAD_FRACTION;
             final boolean loNearZero;
             final boolean hiNearZero;
             if ( logFlag ) {
@@ -331,6 +414,43 @@ public class PlotUtil {
                           ? 0
                           : scaleValue( lo, hi, 1 + padFrac, logFlag ) );
         }
+    }
+
+    /**
+     * Scans a tuple sequence to identify the data point which is
+     * plotted closest to a given graphics position.
+     * Note the result might still be a long way off - standard practice
+     * is to threshold the result against the value of {@link #NEAR_PIXELS}.
+     *
+     * @param  surface  plot surface
+     * @param  geom     maps data positions to graphics positions
+     * @param  iPosCoord   coordinate index of positional coords in tseq
+     * @param  tseq     tuple sequence positioned at start
+     * @param  point    reference graphics position
+     * @return   object giving row index and distance;
+     *           null is returned if no points are present
+     */
+    @Slow
+    public static IndicatedRow getClosestRow( Surface surface, DataGeom geom,
+                                              int iPosCoord, TupleSequence tseq,
+                                              Point2D point ) {
+        double[] dpos = new double[ surface.getDataDimCount() ];
+        Point2D.Double gp = new Point2D.Double();
+        long bestIndex = -1;
+        double bestDist2 = Double.POSITIVE_INFINITY;
+        while ( tseq.next() ) {
+            if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
+                 surface.dataToGraphics( dpos, true, gp ) ) {
+                double dist2 = gp.distanceSq( point );
+                if ( dist2 < bestDist2 ) {
+                    bestDist2 = dist2;
+                    bestIndex = tseq.getRowIndex();
+                }
+            }
+        }
+        return Thread.currentThread().isInterrupted() || bestIndex < 0
+             ? null
+             : new IndicatedRow( bestIndex, Math.sqrt( bestDist2 ) );
     }
 
     /**
@@ -572,6 +692,41 @@ public class PlotUtil {
         fmt.setMaximumFractionDigits( nFracDigits );
         fmt.setMinimumFractionDigits( nFracDigits );
         return fmt.format( value );
+    }
+
+    /**
+     * Formats a number so that it presents a number of significant figures
+     * corresponding to a supplied small difference.
+     * The idea is that the output should be compact, but that applying
+     * this function to value and value+epsilon should give visibly
+     * different results.  The number of significant figures is determined
+     * by epsilon, not further rounded (trailing zeroes are not truncated).
+     *
+     * @param   value   value to format
+     * @param   epsilon   small value
+     * @return  formatted value
+     */
+    public static String formatNumber( double value, double epsilon ) {
+        epsilon = Math.abs( epsilon );
+
+        /* Work out the number of significant figures. */
+        double aval = Math.abs( value );
+        int nsf =
+            Math.max( 0, (int) Math.round( -Math.log10( epsilon / aval ) ) );
+
+        /* Return a formatted string on this basis. */
+        if ( aval >= 1e6 || aval <= 1e-4 ) {
+            return formatNumber( value, "0.#E0", nsf );
+        }
+        else if ( epsilon >= 0.9 ) {
+            return Long.toString( (long) Math.round( value ) );
+        }
+        else {
+            int ndp = (int) Math.round( Math.max( 0, -Math.log10( epsilon ) ) );
+            return ndp == 0
+                 ? Long.toString( (long) Math.round( value ) )
+                 : formatNumber( value, "0.0", ndp );
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.layer.ModePlotter;
 
 /**
@@ -247,10 +249,26 @@ public class MultiFormLayerControl extends FormLayerControl {
      * @return   new form control configured for the current table
      */
     private FormControl createSimpleFormControl( Plotter plotter ) {
+
+        /* The coordinate entry fields in the form control should be
+         * those which are not requested by the (common to several forms)
+         * PositionCoordPanel.  What we do below is to get a list of
+         * the Extra coords required by the current plotter and remove
+         * from that list those appearing in the position coord panel.
+         * It would be more correct to assemble a list of all the
+         * coordinates required by this plotter (positional as well as
+         * extra ones) and use that minus the common ones - however in
+         * all current cases the positional ones are always common,
+         * so currently this works. */
+        List<Coord> extraCoords =
+            new ArrayList<Coord>( Arrays.asList( plotter.getCoordGroup()
+                                                        .getExtraCoords() ) );
+        extraCoords.removeAll( Arrays.asList( getPositionCoordPanel()
+                                             .getCoords() ) );
         FormControl fc =
             new SimpleFormControl( baseConfigger_, plotter,
-                                   plotter.getCoordGroup().getExtraCoords() );
-        fc.setTable( getTopcatModel(), getSubsetManager() );
+                                   extraCoords.toArray( new Coord[ 0 ] ) );
+        fc.setTable( getTopcatModel(), getSubsetManager(), getSubsetStack() );
         return fc;
     }
 
@@ -263,7 +281,7 @@ public class MultiFormLayerControl extends FormLayerControl {
     private ModeFormControl createModeFormControl( ModePlotter[] plotters ) {
         ModeFormControl fc =
             new ModeFormControl( baseConfigger_, plotters, subsetKeys_ );
-        fc.setTable( getTopcatModel(), getSubsetManager() );
+        fc.setTable( getTopcatModel(), getSubsetManager(), getSubsetStack() );
         return fc;
     }
 

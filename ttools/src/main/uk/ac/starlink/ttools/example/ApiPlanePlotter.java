@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Insets;
 import java.io.IOException;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.MarkShape;
@@ -30,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.Outliner;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
@@ -38,6 +38,7 @@ import uk.ac.starlink.ttools.plot2.layer.Stamper;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.ColumnDataSpec;
+import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
 /**
  * PlanePlotter implementation that sets up a plot explicitly.
@@ -52,8 +53,8 @@ import uk.ac.starlink.ttools.plot2.task.ColumnDataSpec;
  */
 public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
-    public JComponent createPlotComponent( StarTable table,
-                                           boolean dataMayChange )
+    public PlotDisplay createPlotComponent( StarTable table,
+                                            boolean dataMayChange )
             throws InterruptedException, IOException {
 
         /* Prepare an object which knows how to draw the plot from the table. */
@@ -120,6 +121,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* We will not use optional decorations for this plot. */
         Icon legend = null;
         float[] legPos = null;
+        String title = null;
         ShadeAxisFactory shadeFact = null;
         Range shadeFixRange = null;
 
@@ -146,9 +148,9 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
         /* Construct and return the plot generator. */
         return new PlotGenerator( layers, surfFact, profile, aspect,
-                                  legend, legPos, shadeFact, shadeFixRange,
-                                  ptSel, compositor, dataStore, xpix, ypix,
-                                  dataInsets );
+                                  legend, legPos, title, shadeFact,
+                                  shadeFixRange, ptSel, compositor,
+                                  dataStore, xpix, ypix, dataInsets );
     }
 
     /**
@@ -229,7 +231,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         BarStyle.Form barForm = BarStyle.FORM_OPEN;
         BarStyle.Placement placement = BarStyle.PLACE_ADJACENT;
         boolean cumulative = true;
-        boolean norm = true;
+        Normalisation norm = Normalisation.NONE;
         int thick = 1;
         float[] dash = null;
         BinSizer sizer = BinSizer.createCountBinSizer( 16, true );

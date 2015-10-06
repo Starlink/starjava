@@ -40,8 +40,12 @@ public class SortedPaperType3D extends PaintPaperType
         return new SortedPaper3D( this, g );
     }
 
-    public void placeGlyph( Paper paper, int gx, int gy, double dz,
+    public void placeGlyph( Paper paper, double dx, double dy, double dz,
                             Glyph glyph, Color color ) {
+        assert dx >= Short.MIN_VALUE && dx <= Short.MAX_VALUE
+            && dy >= Short.MIN_VALUE && dy <= Short.MAX_VALUE : "uh-oh";
+        short gx = (short) dx;
+        short gy = (short) dy;
         ((SortedPaper3D) paper).placeGlyph( gx, gy, dz, glyph, color );
     }
 
@@ -78,7 +82,8 @@ public class SortedPaperType3D extends PaintPaperType
             return paperType_;
         }
 
-        void placeGlyph( int gx, int gy, double dz, Glyph glyph, Color color ) {
+        void placeGlyph( short gx, short gy, double dz,
+                         Glyph glyph, Color color ) {
             list_.add( new PlacedGlyph( glyph, gx, gy, dz, color, iseq_++ ) );
         }
 
@@ -167,13 +172,11 @@ public class SortedPaperType3D extends PaintPaperType
          * @param  iseq   sequence number,
          *                used as a tie-breaker for plotting order
          */
-        PlacedGlyph( Glyph glyph, int gx, int gy, double dz, Color color,
+        PlacedGlyph( Glyph glyph, short gx, short gy, double dz, Color color,
                      int iseq ) {
             super( iseq, dz );
-            assert gx >= Short.MIN_VALUE && gx <= Short.MAX_VALUE
-                && gy >= Short.MIN_VALUE && gy <= Short.MAX_VALUE : "uh-oh";
-            gx_ = (short) gx;
-            gy_ = (short) gy;
+            gx_ = gx;
+            gy_ = gy;
             glyph_ = glyph;
             color_ = color;
         }

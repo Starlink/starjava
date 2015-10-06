@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.ContentCoding;
 
 public class SearcherTest extends TestCase {
 
@@ -25,7 +26,8 @@ public class SearcherTest extends TestCase {
             createCol( "DEC_J2000", Double.class, null ),
         };
         StarTable table = new RowListStarTable( infos );
-        SsaConeSearcher cs = new SsaConeSearcher( null, null, false, null );
+        SsaConeSearcher cs =
+            new SsaConeSearcher( null, null, false, null, ContentCoding.NONE );
 
         assertEquals( 0, cs.getRaIndex( table ) );
         assertEquals( 1, cs.getDecIndex( table ) );
@@ -59,7 +61,8 @@ public class SearcherTest extends TestCase {
     public void testDalGuess() {
         workConeSearcherGuess( new ServiceConeSearcher( null, 0,
                                                         false, null ) );
-        workConeSearcherGuess( new SiaConeSearcher( null, null, false, null ) );
+        workConeSearcherGuess( new SiaConeSearcher( null, null, false, null,
+                                                    ContentCoding.NONE ) );
     }
 
     public void workConeSearcherGuess( ConeSearcher cs ) {

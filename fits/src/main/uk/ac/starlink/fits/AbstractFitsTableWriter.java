@@ -26,6 +26,19 @@ import uk.ac.starlink.util.IOUtils;
 /**
  * Abstract table writer superclass designed for writing FITS tables.
  *
+ * <p>A couple of Auxiliary metadata items of the ColumnInfo metadata
+ * from written tables are respected:
+ * <ul>
+ * <li>{@link uk.ac.starlink.table.Tables#NULL_VALUE_INFO}:
+ *     sets the value of <code>TNULLn</code> "magic" blank value for
+ *     integer columns</li>
+ * <li>{@link uk.ac.starlink.table.Tables#UBYTE_FLAG_INFO}:
+ *     if set to <code>Boolean.TRUE</code> and if the column has content class
+ *     <code>Short</code> or <code>short[]</code>, the data will be written
+ *     as unsigned bytes (<code>TFORMn='B'</code>)
+ *     not 16-bit signed integers (<code>TFORMn='I'</code>).</li>
+ * </ul>
+ *
  * @author   Mark Taylor
  * @since    27 Jun 2006
  */
@@ -173,7 +186,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
                           "Date of HDU creation (UTC)" );
             hdr.addValue( "STILVERS",
                           IOUtils.getResourceContents( StarTable.class,
-                                                       "stil.version" ),
+                                                       "stil.version", null ),
                           "Version of STIL software" );
             hdr.addValue( "STILCLAS", getClass().getName(),
                           "Author class in STIL software" );

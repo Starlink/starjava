@@ -377,7 +377,7 @@ public class Drawing implements Pixellator {
      * Fills an arbitrary shape.
      *
      * @param  shape  shape to fill
-     * @see   java.awt.Graphics2#fill
+     * @see   java.awt.Graphics2D#fill
      */
     public void fill( Shape shape ) {
         Rectangle box = shape.getBounds();
@@ -403,7 +403,7 @@ public class Drawing implements Pixellator {
      * May not be that efficient.
      *
      * @param   shape  shape to draw
-     * @see   java.awt.Graphics2#draw
+     * @see   java.awt.Graphics2D#draw
      */
     public void draw( Shape shape ) {
         fill( STROKE.createStrokedShape( shape ) );
