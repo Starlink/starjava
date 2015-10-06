@@ -207,9 +207,6 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                    if (values != null )
                        options = values.getOptions();
                    
-
-                   // TO DO: add MIN/MAX values to description!!!!!!!!!!!!
-
                    if ( options != null && options.length > 0 ) {
                        optbox = new JComboBox(options);
                       
