@@ -10365,6 +10365,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         you get the value as an Object not a primitive.
         This is a special-interest measure for user-defined
         functions that need to see null numeric values.</li>
+    <li>Adjust GBIN input handler: 
+        avoid descending into Class-typed members of gbin list objects, 
+        and add logging for object-&gt;column translations.</li>
     </ul>
     </p></dd>
 
