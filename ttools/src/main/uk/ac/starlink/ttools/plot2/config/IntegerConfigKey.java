@@ -9,6 +9,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
+import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.ttools.plot2.ReportKey;
@@ -83,22 +84,25 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
      * @param  negLimit  minimum value (negative)
      * @param  posLabel  label for positive value spinner
      * @param  negLabel  label for negative value spinner
-     * @param  reportKey  key to report actual value used; may be null
+     * @param  posReportKey  key to report actual value used as positive;
+     *         may be null
+     * @param  negReportKey  key to report actual value used as negative;
+     *         may be null
      */
     public static IntegerConfigKey
             createSpinnerPairKey( ConfigMeta meta, int dflt,
                                   final int posLimit, final int negLimit,
                                   final String posLabel, final String negLabel,
-                                  final ReportKey<Integer> reportKey ) {
+                                  final ReportKey<Integer> posReportKey,
+                                  final ReportKey<Integer> negReportKey ) {
         return new IntegerConfigKey( meta, dflt ) {
             public Specifier<Integer> createSpecifier() {
                 return new SpinnerPairSpecifier( posLimit, negLimit,
                                                  posLabel, negLabel,
-                                                 reportKey );
+                                                 posReportKey, negReportKey );
             }
         };
     }
- 
 
     /**
      * Returns a config key that uses a SliderSpecifier.
@@ -193,7 +197,8 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
         private final JSpinner negSpinner_;
         private final JRadioButton posButt_;
         private final JRadioButton negButt_;
-        private final ReportKey<Integer> reportKey_;
+        private final ReportKey<Integer> posReportKey_;
+        private final ReportKey<Integer> negReportKey_;
         private final JLabel reportLabel_;
 
         /**
@@ -203,11 +208,15 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
          * @param  negLimit  minimum value (negative)
          * @param  posLabel  label for positive value spinner
          * @param  negLabel  label for negative value spinner
-         * @param  reportKey  key to report actual value used; may be null
+         * @param  reportKey  key to report actual value used as positive value;
+         *                    may be null
+         * @param  reportKey  key to report actual value used as negative value;
+         *                    may be null
          */
         public SpinnerPairSpecifier( int posLimit, int negLimit,
                                      String posLabel, String negLabel,
-                                     ReportKey<Integer> reportKey ) {
+                                     ReportKey<Integer> posReportKey,
+                                     ReportKey<Integer> negReportKey ) {
             super( false );
             posSpinner_ =
                 new JSpinner( new SpinnerNumberModel( 0, 0, posLimit, 1 ) );
@@ -215,7 +224,8 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
                 new JSpinner( new SpinnerNumberModel( -1, negLimit, -1, 1 ) );
             posButt_ = new JRadioButton( posLabel );
             negButt_ = new JRadioButton( negLabel );
-            reportKey_ = reportKey;
+            posReportKey_ = posReportKey;
+            negReportKey_ = negReportKey;
             reportLabel_ = new JLabel();
             reportLabel_.setFont( posSpinner_.getFont() );
             ButtonGroup bgrp = new ButtonGroup();
@@ -241,7 +251,7 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
             line.add( Box.createHorizontalStrut( 5 ) );
             line.add( negButt_ );
             line.add( new ShrinkWrapper( negSpinner_ ) );
-            if ( reportKey_ != null ) {
+            if ( posReportKey_ != null ) {
                 line.add( Box.createHorizontalStrut( 10 ) );
                 line.add( reportLabel_ );
             }
@@ -273,10 +283,49 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
         }
 
         public void submitReport( ReportMap report ) {
-            if ( reportKey_ != null && report != null ) {
-                Integer value = report.get( reportKey_ );
-                if ( value != null ) {
-                    reportLabel_.setText( value.toString() );
+            if ( report != null ) {
+                Integer posLevel = report.get( posReportKey_ );
+                Integer negLevel = report.get( negReportKey_ );
+
+                /* Based on the reported actual value used, update the
+                 * current state of whichever control is not currently
+                 * enabled (i.e. is not available for direct modification
+                 * by the user). */
+                if ( ! posButt_.isSelected() && posLevel != null ) {
+                    setSpinnerValue( posSpinner_, posLevel.intValue() );
+                }
+                if ( ! negButt_.isSelected() && negLevel != null ) {
+                    setSpinnerValue( negSpinner_, negLevel.intValue() );
+                }
+
+                /* Also update the display label showing the value that
+                 * has actually been used. */
+                if ( posLevel != null ) {
+                    reportLabel_.setText( posLevel.toString() );
+                }
+            }
+        }
+
+        /**
+         * Sets the value of a spinner as long as the new value is in range.
+         *
+         * @param  spinner  spinner to modify
+         * @param  value  new value
+         */
+        private void setSpinnerValue( JSpinner spinner, int value ) {
+            SpinnerModel model = spinner.getModel();
+            if ( model instanceof SpinnerNumberModel ) {
+                SpinnerNumberModel nModel = (SpinnerNumberModel) model;
+                double step = ((Number) nModel.getStepSize()).doubleValue();
+                Comparable min = nModel.getMinimum();
+                Comparable max = nModel.getMaximum();
+                if ( ( step == 1 || step == -1 ) &&
+                     ( min instanceof Number && max instanceof Number ) ) {
+                    int imin = ((Number) min).intValue();
+                    int imax = ((Number) max).intValue();
+                    if ( value >= imin && value <= imax ) {
+                        spinner.setValue( new Integer( value ) );
+                    }
                 }
             }
         }

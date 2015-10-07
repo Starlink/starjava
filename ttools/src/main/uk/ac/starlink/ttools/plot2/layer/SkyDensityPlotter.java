@@ -68,11 +68,14 @@ public class SkyDensityPlotter
     private final FloatingCoord weightCoord_;
     private final boolean reportAuxKeys_;
 
-    /** Report key for the HEALPix level actually plotted. */
-    public static final ReportKey<Integer> DISPLAYLEVEL_KEY =
-        new ReportKey<Integer>( new ReportMeta( "level", "HEALPix Level" ),
+    private static final ReportKey<Integer> ABSLEVEL_REPKEY =
+        new ReportKey<Integer>( new ReportMeta( "abs_level",
+                                                "Absolute HEALPix Level" ),
                                 Integer.class, false );
-
+    private static final ReportKey<Integer> RELLEVEL_REPKEY =
+        new ReportKey<Integer>( new ReportMeta( "rel_level",
+                                                "Relative HEALPix Level" ),
+                                Integer.class, false );
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final FloatingCoord WEIGHT_COORD =
         FloatingCoord.WEIGHT_COORD;
@@ -98,7 +101,7 @@ public class SkyDensityPlotter
                 "the current zoom.",
                 "</p>",
             } )
-        , -3, 29, -8, "Abs", "Rel", DISPLAYLEVEL_KEY );
+        , -3, 29, -8, "Abs", "Rel", ABSLEVEL_REPKEY, RELLEVEL_REPKEY );
     private static final ConfigKey<Combiner> COMBINER_KEY = createCombinerKey();
     private static final ConfigKey<Double> OPAQUE_KEY = StyleKeys.AUX_OPAQUE;
 
@@ -489,6 +492,7 @@ public class SkyDensityPlotter
             private final Range auxRange_;
             private final PaperType paperType_;
             private final int level_;
+            private final int pixelLevel_;
 
             /**
              * Constructor.
@@ -503,10 +507,19 @@ public class SkyDensityPlotter
                 auxRange_ = auxRange;
                 paperType_ = paperType;
                 level_ = getLevel( surface );
+                pixelLevel_ = getPixelLevel( surface );
             }
 
             public Object calculatePlan( Object[] knownPlans,
                                          DataStore dataStore ) {
+                SkyDensityPlan plan =
+                    calculateBasicPlan( knownPlans, dataStore );
+                plan.pixelLevel_ = pixelLevel_;
+                return plan;
+            }
+
+            private SkyDensityPlan calculateBasicPlan( Object[] knownPlans,
+                                                       DataStore dataStore ) {
                 DataSpec dataSpec = getDataSpec();
                 for ( Object plan : knownPlans ) {
                     if ( plan instanceof SkyDensityPlan ) {
@@ -539,8 +552,11 @@ public class SkyDensityPlotter
             public ReportMap getReport( Object plan ) {
                 ReportMap map = new ReportMap();
                 if ( plan instanceof SkyDensityPlan ) {
-                    map.put( DISPLAYLEVEL_KEY,
-                             new Integer( ((SkyDensityPlan) plan).level_ ) );
+                    SkyDensityPlan splan = (SkyDensityPlan) plan;
+                    int absLevel = splan.level_;
+                    int relLevel = absLevel - splan.pixelLevel_;
+                    map.put( ABSLEVEL_REPKEY, new Integer( absLevel ) );
+                    map.put( RELLEVEL_REPKEY, new Integer( relLevel ) );
                 }
                 return map;
             }
@@ -619,6 +635,7 @@ public class SkyDensityPlotter
         final BinList binList_;
         final DataSpec dataSpec_;
         final SkyDataGeom geom_;
+        int pixelLevel_;
 
         /**
          * Constructor.
@@ -634,6 +651,7 @@ public class SkyDensityPlotter
             binList_ = binList;
             dataSpec_ = dataSpec;
             geom_ = geom;
+            pixelLevel_ = Integer.MIN_VALUE;
         }
 
         /**
