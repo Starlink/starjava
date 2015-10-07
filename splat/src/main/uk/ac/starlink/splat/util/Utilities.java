@@ -22,7 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 
-import uk.ac.starlink.splat.vo.SSAQueryResultsTablePopupMenu;
+import uk.ac.starlink.splat.vo.SSAQueryResultsTableSelectionMenu;
 
 /**
  * Class of static members that provide utility functions. The major

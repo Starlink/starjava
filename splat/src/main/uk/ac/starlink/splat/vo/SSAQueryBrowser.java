@@ -30,14 +30,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -47,11 +41,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -88,8 +78,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.xml.sax.InputSource;
+
 import jsky.catalog.BasicQueryArgs;
-import jsky.catalog.Catalog;
 import jsky.catalog.QueryArgs;
 import jsky.catalog.QueryResult;
 import jsky.catalog.TableQueryResult;
@@ -98,9 +89,6 @@ import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
-
-import org.xml.sax.InputSource;
-
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
@@ -118,7 +106,6 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.gui.StarJTable;
-import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
@@ -1310,6 +1297,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JMenuItem dispMenuItem = new JMenuItem("Display");
         dispMenuItem.addActionListener(new SpecPopupMenuAction());
         popup.add(dispMenuItem);
+        
+        // selection menu
+        JMenu selectionMenu = new SSAQueryResultsTableSelectionMenu();
+        popup.add(selectionMenu);
+        
         return popup;
     }
 
