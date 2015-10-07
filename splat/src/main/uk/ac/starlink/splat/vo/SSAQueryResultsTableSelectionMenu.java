@@ -3,9 +3,11 @@
  */
 package uk.ac.starlink.splat.vo;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -20,29 +22,21 @@ import uk.ac.starlink.table.gui.StarJTable;
  * @author Andresic
  *
  */
-public class SSAQueryResultsTablePopupMenu extends JPopupMenu {
+public class SSAQueryResultsTableSelectionMenu extends JMenu {
 	
 	private static final long serialVersionUID = 1L;
 	
 	private static final String CELL_BREAK = "\t";
 	private static final String LINE_BREAK = System.getProperty("line.separator");
 	
-	private StarJTable starJTable;
+	private static final String TITLE = "Selection";
 	
-	public SSAQueryResultsTablePopupMenu(StarJTable starJTable) {
-		super();
-		
-		checkAndSetStarJTable(starJTable);
+//	private StarJTable starJTable;
+	
+	public SSAQueryResultsTableSelectionMenu() {
+		super(TITLE);
 		
 		addMenuItems();
-	}
-	
-	private void checkAndSetStarJTable(StarJTable starJTable) {
-		if (starJTable == null) {
-			throw new IllegalArgumentException("StarJTable instance cannot be null.");
-		}
-		
-		this.starJTable = starJTable;
 	}
 	
 	private void addMenuItems() {
@@ -63,12 +57,12 @@ public class SSAQueryResultsTablePopupMenu extends JPopupMenu {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				String content = JTableUtilities.getCurrentCellContent(starJTable);
+				String content = JTableUtilities.getCurrentCellContent(getStarJTable(arg0));
 				
 				if (content != null) {
 					Utilities.addStringToClipboard(content);
 				} else {
-					JOptionPane.showMessageDialog(starJTable, "Invalid selection. Please select some cell.");
+					JOptionPane.showMessageDialog(getStarJTable(arg0), "Invalid selection. Please select some cell.");
 				}
 			}
 			
@@ -89,12 +83,12 @@ public class SSAQueryResultsTablePopupMenu extends JPopupMenu {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {				
-				String content = JTableUtilities.getCurrentSelectionContent(starJTable, LINE_BREAK, CELL_BREAK);
+				String content = JTableUtilities.getCurrentSelectionContent(getStarJTable(arg0), LINE_BREAK, CELL_BREAK);
 				
 				if (content != null) {
 					Utilities.addStringToClipboard(content);
 				} else {
-					JOptionPane.showMessageDialog(starJTable, "Invalid selection. Please select some area.");
+					JOptionPane.showMessageDialog(getStarJTable(arg0), "Invalid selection. Please select some area.");
 				}
 			}
 			
@@ -115,7 +109,7 @@ public class SSAQueryResultsTablePopupMenu extends JPopupMenu {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {				
-				String content = JTableUtilities.getAllContent(starJTable, LINE_BREAK, CELL_BREAK);
+				String content = JTableUtilities.getAllContent(getStarJTable(arg0), LINE_BREAK, CELL_BREAK);
 				
 				if (content != null) {
 					Utilities.addStringToClipboard(content);
@@ -125,5 +119,31 @@ public class SSAQueryResultsTablePopupMenu extends JPopupMenu {
 		});
 		
 		return menuItem;
+	}
+	
+	protected StarJTable getStarJTable(ActionEvent e) {
+		JMenuItem jmi  = (JMenuItem) e.getSource();
+        JPopupMenu jpm = (JPopupMenu) jmi.getParent();
+        Component component = jpm.getInvoker();
+        
+        return traverseToStarJTable(component);
+	}
+	
+	private StarJTable traverseToStarJTable(Component component) {
+		System.out.println("and146: " + component);
+		if (component == null) {
+			return null;
+		}
+		
+		if (component instanceof StarJTable) {
+			return (StarJTable) component;
+        	
+        } else {
+        	if (component instanceof JPopupMenu) {
+        		return traverseToStarJTable(((JPopupMenu)component).getInvoker());
+        	} else {
+        		return traverseToStarJTable(component.getParent());
+        	}
+        }
 	}
 }
