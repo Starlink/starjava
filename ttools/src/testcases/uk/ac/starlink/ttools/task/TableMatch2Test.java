@@ -231,6 +231,59 @@ public class TableMatch2Test extends TableTestCase {
         return env.getOutputTable( "omode" );
     }
 
+    public void testSingle() throws Exception {
+        StarTable tvega = new QuickTable( 1, new ColumnData[] {
+            col( "ra", new double[] { 279.233551 } ),
+            col( "dec", new double[] { 38.782376 } ),
+            col( "e_ra", new double[] { 0.00128 } ),
+            col( "e_dec", new double[] { 0.001 } ),
+        } );
+        StarTable tfsc = new QuickTable( 6, new ColumnData[] {
+            col( "ra", new double[] { 278.6959, 278.8377, 279.1393,
+                                      279.2322, 279.9727, 280.0543, } ),
+            col( "dec", new double[] { 38.8428, 38.8948, 38.5054,
+                                       38.7823, 38.9861, 38.3681, } ),
+            col( "major", new double[] { 10, 26, 15, 8, 24, 23, } ),
+            col( "minor", new double[] { 1, 5, 3, 1, 5, 4, } ),
+            col( "posang", new double[] { 79, 79, 77, 78, 75, 75, } ),
+        } );
+
+        MapEnvironment env = new MapEnvironment()
+           .setValue( "in1", tvega )
+           .setValue( "in2", tfsc )
+           .setValue( "find", "best" )
+           .setValue( "progress", "none" );
+
+        /* This one's OK. */
+        MapEnvironment envSky = new MapEnvironment( env )
+           .setValue( "matcher", "sky" )
+           .setValue( "values1", "ra dec" )
+           .setValue( "values2", "ra dec" )
+           .setValue( "params", "10" );
+        new TableMatch2().createExecutable( envSky ).execute();
+        StarTable resultSky = envSky.getOutputTable( "omode" );
+        assertEquals( 1, resultSky.getRowCount() );
+
+        /* These two fail when first introduced. */
+        MapEnvironment envEllipse = new MapEnvironment( env )
+           .setValue( "matcher", "skyellipse" )
+           .setValue( "values1", "ra dec e_ra e_dec 0" )
+           .setValue( "values2", "ra dec major minor posang" )
+           .setValue( "params", "20" );
+        new TableMatch2().createExecutable( envEllipse ).execute();
+        StarTable resultEllipse = envEllipse.getOutputTable( "omode" );
+        assertEquals( 1, resultEllipse.getRowCount() );
+
+        MapEnvironment envErr = new MapEnvironment( env )
+           .setValue( "matcher", "skyerr" )
+           .setValue( "values1", "ra dec e_ra" )
+           .setValue( "values2", "ra dec major" )
+           .setValue( "params", "20" );
+        new TableMatch2().createExecutable( envErr ).execute();
+        StarTable resultErr = envErr.getOutputTable( "omode" );
+        assertEquals( 1, resultErr.getRowCount() );
+    }
+
     private StarTable join12( String join, String find, double err )
             throws Exception {
         return join12( join, find, err, null, null );
