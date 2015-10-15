@@ -478,6 +478,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         launcher.setNewWindowPolicy( false );
         return new UrlHandler() {
             public void clickUrl( URL url ) {
+                logger_.info( "Passing URL to browser: " + url );
                 launcher.openURLinBrowser( url.toString() );
             }
         };
