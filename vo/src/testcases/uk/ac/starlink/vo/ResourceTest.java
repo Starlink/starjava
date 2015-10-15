@@ -2,11 +2,14 @@ package uk.ac.starlink.vo;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import javax.swing.Action;
 import javax.swing.Icon;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.helpers.DefaultHandler;
 import junit.framework.TestCase;
 
-public class IconTest extends TestCase {
+public class ResourceTest extends TestCase {
 
     public void testDialogIcons() {
         assert24( new ConeSearchDialog().getIcon() );
@@ -47,6 +50,19 @@ public class IconTest extends TestCase {
                 }
             }
         }
+    }
+
+    public void testHtml() throws Exception {
+        URL hintsUrl = HintPanel.class.getResource( HintPanel.HINTS_FILE );
+        assertNotNull( hintsUrl );
+
+        /* Check hints document for XML well-formedness.
+         * Since it's HTML, it might legally be not well-formed,
+         * but for now it is, so make the check on the grounds that
+         * it's probably a mistake if not.  But this test could be
+         * removed if it becomes necessary to add non-XML-like HTML. */
+        SAXParserFactory.newInstance().newSAXParser()
+                        .parse( hintsUrl.openStream(), new DefaultHandler() );
     }
 
     private void assert24( Icon icon ) {
