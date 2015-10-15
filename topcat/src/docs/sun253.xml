@@ -17022,11 +17022,11 @@ by clicking on the appropriate tab at the top.
     <dt>Service Discovery</dt>
     <dd><p>Configures how TOPCAT searches for available TAP services.
         There are currently two options,
-        <label>GLoTS</label>, which uses the Global TAP Schema
+        <label>GloTS</label>, which uses the Global TAP Schema
         service list maintained by GAVO, and
         <label>Reg Prototype</label> which uses a proposed convention
         based on the IVOA Registry.  You are advised to use the default
-        value (currently GLoTS) unless you understand what you're doing here.
+        value (currently GloTS) unless you understand what you're doing here.
         </p></dd>
     <dt>HTTP gzip</dt>
     <dd><p>If checked, this option sends <code>Accept-Encoding: gzip</code>

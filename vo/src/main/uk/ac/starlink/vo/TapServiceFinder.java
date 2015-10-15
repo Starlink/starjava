@@ -207,7 +207,7 @@ public interface TapServiceFinder {
         /**
          * Indicates whether this target is for matching against service
          * metadata.  Currently, all targets are either SERVICE_META
-         * or one of the ones with a GLoTS column.  If that changes,
+         * or one of the ones with a GloTS column.  If that changes,
          * the definition or implementation of this method will change.
          *
          * @return  true iff this instance is SERVICE_META

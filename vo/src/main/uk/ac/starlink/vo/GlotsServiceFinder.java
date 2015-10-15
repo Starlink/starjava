@@ -14,9 +14,9 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.ContentCoding;
 
 /**
- * TapServiceFinder implementation that uses the GLOTS schema
+ * TapServiceFinder implementation that uses the GloTS schema
  * maintained (at time of writing) at the GAVO Data Center.
- * GLOTS is a non-standard registry containing metadata gathered
+ * GloTS is a non-standard registry containing metadata gathered
  * by hook or by crook from all known registered TAP services.
  *
  * <p>It is not very respectable to use this resource;
@@ -25,7 +25,7 @@ import uk.ac.starlink.util.ContentCoding;
  * However, at time of writing (June 2015) the Registry does not
  * contain sufficiently detailed metadata (in particular, lists of
  * table names and descriptions for each service) to do the job,
- * while GLOTS does.
+ * while GloTS does.
  *
  * @author   Mark Taylor
  * @since    30 Jun 2015
@@ -49,7 +49,7 @@ public class GlotsServiceFinder implements TapServiceFinder {
     /**
      * Constructs an instance with custom configuration.
      *
-     * @param  glotsUrl   base URL of a TAP service containing GLOTS tables
+     * @param  glotsUrl   base URL of a TAP service containing GloTS tables
      * @param  coding   controls HTTP-level compression during TAP queries
      */
     public GlotsServiceFinder( String glotsUrl, ContentCoding coding ) {
