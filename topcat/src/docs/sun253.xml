@@ -17242,12 +17242,20 @@ The tabs are as follows:
     click on the <label>Unit</label> column header.
     If no table is selected in the tree, this tab will be empty.
     </p></dd>
-<dt>Foreign Keys</dt>
+<dt>FKeys</dt>
 <dd><p>If the service provides information about foreign keys
     (links between fields in different tables in the database)
     they will be tabulated here for the currently selected table.
-    They may help you to formulate efficient queries.
+    If any are present, they may help you to formulate efficient queries.
     If no table is selected in the tree, this tab will be empty.
+    </p></dd>
+<dt>Hints</dt>
+<dd><p>This panel gives you a very basic "Cheat Sheet" for writing ADQL queries.
+    There are just a few hints to jog your memory about the required syntax
+    for some common operations.  But the very best advice it gives
+    you is to use the <label>Examples</label> menu,
+    and the service-provided examples (from the Examples menu or
+    via a link) if available.
     </p></dd>
 </dl>
 </p>
@@ -22379,6 +22387,9 @@ introduced since the last version:
     <li>Adjust GBIN input handler:
         avoid descending into Class-typed members of gbin list objects,
         and add logging for object-&gt;column translations.</li>
+    <li>Add <label>Hints</label> tab containing a very basic ADQL cheat sheet
+        to the <ref id="TapTableLoadDialog_query">TAP load dialogue</ref>.
+        </li>
     </ul>
     </p></dd>
 
