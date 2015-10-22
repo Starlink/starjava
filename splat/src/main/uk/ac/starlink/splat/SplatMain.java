@@ -43,7 +43,7 @@ public class SplatMain
 
         //  Create and populate the SplashWindow.
         Frame splashFrame = null;
-        URL imageURL = ImageHolder.class.getResource( "splash.gif" );
+        URL imageURL = ImageHolder.class.getResource( "splash-2.png" );
         if ( imageURL != null ) {
             splashFrame = SplashWindow.splash
                 ( Toolkit.getDefaultToolkit().createImage( imageURL ) );
