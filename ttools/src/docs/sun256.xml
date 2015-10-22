@@ -132,7 +132,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>17 August 2015</docdate>
+<docdate>22 October 2015</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -10350,7 +10350,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.0-5 (22 October 2015)</dt>
 <dd><p>
     <ul>
     <li>Fix error reporting bug when a non-VOTable response is received

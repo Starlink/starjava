@@ -284,7 +284,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>17 August 2015</docdate>
+<docdate>22 October 2015</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -22364,33 +22364,44 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.3-1 (22 October 2015)</dt>
 <dd><p>
-    <ul>
-    <li>Fix error reporting bug when a non-VOTable response is received
-        from a TAP service.</li>
-    <li>Fix TAP service location bug that caused an error if searching
-        in By Tables tab with only Service field selected.</li>
-    <li>Fix bug in ADQL parsing that failed to recognise column names that
-        are delimited identifiers when qualified by table names.</li>
-    <li>Bugfix updates to ADQL library:
-        disallow use of spurious schema names for tables with no schema name;
-        disallow table-qualified names in ORDER/GROUP BY clauses.</li>
-    <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-Gb)
-        CDF files.</li>
-    <li>The expression language has a new way of
-        <ref id="jelCols">referring to a column</ref>;
-        if you use the form "<code>Object$</code><em>&lt;column-id&gt;</em>"
-        you get the value as an Object not a primitive.
-        This is a special-interest measure for user-defined
-        activation functions that need to see null numeric values.</li>
-    <li>Adjust GBIN input handler:
-        avoid descending into Class-typed members of gbin list objects,
-        and add logging for object-&gt;column translations.</li>
-    <li>Add <label>Hints</label> tab containing a very basic ADQL cheat sheet
-        to the <ref id="TapTableLoadDialog_query">TAP load dialogue</ref>.
-        </li>
-    </ul>
+    <dl>
+    <dt>New features:</dt>
+    <dd><p>
+        <ul>
+        <li>A new <label>Hints</label> tab is added to the
+            <ref id="TapTableLoadDialog_query">TAP load dialogue</ref>,
+            with useful tips to jog your memory about ADQL syntax.</li>
+        <li>The expression language has a new way of
+            <ref id="jelCols">referring to a column</ref>;
+            if you use the form "<code>Object$</code><em>&lt;column-id&gt;</em>"
+            you get the value as an Object not a primitive.
+            This is a special-interest measure for user-defined
+            activation functions that need to see null numeric values.</li>
+        <li>Adjustments to the <ref id="inGbin">GBIN input handler</ref>:
+            avoid descending into Class-typed members of gbin list objects,
+            and add logging for object-&gt;column translations.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix error reporting bug when a non-VOTable response is received
+            from a TAP service.</li>
+        <li>Fix TAP service location bug that caused an error if searching
+            in By Tables tab with only Service field selected.</li>
+        <li>Fix bug in ADQL parsing that failed to recognise column names that
+            are delimited identifiers when qualified by table names.</li>
+        <li>Bugfix updates to ADQL library:
+            disallow use of spurious schema names for tables
+            with no schema name;
+            disallow table-qualified names in ORDER/GROUP BY clauses.</li>
+        <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-Gb)
+            CDF files.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
