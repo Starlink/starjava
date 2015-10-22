@@ -613,7 +613,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     protected TapQueryPanel createTapQueryPanel() {
         return new TapQueryPanel( new UrlHandler() {
             public void clickUrl( URL url ) {
-                logger_.warning( "Click :" + url );
+                logger_.warning( "Click: " + url );
             }
         } );
     }

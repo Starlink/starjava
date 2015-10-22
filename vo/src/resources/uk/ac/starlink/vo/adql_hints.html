@@ -6,6 +6,7 @@ h1 {
    font-weight: bold;
    font-size: x-large;
    margin-bottom: 4px;
+   margin-top: 0px;
    text-decoration: underline;
 }
 h2 {
@@ -16,6 +17,10 @@ h2 {
    margin-bottom: 4px;
    text-decoration: underline;
 }
+p {
+   margin-bottom: 0px;
+   margin-top: 0px;
+}
 code {
    color: #704010;
    font-family: monospaced;
@@ -23,9 +28,10 @@ code {
 pre {
    color: #704010;
    font-family: monospaced;
+   margin-top: 0px;
    margin-bottom: 4px;
 }
-em {
+strong {
    font-weight: bold;
 }
 a {
@@ -58,14 +64,21 @@ a {
 <h1>Very basic ADQL cheat sheet</h1>
 
 <h2>Examples</h2>
-<p id="indent"><em>Use the <span id="button">Examples</span> button
+
+<div id="indent">
+
+<p id="bgap"><strong>Use the <span id="button">Examples</span> button
 at the bottom of this window!
-</em>
+</strong>
 </p>
-<p id="indent">Examples in the <span id="menu">Service Provided</span> submenu,
+
+<p id="EXAMPLE_CONTENT">
+Examples in the <span id="menu">Service Provided</span> submenu,
 if available, <br></br>
 relate to the current TAP service.
 </p>
+
+</div>
 
 <h2>SELECT statement:</h2>
 
@@ -171,8 +184,6 @@ table 3 in Control Window list is <code>TAP_UPLOAD.t3</code>.
 (http://wiki.ivoa.net/internal/IVOA/IvoaVOQL/adql-bnf-v2.0.html)
 </span>
 </p>
-
-
 
 </div>
 

@@ -8,6 +8,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.Element;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
@@ -21,6 +22,7 @@ public class HintPanel extends JPanel {
 
     private final UrlHandler urlHandler_;
     private final JEditorPane edPanel_;
+    private final HTMLDocument doc_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -35,8 +37,10 @@ public class HintPanel extends JPanel {
     public HintPanel( final UrlHandler urlHandler ) {
         super( new BorderLayout() );
         urlHandler_ = urlHandler;
+        HTMLEditorKit edKit = new HTMLEditorKit();
+        doc_ = (HTMLDocument) edKit.createDefaultDocument();
         edPanel_ = new JEditorPane();
-        edPanel_.setEditorKit( new HTMLEditorKit() );
+        edPanel_.setEditorKit( edKit );
         edPanel_.putClientProperty( JEditorPane.HONOR_DISPLAY_PROPERTIES,
                                     true );
         edPanel_.setEditable( false );
@@ -44,7 +48,7 @@ public class HintPanel extends JPanel {
         URL docResource = HintPanel.class.getResource( HINTS_FILE );
         if ( docResource != null ) {
             try {
-                edPanel_.read( docResource.openStream(), new HTMLDocument() );
+                edPanel_.read( docResource.openStream(), doc_ );
             }
             catch ( IOException e ) {
                 String msg = "Read error for: " + docResource + " - " + e;
@@ -70,5 +74,36 @@ public class HintPanel extends JPanel {
             } );
         }
         add( edPanel_, BorderLayout.CENTER );
+    }
+
+    /**
+     * Sets the known URL for service-specific examples, which may be null
+     * if there are none.  The text will be updated accordingly.
+     *
+     * @param  url  examples URL, or null
+     */
+    public void setExamplesUrl( String url ) {
+        StringBuffer sbuf = new StringBuffer();
+        if ( url == null ) {
+            sbuf.append( "This service has no " )
+                .append( "<em>service-provided</em> examples" );
+        }
+        else {
+            sbuf.append( "This service has data-specific examples: <br></br>" )
+                .append( "you can see them in the " )
+                .append( "<span id='menu'>Service Provided</span> " )
+                .append( "Examples sub-menu, <br></br>" )
+                .append( "or <a href='" )
+                .append( url )
+                .append( "'>with explanation</a> in your browser." );
+        }
+        try {
+            HTMLDocument doc = (HTMLDocument) edPanel_.getDocument();
+            Element exEl = doc.getElement( "EXAMPLE_CONTENT" );
+            doc.setInnerHTML( exEl, sbuf.toString() );
+        }
+        catch ( Exception e ) {
+            logger_.warning( "Trouble editing HTML: " + e );
+        }
     }
 }

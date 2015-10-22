@@ -452,6 +452,7 @@ public class TableSetPanel extends JPanel {
                           ? serviceKit_.getServiceUrl() + "/examples"
                           : null;
         servicePanel_.setExamplesUrl( exampleUrl );
+        hintPanel_.setExamplesUrl( exampleUrl );
     }
 
     /**
