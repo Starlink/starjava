@@ -102,7 +102,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     
     protected void initUI()
     {
-        this.setSize(450, 250);
+        this.setSize(460, 230);
         okImage = new ImageIcon( ImageHolder.class.getResource( "OK.gif" ) );
         notOkImage = new ImageIcon( ImageHolder.class.getResource( "notOK.gif" ) );
 
@@ -161,7 +161,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             gbc.fill=GridBagConstraints.NONE;
         
             dataLinkPanel.add(buttonsPanel, gbc);
-     
+           
     }
 
     private void setMaximumSize(int i, int j) {
@@ -186,31 +186,35 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
               
                JPanel servicePanel = new JPanel();
                servicePanel.setBorder(BorderFactory.createLineBorder(Color.gray));
-               servicePanel.setLayout(new BoxLayout(servicePanel, BoxLayout.Y_AXIS));
+               servicePanel.setLayout(new GridBagLayout());
+               GridBagConstraints c = new GridBagConstraints();
+               c.fill = GridBagConstraints.HORIZONTAL;
                int i=0;  
                while ( i < params.length ) {
-
-                   JPanel inputPanel = new JPanel();
-                   inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.X_AXIS));
-                   inputPanel.setBorder(empty);
+                   
+                   c.gridx=0;
+                   c.gridy=i;
+                   c.gridwidth=1;
+                   c.weightx=0.5;
                    String paramName = params[i].getName();
                    JLabel paramLabel=new JLabel(paramName+" : ");
-                   inputPanel.add(paramLabel);
-                   inputPanel.setAlignmentX(LEFT_ALIGNMENT);
-                   //     inputPanel.setAlignmentY(CENTER_ALIGNMENT);
+                   servicePanel.add(paramLabel, c);
 
                    String description = params[i].getDescription();                  
-                   //String datatype = params[i].getAttribute("datatype");
                    String value = params[i].getValue();
+                   String unit = params[i].getUnit();
                    ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
                    String [] options = null;
+                   
                    if (values != null )
                        options = values.getOptions();
                    
+                  
                    if ( options != null && options.length > 0 ) {
                        optbox = new JComboBox(options);
-                      
-                     
+                       c.gridx=1;
+                       c.gridwidth=2;
+                       c.weightx=0.0;
                        if (paramName.equals("FORMAT")) { // choose best format for SPLAT as default
                            for (i=0;i<options.length; i++) {
                                if ( options[i].contains("application/x-votable")) {
@@ -232,10 +236,14 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        optbox.addActionListener(this);
                        if (description.length() > 0)
                            optbox.setToolTipText(description);
-                       inputPanel.add(optbox);
+                       
+                       servicePanel.add(optbox, c);
                        queryComponents.add(optbox);
 
                    } else {
+                       c.gridx=1;
+                       c.gridwidth=1;
+                       c.weightx=0.0;
                        JTextField paramField = new JTextField(8);
 
                        if (description != null && description.length() > 0) {
@@ -253,47 +261,21 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        String min=constraint.getAttribute("value");
                        constraint = values.getChildByName("MAX");
                        String max=constraint.getAttribute("value"); 
-                       if (min != null || max != null)
-                           description = description + "  values: ["+min+".."+max+"]";
+                       String info="";
+                       if (min != null || max != null) 
+                           info = "["+min+".."+max+"]";
+                       if (unit != "")
+                           info += "   "+unit;
                        paramField.setToolTipText(description);
-                       
-                       inputPanel.add(paramField);
+                       JLabel infoLabel = new JLabel(info);
+                       servicePanel.add(paramField, c);
+                       c.gridx=2;
+                       servicePanel.add(infoLabel, c);
                        queryComponents.add(paramField);
-                       
-                       /* JTextField minField = new JTextField(8);
-                        JTextField maxField = new JTextField(8);
-
-                        minField.setMaximumSize( minField.getPreferredSize() );
-                        inputPanel.add(minField);
-                        inputPanel.add(new JLabel(" / "));
-                        inputPanel.add(maxField);                        
-                        minField.setName(paramName+":Min");
-                        maxField.setName(paramName+":Max");
-                        if (paramName.contains("BAND")) {
-                            String bandText=dataLinkParam.get(paramName);
-                            if (bandText != null) {
-                              int divisor=bandText.indexOf('/');
-                              minField.setText(bandText.substring(0,divisor));
-                              maxField.setText(bandText.substring(divisor+1));
-                            }
-                        }
-                        if (description.length() > 0) {
-                            minField.setToolTipText(description);
-                            maxField.setToolTipText(description);
-                        }
-                        minField.addActionListener(this);
-                        maxField.addActionListener(this);
-                     //   inputPanel.add(new JLabel("["+min+".."+max+"]"));
-
-                        queryComponents.add(minField);
-                        queryComponents.add(maxField);
-                        */
-
-                   } // else
-                   servicePanel.add(inputPanel);                       
+                   } // else      
                    i++;
                } //while
-               if ( servicePanel.getComponentCount() > 0 ) { // !!!!! for the moment, add only parameters for visible query components!
+               if ( /*servicePanel.getComponentCount()*/c.gridy > 0 ) { // !!!!! for the moment, add only parameters for visible query components!
                   accessURL.put(currentServer, dlp.getQueryAccessURL(service));
                   idSource.put(currentServer, dlp.getQueryIdSource(service));    
                   paramPanel.add(servicePanel);
