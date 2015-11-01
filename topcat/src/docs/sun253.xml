@@ -19181,6 +19181,7 @@ Some of the notable contributers are these:
 <li>Douglas Morgan (Bristol)</li>
 <li>August Muench (CfA)</li>
 <li>Simon Murphy (ANU)</li>
+<li>John Murrell</li>
 <li>Fran&#x00e7;ois Ochsenbein (CDS)</li>
 <li>Clive Page (Leicester)</li>
 <li>Menelaus Perdikeas (ESAC)</li>
@@ -22402,6 +22403,14 @@ introduced since the last version:
         </ul>
         </p></dd>
     </dl>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fix plot bug; titles were painted in white
+        for pixel export formats.</li>
+    </ul>
     </p></dd>
 
 </dl>

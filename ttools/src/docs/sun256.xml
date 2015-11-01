@@ -10371,6 +10371,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fix plot bug; titles were painted in white
+        for pixel output formats.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
