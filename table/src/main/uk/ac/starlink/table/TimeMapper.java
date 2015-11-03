@@ -42,6 +42,9 @@ public abstract class TimeMapper implements DomainMapper {
     /** Mapper for numeric values in Modified Julian Date. */
     public static final TimeMapper MJD;
 
+    /** Mapper for numeric values in Julian Day. */
+    public static final TimeMapper JD;
+
     /** Mapper for numeric values (already) in unix seconds. */
     public static final TimeMapper UNIX_SECONDS;
 
@@ -53,6 +56,8 @@ public abstract class TimeMapper implements DomainMapper {
             new DecimalYearTimeMapper( "DecYear", "Years since 0 AD" ),
         MJD =
             new MjdTimeMapper( "MJD", "Modified Julian Date" ),
+        JD =
+            new JdTimeMapper( "JD", "Julian Day" ),
         UNIX_SECONDS =
             new UnixTimeMapper( "Unix", "Seconds since midnight 1 Jan 1970" ),
         ISO_8601 =
@@ -159,6 +164,32 @@ public abstract class TimeMapper implements DomainMapper {
             if ( value instanceof Number ) {
                 double mjd = ((Number) value).doubleValue();
                 return ( mjd - MJD_EPOCH ) * SECONDS_PER_DAY;
+            }
+            else {
+                return Double.NaN;
+            }
+        }
+    }
+
+    /**
+     * TimeMapper implementation in which the source domain is
+     * numbers giving Julian Day.
+     */
+    private static class JdTimeMapper extends TimeMapper {
+
+        /** Date of the Unix epoch as a Julian Day. */
+        private static final double JD_EPOCH = 2440587.5;
+
+        /** Number of seconds in a day. */
+        private static final double SECONDS_PER_DAY = 60 * 60 * 24;
+
+        JdTimeMapper( String name, String description ) {
+            super( Number.class, name, description );
+        }
+        public double toUnixSeconds( Object value ) {
+            if ( value instanceof Number ) {
+                double jd = ((Number) value).doubleValue();
+                return ( jd - JD_EPOCH ) * SECONDS_PER_DAY;
             }
             else {
                 return Double.NaN;

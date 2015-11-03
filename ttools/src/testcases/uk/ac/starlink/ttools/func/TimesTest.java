@@ -4,6 +4,7 @@ import java.util.Random;
 import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.pal.mjDate;
 import uk.ac.starlink.pal.palError;
+import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.util.TestCase;
 
 public class TimesTest extends TestCase {
@@ -61,6 +62,17 @@ public class TimesTest extends TestCase {
             assertEquals( (int) mjd, Times.dateToMjd( palMjd.getYear(), 
                                                       palMjd.getMonth(),
                                                       palMjd.getDay() ) );
+        }
+    }
+
+    public void testMappers() {
+        for ( int i = 0; i < NTEST; i++ ) {
+            long sec = (long) ( ( rnd() - 0.5 ) * 1e6 );
+            assertEquals(
+                (double) sec,
+                (double) TimeMapper.MJD
+               .toUnixSeconds( Times.unixMillisToMjd( sec * 1000 ) ),
+                0.001 );
         }
     }
 
