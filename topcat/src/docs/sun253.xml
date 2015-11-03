@@ -22422,6 +22422,9 @@ introduced since the last version:
         <label>2d_ellipse</label> and
         <label>Sky Ellipses</label> only.
         Thanks to Grant Kennedy (IoA) for reporting this bug.</li>
+    <li>Try harder to identify epoch columns (suitable for time plot), 
+        in particular look for VOTable <code>xtype</code> of JD or MJD,
+        and <code>units</code> of year.</li>
     </ul>
     </p></dd>
 
