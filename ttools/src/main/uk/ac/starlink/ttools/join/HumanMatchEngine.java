@@ -5,6 +5,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.Range;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
@@ -114,16 +115,15 @@ public class HumanMatchEngine implements MatchEngine {
         return baseEngine_.canBoundMatch();
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
-        Comparable[][] unwrappedResult =
-            baseEngine_.getMatchBounds(
-                            toComparables( unwrapTuple( minTuple ) ),
-                            toComparables( unwrapTuple( maxTuple ) ) );
-        return new Comparable[][] {
-            toComparables( wrapTuple( unwrappedResult[ 0 ] ) ),
-            toComparables( wrapTuple( unwrappedResult[ 1 ] ) ),
-        };
+    public Range getMatchBounds( Range inRange ) {
+        Range unwrappedInRange =
+            new Range( toComparables( unwrapTuple( inRange.getMins() ) ),
+                       toComparables( unwrapTuple( inRange.getMaxs() ) ) );
+        Range unwrappedResult = baseEngine_.getMatchBounds( unwrappedInRange );
+        return new Range( toComparables( wrapTuple( unwrappedResult
+                                                   .getMins() ) ),
+                          toComparables( wrapTuple( unwrappedResult
+                                                   .getMaxs() ) ) );
     }
 
     /**

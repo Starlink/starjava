@@ -92,8 +92,7 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
         return false;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
+    public Range getMatchBounds( Range inRange ) {
         throw new UnsupportedOperationException();
     }
 

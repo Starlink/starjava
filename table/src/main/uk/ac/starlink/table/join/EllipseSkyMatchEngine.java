@@ -174,11 +174,12 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
+    public Range getMatchBounds( Range inRange ) {
+        Comparable[] minTuple = inRange.getMins();
+        Comparable[] maxTuple = inRange.getMaxs();
         double maxError = Math.max( getNumberValue( maxTuple[ 2 ] ),
                                     getNumberValue( maxTuple[ 3 ] ) );
-        return createExtendedSkyBounds( minTuple, maxTuple, 0, 1,
+        return createExtendedSkyBounds( new Range( minTuple, maxTuple ), 0, 1,
                                         2 * maxError );
     }
 

@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author   Mark Taylor
  * @since    21 Nov 2007
  */
-class Range {
+public class Range {
 
     private final int ndim_;
     private final Comparable[] mins_;
@@ -68,6 +68,26 @@ class Range {
      */
     public boolean isBounded() {
         return isBounded_;
+    }
+
+    /**
+     * Returns the array of minimum values.
+     * Unknown elements may be nulls.
+     *
+     * @return  <code>ndim</code>-element array of minima, some may be null
+     */
+    public Comparable[] getMins() {
+        return mins_.clone();
+    }
+
+    /**
+     * Returns the array of maximum values.
+     * Unknown elements may be nulls.
+     *
+     * @return  <code>ndim</code>-element array of maxima, some may be null
+     */
+    public Comparable[] getMaxs() {
+        return maxs_.clone();
     }
 
     /**

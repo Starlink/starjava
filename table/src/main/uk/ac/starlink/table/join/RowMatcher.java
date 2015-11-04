@@ -1303,7 +1303,7 @@ public class RowMatcher {
         StarTable table = tables[ tIndex ];
         int ncol = table.getColumnCount();
 
-        /* We can only do anything useful the match engine knows how to
+        /* We can only do anything useful if the match engine knows how to
          * calculate bounds. */
         if ( ! engine.canBoundMatch() ) {
             return new Range( ncol );
@@ -1380,13 +1380,14 @@ public class RowMatcher {
         }
 
         /* Report and return. */
-        indicator.logMessage( "Limits are: " + new Range( mins, maxs ) );
+        Range inRange = new Range( mins, maxs );
+        indicator.logMessage( "Limits are: " + inRange );
 
         /* Get the match engine to convert the min/max values into 
          * a possible match region (presumably by adding a separation
          * region on). */
-        Comparable[][] bounds = engine.getMatchBounds( mins, maxs );
-        return new Range( bounds[ 0 ], bounds[ 1 ] );
+        Range outRange = engine.getMatchBounds( inRange );
+        return outRange;
     }
 
     /**

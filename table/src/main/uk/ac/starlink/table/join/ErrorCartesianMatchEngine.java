@@ -102,10 +102,9 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
-        return createExtendedBounds( minTuple, maxTuple,
-                                     2 * getTupleError( maxTuple ),
+    public Range getMatchBounds( Range inRange ) {
+        return createExtendedBounds( inRange,
+                                     2 * getTupleError( inRange.getMaxs() ),
                                      indexRange( 0, ndim_ ) );
     }
 

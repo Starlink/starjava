@@ -113,11 +113,9 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
-        double maxError = getError( maxTuple );
-        return createExtendedSkyBounds( minTuple, maxTuple, 0, 1,
-                                        2 * maxError );
+    public Range getMatchBounds( Range inRange ) {
+        double maxError = getError( inRange.getMaxs() );
+        return createExtendedSkyBounds( inRange, 0, 1, 2 * maxError );
     }
 
     public String toString() {

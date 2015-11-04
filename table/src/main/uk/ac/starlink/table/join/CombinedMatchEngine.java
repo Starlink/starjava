@@ -189,9 +189,9 @@ public class CombinedMatchEngine implements MatchEngine {
         return false;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] min, Comparable[] max ) {
-        min = (Comparable[]) min.clone();
-        max = (Comparable[]) max.clone();
+    public Range getMatchBounds( Range inRange ) {
+        Comparable[] min = inRange.getMins().clone();
+        Comparable[] max = inRange.getMaxs().clone();
         for ( int i = 0; i < nPart; i++ ) {
             if ( engines[ i ].canBoundMatch() ) {
                 int size = tupleSizes[ i ];
@@ -200,15 +200,13 @@ public class CombinedMatchEngine implements MatchEngine {
                 Comparable[] subMax = new Comparable[ size ];
                 System.arraycopy( min, start, subMin, 0, size );
                 System.arraycopy( max, start, subMax, 0, size );
-                Comparable[][] subBounds = engines[ i ]
-                                          .getMatchBounds( subMin, subMax );
-                subMin = subBounds[ 0 ];
-                subMax = subBounds[ 1 ];
-                System.arraycopy( subMin, 0, min, start, size );
-                System.arraycopy( subMax, 0, max, start, size );
+                Range subRange =
+                    engines[ i ].getMatchBounds( new Range( subMin, subMax ) );
+                System.arraycopy( subRange.getMins(), 0, min, start, size );
+                System.arraycopy( subRange.getMaxs(), 0, max, start, size );
             }
         }
-        return new Comparable[][] { min, max };
+        return new Range( min, max );
     }
 
     public void setName( String name ) {

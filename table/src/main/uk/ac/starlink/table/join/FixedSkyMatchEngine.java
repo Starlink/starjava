@@ -95,10 +95,8 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
-        return createExtendedSkyBounds( minTuple, maxTuple, 0, 1,
-                                        getSeparation() );
+    public Range getMatchBounds( Range inRange ) {
+        return createExtendedSkyBounds( inRange, 0, 1, getSeparation() );
     }
 
     public String toString() {

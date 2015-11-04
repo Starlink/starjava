@@ -185,23 +185,17 @@ public interface MatchEngine {
      * <p>This method will only be called if {@link #canBoundMatch}
      * returns true.  Thus engines that cannot provide any useful 
      * information along these lines (for instance because none of its
-     * tuple elements is {@link java.lang.Comparable} do not need to
+     * tuple elements is {@link java.lang.Comparable}) do not need to
      * implement it in a meaningful way.
      *
-     * @param  minTuple  tuple consisting of the minimum values of each
-     *         tuple element in a possible match
-     *         (to put it another way - coordinates of one corner of a
-     *         tuple-space rectangle containing such a match)
-     * @param  maxTuple  tuple consisting of the maximum values of each
-     *         tuple element in a possible match
-     *         (to put it another way - coordinates of the other corner of a
-     *         tuple-space rectangle containing such a match)
-     * @return 2-element array of tuples -
-     *         effectively <tt>(minTuple,maxTuple)</tt> broadened by errors
+     * @param inRange input range, bounding the values for each tuple element
+     *                in a possible match
+     *                (to put it another way - coordinates of the opposite
+     *                corners of a tuple-space rectangle)
+     * @return  output range, effectively the input range broadened by errors
      * @see   #canBoundMatch
      */
-    Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                   Comparable[] maxTuple );
+    Range getMatchBounds( Range inRange );
 
     /**
      * Indicates that the {@link #getMatchBounds} method can be invoked
