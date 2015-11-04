@@ -288,8 +288,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * @return  input range broadened by errors
      * @see   MatchEngine#getMatchBounds
      */
-    static Range createExtendedBounds( Range inRange, double err,
-                                       int[] idims ) {
+    static NdRange createExtendedBounds( NdRange inRange, double err,
+                                         int[] idims ) {
         Comparable[] inMins = inRange.getMins();
         Comparable[] inMaxs = inRange.getMaxs();
         Comparable[] outMins = new Comparable[ inMins.length ];
@@ -299,7 +299,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             outMins[ id ] = add( inMins[ id ], -err );
             outMaxs[ id ] = add( inMaxs[ id ], +err );
         }
-        return new Range( outMins, outMaxs );
+        return new NdRange( outMins, outMaxs );
     }
 
     /**

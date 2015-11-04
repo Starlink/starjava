@@ -189,7 +189,7 @@ public class CombinedMatchEngine implements MatchEngine {
         return false;
     }
 
-    public Range getMatchBounds( Range inRange ) {
+    public NdRange getMatchBounds( NdRange inRange ) {
         Comparable[] min = inRange.getMins().clone();
         Comparable[] max = inRange.getMaxs().clone();
         for ( int i = 0; i < nPart; i++ ) {
@@ -200,13 +200,14 @@ public class CombinedMatchEngine implements MatchEngine {
                 Comparable[] subMax = new Comparable[ size ];
                 System.arraycopy( min, start, subMin, 0, size );
                 System.arraycopy( max, start, subMax, 0, size );
-                Range subRange =
-                    engines[ i ].getMatchBounds( new Range( subMin, subMax ) );
+                NdRange subRange =
+                    engines[ i ]
+                   .getMatchBounds( new NdRange( subMin, subMax ) );
                 System.arraycopy( subRange.getMins(), 0, min, start, size );
                 System.arraycopy( subRange.getMaxs(), 0, max, start, size );
             }
         }
-        return new Range( min, max );
+        return new NdRange( min, max );
     }
 
     public void setName( String name ) {

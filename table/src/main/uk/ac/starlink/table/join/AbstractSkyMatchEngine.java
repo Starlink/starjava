@@ -175,8 +175,8 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      * @param  err       amount in radians to extend bounds by
      * @return output bounds - effectively input bounds broadened by errors
      */
-    static Range createExtendedSkyBounds( Range inRange,
-                                          int ialpha, int idelta, double err ) {
+    static NdRange createExtendedSkyBounds( NdRange inRange, int ialpha,
+                                            int idelta, double err ) {
         Comparable[] minTuple = inRange.getMins();
         Comparable[] maxTuple = inRange.getMaxs();
 
@@ -233,7 +233,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
         minOuts[ idelta ] = toFloatingNumber( deltaMinOut, minTuple[ idelta ] );
         maxOuts[ ialpha ] = toFloatingNumber( alphaMaxOut, maxTuple[ ialpha ] );
         maxOuts[ idelta ] = toFloatingNumber( deltaMaxOut, maxTuple[ idelta ] );
-        return new Range( minOuts, maxOuts );
+        return new NdRange( minOuts, maxOuts );
     }
 
     /**

@@ -131,7 +131,7 @@ public class RowMatcher {
          * must fall. */
         final int indexR;
         final int indexS;
-        final Range range;
+        final NdRange range;
 
         /* If neither table has random access, we can't proceed. */
         if ( ! tables[ index1 ].isRandom() && ! tables[ index2 ].isRandom() ) {
@@ -143,13 +143,13 @@ public class RowMatcher {
             assert tables[ index2 ].isRandom();
             indexS = index1;
             indexR = index2;
-            range = new Range( ncol );
+            range = new NdRange( ncol );
         }
         else if ( ! tables[ index2 ].isRandom() ) {
             assert tables[ index1 ].isRandom();
             indexS = index2;
             indexR = index1;
-            range = new Range( ncol );
+            range = new NdRange( ncol );
         }
 
         /* If both tables have random access, calculate the possible match
@@ -195,7 +195,7 @@ public class RowMatcher {
      *         match in the random table will be included
      * @return  links representing pair matches
      */
-    LinkSet scanForPairs( int indexR, int indexS, Range range,
+    LinkSet scanForPairs( int indexR, int indexS, NdRange range,
                           boolean bestOnly )
             throws IOException, InterruptedException {
 
@@ -561,7 +561,7 @@ public class RowMatcher {
      */
     private LinkSet getAllPossibleLinks()
             throws IOException, InterruptedException {
-        Range range = new Range( tables[ 0 ].getColumnCount() );
+        NdRange range = new NdRange( tables[ 0 ].getColumnCount() );
         ObjectBinner binner = Binners.createObjectBinner();
         long totalRows = 0;
         for ( int itab = 0; itab < nTable; itab++ ) {
@@ -634,7 +634,7 @@ public class RowMatcher {
             int index = iTables[ iTable ];
             inRangeCounts[ iTable ] = tables[ index ].getRowCount();
         }
-        Range range;
+        NdRange range;
         if ( engine.canBoundMatch() && iTables.length > 1 ) {
             indicator.logMessage( "Attempt to locate " +
                                   "restricted common region" );
@@ -642,7 +642,7 @@ public class RowMatcher {
                 range = getRange( 0 );
                 for ( int iTable = 1; iTable < iTables.length; iTable++ ) {
                     int index = iTables[ iTable ];
-                    range = Range.intersection( range, getRange( index ) );
+                    range = NdRange.intersection( range, getRange( index ) );
                 }
                 if ( range != null ) {
                     indicator.logMessage( "Potential match region: " + range );
@@ -667,11 +667,11 @@ public class RowMatcher {
             catch ( ClassCastException e ) {
                 indicator.logMessage( "Common region location failed " +
                                       "(incompatible value types)" );
-                range = new Range( ncol );
+                range = new NdRange( ncol );
             }
         }
         else {
-            range = new Range( ncol );
+            range = new NdRange( ncol );
         }
         return new Intersection( range, inRangeCounts );
     }
@@ -806,14 +806,14 @@ public class RowMatcher {
         int ncol = tables[ index0 ].getColumnCount();
 
         /* Attempt to restrict ranges for match assessments if we can. */
-        Range range;
+        NdRange range;
         if ( engine.canBoundMatch() ) {
             indicator.logMessage( "Attempt to locate "
                                 + "restricted common region" );
             try {
 
                 /* Locate the ranges of all the tables. */
-                Range[] ranges = new Range[ nTable ];
+                NdRange[] ranges = new NdRange[ nTable ];
                 for ( int i = 0; i < nTable; i++ ) {
                     ranges[ i ] = getRange( i );
                 }
@@ -821,25 +821,25 @@ public class RowMatcher {
                 /* Work out the range of the reference table which we are
                  * interested in.  This is its intersection with the union 
                  * of all the other tables. */
-                Range unionOthers = null;
+                NdRange unionOthers = null;
                 for ( int i = 0; i < nTable; i++ ) {
                     if ( i != index0 ) {
                         unionOthers = unionOthers == null
                                     ? ranges[ i ]
-                                    : Range.union( unionOthers, ranges[ i ] );
+                                    : NdRange.union( unionOthers, ranges[ i ] );
                     }
                 }
-                range = Range.intersection( ranges[ index0 ], unionOthers );
+                range = NdRange.intersection( ranges[ index0 ], unionOthers );
                 indicator.logMessage( "Potential match region: " + range );
             }
             catch ( ClassCastException e ) {
                 indicator.logMessage( "Region location failed "
                                     + "(incompatible value types)" );
-                range = new Range( ncol );
+                range = new NdRange( ncol );
             }
         }
         else {
-            range = new Range( ncol );
+            range = new NdRange( ncol );
         }
 
         /* Bin all the rows in the interesting region of the reference table. */
@@ -1298,7 +1298,7 @@ public class RowMatcher {
      * @return  range   bounds of region inhabited by table
      * @throws  ClassCastException  if objects are not mutually comparable
      */
-    private Range getRange( int tIndex )
+    private NdRange getRange( int tIndex )
             throws IOException, InterruptedException {
         StarTable table = tables[ tIndex ];
         int ncol = table.getColumnCount();
@@ -1306,7 +1306,7 @@ public class RowMatcher {
         /* We can only do anything useful if the match engine knows how to
          * calculate bounds. */
         if ( ! engine.canBoundMatch() ) {
-            return new Range( ncol );
+            return new NdRange( ncol );
         }
 
         /* See which columns are comparable. */
@@ -1322,7 +1322,7 @@ public class RowMatcher {
 
         /* If none of the columns is comparable, there's no point. */
         if ( ncomp == 0 ) {
-            return new Range( ncol );
+            return new NdRange( ncol );
         }
 
         /* Go through each row finding the minimum and maximum value 
@@ -1343,9 +1343,9 @@ public class RowMatcher {
                              ! Tables.isBlank( cell ) ) {
                             Comparable val = (Comparable) cell;
                             mins[ icol ] =
-                                Range.min( mins[ icol ], val, false );
+                                NdRange.min( mins[ icol ], val, false );
                             maxs[ icol ] =
-                                Range.max( maxs[ icol ], val, false );
+                                NdRange.max( maxs[ icol ], val, false );
                         }
                     }
                 }
@@ -1380,13 +1380,13 @@ public class RowMatcher {
         }
 
         /* Report and return. */
-        Range inRange = new Range( mins, maxs );
+        NdRange inRange = new NdRange( mins, maxs );
         indicator.logMessage( "Limits are: " + inRange );
 
         /* Get the match engine to convert the min/max values into 
          * a possible match region (presumably by adding a separation
          * region on). */
-        Range outRange = engine.getMatchBounds( inRange );
+        NdRange outRange = engine.getMatchBounds( inRange );
         return outRange;
     }
 
@@ -1407,7 +1407,7 @@ public class RowMatcher {
      * @param   binner   binner object to modify
      * @param   newBins  whether new bins may be added to <code>bins</code>
      */
-    private void binRows( int itab, Range range, ObjectBinner binner,
+    private void binRows( int itab, NdRange range, ObjectBinner binner,
                           boolean newBins )
             throws IOException, InterruptedException {
         StarTable table = tables[ itab ];
@@ -1542,7 +1542,7 @@ public class RowMatcher {
      *          bounds
      * @throws  ClassCastException  if objects are not mutually comparable
      */
-    private long countInRange( int tIndex, Range range )
+    private long countInRange( int tIndex, NdRange range )
             throws IOException, InterruptedException {
         ProgressRowSequence rseq = 
             new ProgressRowSequence( tables[ tIndex ], indicator, 
@@ -1651,7 +1651,7 @@ public class RowMatcher {
      * Encapsulates information about a range intersection of multiple tables.
      */
     private static class Intersection {
-        final Range range_;
+        final NdRange range_;
         final long[] inRangeCounts_;
 
         /**
@@ -1660,7 +1660,7 @@ public class RowMatcher {
          * @param   range  common range
          * @param   inRangeCounts  per-table count of rows within the range
          */
-        public Intersection( Range range, long[] inRangeCounts ) {
+        public Intersection( NdRange range, long[] inRangeCounts ) {
             range_ = range;
             inRangeCounts_ = inRangeCounts;
         }

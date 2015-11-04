@@ -68,8 +68,8 @@ public class EqualsMatchEngine implements MatchEngine {
         return true;
     }
 
-    public Range getMatchBounds( Range inRange ) {
-        return new Range( inRange.getMins(), inRange.getMaxs() );
+    public NdRange getMatchBounds( NdRange inRange ) {
+        return new NdRange( inRange.getMins(), inRange.getMaxs() );
     }
 
     public String toString() {

@@ -195,7 +195,7 @@ public interface MatchEngine {
      * @return  output range, effectively the input range broadened by errors
      * @see   #canBoundMatch
      */
-    Range getMatchBounds( Range inRange );
+    NdRange getMatchBounds( NdRange inRange );
 
     /**
      * Indicates that the {@link #getMatchBounds} method can be invoked

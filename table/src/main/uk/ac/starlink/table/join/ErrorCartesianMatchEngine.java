@@ -102,7 +102,7 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return true;
     }
 
-    public Range getMatchBounds( Range inRange ) {
+    public NdRange getMatchBounds( NdRange inRange ) {
         return createExtendedBounds( inRange,
                                      2 * getTupleError( inRange.getMaxs() ),
                                      indexRange( 0, ndim_ ) );

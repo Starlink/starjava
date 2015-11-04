@@ -92,7 +92,7 @@ public class IsotropicCartesianMatchEngine
         return true;
     }
 
-    public Range getMatchBounds( Range inRange ) {
+    public NdRange getMatchBounds( NdRange inRange ) {
         return createExtendedBounds( inRange, getError(),
                                      indexRange( 0, ndim_ ) );
     }

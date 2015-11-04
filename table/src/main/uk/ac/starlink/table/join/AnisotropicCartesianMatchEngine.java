@@ -108,7 +108,7 @@ public class AnisotropicCartesianMatchEngine
         return true;
     }
 
-    public Range getMatchBounds( Range inRange ) {
+    public NdRange getMatchBounds( NdRange inRange ) {
         Comparable[] inMins = inRange.getMins();
         Comparable[] inMaxs = inRange.getMaxs();
         Comparable[] outMins = new Comparable[ ndim_ ];
@@ -118,7 +118,7 @@ public class AnisotropicCartesianMatchEngine
             outMins[ id ] = add( inMins[ id ], -err );
             outMaxs[ id ] = add( inMaxs[ id ], +err );
         }
-        return new Range( outMins, outMaxs );
+        return new NdRange( outMins, outMaxs );
     }
 
     public String toString() {

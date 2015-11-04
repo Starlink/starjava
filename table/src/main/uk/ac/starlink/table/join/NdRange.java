@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author   Mark Taylor
  * @since    21 Nov 2007
  */
-public class Range {
+public class NdRange {
 
     private final int ndim_;
     private final Comparable[] mins_;
@@ -29,7 +29,7 @@ public class Range {
      * @param   mins   minimum bounds
      * @param   maxs   maximum bounds
      */
-    public Range( Comparable[] mins, Comparable[] maxs ) {
+    public NdRange( Comparable[] mins, Comparable[] maxs ) {
         mins_ = (Comparable[]) mins.clone();
         maxs_ = (Comparable[]) maxs.clone();
         ndim_ = mins.length;
@@ -56,7 +56,7 @@ public class Range {
      *
      * @param  ndim  dimensionality
      */
-    public Range( int ndim ) {
+    public NdRange( int ndim ) {
         this( new Comparable[ ndim ], new Comparable[ ndim ] );
         assert ! isBounded();
     }
@@ -123,8 +123,8 @@ public class Range {
     }
 
     public boolean equals( Object o ) {
-        if ( o instanceof Range ) {
-            Range other = (Range) o;
+        if ( o instanceof NdRange ) {
+            NdRange other = (NdRange) o;
             return Arrays.equals( this.mins_, other.mins_ )
                 && Arrays.equals( this.maxs_, other.maxs_ );
         }
@@ -172,7 +172,7 @@ public class Range {
      * @param  r2  second range
      * @return   non-empty intersection, or null
      */
-    public static Range intersection( Range r1, Range r2 ) {
+    public static NdRange intersection( NdRange r1, NdRange r2 ) {
         if ( r1.ndim_ != r2.ndim_ ) {
             throw new IllegalArgumentException( "Dimensionality mismatch" );
         }
@@ -190,7 +190,7 @@ public class Range {
                     return null;
                 }
             }
-            return new Range( mins, maxs );
+            return new NdRange( mins, maxs );
         }
     }
 
@@ -201,7 +201,7 @@ public class Range {
      * @param  r2  second range
      * @return  union
      */
-    public static Range union( Range r1, Range r2 ) {
+    public static NdRange union( NdRange r1, NdRange r2 ) {
         if ( r1.ndim_ != r2.ndim_ ) {
             throw new IllegalArgumentException( "Dimensionality mismatch" );
         }
@@ -213,7 +213,7 @@ public class Range {
                 mins[ i ] = min( r1.mins_[ i ], r2.mins_[ i ], true );
                 maxs[ i ] = max( r1.maxs_[ i ], r2.maxs_[ i ], true );
             }
-            return new Range( mins, maxs );
+            return new NdRange( mins, maxs );
         }
     }
 
