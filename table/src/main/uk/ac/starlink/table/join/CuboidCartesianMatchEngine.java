@@ -107,9 +107,9 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return true;
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
-        Comparable[] inMins = inRange.getMins();
-        Comparable[] inMaxs = inRange.getMaxs();
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        Comparable[] inMins = inRanges[ index ].getMins();
+        Comparable[] inMaxs = inRanges[ index ].getMaxs();
         Comparable[] outMins = new Comparable[ ndim_ ];
         Comparable[] outMaxs = new Comparable[ ndim_ ];
         for ( int id = 0; id < ndim_; id++ ) {

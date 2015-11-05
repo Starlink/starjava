@@ -113,9 +113,13 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         return true;
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
-        double maxError = getError( inRange.getMaxs() );
-        return createExtendedSkyBounds( inRange, 0, 1, 2 * maxError );
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        double maxRadius = 0;
+        for ( NdRange inRange : inRanges ) {
+            maxRadius = Math.max( maxRadius, getError( inRange.getMaxs() ) );
+        }
+        return createExtendedSkyBounds( inRanges[ index ], 0, 1,
+                                        2 * maxRadius );
     }
 
     public String toString() {

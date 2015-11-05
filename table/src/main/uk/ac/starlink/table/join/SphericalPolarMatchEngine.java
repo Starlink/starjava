@@ -92,7 +92,7 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
         return false;
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
         throw new UnsupportedOperationException();
     }
 

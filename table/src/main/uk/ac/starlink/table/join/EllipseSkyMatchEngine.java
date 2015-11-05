@@ -174,13 +174,16 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         return true;
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
-        Comparable[] minTuple = inRange.getMins();
-        Comparable[] maxTuple = inRange.getMaxs();
-        double maxError = Math.max( getNumberValue( maxTuple[ 2 ] ),
-                                    getNumberValue( maxTuple[ 3 ] ) );
-        return createExtendedSkyBounds( new NdRange( minTuple, maxTuple ), 0, 1,
-                                        2 * maxError );
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        double maxRadius = 0;
+        for ( NdRange inRange : inRanges ) {
+            Comparable[] maxs = inRange.getMaxs();
+            maxRadius = Math.max( maxRadius,
+                                  Math.max( getNumberValue( maxs[ 2 ] ),
+                                            getNumberValue( maxs[ 3 ] ) ) );
+        }
+        return createExtendedSkyBounds( inRanges[ index ], 0, 1,
+                                        2 * maxRadius );
     }
 
     public String toString() {

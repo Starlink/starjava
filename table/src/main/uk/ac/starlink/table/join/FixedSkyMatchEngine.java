@@ -95,8 +95,9 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
         return true;
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
-        return createExtendedSkyBounds( inRange, 0, 1, getSeparation() );
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        return createExtendedSkyBounds( inRanges[ index ], 0, 1,
+                                        getSeparation() );
     }
 
     public String toString() {

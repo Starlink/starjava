@@ -10376,6 +10376,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>Fix plot bug; titles were painted in white
         for pixel output formats.</li>
+    <li>Fix long-standing crossmatch range-restriction bug.
+        This could have caused missed associations (but not false positives)
+        near the edge of coverage regions when using per-row errors,
+        if the scale of the errors differed
+        (especially differed significantly) between the matched tables.
+        It affected <code>matcher</code> values of
+        <code>&lt;n&gt;-d_err</code>, <code>skyerr</code>,
+        <code>2d_ellipse</code> and <code>skyellipse</code> only.
+        Thanks to Grant Kennedy (IoA) for reporting this bug.</li>
     </ul>
     </p></dd>
 

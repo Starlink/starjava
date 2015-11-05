@@ -629,8 +629,9 @@ public class RowMatcher {
     private Intersection getIntersection( int[] iTables )
             throws IOException, InterruptedException {
         int ncol = tables[ iTables[ 0 ] ].getColumnCount();
-        long[] inRangeCounts = new long[ iTables.length ];
-        for ( int iTable = 0; iTable < iTables.length; iTable++ ) {
+        int nt = iTables.length;
+        long[] inRangeCounts = new long[ nt ];
+        for ( int iTable = 0; iTable < nt; iTable++ ) {
             int index = iTables[ iTable ];
             inRangeCounts[ iTable ] = tables[ index ].getRowCount();
         }
@@ -639,14 +640,23 @@ public class RowMatcher {
             indicator.logMessage( "Attempt to locate " +
                                   "restricted common region" );
             try {
-                range = getRange( 0 );
-                for ( int iTable = 1; iTable < iTables.length; iTable++ ) {
+                NdRange[] inRanges = new NdRange[ nt ];
+                for ( int iTable = 0; iTable < nt; iTable++ ) {
                     int index = iTables[ iTable ];
-                    range = NdRange.intersection( range, getRange( index ) );
+                    inRanges[ iTable ] = readTupleRange( index );
+                }
+                NdRange[] extRanges = new NdRange[ nt ];
+                for ( int iTable = 0; iTable < nt; iTable++ ) {
+                    extRanges[ iTable ] =
+                        engine.getMatchBounds( inRanges, iTable );
+                }
+                range = extRanges[ 0 ];
+                for ( int iTable = 1; iTable < nt; iTable++ ) {
+                    range = NdRange.intersection( range, extRanges[ iTable ] );
                 }
                 if ( range != null ) {
                     indicator.logMessage( "Potential match region: " + range );
-                    for ( int iTable = 0; iTable < iTables.length; iTable++ ) {
+                    for ( int iTable = 0; iTable < nt; iTable++ ) {
                         int index = iTables[ iTable ];
                         inRangeCounts[ iTable ] = countInRange( index, range );
                     }
@@ -813,9 +823,13 @@ public class RowMatcher {
             try {
 
                 /* Locate the ranges of all the tables. */
-                NdRange[] ranges = new NdRange[ nTable ];
+                NdRange[] inRanges = new NdRange[ nTable ];
                 for ( int i = 0; i < nTable; i++ ) {
-                    ranges[ i ] = getRange( i );
+                    inRanges[ i ] = readTupleRange( i );
+                }
+                NdRange[] extRanges = new NdRange[ nTable ];
+                for ( int i = 0; i < nTable; i++ ) {
+                    extRanges[ i ] = engine.getMatchBounds( inRanges, i );
                 }
 
                 /* Work out the range of the reference table which we are
@@ -825,11 +839,13 @@ public class RowMatcher {
                 for ( int i = 0; i < nTable; i++ ) {
                     if ( i != index0 ) {
                         unionOthers = unionOthers == null
-                                    ? ranges[ i ]
-                                    : NdRange.union( unionOthers, ranges[ i ] );
+                                    ? extRanges[ i ]
+                                    : NdRange.union( unionOthers,
+                                                     extRanges[ i ] );
                     }
                 }
-                range = NdRange.intersection( ranges[ index0 ], unionOthers );
+                range = NdRange.intersection( extRanges[ index0 ],
+                                              unionOthers );
                 indicator.logMessage( "Potential match region: " + range );
             }
             catch ( ClassCastException e ) {
@@ -1293,21 +1309,17 @@ public class RowMatcher {
      * for one of this matcher's tables.  The result represents a rectangular
      * region in tuple-space.  Any of the bounds may be null to indicate
      * no limit in that direction.
+     * Note that this range does not include any padding to accommodate
+     * matches within a search radius (or similar concept) of the edge.
      *
      * @param   tIndex  index of the table to calculate limits for
-     * @return  range   bounds of region inhabited by table
+     * @return  range   bounds of tuple-space region inhabited by table
      * @throws  ClassCastException  if objects are not mutually comparable
      */
-    private NdRange getRange( int tIndex )
+    private NdRange readTupleRange( int tIndex )
             throws IOException, InterruptedException {
         StarTable table = tables[ tIndex ];
         int ncol = table.getColumnCount();
-
-        /* We can only do anything useful if the match engine knows how to
-         * calculate bounds. */
-        if ( ! engine.canBoundMatch() ) {
-            return new NdRange( ncol );
-        }
 
         /* See which columns are comparable. */
         boolean[] isComparable = new boolean[ ncol ];
@@ -1380,14 +1392,9 @@ public class RowMatcher {
         }
 
         /* Report and return. */
-        NdRange inRange = new NdRange( mins, maxs );
-        indicator.logMessage( "Limits are: " + inRange );
-
-        /* Get the match engine to convert the min/max values into 
-         * a possible match region (presumably by adding a separation
-         * region on). */
-        NdRange outRange = engine.getMatchBounds( inRange );
-        return outRange;
+        NdRange range = new NdRange( mins, maxs );
+        indicator.logMessage( "Limits are: " + range );
+        return range;
     }
 
     /**

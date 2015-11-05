@@ -136,13 +136,15 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return true;
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
-        Comparable[] minTuple = inRange.getMins();
-        Comparable[] maxTuple = inRange.getMaxs();
-        double maxA = getNumberValue( maxTuple[ 2 ] );
-        double maxB = getNumberValue( maxTuple[ 3 ] );
-        double err = 2 * Math.max( maxA, maxB );
-        return createExtendedBounds( new NdRange( minTuple, maxTuple ), err,
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        double maxRadius = 0;
+        for ( NdRange inRange : inRanges ) {
+            Comparable[] maxs = inRange.getMaxs();
+            double maxA = getNumberValue( maxs[ 2 ] );
+            double maxB = getNumberValue( maxs[ 3 ] );
+            maxRadius = Math.max( maxRadius, Math.max( maxA, maxB ) );
+        }
+        return createExtendedBounds( inRanges[ index ], 2 * maxRadius,
                                      indexRange( 0, 2 ) );
     }
 

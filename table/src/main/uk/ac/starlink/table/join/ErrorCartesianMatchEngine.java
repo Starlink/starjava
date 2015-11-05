@@ -102,9 +102,13 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return true;
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
-        return createExtendedBounds( inRange,
-                                     2 * getTupleError( inRange.getMaxs() ),
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        double maxRadius = 0;
+        for ( NdRange inRange : inRanges ) {
+            maxRadius = Math.max( maxRadius,
+                                  getTupleError( inRange.getMaxs() ) );
+        }
+        return createExtendedBounds( inRanges[ index ], 2 * maxRadius,
                                      indexRange( 0, ndim_ ) );
     }
 

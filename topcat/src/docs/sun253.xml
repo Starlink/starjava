@@ -19170,6 +19170,7 @@ Some of the notable contributers are these:
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Tim Jenness (JACH)</li>
 <li>JJ Kavelaars (NRC)</li>
+<li>Grant Kennedy (IoA)</li>
 <li>Gerard Lemson (MPE Garching)</li>
 <li>Mark Mahabir (Leicester)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
@@ -22410,6 +22411,17 @@ introduced since the last version:
     <ul>
     <li>Fix plot bug; titles were painted in white
         for pixel export formats.</li>
+    <li>Fix long-standing crossmatch range-restriction bug.  
+        This could have caused missed associations (but not false positives) 
+        near the edge of coverage regions when using per-row errors, 
+        if the scale of the errors differed
+        (especially differed significantly) between the matched tables.  
+        It affected match algorithms
+        <label>Sky with Errors</label>,
+        <label>&lt;n&gt;-d Cartesian with Errors</label>,
+        <label>2d_ellipse</label> and
+        <label>Sky Ellipses</label> only.
+        Thanks to Grant Kennedy (IoA) for reporting this bug.</li>
     </ul>
     </p></dd>
 

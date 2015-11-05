@@ -115,12 +115,17 @@ public class HumanMatchEngine implements MatchEngine {
         return baseEngine_.canBoundMatch();
     }
 
-    public NdRange getMatchBounds( NdRange inRange ) {
-        NdRange unwrappedInRange =
-            new NdRange( toComparables( unwrapTuple( inRange.getMins() ) ),
-                         toComparables( unwrapTuple( inRange.getMaxs() ) ) );
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        int nr = inRanges.length;
+        NdRange[] unwrappedInRanges = new NdRange[ nr ];
+        for ( int ir = 0; ir < nr; ir++ ) {
+            NdRange inRng = inRanges[ ir ];
+            unwrappedInRanges[ ir ] =
+                new NdRange( toComparables( unwrapTuple( inRng.getMins() ) ),
+                             toComparables( unwrapTuple( inRng.getMaxs() ) ) );
+        }
         NdRange unwrappedResult =
-            baseEngine_.getMatchBounds( unwrappedInRange );
+            baseEngine_.getMatchBounds( unwrappedInRanges, index );
         return new NdRange( toComparables( wrapTuple( unwrappedResult
                                                      .getMins() ) ),
                             toComparables( wrapTuple( unwrappedResult
