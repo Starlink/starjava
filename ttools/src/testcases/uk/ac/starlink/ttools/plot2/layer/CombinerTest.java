@@ -72,8 +72,9 @@ public class CombinerTest extends TestCase {
                 bl.submitToBin( 1, datum );
             }
             assertEquals( result_, container.getResult() );
-            assertEquals( result_, bl.getBinResult( 1 ) );
-            assertTrue( Double.isNaN( bl.getBinResult( 0 ) ) );
+            BinList.Result binResult = bl.getResult();
+            assertEquals( result_, binResult.getBinValue( 1 ) );
+            assertTrue( Double.isNaN( binResult.getBinValue( 0 ) ) );
         }
     }
 
@@ -81,22 +82,29 @@ public class CombinerTest extends TestCase {
         int nbin = 200;
         int nsamp = 1000;
         BinList abins = combiner.createArrayBinList( nbin );
-        BinList hbins = new HashBinList( nbin, combiner );
+        BinList hbins1 = new HashBinList( nbin, combiner, false );
+        BinList hbins2 = new HashBinList( nbin, combiner, true );
         for ( int is = 0; is < nsamp; is++ ) {
             int ibin = random_.nextInt( nbin );
             if ( ! skipBin( nbin, ibin ) ) {
                 double datum = Math.max( 0, ( random_.nextDouble() * 10 - 1 ) );
                 abins.submitToBin( ibin, datum );
-                hbins.submitToBin( ibin, datum );
+                hbins1.submitToBin( ibin, datum );
+                hbins2.submitToBin( ibin, datum );
             }
         }
         int nskip = 0;
+        BinList.Result aResult = abins.getResult();
+        BinList.Result h1Result = hbins1.getResult();
+        BinList.Result h2Result = hbins2.getResult();
         for ( int ib = 0; ib < nbin; ib++ ) {
-            assertEquals( abins.getBinResult( ib ),
-                          hbins.getBinResult( ib ) );
+            assertEquals( h1Result.getBinValue( ib ),
+                          h2Result.getBinValue( ib ) );
+            assertEquals( aResult.getBinValue( ib ),
+                          h1Result.getBinValue( ib ) );
             if ( skipBin( nbin, ib ) ) {
                 nskip++;
-                assertTrue( Double.isNaN( abins.getBinResult( ib ) ) );
+                assertTrue( Double.isNaN( aResult.getBinValue( ib ) ) );
             }
         }
         assertTrue( nskip > 1 );

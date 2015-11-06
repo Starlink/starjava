@@ -43,22 +43,45 @@ public interface BinList {
     void submitToBin( long index, double datum );
 
     /**
-     * Returns the value that has been accumulated into the given bin index.
-     * The value is the result of using this object's Combiner to combine
-     * the submitted values.
-     * In general, if no values have been submitted to the bin in question,
-     * a NaN should be returned.
+     * Returns an object containing the result values accumulated into
+     * the bins so far.
      *
-     * @param  index  bin index
-     * @return   bin value
+     * <p>It is up to implementations to decide how to implement this method.
+     * In some cases the return value may be an adapter that extracts results
+     * as required from the data structure used for value accumulation,
+     * but in others it may return a new data structure which copies
+     * the accumulated values to a more compact form up front.
+     * Therefore this may or may not be an expensive method, and the return
+     * value may or may not be affected by subsequent 
+     * {@link #submitToBin} calls.
+     *
+     * @return  accumulated bin values
      */
-    double getBinResult( long index );
+    Result getResult();
 
     /**
-     * Returns the range of bin values currently present in all the
-     * occupied bins.
-     *
-     * @return   2-element array giving (min,max) of all bin values
+     * Accessor for the results of accumulating values in a bit list.
      */
-    double[] getBounds();
+    interface Result {
+
+        /**
+         * Returns the value that has been accumulated into the given bin index.
+         * The value is the result of using this object's Combiner to combine
+         * the submitted values.
+         * In general, if no values have been submitted to the bin in question,
+         * a NaN should be returned.
+         *
+         * @param  index  bin index
+         * @return   bin value
+         */
+        double getBinValue( long index );
+
+        /**
+         * Returns the range of bin values currently present in all the
+         * occupied bins.
+         *
+         * @return   2-element array giving (min,max) of all bin values
+         */
+        double[] getValueBounds();
+    }
 }

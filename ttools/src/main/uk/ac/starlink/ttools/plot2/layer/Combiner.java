@@ -91,6 +91,15 @@ public abstract class Combiner {
     public abstract BinList createArrayBinList( int size );
 
     /**
+     * Creates a generaly purpose bin list, which may be especially
+     * suitable for sparse index ranges.
+     *
+     * @param  size   index range of required bin list
+     * @return   array-based bin list, not null
+     */
+    public abstract BinList createHashBinList( long size );
+
+    /**
      * Returns this combiner's name.
      *
      * @return  name
@@ -147,21 +156,48 @@ public abstract class Combiner {
     }
 
     /**
+     * Utility partial implementation of Combiner.
+     * This just handles the isCopyResult flag.
+     */
+    private static abstract class AbstractCombiner extends Combiner {
+        final boolean isCopyResult_;
+
+        /**
+         * Constructor.
+         *
+         * @param   name  name
+         * @param   description  short textual description
+         * @param   isCopyResult  whether to use a copy for Result creation;
+         *                        set true for bins using more than 8 bytes,
+         *                        false otherwise
+         */
+        AbstractCombiner( String name, String description,
+                          boolean isCopyResult ) {
+            super( name, description );
+            isCopyResult_ = isCopyResult;
+        }
+
+        public BinList createHashBinList( long size ) {
+            return new HashBinList( size, this, isCopyResult_ );
+        }
+    }
+
+    /**
      * Combiner implementation that calculates the mean.
      */
-    private static class MeanCombiner extends Combiner {
+    private static class MeanCombiner extends AbstractCombiner {
 
         /**
          * Constructor.
          */
         public MeanCombiner() {
-            super( "mean", "the mean of the combined values" );
+            super( "mean", "the mean of the combined values", true );
         }
 
         public BinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
             final double[] sums = new double[ size ];
-            return new ArrayBinList( size, this ) {
+            return new ArrayBinList( size, this, isCopyResult_ ) {
                 public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                     sums[ index ] += value;
@@ -199,7 +235,7 @@ public abstract class Combiner {
     /**
      * Combiner implementation that calculates the variance.
      */
-    private static class VarianceCombiner extends Combiner {
+    private static class VarianceCombiner extends AbstractCombiner {
         private final boolean isSampleVariance_;
 
         /**
@@ -211,7 +247,8 @@ public abstract class Combiner {
         public VarianceCombiner( boolean isSampleVariance ) {
             super( "variance",
                    "the " + ( isSampleVariance ? "sample" : "population" )
-                          + " variance of the combined values" );
+                          + " variance of the combined values",
+                   true );
             isSampleVariance_ = isSampleVariance;
         }
 
@@ -219,7 +256,7 @@ public abstract class Combiner {
             final int[] counts = new int[ size ];
             final double[] sum1s = new double[ size ];
             final double[] sum2s = new double[ size ];
-            return new ArrayBinList( size, this ) {
+            return new ArrayBinList( size, this, isCopyResult_ ) {
                 public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                     sum1s[ index ] += value;
@@ -303,18 +340,18 @@ public abstract class Combiner {
     /**
      * Combiner instance that just counts submissions.
      */
-    private static class CountCombiner extends Combiner {
+    private static class CountCombiner extends AbstractCombiner {
 
         /**
          * Constructor.
          */
         CountCombiner() {
-            super( "count", "the number of non-blank values" );
+            super( "count", "the number of non-blank values", false );
         }
 
         public BinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
-            return new ArrayBinList( size, this ) {
+            return new ArrayBinList( size, this, isCopyResult_ ) {
                 public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                 }
@@ -348,7 +385,7 @@ public abstract class Combiner {
     /**
      * Combiner implementation that calculates the sum.
      */
-    private static class SumCombiner extends Combiner {
+    private static class SumCombiner extends AbstractCombiner {
 
         /**
          * Combines the existing state value with a supplied datum
@@ -366,13 +403,13 @@ public abstract class Combiner {
          * Constructor.
          */
         SumCombiner() {
-            super( "sum", "the sum of all the combined values" );
+            super( "sum", "the sum of all the combined values", false );
         }
 
         public BinList createArrayBinList( int size ) {
             final double[] sums = new double[ size ];
             Arrays.fill( sums, Double.NaN );
-            return new ArrayBinList( size, this ) {
+            return new ArrayBinList( size, this, isCopyResult_ ) {
                 public void submitToBinInt( int index, double datum ) {
                     sums[ index ] = combineSum( sums[ index ], datum );
                 }
@@ -405,7 +442,7 @@ public abstract class Combiner {
     /**
      * Combiner implementation that calculates the minimum submitted value.
      */
-    private static class MinCombiner extends Combiner {
+    private static class MinCombiner extends AbstractCombiner {
 
         /**
          * Combines the existing state value with a supplied datum
@@ -424,13 +461,13 @@ public abstract class Combiner {
          * Constructor.
          */
         MinCombiner() {
-            super( "min", "the minimum of all the combined values" );
+            super( "min", "the minimum of all the combined values", false );
         }
 
         public BinList createArrayBinList( int size ) {
             final double[] mins = new double[ size ];
             Arrays.fill( mins, Double.NaN );
-            return new ArrayBinList( size, this ) {
+            return new ArrayBinList( size, this, isCopyResult_ ) {
                 public void submitToBinInt( int index, double datum ) {
                     mins[ index ] = combineMin( mins[ index ], datum );
                 }
@@ -463,7 +500,7 @@ public abstract class Combiner {
     /**
      * Combiner implementation that calculates the maximum submitted value.
      */
-    private static class MaxCombiner extends Combiner {
+    private static class MaxCombiner extends AbstractCombiner {
 
         /**
          * Combines the existing state value with a supplied datum
@@ -482,13 +519,13 @@ public abstract class Combiner {
          * Constructor.
          */
         MaxCombiner() {
-            super( "max", "the maximum of all the combined values" );
+            super( "max", "the maximum of all the combined values", false );
         }
 
         public BinList createArrayBinList( int size ) {
             final double[] maxs = new double[ size ];
             Arrays.fill( maxs, Double.NaN );
-            return new ArrayBinList( size, this ) {
+            return new ArrayBinList( size, this, isCopyResult_ ) {
                 public void submitToBinInt( int index, double datum ) {
                     maxs[ index ] = combineMax( maxs[ index ], datum );
                 }
@@ -521,18 +558,18 @@ public abstract class Combiner {
     /**
      * Combiner that just registers whether any data have been submitted.
      */
-    private static class HitCombiner extends Combiner {
+    private static class HitCombiner extends AbstractCombiner {
 
         /**
          * Constructor.
          */
         HitCombiner() {
-            super( "hit", "1 if any values present, NaN otherwise" );
+            super( "hit", "1 if any values present, NaN otherwise", false );
         }
 
         public BinList createArrayBinList( int size ) {
             final BitSet mask = new BitSet();
-            return new ArrayBinList( size, this ) {
+            return new ArrayBinList( size, this, false ) {
                 public void submitToBinInt( int index, double datum ) {
                     mask.set( index );
                 }

@@ -1299,9 +1299,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         /* We don't have one - have to fake it. */
                         Map<AuxScale,Range> auxRanges =
                             new HashMap<AuxScale,Range>();
-                        BinList binList =
-                            readBinList( surface, tseq, auxRanges );
-                        double[] bounds = binList.getBounds();
+                        double[] bounds =
+                            readBinList( surface, tseq, auxRanges )
+                           .getResult()
+                           .getValueBounds();
                         range.submit( bounds[ 0 ] );
                         range.submit( bounds[ 1 ] );
                     }
@@ -1405,16 +1406,22 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     }
                     TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                     BinList binList = readBinList( surface_, tseq, auxRanges_ );
-                    return new WeightPlan( binList, surface_, geom, dataSpec,
+                    int nbin = (int) binList.getSize();  // pixel count
+                    Combiner combiner = binList.getCombiner();
+                    BinList.Result binResult = binList.getResult();
+                    return new WeightPlan( nbin, combiner, binResult,
+                                           surface_, geom, dataSpec,
                                            outliner_ );
                 }
 
                 public void paintData( Object plan, Paper paper,
                                        DataStore dataStore ) {
-                    final BinList binList = ((WeightPlan) plan).binList_;
+                    WeightPlan wplan = (WeightPlan) plan;
+                    final int nbin = wplan.nbin_;
+                    final BinList.Result binResult = wplan.binResult_;
                     paperType_.placeDecal( paper, new Decal() {
                         public void paintDecal( Graphics g ) {
-                            paintBinList( g, binList );
+                            paintBins( g, nbin, binResult );
                         }
                         public boolean isOpaque() {
                             return ! isTransparent( wstamper_ );
@@ -1431,9 +1438,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  * drawing.
                  *
                  * @param   g  graphics context
-                 * @param   plan  plot plan
+                 * @param   nbin  number of (potential) bins
+                 * @param   binResult  bin values
                  */
-                private void paintBinList( Graphics g, BinList binList ) {
+                private void paintBins( Graphics g, int nbin,
+                                        BinList.Result binResult ) {
                     Range auxRange = auxRanges_.get( SCALE );
                     if ( auxRange == null ) {
                         auxRange = new Range();
@@ -1445,7 +1454,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         Scaling.createRangeScaler( wstamper_.scaling_,
                                                    auxRange );
                     int[] pixels =
-                        scaleLevels( binList, scaler,
+                        scaleLevels( nbin, binResult, scaler,
                                      colorModel.getMapSize() - 1 );
                     PixelImage image =
                         new PixelImage( plotBounds.getSize(), pixels,
@@ -1460,19 +1469,19 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  * and only untouched entries should translate to zero values
                  * in the output array.
                  *
-                 * @param  binList  contains input data per pixel
+                 * @param  nbin     number of bins
+                 * @param  binResult  contains input data per pixel
                  * @param  scaler   normalises bin values
                  * @param  nlevel   number of entries in the colour map;
                  *                  maximum value in output pixel array
                  * @return  pixel array for use with an nlevel-entry colour map;
                  *          zero values are transparent
                  */
-                private int[] scaleLevels( BinList binList, Scaler scaler,
-                                           int nlevel ) {
-                    int n = (int) binList.getSize();
-                    int[] pixels = new int[ n ];
-                    for ( int i = 0; i < n; i++ ) {
-                        double val = binList.getBinResult( i );
+                private int[] scaleLevels( int nbin, BinList.Result binResult,
+                                           Scaler scaler, int nlevel ) {
+                    int[] pixels = new int[ nbin ];
+                    for ( int i = 0; i < nbin; i++ ) {
+                        double val = binResult.getBinValue( i );
                         if ( ! Double.isNaN( val ) ) {
                             int p = (int) ( scaler.scaleValue( val ) * nlevel );
                             pixels[ i ] = Math.min( 1 + p, nlevel - 1 );
@@ -1488,7 +1497,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * scope of applicability.
          */
         private static class WeightPlan {
-            final BinList binList_;
+            final int nbin_;
+            final Combiner combiner_;
+            final BinList.Result binResult_;
             final Surface surface_;
             final DataGeom geom_;
             final DataSpec dataSpec_;
@@ -1497,15 +1508,20 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             /**
              * Constructor.
              *
-             * @param  binList   contains accumulated weight data
+             * @param  nbin      size of bin list
+             * @param  combiner  combination method for values
+             * @param  binResult  contains accumulated weight data
              * @param  surface   plot surface
              * @param  geom     geom
              * @param  dataSpec   data specification
              * @param  outliner   defines shape of plotted points
              */
-            WeightPlan( BinList binList, Surface surface, DataGeom geom,
-                        DataSpec dataSpec, Outliner outliner ) {
-                binList_ = binList;
+            WeightPlan( int nbin, Combiner combiner, BinList.Result binResult,
+                        Surface surface, DataGeom geom, DataSpec dataSpec,
+                        Outliner outliner ) {
+                nbin_ = nbin;
+                combiner_ = combiner;
+                binResult_ = binResult;
                 surface_ = surface;
                 geom_ = geom;
                 dataSpec_ = dataSpec;
@@ -1526,7 +1542,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             public boolean matches( Combiner combiner, Surface surface,
                                     DataGeom geom, DataSpec dataSpec,
                                     Outliner outliner ) {
-                return combiner.equals( binList_.getCombiner() )
+                return combiner.equals( combiner_ )
                     && surface.equals( surface_ )
                     && geom.equals( geom_ )
                     && dataSpec.equals( dataSpec_ )
@@ -1557,8 +1573,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 gridder_ = new Gridder( bounds.width, bounds.height );
                 int nbin = gridder_.getLength();
                 BinList binlist = combiner.createArrayBinList( nbin );
-                binList_ = binlist == null ? new HashBinList( nbin, combiner )
-                                           : binlist;
+                binList_ = binlist == null
+                         ? combiner.createHashBinList( nbin )
+                         : binlist;
                 xoff_ = bounds_.x;
                 yoff_ = bounds_.y;
             }

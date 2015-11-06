@@ -385,9 +385,10 @@ public class SkyDensityPlotter
             map.put( SCALE, new AuxReader() {
                 public void adjustAuxRange( Surface surface, TupleSequence tseq,
                                             Range range ) {
-                    BinList binList =
-                        readBins( (SkySurface) surface, true, tseq );
-                    double[] bounds = binList.getBounds();
+                    double[] bounds =
+                        readBins( (SkySurface) surface, true, tseq )
+                       .getResult()
+                       .getValueBounds();
                     range.submit( bounds[ 0 ] );
                     range.submit( bounds[ 1 ] );
                 }
@@ -441,7 +442,7 @@ public class SkyDensityPlotter
                 binList = combiner.createArrayBinList( (int) npix );
             }
             if ( binList == null ) {
-                binList = new HashBinList( npix, combiner );
+                binList = combiner.createHashBinList( npix );
             }
             assert binList != null;
             DataSpec dataSpec = getDataSpec();
@@ -521,19 +522,22 @@ public class SkyDensityPlotter
             private SkyDensityPlan calculateBasicPlan( Object[] knownPlans,
                                                        DataStore dataStore ) {
                 DataSpec dataSpec = getDataSpec();
+                Combiner combiner = dstyle_.combiner_;
                 for ( Object plan : knownPlans ) {
                     if ( plan instanceof SkyDensityPlan ) {
                         SkyDensityPlan skyPlan = (SkyDensityPlan) plan;
-                        if ( skyPlan.matches( level_, dstyle_.combiner_,
+                        if ( skyPlan.matches( level_, combiner,
                                               dataSpec, geom_ ) ) {
                             return skyPlan;
                         }
                     }
                 }
-                BinList binList =
+                BinList.Result binResult =
                     readBins( surface_, false,
-                              dataStore.getTupleSequence( dataSpec ) );
-                return new SkyDensityPlan( level_, binList, dataSpec, geom_ );
+                              dataStore.getTupleSequence( dataSpec ) )
+                   .getResult();
+                return new SkyDensityPlan( level_, combiner, binResult,
+                                           dataSpec, geom_ );
             }
 
             public void paintData( Object plan, Paper paper,
@@ -541,7 +545,7 @@ public class SkyDensityPlotter
                 final SkyDensityPlan dplan = (SkyDensityPlan) plan;
                 paperType_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
-                        paintBins( g, dplan.binList_ );
+                        paintBins( g, dplan.binResult_ );
                     }
                     public boolean isOpaque() {
                         return dstyle_.isOpaque();
@@ -566,9 +570,9 @@ public class SkyDensityPlotter
              * represents onto a graphics context appropriate for this drawing.
              *
              * @param  g  graphics context
-             * @param  binList   histogram containing sky pixel values
+             * @param  binResult   histogram containing sky pixel values
              */
-            private void paintBins( Graphics g, BinList binList ) {
+            private void paintBins( Graphics g, BinList.Result binResult ) {
                 Rectangle bounds = surface_.getPlotBounds();
 
                 /* Work out how to scale binlist values to turn into
@@ -605,7 +609,7 @@ public class SkyDensityPlotter
                      * so have a value of 0 (transparent). */
                     if ( dpos != null ) {
                         double dval =
-                            binList.getBinResult( skyPixer.getIndex( dpos ) );
+                            binResult.getBinValue( skyPixer.getIndex( dpos ) );
                         if ( ! Double.isNaN( dval ) ) {
                             pixels[ ip ] =
                                 Math.min( 1 + (int) ( scaler.scaleValue( dval )
@@ -632,7 +636,8 @@ public class SkyDensityPlotter
      */
     private static class SkyDensityPlan {
         final int level_;
-        final BinList binList_;
+        final Combiner combiner_;
+        final BinList.Result binResult_;
         final DataSpec dataSpec_;
         final SkyDataGeom geom_;
         int pixelLevel_;
@@ -641,14 +646,16 @@ public class SkyDensityPlotter
          * Constructor.
          *
          * @param   level   HEALPix level
-         * @param   binList  data structure containing sky pixel values
+         * @param   combiner  combination method for input values
+         * @param   binResult  data structure containing sky pixel values
          * @param   dataSpec  data specification used to generate binList
          * @param   geom   sky geometry used to generate binList
          */
-        SkyDensityPlan( int level, BinList binList, DataSpec dataSpec,
-                        SkyDataGeom geom ) {
+        SkyDensityPlan( int level, Combiner combiner, BinList.Result binResult,
+                        DataSpec dataSpec, SkyDataGeom geom ) {
             level_ = level;
-            binList_ = binList;
+            combiner_ = combiner;
+            binResult_ = binResult;
             dataSpec_ = dataSpec;
             geom_ = geom;
             pixelLevel_ = Integer.MIN_VALUE;
@@ -666,7 +673,7 @@ public class SkyDensityPlotter
         public boolean matches( int level, Combiner combiner,
                                 DataSpec dataSpec, SkyDataGeom geom ) {
              return level_ == level
-                 && binList_.getCombiner().equals( combiner )
+                 && combiner_.equals( combiner )
                  && dataSpec_.equals( dataSpec )
                  && geom_.equals( geom );
         }
