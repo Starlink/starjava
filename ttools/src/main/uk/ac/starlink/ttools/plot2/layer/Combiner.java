@@ -29,6 +29,9 @@ public abstract class Combiner {
     /** Calculate the mean of all submitted values. */
     public static final Combiner MEAN;
 
+    /** Calculate the sample variance of all submitted values. */
+    public static final Combiner SAMPLE_VARIANCE;
+
     /** Calculate the minimum of all submitted values. */
     public static final Combiner MIN;
 
@@ -41,6 +44,7 @@ public abstract class Combiner {
     private static final Combiner[] COMBINERS = new Combiner[] {
         SUM = new SumCombiner(),
         MEAN = new MeanCombiner(),
+        SAMPLE_VARIANCE = new VarianceCombiner( true ),
         COUNT = new CountCombiner(),
         MIN = new MinCombiner(),
         MAX = new MaxCombiner(),
@@ -188,6 +192,110 @@ public abstract class Combiner {
             }
             public double getResult() {
                 return count_ == 0 ? Double.NaN : sum_ / (double) count_;
+            }
+        }
+    }
+
+    /**
+     * Combiner implementation that calculates the variance.
+     */
+    private static class VarianceCombiner extends Combiner {
+        private final boolean isSampleVariance_;
+
+        /**
+         * Constructor.
+         *
+         * @param  isSampleVariance  false for population variance,
+         *                           true for sample variance,
+         */
+        public VarianceCombiner( boolean isSampleVariance ) {
+            super( "variance",
+                   "the " + ( isSampleVariance ? "sample" : "population" )
+                          + " variance of the combined values" );
+            isSampleVariance_ = isSampleVariance;
+        }
+
+        public BinList createArrayBinList( int size ) {
+            final int[] counts = new int[ size ];
+            final double[] sum1s = new double[ size ];
+            final double[] sum2s = new double[ size ];
+            return new ArrayBinList( size, this ) {
+                public void submitToBinInt( int index, double value ) {
+                    counts[ index ]++;
+                    sum1s[ index ] += value;
+                    sum2s[ index ] += value * value;
+                }
+                public double getBinResultInt( int index ) {
+                    return getVariance( isSampleVariance_, counts[ index ],
+                                        sum1s[ index ], sum2s[ index ] );
+                }
+            };
+        }
+
+        public Container createContainer() {
+            return isSampleVariance_ ? new SampleVarianceContainer()
+                                     : new PopulationVarianceContainer();
+        }
+
+        /**
+         * Partial Container implementation for calculating variance-like
+         * quantities.
+         */
+        private static abstract class VarianceContainer implements Container {
+            int count_;
+            double sum1_;
+            double sum2_;
+            public void submit( double datum ) {
+                count_++;
+                sum1_ += datum;
+                sum2_ += datum * datum;
+            }
+        }
+
+        /**
+         * Container to calculate a population variance.
+         * Note that this is a static class with no unnecessary members
+         * to keep memory usage down if there are many instances.
+         */
+        private static class PopulationVarianceContainer
+                extends VarianceContainer {
+            public double getResult() {
+                return getVariance( false, count_, sum1_, sum2_ );
+            }
+        }
+
+        /**
+         * Container to calculate a sample variance.
+         * Note that this is a static class with no unnecessary members
+         * to keep memory usage down if there are many instances.
+         */
+        private static class SampleVarianceContainer
+                extends VarianceContainer {
+            public double getResult() {
+                return getVariance( true, count_, sum1_, sum2_ );
+            }
+        }
+
+        /**
+         * Utility method to calculate a population or sample variance
+         * from the relevant accumulated quantities.
+         *
+         * @param  isSampleVariance   false for population variance,
+         *                            true for sample variance
+         * @param  count  number of accumulated values
+         * @param  sum1   sum of accumulated values
+         * @param  sum2   sum of squares of accumulated values
+         * @return  variance, or NaN if insufficient data
+         */
+        private static double getVariance( boolean isSampleVariance, int count,
+                                           double sum1, double sum2 ) {
+            if ( count < ( isSampleVariance ? 2 : 1 ) ) {
+                return Double.NaN;
+            }
+            else {
+                double dcount = (double) count;
+                double nvar = sum2 - sum1 * sum1 / dcount;
+                return nvar / ( isSampleVariance ? ( dcount - 1 ) : dcount );
             }
         }
     }

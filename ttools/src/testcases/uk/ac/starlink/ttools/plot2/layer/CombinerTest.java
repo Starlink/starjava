@@ -30,6 +30,8 @@ public class CombinerTest extends TestCase {
             new CTest( Combiner.MIN, -.5, new double[] { .5, -.5, 9.5, 2 } ),
             new CTest( Combiner.SUM, 11.5, new double[] { .5, -.5, 9.5, 2 } ),
             new CTest( Combiner.MEAN, 7.5, new double[] { 2, 4, 8, 16 } ),
+            new CTest( Combiner.SAMPLE_VARIANCE, 3.5,
+                       new double[] { 1, 2, 3, 4, 5, 6 } ),
         };
         Set<Combiner> cset = new HashSet<Combiner>();
         for ( CTest ct : ctests ) {
@@ -45,6 +47,7 @@ public class CombinerTest extends TestCase {
         for ( Combiner combiner : combiners_ ) {
             Combiner.Container container = combiner.createContainer();
             assertTrue( Double.isNaN( container.getResult() ) );
+            container.submit( 1 );
             container.submit( 1 );
             assertFalse( Double.isNaN( container.getResult() ) );
         }
