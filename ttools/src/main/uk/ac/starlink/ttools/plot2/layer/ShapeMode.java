@@ -328,7 +328,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             }
 
             public void paintData( Paper paper, DataStore dataStore ) {
-                Outliner.ShapePainter painter = drawSpec_.painter_;
+                ShapePainter painter = drawSpec_.painter_;
                 TupleSequence tseq =
                     dataStore.getTupleSequence( drawSpec_.dataSpec_ );
                 while ( tseq.next() ) {
@@ -564,7 +564,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 float alpha = (float) getAlpha( counts, level_ );
                 Color color =
                     new Color( rgb_[ 0 ], rgb_[ 1 ], rgb_[ 2 ], alpha );
-                Outliner.ShapePainter painter = drawSpec_.painter_;
+                ShapePainter painter = drawSpec_.painter_;
                 TupleSequence tseq =
                     dataStore.getTupleSequence( drawSpec_.dataSpec_ );
                 while ( tseq.next() ) {
@@ -1329,7 +1329,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 WeightPaper wpaper =
                     new WeightPaper( surface.getPlotBounds(),
                                      wstamper_.combiner_ );
-                Outliner.ShapePainter painter =
+                ShapePainter painter =
                     outliner_.create2DPainter( surface, geom, auxRanges,
                                                wpaper.getPaperType() );
 
@@ -1736,7 +1736,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         final Outliner outliner_;
         final Map<AuxScale,Range> auxRanges_;
         final PaperType paperType_;
-        final Outliner.ShapePainter painter_;
+        final ShapePainter painter_;
 
         /**
          * Constructor.

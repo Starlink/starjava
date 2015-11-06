@@ -123,25 +123,4 @@ public interface Outliner {
      * @return   number of data positions in plan
      */
     long getPointCount( Object binPlan );
-
-    /**
-     * Interface to define the actual shape drawing.
-     * It contains a single method, {@link #paintPoint paintPoint},
-     * which is called once for each point.
-     */
-    interface ShapePainter {
-
-        /**
-         * Paints a point given the current state.
-         * If the supplied <code>color</code> is non-null,
-         * then this painter must take steps to colour its painting.
-         * Otherwise, it should use the defaults for the graphics context
-         * on which it's painting.
-         *
-         * @param  tseq  tuple sequence positioned at the row of interest
-         * @param  color  colour, or null for default
-         * @param  paper  graphics destination
-         */
-        void paintPoint( TupleSequence tseq, Color color, Paper paper );
-    }
 }

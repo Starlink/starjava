@@ -18,8 +18,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
  * Translates Glyph paint operations into pixel iterators.
  * This class provides an implementation of the
  * {@link uk.ac.starlink.ttools.plot2.paper.Paper} interface
- * which means it can be painted on by an
- * {@link uk.ac.starlink.ttools.plot2.layer.Outliner.ShapePainter}.
+ * which means it can be painted on by a {@link ShapePainter}.
  * Concrete subclasses are handed a Pixer giving the pixels actually
  * painted by each received glyph.
  *
