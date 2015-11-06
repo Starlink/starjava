@@ -29,6 +29,9 @@ public abstract class Combiner {
     /** Calculate the mean of all submitted values. */
     public static final Combiner MEAN;
 
+    /** Calculate the median of all submitted values (slow). */
+    public static final Combiner MEDIAN;
+
     /** Calculate the sample variance of all submitted values. */
     public static final Combiner SAMPLE_VARIANCE;
 
@@ -44,6 +47,7 @@ public abstract class Combiner {
     private static final Combiner[] COMBINERS = new Combiner[] {
         SUM = new SumCombiner(),
         MEAN = new MeanCombiner(),
+        MEDIAN = new MedianCombiner(),
         SAMPLE_VARIANCE = new VarianceCombiner( true ),
         COUNT = new CountCombiner(),
         MIN = new MinCombiner(),
@@ -229,6 +233,32 @@ public abstract class Combiner {
             public double getResult() {
                 return count_ == 0 ? Double.NaN : sum_ / (double) count_;
             }
+        }
+    }
+
+    /**
+     * Combiner implementation that calculates the median.
+     */
+    private static class MedianCombiner extends QuantileCombiner {
+        MedianCombiner() {
+            super( "median",
+                   "the median of the combined values (may be slow)",
+                   new QuantileCombiner.Quantiler() {
+                       public double calculateValue( double[] sortedValues ) {
+                           int nv = sortedValues.length;
+                           if ( nv % 2 == 1 ) {
+                               return sortedValues[ nv / 2 ];
+                           }
+                           else if ( nv > 0 ) {
+                               int nv2 = nv / 2;
+                               return 0.5 * ( sortedValues[ nv2 - 1 ]
+                                            + sortedValues[ nv2 ] );
+                           }
+                           else {
+                               return Double.NaN;
+                           }
+                       }
+                   } );
         }
     }
 
