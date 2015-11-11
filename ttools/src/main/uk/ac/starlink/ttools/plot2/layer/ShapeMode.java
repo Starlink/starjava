@@ -1293,6 +1293,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 Map<AuxScale,AuxReader> map = super.getAuxRangers();
                 map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
                 map.put( SCALE, new AuxReader() {
+                    public int getCoordIndex() {
+                        return icWeight_;
+                    }
                     public void adjustAuxRange( Surface surface,
                                                 TupleSequence tseq,
                                                 Range range ) {

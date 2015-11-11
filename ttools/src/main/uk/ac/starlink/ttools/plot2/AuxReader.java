@@ -19,4 +19,14 @@ public interface AuxReader {
      * @param  range   range object to be updated with range information
      */
     void adjustAuxRange( Surface surface, TupleSequence tseq, Range range );
+
+    /**
+     * Returns the DataSpec index for the coordinate whose value is used
+     * by this reader.  This is provided on a best-efforts basis; if no
+     * single coordinate fits this description, then -1 may be returned.
+     *
+     * @return   DataSpec coord index for auxiliary coordinate being ranged,
+     *           or -1
+     */
+    int getCoordIndex();
 }

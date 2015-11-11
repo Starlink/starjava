@@ -233,6 +233,9 @@ public class SpectrogramPlotter
                     Map<AuxScale,AuxReader> map =
                         new HashMap<AuxScale,AuxReader>();
                     map.put( SPECTRO_SCALE, new AuxReader() {
+                        public int getCoordIndex() {
+                            return icSpectrum_;
+                        }
                         public void adjustAuxRange( Surface surface,
                                                     TupleSequence tseq,
                                                     Range range ) {

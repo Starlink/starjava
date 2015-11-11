@@ -45,6 +45,10 @@ public class FloatingCoordAuxReader implements AuxReader {
         gpos_ = new Point2D.Double();
     }
 
+    public int getCoordIndex() {
+        return icol_;
+    }
+
     public void adjustAuxRange( Surface surface, TupleSequence tseq,
                                 Range range ) {
 

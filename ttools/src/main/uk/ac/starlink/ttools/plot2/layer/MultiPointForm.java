@@ -529,6 +529,9 @@ public class MultiPointForm implements ShapeForm {
             final int nextra = extraCoordSet.getPointCount();
             final int icExtra = getExtrasCoordIndex( geom );
             return new AuxReader() {
+                public int getCoordIndex() {
+                    return -1;
+                }
                 public void adjustAuxRange( Surface surface,
                                             TupleSequence tseq, Range range ) {
                     double[] dpos0 = new double[ ndim ];

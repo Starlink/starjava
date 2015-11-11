@@ -356,6 +356,7 @@ public class SkyDensityPlotter
 
         private final SkyDenseStyle dstyle_;
         private final SkyDataGeom geom_;
+        private final int icWeight_;
 
         /**
          * Constructor.
@@ -370,6 +371,9 @@ public class SkyDensityPlotter
                    style.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL );
             dstyle_ = style;
             geom_ = geom;
+            icWeight_ = weightCoord_ == null
+                      ? -1
+                      : coordGrp_.getExtraCoordIndex( 0, geom );
         }
 
         public Drawing createDrawing( Surface surface,
@@ -383,6 +387,9 @@ public class SkyDensityPlotter
         public Map<AuxScale,AuxReader> getAuxRangers() {
             Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
             map.put( SCALE, new AuxReader() {
+                public int getCoordIndex() {
+                    return icWeight_;
+                }
                 public void adjustAuxRange( Surface surface, TupleSequence tseq,
                                             Range range ) {
                     double[] bounds =
