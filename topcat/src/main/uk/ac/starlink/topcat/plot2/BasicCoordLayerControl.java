@@ -37,7 +37,6 @@ public class BasicCoordLayerControl extends ConfigControl
     private final PositionCoordPanel coordPanel_;
     private final JComboBox subsetSelector_;
     private final ComboBoxModel dummyComboBoxModel_;
-    private final ReportLogger reportLogger_;
     private final ConfigStyler styler_;
     private TopcatModel tcModel_;
 
@@ -53,7 +52,6 @@ public class BasicCoordLayerControl extends ConfigControl
         super( null, plotter.getPlotterIcon() );
         plotter_ = plotter;
         coordPanel_ = coordPanel;
-        reportLogger_ = new ReportLogger( this );
         styler_ = new ConfigStyler( coordPanel_.getComponent() );
 
         /* Create data selection components. */
@@ -133,7 +131,6 @@ public class BasicCoordLayerControl extends ConfigControl
                 }
             }
         }
-        reportLogger_.submitReports( reports );
     }
 
     /**

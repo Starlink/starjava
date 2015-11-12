@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -118,6 +119,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final boolean canSelectPoints_;
     private final JMenu exportMenu_;
     private final ToggleButtonModel sketchModel_;
+    private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -1225,6 +1227,23 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         axisController_.submitReports( rmap );
         for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
             control.submitReports( rmap );
+        }
+        if ( logger_.isLoggable( REPORT_LEVEL ) ) {
+            for ( int il = 0; il < nl; il++ ) {
+                ReportMap report = reports[ il ];
+                if ( report != null ) {
+                    String rtxt = report.toString( false );
+                    if ( rtxt.length() > 0 ) {
+                        String msg = new StringBuffer()
+                            .append( "Layer " )
+                            .append( il )
+                            .append( ": " )
+                            .append( rtxt )
+                            .toString();
+                        logger_.log( REPORT_LEVEL, msg );
+                    }
+                }
+            }
         }
 
         /* Initiate updating point count, which may be slow. */

@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
@@ -56,7 +57,6 @@ public abstract class FormLayerControl
     private final SubsetConfigManager subsetManager_;
     private final TopcatListener tcListener_;
     private final SubsetStack subStack_;
-    private final ReportLogger reportLogger_;
     private TopcatModel tcModel_;
 
     /**
@@ -80,7 +80,6 @@ public abstract class FormLayerControl
         super( null, controlIcon );
         posCoordPanel_ = posCoordPanel;
         autoPopulate_ = autoPopulate;
-        reportLogger_ = new ReportLogger( this );
         final TopcatListener externalTcListener = tcListener;
 
         /* Set up a selector for which table to plot. */
