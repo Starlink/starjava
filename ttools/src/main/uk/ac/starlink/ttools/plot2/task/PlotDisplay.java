@@ -34,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -92,6 +93,7 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     public static final String ASPECT_PROPERTY = "Plot2Aspect";
 
+    private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -564,6 +566,23 @@ public class PlotDisplay<P,A> extends JComponent {
         Icon dataIcon =
             paperType.createDataIcon( surface, drawings, plans, dataStore,
                                       cached );
+        if ( logger_.isLoggable( REPORT_LEVEL ) ) {
+            for ( int il = 0; il < nl; il++ ) {
+                ReportMap report = drawings[ il ].getReport( plans[ il ] );
+                if ( report != null ) {
+                    String rtxt = report.toString( false );
+                    if ( rtxt.length() > 0 ) {
+                        String msg = new StringBuffer()
+                            .append( "Layer " )
+                            .append( il )
+                            .append( ": " )
+                            .append( rtxt )
+                            .toString();
+                        logger_.log( REPORT_LEVEL, msg );
+                    }
+                }
+            }
+        }
         return placer.createPlotIcon( dataIcon );
     }
 
