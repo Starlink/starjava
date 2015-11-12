@@ -68,6 +68,13 @@ public class SkyDensityPlotter
     private final FloatingCoord weightCoord_;
     private final boolean reportAuxKeys_;
 
+    /** Report key for HEALPix tile area in steradians. */
+    public static final ReportKey<Double> TILESIZE_REPKEY =
+        new ReportKey<Double>( new ReportMeta( "tile_sr",
+                                               "HEALPix tile size"
+                                             + " in steradians" ),
+                               Double.class, true );
+
     private static final ReportKey<Integer> ABSLEVEL_REPKEY =
         new ReportKey<Integer>( new ReportMeta( "abs_level",
                                                 "Absolute HEALPix Level" ),
@@ -234,7 +241,7 @@ public class SkyDensityPlotter
      * @param  p2  second input vector
      * @return   angle between p1 and p2 in radians
      */
-    private static double vectorSeparation( double[] p1, double[] p2 ) {
+    public static double vectorSeparation( double[] p1, double[] p2 ) {
         double modCross = Matrices.mod( Matrices.cross( p1, p2 ) );
         double dot = Matrices.dot( p1, p2 );
         return modCross == 0 && dot == 0 ? 0 : Math.atan2( modCross, dot );
@@ -566,8 +573,10 @@ public class SkyDensityPlotter
                     SkyDensityPlan splan = (SkyDensityPlan) plan;
                     int absLevel = splan.level_;
                     int relLevel = absLevel - splan.pixelLevel_;
+                    double tileSize = Tilings.healpixSteradians( absLevel );
                     map.put( ABSLEVEL_REPKEY, new Integer( absLevel ) );
                     map.put( RELLEVEL_REPKEY, new Integer( relLevel ) );
+                    map.put( TILESIZE_REPKEY, new Double( tileSize ) );
                 }
                 return map;
             }

@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +21,7 @@ import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
@@ -27,7 +30,9 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -44,6 +49,8 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
@@ -63,6 +70,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     private final String name_;
     private final Icon icon_;
     private final Coord[] extraCoords_;
+    private final boolean hasReports_;
 
     /**
      * Point count threshold above which some plots may be done by
@@ -128,6 +136,27 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         WEIGHTED,
     };
 
+    /** Report key for pixel X dimension in data coordinates. */
+    public static final ReportKey<Double> REPKEY_XPIX =
+        new ReportKey<Double>( new ReportMeta( "xpix_size",
+                                               "Pixel X dimension"
+                                             + " in data coords" ),
+                               Double.class, true );
+
+    /** Report key for pixel Y dimension in data coordinates. */
+    public static final ReportKey<Double> REPKEY_YPIX =
+        new ReportKey<Double>( new ReportMeta( "ypix_size",
+                                               "Pixel Y dimension"
+                                             + " in data coords" ),
+                               Double.class, true );
+
+    /** Report key for nominal pixel size in steradians. */
+    public static final ReportKey<Double> REPKEY_SKYPIX =
+        new ReportKey<Double>( new ReportMeta( "pixel_sr",
+                                               "Pixel size in steradians"
+                                             + " at projection center" ),
+                               Double.class, true );
+
     /**
      * Constructor.
      *
@@ -135,11 +164,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * @param  icon  mode icon
      * @param  extraCoords  data coordinates associated with this mode
      *                      (not positional ones)
+     * @param  hasReports  whether plot reports containing genera-interest
+     *                     plot information are generated
      */
-    public ShapeMode( String name, Icon icon, Coord[] extraCoords ) {
+    public ShapeMode( String name, Icon icon, Coord[] extraCoords,
+                      boolean hasReports ) {
         name_ = name;
         icon_ = icon;
         extraCoords_ = extraCoords;
+        hasReports_ = hasReports;
     }
 
     public String getModeName() {
@@ -148,6 +181,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
     public Icon getModeIcon() {
         return icon_;
+    }
+
+    /**
+     * Indicates whether the drawing produced by this mode willl return
+     * general interest report information to upstream plotting code.
+     *
+     * @return  true if the plot report may contain interesting information
+     */
+    public boolean hasReports() {
+        return hasReports_;
     }
 
     /**
@@ -204,6 +247,59 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                            Outliner outliner, Stamper stamper );
 
     /**
+     * Returns a report describing pixel sizes for a given surface.
+     * This information is required if you want to do quantitative
+     * analysis on some of the weighted density modes.
+     * What, if any, information is included is dependent on the surface type.
+     *
+     * @param  surface   plotting surface
+     * @return  pixel size report 
+     */
+    private static ReportMap getPixelReport( Surface surface ) {
+        ReportMap report = new ReportMap();
+        if ( surface instanceof PlaneSurface ) {
+            Axis[] axes = ((PlaneSurface) surface).getAxes();
+            addPixelSize( report, REPKEY_XPIX, axes[ 0 ] );
+            addPixelSize( report, REPKEY_YPIX, axes[ 1 ] );
+        }
+        else if ( surface instanceof SkySurface ) {
+            SkySurface ssurf = (SkySurface) surface;
+            Point p = ssurf.getSkyCenter();
+            double[] p1 =
+                ssurf.graphicsToData( new Point2D.Double( p.x - .5, p.y - .5 ),
+                                      null );
+            double[] p2 =
+                ssurf.graphicsToData( new Point2D.Double( p.x + .5, p.y + .5 ),
+                                      null );
+            if ( p1 != null && p2 != null ) {
+                double pixTheta = SkyDensityPlotter.vectorSeparation( p1, p2 )
+                                / Math.sqrt( 2.0 );
+                double pixSteradians = pixTheta * pixTheta;
+                report.put( REPKEY_SKYPIX, pixSteradians );
+            }
+        }
+        return report;
+    }
+
+    /**
+     * Attempts to add a pixel dimension entry to a given report map
+     * for a certain axis.
+     *
+     * @param  report  map to augment
+     * @param  key   report key for new entry
+     * @param  axis   axis along which dimension is to be reported
+     */
+    private static void addPixelSize( ReportMap report, ReportKey key,
+                                      Axis axis ) {
+        if ( axis.isLinear() ) {
+            int g0 = axis.getGraphicsLimits()[ 0 ];
+            double pixSize = Math.abs( axis.graphicsToData( g0 + 1 )
+                                     - axis.graphicsToData( g0 ) );
+            report.put( key, new Double( pixSize ) );
+        }
+    }
+
+    /**
      * Mode for painting shapes in a single flat colour.
      */
     private static class FlatMode extends ShapeMode {
@@ -224,7 +320,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             super( transparent ? "transparent" : "flat",
                    transparent ? ResourceIcon.MODE_ALPHA_FIX
                                : ResourceIcon.MODE_FLAT,
-                   new Coord[ 0 ] );
+                   new Coord[ 0 ], false );
             transparent_ = transparent;
             binThresh_ = binThresh;
         }
@@ -476,7 +572,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         AutoTransparentMode() {
             super( "translucent", ResourceIcon.MODE_ALPHA,
-                   new Coord[ 0 ] );
+                   new Coord[ 0 ], false );
         }
 
         public String getModeDescription() {
@@ -663,7 +759,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param  icon  mode icon
          */
         AbstractDensityMode( String name, Icon icon ) {
-            super( name, icon, new Coord[ 0 ] );
+            super( name, icon, new Coord[ 0 ], false );
         }
 
         public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
@@ -929,7 +1025,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param   reportAuxKeys  if true, report global aux ramp config keys
          */
         AuxShadingMode( boolean transparent, boolean reportAuxKeys ) {
-            super( "aux", ResourceIcon.MODE_AUX, new Coord[] { SHADE_COORD } );
+            super( "aux", ResourceIcon.MODE_AUX, new Coord[] { SHADE_COORD },
+                   false );
             transparent_ = transparent;
             reportAuxKeys_ = reportAuxKeys;
         }
@@ -1166,7 +1263,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         WeightedDensityMode( boolean reportAuxKeys ) {
             super( "weighted", ResourceIcon.MODE_WEIGHT,
-                   new Coord[] { WEIGHT_COORD } );
+                   new Coord[] { WEIGHT_COORD }, true );
             reportAuxKeys_ = reportAuxKeys;
         }
 
@@ -1433,7 +1530,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
 
                 public ReportMap getReport( Object plan ) {
-                    return null;
+                    return getPixelReport( surface_ );
                 }
 
                 /**

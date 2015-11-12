@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 
 /**
@@ -40,9 +41,14 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
      * @param   mode  colour determiner
      */
     public ShapePlotter( String name, ShapeForm form, ShapeMode mode ) {
-        super( name, form.getFormIcon(), form.getPositionCount(),
-               PlotUtil.arrayConcat( form.getExtraCoords(),
-                                     mode.getExtraCoords() ) );
+        super( name,
+               form.getFormIcon(),
+               CoordGroup
+              .createCoordGroup( form.getPositionCount(),
+                                 PlotUtil
+                                .arrayConcat( form.getExtraCoords(),
+                                              mode.getExtraCoords() ) ),
+               mode.hasReports() );
         form_ = form;
         mode_ = mode;
     }
