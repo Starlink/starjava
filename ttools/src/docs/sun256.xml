@@ -4947,6 +4947,27 @@ stilts cdsskymatch cdstable=simbad find=best
     result is sent directly to a running instance of TOPCAT.
     </p></dd>
 
+<dt><verbatim>
+stilts cdsskymatch in=3XMM_DR4cat_slim_v1.0.fits
+                   icmd='select "SC_POSERR &lt; 1 &amp;&amp; SC_EXTENT == 0"'
+                   cdstable=B/mk/mktypes
+                   ra=SC_RA dec=SC_DEC radius=1.5
+                   find=best suffixin=_XMM suffixremote=_MK fixcols=all
+                   ocmd='select startsWith(spType_MK,\"G\")'
+                   out=xmm_gtype.fits
+</verbatim></dt>
+<dd><p>This locates XMM-Newton point-like sources identified as being
+    of spectral type G.
+    It uses the
+    <webref url="http://xmmssc-www.star.le.ac.uk/Catalogue/xcat_public_3XMM-DR4.html">3XMM-DR4</webref>
+    XMM-Newton serendipitous source catalogue as input.
+    The <code>icmd</code> filter selects the objects
+    in that catalogue with well-defined point-like positions.
+    It then matches them with Skiff's MK spectral classification
+    catalogue (B/mk/mktypes in VizieR) and finally filters the
+    result to include only those sources identified as being of
+    spectral type G.  Thanks to Ada Nebot (CDS) for this example.
+    </p></dd>
 </dl>
 </p>
 
