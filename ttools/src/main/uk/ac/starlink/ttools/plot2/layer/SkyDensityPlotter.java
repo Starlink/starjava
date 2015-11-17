@@ -37,7 +37,6 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
-import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -109,7 +108,6 @@ public class SkyDensityPlotter
                 "</p>",
             } )
         , -3, 29, -8, "Abs", "Rel", ABSLEVEL_REPKEY, RELLEVEL_REPKEY );
-    private static final ConfigKey<Combiner> COMBINER_KEY = createCombinerKey();
     private static final ConfigKey<Double> OPAQUE_KEY = StyleKeys.AUX_OPAQUE;
 
     /**
@@ -178,7 +176,7 @@ public class SkyDensityPlotter
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
         keyList.add( LEVEL_KEY );
         if ( weightCoord_ != null ) {
-            keyList.add( COMBINER_KEY );
+            keyList.add( StyleKeys.COMBINER );
         }
         if ( reportAuxKeys_ ) {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
@@ -195,8 +193,9 @@ public class SkyDensityPlotter
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = (float) ( 1.0 / config.get( OPAQUE_KEY ) );
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        Combiner combiner = weightCoord_ == null ? Combiner.COUNT
-                                                 : config.get( COMBINER_KEY );
+        Combiner combiner = weightCoord_ == null
+                          ? Combiner.COUNT
+                          : config.get( StyleKeys.COMBINER );
         return new SkyDenseStyle( level, scaling, shader, combiner );
     }
 
@@ -245,43 +244,6 @@ public class SkyDensityPlotter
         double modCross = Matrices.mod( Matrices.cross( p1, p2 ) );
         double dot = Matrices.dot( p1, p2 );
         return modCross == 0 && dot == 0 ? 0 : Math.atan2( modCross, dot );
-    }
-
-    /**
-     * Constructs the config key used to solicit a Combiner value
-     * from the user.
-     *
-     * @return  combiner key
-     */ 
-    private static ConfigKey<Combiner> createCombinerKey() {
-        ConfigMeta meta = new ConfigMeta( "combine", "Combine" );
-        meta.setShortDescription( "Value combination mode" );
-        meta.setXmlDescription( new String[] {
-            "<p>Defines how values contributing to the same",
-            "density map bin are combined together to produce",
-            "the value assigned to that bin (and hence its colour).",
-            "</p>",
-            "<p>For unweighted values (a pure density map),",
-            "it usually makes sense to use",
-            "<code>" + Combiner.COUNT + "</code>.",
-            "However, if the input is weighted by an additional",
-            "data coordinate, one of the other values such as",
-            "<code>" + Combiner.MEAN + "</code>",
-            "may be more revealing.",
-            "</p>", 
-        } );
-        Combiner[] options = Combiner.getKnownCombiners();
-        Combiner dflt = Combiner.SUM;
-        OptionConfigKey<Combiner> key =
-                new OptionConfigKey<Combiner>( meta, Combiner.class,
-                                               options, dflt ) {
-            public String getXmlDescription( Combiner combiner ) {
-                return combiner.getDescription();
-            }
-        };
-        key.setOptionUsage();
-        key.addOptionsXml();
-        return key;
     }
 
     /**
