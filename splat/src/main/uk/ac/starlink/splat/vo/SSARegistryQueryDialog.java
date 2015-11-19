@@ -23,6 +23,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegTapRegistryQuery;
+import uk.ac.starlink.vo.RegistryQuery;
 //import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.Ri1RegistryTableLoadDialog;
 
@@ -51,15 +52,16 @@ public class SSARegistryQueryDialog
     
     /** The SSAP query. */
     public static String[] defaultSSAPQuery_ = new String[]
-        {
-            "capability/@standardID = 'ivo://ivoa.net/std/SSA'"
-        };
+            {
+                    "capability/@standardID = 'ivo://ivoa.net/std/SSA'"
+            };
 
     public static String[] defaultOBSCoreQuery_ = new String[]
             {
+                    "capability/@standardID = 'ivo://ivoa.net/std/ObsCore'"
             };
 
-    
+
     public String getName()
     {
         return "SPLAT Registry Query";
@@ -72,9 +74,11 @@ public class SSARegistryQueryDialog
 
     protected Component createQueryComponent()
     {
-        rqPanel_ = new SSAPRegistryQueryPanel();
+        rqPanel_ = new SSAPRegistryQueryPanel(protocol_);
         if (! protocol_.equalsIgnoreCase("ObsCore"))
             rqPanel_.setPresetQueries( defaultSSAPQuery_ );
+        else 
+            rqPanel_.setPresetQueries( defaultOBSCoreQuery_ );
         return rqPanel_;
     }
 
@@ -82,7 +86,7 @@ public class SSARegistryQueryDialog
     {
         try {
            // final SplatRegistryQuery query = rqPanel_.getRegistryQuery();
-            final SplatRegistryQuery query = rqPanel_.getRegistryQuery(protocol_);
+            final RegistryQuery query = rqPanel_.getRegistryQuery(protocol_);
             return new TableLoader()
                 {
                     public TableSequence loadTables( StarTableFactory factory )
