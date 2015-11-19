@@ -1,6 +1,9 @@
 package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeSupport;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -12,10 +15,14 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
- 
+
+import com.sun.xml.internal.ws.wsdl.writer.document.Types;
+
 import uk.ac.starlink.vo.RegistryProtocol;
+import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistrySelector;
 import uk.ac.starlink.vo.RegistrySelectorModel;
+import uk.ac.starlink.vo.Ri1RegistryQuery;
 /**
  * Component which allows the user to select a registry to interrogate
  * and a query string representing the query to be done.
@@ -25,33 +32,63 @@ import uk.ac.starlink.vo.RegistrySelectorModel;
  */
 public class SSAPRegistryQueryPanel extends JPanel {
 
+    private PropertyChangeSupport protocolChange;
     private RegistrySelector urlSelector_;
+    private RegistryProtocol regProtocol_;
     private JComboBox querySelector_;
-
+    private JComponent qBox;
+    private String [] protocols = new String[] {"RegTap (recommended)", "RI1"};
+    private JComboBox<String> regtypes ;
+    
     /**
      * Constructor.
      */
-    public SSAPRegistryQueryPanel() {
+    public SSAPRegistryQueryPanel(String queryProtocol) {
         super( new BorderLayout() );
-        JComponent qBox = Box.createVerticalBox();
+        
+        qBox = Box.createVerticalBox();
         add( qBox, BorderLayout.CENTER );
 
-        /* Registry type  selector. */
-        String [] types = new String[] {"RegTap", "RI1"};
-        // TO DO...
+        /* Registry protocol  selector. */
+
+        urlSelector_ = new RegistrySelector(new RegistrySelectorModel(RegistryProtocol.REGTAP));  
+
+
+        regtypes = new JComboBox<String>(protocols);
+        qBox.add( regtypes );
+        regtypes.addActionListener (new ActionListener () {
+            public void actionPerformed(ActionEvent e) {
+                JComboBox source = (JComboBox) e.getSource();
+                String regProto =  (String) source.getModel().getSelectedItem();
+                if (regProto.equals(protocols[0])) {
+                    regProtocol_=RegistryProtocol.REGTAP;
+                } else if (regProto.equals(protocols[1])) {
+                    regProtocol_=RegistryProtocol.RI1;
+                }
+                urlSelector_.setModel( new  RegistrySelectorModel(regProtocol_));
+            }
+        });
+        regtypes.setSelectedIndex(0);
+        if (queryProtocol.equalsIgnoreCase("obscore"))  // for ObsCore we just use RegTap
+            regtypes.setEnabled(false);
+        else 
+            regtypes.setEnabled(true);
+
 
         /* Registry URL selector. */
-        urlSelector_ = new RegistrySelector( new  RegistrySelectorModel(RegistryProtocol.REGTAP));
-        qBox.add( urlSelector_ );
-        qBox.add( Box.createVerticalStrut( 5 ) );
-
+//        urlSelector_ = new RegistrySelector( new  RegistrySelectorModel(RegistryProtocol.REGTAP));
+        qBox.add( urlSelector_);
+        
+      
         /* Query text selector. */
         JComponent queryLine = Box.createHorizontalBox();
         querySelector_ = new JComboBox();
         querySelector_.setEditable( true );
         queryLine.add( new JLabel( "Query: " ) );
         queryLine.add( querySelector_ );
-        qBox.add( queryLine );
+       // not used anyways
+       // qBox.add( queryLine );
+        
     }
 
     /**
@@ -66,16 +103,6 @@ public class SSAPRegistryQueryPanel extends JPanel {
         querySelector_.setSelectedIndex( 0 );
     }
 
-    public SplatRegistryQuery getRegistryQuery(String type) throws MalformedURLException {
-        try {
-            if (type.equalsIgnoreCase("ObsCore")) 
-                return getObscoreRegistryQuery();
-                      
-            return getSSAPRegistryQuery();
-        } catch ( MalformedURLException e ) {
-            throw new MalformedURLException();
-        }
-    }
     /**
      * Returns a RegistryQuery object which can perform the query currently
      * specified by the state of this component.  Some checking on whether
@@ -84,9 +111,10 @@ public class SSAPRegistryQueryPanel extends JPanel {
      *
      * @return  query object
      */
-    public SplatRegistryQuery getSSAPRegistryQuery() throws MalformedURLException {
+    public RegistryQuery getRegistryQuery(String type) throws MalformedURLException {
+           
         String regServ = (String) urlSelector_.getUrl();
- 
+        
         URL regURL = null;
         if ( regServ == null || regServ.trim().length() == 0 ) {
             throw new MalformedURLException( "Registry URL is blank" );
@@ -97,31 +125,28 @@ public class SSAPRegistryQueryPanel extends JPanel {
         catch ( MalformedURLException e ) {
             throw new MalformedURLException( "Bad registry URL: " + regServ );
         }
-        return new SplatRegistryQuery( regURL.toString(), "SSAP" );
+        
+        if (regProtocol_.equals(RegistryProtocol.REGTAP)) {
+            if (type.equalsIgnoreCase("ObsCore")) 
+                return new SplatRegistryQuery( regURL.toString(), "ObsCore" );
+            else    
+                return new SplatRegistryQuery( regURL.toString(), "SSAP");
+
+        } else if (regProtocol_.equals(RegistryProtocol.RI1)) {
+            if (type.equalsIgnoreCase("ObsCore")) {
+                return (RegistryQuery) new SSAPRegistryQuery(regURL.toString(), (String) querySelector_.getSelectedItem().toString());
+            }
+            else {
+                return (RegistryQuery) new SSAPRegistryQuery(regURL.toString(), (String) querySelector_.getSelectedItem().toString());
+            }
+        }
+        return null; // should never happen
     }
-
-    public SplatRegistryQuery getObscoreRegistryQuery() throws MalformedURLException {
-        String regServ = (String) urlSelector_.getUrl();
-
- //       if ( query == null || query.trim().length() == 0 ) {
- //           throw new MalformedURLException( "Query URL is blank" );
- //       }
-        URL regURL;
-        if ( regServ == null || regServ.trim().length() == 0 ) {
-            throw new MalformedURLException( "Registry URL is blank" );
-        }
-        try {
-            regURL = new URL( regServ );
-        }
-        catch ( MalformedURLException e ) {
-            throw new MalformedURLException( "Bad registry URL: " + regServ );
-        }
-        return new SplatRegistryQuery(regURL.toString(), "ObsCore" );// "ivo://ivoa.net/std/tap", where);
-    }
-
+ 
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
         urlSelector_.setEnabled( enabled );
         querySelector_.setEnabled( false );
     }
+
 }
