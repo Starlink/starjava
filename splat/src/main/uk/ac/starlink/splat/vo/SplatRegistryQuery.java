@@ -41,6 +41,7 @@ import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegTapRegistryQuery;
+import uk.ac.starlink.vo.RegistryProtocol;
 import uk.ac.starlink.vo.RegistryQuery;
 
 import uk.ac.starlink.util.ContentCoding;
@@ -57,12 +58,21 @@ import uk.ac.starlink.util.ContentCoding;
 public class SplatRegistryQuery implements RegistryQuery {
 
     
-    private final URL tapUrl_;
-    private final String adql_;
+    private final URL regUrl_;
+    private String adql_=null;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
-
+    
+    public static final String RI1 = "Ri1";
+    public static final String REGTAP = "RegTap";
+    
+    /** possible registry types */
+    public static final String[] REGTYPES = new String[] {
+        RI1,
+        REGTAP,
+    };
+    
     /** TAP endpoint for high-availablity GAVO registry (DNS pointer). */
     public static final String GAVO_REG = "http://reg.g-vo.org/tap";
 
@@ -81,7 +91,14 @@ public class SplatRegistryQuery implements RegistryQuery {
         GAVO_REG,
         ARI_REG,
         AIP_REG,
+        INAF_REG,
     };
+
+    
+    /** Description of metadata item describing registry location. */
+    public final static ValueInfo REGTYPE_INFO =
+         new DefaultValueInfo( "Registry Type", String.class,
+                               "Type of registry queried" );
 
     /** Description of metadata item describing registry location. */
     public final static ValueInfo REGISTRY_INFO =
@@ -108,15 +125,15 @@ public class SplatRegistryQuery implements RegistryQuery {
      * @param   adqlWhere  text to be ANDed with existing ADQL WHERE clause,
      *                     or null for no further restriction
      */
-    public SplatRegistryQuery( String tapurl, String protocol) {
+    public SplatRegistryQuery( String regurl, String protocol) {
        
-       tapUrl_ = toUrl( tapurl );
+       regUrl_ = toUrl( regurl );
        
        if (protocol.equalsIgnoreCase("ObsCore"))
-           adql_ = getObsCoreAdql();
+               adql_ = getObsCoreAdql();
        else 
-           adql_ = getSSAPAdql();
- 
+               adql_ = getSSAPAdql();
+
   }
     
     private String getSSAPAdql() {
@@ -171,7 +188,7 @@ public class SplatRegistryQuery implements RegistryQuery {
     }
 
     public URL getRegistry() {
-        return tapUrl_;
+        return regUrl_;
     }
 
     public String getText() {
@@ -180,7 +197,7 @@ public class SplatRegistryQuery implements RegistryQuery {
 
     public RegResource[] getQueryResources() throws IOException {
         logger_.info( adql_ );
-        TapQuery query = new TapQuery( tapUrl_, adql_, null );
+        TapQuery query = new TapQuery( regUrl_, adql_, null );
         QuerySink sink = new QuerySink();
         boolean overflow;
         try {
@@ -323,7 +340,7 @@ public class SplatRegistryQuery implements RegistryQuery {
              * hard code the colum indices in here, but doing it like this
              * reduces the chance of programming error. */
             final String ivoid = getString( row, "ivoid" );
-            final String shortName = getString( row, "short_name" ); // check if shortname is null!
+            final String shortName = getString( row, "short_name" ); 
             final String title = getString( row, "res_title" );
             final String refUrl = getString( row, "reference_url" );
            
