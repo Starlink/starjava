@@ -1,5 +1,4 @@
 /*
- * Copyright (C) 2004 Central Laboratory of the Research Councils
  * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  *  History:
@@ -1916,7 +1915,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int nrows = (int) starTable.getRowCount();
             if (  nrows > 0 ) {
                 table = new StarPopupTable( starTable, true );
-//                table.setCellSelectionEnabled(true);
+                table.rearrange();
                 table.setComponentPopupMenu(new SSAQueryResultsTablePopupMenu(table));
                 scrollPane = new JScrollPane( table );
                 table.setComponentPopupMenu(specPopupMenu);
@@ -2034,11 +2033,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 logger.info(mue.getMessage());
             }
         }
-        
 
         browser.threadLoadSpectra( propList, display );
         browser.toFront();
     }
+
+
 
     /**
      * Extract all the links to spectra for downloading, plus the associated
@@ -2100,6 +2100,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int idsrccol=-1;
             int specstartcol=-1;
             int specstopcol=-1;
+            int timecol=-1;
+            int timeunitscol=-1;
+            
             ColumnInfo colInfo;
             String ucd;
             String utype;
@@ -3985,7 +3988,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 displaySpectra( false, true, (StarJTable) table, row );
             }   
             else if (e.getActionCommand().equals("Download")) {
-                displaySpectra( false, true, (StarJTable) table, row );
+                displaySpectra( false, false, (StarJTable) table, row );
+               ////// download
             } 
             
         }
