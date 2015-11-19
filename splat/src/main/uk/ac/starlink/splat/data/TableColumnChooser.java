@@ -67,9 +67,11 @@ public class TableColumnChooser
         addCoordNamePattern( "redshift.*" );
         addCoordNamePattern( "pos.*" );
         addCoordNamePattern( "x*." );
+        addCoordNamePattern( "time*." );
 
         coordUtypePatterns = new ArrayList();
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP
+        addCoordUtypePattern( ".*timeaxis.*" );       // LightCurves
         addCoordUtypePattern( ".*line\\.wavelength" );     // SLAP
 
         dataNamePatterns = new ArrayList();
