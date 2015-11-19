@@ -8,6 +8,19 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -28,13 +41,6 @@ import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.undo.UndoManager;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.gui.AstCellEditor;
 import uk.ac.starlink.ast.gui.AstDouble;
@@ -44,8 +50,11 @@ import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.util.JTableUtilities;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -69,7 +78,16 @@ public class SpecViewerFrame
     implements ItemListener, SpecListener, ColumnGeneratorListener,
                CoordinateGeneratorListener
 {
-    //
+	/**
+	 * File export settings
+	 */
+	private static final String LINE_BREAK = System.getProperty("line.separator");
+	private static final String CSV_EXTENSION = "csv";
+	private static final String CSV_DESCRIPTION = "CSV files";
+	private static final String TXT_EXTENSION = "txt";
+	private static final String TXT_DESCRIPTION = "TEXT files";
+	
+	//
     // TODO: add cut and paste of spectra.
     //
     /**
@@ -102,6 +120,16 @@ public class SpecViewerFrame
      */
     protected JTable table = null;
     protected SpecTableModel model = null;
+    
+    /**
+     * File chooser used for reading and writing text files.
+     */
+    protected BasicFileChooser csvFileChooser = null;
+    
+    /**
+     * File chooser used for reading and writing text files.
+     */
+    protected BasicFileChooser textFileChooser = null;
 
     /**
      * Close window action button.
@@ -184,12 +212,24 @@ public class SpecViewerFrame
 
         // Add an action to close the window (appears in File menu
         // and action bar).
-        ImageIcon image =
+        ImageIcon imageClose =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
-        CloseAction closeAction = new CloseAction( "Close", image,
+        CloseAction closeAction = new CloseAction( "Close", imageClose,
                                                    "Close window" );
         closeButton = new JButton( closeAction );
 
+        // Add an action to export the spectral data to CSV and text file
+        ImageIcon imageSave = new ImageIcon(
+                ImageHolder.class.getResource( "save.gif" ) );
+        
+        SaveAsCSVAction saveAsCsvAction = new SaveAsCSVAction( "Save to CSV file", imageSave,
+                "Save all data to CSV file" );
+
+        SaveAsTextAction saveAsTextAction = new SaveAsTextAction( "Save to text file", imageSave,
+                "Save all data to text file" );
+        
+        //
+        
         windowActionBar.setLayout( new BoxLayout( windowActionBar,
                                                   BoxLayout.X_AXIS ) );
         windowActionBar.setBorder( BorderFactory.createEmptyBorder(3,3,3,3) );
@@ -204,6 +244,8 @@ public class SpecViewerFrame
         fileMenu.setText( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
+        fileMenu.add( saveAsCsvAction );
+        fileMenu.add( saveAsTextAction );
         fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
 
         //  Create and populate the Edit menu.
@@ -777,6 +819,50 @@ public class SpecViewerFrame
             closeWindow();
         }
     }
+    
+    /**
+     * Inner class defining Action for saving the table data as CSV file.
+     */
+    protected class SaveAsCSVAction extends AbstractAction
+    {	
+		private static final long serialVersionUID = 1L;
+
+		public SaveAsCSVAction( String name, Icon icon, String shortHelp )
+        {
+            super( name, icon  );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+        	writeAllTableDataToCsvFile();
+        }
+    }
+    
+    /**
+     * Inner class defining Action for saving the table data as text file.
+     */
+    protected class SaveAsTextAction extends AbstractAction
+    {	
+		private static final long serialVersionUID = 1L;
+
+		public SaveAsTextAction( String name, Icon icon, String shortHelp )
+        {
+            super( name, icon  );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+        	writeAllTableDataToTxtFile();
+        }
+    }
 
     /**
      * Inner class defining Action for modifying coordinates.
@@ -1076,4 +1162,169 @@ public class SpecViewerFrame
             specDataChanged();
         }
     }
+
+    /**
+     * Initialise the CSV file chooser to have the necessary filters.
+     */
+    protected void initCSVFileChooser() {
+    	if (csvFileChooser == null) {
+    		csvFileChooser = createFileChooser(CSV_EXTENSION, CSV_DESCRIPTION);
+    	}
+    }
+    
+    /**
+     * Initialise the text file chooser to have the necessary filters.
+     */
+    protected void initTextFileChooser() {
+    	if (textFileChooser == null) {
+    		textFileChooser = createFileChooser(TXT_EXTENSION, TXT_DESCRIPTION);
+    	}
+    }
+    
+    /**
+     * Create the file chooser to have the given filters.
+     */
+    protected BasicFileChooser createFileChooser(String extension, String description)
+    {
+       	BasicFileChooser fileChooserInstance = new BasicFileChooser( false );
+       	fileChooserInstance.setMultiSelectionEnabled( false );
+
+        //  Add a filter for text files.
+        BasicFileFilter textFileFilter =
+            new BasicFileFilter( extension, description );
+        fileChooserInstance.addChoosableFileFilter( textFileFilter );
+
+        //  But allow all files as well.
+        fileChooserInstance.addChoosableFileFilter
+            ( fileChooserInstance.getAcceptAllFileFilter() );
+        
+        return fileChooserInstance;
+        
+    }
+    
+    /**
+     * Handles opening of the output file for the given file chooser.
+     * If the user cancels tha action for any reason, null value is returned. Otherwise
+     * the java.io.File instance of the output file is returned.
+     * 
+     * @param fileChooser
+     * @return
+     */
+    protected File prepareOutputFile(BasicFileChooser fileChooser, String expectedExtension) {
+    	int result = fileChooser.showSaveDialog( this );
+        if ( result == fileChooser.APPROVE_OPTION ) {
+            File file = fileChooser.getSelectedFile();
+            
+            // append extension if missing
+            if (!file.getName().toLowerCase().endsWith("." + expectedExtension.toLowerCase())) {
+            	file = new File(fileChooser.getSelectedFile()+"."+expectedExtension);
+            }
+
+            //  If file exists then we need to overwrite. Permission
+            //  please.
+            if ( file.exists() ) {
+                if ( file.canWrite() && file.isFile() ) {
+                    int choice = JOptionPane.showConfirmDialog
+                        ( this, "The file '" + file.getName() +
+                        "' already exists.\nDo you want to overwrite it?",
+                        "File exists",
+                        JOptionPane.YES_NO_OPTION );
+                    if ( choice == JOptionPane.NO_OPTION ) {
+                        return null;
+                    }
+                }
+                else {
+
+                    //  File exists, but is directory or read-only, so
+                    //  cannot overwrite.
+                    JOptionPane.showMessageDialog
+                        ( this, "The file '" + file.getName() +
+                        "' cannot be overwritten",
+                        "Error writing ",
+                        JOptionPane.ERROR_MESSAGE );
+                    return null;
+                }
+            }
+            
+            return file;
+        }
+        
+        return null;
+    }
+    
+    protected void writeAllTableDataToCsvFile() {
+    	initCSVFileChooser();
+    	File csvFile = prepareOutputFile(csvFileChooser, CSV_EXTENSION);
+    	
+    	if (csvFile != null) { // user did not cancelled the action
+    		String tableData = JTableUtilities.getAllContentWithHeaders(table, LINE_BREAK, ";");
+    		writeStringDataToFile(csvFile, tableData);
+    	}
+    }
+    
+    protected void writeAllTableDataToTxtFile() {
+    	initTextFileChooser();
+    	File txtFile = prepareOutputFile(textFileChooser, TXT_EXTENSION);
+    	
+    	if (txtFile != null) { // user did not cancelled the action
+    		String tableData = JTableUtilities.getAllContentWithHeaders(table, LINE_BREAK, "\t");
+    		writeStringDataToFile(txtFile, tableData);
+    	}
+    }
+    
+    //
+    
+    /**
+     * Write the string data to a simple text file.
+     *
+     * @param file reference to the file.
+     * @param data String data
+     */
+    public void writeStringDataToFile( File file, String data )
+    {
+    	
+    	// Get a BufferedWriter to write the file
+    	Writer out = null;
+    	boolean error = false;
+    	
+    	try {
+    		out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+    	} 
+    	catch(Exception e ) {
+    		error = true;
+    		e.printStackTrace();
+            return;
+        }
+    	
+    	// Write the data.
+    	try {
+    		out.write(data);
+    	}
+    	catch(Exception e ){
+    		error = true;
+    		e.printStackTrace();
+            return;
+    	}
+    	finally {
+    		try {
+				out.close();
+			} catch (IOException e) {
+				error = true;
+				e.printStackTrace();
+				return;
+			}
+    	}
+    	
+    	// if any error, inform the user
+    	if (error) {
+    		JOptionPane.showMessageDialog
+            ( this, "An error occured while saving the file " + file.getName(), "Readonly",
+              JOptionPane.ERROR_MESSAGE );
+    	} else {
+    		JOptionPane.showMessageDialog
+            ( this, "File " + file.getName() + " was successfuly saved.", "Readonly",
+              JOptionPane.INFORMATION_MESSAGE );
+    	}
+    }
+    
 }
