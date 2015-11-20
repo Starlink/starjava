@@ -83,6 +83,18 @@ public class PixelImage {
      * @param  origin  target position for origin of painted image
      */
     public void paintPixels( Graphics g, Point origin ) {
+        paintScaledPixels( g, origin, 1 );
+    }
+
+    /**
+     * Paints this image to a given graphics context, with each pixel
+     * scaled by an integer factor.
+     *
+     * @param  g  graphics context
+     * @param  origin  target position for origin of painted image
+     * @param  scale   scaling factor
+     */
+    public void paintScaledPixels( Graphics g, Point origin, int scale ) {
         int width = size_.width;
         int height = size_.height;
         BufferedImage image =
@@ -92,7 +104,13 @@ public class PixelImage {
         raster.setSamples( 0, 0, width, height, 0, pixels_ );
         assert raster.getWidth() == width;
         assert raster.getHeight() == height;
-        g.drawImage( image, origin.x, origin.y, null );
+        if ( scale == 1 ) {
+            g.drawImage( image, origin.x, origin.y, null );
+        }
+        else {
+            g.drawImage( image, origin.x, origin.y,
+                         width * scale, height * scale, null );
+        }
     }
 
     /**
