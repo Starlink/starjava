@@ -42,7 +42,9 @@ topcat_jars="\
 "
 
 #  Find where this script is located.
-bindir="`dirname $0`"
+scriptname=`readlink -f $0 2>/dev/null`
+test -n "$scriptname" || scriptname=$0
+bindir="`dirname $scriptname`"
 
 # Mac-specific items.
 javaArgs0=""

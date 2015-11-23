@@ -22426,6 +22426,8 @@ introduced since the last version:
     <li>Try harder to identify epoch columns (suitable for time plot), 
         in particular look for VOTable <code>xtype</code> of JD or MJD,
         and <code>units</code> of year.</li>
+    <li>Tweaked <code>topcat</code> startup script to work better if it's
+        invoked from a symbolic link.</li>
     </ul>
     </p></dd>
 
