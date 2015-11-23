@@ -135,6 +135,7 @@ public class AuxWindow extends JFrame {
         menuBar.add( windowMenu );
         controlAct = new AuxAction( "Control Window", ResourceIcon.CONTROL,
                                     "Ensure Control Window is visible" );
+        controlAct.putValue( Action.MNEMONIC_KEY, KeyEvent.VK_W );
         closeAct = new AuxAction( "Close", ResourceIcon.CLOSE,
                                   "Close this window" );
         exitAct = new AuxAction( "Exit", ResourceIcon.EXIT,
