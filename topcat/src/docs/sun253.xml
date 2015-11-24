@@ -171,6 +171,7 @@
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
+  <!ENTITY FIG.form_skydensity '&figs;form_skydensity.gif'>
   <!ENTITY FIG.form_histogram '&figs;form_histogram.gif'>
   <!ENTITY FIG.form_kde '&figs;form_kde.gif'>
   <!ENTITY FIG.form_knn '&figs;form_knn.gif'>
@@ -259,6 +260,8 @@
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
+  <!ENTITY FORM.skydensity '&IMG.FORM_SKYDENSITY;
+                           <ref id="form-skydensity">SkyDensity</ref>'>
   <!ENTITY FORM.histogram '&IMG.FORM_HISTOGRAM;
                           <ref id="form-histogram">Histogram</ref>'>
   <!ENTITY FORM.kde '&IMG.FORM_KDE; <ref id="form-kde">KDE</ref>'>
@@ -7614,12 +7617,25 @@ the <label>Axes</label> selector.
 <subsubsubsect id="ShaderControl">
 <subhead><title>Aux Axis</title></subhead>
 
-<p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only
-visible when the <ref id="mode-aux" plaintextref="yes">Aux colour mode</ref>
-has been selected for one of the data layers;
-if no layer is using Aux shading, the control will not appear in the stack.
-It controls a single colour scale for points which
-are coloured by data value to represent an additional dimension in the data.
+<p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only visible
+when at least one layer is using the shared colour map.
+The following plot layers do this:
+<ul>
+<li><ref id="mode-aux" plaintextref="yes">Aux colour mode</ref></li>
+<li><ref id="mode-weighted" plaintextref="yes">Weighted colour mode</ref></li>
+<li><ref id="form-skydensity" plaintextref="yes">Sky Density form</ref></li>
+</ul>
+These all colour parts of the plot in a way that is quantitatively
+significant, and the Aux Axis control gives you a chance to control
+the details of the value-colour mapping,
+and to display the mapping in a colour ramp displayed beside the plot.
+Some other layer types (e.g. <ref id="mode-density">Density mode</ref>)
+also shade the plot according to numeric values,
+but use their own colour map, and don't display the colour ramp.
+</p>
+
+<p>If no layer is using the shared colour map, then this control
+will not appear in the stack.
 </p>
 
 <p>When present, this control has three following tabs.
@@ -8951,6 +8967,97 @@ so they don't look very beautiful in exported vector output formats
 
 </subsubsubsect>
 
+<subsubsubsect id="form-skydensity">
+<subhead><title>SkyDensity Form</title></subhead>
+
+<figure>
+<caption><px>SkyDensity form configuration panel</px></caption>
+<figureimage src="&FIG.form_skydensity;"/>
+</figure>
+
+<p>The <label>SkyDensity</label> form (&IMG.FORM_SKYDENSITY;)
+plots a density map on the sky using a HEALPix grid
+with a configurable resolution.
+You can optionally use a weighting for the data values to accumulate
+within each HEALPix tile,
+and you can configure how the weighted values are combined to
+generate the eventual pixel values (and hence colours).
+<webref url="http://healpix.jpl.nasa.gov/">HEALPix</webref>
+is a tiling scheme for the sky which uses square-ish pixels
+of equal area to cover the celestial sphere.
+</p>
+
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible SkyDensity layers,
+<ref id="mode-aux">Aux</ref> mode layers, or 
+<ref id="mode-weighted">Weighted</ref> mode layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>The weight value applied to each plotted point.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    The exact way this quantity is used depends on the setting of the
+    <label>Combine</label> control below.
+    If it's left blank, the weighting is considered to be unity
+    (all values are 1); this makes sense for some combination types
+    (e.g. sum) but not others (e.g. mean).
+    </p></dd>
+
+<dt>HEALPix Level</dt>
+<dd><p>This allows you to control the resolution of the HEALPix grid
+    onto which the weighted values are resampled.
+    According to the radio buttons, you can configure this using either
+    a <label>Abs</label>olute or <label>Rel</label>ative value.
+    In Absolute mode you specify the HEALPix level (<em>k</em>) directly;
+    the number of pixels on the sky is 12*2<sup>2k</sup>.
+    In Relative mode the level is set so that a HEALPix tile has
+    approximately the given number of screen pixels along a side,
+    and hence the absolute level will change if you zoom in and out.
+    In either case, you can see the absolute level at the right hand side
+    of the control.
+    </p></dd>
+
+<dt>Combine</dt>
+<dd><p>Determines how the weight values associated with markers
+    plotted covering a given HEALPix tile are combined
+    to produce the numeric value used for that tile's colour.
+    </p>
+    <p>
+    The following options (some are more useful than others)
+    are currently available:
+    <ul>
+    <li><code>sum</code>: the sum of all weights</li>
+    <li><code>mean</code>: the mean of all weights</li>
+    <li><code>median</code>: the median of all weights;
+        (note, this is expensive to calculate and may be slow)</li>
+    <li><code>variance</code>: the sample variance of all weights</li>
+    <li><code>min</code>: the minimum weight</li>
+    <li><code>max</code>: the maximum weight</li>
+    <li><code>count</code>: the number of points plotted
+        (weight value is ignored, this is like Density mode)</li>
+    <li><code>hit</code>: one if any point is plotted, blank otherwise
+        (weight value is ignored, this is like Flat mode)</li>
+    </ul>
+    </p></dd>
+
+<dt>Opaque Limit</dt>
+<dd><p>Determines transparency of the points.
+    By default, they are fully opaque, but if you slide the slider to
+    the right, they will become progressively more transparent.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-histogram">
 <subhead><title>Histogram Form</title></subhead>
 
@@ -9787,6 +9894,18 @@ user-configurable options.  The options are:
 </dl>
 </p>
 
+<p>Although these options give you quite some control over how
+densities are mapped to colours, this mode does not display
+the colour mapping in a way that shows you quantitatively
+which colours correspond to which numeric density values.
+If you want that kind of visual feedback,
+you should use the <ref id="mode-weighted">Weighted</ref> shading mode,
+which can be configured to display point densities
+(as well as other quantities),
+and also causes a colour ramp to be displayed under control
+of the <ref id="ShaderControl">Aux Axis control</ref>.
+</p>
+
 <p><strong>Exporting:</strong>
 When exported to vector formats, the output is automatically forced to a
 bitmap for Density-mode layers.
@@ -9810,10 +9929,13 @@ The point colours then represent an additional dimension of the plot.
 There is an additional option to draw the points with a fixed transparency.
 </p>
 
-<p>The shading is done according to a single fixed scale for all
-the data in the plot.  When at least one Aux-mode layer is being plotted,
-the <ref id="ShaderControl" plaintextref="yes">Aux Axis</ref>
-control is visible
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible Aux mode layers,
+<ref id="mode-weighted">Weighted</ref> mode layers, or 
+<ref id="form-skydensity">SkyDensity</ref> layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
 in the control panel, which allows you to configure the colour map,
 range, ramp display etc.
 </p>
@@ -9866,23 +9988,28 @@ in some ways like <ref id="mode-density">Density</ref> mode,
 but allows you to do things that are not possible in either.
 </p>
 
-<p>The shading is done according to a single fixed scale for all
-the data in the plot.  This scale is the same as that used for
-<ref id="mode-aux">Aux</ref> mode layers, and is controlled by the
-<ref id="ShaderControl" plaintextref="yes">Aux Axis</ref> control
-in the control panel, visible if at least one relevant layer is
-being plotted.  That lets you configure the colour map, range,
-ramp display, etc.
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible Weighted mode layers,
+<ref id="mode-aux">Aux</ref> mode layers, or 
+<ref id="form-skydensity">SkyDensity</ref> layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
 </p>
 
 <p>The options are:
 <dl>
 <dt>Weight</dt>
-<dd><p>The weight applied to each plotted point.
+<dd><p>The weight value applied to each plotted point.
     Fill this in with a column name or expression from the table
     just like for a positional coordinate.
     The exact way this quantity is used depends on the setting of the
     <label>Combine</label> control below.
+    If it's left blank, the weighting is considered to be unity
+    (all values are 1); this makes sense for some combination types
+    (e.g. sum) but not others (e.g. mean).
     </p></dd>
 
 <dt>Combine</dt>
@@ -9907,6 +10034,7 @@ ramp display, etc.
         (weight value is ignored, this is like Flat mode)</li>
     </ul>
     </p></dd>
+
 </dl>
 </p>
 
@@ -10526,6 +10654,7 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.skyellipse;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
+    <li>&FORM.skydensity;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
@@ -22630,6 +22759,8 @@ introduced since the last version:
     <li>Tweaked <code>topcat</code> startup script to work better if it's
         invoked from a symbolic link.</li>
     <li>New <ref id="mode-weighted">Weighted</ref> shading mode.</li>
+    <li>New <ref id="form-skydensity">SkyDensity</ref> form,
+        which also allows weighted combinations.</li>
     <li>Fix the description in SUN/253 document of Sky ellipse and
         vector plot forms, previously they were not distinguished
         from the Plane variants of those forms.</li>
