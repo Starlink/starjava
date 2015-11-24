@@ -48,10 +48,10 @@ public abstract class Combiner {
         SUM = new SumCombiner(),
         MEAN = new MeanCombiner(),
         MEDIAN = new MedianCombiner(),
-        SAMPLE_VARIANCE = new VarianceCombiner( true ),
-        COUNT = new CountCombiner(),
         MIN = new MinCombiner(),
         MAX = new MaxCombiner(),
+        SAMPLE_VARIANCE = new VarianceCombiner( true ),
+        COUNT = new CountCombiner(),
         HIT = new HitCombiner(),
     };
 
@@ -376,7 +376,9 @@ public abstract class Combiner {
          * Constructor.
          */
         CountCombiner() {
-            super( "count", "the number of non-blank values", false );
+            super( "count",
+                   "the number of non-blank values (weight is ignored)",
+                   false );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -594,7 +596,9 @@ public abstract class Combiner {
          * Constructor.
          */
         HitCombiner() {
-            super( "hit", "1 if any values present, NaN otherwise", false );
+            super( "hit",
+                   "1 if any values present, NaN otherwise (weight is ignored)",
+                   false );
         }
 
         public BinList createArrayBinList( int size ) {

@@ -10409,6 +10409,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Try harder to identify epoch columns (suitable for time plot),
         in particular look for VOTable <code>xtype</code> of JD or MJD,
         and <code>units</code> of year.</li>
+    <li>Add new <ref id="shading-weighted">Weighted</ref> shading mode
+        for plots.</li>
     </ul>
     </p></dd>
 

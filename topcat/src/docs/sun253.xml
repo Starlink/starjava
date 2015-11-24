@@ -158,6 +158,7 @@
   <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
   <!ENTITY FIG.mode_density '&figs;mode_density.gif'>
   <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
+  <!ENTITY FIG.mode_weighted '&figs;mode_weighted.gif'>
   <!ENTITY FIG.form_mark '&figs;form_mark.gif'>
   <!ENTITY FIG.form_size '&figs;form_size.gif'>
   <!ENTITY FIG.form_sizexy '&figs;form_sizexy.gif'>
@@ -7386,7 +7387,9 @@ in one of the following graphics formats:
     data points.  Plot annotations such as axis labels will not be
     affected - they are still drawn as vector text.
     Note that in some cases (e.g. use of the 
-    <ref id="mode-auto">auto</ref> or <ref id="mode-density">density</ref>
+    <ref id="mode-auto">auto</ref>,
+    <ref id="mode-density">density</ref> or
+    <ref id="mode-weighted">weighted</ref>
     shading modes) this kind of pixellisation will happen in any case.
     </p></dd>
 </dl>
@@ -7409,6 +7412,7 @@ there are a few things to consider:
 <dt>Positional Quantisation</dt>
 <dd><p>Some of the shading modes
     (<ref id="mode-density">Density</ref>,
+     <ref id="mode-weighted">Weighted</ref>,
      <ref id="mode-auto">Auto</ref>) are inherently pixellated,
     and others
     (<ref id="mode-flat">Flat</ref>,
@@ -8787,8 +8791,9 @@ draws a text label by each point position.
 <p>The <label>Contour</label> form (&IMG.PLOT_CONTOUR;)
 plots position density contours.
 These provide another way
-(alongside the <ref id="mode-auto">Auto</ref> and
-<ref id="mode-density">Density</ref> shading modes)
+(alongside the <ref id="mode-auto">Auto</ref>,
+<ref id="mode-density">Density</ref> and
+<ref id="mode-weighted">Weighted</ref> shading modes)
 to visualise the characteristics of overdense regions in a crowded plot.
 </p>
 
@@ -9719,6 +9724,78 @@ layers will be completely obscured.
 
 </subsubsubsect>
 
+<subsubsubsect id="mode-weighted">
+<subhead><title>Weighted Mode</title></subhead>
+
+<figure>
+<caption><px>Weighted mode selection</px></caption>
+<figureimage src="&FIG.mode_weighted;"/>
+</figure>
+
+<p>The <label>Weighted</label> shading mode (&IMG.MODE_WEIGHT;)
+paints markers using colours indicating density at each pixel like
+the Density mode, but with an optional weighting coordinate.
+You can configure how the weighted coordinates are combined
+at each pixel to give the final weighted result.
+Depending on the configuration and actual point density,
+this can behave
+in some ways like <ref id="mode-aux">Aux</ref> mode and
+in some ways like <ref id="mode-density">Density</ref> mode,
+but allows you to do things that are not possible in either.
+</p>
+
+<p>The shading is done according to a single fixed scale for all
+the data in the plot.  This scale is the same as that used for
+<ref id="mode-aux">Aux</ref> mode layers, and is controlled by the
+<ref id="ShaderControl" plaintextref="yes">Aux Axis</ref> control
+in the control panel, visible if at least one relevant layer is
+being plotted.  That lets you configure the colour map, range,
+ramp display, etc.
+</p>
+
+<p>The options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>The weight applied to each plotted point.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    The exact way this quantity is used depends on the setting of the
+    <label>Combine</label> control below.
+    </p></dd>
+
+<dt>Combine</dt>
+<dd><p>Determines how the weight values associated with markers
+    plotted covering a given screen pixel are combined
+    to produce the numeric value used for that pixel's colour.
+    </p>
+    <p>
+    The following options (some are more useful than others)
+    are currently available:
+    <ul>
+    <li><code>sum</code>: the sum of all weights</li>
+    <li><code>mean</code>: the mean of all weights</li>
+    <li><code>median</code>: the median of all weights;
+        (note, this is expensive to calculate and may be slow)</li>
+    <li><code>variance</code>: the sample variance of all weights</li>
+    <li><code>min</code>: the minimum weight</li>
+    <li><code>max</code>: the maximum weight</li>
+    <li><code>count</code>: the number of points plotted
+        (weight value is ignored, this is like Density mode)</li>
+    <li><code>hit</code>: one if any point is plotted, blank otherwise
+        (weight value is ignored, this is like Flat mode)</li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+When exported to vector formats, the output is automatically forced to a
+bitmap for Density-mode layers.
+In the case of PostScript, this completely obscures any previous layers.
+</p>
+
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="HistogramPlotWindow">
@@ -10607,7 +10684,9 @@ see the <label>Coords</label> tab of the
     </ul></li>
 </ul>
 Note that use of the
-<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+<ref id="mode-auto">Auto</ref>,
+<ref id="mode-density">Density</ref> and
+<ref id="mode-weighted">Weighted</ref>
 shading modes can be confusing in 3 dimensions with multiple datasets.
 This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
@@ -10916,7 +10995,9 @@ In many respects this works like the
     </ul></li>
 </ul>
 Note that use of the
-<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+<ref id="mode-auto">Auto</ref>,
+<ref id="mode-density">Density</ref> and
+<ref id="mode-weighted">Weighted</ref>
 shading modes can be confusing in 3 dimensions with multiple datasets.
 This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
@@ -22428,6 +22509,7 @@ introduced since the last version:
         and <code>units</code> of year.</li>
     <li>Tweaked <code>topcat</code> startup script to work better if it's
         invoked from a symbolic link.</li>
+    <li>New <ref id="mode-weighted">Weighted</ref> shading mode.</li>
     </ul>
     </p></dd>
 
