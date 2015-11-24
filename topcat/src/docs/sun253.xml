@@ -163,8 +163,10 @@
   <!ENTITY FIG.form_size '&figs;form_size.gif'>
   <!ENTITY FIG.form_sizexy '&figs;form_sizexy.gif'>
   <!ENTITY FIG.form_vector '&figs;form_vector.gif'>
+  <!ENTITY FIG.form_skyvector '&figs;form_skyvector.gif'>
   <!ENTITY FIG.form_error '&figs;form_error.gif'>
-  <!ENTITY FIG.form_ellipse '&figs;form_ellipse.gif'>
+  <!ENTITY FIG.form_xyellipse '&figs;form_xyellipse.gif'>
+  <!ENTITY FIG.form_skyellipse '&figs;form_skyellipse.gif'>
   <!ENTITY FIG.form_line '&figs;form_line.gif'>
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
@@ -242,10 +244,15 @@
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
   <!ENTITY FORM.sizexy '&IMG.FORM_SIZEXY; <ref id="form-sizexy">SizeXY</ref>'>
-  <!ENTITY FORM.vector '&IMG.FORM_VECTOR; <ref id="form-vector">Vector</ref>'>
+  <!ENTITY FORM.vector '&IMG.FORM_VECTOR;
+                         <ref id="form-vector">Vector</ref>'>
+  <!ENTITY FORM.skyvector '&IMG.FORM_VECTOR;
+                          <ref id="form-skyvector">SkyVector</ref>'>
   <!ENTITY FORM.error '&IMG.FORM_ERROR; <ref id="form-error">Error Bars</ref>'>
-  <!ENTITY FORM.ellipse '&IMG.FORM_ELLIPSE;
-                        <ref id="form-ellipse">Ellipse</ref>'>
+  <!ENTITY FORM.xyellipse '&IMG.FORM_ELLIPSE;
+                          <ref id="form-xyellipse">XYEllipse</ref>'>
+  <!ENTITY FORM.skyellipse '&IMG.FORM_ELLIPSE;
+                           <ref id="form-skyellipse">SkyEllipse</ref>'>
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
   <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
                           <ref id="form-linearfit">Linear Fit</ref>'>
@@ -8497,9 +8504,6 @@ This scaling can be adjusted or turned off using the
 <dt>DeltaX, DeltaY, ...</dt>
 <dd><p>The coordinates of the changes in each coordinate which gives the
     vector.  The coordinates here match the coordinates of the plot.
-    For sky coordinates, the supplied longitude delta values are
-    in degrees and <em>are</em>
-    considered to have been already multiplied by cos(latitude).
     </p></dd>
 <dt>Arrow</dt>
 <dd><p>Arrow shape selected from a range of options.
@@ -8523,6 +8527,70 @@ This scaling can be adjusted or turned off using the
 
 </subsubsubsect>
 
+<subsubsubsect id="form-skyvector">
+<subhead><title>SkyVector Form</title></subhead>
+
+<figure>
+<caption><px>SkyVector form configuration panel</px></caption>
+<figureimage src="&FIG.form_skyvector;"/>
+</figure>
+
+<p>The <label>SkyVector</label> form (&IMG.FORM_VECTOR;)
+plots directed lines from the data position
+given relative offsets to longitude.cos(latitude) and latitude
+on the celestial sphere.
+The plotted markers are typically little arrows, but there are
+other options.
+</p>
+
+<p>In some cases such delta values may be the actual magnitude required
+for the plot, but more often the vector data represents a value which
+has a different magnitude or is in different units to the positional data
+(for instance proper motions).
+As a convenience for this case, the plotter can optionally
+(and does by default) scale the magnitudes of all the vectors to make
+them a sensible size (so the largest ones are a few tens of pixels long).
+This scaling can be adjusted or turned off using the
+<label>Scale</label> and <label>Auto Scale</label> options below.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Delta Longitude</dt>
+<dd><p>Change in the longitude coordinate represented by the plotted vector.
+    The supplied value is (if not auto-scaled) an angle in degrees,
+    and <strong>is</strong> considered to be premultiplied by cos(Latitude).
+    </p></dd>
+<dt>Delta Latitude</dt>
+<dd><p>Change in the latitude coordinate represented by the plotted vector.
+    The supplied value is (if not auto-scaled) an angle in degrees.
+    </p></dd>
+<dt>Arrow</dt>
+<dd><p>Arrow shape selected from a range of options.
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all vector sizes are scaled.
+    If the arrows are too small, slide it right, if they are too big,
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default arrow scale size
+    from the data - it will fix it so that the largest arrows are a
+    few tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual values in degrees given by the submitted Delta Lon/Lat
+    coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-error">
 <subhead><title>Error Bars Form</title></subhead>
 
@@ -8538,7 +8606,7 @@ Cartesian plot.
 The shape of the error "bars" is quite configurable, including
 (for 2- and 3-d errors) ellipses, rectangles etc, aligned with the axes
 (for rotated ellipses and rectangles,
-see the <ref id="form-ellipse">Ellipse</ref> form).
+see the <ref id="form-xyellipse">XYEllipse</ref> form).
 </p>
 
 <p>The configuration options are:
@@ -8570,12 +8638,12 @@ see the <ref id="form-ellipse">Ellipse</ref> form).
 
 </subsubsubsect>
 
-<subsubsubsect id="form-ellipse">
+<subsubsubsect id="form-xyellipse">
 <subhead><title>Ellipse Form</title></subhead>
 
 <figure>
 <caption><px>Ellipse form configuration panel</px></caption>
-<figureimage src="&FIG.form_ellipse;"/>
+<figureimage src="&FIG.form_xyellipse;"/>
 </figure>
 
 <p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
@@ -8588,22 +8656,22 @@ major and minor radii and an optional rotation angle.
 <dt>Shading Mode</dt>
 <dd><p>See <ref id="ShapeMode"/>.
     </p></dd>
-<dt>Major Radius, Minor Radius</dt>
-<dd><p>Two radii for the ellipse, in the same units as the
-    position coordinates (which is degrees for the sky plot).
-    It doesn't matter whether the major one is larger than the minor one.
+<dt>Primary Radius, Secondary Radius</dt>
+<dd><p>The two principal radii for the ellipse, in the same units as the
+    position coordinates.
+    It doesn't matter whether the primary is larger than the secondary.
+    If the Secondary Radius field is left blank, it is assumed to equal
+    the Primary Radius field, i.e. the ellipses are circles.
     </p></dd>
 <dt>Orientation</dt>
 <dd><p>Position angle in degrees.
-    For the plane plot it is the angle anticlockwise from the X axis
-    to the major radius.
-    For the sky plot it is the angle from the North pole to the major axis
-    in the direction of positive RA.
+    This is the angle anticlockwise from the X axis
+    to the primary radius.
     If the value is missing (either this field not filled in or blank in
     the data) it is considered to be zero.
     </p></dd>
 <dt>Ellipse</dt>
-<dd><p>Ellipse shape, selected from a range of options
+<dd><p>Ellipse graphical representation, selected from a range of options
     (includes also rectangles, crosses etc).
     </p></dd>
 <dt>Scale</dt>
@@ -8619,6 +8687,60 @@ major and minor radii and an optional rotation angle.
     That scaling can then be adjusted using the <label>Scale</label> slider.
     If unselected, then the default position of the Scale slider corresponds
     to the actual positions given by the submitted ellipse radii coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-skyellipse">
+<subhead><title>SkyEllipse Form</title></subhead>
+
+<figure>
+<caption><px>SkyEllipse form configuration panel</px></caption>
+<figureimage src="&FIG.form_skyellipse;"/>
+</figure>
+
+<p>The <label>SkyEllipse</label> (&IMG.FORM_ELLIPSE;)
+draws an ellipse (or rectangle, triangle, or other similar figure)
+on the celestial sphere defined by
+major and minor radii and an optional rotation angle.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Primary Radius, Secondary Radius</dt>
+<dd><p>The two principal radii for the ellipse.
+    If auto-scaling is off, these are in units of <strong>degrees</strong>.
+    It doesn't matter whether the primary is larger than the secondary.
+    If the Secondary Radius field is left blank, it is assumed to equal
+    the Primary Radius field, i.e. the ellipses are circles.
+    </p></dd>
+<dt>Position Angle</dt>
+<dd><p>Orientation of the ellipse.  This is the angle in degrees
+    from the North pole to the primary axis of the ellipse in the
+    direction of increasing longitude.
+    If the value is missing (either this field not filled in or blank in
+    the data) it is considered to be zero.
+    </p></dd>
+<dt>Ellipse</dt>
+<dd><p>Ellipse graphical representation, selected from a range of options
+    (includes also rectangles, crosses etc).
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all ellipse sizes are scaled.
+    If the ellipses are too small, slide it right, if they are too big,
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default ellipse scale size
+    from the data - it will fix it so that the largest ellipses are a few
+    tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual values in degrees given by the submitted ellipse
+    radii coordinates.
     </p></dd>
 </dl>
 </p>
@@ -10115,7 +10237,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
-    <li>&FORM.ellipse;</li>
+    <li>&FORM.xyellipse;</li>
     <li>&FORM.line;</li>
     <li>&FORM.linearfit;</li>
     <li>&FORM.label;</li>
@@ -10400,8 +10522,8 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
     <li>&FORM.sizexy;</li>
-    <li>&FORM.vector;</li>
-    <li>&FORM.ellipse;</li>
+    <li>&FORM.skyvector;</li>
+    <li>&FORM.skyellipse;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     </ul></li>
@@ -10672,8 +10794,6 @@ see the <label>Coords</label> tab of the
     <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
-    <li>&FORM.ellipse;</li>
-    <li>&FORM.line;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     </ul></li>
@@ -22110,7 +22230,7 @@ introduced since the last version:
         <li>Some "dart" options (fixed-base open or filled triangles)
             added for plotting <ref id="form-vector">vectors</ref>.</li>
         <li>Some "triangle" options (variable-base open or filled triangles)
-            added for plotting <ref id="form-ellipse">ellipses</ref>.</li>
+            added for plotting <ref id="form-xyellipse">ellipses</ref>.</li>
         <li>Max Marker Size option replaced with with Autoscaling option in
             plot <ref id="form-size">Size</ref> form.
             You can now optionally turn off autoscaling and specify marker size
@@ -22510,6 +22630,9 @@ introduced since the last version:
     <li>Tweaked <code>topcat</code> startup script to work better if it's
         invoked from a symbolic link.</li>
     <li>New <ref id="mode-weighted">Weighted</ref> shading mode.</li>
+    <li>Fix the description in SUN/253 document of Sky ellipse and
+        vector plot forms, previously they were not distinguished
+        from the Plane variants of those forms.</li>
     </ul>
     </p></dd>
 
