@@ -10394,10 +10394,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Fix plot bug; titles were painted in white
-        for pixel output formats.</li>
-    <li>Fix long-standing crossmatch range-restriction bug.
+    <dl>
+    <dt>Crossmatching bug fix</dt>
+    <dd><p>Fix a long-standing crossmatch bug
+        relating to range restriction during pre-processing.
         This could have caused missed associations (but not false positives)
         near the edge of coverage regions when using per-row errors,
         if the scale of the errors differed
@@ -10405,13 +10405,79 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         It affected <code>matcher</code> values of
         <code>&lt;n&gt;-d_err</code>, <code>skyerr</code>,
         <code>2d_ellipse</code> and <code>skyellipse</code> only.
-        Thanks to Grant Kennedy (IoA) for reporting this bug.</li>
-    <li>Try harder to identify epoch columns (suitable for time plot),
-        in particular look for VOTable <code>xtype</code> of JD or MJD,
-        and <code>units</code> of year.</li>
-    <li>Add new <ref id="shading-weighted">Weighted</ref> shading mode
-        for plots.</li>
-    </ul>
+        Thanks to Grant Kennedy (IoA) for reporting this bug.
+        </p></dd>
+    <dt>Density plots</dt>
+    <dd><p>Some more options for making weighted density plots have been added.
+        Since v3.0 the Density shading mode has let you see the density
+        of plotted points, but this lacked some features.
+        Three new ways to do density plots are added; these all give you
+        the option of weighting by an additional coordinate (like the Aux mode),
+        choosing the combination method (mean, median, sum, max, ...),
+        and displaying the quantitative value-colour mapping
+        on the shared colour ramp (previously aux axis) beside the plot.
+        The new density plots are:
+        <ul>
+        <li><ref id="shading-weighted">Weighted shading mode</ref>,
+            using shaped marker kernels on the screen pixel grid,
+            available for all plot types</li>
+        <li><ref id="layer-skydensity">SkyDensity layer</ref>,
+            using HEALPix bins on the celestial sphere, for the Sky plot</li>
+        <li><ref id="layer-density">Density layer</ref>,
+            using square N*N screen pixel bins, for the Plane plot</li>
+        </ul>
+        These may undergo some adjustments in future releases.
+        </p></dd>
+    <dt>Colour maps</dt>
+    <dd><p>There are various changes affecting selection and display of
+        colour maps used for density and aux axis shading:
+        <ul>
+        <li>Add some new colour maps: Viridis, Inferno, Magma and Plasma from
+            <webref url="http://bids.github.io/colormap/"
+                    >Matplotlib 1.5</webref>
+            and the SRON rainbow variant developed by
+            <webref url="https://personal.sron.nl/~pault/"
+                    >Paul Tol</webref>.</li>
+        <li>The options for Density and Aux shading are now mostly the same
+            as each other except where there's good reason to differ.
+            Previously they were different in haphazard ways.</li>
+        <li>An attempt is made to give the default form of each colour map
+            a sensible name, without leading minus signs.</li>
+        <li>Fix it so that the whole range of each map is distinguishable
+            from white.  This is a good idea when you're plotting symbols
+            on a white background, which is common in stilts.
+            Perhaps there are cases it's not such a good idea;
+            if you think so, complain and I may change it back.</li>
+        <li>Try to fix it so that all the colour maps go in the same
+            direction (light-&gt;dark) where applicable.</li>
+        <li>Throw out a couple of particularly useless colour maps.</li>
+        <li>Colour map ramp display is now different for non-absolute maps;
+            their effect is shown on a selection of base colours,
+            not just for one base colour.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor items</dt>
+    <dd><p>
+        <ul>
+        <li>Try harder to identify epoch columns (suitable for time plot),
+            in particular look for VOTable <code>xtype</code> of JD or MJD,
+            and <code>units</code> of year.</li>
+        <li>Add some functions to the
+            <ref id="uk.ac.starlink.ttools.func.Tilings">Tilings</ref> class
+            to do with solid angles
+            (<code>healpixSqdeg</code>,
+             <code>healpixSteradians</code>,
+             <code>steradiansToSqdeg</code>,
+             <code>sqdegToSteradians</code>,
+             <code>SQDEG</code>).</li>
+        <li>Fix plot bug; titles were painted in white
+            for pixel output formats.</li>
+        <li>Rationalise plot report logging.  Some more diagnostic information
+            about plots is now logged at the INFO level
+            (visible if topcat is run with the <code>-verbose</code> flag).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
