@@ -67,11 +67,11 @@ public class SkyDensityPlotter
     private final FloatingCoord weightCoord_;
     private final boolean reportAuxKeys_;
 
-    /** Report key for HEALPix tile area in steradians. */
+    /** Report key for HEALPix tile area in square degrees. */
     public static final ReportKey<Double> TILESIZE_REPKEY =
-        new ReportKey<Double>( new ReportMeta( "tile_sr",
+        new ReportKey<Double>( new ReportMeta( "tile_sqdeg",
                                                "HEALPix tile size"
-                                             + " in steradians" ),
+                                             + " in square degrees" ),
                                Double.class, true );
 
     private static final ReportKey<Integer> ABSLEVEL_REPKEY =
@@ -535,7 +535,7 @@ public class SkyDensityPlotter
                     SkyDensityPlan splan = (SkyDensityPlan) plan;
                     int absLevel = splan.level_;
                     int relLevel = absLevel - splan.pixelLevel_;
-                    double tileSize = Tilings.healpixSteradians( absLevel );
+                    double tileSize = Tilings.healpixSqdeg( absLevel );
                     map.put( ABSLEVEL_REPKEY, new Integer( absLevel ) );
                     map.put( RELLEVEL_REPKEY, new Integer( relLevel ) );
                     map.put( TILESIZE_REPKEY, new Double( tileSize ) );

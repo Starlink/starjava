@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -150,10 +151,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                              + " in data coords" ),
                                Double.class, true );
 
-    /** Report key for nominal pixel size in steradians. */
+    /** Report key for nominal pixel size in square degrees. */
     public static final ReportKey<Double> REPKEY_SKYPIX =
-        new ReportKey<Double>( new ReportMeta( "pixel_sr",
-                                               "Pixel size in steradians"
+        new ReportKey<Double>( new ReportMeta( "pixel_sqdeg",
+                                               "Pixel size in square degrees"
                                              + " at projection center" ),
                                Double.class, true );
 
@@ -275,7 +276,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 double pixTheta = SkyDensityPlotter.vectorSeparation( p1, p2 )
                                 / Math.sqrt( 2.0 );
                 double pixSteradians = pixTheta * pixTheta;
-                report.put( REPKEY_SKYPIX, pixSteradians );
+                double pixSqdeg = pixSteradians / Tilings.SQDEG;
+                report.put( REPKEY_SKYPIX, pixSqdeg );
             }
         }
         return report;

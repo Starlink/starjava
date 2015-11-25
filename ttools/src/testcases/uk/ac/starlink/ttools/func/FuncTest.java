@@ -568,6 +568,9 @@ public class FuncTest extends TestCase {
         final double pi4 = 4.0 * Math.PI;
         assertEquals( pi4, Tilings.healpixSteradians( 0 ) * 12 );
         assertEquals( pi4, Tilings.healpixSteradians( 2 ) * 12 * 4 * 4 );
+        assertEquals( 360*360/Math.PI, Tilings.healpixSqdeg( 0 ) * 12 );
+        assertEquals( Tilings.healpixResolution( 9 ),
+                      Math.sqrt( Tilings.healpixSqdeg( 9 ) ) );
         assertEquals( pi4, Tilings.sqdegToSteradians( 129600 / Math.PI ),
                       1e-6 );
         assertEquals( 41253, Tilings.steradiansToSqdeg( pi4 ), 1. );

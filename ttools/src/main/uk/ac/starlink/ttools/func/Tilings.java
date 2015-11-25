@@ -108,9 +108,7 @@ public class Tilings {
      * @return  approximate angular resolution in degrees
      */
     public static double healpixResolution( int k ) {
-        long nside = 1L << k;
-        double resArcsec = pixTools_.PixRes( nside );
-        return resArcsec / 3600.;
+        return Math.sqrt( healpixSqdeg( k ) ); 
     }
 
     /**
@@ -128,9 +126,23 @@ public class Tilings {
     }
 
     /**
+     * Returns the solid angle in square degrees of each HEALPix pixel
+     * at a given order.
+     *
+     * @example  <code>healpixSqdeg(5) = 3.357174580844667</code>
+     * @example  <code>round(12 * healpixSqdeg(0)) = 41253</code>
+     *
+     * @param   k  HEALPix resolution parameter <code>k</code>
+     * @return  pixel size in steradians
+     */
+    public static double healpixSqdeg( int k ) {
+        return steradiansToSqdeg( healpixSteradians( k ) );
+    }
+
+    /**
      * Converts a solid angle from steradians to square degrees.
      *
-     * <p>The unit sphere is 4*PI steradians = (PI/180)^2 square degrees.
+     * <p>The unit sphere is 4*PI steradians = 360*360/PI square degrees.
      *
      * @example  <code>round(steradiansToSqdeg(4*PI)) = 41253</code>
      *
@@ -144,7 +156,7 @@ public class Tilings {
     /**
      * Converts a solid angle from square degrees to steradians.
      *
-     * <p>The unit sphere is 4*PI steradians = (PI/180)^2 square degrees.
+     * <p>The unit sphere is 4*PI steradians = 360*360/PI square degrees.
      *
      * @example  <code>round(sqdegToSteradians(41253)/PI) = 4</code> 
      *
