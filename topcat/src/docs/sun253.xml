@@ -22835,11 +22835,11 @@ introduced since the last version:
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Fix plot bug; titles were painted in white
-        for pixel export formats.</li>
-    <li>Fix long-standing crossmatch range-restriction bug.  
-        This could have caused missed associations (but not false positives) 
+    <dl>
+    <dt>Crossmatching bug fix</dt>
+    <dd><p>Fix a long-standing crossmatch bug
+        relating to range restriction during pre-processing.
+        This could have caused missed associations (but not false positives)
         near the edge of coverage regions when using per-row errors, 
         if the scale of the errors differed
         (especially differed significantly) between the matched tables.  
@@ -22848,20 +22848,86 @@ introduced since the last version:
         <label>&lt;n&gt;-d Cartesian with Errors</label>,
         <label>2d_ellipse</label> and
         <label>Sky Ellipses</label> only.
-        Thanks to Grant Kennedy (IoA) for reporting this bug.</li>
-    <li>Try harder to identify epoch columns (suitable for time plot), 
-        in particular look for VOTable <code>xtype</code> of JD or MJD,
-        and <code>units</code> of year.</li>
-    <li>Tweaked <code>topcat</code> startup script to work better if it's
-        invoked from a symbolic link.</li>
-    <li>New <ref id="mode-weighted">Weighted</ref> shading mode.</li>
-    <li>New <ref id="form-skydensity">SkyDensity</ref> and
-        <ref id="form-density">Density</ref> forms,
-        which also allow weighted combinations.</li>
-    <li>Fix the description in SUN/253 document of Sky ellipse and
-        vector plot forms, previously they were not distinguished
-        from the Plane variants of those forms.</li>
-    </ul>
+        Thanks to Grant Kennedy (IoA) for reporting this bug.
+        </p></dd>
+    <dt>Density plots</dt>
+    <dd><p>Some more options for making weighted density plots have been added.
+        Since v4.0 the Density shading mode has let you see the density
+        of plotted points, but this lacked some features.
+        Three new ways to do density plots are added; these all give you
+        the option of weighting by an additional coordinate (like the Aux mode),
+        choosing the combination method (mean, median, sum, max, ...),
+        and displaying the quantitative value-colour mapping
+        on the shared colour ramp (previously aux axis) beside the plot.
+        The new density plots are:
+        <ul>
+        <li><ref id="mode-weighted">Weighted shading mode</ref>,
+            using shaped marker kernels on the screen pixel grid,
+            available for all plot types</li>
+        <li><ref id="form-skydensity">SkyDensity form</ref>,
+            using HEALPix bins on the celestial sphere, for the Sky plot</li>
+        <li><ref id="form-density">Density form</ref>,
+            using square N*N screen pixel bins, for the Plane plot</li>
+        </ul>
+        These may undergo some adjustments in future releases.
+        </p></dd>
+    <dt>Colour maps</dt>
+    <dd><p>There are various changes affecting selection and display of
+        colour maps used for density and aux axis shading:
+        <ul>
+        <li>Add some new colour maps: Viridis, Inferno, Magma and Plasma from
+            <webref url="http://bids.github.io/colormap/"
+                    >Matplotlib 1.5</webref>
+            and the SRON rainbow variant developed by
+            <webref url="https://personal.sron.nl/~pault/"
+                    >Paul Tol</webref>.</li>
+        <li>The options for Density and Aux shading are now mostly the same
+            as each other except where there's good reason to differ.
+            Previously they were different in haphazard ways.
+            The order of the options is now a bit more rational too
+            (similar maps are grouped together,
+            more common ones near the start).</li>
+        <li>An attempt is made to give the default form of each colour map
+            a sensible name, without leading minus signs.</li>
+        <li>Fix it so that the whole range of each map is distinguishable
+            from white.  This is a good idea when you're plotting symbols
+            on a white background, which is common in topcat.
+            Perhaps there are cases it's not such a good idea;
+            if you think so, complain and I may change it back.</li>
+        <li>Try to fix it so that all the colour maps go in the same
+            direction (light-&gt;dark) where applicable.</li>
+        <li>Throw out a couple of particularly useless colour maps.</li>
+        <li>Colour map ramp display is now different for non-absolute maps;
+            their effect is shown on a selection of base colours,
+            not just for one base colour.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor items</dt>
+    <dd><p>
+        <ul>
+        <li>Try harder to identify epoch columns (suitable for time plot), 
+            in particular look for VOTable <code>xtype</code> of JD or MJD,
+            and <code>units</code> of year.</li>
+        <li>Add some functions to the <ref id="Tilings">Tilings</ref> class
+            to do with solid angles
+            (<code>healpixSqdeg</code>,
+             <code>healpixSteradians</code>,
+             <code>steradiansToSqdeg</code>,
+             <code>sqdegToSteradians</code>,
+             <code>SQDEG</code>).</li>
+        <li>Tweaked <code>topcat</code> startup script to work better if it's
+            invoked from a symbolic link.</li>
+        <li>Fix the description in SUN/253 document of Sky ellipse and
+            vector plot forms, previously they were not distinguished
+            from the Plane variants of those forms.</li>
+        <li>Fix plot bug; titles were painted in white
+            for pixel export formats.</li>
+        <li>Rationalise plot report logging.  Some more diagnostic information
+            about plots is now logged at the INFO level
+            (visible if topcat is run with the <code>-verbose</code> flag).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
