@@ -87,6 +87,7 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
                 "<p>Determines the dimension of grid bins in pixels.",
                 "Bins are square in pixel dimensions, and this parameter",
                 "gives the extent in pixels along each side.",
+                "Currently, only integer values are allowed.",
                 "</p>",
             } )
         , 2, 1, 50 );
