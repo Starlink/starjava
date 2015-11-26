@@ -298,7 +298,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>22 October 2015</docdate>
+<docdate>27 November 2015</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -22845,7 +22845,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.3-2 (27 October 2015)</dt>
 <dd><p>
     <dl>
     <dt>Crossmatching bug fix</dt>
