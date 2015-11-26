@@ -10433,6 +10433,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dd><p>There are various changes affecting selection and display of
         colour maps used for density and aux axis shading:
         <ul>
+        <li>The default colour map for Aux mode, and other layers using
+            the shared colour map, is no longer Rainbow!  It's Inferno.
+            Rainbow colour maps are much hated by visualisation experts.
+            Of course you can still choose Rainbow if you like.</li>
         <li>Add some new colour maps: 
             <em>Viridis</em>, <em>Inferno</em>, <em>Magma</em> and 
             <em>Plasma</em> from
