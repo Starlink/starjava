@@ -220,6 +220,9 @@ public class Shaders {
     /** Shader copied from Matplotlib 2.0 Viridis lookup table. */
     public static final Shader LUT_MPL2VIRIDIS;
 
+    /** Diverging hot-cold shader provided by Daniel Michalik. */
+    public static final Shader LUT_HOTCOLD;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -256,6 +259,7 @@ public class Shaders {
         LUT_MPL2PLASMA = new ResourceLutShader( "Plasma", "mpl2_plasma.lut" ),
         LUT_MPL2VIRIDIS = new ResourceLutShader( "Viridis",
                                                  "mpl2_viridis.lut" ),
+        LUT_HOTCOLD = new ResourceLutShader( "HotCold", "hotcold.lut" ),
     };
 
     /* ColorBrewer.
@@ -263,30 +267,62 @@ public class Shaders {
      * Geography, Pennsylvania State University.
      * These are intented for cartography. */
 
-    /** ColorBrewer blue-green shader. */
+    /** ColorBrewer sequential blue-green shader. */
     public static final Shader BREWER_BUGN =
         new SampleShader( "BuGn", new int[] {
             0xedf8fb, 0xccece6, 0x99d8c9, 0x66c2a4, 0x2ca25f, 0x006d2c, } );
 
-    /** ColorBrewer blue-purple shader. */
+    /** ColorBrewer sequential blue-purple shader. */
     public static final Shader BREWER_BUPU =
         new SampleShader( "BuPu", new int[] {
             0xedf8fb, 0xbfd3e6, 0x9ebcda, 0x8c96c6, 0x8856a7, 0x810f7c, } );
 
-    /** ColorBrewer orange-red shader. */
+    /** ColorBrewer sequential orange-red shader. */
     public static final Shader BREWER_ORRD =
         new SampleShader( "OrRd", new int[] {
             0xfef0d9, 0xfdd49e, 0xfdbb84, 0xfc8d59, 0xe34a33, 0xb30000, } );
 
-    /** ColorBrewer purple-blue shader. */
+    /** ColorBrewer sequential purple-blue shader. */
     public static final Shader BREWER_PUBU =
         new SampleShader( "PuBu", new int[] {
             0xf1eef6, 0xd0d1e6, 0xa6bddb, 0x74a9cf, 0x2b8cbe, 0x045a8d, } );
 
-    /** ColorBrewer purple-red shader. */
+    /** ColorBrewer sequential purple-red shader. */
     public static final Shader BREWER_PURD =
         new SampleShader( "PuRd", new int[] {
             0xf1eef6, 0xd4b9da, 0xc994c7, 0xdf65b0, 0xdd1c77, 0x980043, } );
+
+    /** ColorBrewer diverging red-blue shader. */
+    public static final Shader BREWER_RDBU =
+        new SampleShader( "RdBu", new int[] {
+            0xb2182b, 0xd6604d, 0xf4a582, 0xfddbc7,
+            0xd1e5f0, 0x92c5de, 0x4393c3, 0x2166ac, } );
+
+    /** ColorBrewer diverging pink-green shader. */
+    public static final Shader BREWER_PIYG =
+        new SampleShader( "PiYG", new int[] {
+            0xc51b7d, 0xde77ae, 0xf1b6da, 0xfde0ef,
+            0xe6f5d0, 0xb8e186, 0x7fbc41, 0x4d9221, } );
+
+    /** ColorBrewer diverging brown-blue-green shader. */
+    public static final Shader BREWER_BRBG =
+        new SampleShader( "BrBG", new int[] {
+            0x8c510a, 0xbf812d, 0xdfc27d, 0xf6e8c3,
+            0xc7eae5, 0x80cdc1, 0x35978f, 0x01665e, } );
+
+    /** Hue-chroma-luminance cyclic shader.
+     *  Got from hclwizard.org with parameters:
+     *  qualitative, H1=0 H2=351, N=40, C1=90, L1=60 */
+    public static final Shader HCL_POLAR =
+        new SampleShader( "HueCL", new int[] {
+            0xE96485, 0xE56972, 0xE16F5E, 0xDB7546, 0xD47B24, 0xCB8000,
+            0xC28600, 0xB88B00, 0xAC9000, 0x9F9500, 0x909900, 0x7F9D00,
+            0x6BA100, 0x51A400, 0x25A702, 0x00AA37, 0x00AC51, 0x00AE67,
+            0x00AF7A, 0x00B08B, 0x00B09B, 0x00AFAA, 0x00AEB8, 0x00ACC5,
+            0x00A9D0, 0x00A4DB, 0x009FE3, 0x0099EA, 0x4B92EE, 0x748AF1,
+            0x9281F1, 0xA978EE, 0xBB70EA, 0xCA68E3, 0xD662DA, 0xDF5DCF,
+            0xE55BC3, 0xE95BB5, 0xEB5CA7, 0xEB6096, 
+        } );
 
     /** Shader used by default for the transverse axis of non-absolute ramps. */
     public static final Shader DFLT_GRID_SHADER = LUT_BRG;
