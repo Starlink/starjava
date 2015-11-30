@@ -1,7 +1,14 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.TimeMapper;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
@@ -29,6 +36,31 @@ public class TimePlotWindow
     }
 
     /**
+     * Returns the index of the column within a given colum model at which
+     * a value in the time domain can be found.
+     *
+     * @param  colModel   list of columns from a table
+     * @return    index in list of the first/best time (epoch) column,
+     *            or -1 if nothing suitable can be found
+     */
+    private static int getTimeIndex( ColumnDataComboBoxModel colModel ) {
+        if ( colModel != null ) {
+            for ( int ic = 0; ic < colModel.getSize(); ic++ ) {
+                Object item = colModel.getElementAt( ic );
+                if ( item instanceof ColumnData ) {
+                    ColumnInfo info = ((ColumnData) item).getColumnInfo();
+                    for ( DomainMapper mapper : info.getDomainMappers() ) {
+                        if ( mapper instanceof TimeMapper ) {
+                            return ic;
+                        }
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Defines GUI features specific to time plot.
      */
     private static class TimePlotTypeGui
@@ -38,8 +70,43 @@ public class TimePlotWindow
             return new TimeAxisController( stack );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
-            return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
+            DataGeom geom = PLOT_TYPE.getPointDataGeoms()[ 0 ];
+            Coord[] coords =
+                PositionCoordPanel.multiplyCoords( geom.getPosCoords(), npos );
+            return new SimplePositionCoordPanel( coords, geom ) {
+                @Override
+                public void autoPopulate() {
+
+                    /* Try to put a time column in the time column selector. */
+                    ColumnDataComboBoxModel timeModel =
+                        getColumnSelector( 0, 0 );
+                    ColumnDataComboBoxModel yModel =
+                        getColumnSelector( 1, 0 );
+                    int ict = getTimeIndex( timeModel );
+                    if ( timeModel != null && yModel != null && ict >= 0 ) {
+                        timeModel.setSelectedItem( timeModel
+                                                  .getElementAt( ict ) );
+                        int icy = -1;
+                        for ( int ic = 0; ic < yModel.getSize() && icy < 0;
+                              ic++ ) {
+                            Object item = yModel.getElementAt( ic );
+                            if ( ic != ict && item instanceof ColumnData ) {
+                                ColumnInfo info =
+                                    ((ColumnData) item).getColumnInfo();
+                                if ( Number.class
+                                    .isAssignableFrom( info
+                                                      .getContentClass() ) ) {
+                                    icy = ic;
+                                }
+                            }
+                        }
+                        if ( icy >= 0 ) {
+                            yModel.setSelectedItem( yModel
+                                                   .getElementAt( icy ) );
+                        }
+                    }
+                }
+            };
         }
         public boolean hasPositions() {
             return true;

@@ -292,13 +292,17 @@ public class CoordPanel {
 
     /**
      * Returns the selector component model for a given user coordinate.
+     * If no columndata-specific model has been set, null may be returned.
      *
      * @param  ic   coord index
      * @param  iu   user info index for the given coord
-     * @return   selector model
+     * @return   selector model, or null
      */
     public ColumnDataComboBoxModel getColumnSelector( int ic, int iu ) {
-        return (ColumnDataComboBoxModel) colSelectors_[ ic ][ iu ].getModel();
+        ComboBoxModel model = colSelectors_[ ic ][ iu ].getModel();
+        return model instanceof ColumnDataComboBoxModel
+             ? (ColumnDataComboBoxModel) model
+             : null;
     }
 
     /**
