@@ -96,6 +96,10 @@ public class CountDataStore implements DataStore {
             return base_.getBooleanValue( icol );
         }
 
+        public int getIntValue( int icol ) {
+            return base_.getIntValue( icol );
+        }
+
         public double getDoubleValue( int icol ) {
             return base_.getDoubleValue( icol );
         }

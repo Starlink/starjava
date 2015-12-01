@@ -45,6 +45,9 @@ public class StepDataStore implements DataStore {
             public double getDoubleValue( int icol ) {
                 return baseSeq.getDoubleValue( icol );
             }
+            public int getIntValue( int icol ) {
+                return baseSeq.getIntValue( icol );
+            }
             public boolean getBooleanValue( int icol ) {
                 return baseSeq.getBooleanValue( icol );
             }

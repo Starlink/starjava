@@ -48,6 +48,13 @@ public interface CachedSequence {
     double getDoubleValue();
 
     /**
+     * Retrieve the current value of this sequence as an integer.
+     *
+     * @return   value
+     */
+    int getIntValue();
+
+    /**
      * Retrieve the current value of this sequence as a boolean value.
      *
      * @return   value

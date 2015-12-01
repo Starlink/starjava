@@ -54,6 +54,9 @@ public class PlotUtil {
         public double getDoubleValue( int icol ) {
             throw new IllegalStateException();
         }
+        public int getIntValue( int icol ) {
+            throw new IllegalStateException();
+        }
         public boolean getBooleanValue( int icol ) {
             throw new IllegalStateException();
         }

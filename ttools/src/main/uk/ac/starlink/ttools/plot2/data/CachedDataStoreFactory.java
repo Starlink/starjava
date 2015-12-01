@@ -620,6 +620,10 @@ public class CachedDataStoreFactory implements DataStoreFactory {
             return colSeqs_[ icol ].getDoubleValue();
         }
 
+        public int getIntValue( int icol ) {
+            return colSeqs_[ icol ].getIntValue();
+        }
+
         public boolean getBooleanValue( int icol ) {
             return colSeqs_[ icol ].getBooleanValue();
         }

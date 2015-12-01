@@ -62,6 +62,9 @@ public class SmartColumnFactory implements CachedColumnFactory {
         map.put( StorageType.BOOLEAN, immutableComparison );
         map.put( StorageType.DOUBLE, immutableComparison );
         map.put( StorageType.FLOAT, immutableComparison );
+        map.put( StorageType.INT, immutableComparison );
+        map.put( StorageType.SHORT, immutableComparison );
+        map.put( StorageType.BYTE, immutableComparison );
         map.put( StorageType.STRING, immutableComparison );
         map.put( StorageType.INT3, new ValueComparison() {
             public boolean equalValues( Object v1, Object v2 ) {
@@ -195,10 +198,10 @@ public class SmartColumnFactory implements CachedColumnFactory {
     /**
      * Presents a single-entry sequence as a multi-entry sequence in which
      * all the values are the same.
-     * 
      */
     private static class ConstantSequence implements CachedSequence {
         private final boolean booleanValue_;
+        private final int intValue_;
         private final double doubleValue_;
         private final Object objectValue_;
         private final long nrow_;
@@ -215,12 +218,17 @@ public class SmartColumnFactory implements CachedColumnFactory {
             CachedSequence constSeq = col1.createSequence();
             boolean hasValue = constSeq.next();
             booleanValue_ = hasValue ? constSeq.getBooleanValue() : false;
+            intValue_ = hasValue ? constSeq.getIntValue() : Integer.MIN_VALUE;
             doubleValue_ = hasValue ? constSeq.getDoubleValue() : Double.NaN;
             objectValue_ = hasValue ? constSeq.getObjectValue() : null;
         }
 
         public boolean getBooleanValue() {
             return booleanValue_;
+        }
+
+        public int getIntValue() {
+            return intValue_;
         }
 
         public double getDoubleValue() {

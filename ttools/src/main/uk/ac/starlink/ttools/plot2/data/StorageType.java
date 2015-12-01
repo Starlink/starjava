@@ -28,6 +28,15 @@ public enum StorageType {
     /** Single precision type.  Output type is {@link java.lang.Float}. */
     FLOAT,
 
+    /** Integer type.  Output type is {@link java.lang.Integer}. */
+    INT,
+
+    /** Short integer type.  Output type is {@link java.lang.Short}. */
+    SHORT,
+
+    /** Byte type.  Output type is {@link java.lang.Byte}. */
+    BYTE,
+
     /** String type.  Output type is {@link java.lang.String}. */
     STRING,
 

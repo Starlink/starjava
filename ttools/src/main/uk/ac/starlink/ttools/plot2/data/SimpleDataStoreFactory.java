@@ -155,6 +155,12 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
                                          : Double.NaN;
         }
 
+        public int getIntValue( int icol ) {
+            Object obj = getObjectValue( icol );
+            return obj instanceof Number ? ((Number) obj).intValue()
+                                         : Integer.MIN_VALUE;
+        }
+
         public boolean getBooleanValue( int icol ) {
             return Boolean.TRUE.equals( getObjectValue( icol ) );
         }

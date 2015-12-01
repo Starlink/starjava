@@ -52,7 +52,7 @@ public interface TupleSequence {
 
     /**
      * Returns the value of a given column as a double.
-     * If that element of the tuple is not of object type,
+     * If that element of the tuple is not of numeric type,
      * the result may not be useful.
      *
      * @param   icol  column index
@@ -60,6 +60,17 @@ public interface TupleSequence {
      *          presumed of numeric type
      */
     double getDoubleValue( int icol );
+
+    /**
+     * Returns the value of a given column as an integer.
+     * If that element of the tuple is not of numeric type,
+     * the result may not be useful.
+     *
+     * @param   icol  column index
+     * @return  value of element <code>icol</code> in the current row,
+     *          presumed of numeric type
+     */
+    int getIntValue( int icol );
 
     /**
      * Returns the value of a given column as a boolean.

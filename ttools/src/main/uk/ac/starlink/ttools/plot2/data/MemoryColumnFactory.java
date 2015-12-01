@@ -8,9 +8,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import uk.ac.starlink.util.IntList;
-import uk.ac.starlink.util.FloatList;
+import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.DoubleList;
+import uk.ac.starlink.util.FloatList;
+import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.util.ShortList;
 
 /**
  * CachedColumnFactory implementation that stores data in arrays in memory.
@@ -50,6 +52,24 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             public CachedColumn createColumn( long nrow ) {
                 return nrow >= 0 ? new FixedFloatColumn( nrow )
                                  : new UnknownFloatColumn();
+            }
+        } );
+        map.put( StorageType.INT, new ColumnCreator() {
+            public CachedColumn createColumn( long nrow ) {
+                return nrow >= 0 ? new FixedIntColumn( nrow )
+                                 : new UnknownIntColumn();
+            }
+        } );
+        map.put( StorageType.SHORT, new ColumnCreator() {
+            public CachedColumn createColumn( long nrow ) {
+                return nrow >= 0 ? new FixedShortColumn( nrow )
+                                 : new UnknownShortColumn();
+            }
+        } );
+        map.put( StorageType.BYTE, new ColumnCreator() {
+            public CachedColumn createColumn( long nrow ) {
+                return nrow >= 0 ? new FixedByteColumn( nrow )
+                                 : new UnknownByteColumn();
             }
         } );
         map.put( StorageType.STRING, new ColumnCreator() {
@@ -143,10 +163,40 @@ public class MemoryColumnFactory implements CachedColumnFactory {
      * Converts an object to a float.
      *
      * @param   obj, presumed numeric
-     * @return  numerical value of <code>obj</code>, or NaN
+     * @return  numerical value of <code>obj</code>
      */
     private static float toFloat( Object obj ) {
         return ((Number) obj).floatValue();
+    }
+
+    /**
+     * Converts an object to an integer.
+     *
+     * @param   obj, presumed numeric
+     * @return  numerical value of <code>obj</code>
+     */
+    private static int toInt( Object obj ) {
+        return ((Number) obj).intValue();
+    }
+
+    /**
+     * Converts an object to a short.
+     *
+     * @param   obj, presumed numeric
+     * @return  numerical value of <code>obj</code>
+     */
+    private static short toShort( Object obj ) {
+        return ((Number) obj).shortValue();
+    }
+
+    /**
+     * Converts an object to a byte.
+     *
+     * @param   obj, presumed numeric
+     * @return  numerical value of <code>obj</code>
+     */
+    private static byte toByte( Object obj ) {
+        return ((Number) obj).byteValue();
     }
 
     /**
@@ -324,6 +374,108 @@ public class MemoryColumnFactory implements CachedColumnFactory {
     }
 
     /**
+     * CachedColumn implementation for int values, column length is known.
+     */
+    private static class FixedIntColumn implements CachedColumn {
+        private final int nrow_;
+        private final int[] data_;
+        private int irow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  nrow  column length
+         */
+        FixedIntColumn( long nrow ) {
+            if ( nrow > Integer.MAX_VALUE ) {
+                throw new UnsupportedOperationException( "Too long " + nrow );
+            }
+            nrow_ = (int) nrow;
+            data_ = new int[ nrow_ ];
+        }
+
+        public void add( Object value ) {
+            data_[ irow_++ ] = toInt( value );
+        }
+
+        public void endAdd() {
+            assert irow_ == nrow_;
+        }
+
+        public CachedSequence createSequence() {
+            return new IntArraySequence( data_ );
+        }
+    }
+
+    /**
+     * CachedColumn implementation for short values, column length is known.
+     */
+    private static class FixedShortColumn implements CachedColumn {
+        private final int nrow_;
+        private final short[] data_;
+        private int irow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  nrow  column length
+         */
+        FixedShortColumn( long nrow ) {
+            if ( nrow > Integer.MAX_VALUE ) {
+                throw new UnsupportedOperationException( "Too long " + nrow );
+            }
+            nrow_ = (int) nrow;
+            data_ = new short[ nrow_ ];
+        }
+
+        public void add( Object value ) {
+            data_[ irow_++ ] = toShort( value );
+        }
+
+        public void endAdd() {
+            assert irow_ == nrow_;
+        }
+
+        public CachedSequence createSequence() {
+            return new ShortArraySequence( data_ );
+        }
+    }
+
+    /**
+     * CachedColumn implementation for byte values, column length is known.
+     */
+    private static class FixedByteColumn implements CachedColumn {
+        private final int nrow_;
+        private final byte[] data_;
+        private int irow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  nrow  column length
+         */
+        FixedByteColumn( long nrow ) {
+            if ( nrow > Integer.MAX_VALUE ) {
+                throw new UnsupportedOperationException( "Too long " + nrow );
+            }
+            nrow_ = (int) nrow;
+            data_ = new byte[ nrow_ ];
+        }
+
+        public void add( Object value ) {
+            data_[ irow_++ ] = toByte( value );
+        }
+
+        public void endAdd() {
+            assert irow_ == nrow_;
+        }
+
+        public CachedSequence createSequence() {
+            return new ByteArraySequence( data_ );
+        }
+    }
+
+    /**
      * CachedColumn implementation for fixed-length double arrays, 
      * column length is known.
      */
@@ -481,7 +633,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         private final T[] zArray_;
         private List<T> list_;
         private T[] data_;
-        private int irow_;
 
         /**
          * Constructor.
@@ -517,7 +668,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
     private static class UnknownDoubleColumn implements CachedColumn {
         private DoubleList list_;
         private double[] data_;
-        private int irow_;
 
         /**
          * Constructor.
@@ -546,7 +696,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
     private static class UnknownFloatColumn implements CachedColumn {
         private FloatList list_;
         private float[] data_;
-        private int irow_;
 
         UnknownFloatColumn() {
             list_ = new FloatList();
@@ -567,6 +716,81 @@ public class MemoryColumnFactory implements CachedColumnFactory {
     }
 
     /**
+     * CachedColumn implementation for int values, column length not known.
+     */
+    private static class UnknownIntColumn implements CachedColumn {
+        private IntList list_;
+        private int[] data_;
+
+        UnknownIntColumn() {
+            list_ = new IntList();
+        }
+
+        public void add( Object value ) {
+            list_.add( toInt( value ) );
+        }
+
+        public void endAdd() {
+            data_ = list_.toIntArray();
+            list_ = null;
+        }
+
+        public CachedSequence createSequence() {
+            return new IntArraySequence( data_ );
+        }
+    }
+
+    /**
+     * CachedColumn implementation for short values, column length not known.
+     */
+    private static class UnknownShortColumn implements CachedColumn {
+        private ShortList list_;
+        private short[] data_;
+
+        UnknownShortColumn() {
+            list_ = new ShortList();
+        }
+
+        public void add( Object value ) {
+            list_.add( toShort( value ) );
+        }
+
+        public void endAdd() {
+            data_ = list_.toShortArray();
+            list_ = null;
+        }
+
+        public CachedSequence createSequence() {
+            return new ShortArraySequence( data_ );
+        }
+    }
+
+    /**
+     * CachedColumn implementation for byte values, column length not known.
+     */
+    private static class UnknownByteColumn implements CachedColumn {
+        private ByteList list_;
+        private byte[] data_;
+
+        UnknownByteColumn() {
+            list_ = new ByteList();
+        }
+
+        public void add( Object value ) {
+            list_.add( toByte( value ) );
+        }
+
+        public void endAdd() {
+            data_ = list_.toByteArray();
+            list_ = null;
+        }
+
+        public CachedSequence createSequence() {
+            return new ByteArraySequence( data_ );
+        }
+    }
+
+    /**
      * CachedColumn implementation for fixed-length double arrays,
      * column length not known.
      */
@@ -575,7 +799,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         private final int ncol_;
         private DoubleList list_;
         private double[] data_;
-        private int ipos_;
 
         /**
          * Constructor.
@@ -621,7 +844,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         private final int ncol_;
         private FloatList list_;
         private float[] data_;
-        private int ipos_;
 
         /**
          * Constructor.
@@ -667,7 +889,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         private final int ncol_;
         private IntList list_;
         private int[] data_;
-        private int ipos_;
 
         /**
          * Constructor.
@@ -734,6 +955,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public double getDoubleValue() {
             return Double.NaN;
         }
+        public int getIntValue() {
+            return Integer.MIN_VALUE;
+        }
     }
 
     /**
@@ -761,6 +985,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
         public double getDoubleValue() {
             return Double.NaN;
+        }
+        public int getIntValue() {
+            return Integer.MIN_VALUE;
         }
         public boolean getBooleanValue() {
             return false;
@@ -793,6 +1020,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public double getDoubleValue() {
             return data_[ irow_ ];
         }
+        public int getIntValue() {
+            return (int) data_[ irow_ ];
+        }
         public boolean getBooleanValue() {
             return false;
         }
@@ -823,6 +1053,111 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
         public double getDoubleValue() {
             return (double) data_[ irow_ ];
+        }
+        public int getIntValue() {
+            return (int) data_[ irow_ ];
+        }
+        public boolean getBooleanValue() {
+            return false;
+        }
+    }
+
+    /**
+     * Int-yielding CachedSequence implementation based on an int array.
+     */
+    private static class IntArraySequence implements CachedSequence {
+        private final int[] data_;
+        private final int nrow_;
+        private int irow_ = -1;
+
+        /**
+         * Constructor.
+         *
+         * @param   data  data array
+         */
+        IntArraySequence( int[] data ) {
+            data_ = data;
+            nrow_ = data.length;
+        }
+        public boolean next() {
+            return ++irow_ < nrow_;
+        }
+        public Object getObjectValue() {
+            return new Integer( data_[ irow_ ] );
+        }
+        public double getDoubleValue() {
+            return data_[ irow_ ];
+        }
+        public int getIntValue() {
+            return data_[ irow_ ];
+        }
+        public boolean getBooleanValue() {
+            return false;
+        }
+    }
+
+    /**
+     * Int-yielding CachedSequence implementation based on a short array.
+     */
+    private static class ShortArraySequence implements CachedSequence {
+        private final short[] data_;
+        private final int nrow_;
+        private int irow_ = -1;
+
+        /**
+         * Constructor.
+         *
+         * @param   data  data array
+         */
+        ShortArraySequence( short[] data ) {
+            data_ = data;
+            nrow_ = data.length;
+        }
+        public boolean next() {
+            return ++irow_ < nrow_;
+        }
+        public Object getObjectValue() {
+            return new Short( data_[ irow_ ] );
+        }
+        public double getDoubleValue() {
+            return data_[ irow_ ];
+        }
+        public int getIntValue() {
+            return data_[ irow_ ];
+        }
+        public boolean getBooleanValue() {
+            return false;
+        }
+    }
+
+    /**
+     * Int-yielding CachedSequence implementation based on a byte array.
+     */
+    private static class ByteArraySequence implements CachedSequence {
+        private final byte[] data_;
+        private final int nrow_;
+        private int irow_ = -1;
+
+        /**
+         * Constructor.
+         *
+         * @param   data  data array
+         */
+        ByteArraySequence( byte[] data ) {
+            data_ = data;
+            nrow_ = data.length;
+        }
+        public boolean next() {
+            return ++irow_ < nrow_;
+        }
+        public Object getObjectValue() {
+            return new Byte( data_[ irow_ ] );
+        }
+        public double getDoubleValue() {
+            return data_[ irow_ ];
+        }
+        public int getIntValue() {
+            return data_[ irow_ ];
         }
         public boolean getBooleanValue() {
             return false;
@@ -863,6 +1198,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public double getDoubleValue() {
             return Double.NaN;
         }
+        public int getIntValue() {
+            return Integer.MIN_VALUE;
+        }
         public boolean getBooleanValue() {
             return false;
         }
@@ -902,6 +1240,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public double getDoubleValue() {
             return Double.NaN;
         }
+        public int getIntValue() {
+            return Integer.MIN_VALUE;
+        }
         public boolean getBooleanValue() {
             return false;
         }
@@ -940,6 +1281,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
         public double getDoubleValue() {
             return Double.NaN;
+        }
+        public int getIntValue() {
+            return Integer.MIN_VALUE;
         }
         public boolean getBooleanValue() {
             return false;
