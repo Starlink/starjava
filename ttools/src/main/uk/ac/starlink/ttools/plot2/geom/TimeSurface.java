@@ -260,15 +260,8 @@ public class TimeSurface implements Surface {
         Point gp2 = new Point( frame.x + frame.width, frame.y + frame.height );
         double[] dpos1 = graphicsToData( gp1, null );
         double[] dpos2 = graphicsToData( gp2, null );
-        double dt1 = dpos1[ 0 ];
-        double dy1 = dpos1[ 1 ];
-        double dt2 = dpos2[ 0 ];
-        double dy2 = dpos2[ 1 ];
-        double[] tlimits = dt1 <= dt2 ? new double[] { dt1, dt2 }
-                                      : new double[] { dt2, dt1 };
-        double[] ylimits = dy1 <= dy2 ? new double[] { dy1, dy2 }
-                                      : new double[] { dy2, dy1 };
-        return new TimeAspect( tlimits, ylimits );
+        return new TimeAspect( PlotUtil.orderPair( dpos1[ 0 ], dpos2[ 0 ] ),
+                               PlotUtil.orderPair( dpos1[ 1 ], dpos2[ 1 ] ) );
     }
 
     /**

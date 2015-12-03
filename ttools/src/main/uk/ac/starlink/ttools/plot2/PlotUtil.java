@@ -294,6 +294,19 @@ public class PlotUtil {
     }
 
     /**
+     * Returns a 2-element array consisting of the two input values
+     * in ascending order.  If either is NaN, behaviour is undefined.
+     *
+     * @param  p1  one value
+     * @param  p2  other value
+     * @return   2-element array [plo,phi]
+     */
+    public static double[] orderPair( double p1, double p2 ) {
+        return p1 <= p2 ? new double[] { p1, p2 }
+                        : new double[] { p2, p1 };
+    }
+
+    /**
      * Turns an Icon into a Picture.
      *
      * @param   icon   icon
