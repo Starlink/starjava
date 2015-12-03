@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.Box;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -14,6 +18,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Table load dialogue which allows cone searches.  Cone search services
@@ -28,6 +33,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField srField_;
+    private JComboBox verbSelector_;
     private static final ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
 
@@ -49,6 +55,18 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
         decField_ = skyEntry.getDecDegreesField();
         srField_ = DoubleValueField.makeSizeDegreesField( SR_INFO );
         skyEntry.addField( srField_ );
+
+        /* Add selector for verbosity. */
+        JComponent verbLine = Box.createHorizontalBox();
+        verbSelector_ = new JComboBox( ConeVerbosity.getOptions() );
+        verbSelector_.setSelectedIndex( 1 );
+        assert ((ConeVerbosity) verbSelector_.getSelectedItem()).getLevel()
+               == 2;
+        verbLine.add( new JLabel( "Verbosity: " ) );
+        verbLine.add( new ShrinkWrapper( verbSelector_ ) );
+        verbLine.add( Box.createHorizontalGlue() );
+        getControlBox().add( Box.createVerticalStrut( 5 ) );
+        getControlBox().add( verbLine );
         return queryPanel;
     }
 
@@ -59,7 +77,8 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();
-        final int verb = 0;
+        final int verb = ((ConeVerbosity) verbSelector_.getSelectedItem())
+                        .getLevel();
         final List metadata = new ArrayList();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),

@@ -16980,6 +16980,13 @@ with sky position columns.
 <ref id="DalQueryLoadDialog">Single Positional Search Panel</ref> below.
 </p>
 
+<p>The search panel includes a <label>Verbosity</label> selector as well 
+as the normal features: this allows you to choose options for how many columns
+will appear in the output table, from 1 (minimum) to 3 (maximum).
+Some services will take notice of this parameter and return narrower
+or wider tables respectively, and others will ignore it.
+</p>
+
 </subsubsect>
 
 <subsubsect id="SiapTableLoadDialog">
@@ -22955,6 +22962,10 @@ introduced since the last version:
 
 <dt>Next version</dt>
 <dd><p>
+    <ul>
+    <li>VERBose selector added to <ref id="ConeSearchDialog">Cone Search</ref>
+        dialogue.</li>
+    </ul>
     </p></dd>
 
 </dl>
