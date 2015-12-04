@@ -48,7 +48,7 @@ public class UwsJobListPanel extends JPanel {
     private final Action deleteAction_;
     private final Action abortAction_;
     private final JToggleButton.ToggleButtonModel delOnExitModel_;
-    private final Map<UwsJob,Runnable> phaseWatcherMap_;
+    private final Map<UwsJob,UwsJob.JobWatcher> jobWatcherMap_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -58,7 +58,7 @@ public class UwsJobListPanel extends JPanel {
     public UwsJobListPanel() {
         super( new BorderLayout() );
         listModel_ = new DefaultListModel();
-        phaseWatcherMap_ = new HashMap<UwsJob,Runnable>();
+        jobWatcherMap_ = new HashMap<UwsJob,UwsJob.JobWatcher>();
 
         /* Set up JList of jobs. */
         jlist_ = new JList( listModel_ );
@@ -177,25 +177,18 @@ public class UwsJobListPanel extends JPanel {
      * @param  job   job to add
      * @param  select  true iff the new job should be automatically selected
      */
-    public void addJob( final UwsJob job, boolean select ) {
+    public void addJob( UwsJob job, boolean select ) {
         listModel_.addElement( job );
         if ( select ) {
             jlist_.setSelectedValue( job, true );
         }
-        Runnable watcher = new Runnable() {
-            public void run() {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        updateJob( job );
-                        if ( job == detail_.getJob() ) {
-                            updateActions();
-                        }
-                    }
-                } );
+        UwsJob.JobWatcher watcher = new UwsJob.JobWatcher() {
+            public void jobUpdated( final UwsJob uj, UwsJobInfo info ) {
+                scheduleUpdateJobInfo( uj, info );
             }
         };
-        phaseWatcherMap_.put( job, watcher );
-        job.addPhaseWatcher( watcher );
+        jobWatcherMap_.put( job, watcher );
+        job.addJobWatcher( watcher );
     }
 
     /**
@@ -206,8 +199,8 @@ public class UwsJobListPanel extends JPanel {
      */
     public void removeJob( UwsJob job ) {
         if ( listModel_.removeElement( job ) ) {
-            Runnable watcher = phaseWatcherMap_.remove( job );
-            job.removePhaseWatcher( watcher );
+            UwsJob.JobWatcher watcher = jobWatcherMap_.remove( job );
+            job.removeJobWatcher( watcher );
         }
         if ( detail_.getJob() == job ) {
             detail_.setJob( null );
@@ -239,19 +232,16 @@ public class UwsJobListPanel extends JPanel {
         if ( job != null ) {
             Thread phaser = new Thread( "UWS Phase reader" ) {
                 public void run() {
+                    final UwsJobInfo info;
                     try {
-                        job.readPhase();
+                        info = job.readInfo();
                     }
                     catch ( IOException e ) {
                         logger_.warning( "Phase read fail for UWS job "
                                        + job.getJobUrl() + ": " + e );
                         return;
                     }
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            updateJob( job );
-                        }
-                    } );
+                    scheduleUpdateJobInfo( job, info );
                 }
             };
             phaser.setDaemon( true );
@@ -261,18 +251,21 @@ public class UwsJobListPanel extends JPanel {
 
     /**
      * Signals that the state of a job may have changed and should be
-     * reflected in the UI.
+     * reflected in the UI.  This method may be called from any thread.
      *
      * @param   job   job to update
+     * @param   info   new job status
      */
-    private void updateJob( UwsJob job ) {
-        int iJob = listModel_.indexOf( job );
-        if ( iJob >= 0 ) {
-            listModel_.set( iJob, job );
-        }
-        if ( detail_.getJob() == job ) {
-            detail_.updatePhase();
-        }
+    private void scheduleUpdateJobInfo( final UwsJob job,
+                                        final UwsJobInfo info) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                if ( detail_.getJob() == job ) {
+                    detail_.setJobInfo( info );
+                    updateActions();
+                }
+            }
+        } );
     }
 
     private void updateActions() {
@@ -284,9 +277,12 @@ public class UwsJobListPanel extends JPanel {
             delOnExitModel_.setSelected( false );
         }
         else {
+            UwsJobInfo info = job.getLastInfo();
+            boolean isFinished =
+                info != null &&
+                UwsStage.forPhase( info.getPhase() ) == UwsStage.FINISHED;
             deleteAction_.setEnabled( true );
-            abortAction_.setEnabled( UwsStage.forPhase( job.getLastPhase() )
-                                         != UwsStage.FINISHED );
+            abortAction_.setEnabled( ! isFinished );
             delOnExitModel_.setEnabled( true );
             delOnExitModel_.setSelected( job.getDeleteOnExit() );
         }
@@ -310,7 +306,8 @@ public class UwsJobListPanel extends JPanel {
                                                 hasFocus );
             if ( value instanceof UwsJob ) {
                 UwsJob uwsJob = (UwsJob) value;
-                String phase = uwsJob.getLastPhase();
+                UwsJobInfo info = uwsJob == null ? null : uwsJob.getLastInfo();
+                String phase = info == null ? null : info.getPhase();
                 UwsStage stage = UwsStage.forPhase( phase );
                 setText( phase + ":  " + uwsJob.getJobUrl() );
                 setForeground( stage == UwsStage.FINISHED

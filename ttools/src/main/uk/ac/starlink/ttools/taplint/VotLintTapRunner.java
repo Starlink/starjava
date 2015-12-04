@@ -35,6 +35,7 @@ import uk.ac.starlink.util.MultiplexInvocationHandler;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
+import uk.ac.starlink.vo.UwsJobInfo;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VODocument;
 import uk.ac.starlink.votable.VOElement;
@@ -592,15 +593,16 @@ public abstract class VotLintTapRunner extends TapRunner {
                 reporter.report( FixedCode.I_QJOB,
                                  "Submitted query at " + jobUrl );
                 uwsJob.start();
-                String phase;
+                UwsJobInfo info;
                 try {
-                    phase = uwsJob.waitForFinish( pollMillis );
+                    info = uwsJob.waitForFinish( pollMillis );
                 }
                 catch ( InterruptedException e ) {
                     throw (IOException)
                           new InterruptedIOException( "interrupted" )
                          .initCause( e );
                 }
+                String phase = info.getPhase();
                 if ( "COMPLETED".equals( phase ) ) {
                     uwsJob.setDeleteOnExit( true );
                     return new URL( jobUrl + "/results/result" )

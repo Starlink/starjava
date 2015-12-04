@@ -19,6 +19,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
+import uk.ac.starlink.vo.UwsJobInfo;
 import uk.ac.starlink.vo.UwsStage;
 
 /**
@@ -145,14 +146,14 @@ public class TapResultReader {
 
             public StarTable waitForResult( final UwsJob tapJob )
                     throws IOException {
-                Runnable progger = null;
+                UwsJob.JobWatcher progger = null;
                 if ( progress ) {
-                    progger = new Runnable() {
-                        public void run() {
-                            logPhase( tapJob.getLastPhase() );
+                    progger = new UwsJob.JobWatcher() {
+                        public void jobUpdated( UwsJob job, UwsJobInfo info ) {
+                            logPhase( info.getPhase() );
                         }
                     };
-                    tapJob.addPhaseWatcher( progger );
+                    tapJob.addJobWatcher( progger );
                 }
                 final StarTable table;
                 if ( delete.isDeletionPossible() ) {
@@ -179,7 +180,7 @@ public class TapResultReader {
                     considerDeletionEarly( tapJob );
                     throw e;
                 }
-                assert "COMPLETED".equals( tapJob.getLastPhase() );
+                assert "COMPLETED".equals( tapJob.getLastInfo().getPhase() );
                 if ( ! delete.isDeletionPossible() ) {
                     return table;
                 }
@@ -221,7 +222,8 @@ public class TapResultReader {
              * @param  uwsJob  job to delete
              */
             private void considerDeletion( UwsJob uwsJob ) {
-                UwsStage stage = UwsStage.forPhase( uwsJob.getLastPhase() );
+                UwsStage stage =
+                    UwsStage.forPhase( uwsJob.getLastInfo().getPhase() );
                 if ( delete.shouldDelete( stage ) ) {
                     uwsJob.attemptDelete();
                     if ( progress ) {

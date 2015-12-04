@@ -225,8 +225,8 @@ public class JobStage implements Stage {
             try {
                 boolean knownPhase = false;
                 while ( ! knownPhase ) {
-                    job.readPhase();
-                    phase = job.getLastPhase();
+                    UwsJobInfo info = job.readInfo();
+                    phase = info.getPhase();
                     knownPhase = ! "UNKNOWN".equals( phase );
                     if ( ! knownPhase ) {
                         waitUnknown( jobUrl );
@@ -363,16 +363,11 @@ public class JobStage implements Stage {
             readContent( jobUrl, ContentType.XML, true );
             UwsJobInfo jobInfo;
             try {
-                jobInfo = job.readJob();
+                jobInfo = job.readInfo();
             }
             catch ( IOException e ) {
                 reporter_.report( FixedCode.E_JDIO,
                                   "Error reading job document " + jobUrl, e );
-                return;
-            }
-            catch ( SAXException e ) {
-                reporter_.report( FixedCode.E_JDSX,
-                                  "Error parsing job document " + jobUrl, e );
                 return;
             }
             if ( jobInfo == null ) {
@@ -615,9 +610,10 @@ public class JobStage implements Stage {
          */
         private void waitForFinish( UwsJob job ) {
             URL jobUrl = job.getJobUrl();
-            while ( UwsStage.forPhase( job.getLastPhase() )
+            UwsJobInfo info = job.getLastInfo();
+            while ( UwsStage.forPhase( info.getPhase() )
                     != UwsStage.FINISHED ) {
-                String phase = job.getLastPhase();
+                String phase = info.getPhase();
                 UwsStage stage = UwsStage.forPhase( phase );
                 switch ( stage ) {
                     case UNSTARTED:
@@ -642,7 +638,7 @@ public class JobStage implements Stage {
                         throw new AssertionError();
                 }
                 try {
-                    job.readPhase();
+                    info = job.readInfo();
                 }
                 catch ( IOException e ) {
                     reporter_.report( FixedCode.E_RDPH,
@@ -724,16 +720,11 @@ public class JobStage implements Stage {
          */
         private UwsJobInfo readJobInfo( UwsJob job ) {
             try {
-                return job.readJob();
+                return job.readInfo();
             }
             catch ( IOException e ) {
                 reporter_.report( FixedCode.E_JBIO,
                                   "Error reading job info", e );
-                return null;
-            }
-            catch ( SAXException e ) {
-                reporter_.report( FixedCode.E_JBSP,
-                                  "Error parsing job info", e );
                 return null;
             }
         }
