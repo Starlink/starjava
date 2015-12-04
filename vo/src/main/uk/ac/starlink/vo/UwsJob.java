@@ -135,9 +135,11 @@ public class UwsJob {
 
     /**
      * Blocks until the job has reached a completion phase.
+     * Depending on the service's capabilities, this may be done
+     * using polling or a blocking call.
      *
      * @param   pollMillis   polling time in milliseconds to assess
-     *                       job completion
+     *                       job completion, if polling is required
      * @return   job info corresponding to a completion state
      * @throws   UnexpectedResponseException  if HTTP responses other than
      *           UWS mandated ones occur
@@ -148,10 +150,19 @@ public class UwsJob {
         if ( info == null ) {
             info = readInfo();
         }
+        boolean useBlocking = hasBlocking( info );
         while ( UwsStage.forPhase( info.getPhase() ) != UwsStage.FINISHED ) {
-            logger_.info( "Poll UWS job after " + pollMillis + "ms" );
-            Thread.sleep( pollMillis );
-            info = readInfo();
+            final UwsJobInfo info2;
+            if ( useBlocking ) {
+                logger_.info( "Blocking read of UWS job" );
+                info2 = readInfoBlocking( -1, info );
+            }
+            else {
+                logger_.info( "Poll UWS job after " + pollMillis + "ms" );
+                Thread.sleep( pollMillis );
+                info2 = readInfo();
+            }
+            info = info2;
             String phase = info.getPhase();
             switch ( UwsStage.forPhase( phase ) ) {
                 case UNSTARTED:
@@ -182,7 +193,47 @@ public class UwsJob {
      * @return  job status
      */
     public UwsJobInfo readInfo() throws IOException {
-        URL url = jobUrl_;
+        return readInfoQuery( "" );
+    }
+
+    /**
+     * Makes a blocking call to read the current status document for this job
+     * from the server
+     * and both stores and returns the result.
+     * The result becomes the new value of the {@link #getLastInfo} method.
+     *
+     * @param   timeoutSec  maximum advised timeout in seconds
+     * @param   lastInfo    last known job status
+     * @return  job status
+     */
+    public UwsJobInfo readInfoBlocking( int timeoutSec, UwsJobInfo lastInfo )
+            throws IOException {
+        StringBuffer qbuf = new StringBuffer()
+            .append( "?WAIT=" )
+            .append( timeoutSec );
+        String lastPhase = lastInfo == null ? null : lastInfo.getPhase();
+        UwsStage lastStage = lastPhase == null
+                           ? null
+                           : UwsStage.forPhase( lastPhase );
+        if ( lastStage == UwsStage.RUNNING ||
+             lastStage == UwsStage.UNSTARTED ) {
+            qbuf.append( "&PHASE=" )
+                .append( lastPhase );
+        }
+        return readInfoQuery( qbuf.toString() );
+    }
+
+    /**
+     * Reads the current status document for this job from the server,
+     * appending a supplied query string to the basic job URL,
+     * and both stores and returns the result.
+     * The result becomes the new value of the {@link #getLastInfo} method.
+     *
+     * @param   queryPart   text to be appended to job URL before submission
+     * @return  job status
+     */
+    private UwsJobInfo readInfoQuery( String queryPart ) throws IOException {
+        URL url = new URL( jobUrl_ + queryPart );
         logger_.info( "Read UWS job: " + url );
         UwsJobInfo[] infos;
         try {
@@ -805,6 +856,64 @@ public class UwsJob {
                 hcout.close();
             }
         };
+    }
+
+    /**
+     * Indicates whether the job represented by a given status object
+     * supports UWS 1.1-style blocking calls.
+     *
+     * @param  info   job status object
+     * @return   true if the job is known to support blocking
+     */
+    private static boolean hasBlocking( UwsJobInfo info ) {
+        int[] majMin = getVersion( info );
+        if ( majMin != null ) {
+            int maj = majMin[ 0 ];
+            int min = majMin[ 1 ];
+            return maj == 1 && min >= 1
+                || maj > 1;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Parses and returns the version information from a job status object.
+     *
+     * @param  info   job status object
+     * @return   2-element array giving (major,minor) version numbers,
+     *           or null if parsing fails
+     */
+    private static int[] getVersion( UwsJobInfo info ) {
+        if ( info == null ) {
+            return null;
+        }
+        else {
+            String version = info.getUwsVersion();
+            if ( version == null ) {
+                return new int[] { 1, 0 };
+            }
+            else {
+                Matcher matcher =
+                    Pattern.compile( "^\\s*([0-9]+)\\.([0-9]+).*$" )
+                           .matcher( version );
+                if ( matcher.matches() ) {
+                    try {
+                        return new int[] {
+                            Integer.parseInt( matcher.group( 1 ) ),
+                            Integer.parseInt( matcher.group( 2 ) ),
+                        };
+                    }
+                    catch ( NumberFormatException e ) {
+                        return null;
+                    }
+                }
+                else {
+                    return null;
+                }
+            }
+        }
     }
 
     /**
