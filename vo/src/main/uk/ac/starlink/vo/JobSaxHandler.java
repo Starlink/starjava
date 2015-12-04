@@ -54,7 +54,9 @@ class JobSaxHandler extends DefaultHandler {
         txtbuf_.setLength( 0 );
         String tname = getTagName( uri, localName, qName );
         if ( "job".equals( tname ) ) {
+            String version = atts.getValue( "version" );
             job_ = new JobImpl();
+            job_.version_ = version;
         }
         else if ( job_ != null ) {
             if ( "parameters".equals( tname ) ) {
@@ -222,6 +224,7 @@ class JobSaxHandler extends DefaultHandler {
      * Trivial UwsJobInfo implementation.
      */
     private static class JobImpl implements UwsJobInfo {
+        String version_;
         String jobId_;
         String runId_;
         String ownerId_;
@@ -235,6 +238,9 @@ class JobSaxHandler extends DefaultHandler {
         UwsJobInfo.Result[] results_;
         UwsJobInfo.Error error_;
 
+        public String getUwsVersion() {
+            return version_;
+        }
         public String getJobId() {
             return jobId_;
         }
