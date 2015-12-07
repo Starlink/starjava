@@ -22965,6 +22965,10 @@ introduced since the last version:
     <ul>
     <li>VERBose selector added to <ref id="ConeSearchDialog">Cone Search</ref>
         dialogue.</li>
+    <li>The TAP window now uses blocking HTTP requests rather than
+        repeated polls
+        to wait for asynchronous TAP job completion from
+        services that declare themselves UWS 1.1 compliant.</li>
     </ul>
     </p></dd>
 

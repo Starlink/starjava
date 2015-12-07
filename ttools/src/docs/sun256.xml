@@ -10491,6 +10491,16 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li><code>tapquery</code> and <code>tapresume</code> now use
+        blocking HTTP requests rather than repeated polls
+        to wait for asynchronous TAP job completion from
+        services that declare themselves UWS 1.1 compliant.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
