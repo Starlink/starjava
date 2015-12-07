@@ -202,7 +202,7 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
      * Returns the default plotting colours used by TOPCAT, at least in
      * early versions.
      *
-     * @return  name->colour map
+     * @return  name-&gt;colour map
      */
     public static Map<String,Color> createClassicColors() {
         Map<String,Color> map = new LinkedHashMap<String,Color>();
@@ -225,7 +225,7 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
      * Returns a group of colours using the second (5-colour) row 
      * of figure 13 in SRON/EPS/TN/09-002.
      *
-     * @return  name->colour map
+     * @return  name-&gt;colour map
      */
     public static Map<String,Color> createSron5Colors() {
         Map<String,Color> map = new LinkedHashMap<String,Color>();
@@ -244,7 +244,7 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
      * Returns a group of colours using the fourth (7-colour) row 
      * of figure 13 in SRON/EPS/TN/09-002.
      *
-     * @return  name->colour map
+     * @return  name-&gt;colour map
      */
     public static Map<String,Color> createSron7Colors() {
         Map<String,Color> map = new LinkedHashMap<String,Color>();
@@ -266,7 +266,7 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
      * on Paul Tol's page, but not in the TechNode.
      * Bright yellow is omitted on the grounds that it's too light.
      *
-     * @return  name->colour map
+     * @return  name-&gt;colour map
      */
     public static Map<String,Color> createSronBrightColors() {
         Map<String,Color> map = new LinkedHashMap<String,Color>();
