@@ -8,7 +8,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -16,7 +15,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.XMLDecoder;
@@ -29,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -42,9 +40,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -52,31 +48,32 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.RowSorter;
+import javax.swing.RowSorter.SortKey;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.table.gui.TableLoadPanel;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
@@ -100,38 +97,6 @@ import uk.ac.starlink.util.gui.ProxySetupFrame;
 
 
 public class SSAServerTable extends JPanel  implements PropertyChangeListener {
-    
-    
-    // the services table
-    
-/*   
-    private static final int NRCOLS = 15;                    // the number of columns in the table
-
-    // the table indexes
-
-  //  private static final int SELECTED_INDEX = 0;
-    private static final int SHORTNAME_INDEX = 0;
-    private static final int TITLE_INDEX = 1;
-    private static final int DESCRIPTION_INDEX = 2;
-    private static final int IDENTIFIER_INDEX = 3;    
-    private static final int PUBLISHER_INDEX = 4;
-    private static final int CONTACT_INDEX = 5;
-    private static final int ACCESSURL_INDEX = 6;
-    private static final int REFURL_INDEX = 7;
-    private static final int WAVEBAND_INDEX = 8;
-    private static final int CONTTYPE_INDEX = 9;
-    private static final int DATASOURCE_INDEX = 10;
-    private static final int CREATIONTYPE_INDEX = 11;
-    private static final int STDID_INDEX = 12;
-    private static final int VERSION_INDEX = 13;
-    private static final int SUBJECTS_INDEX = 14;
-    // total number of servers that returned parameters
-    // private int nrServers;
-    // the table headers
-    private String[] headers = { "short name", "title", "description", "identifier",
-                                "publisher", "contact", "access URL", "reference URL", "waveband", "content type", 
-                                "data source", "creation type", "stantardid", "version", "subjects", "tags"};
-*/
     
     // Logger.
     private static Logger logger =
@@ -179,15 +144,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     
     
     // user defined tags
- //   private ArrayList<JCheckBox> userTags;
- //   private JTabbedPane optionTabs;
-//    private JPanel tagsPanel;
-//    private DefaultListModel tagsListModel;
-//    private JList tagsList;
-    private JComboBox tagCombo;
-    
-    // the table popupmenu
-    // JPopupMenu tablePopup;
+    private JComboBox<String> tagCombo;
     
     // sizes
     
@@ -244,7 +201,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         this.addComponentListener(new resizeListener());
         this.serverList = list;
         serverTable = new ServerPopupTable(serverList);
-        sorter = (TableRowSorter<DefaultTableModel>) serverTable.getRowSorter();
+        sortTable();
            
         initUI();
   //    
@@ -263,6 +220,16 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         
        
     }  
+
+    // initially sort the services in alphabetical order
+    private void sortTable() {
+       sorter = (TableRowSorter<DefaultTableModel>) serverTable.getRowSorter();
+        List<RowSorter.SortKey> sortKeys = new ArrayList<SortKey>();
+        sortKeys.add(new RowSorter.SortKey(ServerPopupTable.SHORTNAME_INDEX, SortOrder.ASCENDING));
+        sorter.setSortKeys(sortKeys);
+        sorter.sort();
+        
+    }
 
     /**
      * Initialise the main part of the user interface.
@@ -443,9 +410,13 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         JMenuItem addTagMenuItem = new JMenuItem("Tag");
         addTagMenuItem.addActionListener(new PopupMenuAction());
         popupMenu.add(addTagMenuItem);
+        
+        RemoveMenu removeMenu = new RemoveMenu("Remove");
+     //   deleteMenuItem.addActionListener(new PopupMenuAction());
+        popupMenu.add(removeMenu);
       
         serverTable.setComponentPopupMenu(popupMenu);
-        serverTable.addMouseListener(new ServerTableMouseListener());
+      //  serverTable.addMouseListener(new ServerTableMouseListener());
         serverTable.getSelectionModel().addListSelectionListener(new SelectionListener());
         
         JScrollPane jsp = new JScrollPane(serverTable);
@@ -500,18 +471,9 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
 
     private void populateTable() {
         
-        serverTable.setRowSorter(null); //to reset the old model
+        RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();
         serverTable.populate();
-        //updateServerTable();
-        if ( src_obs.isSelected() ) {
-            sorter.setRowFilter(obsFilter);
-        }
-        if ( src_theo.isSelected() ) {
-            sorter.setRowFilter(theoFilter);
-        }
-        serverTable.setRowSorter(sorter);
-        
-  
+        serverTable.setRowSorter(savedSorter);  
     }
   
     
@@ -556,13 +518,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
 //        botActionBar.add( saveButton );
         saveButton.setToolTipText( "Save server list to a disk-file" );
 
-
-        //  Remove selected servers from table.
-   //     RemoveAction removeAction = new RemoveAction( "Remove selected" );
- //       optionsMenu.add( removeAction );
-   //     JButton removeButton = new JButton( removeAction );
-    //    topActionBar.add( removeButton, gbc );
-
         //  Add action to select all servers.
         SelectAllAction selectAllAction = new SelectAllAction( "Select all" );
   //      optionsMenu.add( selectAllAction );
@@ -586,12 +541,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         topActionBar.add( selectAllButton, gbc );
         gbc.gridx=1;
         topActionBar.add( deselectAllButton, gbc );
-    //    gbc.gridx=2;
-    //    topActionBar.add( saveButton, gbc );
-  //      controlPanel.add( removeButton, BorderLayout.PAGE_START );
- //       removeButton.setToolTipText
- //           ( "Remove selected servers from current list" );
-
+ 
         //  Action to check a registry for additional/updated servers.
         QueryNewAction newAction = new QueryNewAction( "Query registry" );
    //     optionsMenu.add( newAction );
@@ -649,7 +599,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     public void setSSAServerList( SSAServerList serverList )
     {
         this.serverList = serverList;
-      //  updateTree();
         updateTable();
     }
     
@@ -675,6 +624,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for adding a new server to the list
      */
+    @SuppressWarnings("serial")
     protected class AddNewAction
         extends AbstractAction
     {
@@ -685,7 +635,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         public void actionPerformed( ActionEvent ae )
         {
             addNewServer();
-          
+            sortTable();
             serverTable.updateUI();
         }
     }
@@ -693,6 +643,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for adding a new tag 
      */
+    @SuppressWarnings("serial")
     protected class AddTagAction
         extends AbstractAction
     {
@@ -713,6 +664,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         }
     }
     
+    @SuppressWarnings("serial")
     protected class PopupMenuAction extends AbstractAction
     {
         
@@ -727,13 +679,27 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
             }
             else if (e.getActionCommand().equals("Tag")) {
                 addNewTag(r);
-            }         
+            }   
+            else if (e.getActionCommand().equals("Remove current service")) {
+                removeService(r);
+                this.firePropertyChange("changeServerlist", false, true);
+                
+            } 
+            else if (e.getActionCommand().equals("Remove selected services")) {
+                removeSelectedServices();
+                this.firePropertyChange("changeServerlist", false, true);
+                
+            }  else if (e.getActionCommand().equals("Remove all services")) {
+                removeAllServices();
+                this.firePropertyChange("changeServerlist", false, true);
+            }      
         }
     }
  
     /**
      * Inner class defining action for removing a new tag 
      */
+    @SuppressWarnings("serial")
     protected class RemoveTagAction
         extends AbstractAction
     {
@@ -751,6 +717,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for reading a list of servers.
      */
+    @SuppressWarnings("serial")
     protected class ReadAction
         extends AbstractAction
     {
@@ -767,6 +734,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for saving a list of servers.
      */
+    @SuppressWarnings("serial")
     protected class SaveAction
         extends AbstractAction
     {
@@ -789,6 +757,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for setting the proxy server.
      */
+    @SuppressWarnings("serial")
     protected class ProxyAction
         extends AbstractAction
     {
@@ -798,7 +767,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         }
         public void actionPerformed( ActionEvent ae )
         {
-   //         showProxyDialog();
+           showProxyDialog();
         }
     }
 
@@ -806,6 +775,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for query registry for new SSAP servers.
      */
+    @SuppressWarnings("serial")
     protected class QueryNewAction
         extends AbstractAction
     {
@@ -819,22 +789,8 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         }
     }
 
-    /**
-     * Inner class defining action for removing selected servers.
-     *
-    protected class RemoveAction
-        extends AbstractAction
-    {
-        public RemoveAction( String name )
-        {
-            super( name );
-        }
-        public void actionPerformed( ActionEvent ae )
-        {
-            removeSelectedServers();
-        }
-    }
-    */
+    
+   
     /**
      * Inner class defining action for removing unselected servers.
      *
@@ -854,6 +810,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for selecting all known servers.
      */
+    @SuppressWarnings("serial")
     protected class SelectAllAction
         extends AbstractAction
     {
@@ -869,6 +826,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for selecting all known servers.
      */
+    @SuppressWarnings("serial")
     protected class DeselectAllAction
         extends AbstractAction
     {
@@ -885,6 +843,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     /**
      * Inner class defining action for deleting all known servers.
      */
+    @SuppressWarnings("serial")
     protected class DeleteAction
         extends AbstractAction
     {
@@ -899,8 +858,9 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     }
     
     /**
-     * Inner class defining action for deleting all known servers.
+     * 
      */
+    @SuppressWarnings("serial")
     protected class SelectTagAction
         extends AbstractAction
     {
@@ -915,8 +875,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
             if (selected.isEmpty()) 
                 serverTable.clearSelection();
             else {
-     //           tagsList.setSelectedValue(selected, true);
-                //TagsListSelectionListener listener = (TagsListSelectionListener) tagsList.getListSelectionListeners()[0];
                 selectTaggedServers(selected);
             }
             updateUI();
@@ -932,9 +890,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
       
     }
     
- 
-
-
     /**
      *  select all servers.
      */
@@ -958,33 +913,62 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
          serverTable.updateUI();
     } 
     
+
     /**
-     *  Remove selected servers.
-     *
-    protected void removeSelectedServers()
+     *  Remove service with row index r
+     */
+    
+    protected void removeService(int row) 
     {
-       
-        StarTableModel model = (StarTableModel) serverTable.getModel();
-        int [] selected = serverTable.getSelectedRows();
-        for ( int i=selected.length-1; i>=0; i-- ) {
-            int row = serverTable.convertColumnIndexToModel(selected[i]);
-            serverTable.removeRow(row);
-            removeFromTags((String) serverTable.getModel().getValueAt(row, ServerPopupTable.SHORTNAME_INDEX));
-            
+        RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();
+        removeFromTags(serverTable.getModel().getValueAt(row, ServerPopupTable.SHORTNAME_INDEX).toString());
+        serverTable.removeServer(row);
+        serverTable.setRowSorter(savedSorter);
+    }
+    
+    protected void removeAllServices() 
+    {
+        RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();
+        int rowCount = serverTable.getModel().getRowCount();
+        for (int row=rowCount-1;row>=0;row--) {
+            removeFromTags(serverTable.getModel().getValueAt(row, ServerPopupTable.SHORTNAME_INDEX).toString());
+            serverTable.removeServer(row);
         }
-    //.clearSelection();
+        serverTable.setRowSorter(savedSorter);
+    }
+    
+    /**
+     *  Remove selected services.
+     */
+    protected void removeSelectedServices()
+    {       
+       
+        RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();
+        int [] selected = serverTable.getSelectedRows();
+        int [] rowsSelected = new int [selected.length];
+        for ( int i=0; i<selected.length; i++ ) {
+            rowsSelected[i] = serverTable.convertRowIndexToModel(selected[i]);
+        }
+        Arrays.sort(rowsSelected);
+        for ( int i=rowsSelected.length-1; i>=0; i-- ) {
+            removeFromTags((String) serverTable.getModel().getValueAt(rowsSelected[i], ServerPopupTable.SHORTNAME_INDEX));
+            serverTable.removeServer(rowsSelected[i]);
+        }
         tagCombo.setSelectedIndex(0);
-        serverTable.updateUI();
+      serverTable.setRowSorter(savedSorter);
+     
 
     }
     
-    */
+  
     /**
      *  remove all entries of shortname from the map;
      */
     private void removeFromTags(String shortname) {
      
         ArrayList<String> tags= serverTagsMap.get(shortname);
+        if (tags==null)
+            return;
         for (int i=0;i<tags.size();i++) {
             ArrayList<String> servers = tagsMap.get(tags.get(i));
             servers.remove(shortname);
@@ -1029,10 +1013,13 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
             ErrorDialog.showError( this, "Registry query failed", e );
             return;
         }
+        RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();
         
-        serverTable.updateServers(table); 
+        serverTable.updateServers(table, tagsMap.get(MANUALLY_ADDED_STR)); 
         serverList = serverTable.getServerList();
+        serverTable.setRowSorter(savedSorter);  
         this.firePropertyChange("changeServerlist", false, true);
+
             
     } // updateServers
 
@@ -1045,62 +1032,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         return str;
     }
 
-// server table formatting and sorting
-/*    private void updateServerTable() {
-       
-      for (int i=serverTable.getColumnCount()-1; i>1; i--)  {
-            /// update server table to show only the two first rows
-            serverTable.removeColumn(serverTable.getColumn(serverTable.getColumnName(i)));
-      }
-      serverTable.updateUI();
-   
-    }
-*/
-/*
- *     private void updateServerList(DefaultTableModel serverModel) {
-        
-    
-        for ( int i= 0; i<serverModel.getRowCount(); i++) {
-            SSAPRegResource res = new SSAPRegResource();
-            SSAPRegCapability[] cap = new SSAPRegCapability[1];
-          
-            res.setIdentifier( (String) serverModel.getValueAt(i, ServerPopupTable.IDENTIFIER_INDEX ));
-            res.setContact( (String) serverModel.getValueAt(i, ServerPopupTable.CONTACT_INDEX ) );
-            res.setPublisher( (String) serverModel.getValueAt(i, ServerPopupTable.PUBLISHER_INDEX ) ); 
-            res.setReferenceUrl((String) serverModel.getValueAt(i, ServerPopupTable.REFURL_INDEX));
-            String shortname = ((String) serverModel.getValueAt(i, ServerPopupTable.SHORTNAME_INDEX));
-            if (shortname != null)
-                shortname = shortname.trim();
-            if (shortname == null || shortname.isEmpty()) // use title as shortname if shortname not available
-                shortname = (String) serverModel.getValueAt(i, ServerPopupTable.TITLE_INDEX);
-            
-            res.setShortName(shortname);
-           
-            res.setTitle((String) serverModel.getValueAt(i, ServerPopupTable.TITLE_INDEX));
-            res.setVersion((String) serverModel.getValueAt(i, ServerPopupTable.VERSION_INDEX));
-            String waveband = (String)serverModel.getValueAt(i, ServerPopupTable.WAVEBAND_INDEX);
-            if ( waveband != null )
-               res.setWaveband(waveband.split(","));
-            String subjects = (String)serverModel.getValueAt(i, ServerPopupTable.SUBJECTS_INDEX);
-            if ( subjects != null )
-            res.setSubjects(subjects.split(","));
-            res.setContentType((String)serverModel.getValueAt(i, ServerPopupTable.CONTTYPE_INDEX));
-            cap[0] = new SSAPRegCapability();
-            cap[0].setAccessUrl((String)serverModel.getValueAt(i, ServerPopupTable.ACCESSURL_INDEX));
-            cap[0].setDataSource((String)serverModel.getValueAt(i, ServerPopupTable.DATASOURCE_INDEX));
-            cap[0].setDescription((String)serverModel.getValueAt(i, ServerPopupTable.DESCRIPTION_INDEX));
-            cap[0].setCreationType((String)serverModel.getValueAt(i, ServerPopupTable.CREATIONTYPE_INDEX));
-           // cap[0].setContentType((String)serverModel.getValueAt(i, ServerPopupTable.CONTTYPE_INDEX));
-           // cap[0].setXsiType(xsiType)
-            cap[0].setStandardId((String)serverModel.getValueAt(i, ServerPopupTable.STDID_INDEX));
-            res.setCapabilities(cap);
-            serverList.addServer(res);
-     
-        }
-        
-        
-    }
- */   
+ 
     private void initFilters() {
         
          theoFilter = new RowFilter<DefaultTableModel, Object>() {
@@ -1320,7 +1252,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
       
         int[] selected = serverTable.getSelectedRows();
        
-//        ArrayList<String> servers=tagsMap.get(tagname);
+        ArrayList<String> servers=tagsMap.get(tagname);
 //        if (servers == null)
  //           servers = new ArrayList<String>();
         for (int i=0;i<selected.length;i++) {
@@ -1351,12 +1283,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         String shortname = (String) serverTable.getModel().getValueAt(row, ServerPopupTable.SHORTNAME_INDEX);
 
         addTagMaps( shortname, tagname );  
-
-    //    if (! tagsListModel.contains(tagname))
-   //         tagsListModel.addElement(tagname);  
-     //   tagsList.setSelectedValue(tagname, true);
-      //  ((TagsListSelectionListener) tagsList.getListSelectionListeners()[0]).selectTaggedServers((String) tagsList.getSelectedValue());
-      
 
         DefaultComboBoxModel comboModel = (DefaultComboBoxModel) tagCombo.getModel();
         if (comboModel.getIndexOf(tagname) == -1) {
@@ -1394,14 +1320,46 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     
     private String getTagnameMenu() {
         
+        String tagname="" ;
+        JPanel getTagPanel = new JPanel();
+        getTagPanel.setLayout(new BorderLayout());
        // boolean newTag = true;
-        String tagname = (String)JOptionPane.showInputDialog(this, "Enter Tagname:\n", "Add tag", JOptionPane.QUESTION_MESSAGE );   
-        if (tagname == null || tagname.length() == 0) {
+       final JComboBox<String> newTagCombo = new JComboBox<String>();
+       final JTextField tagText=new JTextField(15);
+        newTagCombo.setModel(tagCombo.getModel());
+        newTagCombo.removeItem("");
+        newTagCombo.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                Object item = newTagCombo.getSelectedItem();
+                tagText.setText(item.toString());
+            }
+        });
+  
+        getTagPanel.add(new JLabel("Tagname:"),BorderLayout.PAGE_START);
+        getTagPanel.add(tagText, BorderLayout.LINE_START);
+        getTagPanel.add(newTagCombo, BorderLayout.PAGE_END);
+       
+        int result = JOptionPane.showConfirmDialog(this, getTagPanel,
+                "Please add/choose a tag", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.YES_OPTION) {
+            tagname=tagText.getText();
+        } else {
             return null;
         }
-        if ( ((DefaultComboBoxModel) tagCombo.getModel()).getIndexOf(tagname) != -1) { 
+       // String tagname = (String)JOptionPane.showInputDialog(this, "Enter Tagname:\n", "Add tag", JOptionPane.QUESTION_MESSAGE, null,  );  
+      //  String tagname = (String)JOptionPane.showInputDialog(this, newTagCombo  );  
+        
+        if (tagname == null || tagname.isEmpty()) {
+            return null;
+        }
+     //   if ( ((DefaultComboBoxModel) tagCombo.getModel()).getIndexOf(tagname) != -1) { 
+    //       newTag = false; //add to existing tag
+            
           //Custom button text
-            Object[] options = {"Overwrite",
+          /*  Object[] options = {"Overwrite",
                                 "Add to existing tag",
                                 "Cancel"};
             int n = JOptionPane.showOptionDialog(this,"The tag "+ tagname+ " exists already.\n",
@@ -1420,7 +1378,16 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
                 return null;
         //    else if (n == JOptionPane.NO_OPTION)
         //        newTag = false; // the tags will be added to the existing tag
-        }
+         * */
+        
+    //    }
+    //    else {
+      //      if (tagname.equals("<add new tag>")  || tagname.isEmpty() ) {
+     //           logger.warning("tag name invalid: "+tagname);
+     //           tagname=""; // Empty tagname          
+    //        }
+            
+        //}
         return tagname;
 
     }
@@ -1505,20 +1472,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
             throw new SplatException( e );
         }
         XMLEncoder encoder = new XMLEncoder( outputStream );
-        Set<String> tags = tagsMap.keySet();
         encoder.writeObject(tagsMap);
-    /*    Iterator it = tags.iterator();
-        while (it.hasNext()) {
-            String tag = it.next();
-            ServerTags st = new ServerTags(shortname, tags);
-            try {
-                encoder.writeObject(st);
-            } 
-            catch (Exception e) {
-                    e.printStackTrace();
-            }  
-            
-        }  */      
         encoder.close();  
      
     }
@@ -1605,18 +1559,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
                     
                 }
                     
- /*               for (int i=0;i<serverTable.getRowCount();i++) {
-                    String shortname =   (String) serverTable.getModel().getValueAt( i, SHORTNAME_INDEX);
-                    if (shortname.equals(st.getName())) {
-                         ArrayList tags = st.getTags();
-                         serverTable.getModel().setValueAt( tags, lue(ServerPopupTable.TAGS_INDEX);
-                         for (int j=0;j<=tags.size();j++) {
-                             ArrayList<String> servers = tagsMap.get(tags.get(j));
-                             servers.add(shortname);
-                             tagsMap.put((String) tags.get(j), servers);
-                         }
-                    }
-                }  */
             }  
           
             decoder.close();
@@ -1689,19 +1631,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         }
         proxyWindow.setVisible(true);
     }
-    
-    
- /*   public class ServerTableModel extends DefaultTableModel
-    {
-      
-        public Class getColumnClass(int column) {
-            
-            return String.class;
-         
-        }
-    }
-  
-*/
+   
   
     //Listens to the check boxes events
     class CheckBoxListener implements ItemListener {
@@ -1771,58 +1701,29 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         
     }
     
-    
-    
-    private class ServerTableMouseListener extends MouseAdapter {
-      
-        
-    
-        public void mousePressed( MouseEvent e ) {
-            if ( e.getSource() == (Object) serverTable ) {
-                if ( SwingUtilities.isRightMouseButton( e ) )
-                {
-                    // get the row index that contains that coordinate
-                   // int row = serverTable.rowAtPoint( e.getPoint() ); 
-                    serverTable.repaint();
-                }
-                else {
-                    tagCombo.setSelectedIndex(0);
-                }
-            }
-        }
-       
-    }
-    
     private class resizeListener extends ComponentAdapter {
         public void componentResized(ComponentEvent e) {
             updateUI();
         }
     }
-/*    
-    protected class ServerPopupTable extends JTable {
-        
-        
-        public Point getPopupLocation(MouseEvent event) {
-            setPopupTriggerLocation(event);
-          
-            return super.getPopupLocation(event);
+
+    @SuppressWarnings("serial")
+    protected class RemoveMenu extends JMenu {
+        public RemoveMenu(String title) {
+            super(title);
+            JMenuItem removeThisService = new JMenuItem("Remove current service");
+            JMenuItem removeSelectedServices = new JMenuItem("Remove selected services");
+            JMenuItem removeAllServices = new JMenuItem("Remove all services");
+            removeThisService.addActionListener(new PopupMenuAction());
+            removeSelectedServices.addActionListener(new PopupMenuAction());
+            removeAllServices.addActionListener(new PopupMenuAction());
+            this.add(removeThisService);
+            this.add(removeSelectedServices);
+            this.add(removeAllServices);
         }
-        protected void setPopupTriggerLocation(MouseEvent event) {
-            putClientProperty("popupTriggerLocation", 
-                    event != null ? event.getPoint() : null);
-        }
-    
-        public int getPopupRow () {
-            int row = rowAtPoint( (Point) getClientProperty("popupTriggerLocation") );
-            return convertRowIndexToModel(row);
-        }
-        
-        public boolean isCellEditable(int row, int col) {
-            return false; //Disable cell editing
-        }
-        
     }
-*/    
+    
+  @SuppressWarnings("serial")
   static class ServerTableRenderer extends DefaultTableCellRenderer {
              
        Component c;
@@ -1833,7 +1734,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         { 
             c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column); 
            
-            int popuprow = table.getPopupRow();
             if (row == table.getPopupRow() ) {
                 c.setBackground(Color.lightGray);
             } else if (isSelected) {

@@ -27,10 +27,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
  */
  class ServerPopupTable extends RowPopupTable {
 
-    /**
-     * 
-     */
-     
+    
      private SSAServerList serverList;
 
      static final int NRCOLS = 15;                    // the number of columns in the table
@@ -70,11 +67,6 @@ import uk.ac.starlink.table.gui.StarTableModel;
         populate();
     }
     
- //   public ServerPopupTable(StarTable table){
-//        super(table, false);
-        
-       // sorter = new TableRowSorter<StarTableModel>(serverModel);
-//    }
 
     /* 
      * Populate 
@@ -84,7 +76,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
      */
     public void populate() {
         
-        Iterator  i =  serverList.getIterator();
+        Iterator<?>  i =  serverList.getIterator();
       
         DefaultTableModel model =  (DefaultTableModel) this.getModel();
         model.setRowCount(0);
@@ -139,6 +131,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
        
       for (int i=getColumnCount()-1; i>1; i--)  {
             /// update server table to show only the two first columns
+            // the information remains in the tablemodel
             removeColumn(getColumn(getColumnName(i)));
       }
       updateUI();
@@ -162,13 +155,28 @@ import uk.ac.starlink.table.gui.StarTableModel;
      * fills the table with the values from a StarTable
      */
 
-    public void updateServers(StarTable table) {
+    public void updateServers(StarTable table ) {
         
         try {
             if (serverList == null)
                 serverList = new SSAServerList(table);
             else 
-                serverList.addNewServers(table);
+                serverList.addNewServers(table );
+            
+        } catch (SplatException e) {                
+            e.printStackTrace();
+        }
+
+      //  this.setStarTable(table, false);
+        populate();        
+    }
+    public void updateServers(StarTable table, ArrayList<String> manuallyAddedServices ) {
+        
+        try {
+            if (serverList == null)
+                serverList = new SSAServerList(table);
+            else 
+                serverList.addNewServers(table, manuallyAddedServices );
             
         } catch (SplatException e) {                
             e.printStackTrace();
@@ -180,7 +188,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
 
     public void setServerList(SSAServerList list) {
         serverList = list;
-        
+   
     }
 
     public SSAServerList getServerList() {
@@ -244,4 +252,11 @@ import uk.ac.starlink.table.gui.StarTableModel;
          return (String) getModel().getValueAt(row, ACCESSURL_INDEX);
          
      }
+
+    public void removeServer(int row) { 
+       serverList.removeServer((String)getModel().getValueAt(row, SHORTNAME_INDEX).toString());
+       //this.removeRowSelectionInterval(0, this.getRowCount()-1);
+       ((DefaultTableModel) this.getModel()).removeRow(row);
+       //populate();
+    }
 }
