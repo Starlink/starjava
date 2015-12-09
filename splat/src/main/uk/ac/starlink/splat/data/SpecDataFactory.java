@@ -1895,8 +1895,8 @@ public class SpecDataFactory
             // VOTable spectrum, open as a table. Is really the SSAP native
             // XML representation so could be a SED? In which case this might be
             // better as SpecDataFactory.SED, we'll see.
-                //stype = SpecDataFactory.TABLE;
-                stype = SpecDataFactory.SED;
+               stype = SpecDataFactory.TABLE;
+               // stype = SpecDataFactory.SED;
         }
         else if ( simpleType.startsWith( "spectrum/votable" ) ||
                   simpleType.equals( "votable" ) ) {
