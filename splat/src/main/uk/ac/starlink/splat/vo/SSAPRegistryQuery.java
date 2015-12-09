@@ -17,6 +17,7 @@ import uk.ac.starlink.registry.SoapRequest;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegResource;
 
 /**
@@ -25,16 +26,16 @@ import uk.ac.starlink.vo.RegResource;
  * @author   Mark Taylor (Starlink)
  * @since    4 Jan 2005
  */
-public class SSAPRegistryQuery {
+public class SSAPRegistryQuery implements RegistryQuery {
 
     private final SSAPRegistryClient regClient_;
     private final String text_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.splat.vo" );
 
-    private static final String SEARCHABLE_REG_QUERY =
+   private static final String SEARCHABLE_REG_QUERY =
         "capability/@standardID = 'ivo://ivoa.net/std/Registry'" +
-        " AND " +
+       " AND " +
         "capability/@xsi:type LIKE '%:Search'" +
         " AND " +
         "full LIKE 'true'";
