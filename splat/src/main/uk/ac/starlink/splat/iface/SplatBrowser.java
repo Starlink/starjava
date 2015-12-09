@@ -2096,7 +2096,7 @@ public class SplatBrowser
         throws SplatException
     {
         
-        if ( usertype == SpecDataFactory.SED ) {
+        if ( usertype == SpecDataFactory.SED || usertype == SpecDataFactory.TABLE) {
             //  Could be a source of several spectra. Only XML serialisation
             //  understood by this route. FITS should be trapped below.
             SpecData spectra[] = specDataFactory.expandXMLSED( name );
@@ -2148,7 +2148,7 @@ public class SplatBrowser
     public void tryAddSpectrum( SpectrumIO.Props props )
         throws SplatException, TableFormatException, IOException
     {
-        if ( props.getType() == SpecDataFactory.SED ) {
+        if ( props.getType() == SpecDataFactory.SED || props.getType() == SpecDataFactory.TABLE ) {
             //  Could be a source of several spectra.
             SpecData spectra[] =
                 specDataFactory.expandXMLSED( props.getSpectrum() );
