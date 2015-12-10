@@ -1327,7 +1327,6 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
        final JComboBox<String> newTagCombo = new JComboBox<String>();
        final JTextField tagText=new JTextField(15);
         newTagCombo.setModel(tagCombo.getModel());
-        newTagCombo.removeItem("");
         newTagCombo.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
@@ -1339,6 +1338,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         getTagPanel.add(new JLabel("Tagname:"),BorderLayout.PAGE_START);
         getTagPanel.add(tagText, BorderLayout.LINE_START);
         getTagPanel.add(newTagCombo, BorderLayout.PAGE_END);
+        newTagCombo.setSelectedItem("");
        
         int result = JOptionPane.showConfirmDialog(this, getTagPanel,
                 "Please add/choose a tag", JOptionPane.OK_CANCEL_OPTION,
