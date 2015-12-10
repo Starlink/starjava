@@ -22969,6 +22969,8 @@ introduced since the last version:
         repeated polls
         to wait for asynchronous TAP job completion from
         services that declare themselves UWS 1.1 compliant.</li>
+    <li>UType matching is now case-insensitive when identifying likely
+        columns in Activation window.</li>
     </ul>
     </p></dd>
 
