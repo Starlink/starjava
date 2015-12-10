@@ -36,7 +36,7 @@ public abstract class ConeErrorPolicy {
      * returned with no results.
      */
     public static final ConeErrorPolicy IGNORE =
-            new ConeErrorPolicy( "ignore " ) {
+            new ConeErrorPolicy( "ignore" ) {
         public StarTable performConeSearch( ConeSearcher cs, double ra,
                                             double dec, double sr )
                 throws IOException, InterruptedException {
