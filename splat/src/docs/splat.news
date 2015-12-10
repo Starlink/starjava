@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.11-2
+   ======
+
+   - Several improvements/corrections in services GUI
+   - Query results list witth context menu (info/preview, 
+	copy line to clipboard, download)
+
    3.11-1
    ======
 
