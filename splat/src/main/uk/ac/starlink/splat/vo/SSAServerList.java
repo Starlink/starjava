@@ -109,15 +109,20 @@ public class SSAServerList
     // add new servers - Before adding, remove all old entries except the manually added ones
     
     public void addNewServers(StarTable table, ArrayList<String> manuallyAddedServices) {
-        HashMap<String, SSAPRegResource> newServerList = new HashMap<String, SSAPRegResource>();
-        for (int i=0;i<manuallyAddedServices.size(); i++) {
-            String key=manuallyAddedServices.get(i);
-            newServerList.put(key, serverList.get(key));
-        }
-        serverList.clear();
-        serverList = newServerList;
-        addNewServers(table);
         
+        HashMap<String, SSAPRegResource> newServerList = new HashMap<String, SSAPRegResource>();
+        if (manuallyAddedServices != null) {
+
+            for (int i=0;i<manuallyAddedServices.size(); i++) {
+                String key=manuallyAddedServices.get(i);
+                newServerList.put(key, serverList.get(key));
+            }
+
+            serverList.clear();
+            serverList = newServerList;
+        }
+        addNewServers(table);
+
     }
 
 
@@ -285,6 +290,8 @@ public class SSAServerList
                 e.printStackTrace();
             }
         }
+        
+         
 
         //  If the restore of the user file failed, or it doesn't exist use
         //  the system default version.
