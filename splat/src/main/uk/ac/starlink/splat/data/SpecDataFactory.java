@@ -745,12 +745,16 @@ public class SpecDataFactory
             DataSource datsrc;
             StarTable starTable;
             long rowCount = 0;
+            String pos = i+"";
             
             if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
                     dims == null || dims[0] == 0 ) {
                 try {
                     datsrc = new FileDataSource( specspec );
+                    if ( i>0 )
+                        datsrc.setPosition(pos);
                     starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
+                 
                     rowCount = starTable.getRowCount();
                     if ( rowCount == 0 )
                         throw new Exception( "The TABLE is empty");
