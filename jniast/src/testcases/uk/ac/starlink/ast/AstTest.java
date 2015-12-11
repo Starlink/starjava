@@ -101,7 +101,7 @@ public class AstTest extends TestCase {
         wcs.addFrame( FrameSet.AST__BASE, map, f );
         assertEquals( "COPY", wcs.getFrame( 5 ).getDomain() );
 
-        assertTrue( wcs.getFrame( FrameSet.AST__CURRENT ).sameObject( f ) );
+        assertTrue( wcs.getFrame( FrameSet.AST__CURRENT ).equals( f ) );
 
         f.clear( "ID" );
         f.clear( "Ident" );
