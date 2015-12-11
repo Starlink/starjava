@@ -216,8 +216,16 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         } catch (SplatException e) {
             // then no tags
         }  
-//       
-        
+//      
+/*        if (serverList.getSize() == 0) {
+            int result = JOptionPane.showConfirmDialog(this, "Services list empty. Do you want to do a registry query?");
+            if (result == JOptionPane.YES_OPTION) {
+                updateServers();
+            } else {
+                return;
+            }
+        }
+ */       
        
     }  
 
