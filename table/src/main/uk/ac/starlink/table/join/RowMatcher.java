@@ -1417,6 +1417,9 @@ public class RowMatcher {
     private void binRows( int itab, NdRange range, ObjectBinner binner,
                           boolean newBins )
             throws IOException, InterruptedException {
+        if ( range == null ) {
+            return;
+        }
         StarTable table = tables[ itab ];
         ProgressRowSequence rseq =
             new ProgressRowSequence( table, indicator,

@@ -10499,6 +10499,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to wait for asynchronous TAP job completion from
         services that declare themselves UWS 1.1 compliant.</li>
     <li>Fix some parameter handling errors in <code>coneskymatch</code>.</li>
+    <li>Fix NullPointerException bug for disjoint regions in some cases in
+        <code>tmatchn</code>.</li>
     </ul>
     </p></dd>
 
