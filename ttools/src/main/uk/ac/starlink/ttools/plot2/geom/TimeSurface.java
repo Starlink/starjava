@@ -272,7 +272,8 @@ public class TimeSurface implements Surface {
     private AxisAnnotation createAxisAnnotation() {
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
                                         tAxis_, yAxis_, tticks_, yticks_,
-                                        tlabel_, ylabel_, captioner_ );
+                                        tlabel_, ylabel_, captioner_,
+                                        true, true );
     }
 
     @Override

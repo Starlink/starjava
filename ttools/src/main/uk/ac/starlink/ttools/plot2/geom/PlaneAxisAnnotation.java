@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.NullCaptioner;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Tick;
@@ -32,6 +33,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
     private final String xlabel_;
     private final String ylabel_;
     private final Captioner captioner_;
+    private final boolean xAnnotate_;
+    private final boolean yAnnotate_;
     private final int xoff_;
     private final int yoff_;
 
@@ -53,12 +56,15 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
      * @param  xlabel  text label on X axis
      * @param  ylabel  text label on Y axis
      * @param  captioner   text renderer for axis labels etc
+     * @param  xAnnotate   true iff annotations are required on X axis
+     * @param  yAnnotate   true iff annotations are required on Y axis
      */
     public PlaneAxisAnnotation( int gxlo, int gxhi, int gylo, int gyhi,
                                 Axis xaxis, Axis yaxis,
                                 Tick[] xticks, Tick[] yticks,
                                 String xlabel, String ylabel,
-                                Captioner captioner ) {
+                                Captioner captioner,
+                                boolean xAnnotate, boolean yAnnotate ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -70,6 +76,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         xlabel_ = xlabel;
         ylabel_ = ylabel;
         captioner_ = captioner;
+        xAnnotate_ = xAnnotate;
+        yAnnotate_ = yAnnotate;
         xoff_ = gxlo;
         yoff_ = gyhi;
     }
@@ -82,11 +90,13 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         AffineTransform transY = new AffineTransform( trans0 );
         transY.concatenate( axisTransform( xoff_, yoff_, true ) );
         g2.setTransform( transX );
-        xaxis_.drawLabels( xticks_, xlabel_, captioner_, X_ORIENT,
-                           false, g2 );
+        xaxis_.drawLabels( xticks_, xlabel_,
+                           xAnnotate_ ? captioner_ : NullCaptioner.INSTANCE,
+                           X_ORIENT, false, g2 );
         g2.setTransform( transY );
-        yaxis_.drawLabels( yticks_, ylabel_, captioner_, Y_ORIENT,
-                           INVERT_Y, g2 );
+        yaxis_.drawLabels( yticks_, ylabel_,
+                           yAnnotate_ ? captioner_ : NullCaptioner.INSTANCE,
+                           Y_ORIENT, INVERT_Y, g2 );
         g2.setTransform( trans0 );
     }
 
@@ -95,11 +105,11 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
                                    : getNoScrollTickPadding();
         insets.left += 2;
         insets.bottom += 2;
-        if ( xlabel_ != null ) {
+        if ( xAnnotate_ && xlabel_ != null ) {
             Rectangle cxbounds = captioner_.getCaptionBounds( xlabel_ );
             insets.bottom += -cxbounds.y + captioner_.getPad();
         }
-        if ( ylabel_ != null ) {
+        if ( yAnnotate_ && ylabel_ != null ) {
             Rectangle cybounds = captioner_.getCaptionBounds( ylabel_ );
             insets.left += cybounds.height + captioner_.getPad();
         }
@@ -116,8 +126,12 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         Rectangle tickPad = new Rectangle( 0, 0, 0, 0 );
 
         /* Get bounding boxes for largest ticks on each axis. */
-        tickPad.add( getMaxTickSizeBounds( xticks_, false ) );
-        tickPad.add( getMaxTickSizeBounds( yticks_, true ) );
+        if ( xAnnotate_ ) {
+            tickPad.add( getMaxTickSizeBounds( xticks_, false ) );
+        }
+        if ( yAnnotate_ ) {
+            tickPad.add( getMaxTickSizeBounds( yticks_, true ) );
+        }
 
         /* Extend the insets enough to accommodate the largest tick
          * positioned at the extreme ends of each axis. */
@@ -173,11 +187,15 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         /* Make a rectangle big enough to hold every ticmark painted
          * in its actual position. */
         Rectangle bounds = new Rectangle( xoff_, yoff_, 0, 0 );
-        Rectangle[] boxes =
-            PlotUtil.arrayConcat( getTickBoxes( xticks_, false ),
-                                  getTickBoxes( yticks_, true ) );
-        for ( int ib = 0; ib < boxes.length; ib++ ) {
-            bounds.add( boxes[ ib ] );
+        if ( xAnnotate_ ) {
+            for ( Rectangle box : getTickBoxes( xticks_, false ) ) {
+                bounds.add( box );
+            }
+        }
+        if ( yAnnotate_ ) {
+            for ( Rectangle box : getTickBoxes( yticks_, true ) ) {
+                bounds.add( box );
+            }
         }
 
         /* Turn that into an insets object relative to the plot bounds,

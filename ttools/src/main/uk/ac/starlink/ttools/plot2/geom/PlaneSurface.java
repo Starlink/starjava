@@ -315,7 +315,8 @@ public class PlaneSurface implements Surface {
     private AxisAnnotation createAxisAnnotation() {
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
                                         xAxis_, yAxis_, xticks_, yticks_,
-                                        xlabel_, ylabel_, captioner_ );
+                                        xlabel_, ylabel_, captioner_,
+                                        true, true );
     }
 
     @Override
