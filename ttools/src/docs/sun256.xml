@@ -1160,6 +1160,10 @@ usage:
 <ul>
 <li>You can make use of python programming constructions like 
     loops, functions and variables</li>
+<li>Python syntax can be used to put together parameter values
+    (especially referencing quoted strings or values containing embedded
+    spaces) in a way which is often less painful than doing it from
+    the shell</li>
 <li>Intermediate processing stages can be kept in memory (in a python variable)
     rather than having to write them out to a file and read them in for the
     next command; this can be much more efficient</li>
@@ -1356,7 +1360,7 @@ satisfactory.
    >>> import stilts
    >>> t1 = stilts.tread('cat.fits')
    >>> t2 = stilts.tread(open('cat.fits', 'rb'))           # less efficient
-   >>> t3 = stilts.tread('data.csv', fmt='ascii', random=True)
+   >>> t3 = stilts.tread('data.csv', fmt='csv', random=True)
 ]]></verbatim>
 </p>
 
