@@ -134,8 +134,19 @@ public class TimeNavigator implements Navigator<TimeAspect> {
     public Map<Gesture,String> getNavOptions( Surface surface, Point pos ) {
         boolean[] useFlags =
             PlaneNavigator.getAxisNavFlags( surface, pos, tZoom_, yZoom_ );
-        boolean tUse = useFlags[ 0 ];
-        boolean yUse = useFlags[ 1 ];
+        return getNavOptions( useFlags[ 0 ], useFlags[ 1 ] );
+    }
+
+    /**
+     * Returns a description of available navigator options for a time plot,
+     * given X/Y zoom flags.
+     *
+     * @param  tUse  true iff X zoom is in effect
+     * @param  yUse  true iff Y zoom is in effect
+     * @return  mapping of gestures to navigation action descriptions
+     */
+    public static Map<Gesture,String> getNavOptions( boolean tUse,
+                                                     boolean yUse ) {
         final String isoTxt;
         final String freeTxt;
         if ( tUse && yUse ) {
@@ -161,7 +172,6 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         map.put( Gesture.WHEEL, "Zoom " + isoTxt );
         return map;
     }
-
 
     /**
      * Returns the config keys for use with this navigator.

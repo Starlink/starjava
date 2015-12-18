@@ -411,9 +411,27 @@ public class PlaneSurfaceFactory
                                       ConfigKey<Double> maxKey,
                                       ConfigKey<Subrange> subrangeKey,
                                       boolean isLog, Range range ) {
-        double lo = config.get( minKey );
-        double hi = config.get( maxKey );
-        Subrange subrange = config.get( subrangeKey );
+        return getLimits( config.get( minKey ), config.get( maxKey ),
+                          config.get( subrangeKey ), isLog, range );
+    }
+
+    /**
+     * Utility method to determine actual axis limits based on
+     * requested high/low values and a subrange.
+     * If not enough information is supplied to determine the definite range,
+     * null is returned.
+     *
+     * @param  lo   requested lower bound before subranging, may be NaN
+     * @param  hi   requested upper bound before subranging, may be NaN
+     * @param  subrange  requested subrange
+     * @param  isLog  true for logarithmic axis, false for linear
+     * @param  range   actual data range on axis;
+     *                 may be partially populated or null
+     * @return  2-element array giving definite axis (lower,upper) bounds,
+     *          or null
+     */
+    public static double[] getLimits( double lo, double hi, Subrange subrange,
+                                      boolean isLog, Range range ) {
         boolean isFinite = lo < hi                 // entails neither is NaN
                         && ! Double.isInfinite( lo )
                         && ! Double.isInfinite( hi )
