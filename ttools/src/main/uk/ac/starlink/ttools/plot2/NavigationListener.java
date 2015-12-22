@@ -214,8 +214,7 @@ public abstract class NavigationListener<A>
     protected void handleClick( Navigator<A> navigator, Surface surface,
                                 Point pos, int ibutt,
                                 Iterable<double[]> dposIt ) {
-        NavAction<A> navact =
-            navigator.click( surface, pos, ibutt, createDataPosIterable() );
+        NavAction<A> navact = navigator.click( surface, pos, ibutt, dposIt );
         if ( navact != null ) {
             updateDecoration( navact.getDecoration(), true );
             A aspect = navact.getAspect();
