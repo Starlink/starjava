@@ -1,0 +1,15 @@
+JEL is the GNU Java Expression Library by Konstantin Metlov,
+see http://www.gnu.org/software/jel/.
+
+Note the licence is GPLv3.  JEL is fairly central to much of what
+stilts does, so it pins the TTOOLS package and the STILTS and
+TOPCAT applications to GPL (otherwise they could probably have a
+less restrictive license).
+
+The jar file here is built by hand (just use ant dist) from the JEL
+source file with an old JDK (currently, 1.5).  That's because I want
+the symbols included (javac -g) - not essential but nice to have
+for debugging.  The JEL distribution comes with jel_jdk5.jar
+(JVM version OK but no symbols) or jel_g.jar (symbols present but Java7).
+
+JEL was upgraded to v2.1.1 in May 2016.
