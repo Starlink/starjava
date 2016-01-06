@@ -3203,8 +3203,8 @@ be a short log string).
 <p>For example, a class written as follows would define a three-value average:
 <verbatim>
     public class AuxFuncs {
-        public static double average3( double x, double y, double z ) {
-            return ( x + y + z ) / 3.0;
+        public static double average3(double x, double y, double z) {
+            return (x + y + z) / 3.0;
         }
     }
 </verbatim>
@@ -3220,6 +3220,23 @@ but it might involve doing something like the following:
 <li>Starting up TOPCAT with the flags: 
     "<code>topcat -Djel.classes=AuxFuncs -classpath .</code>"</li>
 </ol>
+</p>
+
+<p>Note that (in versions later than TOPCAT 4.3-2) variable-length argument
+lists are supported where the final declared argument is an array, 
+so for instance a method declared like:
+<verbatim>
+       public static double sum(double[] values) {
+           double total = 0;
+           for (int i = 0; i &lt; values.length; i++) {
+               total += values[i];
+           }
+           return total;
+       }
+</verbatim>
+can be invoked like "<code>sum(UMAG,GMAG,RMAG,IMAG,ZMAG)</code>".
+The alternative form "<code>double... values</code>" can be used in
+the declaration with identical effect.
 </p>
 
 </subsect>

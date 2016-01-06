@@ -4459,8 +4459,8 @@ Object types for the function required.
 For instance a class written as follows would define a three-value average:
 <verbatim>
    public class AuxFuncs {
-       public static double average3( double x, double y, double z ) {
-           return ( x + y + z ) / 3.0;
+       public static double average3(double x, double y, double z) {
+           return (x + y + z) / 3.0;
        }
    }
 </verbatim>
@@ -4479,6 +4479,23 @@ but it might involve doing something like the following:
 <li>Running <code>tpipe</code> using the flags
     "<code>stilts -classpath . -Djel.classes=AuxFuncs tpipe</code>"</li>
 </ol>
+</p>
+
+<p>Note that (in versions later than STILTS 3.0-6) variable-length argument
+lists are supported where the final declared argument is an array,
+so for instance a method declared like:
+<verbatim>
+       public static double sum(double[] values) {
+           double total = 0;
+           for (int i = 0; i &lt; values.length; i++) {
+               total += values[i];
+           }
+           return total;
+       }
+</verbatim>
+can be invoked like "<code>sum(UMAG,GMAG,RMAG,IMAG,ZMAG)</code>".
+The alternative form "<code>double... values</code>" can be used in
+the declaration with identical effect.
 </p>
 
 </subsubsect>
