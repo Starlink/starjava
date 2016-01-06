@@ -74,7 +74,8 @@ public class FullXmlDoclet extends XmlDoclet {
         out( doctorText( desc ).replaceFirst( "</p> *\\Z", "<ul>" ) );
     }
 
-    protected void outParameters( Parameter[] params, String[] comments )
+    protected void outParameters( Parameter[] params, String[] comments,
+                                  boolean isVararg )
             throws IOException {
         if ( params.length > 0 ) {
             for ( int i = 0; i < params.length; i++ ) {
@@ -84,7 +85,9 @@ public class FullXmlDoclet extends XmlDoclet {
                    .append( param.name() )
                    .append( "</code> " )
                    .append( "<em>(" )
-                   .append( typeString( param.type() ) )
+                   .append( varargTypeString( param.type(),
+                                              isVararg
+                                              && i == params.length - 1 ) )
                    .append( ")</em>" );
                 if ( comments[ i ] != null ) {
                     buf.append( ": " + comments[ i ] );

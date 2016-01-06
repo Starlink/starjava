@@ -76,7 +76,8 @@ public abstract class XmlDoclet extends MemberDoclet {
     protected void outItem( String name, String val ) {
     }
 
-    protected void outParameters( Parameter[] param, String[] comments )
+    protected void outParameters( Parameter[] param, String[] comments,
+                                  boolean isVararg )
             throws IOException {
     }
 
@@ -88,7 +89,7 @@ public abstract class XmlDoclet extends MemberDoclet {
 
     /**
      * Outputs some lines of text to the current output stream.
-     * Implemented in terms of {@link out(java.lang.String)}.
+     * Implemented in terms of {@link #out(java.lang.String)}.
      *
      * @param  lines text for output
      */

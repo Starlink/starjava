@@ -113,7 +113,8 @@ public class HtmlDoclet extends MemberDoclet {
         } );
     }
 
-    protected void outParameters( Parameter[] params, String[] comments )
+    protected void outParameters( Parameter[] params, String[] comments,
+                                  boolean isVararg )
             throws IOException {
         out( new String[] { 
                  "<dl>",
@@ -124,10 +125,17 @@ public class HtmlDoclet extends MemberDoclet {
         for ( int i = 0; i < params.length; i++ ) {
             Parameter param = params[ i ];
             out( new String[] {
-                "<dt><strong><font color='blue'><tt>" + param.name() +
-                             " </tt></font></strong> " +
-                             "<em>(" + typeString( param.type() ) + ")</em>" +
-                             "</dt>",
+                new StringBuffer()
+                   .append( "<dt><strong><font color='blue'><tt>" )
+                   .append( param.name() )
+                   .append( "</tt></font></strong> " )
+                   .append( "<em>(" )
+                   .append( varargTypeString( param.type(),
+                                              isVararg
+                                              && i == params.length - 1 ) )
+                   .append( ")</em>" )
+                   .append( "</dt>" )
+                   .toString(),
             } );
             if ( comments[ i ] != null ) {
                 out( new String[] {

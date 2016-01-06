@@ -290,7 +290,7 @@ public class LayerTypeDoc {
      * Returns a map (keyed by name) of all the LayerTypes used by a given
      * list of tasks.
      *
-     * @param   known task list
+     * @param  tasks   known task list
      * @return   known layer types
      */
     public static Map<String,LayerType>

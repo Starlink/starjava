@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.FieldDoc;
+import com.sun.javadoc.LanguageVersion;
 import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.PackageDoc;
@@ -36,9 +37,9 @@ public abstract class MemberDoclet {
 
     private static final Pattern P_PATTERN = 
         Pattern.compile( "\\s*(</*[Pp]>)?\\s+(<[Pp]>)\\s*" );
-    private static final Map TYPE_NAMES;
+    private static final Map<String,String> TYPE_NAMES;
     static {
-        TYPE_NAMES = new HashMap();
+        TYPE_NAMES = new HashMap<String,String>();
         TYPE_NAMES.put( byte.class.getName(),
                         "byte" );
         TYPE_NAMES.put( short.class.getName(),
@@ -81,7 +82,7 @@ public abstract class MemberDoclet {
     protected abstract void endClass() throws IOException;
 
     /**
-     * Begin output of documentation for a given clas member (field or method).
+     * Begin output of documentation for a given class member (field or method).
      * Subsequent calls to <tt>outItem</tt> etc refer to this.
      *
      * @param  mem  class member
@@ -112,9 +113,12 @@ public abstract class MemberDoclet {
      * @param   params  array of Parameter objects
      * @param   comments  array of comment strings matching <tt>params</tt>;
      *          if there's no comment, the element may be null
+     * @param   isVararg  true if the method is known to have its final
+     *                    formal argument declared with variable length
      */
     protected abstract void outParameters( Parameter[] params,
-                                           String[] comments )
+                                           String[] comments,
+                                           boolean isVararg )
             throws IOException;
 
     /**
@@ -224,6 +228,7 @@ public abstract class MemberDoclet {
     private void processMethod( MethodDoc method )
             throws IOException {
         ClassDoc clazz = method.containingClass();
+        boolean isVararg = method.isVarArgs();
 
         /* Prepare parameter list. */
         Parameter[] params = method.parameters();
@@ -234,6 +239,9 @@ public abstract class MemberDoclet {
                 paramList.append( ", " );
             }
             paramList.append( pname );
+        }
+        if ( isVararg ) {
+            paramList.append( ", ..." );
         }
         paramList.append( " )" );
 
@@ -285,42 +293,80 @@ public abstract class MemberDoclet {
         Type rtype = method.returnType();
         startMember( method, "Function", method.name() + paramList );
         outDescription( method.commentText() );
-        outParameters( params, comments );
+        outParameters( params, comments, isVararg );
         if ( ! isVoid ) {
             outReturn( rtype, retdesc );
         }
         if ( examples.length > 0 ) {
             outExamples( examples );
         }
-        outItem( "Signature", 
-                 "<tt>" + rtype.toString().replaceAll( "^.*\\.", "" )
-                        + " " 
-                        + method.name()
-                        + method.signature()
-                                .replaceAll( "([ \\(])[a-zA-Z0-9\\.]*\\.",
-                                             "$1" )
-                        + "</tt>" );
+        String signature = new StringBuffer()
+            .append( "<tt>" )
+            .append( rtype.toString().replaceAll( "^.*\\.", "" ) )
+            .append( " " )
+            .append( method.name() )
+            .append( method.signature()
+                           .replaceAll( "\\w[\\w\\.]*\\.(\\w+)", "$1" ) )
+            .append( "</tt>" )
+            .toString();
+        outItem( "Signature", signature );
         endMember();
     }
 
     /**
-     * Returns a string suitable for user consumption which describes a Type.
+     * This magic static method appears to be required to make the
+     * <code>isVarArgs()</code> method on
+     * <code>com.sun.javadoc.ExecutableMemberDoc</code> report variable
+     * argument status.  I don't know whether or where that's documented,
+     * but I found out from
+     * <a href="http://stackoverflow.com/questions/13030271/javadoc-api-how-far-are-varargs-supported">StackOverflow</a>.
+     *
+     * @return   LanguageVersion.JAVA_1_5
+     */
+    public static LanguageVersion languageVersion() {
+        return LanguageVersion.JAVA_1_5;
+    }
+
+    /**
+     * Returns a string suitable for user consumption which describes a
+     * non-varargs Type.
      *
      * @param  type  type
      * @return  string representation of type (non-technical?)
      */
     public static String typeString( Type type ) {
-        String pre = type.dimension().replaceAll( "\\[\\]", "array of " );
-        String fqname = type.qualifiedTypeName();
-        if ( TYPE_NAMES.containsKey( fqname ) ) {
-            return pre + (String) TYPE_NAMES.get( fqname );
-        }
-        else {
-            return pre + type.typeName();
-        }
+        return varargTypeString( type, false );
     }
 
-    /** 
+    /**
+     * Returns a string suitable for user consumption which describes a
+     * type that may or may not represent a variable-argument parameter.
+     *
+     * @param  type  type
+     * @param  isVararg   true if type is known to describe a variable-argument
+     *                    parameter
+     * @return  string representation of type (non-technical?)
+     */
+    public static String varargTypeString( Type type, boolean isVararg ) {
+        String tdim = type.dimension();
+        if ( isVararg ) {
+            if ( tdim.startsWith( "[]" ) ) {
+                tdim = tdim.substring( 2 );
+            }
+            else {
+                isVararg = false;
+            }
+        }
+        String pre = tdim.replaceAll( "\\[\\]", "array of " );
+        String post = isVararg ? ", one or more" : "";
+        String typetxt = TYPE_NAMES.get( type.qualifiedTypeName() );
+        if ( typetxt == null ) {
+            typetxt = type.typeName();
+        }
+        return pre + typetxt + post;
+    }
+
+    /**
      * Ensures that a string is a sequence of &lt;p&gt; elements
      * (though it's not foolproof).
      *
