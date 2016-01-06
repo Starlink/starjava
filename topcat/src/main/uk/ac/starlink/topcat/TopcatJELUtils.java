@@ -1,7 +1,8 @@
 package uk.ac.starlink.topcat;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -48,9 +49,9 @@ public class TopcatJELUtils extends JELUtils {
     public static Library getLibrary( JELRowReader rowReader,
                                       boolean activation ) {
         List<Class> statix = new ArrayList<Class>( getStaticClasses() );
-        if ( activation ) {
-            statix.addAll( getActivationStaticClasses() );
-        }
+        List<Class> activStatix = activation ? getActivationStaticClasses()
+                                             : new ArrayList<Class>();
+        statix.addAll( activStatix );
         Class[] staticLib = statix.toArray( new Class[ 0 ] );
         Class[] dynamicLib = new Class[] { rowReader.getClass() };
         Class[] dotClasses = new Class[ 0 ];
@@ -58,25 +59,29 @@ public class TopcatJELUtils extends JELUtils {
         Library lib = new Library( staticLib, dynamicLib, dotClasses,
                                    resolver, null );
 
-        if ( activation ) {
-            /* Mark the System.exec methods as dynamic.  This is a bit obscure;
-             * its purpose is to make sure that they get evaluated at run time
-             * not compilation time even if their arguments are constant.
-             * You can't do very useful things with constant arguments, but
-             * you might have them while you're experimenting, and it is
-             * surprising to see the expression be evaluated when you type
-             * the expression in rather than when the activation takes place.
-             * For this reason, all the activation methods should probably
-             * be so marked, but JEL doesn't make that very easy. */
-            try {
-                for ( int i = 1; i <= 4; i++ ) {
-                    Class[] argClasses = new Class[ i ];
-                    Arrays.fill( argClasses, String.class );
-                    lib.markStateDependent( "exec", argClasses );
+        /* Mark the activation methods as dynamic.  This is a bit obscure;
+         * its purpose is to make sure that they get evaluated at run time
+         * not compilation time even if their arguments are constant.
+         * You can't do very useful things with constant arguments, but
+         * you might have them while you're experimenting, and it is
+         * surprising to see the expression be evaluated when you type
+         * the expression in rather than when the activation takes place. */
+        for ( Class clazz : activStatix ) {
+            for ( Method method : clazz.getMethods() ) {
+                int mods = method.getModifiers();
+                if ( Modifier.isPublic( mods ) &&
+                     Modifier.isStatic( mods ) ) {
+                    String mname = method.getName();
+                    Class<?>[] argtypes = method.getParameterTypes();
+                    try {
+                        lib.markStateDependent( mname, argtypes );
+                    }
+                    catch ( CompilationException e ) {
+                        String msg = "Can't mark " + method + " for JEL?";
+                        throw (AssertionError)
+                              new AssertionError( msg ).initCause( e );
+                    }
                 }
-            }
-            catch ( CompilationException e ) {
-                throw (AssertionError) new AssertionError().initCause( e );
             }
         }
         return lib;
