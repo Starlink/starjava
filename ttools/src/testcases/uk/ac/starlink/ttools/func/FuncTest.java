@@ -58,6 +58,22 @@ public class FuncTest extends TestCase {
         assertEquals( 3.14f, Arithmetic.roundDecimal( Math.PI, 2 ) );
     }
 
+    public void testList() {
+        assertEquals( 103, Lists.sum( 1, 3, 99 ) );
+        assertEquals( 4, Lists.sum( 1f, 3.0, Double.NaN ) );
+        assertEquals( 5, Lists.mean( 2, 4, (byte) 6, 8L ) );
+        assertEquals( 100, Lists.mean( 100.5, 99.5, Float.NaN ) );
+        assertEquals( 2.8, Lists.variance( 0, 3, 4, 3, 0 ) );
+        assertEquals( 2, Lists.variance( 0, 3, Double.NaN, 3, Float.NaN ) );
+        assertEquals( 2.8, Lists.stdev( -3, -2, 0, 0, 1, 2, 3, 4, 5, 6 ) );
+        assertEquals( Math.PI, Lists.min( Math.PI ) );
+        assertEquals( -50, Lists.min( 20, 25, -50., Double.NaN, 101 ) );
+        assertEquals( Math.E, Lists.max( Math.E ) );
+        assertEquals( 101, Lists.max( 20, 25, -50, Float.NaN, 101 ) );
+        assertEquals( -5.25, Lists.median( -5.25 ) );
+        assertEquals( 6, Lists.median( -1000000, 5, 7, 8, 6 ) );
+    }
+
     public void testArray() {
         int[] i1 = { -3, -2, 0, 0, 1, 2, 3, 4, 5, 6, };
         long[] l1 = { 6, 5, 4, 3, 2, 1, 0, 0, -2, -3 };
@@ -81,6 +97,14 @@ public class FuncTest extends TestCase {
             assertEquals( Arrays.maximum( array ),
                           Arrays.quantile( array, 1.0 ) );
         }
+
+        assertEquals( 16.0, Lists.sum( d1 ) );
+        assertEquals( -3.0, Lists.min( d1 ) );
+        assertEquals( 6.0, Lists.max( d1 ) );
+        assertEquals( 1.6, Lists.mean( d1 ) );
+        assertEquals( 2.8, Lists.stdev( d1 ) );
+        assertEquals( 7.84, Lists.variance( d1 ) );
+
         Object[] a2s = new Object[] { f2, d2, };
         for ( int ia = 0; ia < a2s.length; ia++ ) {
             Object array = a2s[ ia ];
@@ -97,6 +121,13 @@ public class FuncTest extends TestCase {
             assertEquals( Arrays.maximum( array ),
                           Arrays.quantile( array, 1.0 ) );
         }
+
+        assertEquals( 16.0, Lists.sum( d2 ) );
+        assertEquals( -3.0, Lists.min( d2 ) );
+        assertEquals( 6.0, Lists.max( d2 ) );
+        assertEquals( 2.0, Lists.mean( d2 ) );
+        assertEquals( 3.0, Lists.stdev( d2 ) );
+        assertEquals( 9.0, Lists.variance( d2 ) );
 
         double[][] a5s = new double[][] {
             Arrays.array( 1, 5, 4, 3, Math.E ),

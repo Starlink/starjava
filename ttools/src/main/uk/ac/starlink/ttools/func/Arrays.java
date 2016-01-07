@@ -17,6 +17,10 @@ import uk.ac.starlink.ttools.filter.QuantCalc;
  * as array-valued.  FITS and VOTable tables can have columns which contain
  * array values, but other formats such as CSV cannot.
  *
+ * <p>If you want to calculate aggregating functions like sum, min, max etc
+ * on multiple values which are not part of an array,
+ * it's easier to use the functions from the <code>Lists</code> class.
+ *
  * <p>The functions fall into a number of categories:
  * <ul>
  * <li>Aggregating operations, which map an array value to a scalar, including
@@ -40,11 +44,11 @@ import uk.ac.starlink.ttools.filter.QuantCalc;
  *     <code>reciprocal</code>,
  *     <code>condition</code>.
  *     </li>
- * <li>A set of functions named <code>array</code> with various
- *     numbers of arguments, which let you assemble an array value from a list
- *     of scalar numbers.  This can be used for instance to get the mean of
- *     a set of three magnitudes by using an expression like
- *     "<code>mean(array(jmag, hmag, kmag))</code>".
+ * <li>The function <code>array</code>,
+ *     which lets you assemble an array value from a list of scalar numbers.
+ *     This can be used with the aggregating functions here,
+ *     but it's generally easier to use the corresponding functions from
+ *     the <code>Lists</code> class.
  *     </li>
  * </ul>
  *
