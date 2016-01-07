@@ -558,6 +558,26 @@ public class Arrays {
     }
 
     /**
+     * Returns an integer numeric array built from the given arguments.
+     *
+     * @param   values   one or more array elements
+     * @return  array
+     */
+    public static int[] intArray( int... values ) {
+        return values;
+    }
+
+    /**
+     * Returns a String array built from the given arguments.
+     *
+     * @param   values   one or more array elements
+     * @return  array
+     */
+    public static String[] stringArray( String... values ) {
+        return values;
+    }
+
+    /**
      * Returns the length of a primitive numeric array.
      * If the supplied object is not a primitive numeric array,
      * -1 will be returned.

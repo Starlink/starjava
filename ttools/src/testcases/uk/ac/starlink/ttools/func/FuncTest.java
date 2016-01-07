@@ -188,6 +188,14 @@ public class FuncTest extends TestCase {
         assertArrayEquals( new double[] { 0, 3, 0.5 },
                            Arrays.divide( new short[] { 0, 9, 4 },
                                           new double[] { 1, 3, 8 } ) );
+
+        assertArrayEquals( new double[] { 1.0, Float.NaN, Math.PI },
+                           Arrays.array( 1, Double.NaN, Math.PI ) );
+        assertArrayEquals( new String[] { "Geddy", "Neil", "Alex", null },
+                           Arrays.stringArray( "Geddy", "Neil", "Alex",
+                                               null ) );
+        assertArrayEquals( new int[] { 7, 10, 12 },
+                           Arrays.intArray( 7, 10, 12 ) );
     }
 
     public void testConversions() {
