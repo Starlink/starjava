@@ -544,115 +544,13 @@ public class Arrays {
     }
 
     /**
-     * Returns a numeric array built from a given element.
+     * Returns a floating point numeric array built from the given arguments.
      *
-     * @param   x1   array element 1
-     * @return  1-element array
+     * @param   values   one or more array elements
+     * @return  array
      */
-    public static double[] array( double x1 ) {
-        return new double[] { x1, };
-    }
-
-    /**
-     * Returns a numeric array built from given elements.
-     *
-     * @param   x1   array element 1
-     * @param   x2   array element 2
-     * @return  2-element array
-     */
-    public static double[] array( double x1, double x2 ) {
-        return new double[] { x1, x2, };
-    }
-
-    /**
-     * Returns a numeric array built from given elements.
-     *
-     * @param   x1   array element 1
-     * @param   x2   array element 2
-     * @param   x3   array element 3
-     * @return  3-element array
-     */
-    public static double[] array( double x1, double x2, double x3 ) {
-        return new double[] { x1, x2, x3, };
-    }
-
-    /**
-     * Returns a numeric array built from given elements.
-     *
-     * @param   x1   array element 1
-     * @param   x2   array element 2
-     * @param   x3   array element 3
-     * @param   x4   array element 4
-     * @return  4-element array
-     */
-    public static double[] array( double x1, double x2, double x3, double x4 ) {
-        return new double[] { x1, x2, x3, x4, };
-    }
-
-    /**
-     * Returns a numeric array built from given elements.
-     *
-     * @param   x1   array element 1
-     * @param   x2   array element 2
-     * @param   x3   array element 3
-     * @param   x4   array element 4
-     * @param   x5   array element 5
-     * @return  5-element array
-     */
-    public static double[] array( double x1, double x2, double x3, double x4,
-                                  double x5 ) {
-        return new double[] { x1, x2, x3, x4, x5, };
-    }
-
-    /**
-     * Returns a numeric array built from given elements.
-     *
-     * @param   x1   array element 1
-     * @param   x2   array element 2
-     * @param   x3   array element 3
-     * @param   x4   array element 4
-     * @param   x5   array element 5
-     * @param   x6   array element 6
-     * @return  6-element array
-     */
-    public static double[] array( double x1, double x2, double x3, double x4,
-                                  double x5, double x6 ) {
-        return new double[] { x1, x2, x3, x4, x5, x6, };
-    }
-
-    /**
-     * Returns a numeric array built from given elements.
-     *
-     * @param   x1   array element 1
-     * @param   x2   array element 2
-     * @param   x3   array element 3
-     * @param   x4   array element 4
-     * @param   x5   array element 5
-     * @param   x6   array element 6
-     * @param   x7   array element 7
-     * @return  7-element array
-     */
-    public static double[] array( double x1, double x2, double x3, double x4,
-                                  double x5, double x6, double x7 ) {
-        return new double[] { x1, x2, x3, x4, x5, x6, x7, };
-    }
-
-    /**
-     * Returns a numeric array built from given elements.
-     *
-     * @param   x1   array element 1
-     * @param   x2   array element 2
-     * @param   x3   array element 3
-     * @param   x4   array element 4
-     * @param   x5   array element 5
-     * @param   x6   array element 6
-     * @param   x7   array element 7
-     * @param   x8   array element 8
-     * @return  8-element array
-     */
-    public static double[] array( double x1, double x2, double x3, double x4,
-                                  double x5, double x6, double x7, double x8 ) {
-        return new double[] { x1, x2, x3, x4, x5, x6, x7, x8, };
+    public static double[] array( double... values ) {
+        return values;
     }
 
     /**

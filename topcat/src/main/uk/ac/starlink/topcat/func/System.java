@@ -23,55 +23,23 @@ public class System {
     }
 
     /**
-     * Executes an operating system command with one argument.
+     * Executes an operating system command composed of one or more words.
      *
-     * @param   cmd  name of command
-     * @param   arg1  the first argument
-     * @return  short log message
-     * @example  <code>exec("do_stuff.py", OBJ_NAME)</code>
-     */
-    public static String exec( String cmd, String arg1 ) {
-        return exec( new String[] { cmd, arg1 } );
-    }
-
-    /**
-     * Executes an operating system command with two arguments.
+     * <p>Each supplied argument is passed to the execution like a single
+     * (possibly quoted) word in a shell command.
+     * The first one is the filename
+     * (either a full pathname, or the name of a file on the current path)
+     * of an executable file.
      *
-     * @param   cmd  name of command
-     * @param   arg1  the first argument
-     * @param   arg2  the second argument
-     * @return  short log message
-     * @example  <code>exec("do_stuff.py", toString(RA), toString(DEC))</code>
-     */
-    public static String exec( String cmd, String arg1, String arg2 ) {
-        return exec( new String[] { cmd, arg1, arg2 } );
-    }
-
-    /**
-     * Executes an operating system command with three arguments.
+     * @example  <code>exec("/home/mbt/bin/process_obj.py", OBJ_NAME)</code>
+     * @example  <code>exec("process_coords.py", toString(RA), toString(DEC))
+     *                 </code>
      *
-     * @param   cmd  name of command
-     * @param   arg1  the first argument
-     * @param   arg2  the second argument
-     * @param   arg3  the third argument
-     * @return  short log message
-     * @example  <code>exec("do_stuff.py",
-                            toString(RA), toString(DEC), OBJ_NAME)</code>
-     */
-    public static String exec( String cmd, String arg1, String arg2, 
-                               String arg3 ) {
-        return exec( new String[] { cmd, arg1, arg2, arg3 } );
-    }
-
-    /**
-     * Executes an array of strings to be interpreted as the words of
-     * a system command.
-     *
-     * @param   argv  argument vector
+     * @param   words  one or more words comprising the command
      * @return  short report message
      */
-    private static String exec( String[] argv ) {
-        return execute( Executor.createExecutor( argv ) );
+    public static String exec( String... words ) {
+        return execute( Executor.createExecutor( words ) );
     }
 
     /**
