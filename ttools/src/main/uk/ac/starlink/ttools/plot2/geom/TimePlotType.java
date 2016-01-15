@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.FillPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
@@ -54,6 +55,7 @@ public class TimePlotType implements PlotType {
         return new Plotter[] {
             new LinePlotter(),
             ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE ),
+            new FillPlotter(),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),
