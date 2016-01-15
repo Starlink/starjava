@@ -99,11 +99,8 @@ public abstract class AbstractKernelDensityPlotter
     }
 
     public KDenseStyle createStyle( ConfigMap config ) throws ConfigException {
-        Color baseColor = config.get( StyleKeys.COLOR );
-        double alpha = 1 - config.get( StyleKeys.TRANSPARENCY );
-        float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
-        rgba[ 3 ] *= alpha;
-        Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
+        Color color = StyleKeys.getAlphaColor( config, StyleKeys.COLOR,
+                                               StyleKeys.TRANSPARENCY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( StyleKeys.NORMALISE );

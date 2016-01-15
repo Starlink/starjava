@@ -742,6 +742,24 @@ public class StyleKeys {
     }
 
     /**
+     * Returns a colour specified by a basic colour key and a transparency key.
+     *
+     * @param   config   config map
+     * @param   colorKey  key for colour, for instance {@link #COLOR}
+     * @param   transparencyKey  key for 1-alpha, for instance
+     *                           {@link #TRANSPARENCY}
+     */
+    public static Color getAlphaColor( ConfigMap config,
+                                       ConfigKey<Color> colorKey,
+                                       ConfigKey<Double> transparencyKey ) {
+        Color baseColor = config.get( colorKey );
+        double alpha = 1 - config.get( transparencyKey );
+        float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
+        rgba[ 3 ] *= alpha;
+        return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
+    }
+
+    /**
      * Creates a config key for a multipoint shape.
      *
      * @param   shortName   one-word name
