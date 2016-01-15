@@ -78,4 +78,29 @@ public class Gridder {
     public int getLength() {
         return nx_ * ny_;
     }
+
+    /**
+     * Returns a Gridder instance that is the transpose of the supplied one.
+     * If the supplied instance does row-major indexing, the result does
+     * column-major instead.
+     *
+     * @param   base  input gridder
+     * @return   gridder with X and Y transposed
+     */
+    public static Gridder transpose( final Gridder base ) {
+        return new Gridder( base.getHeight(), base.getWidth() ) {
+            @Override
+            public int getIndex( int ix, int iy ) {
+                return base.getIndex( iy, ix );
+            }
+            @Override
+            public int getX( int index ) {
+                return base.getY( index );
+            }
+            @Override
+            public int getY( int index ) {
+                return base.getX( index );
+            }
+        };
+    }
 }
