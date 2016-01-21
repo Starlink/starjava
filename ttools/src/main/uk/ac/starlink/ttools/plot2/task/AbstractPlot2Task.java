@@ -483,7 +483,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             throws TaskException;
 
     /**
-     * Returns a config parameter for a given config key that may be
+     * May provide a default value for a given config parameter that is
      * sensitive to the content of the execution environment.
      * This is here to provide a hook for subclasses to set up defaults
      * for some config parameters on the basis of what layers are present.
@@ -492,11 +492,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   key  config key for which a parameter is required
      * @param   suffixes  ordered list of the plot layer suffixes
      *          in use for the plot being performed
-     * @return   parameter to get the value of <code>key</code>
+     * @return  default for parameter getting value for <code>key</code>,
+     *          or null if none is obvious
      */
-    protected abstract <T> ConfigParameter
-            createConfigParameter( Environment env, ConfigKey<T> key,
-                                   String[] suffixes )
+    protected abstract <T> String getConfigParamDefault( Environment env,
+                                                         ConfigKey<T> key,
+                                                         String[] suffixes )
             throws TaskException;
 
     /**
@@ -1141,7 +1142,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             public <T> ConfigParameter<T> getParameter( Environment env,
                                                         ConfigKey<T> key )
                     throws TaskException {
-                return createConfigParameter( env, key, suffixes );
+                ConfigParameter<T> param = new ConfigParameter<T>( key );
+                String dflt = getConfigParamDefault( env, key, suffixes );
+                if ( dflt != null ) {
+                    param.setStringDefault( dflt );
+                }
+                return param;
             }
         };
 

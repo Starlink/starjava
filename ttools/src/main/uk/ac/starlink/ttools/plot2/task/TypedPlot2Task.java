@@ -115,19 +115,24 @@ public class TypedPlot2Task extends AbstractPlot2Task {
         return context_;
     }
 
-    protected <T> ConfigParameter<T>
-            createConfigParameter( Environment env, ConfigKey<T> key,
-                                   String[] suffixes )
+    protected <T> String getConfigParamDefault( Environment env,
+                                                ConfigKey<T> key,
+                                                String[] suffixes )
             throws TaskException {
-        ConfigParameter<T> param = new ConfigParameter<T>( key );
-        final Input dataInput = axlabelMap_.get( key );
+
+        /* If the key is for labelling one of the axes, go through the
+         * data values with position coordinates for this axis and use
+         * the text of the first one we find as the default axis label.
+         * This means that an axis label can automaticall default to
+         * (e.g.) "BMAG" rather than just "X". */
+        Input dataInput = axlabelMap_.get( key );
         if ( dataInput != null ) {
             String dataName = getAxisDataName( env, dataInput, suffixes );
             if ( dataName != null ) {
-                param.setStringDefault( dataName );
+                return dataName;
             }
         }
-        return param;
+        return null;
     }
 
     /**

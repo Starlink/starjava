@@ -63,9 +63,9 @@ public class GenericPlot2Task extends AbstractPlot2Task {
               .createStandardContext( typeParam_.objectValue( env ) );
     }
 
-    protected <T> ConfigParameter createConfigParameter( Environment env,
-                                                         ConfigKey<T> key,
-                                                         String[] suffixes ) {
-        return new ConfigParameter<T>( key );
+    protected <T> String getConfigParamDefault( Environment env,
+                                                ConfigKey<T> key,
+                                                String[] suffixes ) {
+        return null;
     }
 }
