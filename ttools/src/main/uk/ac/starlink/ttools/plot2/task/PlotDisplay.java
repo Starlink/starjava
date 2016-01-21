@@ -475,7 +475,7 @@ public class PlotDisplay<P,A> extends JComponent {
          * and hence generating invalid results. */
         return Thread.currentThread().isInterrupted()
              ? null
-             : new PointSelectionEvent( this, point, closestRows );
+             : new PointSelectionEvent( this, point, 0, closestRows );
     }
 
     /**

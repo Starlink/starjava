@@ -13,6 +13,7 @@ import java.util.EventObject;
 public class PointSelectionEvent extends EventObject {
 
     private final Point point_;
+    private final int isurf_;
     private final long[] closestRows_;
 
     /**
@@ -20,12 +21,14 @@ public class PointSelectionEvent extends EventObject {
      *
      * @param  source  event source
      * @param  point   point indicated by the user
+     * @param  isurf   numeric label of surface to which this event applies
      * @param  closestRows  array of dataset row index for each plotted layer
      */
-    public PointSelectionEvent( Object source, Point point,
+    public PointSelectionEvent( Object source, Point point, int isurf,
                                 long[] closestRows ) {
         super( source );
         point_ = point;
+        isurf_ = isurf;
         closestRows_ = closestRows;
     }
 
@@ -36,6 +39,15 @@ public class PointSelectionEvent extends EventObject {
      */
     public Point getPoint() {
         return point_;
+    }
+
+    /**
+     * Returns the index of the surface to which this event applies.
+     *
+     * @return  numeric label of surface
+     */
+    public int getSurfaceIndex() {
+        return isurf_;
     }
 
     /**
