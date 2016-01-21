@@ -231,7 +231,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             public Navigator<A> getNavigator() {
                 return axisController_.getNavigator();
             }
-            public void setAspect( A aspect ) {
+            public void setAspect( int isurf, A aspect ) {
                 axisController_.setAspect( aspect );
                 plotPanel_.replot();
             }

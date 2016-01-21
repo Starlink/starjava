@@ -30,40 +30,46 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
         plotPanel_ = plotPanel;
     }
 
-    public Surface getSurface() {
+    public int getSurfaceIndex( Point pos ) {
+        return 0;
+    }
+
+    public Surface getSurface( int isurf ) {
         return plotPanel_.getLatestSurface();
     }
 
     @Override
-    protected void handleClick( final Navigator<A> navigator,
-                                final Surface surface,
+    protected void handleClick( final Navigator<A> navigator, final int isurf,
                                 final Point pos, final int ibutt,
                                 final Iterable<double[]> dposIt ) {
+        final Surface surface = getSurface( isurf );
+        if ( surface != null ) {
 
-        /* The click operation *may* take time, if it is necessary to
-         * iterate over the data positions.  To cover that possibility,
-         * calculate the new aspect asynchronously and update the GUI
-         * later on the EDT.  Also make sure that progress is logged. */
-        plotPanel_.submitPlotAnnotator( new Runnable() {
-            public void run() {
-                NavAction<A> navact =
-                    navigator.click( surface, pos, ibutt, dposIt );
-                updateDecoration( navact.getDecoration(), true );
-                final A aspect = navact == null ? null
-                                                : navact.getAspect();
-                if ( aspect != null &&
-                     ! Thread.currentThread().isInterrupted() ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            setAspect( aspect );
-                        }
-                    } );
+            /* The click operation *may* take time, if it is necessary to
+             * iterate over the data positions.  To cover that possibility,
+             * calculate the new aspect asynchronously and update the GUI
+             * later on the EDT.  Also make sure that progress is logged. */
+            plotPanel_.submitPlotAnnotator( new Runnable() {
+                public void run() {
+                    NavAction<A> navact =
+                        navigator.click( surface, pos, ibutt, dposIt );
+                    updateDecoration( navact.getDecoration(), true );
+                    final A aspect = navact == null ? null
+                                                    : navact.getAspect();
+                    if ( aspect != null &&
+                         ! Thread.currentThread().isInterrupted() ) {
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                setAspect( isurf, aspect );
+                            }
+                        } );
+                    }
                 }
-            }
-        } );
+            } );
+        }
     }
 
-    public Iterable<double[]> createDataPosIterable() {
+    public Iterable<double[]> createDataPosIterable( Point pos ) {
 
         /* Handles progress reporting and thread interruption. */
         GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();

@@ -149,18 +149,21 @@ public class PlotDisplay<P,A> extends JComponent {
         /* Add navigation mouse listeners if required. */
         if ( navigator != null ) {
             new NavigationListener<A>() {
-                public Surface getSurface() {
+                public int getSurfaceIndex( Point pos ) {
+                    return 0;
+                }
+                public Surface getSurface( int isurf ) {
                     return surface_;
                 }
                 public Navigator<A> getNavigator() {
                     return navigator;
                 }
-                public Iterable<double[]> createDataPosIterable() {
+                public Iterable<double[]> createDataPosIterable( Point pos ) {
                     return new PointCloud( SubCloud
                                           .createSubClouds( layers_, true ) )
                           .createDataPosIterable( dataStore_ );
                 }
-                protected void setAspect( A aspect ) {
+                protected void setAspect( int isurf, A aspect ) {
                     PlotDisplay.this.setAspect( aspect );
                 }
                 protected void setDecoration( Decoration dec ) {
@@ -504,7 +507,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @return  new plot component
      */
     @Slow
-    public static <P,A> PlotDisplay
+    public static <P,A> PlotDisplay<P,A>
             createPlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
                                ConfigMap config, Icon legend, float[] legPos,
                                String title, ShadeAxisFactory shadeFact,
