@@ -114,7 +114,8 @@ public class LayerTypeDoc {
                       + "=" + lname );
         if ( hasStyle ) {
             Parameter[] styleParams =
-                LayerTypeParameter.getConfigParams( styleKeys, suffix_, false );
+                LayerTypeParameter
+               .getLayerConfigParams( styleKeys, suffix_, false );
             paramList.addAll( Arrays.asList( styleParams ) );
             usageWords.addAll( LayerTypeParameter.usageWords( styleParams ) );
         }

@@ -209,7 +209,8 @@ public class ShapeFamilyLayerType implements LayerType {
                    .getCoordParams( mode.getExtraCoords(), suffix_, false );
                 Parameter[] configParams =
                     LayerTypeParameter
-                   .getConfigParams( mode.getConfigKeys(), suffix_, false );
+                   .getLayerConfigParams( mode.getConfigKeys(),
+                                          suffix_, false );
                 modeWords.addAll( LayerTypeParameter
                                  .usageWords( coordParams ) );
                 modeWords.addAll( LayerTypeParameter

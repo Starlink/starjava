@@ -23,13 +23,14 @@ public class ConfigParameter<T> extends Parameter<T> {
      *
      * @param  key  config key
      * @param  baseName   parameter name excluding suffix
-     * @param  layerSuffix    layer suffix, may be empty
+     * @param  suffix    parameter suffix, may be empty
+     * @param  suffixType  word indicating what suffix identifies,
+     *                     ignored if <code>suffix</code> is empty
      * @param  fullDetail  if true, adds additional description
      */
-    private ConfigParameter( ConfigKey<T> key,
-                             String baseName, String layerSuffix,
-                             boolean fullDetail ) {
-        super( baseName + layerSuffix, key.getValueClass(), true );
+    private ConfigParameter( ConfigKey<T> key, String baseName, String suffix,
+                             String suffixType, boolean fullDetail ) {
+        super( baseName + suffix, key.getValueClass(), true );
         key_ = key;
         setStringDefault( key.valueToString( key.getDefaultValue() ) );
         boolean nullPermitted;
@@ -47,15 +48,17 @@ public class ConfigParameter<T> extends Parameter<T> {
         String prompt = meta.getShortDescription();
         String descrip = meta.getXmlDescription();
         if ( fullDetail ) {
-            if ( layerSuffix != null && layerSuffix.length() > 0 ) {
+            if ( suffix != null && suffix.length() > 0 ) {
                 if ( prompt != null && prompt.length() > 0 ) {
-                    prompt += " for layer " + layerSuffix;
+                    prompt += " for " + suffixType + " " + suffix;
                 }
                 if ( descrip != null && descrip.length() > 0 ) {
                     descrip = new StringBuffer()
                         .append( descrip )
-                        .append( "<p>This parameter affects layer " )
-                        .append( layerSuffix )
+                        .append( "<p>This parameter affects " )
+                        .append( suffixType )
+                        .append( " " )
+                        .append( suffix )
                         .append( "." )
                         .append( "</p>" )
                         .append( "\n" )
@@ -76,7 +79,7 @@ public class ConfigParameter<T> extends Parameter<T> {
      * @param  key  config key
      */
     public ConfigParameter( ConfigKey<T> key ) {
-        this( key, key.getMeta().getShortName(), "", true );
+        this( key, key.getMeta().getShortName(), "", null, true );
     }
 
     public T stringToObject( Environment env, String stringval )
@@ -95,8 +98,8 @@ public class ConfigParameter<T> extends Parameter<T> {
     }
 
     /**
-     * Returns a config parameter with a given suffix.
-     * The name is construted from the key name followed by the suffix.
+     * Returns a layer-indexed config parameter with a given layer suffix.
+     * The name is constructed from the key name followed by the suffix.
      *
      * @param  key  config key
      * @param  layerSuffix   suffix part of name
@@ -104,9 +107,27 @@ public class ConfigParameter<T> extends Parameter<T> {
      * @return   new parameter
      */
     public static <T> ConfigParameter<T>
-            createSuffixedParameter( ConfigKey<T> key, String layerSuffix,
-                                     boolean fullDetail ) {
+            createLayerSuffixedParameter( ConfigKey<T> key, String layerSuffix,
+                                          boolean fullDetail ) {
         return new ConfigParameter<T>( key, key.getMeta().getShortName(),
-                                       layerSuffix, fullDetail );
+                                       layerSuffix == null ? "" : layerSuffix,
+                                       "layer", fullDetail );
+    }
+
+    /**
+     * Returns a zone-indexed config parameter with a given zone suffix.
+     * The name is constructed from the key name followed by the suffix.
+     *
+     * @param  key  config key
+     * @param  zoneSuffix   suffix part of name
+     * @param  fullDetail  if true, adds additional description
+     * @return   new parameter
+     */
+    public static <T> ConfigParameter<T>
+            createZoneSuffixedParameter( ConfigKey<T> key, String zoneSuffix,
+                                         boolean fullDetail ) {
+        return new ConfigParameter<T>( key, key.getMeta().getShortName(),
+                                       zoneSuffix == null ? "" : zoneSuffix,
+                                       "zone", fullDetail );
     }
 }

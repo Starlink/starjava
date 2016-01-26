@@ -35,7 +35,7 @@ public class GenericPlot2Task extends AbstractPlot2Task {
      * Constructor.
      */
     public GenericPlot2Task() {
-        super( true );
+        super( true, null );
 
         /* Plot type parameter. */
         typeParam_ = new ChoiceParameter<PlotType>( "type", new PlotType[] {
@@ -60,7 +60,7 @@ public class GenericPlot2Task extends AbstractPlot2Task {
 
     public PlotContext getPlotContext( Environment env ) throws TaskException {
         return PlotContext
-              .createStandardContext( typeParam_.objectValue( env ) );
+              .createStandardContext( typeParam_.objectValue( env ), null );
     }
 
     protected <T> String getConfigParamDefault( Environment env,

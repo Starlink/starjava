@@ -222,8 +222,8 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                      styleWords.add( usageWord( param ) );
                 }
                 styleWords.addAll(
-                    usageWords( getConfigParams( styleKeys, layerSuffix_,
-                                                 false ) ) );
+                    usageWords( getLayerConfigParams( styleKeys, layerSuffix_,
+                                                      false ) ) );
                 sbuf.append( Formatter.formatWords( styleWords, 9 ) );
             }
         }
@@ -260,8 +260,8 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                     usageWords( getCoordParams( mode.getExtraCoords(),
                                                 layerSuffix_, false ) ) );
                 modeWords.addAll(
-                    usageWords( getConfigParams( mode.getConfigKeys(),
-                                                 layerSuffix_, false ) ) );
+                    usageWords( getLayerConfigParams( mode.getConfigKeys(),
+                                                      layerSuffix_, false ) ) );
                 sbuf.append( Formatter.formatWords( modeWords, 6 ) );
             }
         }
@@ -344,13 +344,14 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      *                     descriptions
      * @return  config parameters
      */
-    public static Parameter[] getConfigParams( ConfigKey[] configKeys,
-                                               String suffix,
-                                               boolean fullDetail ) {
+    public static Parameter[] getLayerConfigParams( ConfigKey[] configKeys,
+                                                    String suffix,
+                                                    boolean fullDetail ) {
         List<Parameter> paramList = new ArrayList<Parameter>();
         for ( ConfigKey key : configKeys ) {
             paramList.add( ConfigParameter
-                          .createSuffixedParameter( key, suffix, fullDetail ) );
+                          .createLayerSuffixedParameter( key, suffix,
+                                                         fullDetail ) );
         }
         return paramList.toArray( new Parameter[ 0 ] );
     }

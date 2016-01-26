@@ -14,7 +14,9 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -159,8 +161,15 @@ public class PlotGenerator<P,A> {
      */
     public Icon createIcon( boolean forceBitmap ) {
         return AbstractPlot2Task
-              .createPlotIcon( layers_, surfFact_, profile_, aspect_, legend_,
-                               legPos_, title_, shadeFact_, shadeFixRange_,
+              .createPlotIcon( new SingleGanger<A>(), surfFact_, 1,
+                               new ZoneContent[] {
+                                   new ZoneContent( layers_, legend_,
+                                                    legPos_, title_ )
+                               },
+                               (P[]) new Object[] { profile_ },
+                               (A[]) new Object[] { aspect_ },
+                               new ShadeAxisFactory[] { shadeFact_ },
+                               new Range[] { shadeFixRange_ },
                                ptSel_, compositor_, dataStore_,
                                xpix_, ypix_, dataInsets_, forceBitmap );
     }

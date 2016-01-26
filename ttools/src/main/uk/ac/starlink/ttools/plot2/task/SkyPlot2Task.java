@@ -57,7 +57,7 @@ public class SkyPlot2Task extends TypedPlot2Task {
          */
         SkyPlotContext() {
             super( SkyPlotType.getInstance(),
-                   new DataGeom[] { SkyDataGeom.GENERIC } );
+                   new DataGeom[] { SkyDataGeom.GENERIC }, null );
         }
 
         /**

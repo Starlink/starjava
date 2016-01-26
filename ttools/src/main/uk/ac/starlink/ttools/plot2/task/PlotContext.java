@@ -5,6 +5,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.PlotType;
 
 /**
@@ -18,6 +19,7 @@ public abstract class PlotContext {
 
     private final PlotType plotType_;
     private final DataGeom[] exampleGeoms_;
+    private final Ganger ganger_;
 
     /**
      * Constructor.
@@ -26,10 +28,13 @@ public abstract class PlotContext {
      *
      * @param  plotType  plot type
      * @param  exampleGeoms   example data geoms
+     * @param  ganger   defines plot grouping, or null for single zone
      */
-    protected PlotContext( PlotType plotType, DataGeom[] exampleGeoms ) {
+    protected PlotContext( PlotType plotType, DataGeom[] exampleGeoms,
+                           Ganger ganger ) {
         plotType_ = plotType;
         exampleGeoms_ = exampleGeoms;
+        ganger_ = ganger;
     }
 
     /**
@@ -52,6 +57,17 @@ public abstract class PlotContext {
      */
     public DataGeom[] getExampleGeoms() {
         return exampleGeoms_;
+    }
+
+    /**
+     * Returns a ganger that can be used to group multiple plot surfaces
+     * in this context.  If only single-zone plots are supported,
+     * then null should be returned.
+     * 
+     * @return   ganger, or null
+     */
+    public Ganger getGanger() {
+        return ganger_;
     }
 
     /**
@@ -83,11 +99,13 @@ public abstract class PlotContext {
      * in that it allows pluggable DataGeoms specified by classname.
      *
      * @param  plotType  plot type
+     * @param  ganger   defines plot grouping, or null for single zone
      * @return  standard plot context
      */
-    public static PlotContext createStandardContext( final PlotType plotType ) {
+    public static PlotContext createStandardContext( final PlotType plotType,
+                                                     Ganger ganger ) {
         final DataGeom[] geoms = plotType.getPointDataGeoms();
-        return new PlotContext( plotType, geoms ) {
+        return new PlotContext( plotType, geoms, ganger ) {
 
             public Parameter[] getGeomParameters( String suffix ) {
                 return new Parameter[] { createGeomParameter( suffix ) };
@@ -120,11 +138,13 @@ public abstract class PlotContext {
      *
      * @param  plotType  plot type
      * @param  geom   data geom used in all cases
+     * @param  ganger   defines plot grouping, or null for single zone
      * @return  fixed-geom plot context
      */
     public static PlotContext createFixedContext( final PlotType plotType,
-                                                  final DataGeom geom ) {
-        return new PlotContext( plotType, new DataGeom[] { geom } ) {
+                                                  final DataGeom geom,
+                                                  Ganger ganger ) {
+        return new PlotContext( plotType, new DataGeom[] { geom }, ganger ) {
             public Parameter[] getGeomParameters( String suffix ) {
                 return new Parameter[ 0 ];
             }

@@ -57,7 +57,7 @@ public class ShapeModeDoc {
            .getCoordParams( mode.getExtraCoords(), suffix_, true );
         Parameter[] styleParams =
             LayerTypeParameter
-           .getConfigParams( mode.getConfigKeys(), suffix_, false );
+           .getLayerConfigParams( mode.getConfigKeys(), suffix_, false );
         Parameter[] params = PlotUtil.arrayConcat( coordParams, styleParams );
         StringBuffer sbuf = new StringBuffer();
 

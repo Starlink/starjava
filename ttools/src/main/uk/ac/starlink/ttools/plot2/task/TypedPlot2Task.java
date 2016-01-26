@@ -10,6 +10,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -48,7 +49,8 @@ public class TypedPlot2Task extends AbstractPlot2Task {
     public TypedPlot2Task( PlotType plotType,
                            Map<ConfigKey<String>,Input> axlabelMap,
                            PlotContext context ) {
-        super();
+        super( context.getGanger() );
+        boolean hasGang = context.getGanger() != null;
         plotType_ = plotType;
         context_ = context;
         axlabelMap_ = axlabelMap == null
@@ -61,20 +63,26 @@ public class TypedPlot2Task extends AbstractPlot2Task {
 
         /* Parameters specific to the plotting surface type. */
         SurfaceFactory surfFact = plotType.getSurfaceFactory();
-        paramList.addAll( getKeyParams( surfFact.getProfileKeys() ) );
-        paramList.addAll( getKeyParams( surfFact.getAspectKeys() ) );
-        paramList.addAll( getKeyParams( surfFact.getNavigatorKeys() ) );
+        paramList.addAll( getZoneKeyParams( surfFact.getProfileKeys() ) );
+        paramList.addAll( getZoneKeyParams( surfFact.getAspectKeys() ) );
+        for ( ConfigKey configKey : surfFact.getNavigatorKeys() ) {
+            paramList.add( new ConfigParameter( configKey ) );
+        }
 
         /* Layer parameter, which defines what plotters are available. */
         paramList.add( createLabelParameter( EXAMPLE_LAYER_SUFFIX ) );
         paramList.add( createLayerTypeParameter( EXAMPLE_LAYER_SUFFIX,
                                                  context ) );
+        if ( hasGang ) {
+            paramList.add( createZoneParameter( EXAMPLE_LAYER_SUFFIX ) );
+        }
 
         params_ = paramList.toArray( new Parameter[ 0 ] );
     }
 
     /**
-     * Constructs a plot task with a default plot context.
+     * Constructs a plot task with a default plot context, and without
+     * plot ganging.
      * If the plot type has only a single DataGeom no geom selection
      * is allowed, otherwise there is a per-layer geom selection
      * parameter.
@@ -91,7 +99,8 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      */
     public TypedPlot2Task( PlotType plotType,
                            Map<ConfigKey<String>,Input> axlabelMap ) {
-        this( plotType, axlabelMap, createDefaultPlotContext( plotType ) );
+        this( plotType, axlabelMap,
+              createDefaultPlotContext( plotType, (Ganger) null ) );
     }
 
     public String getPurpose() {
@@ -170,12 +179,14 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      * parameter.
      *
      * @param  plotType  plot type
+     * @param  ganger  defines plot grouping, or null for single zone plots
      * @return  context
      */
-    private static PlotContext createDefaultPlotContext( PlotType plotType ) {
+    public static PlotContext createDefaultPlotContext( PlotType plotType,
+                                                        Ganger ganger ) {
         final DataGeom[] geoms = plotType.getPointDataGeoms();
         return geoms.length == 1
-             ? PlotContext.createFixedContext( plotType, geoms[ 0 ] )
-             : PlotContext.createStandardContext( plotType );
+             ? PlotContext.createFixedContext( plotType, geoms[ 0 ], ganger )
+             : PlotContext.createStandardContext( plotType, ganger );
     }
 }
