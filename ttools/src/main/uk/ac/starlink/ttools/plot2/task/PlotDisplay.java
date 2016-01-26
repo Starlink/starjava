@@ -1,14 +1,13 @@
 package uk.ac.starlink.ttools.plot2.task;
 
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,15 +25,18 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Drawing;
+import uk.ac.starlink.ttools.plot2.Gang;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
-import uk.ac.starlink.ttools.plot2.NavigationListener;
-import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.NavigationListener;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -42,6 +44,7 @@ import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
@@ -50,11 +53,11 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
- * Graphical component which displays a plot.
- * The plot is in general 'live', and may repaint itself differently
- * over its lifetime according to user navigation actions,
- * window size, and underlying data, depending on how it is configured.
- * 
+ * Graphical component which displays a gang of one or more plots.
+ * The plots are in general 'live', and may repaint themselves differently
+ * over the lifetime of the component according to user navigation actions,
+ * window size, and underlying data, depending on configuration.
+ *
  * <p>This class can be used as-is, or as a template.
  *
  * @author   Mark Taylor
@@ -62,87 +65,81 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  */
 public class PlotDisplay<P,A> extends JComponent {
 
-    private final PlotLayer[] layers_;
+    private final Ganger<A> ganger_;
     private final DataStore dataStore_;
     private final SurfaceFactory<P,A> surfFact_;
-    private final P profile_;
-    private final Icon legend_;
-    private final float[] legPos_;
-    private final String title_;
-    private final ShadeAxisFactory shadeFact_;
-    private final Range shadeFixRange_;
+    private final int nz_;
     private final PaperTypeSelector ptSel_;
-    private final boolean surfaceAuxRange_;
     private final Compositor compositor_;
+    private final boolean surfaceAuxRanging_;
     private final boolean caching_;
     private final List<PointSelectionListener> pslList_;
     private final Executor clickExecutor_;
+    private final Zone<P,A>[] zones_;
+    private Gang gang_;
     private Insets dataInsets_;
     private Decoration navDecoration_;
-    private Map<AuxScale,Range> auxRanges_;
-    private Surface approxSurf_;
-    private Surface surface_;
-    private A aspect_;
-    private Icon icon_;
 
     /**
-     * Name of property that changes when plot Aspect is reset.
+     * Name of property that changes when plot Aspects are reset.
      * Can be monitored by use of a PropertyChangeListener.
-     * The property object type is an aspect, that is of this class's
-     * parameterised type A.
+     * The property object type is an array of aspects,
+     * that is of this class's parameterised type A[].
      */
-    public static final String ASPECT_PROPERTY = "Plot2Aspect";
+    public static final String ASPECTS_PROPERTY = "Plot2Aspects";
 
+    private static final boolean WITH_SCROLL = true;
     private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.task" );
 
     /**
-     * Constructor.
+     * Constructs a PlotDisplay that shows multiple plot surfaces.
      *
-     * @param  layers   layers constituting plot content
+     * @param  ganger  defines plot surface grouping
      * @param  surfFact   surface factory
-     * @param  profile   surface profile
-     * @param  aspect   initial surface aspect (may get changed by zooming etc)
-     * @param  legend   legend icon, or null if none required
-     * @param  legPos   2-element array giving x,y fractional legend placement
-     *                  position within plot (elements in range 0..1),
-     *                  or null for external legend
-     * @param  title    plot title, or null
-     * @param  shadeFact  makes shader axes, or null if not required
-     * @param  shadeFixRange  fixed shader range,
-     *                        or null for auto-range where required
+     * @param  nz   number of plot zones in group
+     * @param  zoneContents   plot content by zone (nz-element array)
+     * @param  profiles   plot surface profiles by zone (nz-element array)
+     * @param  aspects    plot surface aspects by zone (nz-element array)
+     * @param  shadeFacts   shader axis factories by zone (nz-element array),
+     *                      elements may be null if not required
+     * @param  shadeFixRanges  fixed shader ranges by zone (nz-element array)
+     *                         elements may be null for auto-range or if no
+     *                         shade axis
+     * @param  navigator  user gesture navigation controller,
+     *                    or null for a non-interactive plot
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
-     * @param surfaceAuxRange  determines whether aux ranges are recalculated
-     *                         when the surface changes
-     * @param  navigator  user gesture navigation controller,
-     *                    or null for a non-interactive plot
+     * @param surfaceAuxRanging  determines whether aux ranges are recalculated
+     *                           when the surface changes
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
      *                   on every repaint
      */
-    public PlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
-                        P profile, A aspect, Icon legend, float[] legPos,
-                        String title, ShadeAxisFactory shadeFact,
-                        Range shadeFixRange, PaperTypeSelector ptSel,
-                        Compositor compositor, DataStore dataStore,
-                        boolean surfaceAuxRange, final Navigator<A> navigator,
-                        boolean caching ) {
-        layers_ = layers;
+    public PlotDisplay( Ganger<A> ganger, SurfaceFactory<P,A> surfFact,
+                        int nz, ZoneContent[] zoneContents,
+                        P[] profiles, A[] aspects,
+                        ShadeAxisFactory[] shadeFacts, Range[] shadeFixRanges,
+                        final Navigator<A> navigator,
+                        PaperTypeSelector ptSel, Compositor compositor,
+                        DataStore dataStore,
+                        boolean surfaceAuxRanging, boolean caching ) {
+        ganger_ = ganger;
         surfFact_ = surfFact;
-        profile_ = profile;
-        aspect_ = aspect;
-        legend_ = legend;
-        legPos_ = legPos;
-        title_ = title;
-        shadeFact_ = shadeFact;
-        shadeFixRange_ = shadeFixRange;
+        nz_ = nz;
+        zones_ = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
+        A[] okAspects = ganger.adjustAspects( aspects.clone(), -1 );
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            zones_[ iz ] = new Zone( zoneContents[ iz ], profiles[ iz ],
+                                     shadeFacts[ iz ], shadeFixRanges[ iz ],
+                                     okAspects[ iz ] );
+        }
         ptSel_ = ptSel;
         compositor_ = compositor;
         dataStore_ = dataStore;
-        surfaceAuxRange_ = surfaceAuxRange;
+        surfaceAuxRanging_ = surfaceAuxRanging;
         caching_ = caching;
         pslList_ = new ArrayList<PointSelectionListener>();
 
@@ -150,21 +147,30 @@ public class PlotDisplay<P,A> extends JComponent {
         if ( navigator != null ) {
             new NavigationListener<A>() {
                 public int getSurfaceIndex( Point pos ) {
-                    return 0;
+                    return gang_.getNavigationZoneIndex( pos );
                 }
                 public Surface getSurface( int isurf ) {
-                    return surface_;
+                    return isurf >= 0 ? zones_[ isurf ].surface_ : null;
                 }
                 public Navigator<A> getNavigator() {
                     return navigator;
                 }
                 public Iterable<double[]> createDataPosIterable( Point pos ) {
-                    return new PointCloud( SubCloud
-                                          .createSubClouds( layers_, true ) )
-                          .createDataPosIterable( dataStore_ );
+                    int iz = getZoneIndex( pos );
+                    if ( iz >= 0 ) {
+                        PlotLayer[] layers = zones_[ iz ].content_.getLayers();
+                        return new PointCloud( SubCloud
+                                              .createSubClouds( layers, true ) )
+                              .createDataPosIterable( dataStore_ );
+                    }
+                    else {
+                        return null;
+                    }
                 }
                 protected void setAspect( int isurf, A aspect ) {
-                    PlotDisplay.this.setAspect( aspect );
+                    A[] aspects = getAspects().clone();
+                    aspects[ isurf ] = aspect;
+                    setAspects( ganger_.adjustAspects( aspects, isurf ) );
                 }
                 protected void setDecoration( Decoration dec ) {
                     setNavDecoration( dec );
@@ -177,29 +183,40 @@ public class PlotDisplay<P,A> extends JComponent {
             @Override
             public void mouseClicked( MouseEvent evt ) {
                 final Point p = evt.getPoint();
-                final Surface surface = surface_;
-                if ( pslList_.size() > 0 &&
-                     PlotUtil.getButtonChangedIndex( evt ) == 1 &&
-                     surface.getPlotBounds().contains( p ) ) {
-                    clickExecutor_.execute( new Runnable() {
-                        public void run() {
-                            final PointSelectionEvent evt =
-                                createClickEvent( surface, p );
-                            if ( evt != null ) {
-                                SwingUtilities.invokeLater( new Runnable() {
-                                    public void run() {
-                                        for ( PointSelectionListener psl :
-                                              pslList_ ) {
-                                            psl.pointSelected( evt );
+                final int iz = getZoneIndex( p );
+                if ( iz >= 0 && pslList_.size() > 0 ) {
+                    Zone zone = zones_[ iz ];
+                    final Surface surface = zone.surface_;
+                    final PlotLayer[] layers = zone.content_.getLayers();
+                    if ( surface != null && layers.length > 0 &&
+                         surface.getPlotBounds().contains( p ) ) {
+                        clickExecutor_.execute( new Runnable() {
+                            public void run() {
+                                final long[] closestRows =
+                                    findClosestRows( surface, layers, p );
+                                if ( closestRows != null ) {
+                                    final PointSelectionEvent evt =
+                                        new PointSelectionEvent( PlotDisplay
+                                                                .this,
+                                                                 p, iz,
+                                                                 closestRows );
+                                    SwingUtilities.invokeLater( new Runnable() {
+                                        public void run() {
+                                            for ( PointSelectionListener psl :
+                                                  pslList_ ) {
+                                                psl.pointSelected( evt );
+                                            }
                                         }
-                                    }
-                                } );
+                                    } );
+                                }
                             }
-                        }
-                    } );
+                        } );
+                    }
                 }
             }
         } );
+
+        /* Executor to handle asynchronous point identification. */
         clickExecutor_ = Executors.newCachedThreadPool( new ThreadFactory() {
             public Thread newThread( Runnable r ) {
                 Thread th = new Thread( r, "Point Identifier" );
@@ -210,17 +227,61 @@ public class PlotDisplay<P,A> extends JComponent {
     }
 
     /**
+     * Constructs a PlotDisplay that shows a single plot surface.
+     *
+     * @param  surfFact   surface factory
+     * @param   layers   plot layers to be painted
+     * @param   profile  surface profile
+     * @param   legend   legend icon if required, or null
+     * @param   legPos  legend position if intenal legend is required;
+     *                  2-element (x,y) array, each element in range 0-1
+     * @param   title   title text, or null
+     * @param  aspect    plot surface aspect
+     * @param  shadeFact   shader axis factory, or null if not required
+     * @param  shadeFixRange  fixed shader range, or null for auto-range
+     * @param  navigator  user gesture navigation controller,
+     *                    or null for a non-interactive plot
+     * @param  ptSel    paper type selector
+     * @param  compositor  compositor for pixel composition
+     * @param  dataStore   data storage object
+     * @param surfaceAuxRanging  determines whether aux ranges are recalculated
+     *                           when the surface changes
+     * @param  caching   if true, plot image will be cached where applicable,
+     *                   if false it will be regenerated from the data
+     *                   on every repaint
+     */
+    public PlotDisplay( SurfaceFactory<P,A> surfFact, PlotLayer[] layers,
+                        P profile, Icon legend, float[] legPos, String title,
+                        A aspect, ShadeAxisFactory shadeFact,
+                        Range shadeFixRange, Navigator<A> navigator,
+                        PaperTypeSelector ptSel, Compositor compositor,
+                        DataStore dataStore, boolean surfaceAuxRanging,
+                        boolean caching ) {
+        this( new SingleGanger<A>(), surfFact, 1,
+              new ZoneContent[] {
+                  new ZoneContent( layers, legend, legPos, title )
+              },
+              (P[]) new Object[] { profile },
+              (A[]) new Object[] { aspect },
+              new ShadeAxisFactory[] { shadeFact },
+              new Range[] { shadeFixRange },
+              navigator, ptSel, compositor, dataStore,
+              surfaceAuxRanging, caching );
+    }
+
+    /**
      * Clears the current cached plot image, if any, so that regeneration
      * of the image from the data is forced when the next paint operation
      * is performed; otherwise it may be copied from a cached image.
      * This method is called automatically by <code>invalidate()</code>,
      * but may also be called manually, for instance if the data in the
      * data store may have changed.
-     *
-     * <p>This method has no effect if caching is not in force.
      */
     public void clearPlot() {
-        icon_ = null;
+        for ( Zone zone : zones_ ) {
+            zone.surface_ = null;
+            zone.icon_ = null;
+        }
     }
 
     /**
@@ -251,102 +312,152 @@ public class PlotDisplay<P,A> extends JComponent {
     @Override
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
-        Rectangle extBounds =
+        Rectangle extBox =
             PlotUtil.subtractInsets( new Rectangle( getSize() ), getInsets() );
 
-        /* If we already have a cached image, it is for the right plot,
-         * just draw that.  If not, generate a new one. */
-        Icon icon = icon_;
-        if ( icon == null ) {
+        /* Get the data bounds for each plot if we can. */
+        Gang gang = null;
+        if ( dataInsets_ != null && nz_ == 1 ) {
+            Rectangle box0 = PlotUtil.subtractInsets( extBox, dataInsets_ );
+            gang = ganger_.createGang( new Rectangle[] { box0 } );
+        }
+        else {
 
-            /* Get the data bounds if we can. */
-            Rectangle dataBounds =
-                  dataInsets_ != null
-                ? PlotUtil.subtractInsets( extBounds, dataInsets_ )
-                : null;
-
-            /* Acquire nominal plot bounds that are good enough for working
-             * out aux data ranges. */
-            Rectangle approxBounds = dataBounds != null ? dataBounds
-                                                        : extBounds;
-
-            /* (Re)calculate aux ranges if required. */
-            Surface approxSurf =
-                surfFact_.createSurface( approxBounds, profile_, aspect_ );
-            final Map<AuxScale,Range> auxRanges;
-            if ( auxRanges_ != null &&
-                 ( ! surfaceAuxRange_ || approxSurf.equals( approxSurf_ ) ) ) {
-                auxRanges = auxRanges_;
+            /* If the surface icon member is non-null, that counts as a flag
+             * indicating that plot is up to date; it's the responsibility
+             * of the rest of this class to set that member null if the
+             * surface may no longer be correct. */
+            Rectangle[] dataBoxes = new Rectangle[ nz_ ];
+            boolean gotSurfs = true;
+            for ( int iz = 0; iz < nz_ && gotSurfs; iz++ ) {
+                Surface surf = zones_[ iz ].surface_;
+                if ( surf != null ) {
+                    dataBoxes[ iz ] = surf.getPlotBounds();
+                }
+                else {
+                    zones_[ iz ].icon_ = null;
+                    gotSurfs = false;
+                }
             }
-            else {
-                auxRanges = getAuxRanges( layers_, approxSurf, shadeFixRange_,
-                                          shadeFact_, dataStore_ );
+            if ( gotSurfs ) {
+                gang = ganger_.createGang( dataBoxes );
             }
-            auxRanges_ = auxRanges;
-            approxSurf_ = approxSurf;
+        }
 
-            /* Get aux axis component if applicable. */
-            Range shadeRange = auxRanges.get( AuxScale.COLOR );
-            ShadeAxis shadeAxis = shadeRange != null && shadeFact_ != null
-                                ? shadeFact_.createShadeAxis( shadeRange )
-                                : null;
+        /* Acquire nominal plot bounds that are good enough for working
+         * out aux data ranges. */
+        Gang approxGang = gang != null ? gang : createGang( extBox );
 
-            /* If we don't already have data bounds to use for the actual
-             * plot, we have enough information to work them out now. */
-            if ( dataBounds == null ) {
-                boolean withScroll = true;
-                dataBounds =
+        /* (Re)calculate aux ranges if required. */
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            Zone<P,A> zone = zones_[ iz ];
+            if ( zone.surface_ == null ) {
+                ZoneContent content = zone.content_;
+                Surface oldApproxSurf = zone.approxSurf_;
+                zone.approxSurf_ =
+                    surfFact_.createSurface( approxGang.getZonePlotBounds( iz ),
+                                             zone.profile_, zone.aspect_ );
+                if ( zone.auxRanges_ == null ||
+                     ( surfaceAuxRanging_ &&
+                       ! zone.approxSurf_.equals( oldApproxSurf ) ) ) {
+                    zone.auxRanges_ =
+                        getAuxRanges( content.getLayers(), zone.approxSurf_,
+                                      zone.shadeFixRange_, zone.shadeFact_,
+                                      dataStore_ );
+                    Range shadeRange = zone.auxRanges_.get( AuxScale.COLOR );
+                    ShadeAxisFactory shadeFact = zone.shadeFact_;
+                    zone.shadeAxis_ = shadeRange != null && shadeFact != null
+                                    ? shadeFact.createShadeAxis( shadeRange )
+                                    : null;
+                }
+            }
+        }
+
+        /* If we don't already have fixed data bounds to use for the actual
+         * plot, the current state of the zone array now contains enough
+         * information to work them out. */
+        if ( gang == null ) {
+            gang = createGang( extBox );
+        }
+        gang_ = gang;
+
+        /* Create plot icons. */
+        long cacheStart = System.currentTimeMillis();
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            Zone<P,A> zone = zones_[ iz ];
+            if ( zone.icon_ == null ) {
+                ZoneContent content = zone.content_;
+                PlotLayer[] layers = content.getLayers();
+
+                /* Work out plot positioning. */
+                zone.surface_ =
+                    surfFact_.createSurface( gang.getZonePlotBounds( iz ),
+                                             zone.profile_, zone.aspect_ );
+                Decoration[] decs =
                     PlotPlacement
-                   .calculateDataBounds( extBounds, surfFact_, profile_,
-                                         aspect_, withScroll, legend_,
-                                         legPos_, title_, shadeAxis );
+                   .createPlotDecorations( zone.surface_, content.getLegend(),
+                                           content.getLegendPosition(),
+                                           content.getTitle(),
+                                           zone.shadeAxis_ );
+                PlotPlacement placer =
+                    new PlotPlacement( extBox, zone.surface_, decs );
+
+                /* Get rendering implementation. */
+                LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
+                PaperType paperType =
+                    ptSel_.getPixelPaperType( opts, compositor_, this );
+
+                /* Create the plot icon. */
+                zone.icon_ = createIcon( placer, layers, zone.auxRanges_,
+                                         dataStore_, paperType, caching_ );
             }
-
-            /* Work out plot positioning. */
-            surface_ = surfFact_.createSurface( dataBounds, profile_, aspect_ );
-            Decoration[] decs =
-                PlotPlacement
-               .createPlotDecorations( surface_, legend_, legPos_, title_,
-                                       shadeAxis );
-            PlotPlacement placer =
-                new PlotPlacement( extBounds, surface_, decs );
-
-            /* Get rendering implementation. */
-            LayerOpt[] opts = PaperTypeSelector.getOpts( layers_ );
-            PaperType paperType =
-                ptSel_.getPixelPaperType( opts, compositor_, this );
-
-            /* Perform the plot to a possibly cached image. */
-            long start = System.currentTimeMillis();
-            icon = createIcon( placer, layers_, auxRanges, dataStore_,
-                               paperType, true );
-            PlotUtil.logTime( logger_, "Cache", start );
         }
-        if ( caching_ ) {
-            icon_ = icon;
-        }
+        PlotUtil.logTime( logger_, "Cache", cacheStart );
 
         /* Paint the image to this component. */
-        long start = System.currentTimeMillis();
-        icon.paintIcon( this, g, extBounds.x, extBounds.y );
+        long paintStart = System.currentTimeMillis();
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            Zone zone = zones_[ iz ];
+            zone.icon_.paintIcon( this, g, extBox.x, extBox.y );
+            if ( ! caching_ ) {
+                zone.icon_ = null;
+            }
+        }
         if ( navDecoration_ != null ) {
             navDecoration_.paintDecoration( g );
         }
-        PlotUtil.logTime( logger_, "Paint", start );
+        PlotUtil.logTime( logger_, "Paint", paintStart );
     }
 
     /**
-     * Sets the surface aspect.  This triggers a repaint if appropriate.
+     * Sets the aspects of the plot zones.
+     * This triggers a repaint if required.
+     * Note this method does not test or adjust the supplied aspects for
+     * consistency with the ganger.
      *
-     * @param  aspect  new aspect
+     * @param   aspects  per-zone array of required aspects
      */
-    public void setAspect( A aspect ) {
-        if ( aspect != null && ! aspect.equals( aspect_ ) ) {
-            A oldAspect = aspect_;
-            aspect_ = aspect;
-            clearPlot();
+    public void setAspects( A[] aspects ) {
+        A[] oldAspects = aspects.clone();
+        Arrays.fill( oldAspects, null );
+        boolean changed = false;
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            Zone<P,A> zone = zones_[ iz ];
+            oldAspects[ iz ] = zone.aspect_;
+            A aspect = aspects[ iz ];
+
+            /* Note aspects do not sport @Equality, so this isn't a very
+             * useful test. */
+            if ( aspect != null && ! aspect.equals( zone.aspect_ ) ) {
+                zone.aspect_ = aspect;
+                zone.surface_ = null;
+                zone.icon_ = null;
+                changed = true;
+            }
+        }
+        if ( changed ) {
             repaint();
-            firePropertyChange( ASPECT_PROPERTY, oldAspect, aspect );
+            firePropertyChange( ASPECTS_PROPERTY, oldAspects, aspects );
         }
     }
 
@@ -363,32 +474,42 @@ public class PlotDisplay<P,A> extends JComponent {
     }
 
     /**
-     * Returns the most recently set aspect.
+     * Returns the most recently set aspects.
      *
-     * @return  current aspect
+     * @return   per-zone array of current aspects
      */
-    public A getAspect() {
-        return aspect_;
+    public A[] getAspects() {
+        A[] aspects = (A[]) new Object[ nz_ ];
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            aspects[ iz ] = zones_[ iz ].aspect_;
+        }
+        return aspects;
     }
 
     /**
-     * Returns the most recently used plot surface.
-     * It will have been generated by this display's SurfaceFactory.
+     * Returns the current plot surfaces.
+     * They will have been generated by this display's SurfaceFactory.
+     * Elements may be null if they are not currently up to date
+     * (plot is in process of being repainted).
      *
-     * @return  current plotting surface 
+     * @return  per-zone surface array
      */
-    public Surface getSurface() {
-        return surface_;
+    public Surface[] getSurfaces() {
+        Surface[] surfs = new Surface[ nz_ ];
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            surfs[ iz ] = zones_[ iz ].surface_;
+        }
+        return surfs;
     }
 
     /**
      * Sets the geometry of the region between the external bound
      * of this component (excluding component borders) and the data region
-     * of the plot.  This insets region is where axis labels, legend,
+     * of the plots.  This insets region is where external axis labels, legend,
      * and other plot decorations are drawn.  If null (the default),
      * the extent of the region is worked out automatically and dynamically
      * on the basis of what labels need to be drawn etc.
-     * 
+     *
      * @param  dataInsets  geometry of the region outside the actual data plot
      */
     public void setDataInsets( Insets dataInsets ) {
@@ -397,16 +518,57 @@ public class PlotDisplay<P,A> extends JComponent {
     }
 
     /**
-     * Assembles and returns a PointSelectionEvent given a graphics position.
+     * Returns the index of the zone in whose data bounds a given point lies.
+     *
+     * @param   pos   graphics position
+     * @return    index of zone containing pos, or -1 if none
+     */
+    private int getZoneIndex( Point pos ) {
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            Surface surf = zones_[ iz ].surface_;
+            if ( surf != null && surf.getPlotBounds().contains( pos ) ) {
+                return iz;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns a surface gang based on the current state of this object.
+     *
+     * @param   extBounds  external bounds of plot
+     *                     (includes space for axis labels etc)
+     */
+    private Gang createGang( Rectangle extBounds ) {
+        ZoneContent[] contents = new ZoneContent[ nz_ ];
+        A[] aspects = (A[]) new Object[ nz_ ];
+        P[] profiles = (P[]) new Object[ nz_ ];
+        ShadeAxis[] shadeAxes = new ShadeAxis[ nz_ ];
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            Zone<P,A> zone = zones_[ iz ];
+            contents[ iz ] = zone.content_;
+            profiles[ iz ] = zone.profile_;
+            aspects[ iz ] = zone.aspect_;
+            shadeAxes[ iz ] = zone.shadeAxis_;
+        }
+        return ganger_.createGang( extBounds, surfFact_, nz_, contents,
+                                   profiles, aspects, shadeAxes, WITH_SCROLL );
+    }
+
+    /**
+     * Assembles and returns a list of row indexes that are plotted close to
+     * a given graphics position.
      * May return null, if the thread is interrupted, or possibly under
      * other circumstances.
      *
-     * @param  surface  plot surface representing the state of the plot
+     * @param  surface   plot surface on which layers are plotted
+     * @param  layers   layers plotted
      * @param  point   graphics position to which the selection event refers
+     * @return   per-layer array of closest dataset row index
      */
     @Slow
-    private PointSelectionEvent createClickEvent( Surface surface,
-                                                  Point point ) {
+    private long[] findClosestRows( Surface surface, PlotLayer[] layers,
+                                    Point point ) {
 
         /* The donkey work here is done by PlotUtil.getClosestRow.
          * However, we need to do some disentangling in order to work out
@@ -423,14 +585,14 @@ public class PlotDisplay<P,A> extends JComponent {
          * SubClouds, and plots often have the same data plotted in
          * different layers, this may may well have fewer entries
          * than the number of layers. */
-        int nl = layers_.length;
+        int nl = layers.length;
         SubCloud[][] layerClouds = new SubCloud[ nl ][];
         Map<SubCloud,IndicatedRow> cloudMap =
             new LinkedHashMap<SubCloud,IndicatedRow>();
         for ( int il = 0; il < nl; il++ ) {
             SubCloud[] clouds =
                 SubCloud
-               .createSubClouds( new PlotLayer[] { layers_[ il ] }, true );
+               .createSubClouds( new PlotLayer[] { layers[ il ] }, true );
             layerClouds[ il ] = clouds;
             for ( SubCloud cloud : clouds ) {
                 cloudMap.put( cloud, null );
@@ -473,13 +635,12 @@ public class PlotDisplay<P,A> extends JComponent {
         /* Return the result, unless we've been interrupted, which would
          * have had the result of terminating the tuple sequences mid-run
          * and hence generating invalid results. */
-        return Thread.currentThread().isInterrupted()
-             ? null
-             : new PointSelectionEvent( this, point, 0, closestRows );
+        return Thread.currentThread().isInterrupted() ? null : closestRows;
     }
 
     /**
-     * Creates a new PlotDisplay, interrogating a supplied ConfigMap object.
+     * Utility method to construct a single-zoned PlotDisplay,
+     * with profile, aspect and navigator obtained from a supplied config map.
      * This will perform ranging from data if it is required;
      * in that case, it may take time to execute.
      *
@@ -498,8 +659,8 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
-     * @param surfaceAuxRange  determines whether aux ranges are recalculated
-     *                         when the surface changes
+     * @param surfaceAuxRanging  determines whether aux ranges are
+     *                           recalculated when the surface changes
      * @param  navigable true for an interactive plot
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
@@ -507,14 +668,17 @@ public class PlotDisplay<P,A> extends JComponent {
      * @return  new plot component
      */
     @Slow
-    public static <P,A> PlotDisplay<P,A>
-            createPlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
-                               ConfigMap config, Icon legend, float[] legPos,
-                               String title, ShadeAxisFactory shadeFact,
-                               Range shadeFixRange, PaperTypeSelector ptSel,
-                               Compositor compositor, DataStore dataStore,
-                               boolean surfaceAuxRange, boolean navigable,
-                               boolean caching ) {
+    public static <P,A> PlotDisplay
+            createPlotDisplay( PlotLayer[] layers,
+                               SurfaceFactory<P,A> surfFact, ConfigMap config,
+                               Icon legend, float[] legPos, String title,
+                               ShadeAxisFactory shadeFact,
+                               Range shadeFixRange,
+                               PaperTypeSelector ptSel, Compositor compositor,
+                               DataStore dataStore, boolean surfaceAuxRanging,
+                               boolean navigable, boolean caching ) {
+
+        /* Read profile from config. */
         P profile = surfFact.createProfile( config );
 
         /* Read ranges from data if necessary. */
@@ -524,23 +688,98 @@ public class PlotDisplay<P,A> extends JComponent {
                        : null;
         PlotUtil.logTime( logger_, "Range", t0 );
 
-        /* Work out the initial aspect. */
+        /* Work out the initial aspect using config. */
         A aspect = surfFact.createAspect( profile, config, ranges );
 
-        /* Get a navigator. */
+        /* Construct navigator using config. */
         Navigator<A> navigator = navigable ? surfFact.createNavigator( config )
                                            : null;
-     
-        /* Create and return the component. */
-        return new PlotDisplay<P,A>( layers, surfFact, profile, aspect,
-                                     legend, legPos, title, shadeFact,
-                                     shadeFixRange, ptSel, compositor,
-                                     dataStore, surfaceAuxRange, navigator,
-                                     caching );
+
+        /* Prepare gang configuration; the gang has only a single member. */
+        Ganger<A> ganger = new SingleGanger<A>();
+        ZoneContent[] contents = new ZoneContent[] {
+            new ZoneContent( layers, legend, legPos, title ),
+        };
+        A[] aspects = (A[]) new Object[] { aspect };
+        P[] profiles = (P[]) new Object[] { profile };
+        ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[] { shadeFact };
+        Range[] shadeFixRanges = new Range[] { shadeFixRange };
+
+        /* Construct and return the component. */
+        return new PlotDisplay<P,A>( ganger, surfFact, 1, contents,
+                                     profiles, aspects, 
+                                     shadeFacts, shadeFixRanges, navigator,
+                                     ptSel, compositor, dataStore,
+                                     surfaceAuxRanging, caching );
     }
 
     /**
-     * Creates an icon which will paint the content of this plot.
+     * Utility method to construct a ganged PlotDisplay, with aspect
+     * obtained from a supplied config map.
+     * This will perform ranging from data if it is required;
+     * in that case, it may take time to execute.
+     *
+     * @param  ganger  definses plot grouping
+     * @param  surfFact   surface factory
+     * @param  nz   number of plot zones in group
+     * @param  contents   per-zone content information (nz-element array)
+     * @param  profiles   per-zone profiles (nz-element array)
+     * @param  aspectConfigs   per-zone config map providing entries
+     *                         for surf.getAspectKeys (nz-element arrays)
+     * @param  shadeFacts   shader axis factorys by zone (nz-element array),
+     *                      elements may be null if not required
+     * @param  shadeFixRanges  fixed shader ranges by zone (nz-element array)
+     *                         elements may be null for auto-range or if no
+     *                         shade axis
+     * @param  navigator  user gesture navigation controller,
+     *                    or null for a non-interactive plot
+     * @param  ptSel    paper type selector
+     * @param  compositor  compositor for pixel composition
+     * @param  dataStore   data storage object
+     * @param surfaceAuxRanging  determines whether aux ranges are recalculated
+     *                           when the surface changes
+     * @param  caching   if true, plot image will be cached where applicable,
+     *                   if false it will be regenerated from the data
+     *                   on every repaint
+     * @return   new plot component
+     */
+    @Slow
+    public static <P,A> PlotDisplay<P,A>
+            createGangDisplay( Ganger<A> ganger, SurfaceFactory<P,A> surfFact,
+                               int nz, ZoneContent[] contents, P[] profiles,
+                               ConfigMap[] aspectConfigs,
+                               ShadeAxisFactory[] shadeFacts,
+                               Range[] shadeFixRanges, Navigator<A> navigator,
+                               PaperTypeSelector ptSel, Compositor compositor,
+                               DataStore dataStore, boolean surfaceAuxRanging,
+                               boolean caching ) {
+
+        /* Determine aspects.  This may or may not require reading the ranges
+         * from the data (slow).  */
+        A[] aspects = (A[]) new Object[ nz ];
+        long t0 = System.currentTimeMillis();
+        for ( int iz = 0; iz < nz; iz++ ) {
+            P profile = profiles[ iz ];
+            ConfigMap config = aspectConfigs[ iz ];
+            Range[] ranges = surfFact.useRanges( profile, config )
+                           ? surfFact.readRanges( profile,
+                                                  contents[ iz ].getLayers(),
+                                                  dataStore )
+                           : null;
+            aspects[ iz ] = surfFact.createAspect( profile, config, ranges );
+        }
+        PlotUtil.logTime( logger_, "Range", t0 );
+ 
+        /* Construct and return display. */
+        return new PlotDisplay<P,A>( ganger, surfFact, nz, contents,
+                                     profiles, aspects,
+                                     shadeFacts, shadeFixRanges, navigator,
+                                     ptSel, compositor, dataStore,
+                                     surfaceAuxRanging, caching );
+    }
+
+    /**
+     * Creates an icon which will paint a surface and the layers on it
      *
      * @param  placer  plot placement
      * @param  layers   layers constituting plot content
@@ -639,5 +878,44 @@ public class PlotDisplay<P,A> extends JComponent {
          * data ranges for the plot. */
         return AuxScale.getClippedRanges( scales, auxDataRanges, auxFixRanges,
                                           auxSubranges, auxLogFlags );
+    }
+
+    /**
+     * Aggregates per-zone information required for plotting.
+     * Some of the members are mutable.
+     */
+    private static class Zone<P,A> {
+        final ZoneContent content_;
+        final P profile_;
+        final ShadeAxisFactory shadeFact_;
+        final Range shadeFixRange_;
+        A aspect_;
+        Map<AuxScale,Range> auxRanges_;
+        Surface approxSurf_;
+        ShadeAxis shadeAxis_;
+
+        /** If non-null, indicates surface is currently up to date. */
+        Surface surface_;
+
+        /** If non-null, indicates icon is currently up to date. */
+        Icon icon_;
+
+        /**
+         * Constructor.
+         *
+         * @param  content   zone content
+         * @param  profile   zone profile
+         * @param  shadeFact  shade axis factory, or null
+         * @param  shadeFixRange  fixed range for shader axis, or null
+         * @param  initialAspect   aspect for initial display
+         */
+        Zone( ZoneContent content, P profile, ShadeAxisFactory shadeFact,
+              Range shadeFixRange, A initialAspect ) {
+            content_ = content;
+            profile_ = profile;
+            shadeFact_ = shadeFact;
+            shadeFixRange_ = shadeFixRange;
+            aspect_ = initialAspect;
+        }
     }
 }

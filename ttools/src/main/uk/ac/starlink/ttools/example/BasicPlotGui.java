@@ -240,10 +240,13 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         long irow = evt.getClosestRows()[ 0 ];  // only one layer
         String txt = irow >= 0 ? ( "Point #" + irow ) : "(no point)";
         Point gpos = evt.getPoint();
-        Surface surface = plotDisplay_.getSurface();
-        double[] dpos = surface.graphicsToData( gpos, null );
-        if ( dpos != null ) {
-            txt += " at (" + surface.formatPosition( dpos ) + ")";
+        int isurf = evt.getSurfaceIndex();
+        Surface surface = plotDisplay_.getSurfaces()[ isurf ];
+        if ( surface != null ) {
+            double[] dpos = surface.graphicsToData( gpos, null );
+            if ( dpos != null ) {
+                txt += " at (" + surface.formatPosition( dpos ) + ")";
+            }
         }
         System.err.println( "\t" + txt );
     }

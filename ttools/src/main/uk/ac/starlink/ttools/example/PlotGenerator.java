@@ -118,14 +118,14 @@ public class PlotGenerator<P,A> {
      *                   on every repaint
      * @return  plot display component
      */
-    public PlotDisplay createPlotDisplay( Navigator<A> navigator,
-                                          boolean surfaceAuxRange,
-                                          boolean caching ) {
-        PlotDisplay display = 
-            new PlotDisplay( layers_, surfFact_, profile_, aspect_, legend_,
-                             legPos_, title_, shadeFact_, shadeFixRange_,
-                             ptSel_, compositor_, dataStore_,
-                             surfaceAuxRange, navigator, caching );
+    public PlotDisplay<P,A> createPlotDisplay( Navigator<A> navigator,
+                                               boolean surfaceAuxRange,
+                                               boolean caching ) {
+        PlotDisplay<P,A> display =
+            new PlotDisplay( surfFact_, layers_, profile_, legend_, legPos_,
+                             title_, aspect_, shadeFact_, shadeFixRange_,
+                             navigator, ptSel_, compositor_, dataStore_,
+                             surfaceAuxRange, caching );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
         display.setDataInsets( dataInsets_ );
         return display;
