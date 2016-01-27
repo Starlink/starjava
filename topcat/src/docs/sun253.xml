@@ -23035,6 +23035,8 @@ introduced since the last version:
     <li>Add <ref id="form-fill">Fill</ref> plotting mode for Plane and Time
         plots.</li>
     <li>Fix bug in cumulative histogram calculation.</li>
+    <li>Fix bugs that led to timezone-dependent results when
+        reading ISO-8601 or decimal year time columns.</li>
     </ul>
     </p></dd>
 

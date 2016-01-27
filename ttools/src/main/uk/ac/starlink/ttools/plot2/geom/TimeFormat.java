@@ -50,10 +50,12 @@ public abstract class TimeFormat {
     /** Time format for seconds since the Unix epoch. */
     public static final TimeFormat UNIX_SECONDS;
 
+    /** UTC time zone. */
+    private final static TimeZone UTC = TimeZone.getTimeZone( "UTC" );
+
     /** Returns a list of all the known TimeFormat implementations. */
     private static final TimeFormat[] KNOWN_FORMATS = new TimeFormat[] {
-        ISO8601 = new Iso8601TimeFormat( 'T', TimeZone.getTimeZone( "UTC" ),
-                                         Locale.UK ),
+        ISO8601 = new Iso8601TimeFormat( 'T', UTC, Locale.UK ),
         DECIMAL_YEAR = decimalYear_ =
                 new NumericTimeFormat( "Year", "Decimal year" ) {
             public double fromUnixSeconds( double unixSec ) {
@@ -153,7 +155,7 @@ public abstract class TimeFormat {
 
         /* For sensible dates, get the leap seconds right. */
         if ( Math.abs( unixSec ) < 1e10 ) {
-            Calendar cal = new GregorianCalendar();
+            Calendar cal = new GregorianCalendar( UTC, Locale.UK );
             cal.setTimeInMillis( (long) ( unixSec * 1000 ) );
             int year = cal.get( Calendar.YEAR );
             cal.clear();
@@ -185,7 +187,9 @@ public abstract class TimeFormat {
     public static double decimalYearToUnixSeconds( double decYear ) {
         int year = (int) decYear;
         double yearFraction = decYear - year;
-        Calendar cal = new GregorianCalendar( year, 0, 1 );
+        Calendar cal = new GregorianCalendar( UTC, Locale.UK );
+        cal.clear();
+        cal.set( year, 0, 1 );
         long millis0 = cal.getTimeInMillis();
         cal.add( Calendar.YEAR, 1 );
         long millis1 = cal.getTimeInMillis();

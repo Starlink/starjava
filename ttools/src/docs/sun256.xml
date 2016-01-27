@@ -10508,6 +10508,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add <ref id="layer-fill">Fill</ref> layer type for Plane and Time
         plots.</li>
     <li>Fix bug in cumulative histogram calculation.</li>
+    <li>Fix bugs that led to timezone-dependent results when
+        reading ISO-8601 or decimal year time columns.</li>
     </ul>
     </p></dd>
 

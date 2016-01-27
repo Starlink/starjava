@@ -2,6 +2,8 @@ package uk.ac.starlink.table;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +49,8 @@ public abstract class TimeMapper implements DomainMapper {
 
     /** Mapper for numeric values (already) in unix seconds. */
     public static final TimeMapper UNIX_SECONDS;
+
+    private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
 
     /** Mapper for ISO-8601 strings. */
     public static final TimeMapper ISO_8601;
@@ -129,7 +133,9 @@ public abstract class TimeMapper implements DomainMapper {
                 else {
                     int year = (int) decYear;
                     double yearFraction = decYear - year;
-                    Calendar cal = new GregorianCalendar( year, 0, 1 );
+                    Calendar cal = new GregorianCalendar( UTC, Locale.UK );
+                    cal.clear();
+                    cal.set( year, 0, 1, 0, 0, 0 );
                     long millis0 = cal.getTimeInMillis();
                     cal.add( Calendar.YEAR, 1 );
                     long millis1 = cal.getTimeInMillis();
@@ -289,8 +295,9 @@ public abstract class TimeMapper implements DomainMapper {
                                           int hour, int min, double sec ) {
             int intSec = (int) sec;
             double fracSec = sec - intSec;
-            Calendar cal = new GregorianCalendar( year, month - 1, dom,
-                                                  hour, min, (int) sec );
+            Calendar cal = new GregorianCalendar( UTC, Locale.UK );
+            cal.clear();
+            cal.set( year, month - 1, dom, hour, min, (int) sec );
             double calMillis = cal.getTimeInMillis();
             double calSec = calMillis * 1e-3;
             return calSec + fracSec;
