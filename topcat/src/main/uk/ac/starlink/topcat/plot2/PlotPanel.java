@@ -129,6 +129,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private Map<SubCloud,double[]> highlightMap_;
     private Decoration navDecoration_;
 
+    private static final boolean WITH_SCROLL = true;
     private static final Icon HIGHLIGHTER = new HighlightIcon();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
@@ -154,8 +155,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * which as it stands they should not be.
      *
      * @param  storeFact   data store factory implementation
-     * @param  zoneDef   supplier of required information concerning 
-     *                   plot zone content and configuration
+     * @param  zoneDef   supplier of required information concerning
+     *                    plot zone content and configuration
      * @param  posFact  supplier of plot position settings
      * @param  ptSel   rendering policy
      * @param  compositor  compositor for composition of transparent pixels
@@ -526,10 +527,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                              .toArray( new double[ 0 ][] );
 
         /* Turn it into a plot job and return. */
-        return new PlotJob<P,A>( workings_, layers, surfFact, profile,
-                                 fixAspect, geomFixRanges, surfConfig,
-                                 shadeFact, auxFixRanges, auxSubranges,
-                                 auxLogFlags, legend, legpos, title, storeFact_,
+        PlotJob.Zone<P,A> zone =
+            new PlotJob.Zone<P,A>( layers, profile, fixAspect,
+                                   geomFixRanges, surfConfig, shadeFact,
+                                   auxFixRanges, auxSubranges, auxLogFlags,
+                                   legend, legpos, title );
+        return new PlotJob<P,A>( workings_, surfFact, zone, storeFact_,
                                  bounds, insets, paperType, graphicsConfig,
                                  bgColor, highlights );
     }
@@ -792,19 +795,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private static class PlotJob<P,A> {
        
         private final Workings<A> oldWorkings_;
-        private final PlotLayer[] layers_;
         private final SurfaceFactory<P,A> surfFact_;
-        private final P profile_;
-        private final A fixAspect_;
-        private final Range[] geomFixRanges_;
-        private final ConfigMap aspectConfig_;
-        private final ShadeAxisFactory shadeFact_;
-        private final Map<AuxScale,Range> auxFixRanges_;
-        private final Map<AuxScale,Subrange> auxSubranges_;
-        private final Map<AuxScale,Boolean> auxLogFlags_;
-        private final Icon legend_;
-        private final float[] legpos_;
-        private final String title_;
+        private final Zone zone_;
         private final DataStoreFactory storeFact_;
         private final Rectangle bounds_;
         private final Insets insets_;
@@ -818,22 +810,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *
          * @param   oldWorkings  workings object from a previous run;
          *          parts of it may be re-used where appropriate
-         * @param   layers  plot layer array
          * @param   surfFact  surface factory
-         * @param   profile   surface profile
-         * @param   fixAspect   exact surface aspect, or null if not known
-         * @param   geomFixRanges  data ranges for geometry coordinates,
-         *                         if known, else null
-         * @param   aspectConfig  config map containing aspect keys
-         * @param   shadeFact   shader axis factory
-         * @param   auxFixRange  fixed ranges for aux scales, where known
-         * @param   auxSubranges  subranges for aux scales, where present
-         * @param   auxLogFlags  logarithmic slcae flags for aux scales
-         *                       (either absent or false means linear)
-         * @param   legend   legend icon, or null
-         * @param   legpos   legend position as (x,y) array of relative
-         *                   positions (0-1), or null if legend absent/external
-         * @param   title    plot title, or null
+         * @param   zone  information about target plot zone
          * @param   storeFact  data store factory implementation
          * @param   bounds   plot data bounds
          * @param   insets   space reserved for annotations between
@@ -843,31 +821,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param   bgColor   background colour
          * @param   highlights   array of highlight data positions
          */
-        PlotJob( Workings<A> oldWorkings, PlotLayer[] layers,
-                 SurfaceFactory<P,A> surfFact, P profile, A fixAspect,
-                 Range[] geomFixRanges, ConfigMap aspectConfig,
-                 ShadeAxisFactory shadeFact,
-                 Map<AuxScale,Range> auxFixRanges,
-                 Map<AuxScale,Subrange> auxSubranges,
-                 Map<AuxScale,Boolean> auxLogFlags,
-                 Icon legend, float[] legpos, String title,
+        PlotJob( Workings<A> oldWorkings, SurfaceFactory<P,A> surfFact,
+                 Zone zone,
                  DataStoreFactory storeFact, Rectangle bounds, Insets insets,
                  PaperType paperType, GraphicsConfiguration graphicsConfig,
                  Color bgColor, double[][] highlights ) {
             oldWorkings_ = oldWorkings;
-            layers_ = layers;
             surfFact_ = surfFact;
-            profile_ = profile;
-            fixAspect_ = fixAspect;
-            geomFixRanges_ = geomFixRanges;
-            aspectConfig_ = aspectConfig;
-            shadeFact_ = shadeFact;
-            auxFixRanges_ = auxFixRanges;
-            auxSubranges_ = auxSubranges;
-            auxLogFlags_ = auxLogFlags;
-            legend_ = legend;
-            legpos_ = legpos;
-            title_ = title;
+            zone_ = zone;
             storeFact_ = storeFact;
             bounds_ = bounds;
             insets_ = insets;
@@ -888,6 +849,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                     if null, progress is not logged
          * @return  workings object or null
          */
+        @Slow
         public Workings<A> calculateWorkings( int rowStep,
                                               BoundedRangeModel progModel ) {
             try {
@@ -923,6 +885,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @throws   IOException  in case of IO error
          * @throws   InterruptedException   if interrupted
          */
+        @Slow
         private Workings<A>
                 attemptCalculateWorkings( int rowStep,
                                           BoundedRangeModel progModel )
@@ -984,7 +947,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             /* Assess what data specs we will need. */
             DataSpec[] dataSpecs =
-                getDataSpecs( layers_ ).toArray( new DataSpec[ 0 ] );
+                getDataSpecs( zone_.layers_ ).toArray( new DataSpec[ 0 ] );
 
             /* If the oldWorkings data store contains the required data,
              * use that. */
@@ -1028,6 +991,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                             final BoundedRangeModel progModel,
                                             long ntuple ) {
             long startPlot = System.currentTimeMillis();
+            Zone<P,A> zone = zone_;
    
             /* Record the base data store which will be stored in the
              * output workings object, and prepare a data store decorated
@@ -1053,24 +1017,26 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * explicitly, use that. */
             final A aspect;
             final Range[] geomRanges;
-            if ( fixAspect_ != null ) {
-                aspect = fixAspect_;
-                geomRanges = geomFixRanges_;
+            if ( zone.fixAspect_ != null ) {
+                aspect = zone.fixAspect_;
+                geomRanges = zone.geomFixRanges_;
             }
 
             /* Otherwise work them out from the supplied config and
              * by scanning the data if necessary. */
             else {
-                if ( geomFixRanges_ != null ) {
-                    geomRanges = geomFixRanges_;
+                if ( zone.geomFixRanges_ != null ) {
+                    geomRanges = zone.geomFixRanges_;
                 }
-                else if ( ! surfFact_.useRanges( profile_, aspectConfig_ ) ) {
+                else if ( ! surfFact_.useRanges( zone.profile_,
+                                                 zone.aspectConfig_ ) ) {
                     geomRanges = null;
                 }
                 else {
                     long startRange = System.currentTimeMillis();
                     geomRanges =
-                        surfFact_.readRanges( profile_, layers_, dataStore1 );
+                        surfFact_.readRanges( zone.profile_, zone.layers_,
+                                              dataStore1 );
                     if ( Thread.currentThread().isInterrupted() ) {
                         return null;
                     }
@@ -1078,22 +1044,23 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     // could cache the ranges here by point cloud ID
                     // for possible later use.
                 }
-                aspect = surfFact_.createAspect( profile_, aspectConfig_,
+                aspect = surfFact_.createAspect( zone.profile_,
+                                                 zone.aspectConfig_,
                                                  geomRanges );
             }
 
             /* Work out the required aux scale ranges.
              * First find out which ones we need. */
-            AuxScale[] scales = AuxScale.getAuxScales( layers_ );
+            AuxScale[] scales = AuxScale.getAuxScales( zone.layers_ );
 
             /* See if we can re-use the aux ranges from the oldWorkings.
              * This test isn't perfect, the layers may have changed
              * without requiring a recalculation of the Aux scales
              * (e.g. only colour map may have changed).  Oh well. */
             Surface approxSurf =
-                surfFact_.createSurface( bounds_, profile_, aspect );
+                surfFact_.createSurface( bounds_, zone.profile_, aspect );
             Map<AuxScale,Range> auxDataRanges =
-                  layerListEquals( layers_, oldWorkings_.layers_ )
+                  layerListEquals( zone.layers_, oldWorkings_.layers_ )
                && PlotUtil.equals( approxSurf, oldWorkings_.approxSurf_ )
                 ? oldWorkings_.auxDataRanges_
                 : new HashMap<AuxScale,Range>();
@@ -1102,11 +1069,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * if any, and calculate them. */
             AuxScale[] calcScales =
                 AuxScale.getMissingScales( scales, auxDataRanges,
-                                           auxFixRanges_ );
+                                           zone.auxFixRanges_ );
             if ( calcScales.length > 0 ) {
                 long startAux = System.currentTimeMillis();
                 Map<AuxScale,Range> calcRanges =
-                    AuxScale.calculateAuxRanges( calcScales, layers_,
+                    AuxScale.calculateAuxRanges( calcScales, zone.layers_,
                                                  approxSurf, dataStore1 );
                 if ( Thread.currentThread().isInterrupted() ) {
                     return null;
@@ -1119,12 +1086,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * actual ranges for use in the plot. */
             Map<AuxScale,Range> auxClipRanges =
                 AuxScale.getClippedRanges( scales, auxDataRanges,
-                                           auxFixRanges_, auxSubranges_,
-                                           auxLogFlags_ );
+                                           zone.auxFixRanges_,
+                                           zone.auxSubranges_,
+                                           zone.auxLogFlags_ );
 
             /* Extract and use colour scale range for the shader. */
             Range shadeRange = auxClipRanges.get( AuxScale.COLOR );
-            ShadeAxis shadeAxis = shadeFact_.createShadeAxis( shadeRange );
+            ShadeAxis shadeAxis =
+                zone.shadeFact_.createShadeAxis( shadeRange );
 
             /* Work out the graphics bounds of the data region. */
             final Rectangle dataBounds;
@@ -1134,21 +1103,23 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             else {
                 Rectangle autoDataBounds =
                     PlotPlacement
-                   .calculateDataBounds( bounds_, surfFact_, profile_, aspect,
-                                         true, legend_, legpos_, title_,
-                                         shadeAxis );
+                   .calculateDataBounds( bounds_, surfFact_,
+                                         zone.profile_, aspect, WITH_SCROLL,
+                                         zone.legend_, zone.legpos_,
+                                         zone.title_, shadeAxis );
                 dataBounds = adjustDataBounds( bounds_, autoDataBounds,
                                                insets_ );
             }
 
             /* Get the plot surface. */
             Surface surface =
-                surfFact_.createSurface( dataBounds, profile_, aspect );
+                surfFact_.createSurface( dataBounds, zone.profile_, aspect );
 
             /* Get the basic plot decorations. */
             Decoration[] basicDecs =
-                PlotPlacement.createPlotDecorations( surface, legend_, legpos_,
-                                                     title_, shadeAxis );
+                PlotPlacement
+               .createPlotDecorations( surface, zone.legend_, zone.legpos_,
+                                       zone.title_, shadeAxis );
             List<Decoration> decList = new ArrayList<Decoration>();
             decList.addAll( Arrays.asList( basicDecs ) );
 
@@ -1176,7 +1147,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * expensive calculations (data scans), since the ranges
              * will have been picked up from the previous plot. */
             boolean sameDataIcon =
-                new DataIconId( surface, layers_, auxClipRanges )
+                new DataIconId( surface, zone.layers_, auxClipRanges )
                .equals( oldWorkings_.getDataIconId() );
             boolean samePlot =
                 sameDataIcon &&
@@ -1205,13 +1176,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Otherwise calculate plans and perform drawing to a new
              * cached data icon (image buffer). */
             else {
-                int nl = layers_.length;
+                int nl = zone.layers_.length;
                 long startPlan = System.currentTimeMillis();
                 Drawing[] drawings = new Drawing[ nl ];
                 for ( int il = 0; il < nl; il++ ) {
                     drawings[ il ] =
-                        layers_[ il ].createDrawing( surface, auxClipRanges,
-                                                     paperType_ );
+                        zone.layers_[ il ]
+                       .createDrawing( surface, auxClipRanges, paperType_ );
                 }
                 plans = calculateDrawingPlans( drawings, dataStore1,
                                                oldWorkings_.plans_ );
@@ -1219,7 +1190,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     return null;
                 }
                 PlotUtil.logTime( logger_, "Plan", startPlan );
-                logger_.info( "Layers: " + layers_.length + ", "
+                logger_.info( "Layers: " + zone.layers_.length + ", "
                             + "Paper: " + paperType_ );
                 reports = new ReportMap[ nl ];
                 for ( int il = 0; il < nl; il++ ) {
@@ -1239,7 +1210,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Create the final plot icon, and store the inputs and
              * outputs as a new Workings object for return. */
             Icon plotIcon = placer.createPlotIcon( dataIcon );
-            return new Workings<A>( layers_, dataStore0, approxSurf,
+            return new Workings<A>( zone.layers_, dataStore0, approxSurf,
                                     geomRanges, aspect, auxDataRanges,
                                     auxClipRanges, placer, plans, dataIcon,
                                     plotIcon, reports, plotMillis, rowStep );
@@ -1254,19 +1225,21 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @return   plot surface used for this plot job, or null
          */
         public Surface getSurfaceQuickly() {
+            Zone<P,A> zone = zone_;
 
             /* Implementation follows that of the relevant parts of
              * attemptCalculateWorkings. */
             final A aspect;
-            if ( fixAspect_ != null ) {
-                aspect = fixAspect_;
+            if ( zone.fixAspect_ != null ) {
+                aspect = zone.fixAspect_;
             }
             else {
                 final Range[] geomRanges;
-                if ( geomFixRanges_ != null ) {
-                    geomRanges = geomFixRanges_;
+                if ( zone.geomFixRanges_ != null ) {
+                    geomRanges = zone.geomFixRanges_;
                 }
-                else if ( ! surfFact_.useRanges( profile_, aspectConfig_ ) ) {
+                else if ( ! surfFact_.useRanges( zone.profile_,
+                                                 zone.aspectConfig_ ) ) {
                     geomRanges = null;
                 }
 
@@ -1274,32 +1247,35 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 else {
                     return null;
                 }
-                aspect = surfFact_.createAspect( profile_, aspectConfig_,
+                aspect = surfFact_.createAspect( zone.profile_,
+                                                 zone.aspectConfig_,
                                                  geomRanges );
             }
 
-            AuxScale[] scales = AuxScale.getAuxScales( layers_ );
+            AuxScale[] scales = AuxScale.getAuxScales( zone.layers_ );
             Map<AuxScale,Range> auxDataRanges =
-                  layerListEquals( layers_, oldWorkings_.layers_ )
+                  layerListEquals( zone.layers_, oldWorkings_.layers_ )
                 ? oldWorkings_.auxDataRanges_
                 : new HashMap<AuxScale,Range>();
             AuxScale[] calcScales =
                 AuxScale.getMissingScales( scales, auxDataRanges,
-                                           auxFixRanges_ );
+                                           zone.auxFixRanges_ );
             if ( calcScales.length > 0 ) {
                 return null;
             }
 
             Map<AuxScale,Range> auxClipRanges =
                 AuxScale.getClippedRanges( scales, auxDataRanges,
-                                           auxFixRanges_, auxSubranges_,
-                                           auxLogFlags_ );
+                                           zone.auxFixRanges_,
+                                           zone.auxSubranges_,
+                                           zone.auxLogFlags_ );
             Range shadeRange = auxClipRanges.get( AuxScale.COLOR );
-            ShadeAxis shadeAxis = shadeFact_.createShadeAxis( shadeRange );
+            ShadeAxis shadeAxis = zone.shadeFact_.createShadeAxis( shadeRange );
             PlotPlacement placer =
-                PlotPlacement.createPlacement( bounds_, surfFact_, profile_,
-                                               aspect, true, legend_, legpos_,
-                                               title_, shadeAxis );
+                PlotPlacement
+               .createPlacement( bounds_, surfFact_, zone.profile_, aspect,
+                                 WITH_SCROLL, zone.legend_, zone.legpos_,
+                                 zone.title_, shadeAxis );
             return placer.getSurface();
         }
 
@@ -1409,6 +1385,65 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 oldPlanSet.add( plan );
             }
             return plans;
+        }
+     
+        /**
+         * Aggregates per-zone information for a PlotJob.
+         */
+        static class Zone<P,A> {
+            final PlotLayer[] layers_;
+            final P profile_;
+            final A fixAspect_;
+            final Range[] geomFixRanges_;
+            final ConfigMap aspectConfig_;
+            final ShadeAxisFactory shadeFact_;
+            final Map<AuxScale,Range> auxFixRanges_;
+            final Map<AuxScale,Subrange> auxSubranges_;
+            final Map<AuxScale,Boolean> auxLogFlags_;
+            final Icon legend_;
+            final float[] legpos_;
+            final String title_;
+
+            /**
+             * Constructor.
+             *
+             * @param   layers  plot layer array
+             * @param   profile   surface profile
+             * @param   fixAspect   exact surface aspect, or null if not known
+             * @param   geomFixRanges  data ranges for geometry coordinates,
+             *                         if known, else null
+             * @param   aspectConfig  config map containing aspect keys
+             * @param   shadeFact   shader axis factory
+             * @param   auxFixRanges  fixed ranges for aux scales, where known
+             * @param   auxSubranges  subranges for aux scales, where present
+             * @param   auxLogFlags  logarithmic slcae flags for aux scales
+             *                       (either absent or false means linear)
+             * @param   legend   legend icon, or null
+             * @param   legpos   legend position as (x,y) array of
+             *                   relative positions (0-1),
+             *                   or null if legend absent/external
+             * @param   title    plot title, or null
+             */
+            Zone( PlotLayer[] layers, P profile, A fixAspect,
+                  Range[] geomFixRanges, ConfigMap aspectConfig,
+                  ShadeAxisFactory shadeFact,
+                  Map<AuxScale,Range> auxFixRanges,
+                  Map<AuxScale,Subrange> auxSubranges,
+                  Map<AuxScale,Boolean> auxLogFlags,
+                  Icon legend, float[] legpos, String title ) {
+                layers_ = layers;
+                profile_ = profile;
+                fixAspect_ = fixAspect;
+                geomFixRanges_ = geomFixRanges;
+                aspectConfig_ = aspectConfig;
+                shadeFact_ = shadeFact;
+                auxFixRanges_ = auxFixRanges;
+                auxSubranges_ = auxSubranges;
+                auxLogFlags_ = auxLogFlags;
+                legend_ = legend;
+                legpos_ = legpos;
+                title_ = title;
+            }
         }
     }
 
@@ -1727,7 +1762,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         @Equality
         private Object getSimilarityObject( PlotJob plotJob ) {
             return layerListNoStyle( plotJob == null ? new PlotLayer[ 0 ]
-                                                     : plotJob.layers_ );
+                                                     : plotJob.zone_.layers_ );
         }
     }
 
