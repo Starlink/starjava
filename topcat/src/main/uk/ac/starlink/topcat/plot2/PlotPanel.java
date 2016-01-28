@@ -932,8 +932,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 long ntuple = progModel == null
                             ? -1
                             : countTuples( dataStore, rowStep );
-                return createWorkings( layers_, dataStore, rowStep,
-                                       progModel, ntuple );
+                return createWorkings( dataStore, rowStep, progModel, ntuple );
             }
             else {
                 return null;
@@ -958,8 +957,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             long cStart = System.currentTimeMillis();
 
             /* Do a dummy plot using that data store. */
-            if ( createWorkings( layers_, countStore, rowStep, null, -1 )
-                 != null ) {
+            if ( createWorkings( countStore, rowStep, null, -1 ) != null ) {
                 PlotUtil.logTime( logger_, "CountProgress", cStart );
 
                 /* If successful, interrogate the data store for the number
@@ -1017,7 +1015,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * can be determined to be the same as the old one, or because
          * the calculations were interrupted.
          *
-         * @param  layers   layers to plot
          * @param  dataStore  data store
          * @param  rowStep   stride for row subsampling, 1 for all rows
          * @param  progModel  progress bar model to update as tuples are read,
@@ -1027,8 +1024,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @return  workings object representing completed plot, or null
          */
         @Slow
-        private Workings<A> createWorkings( PlotLayer[] layers,
-                                            DataStore dataStore, int rowStep,
+        private Workings<A> createWorkings( DataStore dataStore, int rowStep,
                                             final BoundedRangeModel progModel,
                                             long ntuple ) {
             long startPlot = System.currentTimeMillis();
@@ -1088,7 +1084,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             /* Work out the required aux scale ranges.
              * First find out which ones we need. */
-            AuxScale[] scales = AuxScale.getAuxScales( layers );
+            AuxScale[] scales = AuxScale.getAuxScales( layers_ );
 
             /* See if we can re-use the aux ranges from the oldWorkings.
              * This test isn't perfect, the layers may have changed
@@ -1097,7 +1093,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Surface approxSurf =
                 surfFact_.createSurface( bounds_, profile_, aspect );
             Map<AuxScale,Range> auxDataRanges =
-                  layerListEquals( layers, oldWorkings_.layers_ )
+                  layerListEquals( layers_, oldWorkings_.layers_ )
                && PlotUtil.equals( approxSurf, oldWorkings_.approxSurf_ )
                 ? oldWorkings_.auxDataRanges_
                 : new HashMap<AuxScale,Range>();
@@ -1110,7 +1106,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             if ( calcScales.length > 0 ) {
                 long startAux = System.currentTimeMillis();
                 Map<AuxScale,Range> calcRanges =
-                    AuxScale.calculateAuxRanges( calcScales, layers,
+                    AuxScale.calculateAuxRanges( calcScales, layers_,
                                                  approxSurf, dataStore1 );
                 if ( Thread.currentThread().isInterrupted() ) {
                     return null;
@@ -1180,7 +1176,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * expensive calculations (data scans), since the ranges
              * will have been picked up from the previous plot. */
             boolean sameDataIcon =
-                new DataIconId( surface, layers, auxClipRanges )
+                new DataIconId( surface, layers_, auxClipRanges )
                .equals( oldWorkings_.getDataIconId() );
             boolean samePlot =
                 sameDataIcon &&
@@ -1209,13 +1205,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Otherwise calculate plans and perform drawing to a new
              * cached data icon (image buffer). */
             else {
-                int nl = layers.length;
+                int nl = layers_.length;
                 long startPlan = System.currentTimeMillis();
                 Drawing[] drawings = new Drawing[ nl ];
                 for ( int il = 0; il < nl; il++ ) {
                     drawings[ il ] =
-                        layers[ il ].createDrawing( surface, auxClipRanges,
-                                                    paperType_ );
+                        layers_[ il ].createDrawing( surface, auxClipRanges,
+                                                     paperType_ );
                 }
                 plans = calculateDrawingPlans( drawings, dataStore1,
                                                oldWorkings_.plans_ );
@@ -1243,7 +1239,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Create the final plot icon, and store the inputs and
              * outputs as a new Workings object for return. */
             Icon plotIcon = placer.createPlotIcon( dataIcon );
-            return new Workings<A>( layers, dataStore0, approxSurf,
+            return new Workings<A>( layers_, dataStore0, approxSurf,
                                     geomRanges, aspect, auxDataRanges,
                                     auxClipRanges, placer, plans, dataIcon,
                                     plotIcon, reports, plotMillis, rowStep );
