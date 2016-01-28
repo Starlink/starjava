@@ -110,19 +110,14 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
     private final DataStoreFactory storeFact_;
-    private final AxisController<P,A> axisController_;
-    private final Factory<PlotLayer[]> layerFact_;
+    private final ZoneDefiner<P,A> zoneDef_;
     private final Factory<PlotPosition> posFact_;
-    private final Factory<Icon> legendFact_;
-    private final Factory<float[]> legendPosFact_;
-    private final Factory<String> titleFact_;
-    private final ShaderControl shaderControl_;
-    private final ToggleButtonModel sketchModel_;
-    private final List<ChangeListener> changeListenerList_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
+    private final ToggleButtonModel sketchModel_;
     private final BoundedRangeModel progModel_;
     private final ToggleButtonModel showProgressModel_;
+    private final List<ChangeListener> changeListenerList_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private PlotJob<P,A> plotJob_;
@@ -159,46 +154,31 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * which as it stands they should not be.
      *
      * @param  storeFact   data store factory implementation
-     * @param  axisController  axis control GUI component
-     * @param  layerFact   supplier of plot layers
+     * @param  zoneDef   supplier of required information concerning 
+     *                   plot zone content and configuration
      * @param  posFact  supplier of plot position settings
-     * @param  legendFact   supplier of legend icon
-     * @param  legendPosFact    supplier of legend position
-     *                          (2-element x,y fractional location in range 0-1,
-     *                          or null for legend external/unused)
-     * @param  titleFact    supplier of plot title text
-     * @param  shaderControl   shader control GUI component
-     * @param  sketchModel   model to decide whether intermediate sketch frames
-     *                       are posted for slow plots
      * @param  ptSel   rendering policy
      * @param  compositor  compositor for composition of transparent pixels
+     * @param  sketchModel   model to decide whether intermediate sketch frames
+     *                       are posted for slow plots
      * @param  progModel  progress bar model for showing plot progress
      * @param  showProgressModel  model to decide whether data scan operations
      *                            are reported to the progress bar model
      */
-    public PlotPanel( DataStoreFactory storeFact,
-                      AxisController<P,A> axisController,
-                      Factory<PlotLayer[]> layerFact,
+    public PlotPanel( DataStoreFactory storeFact, ZoneDefiner<P,A> zoneDef,
                       Factory<PlotPosition> posFact,
-                      Factory<Icon> legendFact, Factory<float[]> legendPosFact,
-                      Factory<String> titleFact, ShaderControl shaderControl,
-                      ToggleButtonModel sketchModel,
                       PaperTypeSelector ptSel, Compositor compositor,
+                      ToggleButtonModel sketchModel,
                       BoundedRangeModel progModel,
                       ToggleButtonModel showProgressModel ) {
         storeFact_ = progModel == null
                    ? storeFact
                    : new ProgressDataStoreFactory( storeFact, progModel );
-        axisController_ = axisController;
-        layerFact_ = layerFact;
+        zoneDef_ = zoneDef;
         posFact_ = posFact;
-        legendFact_ = legendFact;
-        legendPosFact_ = legendPosFact;
-        titleFact_ = titleFact;
-        shaderControl_ = shaderControl;
-        sketchModel_ = sketchModel;
         ptSel_ = ptSel;
         compositor_ = compositor;
+        sketchModel_ = sketchModel;
         progModel_ = progModel;
         showProgressModel_ = showProgressModel;
         changeListenerList_ = new ArrayList<ChangeListener>();
@@ -503,26 +483,28 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private PlotJob<P,A> createPlotJob() {
 
         /* Acquire state. */
-        PlotLayer[] layers = layerFact_.getItem();
-        assert layerListEquals( layers, layerFact_.getItem() );
-        assert layerSetEquals( layers, layerFact_.getItem() );
-        SurfaceFactory<P,A> surfFact = axisController_.getSurfaceFactory();
-        ConfigMap surfConfig = axisController_.getConfig();
+        PlotLayer[] layers = zoneDef_.getLayers();
+        assert layerListEquals( layers, zoneDef_.getLayers() );
+        assert layerSetEquals( layers, zoneDef_.getLayers() );
+        AxisController<P,A> axisController = zoneDef_.getAxisController();
+        SurfaceFactory<P,A> surfFact = axisController.getSurfaceFactory();
+        ConfigMap surfConfig = axisController.getConfig();
         P profile = surfFact.createProfile( surfConfig );
-        axisController_.configureForLayers( profile, layers );
-        A fixAspect = axisController_.getAspect();
-        Range[] geomFixRanges = axisController_.getRanges();
-        ShadeAxisFactory shadeFact = shaderControl_.createShadeAxisFactory();
+        axisController.configureForLayers( profile, layers );
+        A fixAspect = axisController.getAspect();
+        Range[] geomFixRanges = axisController.getRanges();
+        ShaderControl shaderControl = zoneDef_.getShaderControl();
+        ShadeAxisFactory shadeFact = shaderControl.createShadeAxisFactory();
         Map<AuxScale,Range> auxFixRanges = new HashMap<AuxScale,Range>();
         Map<AuxScale,Subrange> auxSubranges = new HashMap<AuxScale,Subrange>();
         Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
-        auxFixRanges.put( AuxScale.COLOR, shaderControl_.getFixRange() );
-        auxSubranges.put( AuxScale.COLOR, shaderControl_.getSubrange() );
-        auxLogFlags.put( AuxScale.COLOR, shaderControl_.isLog() );
-        Icon legend = legendFact_.getItem();
-        assert legend == null || legendFact_.getItem().equals( legend );
-        float[] legpos = legendPosFact_.getItem();
-        String title = titleFact_.getItem();
+        auxFixRanges.put( AuxScale.COLOR, shaderControl.getFixRange() );
+        auxSubranges.put( AuxScale.COLOR, shaderControl.getSubrange() );
+        auxLogFlags.put( AuxScale.COLOR, shaderControl.isLog() );
+        Icon legend = zoneDef_.getLegend();
+        assert legend == null || zoneDef_.getLegend().equals( legend );
+        float[] legpos = zoneDef_.getLegendPosition();
+        String title = zoneDef_.getTitle();
         PlotPosition plotpos = posFact_.getItem();
         Rectangle bounds = getOuterBounds( plotpos.getPlotSize() );
         Insets insets = plotpos.getPlotInsets();
@@ -1696,14 +1678,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * graphics as before.  If the return is non-null,
              * repaint it. */
             if ( workings != null ) {
+                final AxisController axControl = zoneDef_.getAxisController();
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         boolean plotChange =
                             ! workings.getDataIconId()
                              .equals( workings_.getDataIconId() );
                         workings_ = workings;
-                        axisController_.setAspect( workings.aspect_ );
-                        axisController_.setRanges( workings.geomRanges_ );
+                        axControl.setAspect( workings.aspect_ );
+                        axControl.setRanges( workings.geomRanges_ );
                         repaint();
 
                         /* If the plot changed materially, notify listeners. */

@@ -158,11 +158,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return frameControl.getPlotPosition();
             }
         };
-        Factory<String> titleFact = new Factory<String>() {
-            public String getItem() {
-                return frameControl.getPlotTitle();
-            }
-        };
         ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
         surfFact_ = axisController_.getSurfaceFactory();
         configger.addConfigger( axisController_ );
@@ -172,23 +167,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
                 new SmartColumnFactory( new MemoryColumnFactory() ) );
-        Factory<PlotLayer[]> layerFact = new Factory<PlotLayer[]>() {
-            public PlotLayer[] getItem() {
-                return readPlotLayers( true );
-            }
-        };
         final LegendControl legendControl =
             new LegendControl( stackModel_, configger );
-        Factory<Icon> legendFact = new Factory<Icon>() {
-            public Icon getItem() {
-                return legendControl.getLegendIcon();
-            }
-        };
-        Factory<float[]> legendPosFact = new Factory<float[]>() {
-            public float[] getItem() {
-                return legendControl.getLegendPosition();
-            }
-        };
         sketchModel_ =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "
@@ -206,14 +186,33 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  + "gestures" );
         navdecModel.setSelected( true );
 
+        ZoneDefiner<P,A> zoneDef = new ZoneDefiner<P,A>() {
+            public AxisController<P,A> getAxisController() {
+                return axisController_;
+            }
+            public PlotLayer[] getLayers() {
+                return readPlotLayers( true );
+            }
+            public Icon getLegend() {
+                return legendControl.getLegendIcon();
+            }
+            public float[] getLegendPosition() {
+                return legendControl.getLegendPosition();
+            }
+            public String getTitle() {
+                return frameControl.getPlotTitle();
+            }
+            public ShaderControl getShaderControl() {
+                return shaderControl;
+            }
+        };
+
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
-            new PlotPanel<P,A>( storeFact, axisController_, layerFact,
-                                posFact, legendFact, legendPosFact, titleFact,
-                                shaderControl, sketchModel_,
+            new PlotPanel<P,A>( storeFact, zoneDef, posFact,
                                 plotType.getPaperTypeSelector(), compositor,
-                                placeProgressBar().getModel(),
+                                sketchModel_, placeProgressBar().getModel(),
                                 showProgressModel_ );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
