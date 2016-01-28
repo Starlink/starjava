@@ -332,7 +332,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return   placement
      */
     public PlotPlacement getPlotPlacement() {
-        return workings_.placer_;
+        return workings_.zone_.placer_;
     }
 
     /**
@@ -341,7 +341,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  plot surface
      */
     public Surface getSurface() {
-        return workings_.placer_.getSurface();
+        return workings_.zone_.placer_.getSurface();
     }
 
     /**
@@ -350,7 +350,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  plot layers
      */
     public PlotLayer[] getPlotLayers() {
-        return workings_.layers_;
+        return workings_.zone_.layers_;
     }
 
     /**
@@ -360,7 +360,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return   plot reports
      */
     public ReportMap[] getReports() {
-        return workings_.reports_;
+        return workings_.zone_.reports_;
     }
 
     /**
@@ -385,7 +385,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public GuiPointCloud createGuiPointCloud() {
         SubCloud[] subClouds =
-            SubCloud.createSubClouds( workings_.layers_, true );
+            SubCloud.createSubClouds( workings_.zone_.layers_, true );
         return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
                                   getDataStore(),
                                   showProgressModel_.isSelected() ? progModel_
@@ -402,7 +402,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public GuiPointCloud createPartialGuiPointCloud() {
         SubCloud[] subClouds =
-            SubCloud.createPartialSubClouds( workings_.layers_, true );
+            SubCloud.createPartialSubClouds( workings_.zone_.layers_, true );
         return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
                                   getDataStore(),
                                   showProgressModel_.isSelected() ? progModel_
@@ -416,7 +416,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return   actual aux range values for plot
      */
     public Map<AuxScale,Range> getAuxClipRanges() {
-        return workings_.auxClipRanges_;
+        return workings_.zone_.auxClipRanges_;
     }
 
     /**
@@ -543,7 +543,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     @Override
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
-        Icon plotIcon = workings_.plotIcon_;
+        Icon plotIcon = workings_.zone_.plotIcon_;
         if ( plotIcon != null ) {
             Insets insets = getInsets();
             plotIcon.paintIcon( this, g, insets.left, insets.top );
@@ -707,73 +707,40 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * similar.
      */
     private static class Workings<A> {
-        final PlotLayer[] layers_;
+        final ZoneWork zone_;
         final DataStore dataStore_;
-        final Surface approxSurf_;
-        final Range[] geomRanges_;
-        final A aspect_;
-        final Map<AuxScale,Range> auxDataRanges_;
-        final Map<AuxScale,Range> auxClipRanges_;
-        final PlotPlacement placer_;
-        final Object[] plans_;
-        final Icon dataIcon_;
-        final Icon plotIcon_;
-        final ReportMap[] reports_;
-        final long plotMillis_;
         final int rowStep_;
+        final long plotMillis_;
 
         /**
          * Constructs a fully populated workings object.
          *
-         * @param  layers   plot layers
+         * @param  zone   per-zone working object
          * @param  dataStore  data storage object
-         * @param  approxSurf   approximation to plot surface (size etc may
-         *                      be a bit out)
-         * @param  geomRanges   ranges for the geometry coordinates
-         * @param  aspect    surface aspect
-         * @param  auxDataRanges  aux scale ranges derived from data
-         * @param  auxClipRanges  aux scale ranges derived from
-         *                        fixed constraints
-         * @param  placer  plot placement
-         * @param  plans   per-layer plot plan objects
-         * @param  dataIcon   icon which will paint data part of plot
-         * @param  plotIcon   icon which will paint the whole plot
-         * @param  reports    reported info from plot layers
+         * @param  rowStep   row stride used for subsample in actual plots
          * @param  plotMillis  wall-clock time in milliseconds taken for the
          *                     plot (plans+paint), but not data acquisition
-         * @param  rowStep   row stride used for subsample in actual plots
          */
-        Workings( PlotLayer[] layers, DataStore dataStore,
-                  Surface approxSurf, Range[] geomRanges, A aspect,
-                  Map<AuxScale,Range> auxDataRanges,
-                  Map<AuxScale,Range> auxClipRanges, PlotPlacement placer,
-                  Object[] plans, Icon dataIcon, Icon plotIcon,
-                  ReportMap[] reports, long plotMillis, int rowStep ) {
-            layers_ = layers;
+        Workings( ZoneWork zone, DataStore dataStore,
+                  int rowStep, long plotMillis ) {
+            zone_ = zone;
             dataStore_ = dataStore;
-            approxSurf_ = approxSurf;
-            geomRanges_ = geomRanges;
-            aspect_ = aspect;
-            auxDataRanges_ = auxDataRanges;
-            auxClipRanges_ = auxClipRanges;
-            placer_ = placer;
-            plans_ = plans;
-            dataIcon_ = dataIcon;
-            plotIcon_ = plotIcon;
-            reports_ = reports;
-            plotMillis_ = plotMillis;
             rowStep_ = rowStep;
+            plotMillis_ = plotMillis;
         }
 
         /**
          * Constructs a dummy (contentless) workings object.
          */
         Workings() {
-            this( new PlotLayer[ 0 ], null, null, null, null,
-                  new HashMap<AuxScale,Range>(),
-                  new HashMap<AuxScale,Range>(),
-                  new PlotPlacement( new Rectangle( 0, 0 ), null ),
-                  new Object[ 0 ], null, null, new ReportMap[ 0 ], 0L, 1 );
+            this( new ZoneWork( new PlotLayer[ 0 ], new Object[ 0 ],
+                                null, null, null,
+                                new HashMap<AuxScale,Range>(),
+                                new HashMap<AuxScale,Range>(),
+                                new PlotPlacement( new Rectangle( 0, 0 ),
+                                                   null ),
+                                null, null, new ReportMap[ 0 ] ),
+                  null, 1, 0L );
         }
 
         /**
@@ -783,8 +750,61 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          */
         @Equality
         DataIconId getDataIconId() {
-            return new DataIconId( placer_.getSurface(), layers_,
-                                   auxClipRanges_ );
+            return new DataIconId( zone_.placer_.getSurface(), zone_.layers_,
+                                   zone_.auxClipRanges_ );
+        }
+
+        /**
+         * Aggregates per-zone information for a Workings object.
+         */
+        static class ZoneWork<A> { 
+            final PlotLayer[] layers_;
+            final Object[] plans_;
+            final Surface approxSurf_;
+            final Range[] geomRanges_;
+            final A aspect_;
+            final Map<AuxScale,Range> auxDataRanges_;
+            final Map<AuxScale,Range> auxClipRanges_;
+            final PlotPlacement placer_;
+            final Icon dataIcon_;
+            final Icon plotIcon_;
+            final ReportMap[] reports_;
+
+            /**
+             * Constructor.
+             *
+             * @param  layers   plot layers
+             * @param  plans   per-layer plot plan objects
+             * @param  approxSurf   approximation to plot surface
+             *                      (size etc may be a bit out)
+             * @param  geomRanges   ranges for the geometry coordinates
+             * @param  aspect    surface aspect
+             * @param  auxDataRanges  aux scale ranges derived from data
+             * @param  auxClipRanges  aux scale ranges derived from
+             *                        fixed constraints
+             * @param  placer  plot placement
+             * @param  dataIcon   icon which will paint data part of plot
+             * @param  plotIcon   icon which will paint the whole plot
+             * @param  reports    reported info from plot layers
+             */
+            ZoneWork( PlotLayer[] layers, Object[] plans,
+                      Surface approxSurf, Range[] geomRanges, A aspect,
+                      Map<AuxScale,Range> auxDataRanges,
+                      Map<AuxScale,Range> auxClipRanges,
+                      PlotPlacement placer, Icon dataIcon, Icon plotIcon,
+                      ReportMap[] reports ) {
+                layers_ = layers;
+                plans_ = plans;
+                approxSurf_ = approxSurf;
+                geomRanges_ = geomRanges;
+                aspect_ = aspect;
+                auxDataRanges_ = auxDataRanges;
+                auxClipRanges_ = auxClipRanges;
+                placer_ = placer;
+                dataIcon_ = dataIcon;
+                plotIcon_ = plotIcon;
+                reports_ = reports;
+            }
         }
     }
 
@@ -1060,9 +1080,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Surface approxSurf =
                 surfFact_.createSurface( bounds_, zone.profile_, aspect );
             Map<AuxScale,Range> auxDataRanges =
-                  layerListEquals( zone.layers_, oldWorkings_.layers_ )
-               && PlotUtil.equals( approxSurf, oldWorkings_.approxSurf_ )
-                ? oldWorkings_.auxDataRanges_
+                  layerListEquals( zone.layers_, oldWorkings_.zone_.layers_ )
+               && PlotUtil.equals( approxSurf, oldWorkings_.zone_.approxSurf_ )
+                ? oldWorkings_.zone_.auxDataRanges_
                 : new HashMap<AuxScale,Range>();
 
             /* Work out which scales we are going to have to calculate,
@@ -1151,7 +1171,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                .equals( oldWorkings_.getDataIconId() );
             boolean samePlot =
                 sameDataIcon &&
-                placer.equals( oldWorkings_.placer_ );
+                placer.equals( oldWorkings_.zone_.placer_ );
 
             /* If the plot is identical to last time, return null as
              * an indication that no replot is required. */
@@ -1167,9 +1187,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final Object[] plans;
             final ReportMap[] reports;
             if ( sameDataIcon ) {
-                dataIcon = oldWorkings_.dataIcon_;
-                plans = oldWorkings_.plans_;
-                reports = oldWorkings_.reports_;
+                dataIcon = oldWorkings_.zone_.dataIcon_;
+                plans = oldWorkings_.zone_.plans_;
+                reports = oldWorkings_.zone_.reports_;
                 plotMillis = 0;
             }
 
@@ -1185,7 +1205,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                        .createDrawing( surface, auxClipRanges, paperType_ );
                 }
                 plans = calculateDrawingPlans( drawings, dataStore1,
-                                               oldWorkings_.plans_ );
+                                               oldWorkings_.zone_.plans_ );
                 if ( Thread.currentThread().isInterrupted() ) {
                     return null;
                 }
@@ -1210,10 +1230,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Create the final plot icon, and store the inputs and
              * outputs as a new Workings object for return. */
             Icon plotIcon = placer.createPlotIcon( dataIcon );
-            return new Workings<A>( zone.layers_, dataStore0, approxSurf,
-                                    geomRanges, aspect, auxDataRanges,
-                                    auxClipRanges, placer, plans, dataIcon,
-                                    plotIcon, reports, plotMillis, rowStep );
+            Workings.ZoneWork zoneWork =
+                new Workings.ZoneWork( zone.layers_, plans, approxSurf,
+                                       geomRanges, aspect, auxDataRanges,
+                                       auxClipRanges, placer, dataIcon,
+                                       plotIcon, reports );
+            return new Workings<A>( zoneWork, dataStore0, rowStep, plotMillis );
         }
 
         /**
@@ -1254,8 +1276,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             AuxScale[] scales = AuxScale.getAuxScales( zone.layers_ );
             Map<AuxScale,Range> auxDataRanges =
-                  layerListEquals( zone.layers_, oldWorkings_.layers_ )
-                ? oldWorkings_.auxDataRanges_
+                  layerListEquals( zone.layers_, oldWorkings_.zone_.layers_ )
+                ? oldWorkings_.zone_.auxDataRanges_
                 : new HashMap<AuxScale,Range>();
             AuxScale[] calcScales =
                 AuxScale.getMissingScales( scales, auxDataRanges,
@@ -1716,8 +1738,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                             ! workings.getDataIconId()
                              .equals( workings_.getDataIconId() );
                         workings_ = workings;
-                        axControl.setAspect( workings.aspect_ );
-                        axControl.setRanges( workings.geomRanges_ );
+                        axControl.setAspect( workings.zone_.aspect_ );
+                        axControl.setRanges( workings.zone_.geomRanges_ );
                         repaint();
 
                         /* If the plot changed materially, notify listeners. */
