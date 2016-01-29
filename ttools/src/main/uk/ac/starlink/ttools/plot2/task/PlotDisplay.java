@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -24,7 +23,6 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
-import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Gang;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
@@ -35,7 +33,6 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
-import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
@@ -89,7 +86,6 @@ public class PlotDisplay<P,A> extends JComponent {
     public static final String ASPECTS_PROPERTY = "Plot2Aspects";
 
     private static final boolean WITH_SCROLL = true;
-    private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.task" );
 
@@ -408,8 +404,9 @@ public class PlotDisplay<P,A> extends JComponent {
                     ptSel_.getPixelPaperType( opts, compositor_, this );
 
                 /* Create the plot icon. */
-                zone.icon_ = createIcon( placer, layers, zone.auxRanges_,
-                                         dataStore_, paperType, caching_ );
+                zone.icon_ =
+                    PlotUtil.createPlotIcon( placer, layers, zone.auxRanges_,
+                                             dataStore_, paperType, caching_ );
             }
         }
         PlotUtil.logTime( logger_, "Cache", cacheStart );
@@ -776,56 +773,6 @@ public class PlotDisplay<P,A> extends JComponent {
                                      shadeFacts, shadeFixRanges, navigator,
                                      ptSel, compositor, dataStore,
                                      surfaceAuxRanging, caching );
-    }
-
-    /**
-     * Creates an icon which will paint a surface and the layers on it
-     *
-     * @param  placer  plot placement
-     * @param  layers   layers constituting plot content
-     * @param  auxRanges  requested range information calculated from data
-     * @param  dataStore  data storage object
-     * @param  paperType  rendering type
-     * @param  cached  whether to cache pixels for future use
-     */
-    @Slow
-    public static Icon createIcon( PlotPlacement placer, PlotLayer[] layers,
-                                   Map<AuxScale,Range> auxRanges,
-                                   DataStore dataStore, PaperType paperType,
-                                   boolean cached ) {
-        Surface surface = placer.getSurface();
-        int nl = layers.length;
-        logger_.info( "Layers: " + nl + ", Paper: " + paperType );
-        Drawing[] drawings = new Drawing[ nl ];
-        Object[] plans = new Object[ nl ];
-        long t1 = System.currentTimeMillis();
-        for ( int il = 0; il < nl; il++ ) {
-            drawings[ il ] = layers[ il ]
-                            .createDrawing( surface, auxRanges, paperType );
-            plans[ il ] = drawings[ il ].calculatePlan( plans, dataStore );
-        }
-        PlotUtil.logTime( logger_, "Plans", t1 );
-        Icon dataIcon =
-            paperType.createDataIcon( surface, drawings, plans, dataStore,
-                                      cached );
-        if ( logger_.isLoggable( REPORT_LEVEL ) ) {
-            for ( int il = 0; il < nl; il++ ) {
-                ReportMap report = drawings[ il ].getReport( plans[ il ] );
-                if ( report != null ) {
-                    String rtxt = report.toString( false );
-                    if ( rtxt.length() > 0 ) {
-                        String msg = new StringBuffer()
-                            .append( "Layer " )
-                            .append( il )
-                            .append( ": " )
-                            .append( rtxt )
-                            .toString();
-                        logger_.log( REPORT_LEVEL, msg );
-                    }
-                }
-            }
-        }
-        return placer.createPlotIcon( dataIcon );
     }
 
     /**

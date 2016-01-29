@@ -2457,9 +2457,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         layers = new PlotLayer[ 0 ];
                     }
                     Icon zicon =
-                        PlotDisplay
-                       .createIcon( placer, layers, auxRangeList.get( iz ),
-                                    dataStore, paperType, cached );
+                        PlotUtil
+                       .createPlotIcon( placer, layers, auxRangeList.get( iz ),
+                                        dataStore, paperType, cached );
                     zicon.paintIcon( c, g, 0, 0 );
                 }
                 g.translate( -x, -y );

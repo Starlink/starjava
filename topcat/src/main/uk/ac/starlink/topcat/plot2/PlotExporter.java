@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
@@ -25,7 +24,6 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -47,8 +45,6 @@ public class PlotExporter {
     private final JComboBox formatSelector_;
     private final JCheckBox bitmapButton_;
     private static final GraphicExporter[] EXPORTERS = createExporters();
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
     private static PlotExporter instance_;
 
     /**
@@ -109,8 +105,10 @@ public class PlotExporter {
                 PaperType paperType = bitmapButton_.isSelected()
                           ? ptsel.getPixelPaperType( opts, compositor, null )
                           : ptsel.getVectorPaperType( opts );
-                Icon icon = createPlotIcon( placer, layers, auxRanges,
-                                            dataStore, paperType );
+                boolean caching = false;
+                Icon icon =
+                    PlotUtil.createPlotIcon( placer, layers, auxRanges,
+                                             dataStore, paperType, caching );
                 try {
                     attemptSave( icon, file, exporter );
                     return;
@@ -190,38 +188,6 @@ public class PlotExporter {
             }
         }
         return null;
-    }
-
-    /**
-     * Return the icon which will paint a plot.
-     *
-     * @param  placer   plot placement
-     * @param  layers   plot layers
-     * @param  auxRanges   layer-requested range data
-     * @param  dataStore  data storage ojbect
-     * @param  paperType  paper type
-     */
-    private static Icon createPlotIcon( PlotPlacement placer,
-                                        PlotLayer[] layers,
-                                        Map<AuxScale,Range> auxRanges,
-                                        DataStore dataStore,
-                                        PaperType paperType ) {
-        Surface surface = placer.getSurface();
-        int nl = layers.length;
-        logger_.info( "Layers: " + nl + ", Paper: " + paperType );
-        Drawing[] drawings = new Drawing[ nl ];
-        Object[] plans = new Object[ nl ];
-        long t1 = System.currentTimeMillis();
-        for ( int il = 0; il < nl; il++ ) {
-            drawings[ il ] =
-                layers[ il ].createDrawing( surface, auxRanges, paperType );
-            plans[ il ] = drawings[ il ].calculatePlan( plans, dataStore );
-        }
-        PlotUtil.logTime( logger_, "Plans", t1 );
-        Icon dataIcon =
-             paperType.createDataIcon( surface, drawings, plans, dataStore,
-                                       false );
-        return placer.createPlotIcon( dataIcon );
     }
 
     /**

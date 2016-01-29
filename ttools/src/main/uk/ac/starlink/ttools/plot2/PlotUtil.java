@@ -13,6 +13,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
@@ -20,6 +22,7 @@ import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
 /**
  * Miscellaneous utilities for use with the plotting classes.
@@ -78,6 +81,9 @@ public class PlotUtil {
 
     /** Amount of padding added to data ranges for axis scaling. */
     private static final double PAD_FRACTION = 0.02;
+
+    /** Level at which plot reports are logged. */
+    private static final Level REPORT_LEVEL = Level.INFO;
 
     /**
      * Private constructor prevents instantiation.
@@ -464,6 +470,57 @@ public class PlotUtil {
         return Thread.currentThread().isInterrupted() || bestIndex < 0
              ? null
              : new IndicatedRow( bestIndex, Math.sqrt( bestDist2 ) );
+    }
+
+    /**     
+     * Creates an icon which will paint a surface and the layers on it
+     *
+     * @param  placer  plot placement
+     * @param  layers   layers constituting plot content
+     * @param  auxRanges  requested range information calculated from data
+     * @param  dataStore  data storage object
+     * @param  paperType  rendering type
+     * @param  cached  whether to cache pixels for future use
+     * @return   icon containing complete plot
+     */ 
+    @Slow
+    public static Icon createPlotIcon( PlotPlacement placer, PlotLayer[] layers,
+                                       Map<AuxScale,Range> auxRanges,
+                                       DataStore dataStore, PaperType paperType,
+                                       boolean cached ) {
+        Surface surface = placer.getSurface();
+        int nl = layers.length;
+        logger_.info( "Layers: " + nl + ", Paper: " + paperType );
+        Drawing[] drawings = new Drawing[ nl ];
+        Object[] plans = new Object[ nl ];
+        long t1 = System.currentTimeMillis();
+        for ( int il = 0; il < nl; il++ ) {
+            drawings[ il ] = layers[ il ]
+                            .createDrawing( surface, auxRanges, paperType );
+            plans[ il ] = drawings[ il ].calculatePlan( plans, dataStore );
+        }
+        PlotUtil.logTime( logger_, "Plans", t1 );
+        Icon dataIcon =
+            paperType.createDataIcon( surface, drawings, plans, dataStore,
+                                      cached );
+        if ( logger_.isLoggable( REPORT_LEVEL ) ) {
+            for ( int il = 0; il < nl; il++ ) {
+                ReportMap report = drawings[ il ].getReport( plans[ il ] );
+                if ( report != null ) {
+                    String rtxt = report.toString( false );
+                    if ( rtxt.length() > 0 ) {
+                        String msg = new StringBuffer()
+                            .append( "Layer " )
+                            .append( il ) 
+                            .append( ": " )
+                            .append( rtxt ) 
+                            .toString();
+                        logger_.log( REPORT_LEVEL, msg );
+                    }
+                }
+            }
+        }
+        return placer.createPlotIcon( dataIcon ); 
     }
 
     /**
