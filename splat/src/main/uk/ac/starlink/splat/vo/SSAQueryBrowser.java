@@ -35,6 +35,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Authenticator;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -71,6 +72,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -78,6 +80,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.xml.sax.InputSource;
+
+import com.sun.xml.internal.ws.encoding.ContentType;
 
 import jsky.catalog.BasicQueryArgs;
 import jsky.catalog.QueryArgs;
@@ -306,7 +310,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.property  name="dataLinkButton"
      * @uml.associationEnd  
      */
-    protected JButton  dataLinkButton;
+    protected JToggleButton  dataLinkButton;
     
     /**
      * @uml.property  name="dataLinkEnabled"
@@ -1264,7 +1268,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
     
-        dataLinkButton = new JButton( "<html>DataLink<BR>Services</html>" );
+        dataLinkButton = new JToggleButton( "<html>DataLink<BR>Services</html>" );
         dataLinkButton.addActionListener( this );
         dataLinkButton.setMargin(new Insets(1,10,1,10));  
         dataLinkButton.setToolTipText ( "DataLink parameters" );
@@ -1744,6 +1748,21 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             
             URLConnection con =  queryURL.openConnection();
+            //  Handle redirects
+            if ( con instanceof HttpURLConnection ) {
+                int code = ((HttpURLConnection)con).getResponseCode();
+                
+               
+                if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+                     code == HttpURLConnection.HTTP_MOVED_TEMP ||
+                     code == HttpURLConnection.HTTP_SEE_OTHER ) {
+                    String newloc = con.getHeaderField( "Location" );
+                    ssaQuery.setServer(newloc);
+                    URL newurl = ssaQuery.getRequestURL();
+                    con = newurl.openConnection();
+                }
+                
+            }
            
             con.setConnectTimeout(10 * 1000); // 10 seconds
             con.setReadTimeout(30*1000);
@@ -1930,7 +1949,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
                     dataLinkButton.setEnabled(true);
                     dataLinkButton.setVisible(true);
-                    dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
                 else resultsPane.addTab( shortName, scrollPane );
@@ -3005,16 +3023,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             deselectSpectra( true );
             return;
         }
-        if ( source.equals( dataLinkButton ) ) {
+        if ( source.equals( dataLinkButton ) ) { 
             if (dataLinkFrame != null && dataLinkFrame.getParams() != null) {
-                if (dataLinkFrame.isVisible()) { // deactivate
-                    dataLinkFrame.setVisible(false);
-                    deactivateDataLinkSupport();
-            
-                } else {
+                if ( dataLinkButton.getModel().isSelected() ) {
                     activateDataLinkSupport();
                     if (resultsPane.isEnabledAt(resultsPane.getSelectedIndex()))
-                        dataLinkFrame.setVisible(true);               
+                        dataLinkFrame.setVisible(true);  
+                }
+                else {
+                    if (dataLinkFrame.isVisible()) { // deactivate
+                        dataLinkFrame.setVisible(false);
+                    }
+                    deactivateDataLinkSupport();
                 }
             }
                 
@@ -3033,7 +3053,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         dataLinkEnabled=true;
         int selected=-1;
         //int anyIndex = -1;
-        dataLinkButton.setForeground(Color.BLACK);
         int nrTabs = resultsPane.getTabCount();
         for(int i = 0; i < nrTabs; i++)
         {
@@ -3064,7 +3083,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private void deactivateDataLinkSupport() {
         
         dataLinkEnabled=false;
-        dataLinkButton.setForeground(Color.GRAY);
         int nrTabs = resultsPane.getTabCount();
         
         for(int i = 0; i < nrTabs; i++)
