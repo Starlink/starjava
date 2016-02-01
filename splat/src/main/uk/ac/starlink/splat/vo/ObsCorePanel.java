@@ -150,6 +150,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
     /** Region radius */
     protected JTextField radiusField = null;
+    
+    /** Maxrec */
+    protected JTextField maxrecField = null;
 
     /** Lower limit for BAND */
     protected JTextField lowerBandField = null;
@@ -411,10 +414,11 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
             ok=true;
             String s=null;
             String shortname=null;
+            int row = serverTable.convertRowIndexToModel(services[i]);
             try {
-                 s = serverTable.getAccessURL(services[i]);
+                 s = serverTable.getAccessURL(row);
                  // if shortname is empty, go on using the accessURL
-                 shortname = serverTable.getShortName(services[i]);
+                 shortname = serverTable.getShortName(row);
                  if (shortname == null)
                      shortname = s;
                
@@ -674,14 +678,40 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         radiusField = new JTextField( "10.0", 10 );
       //  queryLine.setRadius(10.0);
         radiusField.addActionListener( this );
-        layouter.add( radiusLabel, false );
-        layouter.add( radiusField, true );
+ //       layouter.add( radiusLabel, false );
+//        layouter.add( radiusField, true );
         radiusField.setToolTipText( "Enter radius of field to search" +
                 " from given centre, arcminutes" );
         radiusField.addActionListener( this );
         radiusField.getDocument().putProperty("owner", radiusField); //set the owner
         radiusField.getDocument().addDocumentListener( this );
-
+        
+        JLabel maxrecLabel = new JLabel( "Maxrec:" );
+        maxrecField = new JTextField( "", 10 );
+      //  queryLine.setmaxrec(10.0);
+        maxrecField.addActionListener( this );
+//        layouter.add( maxrecLabel, false );
+//        layouter.add( maxrecField, true );
+        maxrecField.setToolTipText( "Enter maxrec of field to search" +
+                " from given centre, arcminutes" );
+        maxrecField.addActionListener( this );
+        maxrecField.getDocument().putProperty("owner", maxrecField); //set the owner
+        maxrecField.getDocument().addDocumentListener( this );
+        
+        JPanel radMaxrecPanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc2 = new GridBagConstraints();
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        radMaxrecPanel.add( radiusField, gbc2 );
+        gbc2.weightx=0.0;
+        gbc2.fill = GridBagConstraints.NONE;
+        radMaxrecPanel.add(maxrecLabel, gbc2);
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        radMaxrecPanel.add(maxrecField, gbc2);
+        
+        layouter.add( radiusLabel, false );
+        layouter.add(radMaxrecPanel,true);
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
@@ -697,21 +727,21 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
 
         JPanel bandPanel = new JPanel( new GridBagLayout() );
-        GridBagConstraints gbc2 = new GridBagConstraints();
+        GridBagConstraints gbc3 = new GridBagConstraints();
 
-        gbc2.weightx = 1.0;
-        gbc2.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( lowerBandField, gbc2 );
+        gbc3.weightx = 1.0;
+        gbc3.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( lowerBandField, gbc3 );
 
      
-        gbc2.weightx = 0.0;
-        gbc2.fill = GridBagConstraints.NONE;
-        bandPanel.add( new JLabel( "/" ), gbc2 );
+        gbc3.weightx = 0.0;
+        gbc3.fill = GridBagConstraints.NONE;
+        bandPanel.add( new JLabel( "/" ), gbc3 );
 
  
-        gbc2.weightx = 1.0;
-        gbc2.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( upperBandField, gbc2 );
+        gbc3.weightx = 1.0;
+        gbc3.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( upperBandField, gbc3 );
 
         layouter.add( bandLabel, false );
         layouter.add( bandPanel, true );
@@ -983,12 +1013,31 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
     
     /**
-     * Perform the query to all the currently selected servers.
+     * Returns the adql query for a query from the cone search interface      
      */
 
     private String getQueryText() 
     {
         String queryString = "";
+        
+//      MAXREC/TOP.
+        int maxrec=0;
+        String maxrecText = maxrecField.getText();
+      
+        if ( maxrecText != null && maxrecText.length() > 0 ) {
+            try {
+                maxrec = Integer.parseInt( maxrecText );
+            }
+            catch (NumberFormatException e) {
+                ErrorDialog.showError( this, "Cannot understand maxrec value", e );
+                maxrec=0;
+            }
+        }
+        if (maxrec == 0) {
+            queryString = queryPrefix;
+        } else {
+            queryString = "SELECT TOP "+maxrec+ " * from ivoa.Obscore WHERE dataproduct_type=\'spectrum\' ";
+        }
         
         //  Get the position. Allow the object name to be passed using
         //  TARGETNAME, useful for solar system objects.
@@ -1053,6 +1102,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 ErrorDialog.showError( this, "Cannot understand radius value", e );
             }
         }
+        
+    
+        
             String lowerBand = lowerBandField.getText();
             if ( ! lowerBand.isEmpty() ) 
                 queryString += " AND em_min<=\'"+ lowerBand+"\'";
@@ -1070,6 +1122,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 queryString += " AND t_max>=\'"+ upperTime+"\'";
         }    
         
+        if (maxrec == 0) 
+            return queryPrefix+queryString;
         return queryString;
     }
           
@@ -1102,7 +1156,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
             String queryText=getQueryText();
             if (queryText == null)
                 return;
-            queryParams=queryPrefix+queryText;
+            queryParams=queryText; 
         }
         else {   // adql expression search
             String str=querytext.getText();
