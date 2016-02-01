@@ -71,8 +71,7 @@ public class SSAServerList
     public void addNewServers(StarTable table ) {
 
         if ( table != null ) {
-            // remove all the old entries that are not manually added
-            
+          
             // now add  the new ones
             if ( table instanceof BeanStarTable ) {
                 Object[] resources = ((BeanStarTable)table).getData();
@@ -110,6 +109,7 @@ public class SSAServerList
     
     public void addNewServers(StarTable table, ArrayList<String> manuallyAddedServices) {
         
+        serverList.clear();
         HashMap<String, SSAPRegResource> newServerList = new HashMap<String, SSAPRegResource>();
         if (manuallyAddedServices != null) {
 
@@ -117,8 +117,6 @@ public class SSAServerList
                 String key=manuallyAddedServices.get(i);
                 newServerList.put(key, serverList.get(key));
             }
-
-            serverList.clear();
             serverList = newServerList;
         }
         addNewServers(table);
@@ -151,6 +149,11 @@ public class SSAServerList
            if (shortname != null)
                shortname = shortname.trim();
            else shortname = server.getTitle();
+           SSAPRegResource resource = serverList.get(shortname);
+        if (resource != null && ! resource.getIdentifier().equals( server.getIdentifier()) ) { // there could be more than one service with same shortname
+            shortname=shortname+"+";
+            server.setShortName(shortname);
+        }
         serverList.put( shortname, server );
         if ( save ) {
             try {
