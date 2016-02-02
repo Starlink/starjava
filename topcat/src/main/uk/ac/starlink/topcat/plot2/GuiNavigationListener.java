@@ -31,11 +31,11 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
     }
 
     public int getSurfaceIndex( Point pos ) {
-        return 0;
+        return plotPanel_.getGang().getNavigationZoneIndex( pos );
     }
 
     public Surface getSurface( int isurf ) {
-        return plotPanel_.getLatestSurface();
+        return plotPanel_.getLatestSurface( isurf );
     }
 
     @Override
@@ -72,8 +72,15 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
     public Iterable<double[]> createDataPosIterable( Point pos ) {
 
         /* Handles progress reporting and thread interruption. */
-        GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
-        return pointCloud
-              .createDataPosIterable( pointCloud.createGuiDataStore() );
+        int iz = getSurfaceIndex( pos );
+        Surface surf = plotPanel_.getSurface( iz );
+        if ( surf != null && surf.getPlotBounds().contains( pos ) ) {
+            GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( iz );
+            return pointCloud
+                  .createDataPosIterable( pointCloud.createGuiDataStore() );
+        }
+        else {
+            return null;
+        }
     }
 }

@@ -8,6 +8,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
@@ -21,6 +22,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -41,10 +43,13 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.Gang;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
@@ -57,6 +62,7 @@ import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -82,7 +88,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  * information has changed, or may have changed.
  *
  * <p>In actual fact <code>replot</code> additionally
- * spends a lot of effort to work out whether it can avoid doing some or
+ * expends a lot of effort to work out whether it can avoid doing some or
  * all of the work required for the plot on each occasion,
  * by caching and attempting to re-use the restults of various
  * computational steps if they have not become outdated.
@@ -110,7 +116,9 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
     private final DataStoreFactory storeFact_;
-    private final ZoneDefiner<P,A> zoneDef_;
+    private final SurfaceFactory<P,A> surfFact_;
+    private final Ganger<A> ganger_;
+    private final Factory<ZoneDefiner<P,A>[]> zonesFact_;
     private final Factory<PlotPosition> posFact_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
@@ -125,7 +133,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private Cancellable plotNoteRunner_;
     private Cancellable extraNoteRunner_;
     private Workings<A> workings_;
-    private Surface latestSurface_;
+    private Surface[] latestSurfaces_;
     private Map<SubCloud,double[]> highlightMap_;
     private Decoration navDecoration_;
 
@@ -143,8 +151,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * reads the data and the plot does not have side-effects on its
      * constituent components, since passing information both ways
      * generally leads to a lot of confusion.  In fact as currently
-     * written a couple of GUI compoents, axisController and shaderControl
-     * are passed in and can be affected.  It would be better to sanitize that.
+     * written one GUI compoent, the AxisController, is passed in and
+     * can be affected.  It would be better to sanitize that.
      *
      * <p>A progress bar model is used so that progress can be logged
      * whenever a scan through the data of one or several tables is under way.
@@ -155,8 +163,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * which as it stands they should not be.
      *
      * @param  storeFact   data store factory implementation
-     * @param  zoneDef   supplier of required information concerning
-     *                    plot zone content and configuration
+     * @param  surfFact   surface factory
+     * @param  ganger     defines how multi-zone plots are grouped
+     * @param  zonesFact  acquires per-zone information
      * @param  posFact  supplier of plot position settings
      * @param  ptSel   rendering policy
      * @param  compositor  compositor for composition of transparent pixels
@@ -166,7 +175,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  showProgressModel  model to decide whether data scan operations
      *                            are reported to the progress bar model
      */
-    public PlotPanel( DataStoreFactory storeFact, ZoneDefiner<P,A> zoneDef,
+    public PlotPanel( DataStoreFactory storeFact, SurfaceFactory<P,A> surfFact,
+                      Ganger<A> ganger, Factory<ZoneDefiner<P,A>[]> zonesFact,
                       Factory<PlotPosition> posFact,
                       PaperTypeSelector ptSel, Compositor compositor,
                       ToggleButtonModel sketchModel,
@@ -175,7 +185,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         storeFact_ = progModel == null
                    ? storeFact
                    : new ProgressDataStoreFactory( storeFact, progModel );
-        zoneDef_ = zoneDef;
+        surfFact_ = surfFact;
+        ganger_ = ganger;
+        zonesFact_ = zonesFact;
         posFact_ = posFact;
         ptSel_ = ptSel;
         compositor_ = compositor;
@@ -285,8 +297,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         boolean interruptPrevious = ! plotRunner.isSimilar( plotJob );
         plotRunner.cancel( interruptPrevious );
 
-        /* Store the plot surface now if it can be done fast. */
-        latestSurface_ = plotJob.getSurfaceQuickly();
+        /* Store such plot surface information as we can calculate fast. */
+        latestSurfaces_ = plotJob.getSurfacesQuickly();
 
         /* Schedule the plot job for execution. */
         plotRunner_ =
@@ -327,43 +339,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Returns placement for the most recent completed plot.
-     *
-     * @return   placement
-     */
-    public PlotPlacement getPlotPlacement() {
-        return workings_.zone_.placer_;
-    }
-
-    /**
-     * Returns the plot surface for the most recent completed plot.
-     *
-     * @return  plot surface
-     */
-    public Surface getSurface() {
-        return workings_.zone_.placer_.getSurface();
-    }
-
-    /**
-     * Returns the plot layers used in the most recent completed plot.
-     *
-     * @return  plot layers
-     */
-    public PlotLayer[] getPlotLayers() {
-        return workings_.zone_.layers_;
-    }
-
-    /**
-     * Returns the plot reports generated by the most recent completed plot.
-     * The array elements correspond to those of the plot layers array.
-     *
-     * @return   plot reports
-     */
-    public ReportMap[] getReports() {
-        return workings_.zone_.reports_;
-    }
-
-    /**
      * Returns the data store used in the most recent completed plot.
      *
      * @return  data store
@@ -373,19 +348,83 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
+     * Returns zone arrangement gang for the most recently completed plot.
+     *
+     * @return   zone gang
+     */
+    public Gang getGang() {
+        return workings_.gang_;
+    }
+
+    /**
+     * Returns the number of zones in the most recently completed plot.
+     *
+     * @return   zone count
+     */
+    public int getZoneCount() {
+        return workings_.zones_.length;
+    }
+
+    /**
+     * Returns placement of a given zone for the most recent completed plot.
+     *
+     * @param   iz  zone index
+     * @return   placement
+     */
+    public PlotPlacement getPlotPlacement( int iz ) {
+        return workings_.zones_[ iz ].placer_;
+    }
+
+    /**
+     * Returns the plot surface of a given zone
+     * for the most recent completed plot.
+     *
+     * @param   iz  zone index
+     * @return  plot surface
+     */
+    public Surface getSurface( int iz ) {
+        return workings_.zones_[ iz ].placer_.getSurface();
+    }
+
+    /**
+     * Returns the plot layers painted in a given zone
+     * for the most recent completed plot.
+     *
+     * @param   iz  zone index
+     * @return  plot layers
+     */
+    public PlotLayer[] getPlotLayers( int iz ) {
+        return workings_.zones_[ iz ].layers_;
+    }
+
+    /**
+     * Returns the plot reports for a given zone
+     * generated by the most recent completed plot.
+     * The array elements correspond to those of the plot layers array.
+     *
+     * @param   iz  zone index
+     * @return   per-layer plot reports
+     */
+    public ReportMap[] getReports( int iz ) {
+        return workings_.zones_[ iz ].reports_;
+    }
+
+    /**
      * Returns a point cloud that describes all the point positions included
-     * in the most recent plot.  This contains all the points from all the
+     * in a given zone for the most recent plot.
+     * This contains all the points from all the
      * subsets requested for plotting, including points not visible because
      * they fell outside the plot surface.
      * Iterating over the points described by the returned point cloud,
      * when using the DataStore available from it, takes care of progress
      * updates and thread interruptions.
      *
+     * @param   iz  zone index
      * @return  positions in most recent plot
      */
-    public GuiPointCloud createGuiPointCloud() {
+    public GuiPointCloud createGuiPointCloud( int iz ) {
         SubCloud[] subClouds =
-            SubCloud.createSubClouds( workings_.zone_.layers_, true );
+            SubCloud.createSubClouds( workings_.zones_[ iz ].layers_, true );
         return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
                                   getDataStore(),
                                   showProgressModel_.isSelected() ? progModel_
@@ -397,12 +436,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * but for partial positions - ones for which data positions will have
      * one or more missing (NaN) coordinates.
      *
+     * @param   iz  zone index
      * @return   partial positions in most recent plot
      * @see  uk.ac.starlink.ttools.plot2.SubCloud#createPartialSubClouds
      */
-    public GuiPointCloud createPartialGuiPointCloud() {
+    public GuiPointCloud createPartialGuiPointCloud( int iz ) {
         SubCloud[] subClouds =
-            SubCloud.createPartialSubClouds( workings_.zone_.layers_, true );
+            SubCloud
+           .createPartialSubClouds( workings_.zones_[ iz ].layers_, true );
         return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
                                   getDataStore(),
                                   showProgressModel_.isSelected() ? progModel_
@@ -410,25 +451,28 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Returns the map of layer-requested aux ranges sude in the most
-     * recent completed plot.
+     * Returns the map of layer-requested aux ranges used in a given zone
+     * for the most recently completed plot.
      *
+     * @param   iz  zone index
      * @return   actual aux range values for plot
      */
-    public Map<AuxScale,Range> getAuxClipRanges() {
-        return workings_.zone_.auxClipRanges_;
+    public Map<AuxScale,Range> getAuxClipRanges( int iz ) {
+        return workings_.zones_[ iz ].auxClipRangeMap_;
     }
 
     /**
-     * Returns the best guess for the plot surface which will be displayed
-     * next.  It may in fact be the surface for a plot which is
+     * Returns the best guess for the plot surface of a given zone
+     * which will be displayed next.
+     * It may in fact be the surface for a plot which is
      * currently being calculated.
      *
+     * @param   iz  zone index
      * @return   most up-to-date plot surface
      */
-    public Surface getLatestSurface() {
-        return latestSurface_ != null ? latestSurface_
-                                      : getSurface();
+    public Surface getLatestSurface( int iz ) {
+        return latestSurfaces_[ iz ] != null ? latestSurfaces_[ iz ]
+                                             : getSurface( iz );
     }
 
     /**
@@ -483,83 +527,115 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     private PlotJob<P,A> createPlotJob() {
 
-        /* Acquire state. */
-        PlotLayer[] layers = zoneDef_.getLayers();
-        assert layerListEquals( layers, zoneDef_.getLayers() );
-        assert layerSetEquals( layers, zoneDef_.getLayers() );
-        AxisController<P,A> axisController = zoneDef_.getAxisController();
-        SurfaceFactory<P,A> surfFact = axisController.getSurfaceFactory();
-        ConfigMap surfConfig = axisController.getConfig();
-        P profile = surfFact.createProfile( surfConfig );
-        axisController.configureForLayers( profile, layers );
-        A fixAspect = axisController.getAspect();
-        Range[] geomFixRanges = axisController.getRanges();
-        ShaderControl shaderControl = zoneDef_.getShaderControl();
-        ShadeAxisFactory shadeFact = shaderControl.createShadeAxisFactory();
-        Map<AuxScale,Range> auxFixRanges = new HashMap<AuxScale,Range>();
-        Map<AuxScale,Subrange> auxSubranges = new HashMap<AuxScale,Subrange>();
-        Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
-        auxFixRanges.put( AuxScale.COLOR, shaderControl.getFixRange() );
-        auxSubranges.put( AuxScale.COLOR, shaderControl.getSubrange() );
-        auxLogFlags.put( AuxScale.COLOR, shaderControl.isLog() );
-        Icon legend = zoneDef_.getLegend();
-        assert legend == null || zoneDef_.getLegend().equals( legend );
-        float[] legpos = zoneDef_.getLegendPosition();
-        String title = zoneDef_.getTitle();
+        /* Acquire per-panel state. */
         PlotPosition plotpos = posFact_.getItem();
         Rectangle bounds = getOuterBounds( plotpos.getPlotSize() );
         Insets insets = plotpos.getPlotInsets();
-        LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
-        PaperType paperType =
-            ptSel_.getPixelPaperType( opts, compositor_, this );
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
+        ZoneDefiner<P,A>[] zoneDefs = zonesFact_.getItem();
 
-        /* If the existing set of layers does not contain one of the
+        /* Acquire per-zone state. */
+        List<PlotJob.Zone<P,A>> zoneList = new ArrayList<PlotJob.Zone<P,A>>();
+        List<SubCloud> allSubclouds = new ArrayList<SubCloud>();
+        for ( ZoneDefiner zoneDef : zoneDefs ) {
+            PlotLayer[] layers = zoneDef.getLayers();
+            assert layerListEquals( layers, zoneDef.getLayers() );
+            assert layerSetEquals( layers, zoneDef.getLayers() );
+            List<SubCloud> subClouds =
+                Arrays.asList( SubCloud.createSubClouds( layers, true ) );
+            allSubclouds.addAll( subClouds );
+            Map<SubCloud,double[]> highMap =
+                new HashMap<SubCloud,double[]>( highlightMap_ );
+            highMap.keySet().retainAll( subClouds );
+            double[][] highlights =
+                highMap.values().toArray( new double[ 0 ][] );
+            AxisController<P,A> axisController = zoneDef.getAxisController();
+            ConfigMap surfConfig = axisController.getConfig();
+            P profile = surfFact_.createProfile( surfConfig );
+            axisController.configureForLayers( profile, layers );
+            A fixAspect = axisController.getAspect();
+            Range[] geomFixRanges = axisController.getRanges();
+            ShaderControl shaderControl = zoneDef.getShaderControl();
+            ShadeAxisFactory shadeFact = shaderControl.createShadeAxisFactory();
+            Map<AuxScale,Range> auxFixRanges = new HashMap<AuxScale,Range>();
+            Map<AuxScale,Subrange> auxSubranges =
+                new HashMap<AuxScale,Subrange>();
+            Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
+            auxFixRanges.put( AuxScale.COLOR, shaderControl.getFixRange() );
+            auxSubranges.put( AuxScale.COLOR, shaderControl.getSubrange() );
+            auxLogFlags.put( AuxScale.COLOR, shaderControl.isLog() );
+            Icon legend = zoneDef.getLegend();
+            assert legend == null || zoneDef.getLegend().equals( legend );
+            float[] legpos = zoneDef.getLegendPosition();
+            String title = zoneDef.getTitle();
+            LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
+            PaperType paperType =
+                ptSel_.getPixelPaperType( opts, compositor_, this );
+            PlotJob.Zone<P,A> zone =
+                new PlotJob.Zone<P,A>( layers, profile, fixAspect,
+                                       geomFixRanges, surfConfig, shadeFact,
+                                       auxFixRanges, auxSubranges, auxLogFlags,
+                                       legend, legpos, title, highlights,
+                                       paperType, axisController );
+            zoneList.add( zone );
+        }
+        @SuppressWarnings("unchecked")
+        PlotJob.Zone<P,A>[] zones =
+            (PlotJob.Zone<P,A>[]) zoneList.toArray( new PlotJob.Zone[ 0 ] );
+
+        /* If no layers in any zone contains one of the
          * highlighted points, drop that highlight permanently.
          * You could argue that this should be done at plot time rather
          * than at plot job creation, since creating a plot job does
          * not entail that it will ever be plotted, but it's likely
          * that the effect will be the same. */
-        SubCloud[] subClouds = SubCloud.createSubClouds( layers, true );
-        highlightMap_.keySet().retainAll( Arrays.asList( subClouds ) );
-        double[][] highlights = highlightMap_.values()
-                                             .toArray( new double[ 0 ][] );
+        highlightMap_.keySet().retainAll( allSubclouds );
 
-        /* Turn it into a plot job and return. */
-        PlotJob.Zone<P,A> zone =
-            new PlotJob.Zone<P,A>( layers, profile, fixAspect,
-                                   geomFixRanges, surfConfig, shadeFact,
-                                   auxFixRanges, auxSubranges, auxLogFlags,
-                                   legend, legpos, title );
-        return new PlotJob<P,A>( workings_, surfFact, zone, storeFact_,
-                                 bounds, insets, paperType, graphicsConfig,
-                                 bgColor, highlights );
+        /* Construct and return a plot job that defines what has to be done. */
+        return new PlotJob<P,A>( workings_, surfFact_, ganger_, zones,
+                                 storeFact_, bounds, insets, graphicsConfig,
+                                 bgColor );
     }
 
     /**
-     * Paints the most recently cached plot icon.
+     * Paints the most recently cached plot icons.
      */
     @Override
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
-        Icon plotIcon = workings_.zone_.plotIcon_;
-        if ( plotIcon != null ) {
-            Insets insets = getInsets();
-            plotIcon.paintIcon( this, g, insets.left, insets.top );
+        Insets insets = getInsets();
+        Rectangle extBox = null;
 
-            /* Draw a border around the outside of the plot icon.
-             * This will normally be invisible, since the plot icon is sized
-             * to fit this component.  However, if the size has been set
-             * explicitly (by supplying a PlotPosition object), it's useful
-             * to be able to see where the outline is. */
+        /* Draw the actual pre-calculated plot zone icons. */
+        for ( Workings.ZoneWork zone : workings_.zones_ ) {
+            Icon plotIcon = zone.plotIcon_;
+            if ( plotIcon != null ) {
+                plotIcon.paintIcon( this, g, insets.left, insets.top );
+            }
+            Rectangle zoneExtBounds = zone.placer_.getBounds();
+            if ( extBox == null ) {
+                extBox = new Rectangle( zoneExtBounds );
+            }
+            else {
+                extBox.add( zoneExtBounds );
+            }
+        }
+
+        /* Draw a border around the outside of the plot zones.
+         * This will normally be invisible, since the plot gang is sized
+         * to fit this component.  However, if the size has been set
+         * explicitly (by supplying a PlotPosition object), it's useful
+         * to be able to see where the outline is. */
+        if ( extBox != null ) {
             Color color0 = g.getColor();
             g.setColor( Color.GRAY );
             g.drawRect( insets.left - 1, insets.top - 1,
-                        plotIcon.getIconWidth() + 1,
-                        plotIcon.getIconHeight() + 1 );
+                        extBox.width + 1, extBox.height + 1 );
             g.setColor( color0 );
         }
+
+        /* Draw navigation overlays if any. */
         Decoration navdec = navDecoration_;
         if ( navdec != null ) {
             navdec.paintDecoration( g );
@@ -578,7 +654,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Insets insets = getInsets();
         int x = insets.left;
         int y = insets.top;
-        int width = getWidth() - insets.left - insets.right;;
+        int width = getWidth() - insets.left - insets.right;
         int height = getHeight() - insets.top - insets.bottom;
         if ( sizeSetting != null ) {
             if ( sizeSetting.width > 0 ) {
@@ -631,8 +707,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     private static List<DataSpec> getDataSpecs( PlotLayer[] layers ) {
         List<DataSpec> list = new ArrayList<DataSpec>();
-        for ( int il = 0; il < layers.length; il++ ) {
-            DataSpec spec = layers[ il ].getDataSpec();
+        for ( PlotLayer layer : layers ) {
+            DataSpec spec = layer.getDataSpec();
             if ( spec != null ) {
                 list.add( spec );
             }
@@ -648,10 +724,39 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     private static List<LayerId> layerList( PlotLayer[] layers ) {
         List<LayerId> llist = new ArrayList<LayerId>( layers.length );
-        for ( int il = 0; il < layers.length; il++ ) {
-            llist.add( LayerId.createLayerId( layers[ il ] ) );
+        for ( PlotLayer layer : layers ) {
+            llist.add( LayerId.createLayerId( layer ) );
         }
         return llist;
+    }
+
+    /**
+     * Returns an identity object representing the parts of a plot job
+     * that must be equal between two instances to confer similarity
+     * for the purposes of working out whether to interrupt a previous job.
+     * This notion of similarity is not very well defined, and may be
+     * adjusted in the future; it's a case of trying to get something
+     * which works well in the UI.
+     *
+     * <p>For now two jobs are characterised as similar if they have
+     * the same list of layer types, in the same order, with the same
+     * data.  However the plot surface and the layer styles may change.
+     * This accommodates as similar for instance panned/zoomed versions
+     * of the same plot or versions which differ by having the
+     * transparency limit adjusted.
+     *
+     * @param  plotJob  job to identify
+     * @return   list by zone of lists of layerIds
+     */
+    @Equality
+    private static <P,A> Object getSimilarityObject( PlotJob<P,A> plotJob ) {
+        List<List<LayerId>> listList = new ArrayList<List<LayerId>>();
+        if ( plotJob != null ) {
+            for ( PlotJob.Zone<P,A> zone : plotJob.zones_ ) {
+                listList.add( layerListNoStyle( zone.layers_ ) );
+            }
+        }
+        return listList;
     }
 
     /**
@@ -662,11 +767,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  list of style-less layer ids
      */
     private static List<LayerId> layerListNoStyle( PlotLayer[] layers ) {
-        List<LayerId> llist = new ArrayList<LayerId>( layers.length );
-        for ( int il = 0; il < layers.length; il++ ) {
-            PlotLayer layer = layers[ il ];
-            llist.add( new LayerId( layer.getPlotter(), layer.getDataSpec(),
-                                    layer.getDataGeom(), null ) );
+        List<LayerId> llist = new ArrayList<LayerId>();
+        if ( layers != null ) {
+            for ( PlotLayer layer : layers ) {
+                llist.add( new LayerId( layer.getPlotter(), layer.getDataSpec(),
+                                        layer.getDataGeom(), (Style) null ) );
+            }
         }
         return llist;
     }
@@ -693,7 +799,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return   true iff both lists contain the same unique layers
      */
     private static boolean layerSetEquals( PlotLayer[] layers1,
-                                          PlotLayer[] layers2 ) {
+                                           PlotLayer[] layers2 ) {
         return new HashSet<LayerId>( layerList( layers1 ) )
               .equals( new HashSet<LayerId>( layerList( layers2 ) ) );
     }
@@ -707,7 +813,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * similar.
      */
     private static class Workings<A> {
-        final ZoneWork zone_;
+        final Gang gang_;
+        final ZoneWork<A>[] zones_;
         final DataStore dataStore_;
         final int rowStep_;
         final long plotMillis_;
@@ -715,15 +822,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         /**
          * Constructs a fully populated workings object.
          *
-         * @param  zone   per-zone working object
+         * @param  gang   plot surface gang
+         * @param  zones   per-zone working objects
          * @param  dataStore  data storage object
          * @param  rowStep   row stride used for subsample in actual plots
          * @param  plotMillis  wall-clock time in milliseconds taken for the
          *                     plot (plans+paint), but not data acquisition
          */
-        Workings( ZoneWork zone, DataStore dataStore,
+        Workings( Gang gang, ZoneWork<A>[] zones, DataStore dataStore,
                   int rowStep, long plotMillis ) {
-            zone_ = zone;
+            gang_ = gang;
+            zones_ = zones;
             dataStore_ = dataStore;
             rowStep_ = rowStep;
             plotMillis_ = plotMillis;
@@ -731,27 +840,39 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /**
          * Constructs a dummy (contentless) workings object.
+         * It contains a single dummy zone rather than no zones,
+         * for the convenience of single-zone plots who just use zone 0.
          */
         Workings() {
-            this( new ZoneWork( new PlotLayer[ 0 ], new Object[ 0 ],
-                                null, null, null,
-                                new HashMap<AuxScale,Range>(),
-                                new HashMap<AuxScale,Range>(),
-                                new PlotPlacement( new Rectangle( 0, 0 ),
-                                                   null ),
-                                null, null, new ReportMap[ 0 ] ),
-                  null, 1, 0L );
+            this( new Gang() {
+                      public int getNavigationZoneIndex( Point p ) {
+                          return -1;
+                      }
+                      public int getZoneCount() {
+                          return 1;
+                      }
+                      public Rectangle getZonePlotBounds( int iz ) {
+                          return new Rectangle( 0, 0 );
+                      }
+                  },
+                  (ZoneWork<A>[]) new ZoneWork<?>[] {
+                      new ZoneWork<A>( new PlotLayer[ 0 ], new Object[ 0 ],
+                                       null, new Range[ 0 ], null,
+                                       new HashMap<AuxScale,Range>(),
+                                       new HashMap<AuxScale,Range>(),
+                                       new PlotPlacement( new Rectangle( 0, 0 ),
+                                                          null ),
+                                       null, null, new ReportMap[ 0 ], null ),
+                  }, null, 1, 0L );
         }
 
-        /**
-         * Returns an object which characterises the data content of this
-         * plot.  Two workings objects which have equal DataIconIds will
-         * have equivalent dataIcon members.
-         */
         @Equality
-        DataIconId getDataIconId() {
-            return new DataIconId( zone_.placer_.getSurface(), zone_.layers_,
-                                   zone_.auxClipRanges_ );
+        List<DataIconId> getDataIconIdList() {
+            List<DataIconId> list = new ArrayList<DataIconId>();
+            for ( ZoneWork zone : zones_ ) {
+                list.add( zone.getDataIconId() );
+            }
+            return list;
         }
 
         /**
@@ -763,12 +884,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final Surface approxSurf_;
             final Range[] geomRanges_;
             final A aspect_;
-            final Map<AuxScale,Range> auxDataRanges_;
-            final Map<AuxScale,Range> auxClipRanges_;
+            final Map<AuxScale,Range> auxDataRangeMap_;
+            final Map<AuxScale,Range> auxClipRangeMap_;
             final PlotPlacement placer_;
             final Icon dataIcon_;
             final Icon plotIcon_;
             final ReportMap[] reports_;
+            final AxisController<?,A> axisController_;
 
             /**
              * Constructor.
@@ -779,31 +901,71 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              *                      (size etc may be a bit out)
              * @param  geomRanges   ranges for the geometry coordinates
              * @param  aspect    surface aspect
-             * @param  auxDataRanges  aux scale ranges derived from data
-             * @param  auxClipRanges  aux scale ranges derived from
-             *                        fixed constraints
+             * @param  auxDataRangeMap  aux scale ranges derived from data
+             * @param  auxClipRangeMap  aux scale ranges derived from
+             *                          fixed constraints
              * @param  placer  plot placement
              * @param  dataIcon   icon which will paint data part of plot
              * @param  plotIcon   icon which will paint the whole plot
              * @param  reports    reported info from plot layers
+             * @param  axisController   axis controller to be updated on
+             *                          zone plot completion
              */
             ZoneWork( PlotLayer[] layers, Object[] plans,
                       Surface approxSurf, Range[] geomRanges, A aspect,
-                      Map<AuxScale,Range> auxDataRanges,
-                      Map<AuxScale,Range> auxClipRanges,
+                      Map<AuxScale,Range> auxDataRangeMap,
+                      Map<AuxScale,Range> auxClipRangeMap,
                       PlotPlacement placer, Icon dataIcon, Icon plotIcon,
-                      ReportMap[] reports ) {
+                      ReportMap[] reports,
+                      AxisController<?,A> axisController ) {
                 layers_ = layers;
                 plans_ = plans;
                 approxSurf_ = approxSurf;
                 geomRanges_ = geomRanges;
                 aspect_ = aspect;
-                auxDataRanges_ = auxDataRanges;
-                auxClipRanges_ = auxClipRanges;
+                auxDataRangeMap_ = auxDataRangeMap;
+                auxClipRangeMap_ = auxClipRangeMap;
                 placer_ = placer;
                 dataIcon_ = dataIcon;
                 plotIcon_ = plotIcon;
                 reports_ = reports;
+                axisController_ = axisController;
+            }
+
+            /* Constructs a dummy instance. */
+            ZoneWork() {
+                this( new PlotLayer[ 0 ], new Object[ 0 ], (Surface) null,
+                      new Range[ 0 ], (A) null,
+                      new HashMap<AuxScale,Range>(),
+                      new HashMap<AuxScale,Range>(),
+                      (PlotPlacement) null, (Icon) null, (Icon) null,
+                      new ReportMap[ 0 ], (AxisController<?,A>) null );
+            }
+
+            /**
+             * Returns an object which characterises the data content of this
+             * zone.  Two workings objects which have equal DataIconIds will
+             * have equivalent dataIcon members.
+             */
+            @Equality
+            DataIconId getDataIconId() {
+                return new DataIconId( placer_.getSurface(), layers_,
+                                       auxClipRangeMap_ );
+            }
+
+            /**
+             * Updates the AxisController GUI component associated with this
+             * object.  Should be called (from the Event Dispatch Thread)
+             * when a plot has been completed.
+             *
+             * <p>It's not very nice modifying a GUI component from here.
+             * The state has to be updated, because subsequent plot attempts
+             * use the state stored there to provide the fixed aspect.
+             * But maybe there's a cleaner way?
+             */
+            void updateAxisController() {
+                axisController_.setAspect( aspect_ );
+                axisController_.setRanges( geomRanges_ );
             }
         }
     }
@@ -816,53 +978,51 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
        
         private final Workings<A> oldWorkings_;
         private final SurfaceFactory<P,A> surfFact_;
-        private final Zone zone_;
+        private final Ganger<A> ganger_;
+        private final Zone<P,A>[] zones_;
         private final DataStoreFactory storeFact_;
-        private final Rectangle bounds_;
+        private final Rectangle extBounds_;
         private final Insets insets_;
-        private final PaperType paperType_;
         private final GraphicsConfiguration graphicsConfig_;
         private final Color bgColor_;
-        private final double[][] highlights_;
 
         /**
          * Constructor.
          *
          * @param   oldWorkings  workings object from a previous run;
-         *          parts of it may be re-used where appropriate
+         *                       parts of it may be re-used where appropriate
          * @param   surfFact  surface factory
-         * @param   zone  information about target plot zone
+         * @param   ganger     defines how multi-zone plots are grouped
+         * @param   zones    per-zone plot information
          * @param   storeFact  data store factory implementation
-         * @param   bounds   plot data bounds
-         * @param   insets   space reserved for annotations between
-         *                   the plot data bounds and external bounds
-         * @param   paperType  rendering implementation
+         * @param   extBounds   external bounds for entire plot display
+         * @param   insets   fixed space reserved for annotations between
+         *                   the plot data bounds and external bounds;
+         *                   may be null or incomplete
+         *                   (negative members are ignored)
          * @param   graphicsConfig  graphics configuration
          * @param   bgColor   background colour
-         * @param   highlights   array of highlight data positions
          */
         PlotJob( Workings<A> oldWorkings, SurfaceFactory<P,A> surfFact,
-                 Zone zone,
-                 DataStoreFactory storeFact, Rectangle bounds, Insets insets,
-                 PaperType paperType, GraphicsConfiguration graphicsConfig,
-                 Color bgColor, double[][] highlights ) {
+                 Ganger<A> ganger, Zone<P,A>[] zones,
+                 DataStoreFactory storeFact, Rectangle extBounds, Insets insets,
+                 GraphicsConfiguration graphicsConfig, Color bgColor ) {
             oldWorkings_ = oldWorkings;
             surfFact_ = surfFact;
-            zone_ = zone;
+            ganger_ = ganger;
+            zones_ = zones;
             storeFact_ = storeFact;
-            bounds_ = bounds;
+            extBounds_ = extBounds;
             insets_ = insets;
-            paperType_ = paperType;
             graphicsConfig_ = graphicsConfig;
             bgColor_ = bgColor;
-            highlights_ = highlights;
         }
 
         /**
          * Calculates the workings object.
          * In case of error, or if the plot would have been just
          * the same as the previously calculated one (from oldWorkings),
-         * null is returned
+         * null is returned.
          *
          * @param  rowStep  stride for selecting row subsample; 1 means all rows
          * @param  progModel   progress bar model to be updated with progress;
@@ -910,7 +1070,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 attemptCalculateWorkings( int rowStep,
                                           BoundedRangeModel progModel )
                 throws IOException, InterruptedException {
-            if ( bounds_.width > 0 && bounds_.height > 0 ) {
+            if ( extBounds_.width > 0 && extBounds_.height > 0 ) {
                 DataStore dataStore = readDataStore();
                 long ntuple = progModel == null
                             ? -1
@@ -966,8 +1126,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 throws IOException, InterruptedException {
 
             /* Assess what data specs we will need. */
-            DataSpec[] dataSpecs =
-                getDataSpecs( zone_.layers_ ).toArray( new DataSpec[ 0 ] );
+            List<DataSpec> dataSpecList = new ArrayList<DataSpec>();
+            for ( Zone zone : zones_ ) {
+                dataSpecList.addAll( getDataSpecs( zone.layers_ ) );
+            }
+            DataSpec[] dataSpecs = dataSpecList.toArray( new DataSpec[ 0 ] );
 
             /* If the oldWorkings data store contains the required data,
              * use that. */
@@ -1011,7 +1174,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                             final BoundedRangeModel progModel,
                                             long ntuple ) {
             long startPlot = System.currentTimeMillis();
-            Zone<P,A> zone = zone_;
    
             /* Record the base data store which will be stored in the
              * output workings object, and prepare a data store decorated
@@ -1033,272 +1195,444 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             dataStore1 =
                 new GuiDataStore( dataStore1, progModel, ntuple / rowStep );
 
-            /* Ascertain the surface aspect.  If it has been set
-             * explicitly, use that. */
-            final A aspect;
-            final Range[] geomRanges;
-            if ( zone.fixAspect_ != null ) {
-                aspect = zone.fixAspect_;
-                geomRanges = zone.geomFixRanges_;
+            /* Before we can work out the gang geometry, we need the
+             * surface aspects and shade axes for each zone.
+             * Calculate those, and retain other intermediate results
+             * we'll need later that we generate along the way. */
+            int nz = zones_.length;
+            A[] aspects = (A[]) new Object[ nz ];
+            Range[][] geomRanges = new Range[ nz ][];
+            long startRange = System.currentTimeMillis();
+            for ( int iz = 0; iz < nz; iz++ ) {
+                Zone<P,A> zone = zones_[ iz ];
+
+                /* Ascertain the surface aspect.  If it has been set
+                 * explicitly, use that.  The fixAspect can come indirectly
+                 * a previous invocation of this method. */
+                final A aspect;
+                final Range[] gRanges;
+                if ( zone.fixAspect_ != null ) {
+                    aspect = zone.fixAspect_;
+                    gRanges = zone.geomFixRanges_;
+                }
+
+                /* Otherwise work it out from the supplied config and
+                 * by scanning the data if necessary. */
+                else {
+                    if ( zone.geomFixRanges_ != null ) {
+                        gRanges = zone.geomFixRanges_;
+                    }
+                    else if ( ! surfFact_.useRanges( zone.profile_,
+                                                     zone.aspectConfig_ ) ) {
+                        gRanges = null;
+                    }
+                    else {
+                        gRanges =
+                            surfFact_.readRanges( zone.profile_, zone.layers_,
+                                                  dataStore1 );
+                        if ( Thread.currentThread().isInterrupted() ) {
+                            return null;
+                        }
+                        // could cache the ranges here by point cloud ID
+                        // for possible later use.
+                        // That would be an especially good idea for
+                        // multi-zone plots.
+                    }
+                    aspect = surfFact_.createAspect( zone.profile_,
+                                                     zone.aspectConfig_,
+                                                     gRanges );
+                }
+
+                /* Store results for later. */
+                aspects[ iz ] = aspect;
+                geomRanges[ iz ] = gRanges;
+            }
+            PlotUtil.logTime( logger_, "Range", startRange );
+
+            /* Work out gang geometry if we can (probably not). */
+            Gang gang;
+            if ( isFixedInsets( insets_ ) && nz == 1 ) {
+                Rectangle box0 = PlotUtil.subtractInsets( extBounds_, insets_ );
+                gang = ganger_.createGang( new Rectangle[] { box0 } );
+            }
+            else if ( ! usesShadeAxes() ) {
+                gang = createGang( aspects, new ShadeAxis[ nz ] );
+            }
+            else {
+                gang = null;
             }
 
-            /* Otherwise work them out from the supplied config and
-             * by scanning the data if necessary. */
-            else {
-                if ( zone.geomFixRanges_ != null ) {
-                    geomRanges = zone.geomFixRanges_;
-                }
-                else if ( ! surfFact_.useRanges( zone.profile_,
-                                                 zone.aspectConfig_ ) ) {
-                    geomRanges = null;
-                }
-                else {
-                    long startRange = System.currentTimeMillis();
-                    geomRanges =
-                        surfFact_.readRanges( zone.profile_, zone.layers_,
-                                              dataStore1 );
+            /* In any case, work out an approximate gang geometry we can
+             * use for ranging.  Since we don't have shade axes yet,
+             * we may have to behave as if there aren't any - it shouldn't
+             * make too much difference for this purpose, it just affects
+             * the amount of space available for the rest of the plot
+             * by a smallish proportion. */
+            Gang approxGang = gang != null
+                            ? gang
+                            : createGang( aspects, new ShadeAxis[ nz ] );
+
+            /* Now we can work out shade axes, along with other intermediate
+             * results. */
+            ShadeAxis[] shadeAxes = new ShadeAxis[ nz ];
+            Surface[] approxSurfs = new Surface[ nz ];
+            Map<AuxScale,Range>[] auxDataRangeMaps =
+                (Map<AuxScale,Range>[]) new Map[ nz ];
+            Map<AuxScale,Range>[] auxClipRangeMaps =
+                (Map<AuxScale,Range>[]) new Map[ nz ];
+            long startAux = System.currentTimeMillis();
+            for ( int iz = 0; iz < nz; iz++ ) {
+                Zone<P,A> zone = zones_[ iz ];
+                Workings.ZoneWork<A> oldZoneWork = oldWorkings_.zones_[ iz ];
+
+                /* Work out the required aux scale ranges.
+                 * First find out which ones we need. */
+                AuxScale[] scales = AuxScale.getAuxScales( zone.layers_ );
+
+                /* See if we can re-use the aux ranges from the oldWorkings.
+                 * This test isn't perfect, the layers may have changed
+                 * without requiring a recalculation of the Aux scales
+                 * (e.g. only colour map may have changed).  Oh well. */
+                Surface approxSurf =
+                    surfFact_.createSurface( approxGang.getZonePlotBounds( iz ),
+                                             zone.profile_, aspects[ iz ] );
+                Map<AuxScale,Range> auxDataRangeMap =
+                      layerListEquals( zone.layers_, oldZoneWork.layers_ )
+                   && PlotUtil.equals( approxSurf, oldZoneWork.approxSurf_ )
+                    ? oldZoneWork.auxDataRangeMap_
+                    : new HashMap<AuxScale,Range>();
+
+                /* Work out which scales we are going to have to calculate,
+                 * if any, and calculate them. */
+                AuxScale[] calcScales =
+                    AuxScale.getMissingScales( scales, auxDataRangeMap,
+                                               zone.auxFixRanges_ );
+                if ( calcScales.length > 0 ) {
+                    Map<AuxScale,Range> calcRangeMap =
+                        AuxScale.calculateAuxRanges( calcScales, zone.layers_,
+                                                     approxSurf, dataStore1 );
                     if ( Thread.currentThread().isInterrupted() ) {
                         return null;
                     }
-                    PlotUtil.logTime( logger_, "Range", startRange );
-                    // could cache the ranges here by point cloud ID
-                    // for possible later use.
+                    auxDataRangeMap.putAll( calcRangeMap );
                 }
-                aspect = surfFact_.createAspect( zone.profile_,
-                                                 zone.aspectConfig_,
-                                                 geomRanges );
+
+                /* Combine available aux scale information to get the
+                 * actual ranges for use in the plot. */
+                Map<AuxScale,Range> auxClipRangeMap =
+                    AuxScale.getClippedRanges( scales, auxDataRangeMap,
+                                               zone.auxFixRanges_,
+                                               zone.auxSubranges_,
+                                               zone.auxLogFlags_ );
+
+                /* Extract and use colour scale range for the shader. */
+                Range shadeRange = auxClipRangeMap.get( AuxScale.COLOR );
+                ShadeAxis shadeAxis =
+                    zone.shadeFact_.createShadeAxis( shadeRange );
+
+                /* Store results for later. */
+                shadeAxes[ iz ] = shadeAxis;
+                approxSurfs[ iz ] = approxSurf;
+                auxDataRangeMaps[ iz ] = auxDataRangeMap;
+                auxClipRangeMaps[ iz ] = auxClipRangeMap;
+            }
+            PlotUtil.logTime( logger_, "AuxRange", startAux );
+
+            /* Now we have enough information for the actual gang geometry. */
+            if ( gang == null ) {
+                gang = createGang( aspects, shadeAxes );
             }
 
-            /* Work out the required aux scale ranges.
-             * First find out which ones we need. */
-            AuxScale[] scales = AuxScale.getAuxScales( zone.layers_ );
-
-            /* See if we can re-use the aux ranges from the oldWorkings.
-             * This test isn't perfect, the layers may have changed
-             * without requiring a recalculation of the Aux scales
-             * (e.g. only colour map may have changed).  Oh well. */
-            Surface approxSurf =
-                surfFact_.createSurface( bounds_, zone.profile_, aspect );
-            Map<AuxScale,Range> auxDataRanges =
-                  layerListEquals( zone.layers_, oldWorkings_.zone_.layers_ )
-               && PlotUtil.equals( approxSurf, oldWorkings_.zone_.approxSurf_ )
-                ? oldWorkings_.zone_.auxDataRanges_
-                : new HashMap<AuxScale,Range>();
-
-            /* Work out which scales we are going to have to calculate,
-             * if any, and calculate them. */
-            AuxScale[] calcScales =
-                AuxScale.getMissingScales( scales, auxDataRanges,
-                                           zone.auxFixRanges_ );
-            if ( calcScales.length > 0 ) {
-                long startAux = System.currentTimeMillis();
-                Map<AuxScale,Range> calcRanges =
-                    AuxScale.calculateAuxRanges( calcScales, zone.layers_,
-                                                 approxSurf, dataStore1 );
-                if ( Thread.currentThread().isInterrupted() ) {
-                    return null;
-                }
-                auxDataRanges.putAll( calcRanges );
-                PlotUtil.logTime( logger_, "AuxRange", startAux );
+            /* Now we have enough information to create the actual surfaces,
+             * plan and plot the layers onto them, and save the result into
+             * per-zone ZoneWork objects. */
+            Set oldPlans = new HashSet();
+            for ( int iz = 0; iz < nz; iz++ ) {
+                oldPlans.addAll( Arrays
+                                .asList( oldWorkings_.zones_[ iz ].plans_ ) );
             }
+            long planMillis = 0;
+            long paintMillis = 0;
+            Workings.ZoneWork<A>[] zoneWorks =
+                (Workings.ZoneWork<A>[]) new Workings.ZoneWork[ nz ];
+            boolean changed = false;
+            for ( int iz = 0; iz < nz; iz++ ) {
+                Zone<P,A> zone = zones_[ iz ];
+                Workings.ZoneWork<A> oldZoneWork =
+                      iz < oldWorkings_.zones_.length
+                    ? oldWorkings_.zones_[ iz ]
+                    : new Workings.ZoneWork<A>();
 
-            /* Combine available aux scale information to get the
-             * actual ranges for use in the plot. */
-            Map<AuxScale,Range> auxClipRanges =
-                AuxScale.getClippedRanges( scales, auxDataRanges,
-                                           zone.auxFixRanges_,
-                                           zone.auxSubranges_,
-                                           zone.auxLogFlags_ );
+                /* Calculate the plot surface. */
+                Rectangle dataBounds = gang.getZonePlotBounds( iz );
+                Surface surface =
+                    surfFact_.createSurface( dataBounds, zone.profile_,
+                                             aspects[ iz ] );
 
-            /* Extract and use colour scale range for the shader. */
-            Range shadeRange = auxClipRanges.get( AuxScale.COLOR );
-            ShadeAxis shadeAxis =
-                zone.shadeFact_.createShadeAxis( shadeRange );
-
-            /* Work out the graphics bounds of the data region. */
-            final Rectangle dataBounds;
-            if ( isFixedInsets( insets_ ) ) {
-                dataBounds = PlotUtil.subtractInsets( bounds_, insets_ );
-            }
-            else {
-                Rectangle autoDataBounds =
+                /* Get the basic plot decorations. */
+                Decoration[] basicDecs =
                     PlotPlacement
-                   .calculateDataBounds( bounds_, surfFact_,
-                                         zone.profile_, aspect, WITH_SCROLL,
-                                         zone.legend_, zone.legpos_,
-                                         zone.title_, shadeAxis );
-                dataBounds = adjustDataBounds( bounds_, autoDataBounds,
-                                               insets_ );
-            }
+                   .createPlotDecorations( surface, zone.legend_, zone.legpos_,
+                                           zone.title_, shadeAxes[ iz ] );
+                List<Decoration> decList = new ArrayList<Decoration>();
+                decList.addAll( Arrays.asList( basicDecs ) );
 
-            /* Get the plot surface. */
-            Surface surface =
-                surfFact_.createSurface( dataBounds, zone.profile_, aspect );
-
-            /* Get the basic plot decorations. */
-            Decoration[] basicDecs =
-                PlotPlacement
-               .createPlotDecorations( surface, zone.legend_, zone.legpos_,
-                                       zone.title_, shadeAxis );
-            List<Decoration> decList = new ArrayList<Decoration>();
-            decList.addAll( Arrays.asList( basicDecs ) );
-
-            /* Place highlighted point icons as further plot decorations. */
-            Icon highIcon = HIGHLIGHTER;
-            int xoff = highIcon.getIconWidth() / 2;
-            int yoff = highIcon.getIconHeight() / 2;
-            Point2D.Double gp = new Point2D.Double();
-            for ( int ih = 0; ih < highlights_.length; ih++ ) {
-                if ( surface.dataToGraphics( highlights_[ ih ], true, gp ) ) {
-                    int gx = PlotUtil.ifloor( gp.x - xoff );
-                    int gy = PlotUtil.ifloor( gp.y - yoff );
-                    decList.add( new Decoration( highIcon, gx, gy ) );
+                /* Place highlighted point icons as further plot decorations. */
+                Icon highIcon = HIGHLIGHTER;
+                int xoff = highIcon.getIconWidth() / 2;
+                int yoff = highIcon.getIconHeight() / 2;
+                Point2D.Double gp = new Point2D.Double();
+                for ( double[] highlight : zone.highlights_ ) {
+                    if ( surface.dataToGraphics( highlight, true, gp ) ) {
+                        int gx = PlotUtil.ifloor( gp.x - xoff );
+                        int gy = PlotUtil.ifloor( gp.y - yoff );
+                        decList.add( new Decoration( highIcon, gx, gy ) );
+                    }
                 }
-            }
 
-            /* Construct the plot placement. */
-            Decoration[] decs = decList.toArray( new Decoration[ 0 ] );
-            PlotPlacement placer = new PlotPlacement( bounds_, surface, decs );
-            assert placer.equals( new PlotPlacement( bounds_, surface, decs ) );
+                /* Construct the plot placement. */
+                Decoration[] decs = decList.toArray( new Decoration[ 0 ] );
+                PlotPlacement placer =
+                    new PlotPlacement( extBounds_, surface, decs );
+                assert placer
+                      .equals( new PlotPlacement( extBounds_, surface, decs ) );
 
-            /* Determine whether first the data part, then the entire
-             * graphics, of the plot is the same as for the oldWorkings.
-             * If so, it's likely that we've got this far without any
-             * expensive calculations (data scans), since the ranges
-             * will have been picked up from the previous plot. */
-            boolean sameDataIcon =
-                new DataIconId( surface, zone.layers_, auxClipRanges )
-               .equals( oldWorkings_.getDataIconId() );
-            boolean samePlot =
-                sameDataIcon &&
-                placer.equals( oldWorkings_.zone_.placer_ );
+                /* Determine whether first the data part, then the entire
+                 * graphics, of the plot is the same as for the oldWorkings.
+                 * If so, it's likely that we've got this far without any
+                 * expensive calculations (data scans), since the ranges
+                 * will have been picked up from the previous plot. */
+                boolean sameDataIcon =
+                    new DataIconId( surface, zone.layers_,
+                                    auxClipRangeMaps[ iz ] )
+                   .equals( oldZoneWork.getDataIconId() );
+                boolean samePlot =
+                    sameDataIcon && placer.equals( oldZoneWork.placer_ );
 
-            /* If the plot is identical to last time, return null as
-             * an indication that no replot is required. */
-            if ( samePlot ) {
-                return null;
-            }
-
-            /* If the data part is the same as last time, no need to
-             * redraw the data icon or recalculate the plans - carry
-             * them forward from the oldWorkings for the result. */
-            final Icon dataIcon;
-            final long plotMillis;
-            final Object[] plans;
-            final ReportMap[] reports;
-            if ( sameDataIcon ) {
-                dataIcon = oldWorkings_.zone_.dataIcon_;
-                plans = oldWorkings_.zone_.plans_;
-                reports = oldWorkings_.zone_.reports_;
-                plotMillis = 0;
-            }
-
-            /* Otherwise calculate plans and perform drawing to a new
-             * cached data icon (image buffer). */
-            else {
-                int nl = zone.layers_.length;
-                long startPlan = System.currentTimeMillis();
-                Drawing[] drawings = new Drawing[ nl ];
-                for ( int il = 0; il < nl; il++ ) {
-                    drawings[ il ] =
-                        zone.layers_[ il ]
-                       .createDrawing( surface, auxClipRanges, paperType_ );
+                /* If the plot is identical to last time, store a null
+                 * zone workings object an indication that no replot
+                 * is required. */
+                final Workings.ZoneWork<A> zoneWork;
+                if ( samePlot ) {
+                    zoneWork = oldZoneWork;
                 }
-                plans = calculateDrawingPlans( drawings, dataStore1,
-                                               oldWorkings_.zone_.plans_ );
-                if ( Thread.currentThread().isInterrupted() ) {
-                    return null;
-                }
-                PlotUtil.logTime( logger_, "Plan", startPlan );
-                logger_.info( "Layers: " + zone.layers_.length + ", "
-                            + "Paper: " + paperType_ );
-                reports = new ReportMap[ nl ];
-                for ( int il = 0; il < nl; il++ ) {
-                    reports[ il ] = drawings[ il ].getReport( plans[ il ] );
-                }
-                long startPaint = System.currentTimeMillis();
-                dataIcon =
-                    paperType_.createDataIcon( surface, drawings, plans,
-                                               dataStore1, true );
-                if ( Thread.currentThread().isInterrupted() ) {
-                    return null;
-                }
-                PlotUtil.logTime( logger_, "Paint", startPaint );
-                plotMillis = System.currentTimeMillis() - startPlot;
-            }
 
-            /* Create the final plot icon, and store the inputs and
-             * outputs as a new Workings object for return. */
-            Icon plotIcon = placer.createPlotIcon( dataIcon );
-            Workings.ZoneWork zoneWork =
-                new Workings.ZoneWork( zone.layers_, plans, approxSurf,
-                                       geomRanges, aspect, auxDataRanges,
-                                       auxClipRanges, placer, dataIcon,
-                                       plotIcon, reports );
-            return new Workings<A>( zoneWork, dataStore0, rowStep, plotMillis );
+                /* Otherwise, we need to do at least some work. */
+                else {
+                    changed = true;
+
+                    /* If the data part is the same as last time, no need to
+                     * redraw the data icon or recalculate the plans - carry
+                     * them forward from the oldWorkings for the result. */
+                    final Icon dataIcon;
+                    final Object[] plans;
+                    final ReportMap[] reports;
+                    if ( sameDataIcon ) {
+                        dataIcon = oldZoneWork.dataIcon_;
+                        plans = oldZoneWork.plans_;
+                        reports = oldZoneWork.reports_;
+                    }
+
+                    /* Otherwise calculate plans and perform drawing to a new
+                     * cached data icon (image buffer). */
+                    else {
+                        PlotLayer[] layers = zone.layers_;
+                        int nl = layers.length;
+                        Map<AuxScale,Range> auxRangeMap =
+                            auxClipRangeMaps[ iz ];
+                        long startPlan = System.currentTimeMillis();
+                        Drawing[] drawings = new Drawing[ nl ];
+                        for ( int il = 0; il < nl; il++ ) {
+                            drawings[ il ] =
+                                layers[ il ]
+                               .createDrawing( surface, auxRangeMap,
+                                               zone.paperType_ );
+                        }
+                        plans = calculateDrawingPlans( drawings, dataStore1,
+                                                       oldPlans );
+                        if ( Thread.currentThread().isInterrupted() ) {
+                            return null;
+                        }
+                        planMillis += System.currentTimeMillis() - startPlan;
+                        logger_.info( "Zone: "+ iz + " - "
+                                    + "Layers: " + nl + ", "
+                                    + "Paper: " + zone.paperType_ );
+                        reports = new ReportMap[ nl ];
+                        for ( int il = 0; il < nl; il++ ) {
+                            reports[ il ] =
+                                drawings[ il ].getReport( plans[ il ] );
+                        }
+                        long startPaint = System.currentTimeMillis();
+                        dataIcon = zone.paperType_
+                                  .createDataIcon( surface, drawings, plans,
+                                                   dataStore1, true );
+                        paintMillis += System.currentTimeMillis() - startPaint;
+                        if ( Thread.currentThread().isInterrupted() ) {
+                            return null;
+                        }
+                    }
+
+                    /* Create the final plot icon, and store the inputs and
+                     * outputs as a new Workings object for return. */
+                    Icon plotIcon = placer.createPlotIcon( dataIcon );
+                    zoneWork =
+                        new Workings.ZoneWork<A>( zone.layers_, plans,
+                                                  approxSurfs[ iz ],
+                                                  geomRanges[ iz ],
+                                                  aspects[ iz ],
+                                                  auxDataRangeMaps[ iz ],
+                                                  auxClipRangeMaps[ iz ],
+                                                  placer, dataIcon, plotIcon,
+                                                  reports,
+                                                  zone.axisController_ );
+                }
+                zoneWorks[ iz ] = zoneWork;
+            }
+            long now = System.currentTimeMillis();
+            PlotUtil.logTime( logger_, "Plan", now - planMillis );
+            PlotUtil.logTime( logger_, "Paint", now - paintMillis );
+            long plotMillis = now - startPlot;
+
+            /* Construct and return an object containing the workings
+             * for all zones, unless it's exactly the same as last time,
+             * in which case return null to indicate that no replotting
+             * needs to be done.. */
+            return changed ? new Workings<A>( gang, zoneWorks, dataStore0,
+                                              rowStep, plotMillis )
+                           : null;
         }
 
         /**
-         * Attempts to return the plot surface which the result of this
-         * job will display.  If it cannot be determined quickly
-         * (that is, if the data needs to be scanned), then null will be
-         * returned.
+         * Attempts to return the plot surfaces for each zone
+         * which the result of this job will display.
+         * For any surface whose identity cannot be determined quickly
+         * (that is, if the data needs to be scanned), null will be
+         * given in the corresponding element of the returned array.
          *
-         * @return   plot surface used for this plot job, or null
+         * @return   per-zone array of plot surfaces used for this plot job,
+         *           elements are null if they cannot be determined cheaply
          */
-        public Surface getSurfaceQuickly() {
-            Zone<P,A> zone = zone_;
+        public Surface[] getSurfacesQuickly() {
 
             /* Implementation follows that of the relevant parts of
-             * attemptCalculateWorkings. */
-            final A aspect;
-            if ( zone.fixAspect_ != null ) {
-                aspect = zone.fixAspect_;
+             * createWorkings.  Any step that would require a scan through
+             * the data means that the corresponding surface is not
+             * calculated (set to null). */
+
+            /* First try to work out the aspects. */
+            int nz = zones_.length;
+            A[] aspects = (A[]) new Object[ nz ];
+            boolean hasAllAspects = true;
+            for ( int iz = 0; iz < nz; iz++ ) {
+                Zone<P,A> zone = zones_[ iz ];
+                final A aspect;
+                if ( zone.fixAspect_ != null ) {
+                    aspect = zone.fixAspect_;
+                }
+                else {
+                    final boolean needsRanging;
+                    final Range[] geomRanges;
+                    if ( zone.geomFixRanges_ != null ) {
+                        geomRanges = zone.geomFixRanges_;
+                        needsRanging = false;
+                    }
+                    else if ( ! surfFact_.useRanges( zone.profile_,
+                                                     zone.aspectConfig_ ) ) {
+                        geomRanges = null;
+                        needsRanging = false;
+                    }
+                    else {
+                        geomRanges = null;
+                        needsRanging = true;
+                    }
+                    aspect = needsRanging
+                           ? null
+                           : surfFact_.createAspect( zone.profile_,
+                                                     zone.aspectConfig_,
+                                                     geomRanges );
+                }
+                hasAllAspects = hasAllAspects && aspect != null;
+                aspects[ iz ] = aspect;
+            }
+
+            /* Then try to work out the gang. */
+            final Gang gang;
+            if ( isFixedInsets( insets_ ) && nz == 1 ) {
+                Rectangle box0 = PlotUtil.subtractInsets( extBounds_, insets_ );
+                gang = ganger_.createGang( new Rectangle[] { box0 } );
+            }
+            else if ( hasAllAspects && ! usesShadeAxes() ) {
+                gang = createGang( aspects, new ShadeAxis[ nz ] );
+            }
+            else if ( nz == 1 ) {
+                /* We could sort of do it in this case, since you can work out
+                 * the aux range, then the data bounds
+                 * (for nz>1 you can't, since you need all the aux ranges
+                 * to calculate the data bounds, and all the data bounds
+                 * to calculate the aux ranges).  But the Ganger interface
+                 * doesn't know that, so we can't. */
+                gang = null;
             }
             else {
-                final Range[] geomRanges;
-                if ( zone.geomFixRanges_ != null ) {
-                    geomRanges = zone.geomFixRanges_;
-                }
-                else if ( ! surfFact_.useRanges( zone.profile_,
-                                                 zone.aspectConfig_ ) ) {
-                    geomRanges = null;
-                }
-
-                /* If it needs ranging, it's too slow. */
-                else {
-                    return null;
-                }
-                aspect = surfFact_.createAspect( zone.profile_,
-                                                 zone.aspectConfig_,
-                                                 geomRanges );
+                gang = null;
             }
 
-            AuxScale[] scales = AuxScale.getAuxScales( zone.layers_ );
-            Map<AuxScale,Range> auxDataRanges =
-                  layerListEquals( zone.layers_, oldWorkings_.zone_.layers_ )
-                ? oldWorkings_.zone_.auxDataRanges_
-                : new HashMap<AuxScale,Range>();
-            AuxScale[] calcScales =
-                AuxScale.getMissingScales( scales, auxDataRanges,
-                                           zone.auxFixRanges_ );
-            if ( calcScales.length > 0 ) {
-                return null;
+            /* If we have got the gang, we can calculate the surfaces.
+             * Otherwise, return an array with all null elements. */
+            Surface[] surfs = new Surface[ nz ];
+            if ( gang != null ) {
+                for ( int iz = 0; iz < nz; iz++ ) {
+                    if ( aspects[ iz ] != null ) {
+                        surfs[ iz ] =
+                            surfFact_
+                           .createSurface( gang.getZonePlotBounds( iz ),
+                                           zones_[ iz ].profile_,
+                                           aspects[ iz ] );
+                    }
+                }
             }
+            return surfs;
+        }
 
-            Map<AuxScale,Range> auxClipRanges =
-                AuxScale.getClippedRanges( scales, auxDataRanges,
-                                           zone.auxFixRanges_,
-                                           zone.auxSubranges_,
-                                           zone.auxLogFlags_ );
-            Range shadeRange = auxClipRanges.get( AuxScale.COLOR );
-            ShadeAxis shadeAxis = zone.shadeFact_.createShadeAxis( shadeRange );
-            PlotPlacement placer =
-                PlotPlacement
-               .createPlacement( bounds_, surfFact_, zone.profile_, aspect,
-                                 WITH_SCROLL, zone.legend_, zone.legpos_,
-                                 zone.title_, shadeAxis );
-            return placer.getSurface();
+        /**
+         * Indicates whether any of the zones contained in this PlotJob
+         * will display a shade axis.  If not, gang determination can be
+         * done without needing to range the aux coordinate data.
+         *
+         * @return   true if any zones use, or may use, a shade axis
+         */
+        private boolean usesShadeAxes() {
+            for ( Zone<P,A> zone : zones_ ) {
+                if ( zone.shadeFact_
+                         .createShadeAxis( new Range( 1, 2 ) ) != null ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Constructs the gang used by this job given per-zone aspect and
+         * shade axis arrays.
+         *
+         * @param  aspects  per-zone aspect array
+         * @param  shadeAxes  per-zone shade axis array
+         * @return  surface positioning gang
+         */
+        private Gang createGang( A[] aspects, ShadeAxis[] shadeAxes ) {
+            int nz = zones_.length;
+            ZoneContent[] zoneContents = new ZoneContent[ nz ];
+            P[] profiles = (P[]) new Object[ nz ];
+            for ( int iz = 0; iz < nz; iz++ ) {
+                Zone<P,A> zone = zones_[ iz ];
+                profiles[ iz ] = zone.profile_;
+                zoneContents[ iz ] =
+                    new ZoneContent( zone.layers_, zone.legend_,
+                                     zone.legpos_, zone.title_ );
+	    }
+            return ganger_.createGang( extBounds_, surfFact_, nz,
+                                       zoneContents, profiles, aspects,
+                                       shadeAxes, WITH_SCROLL );
         }
 
         /**
@@ -1314,8 +1648,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 return dspecs.length == 0;
             }
             else {
-                for ( int is = 0; is < dspecs.length; is++ ) {
-                    DataSpec dspec = dspecs[ is ];
+                for ( DataSpec dspec : dspecs ) {
                     if ( dspec != null && ! dstore.hasData( dspec ) ) {
                         return false;
                     }
@@ -1339,76 +1672,32 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         }
 
         /**
-         * Returns a data bounds rectangle based on given external plot bounds,
-         * automatically calculated data bounds, and an optional insets
-         * object providing preferred settings.  The values in the insets
-         * object are used to override those from the autoBounds input
-         * where present.
-         *
-         * @param  extBounds  fixed external bounds 
-         * @param  autoBounds   default data bounds
-         * @param  insets   may contain required insets between external and
-         *                  data bounds; members may be negative to indicate
-         *                  no setting, or the whole thing can be null
-         * @return   data bounds rectangle for actual use
-         */
-        private static Rectangle adjustDataBounds( Rectangle extBounds,
-                                                   Rectangle autoBounds,
-                                                   Insets insets ) {
-            if ( insets == null ) {
-                return new Rectangle( autoBounds );
-            }
-            int top =
-                  insets.top >= 0
-                ? insets.top
-                : autoBounds.y - extBounds.y;
-            int left =
-                  insets.left >= 0
-                ? insets.left
-                : autoBounds.x - extBounds.x;
-            int bottom =
-                  insets.bottom >= 0
-                ? insets.bottom
-                : extBounds.y + extBounds.height
-                - autoBounds.y - autoBounds.height;
-            int right =
-                  insets.right >= 0
-                ? insets.right
-                : extBounds.x + extBounds.width
-                - autoBounds.x - autoBounds.width;
-            return PlotUtil
-                  .subtractInsets( extBounds,
-                                   new Insets( top, left, bottom, right ) );
-        }
-
-        /**
          * Calculates plot plans for a set of drawings, attempting to re-use
          * previously calculated plans where possible.
          *
          * @param  drawings   drawings
          * @param  dataStore   data storage object
-         * @param  oldPlans  unordered array of plan objects previously
+         * @param  oldPlans  unordered collection of plan objects previously
          *                   calculated that may or may not be re-usable
          *                   for the current drawings
          * @return  array of per-drawing plans
          */
         private static Object[] calculateDrawingPlans( Drawing[] drawings,
                                                        DataStore dataStore,
-                                                       Object[] oldPlans ) {
+                                                       Collection oldPlans ) {
             int nl = drawings.length;
-            Set<Object> oldPlanSet =
-                new HashSet<Object>( Arrays.asList( oldPlans ) );
+            Set knownPlans = new HashSet( oldPlans );
             Object[] plans = new Object[ nl ];
             for ( int il = 0; il < nl; il++ ) {
                 Object plan =
-                    drawings[ il ].calculatePlan( oldPlanSet.toArray(),
+                    drawings[ il ].calculatePlan( knownPlans.toArray(),
                                                   dataStore );
                 plans[ il ] = plan;
-                oldPlanSet.add( plan );
+                knownPlans.add( plan );
             }
             return plans;
         }
-     
+
         /**
          * Aggregates per-zone information for a PlotJob.
          */
@@ -1425,6 +1714,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final Icon legend_;
             final float[] legpos_;
             final String title_;
+            final double[][] highlights_;
+            final PaperType paperType_;
+            final AxisController<P,A> axisController_;
 
             /**
              * Constructor.
@@ -1445,6 +1737,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              *                   relative positions (0-1),
              *                   or null if legend absent/external
              * @param   title    plot title, or null
+             * @param   highlights  array of highlight data positions
+             * @param   paperType   rendering implementation
+             * @param   axisController  GUI component corresponding to this zone
              */
             Zone( PlotLayer[] layers, P profile, A fixAspect,
                   Range[] geomFixRanges, ConfigMap aspectConfig,
@@ -1452,7 +1747,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                   Map<AuxScale,Range> auxFixRanges,
                   Map<AuxScale,Subrange> auxSubranges,
                   Map<AuxScale,Boolean> auxLogFlags,
-                  Icon legend, float[] legpos, String title ) {
+                  Icon legend, float[] legpos, String title,
+                  double[][] highlights, PaperType paperType,
+                  AxisController<P,A> axisController ) {
                 layers_ = layers;
                 profile_ = profile;
                 fixAspect_ = fixAspect;
@@ -1465,6 +1762,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 legend_ = legend;
                 legpos_ = legpos;
                 title_ = title;
+                highlights_ = highlights;
+                paperType_ = paperType;
+                axisController_ = axisController;
             }
         }
     }
@@ -1478,20 +1778,20 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private static class DataIconId {
         private final Surface surface_;
         private final PlotLayer[] layers_;
-        private final Map<AuxScale,Range> auxClipRanges_;
+        private final Map<AuxScale,Range> auxClipRangeMap_;
 
         /**
          * Constructor.
          *
          * @param  surface  plot surface
          * @param  layers   plot layers
-         * @param  auxClipRanges   actual ranges used for aux scales
+         * @param  auxClipRangeMap   actual ranges used for aux scales
          */
         DataIconId( Surface surface, PlotLayer[] layers,
-                    Map<AuxScale,Range> auxClipRanges ) {
+                    Map<AuxScale,Range> auxClipRangeMap ) {
             surface_ = surface;
             layers_ = layers;
-            auxClipRanges_ = auxClipRanges;
+            auxClipRangeMap_ = auxClipRangeMap;
         }
 
         public boolean equals( Object o ) {
@@ -1499,7 +1799,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 DataIconId other = (DataIconId) o;
                 return this.surface_.equals( other.surface_ )
                     && layerListEquals( this.layers_, other.layers_ )
-                    && this.auxClipRanges_.equals( other.auxClipRanges_ );
+                    && this.auxClipRangeMap_.equals( other.auxClipRangeMap_ );
             }
             else {
                 return false;
@@ -1511,11 +1811,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             int code = 987;
             code = 23 * code + surface_.hashCode();
             code = 23 * code + layerList( layers_ ).hashCode();
-            code = 23 * code + auxClipRanges_.hashCode();
+            code = 23 * code + auxClipRangeMap_.hashCode();
             return code;
         }
     }
-
 
     /**
      * Stores a reference to a Future in such a way that it can be
@@ -1588,6 +1887,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         public PlotJobRunner( PlotJob plotJob, PlotJobRunner refRunner ) {
             plotJob_ = plotJob;
             simObj_ = getSimilarityObject( plotJob );
+            assert simObj_.equals( getSimilarityObject( plotJob ) );
             rowStep_ = sketchModel_.isSelected() ? getRowStep( refRunner ) : 1;
         }
 
@@ -1731,15 +2031,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * graphics as before.  If the return is non-null,
              * repaint it. */
             if ( workings != null ) {
-                final AxisController axControl = zoneDef_.getAxisController();
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         boolean plotChange =
-                            ! workings.getDataIconId()
-                             .equals( workings_.getDataIconId() );
+                            ! workings.getDataIconIdList()
+                             .equals( workings_.getDataIconIdList() );
                         workings_ = workings;
-                        axControl.setAspect( workings.zone_.aspect_ );
-                        axControl.setRanges( workings.zone_.geomRanges_ );
+                        for ( Workings.ZoneWork zone : workings.zones_ ) {
+                            zone.updateAxisController();
+                        }
                         repaint();
 
                         /* If the plot changed materially, notify listeners. */
@@ -1761,30 +2061,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          */
         public boolean isSimilar( PlotJob otherJob ) {
             return simObj_.equals( getSimilarityObject( otherJob ) );
-        }
-
-        /**
-         * Returns an identity object representing the parts of a plot job
-         * that must be equal between two instances to confer similarity
-         * for the purposes of working out whether to interrupt a previous job.
-         * This notion of similarity is not very well defined, and may be
-         * adjusted in the future; it's a case of trying to get something
-         * which works well in the UI.
-         *
-         * <p>For now two jobs are characterised as similar if they have
-         * the same list of layer types, in the same order, with the same
-         * data.  However the plot surface and the layer styles may change.
-         * This accommodates as similar for instance panned/zoomed versions
-         * of the same plot or versions which differ by having the
-         * transparency limit adjusted.
-         *
-         * @param  plotJob  job to identify
-         * @return   list of layerIds
-         */
-        @Equality
-        private Object getSimilarityObject( PlotJob plotJob ) {
-            return layerListNoStyle( plotJob == null ? new PlotLayer[ 0 ]
-                                                     : plotJob.zone_.layers_ );
         }
     }
 

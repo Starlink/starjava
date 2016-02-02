@@ -60,6 +60,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
@@ -69,6 +70,7 @@ import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -122,6 +124,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
+
+    /** Index of sole plot zone. */
+    private static final int IZ0 = 0;
 
     /**
      * Constructor.
@@ -186,7 +191,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  + "gestures" );
         navdecModel.setSelected( true );
 
-        ZoneDefiner<P,A> zoneDef = new ZoneDefiner<P,A>() {
+        final ZoneDefiner<P,A> zoneDef = new ZoneDefiner<P,A>() {
             public AxisController<P,A> getAxisController() {
                 return axisController_;
             }
@@ -206,13 +211,27 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return shaderControl;
             }
         };
+        Factory<ZoneDefiner<P,A>[]> zonesFact =
+                new Factory<ZoneDefiner<P,A>[]>() {
+            public ZoneDefiner<P,A>[] getItem() {
+                List<ZoneDefiner<P,A>> list = new ArrayList<ZoneDefiner<P,A>>();
+                list.add( zoneDef );
+                @SuppressWarnings("unchecked")
+                ZoneDefiner<P,A>[] zoneDefs =
+                    (ZoneDefiner<P,A>[])
+                    list.toArray( new ZoneDefiner<?,?>[ 0 ] );
+                return zoneDefs;
+            }
+        };
+        Ganger<A> ganger = new SingleGanger<A>();
 
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
-            new PlotPanel<P,A>( storeFact, zoneDef, posFact,
-                                plotType.getPaperTypeSelector(), compositor,
-                                sketchModel_, placeProgressBar().getModel(),
+            new PlotPanel<P,A>( storeFact, surfFact_, ganger, zonesFact,
+                                posFact, plotType.getPaperTypeSelector(),
+                                compositor, sketchModel_,
+                                placeProgressBar().getModel(),
                                 showProgressModel_ );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
@@ -317,9 +336,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  "Save the plot to a file"
                                + " in one of several graphics formats" ) {
             public void actionPerformed( ActionEvent evt ) {
-                PlotPlacement placer = plotPanel_.getPlotPlacement();
-                PlotLayer[] layers = plotPanel_.getPlotLayers();
-                Map<AuxScale,Range> auxRanges = plotPanel_.getAuxClipRanges();
+                PlotPlacement placer = plotPanel_.getPlotPlacement( IZ0 );
+                PlotLayer[] layers = plotPanel_.getPlotLayers( IZ0 );
+                Map<AuxScale,Range> auxRanges =
+                    plotPanel_.getAuxClipRanges( IZ0 );
                 DataStore dataStore = plotPanel_.getDataStore();
                 plotExporter.exportPlot( StackPlotWindow.this,
                                          placer, layers, auxRanges, dataStore,
@@ -749,8 +769,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     private Factory<Map<TopcatModel,Long>>
             createPointFinder( final Point point ) {
-        final Surface surface = plotPanel_.getSurface();
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        final Surface surface = plotPanel_.getSurface( IZ0 );
+        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
 
         /* Create and return the object that will do the work. */
         return new Factory<Map<TopcatModel,Long>>() {
@@ -841,13 +861,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param   irow   row index
      */
     private void highlightRow( TopcatModel tcModel, long irow ) {
-        Surface surface = plotPanel_.getSurface();
+        Surface surface = plotPanel_.getSurface( IZ0 );
         if ( surface == null ) {
             return;
         }
         Map<SubCloud,double[]> highMap = new LinkedHashMap<SubCloud,double[]>();
         SubCloud[] subClouds =
-            SubCloud.createSubClouds( plotPanel_.getPlotLayers(), true );
+            SubCloud.createSubClouds( plotPanel_.getPlotLayers( IZ0 ), true );
         DataStore dataStore = plotPanel_.getDataStore();
         for ( int ic = 0; ic < subClouds.length; ic++ ) {
             SubCloud subCloud = subClouds[ ic ];
@@ -921,9 +941,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     private Factory<Map<TopcatModel,BitSet>>
             createBlobMasker( final Shape blob ) {
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
         final PositionCriterion blobCriterion =
-            PositionCriterion.createBlobCriterion( plotPanel_.getSurface(),
+            PositionCriterion.createBlobCriterion( plotPanel_.getSurface( IZ0 ),
                                                    blob );
         return new Factory<Map<TopcatModel,BitSet>>() {
             @Slow
@@ -948,11 +968,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return   factory for deferred calculation of bit masks
      */
     private Factory<Map<TopcatModel,BitSet>> createVisibleMasker() {
-        Surface surface = plotPanel_.getSurface();
+        Surface surface = plotPanel_.getSurface( IZ0 );
 
         /* Prepare a criterion for inclusion of normal data positions
          * in the bounds of the plotting surface. */
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
         final PositionCriterion fullCriterion =
             PositionCriterion.createBoundsCriterion( surface );
 
@@ -963,7 +983,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * For this case, either X or Y position within the plot bounds
          * counts as visibility. */
         final GuiPointCloud partialPointCloud =
-            plotPanel_.createPartialGuiPointCloud();
+            plotPanel_.createPartialGuiPointCloud( IZ0 );
         final PositionCriterion partialCriterion =
             PositionCriterion.createPartialBoundsCriterion( surface );
 
@@ -1054,10 +1074,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  factory for deferred calculation of formatted point count
      */
     private Factory<String> createCounter() {
-        Surface surface = plotPanel_.getSurface();
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        Surface surface = plotPanel_.getSurface( IZ0 );
+        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
         final GuiPointCloud partialCloud =
-            plotPanel_.createPartialGuiPointCloud();
+            plotPanel_.createPartialGuiPointCloud( IZ0 );
         final PositionCriterion pointCriterion =
             PositionCriterion.createBoundsCriterion( surface );
         final PositionCriterion partialCriterion =
@@ -1191,15 +1211,16 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Work out if it makes any sense to do a blob or visibility
          * selection. */
         boolean hasPoints =
-            plotPanel_.createGuiPointCloud().getTableClouds().length > 0;
+            plotPanel_.createGuiPointCloud( IZ0 ).getTableClouds().length > 0;
         boolean hasPartialPoints =
-            plotPanel_.createPartialGuiPointCloud().getTableClouds().length > 0;
+            plotPanel_.createPartialGuiPointCloud( IZ0 )
+                      .getTableClouds().length > 0;
         blobAction_.setEnabled( hasPoints );
         fromVisibleAction_.setEnabled( hasPoints || hasPartialPoints );
 
         /* Update plot reports. */
-        PlotLayer[] layers = plotPanel_.getPlotLayers();
-        ReportMap[] reports = plotPanel_.getReports();
+        PlotLayer[] layers = plotPanel_.getPlotLayers( IZ0 );
+        ReportMap[] reports = plotPanel_.getReports( IZ0 );
         int nl = layers.length;
         assert nl == reports.length;
         Map<LayerId,ReportMap> rmap = new HashMap<LayerId,ReportMap>();
@@ -1264,7 +1285,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private void displayPosition( Point point ) {
         String pos = null;
         if ( point != null ) {
-            Surface surface = plotPanel_.getSurface();
+            Surface surface = plotPanel_.getSurface( IZ0 );
             if ( surface != null &&
                  surface.getPlotBounds().contains( point ) ) {
                 double[] dataPos = surface.graphicsToData( point, null );
@@ -1283,7 +1304,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param  pos  cursor position, or null if outside the plot panel
      */
     private void displayNavHelp( Point pos ) {
-        Surface surface = plotPanel_.getSurface();
+        Surface surface = plotPanel_.getSurface( IZ0 );
         final Map<Gesture,String> navOpts;
         final boolean active;
         if ( surface != null ) {
