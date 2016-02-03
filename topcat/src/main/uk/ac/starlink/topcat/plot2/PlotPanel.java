@@ -11,6 +11,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
@@ -366,16 +367,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Returns placement of a given zone for the most recent completed plot.
-     *
-     * @param   iz  zone index
-     * @return   placement
-     */
-    public PlotPlacement getPlotPlacement( int iz ) {
-        return workings_.zones_[ iz ].placer_;
-    }
-
-    /**
      * Returns the plot surface of a given zone
      * for the most recent completed plot.
      *
@@ -448,17 +439,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                   getDataStore(),
                                   showProgressModel_.isSelected() ? progModel_
                                                                   : null );
-    }
-
-    /**
-     * Returns the map of layer-requested aux ranges used in a given zone
-     * for the most recently completed plot.
-     *
-     * @param   iz  zone index
-     * @return   actual aux range values for plot
-     */
-    public Map<AuxScale,Range> getAuxClipRanges( int iz ) {
-        return workings_.zones_[ iz ].auxClipRangeMap_;
     }
 
     /**
@@ -694,6 +674,25 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         for ( ChangeListener listener : changeListenerList_ ) {
             listener.stateChanged( evt );
         }
+    }
+
+    /**
+     * Returns an icon corresponding to the current state of this panel.
+     * This method executes quickly, but the returned icon's paintIcon
+     * method might take time.  The returned value is immutable,
+     * and its behaviour is not affected by subsequent changes to this panel.
+     *
+     * @param  forceBitmap   true to force bitmap output of vector graphics,
+     *                       false to use default behaviour
+     * @return  icon
+     */
+    public Icon createExportIcon( final boolean forceBitmap ) {
+        Insets insets = getInsets();
+        Dimension size = getSize();
+        final int xpix = size.width - insets.left - insets.right;
+        final int ypix = size.height - insets.top - insets.bottom;
+        return new ExportIcon( xpix, ypix, workings_, forceBitmap,
+                               ptSel_, compositor_ );
     }
 
     /**
@@ -2061,6 +2060,76 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          */
         public boolean isSimilar( PlotJob otherJob ) {
             return simObj_.equals( getSimilarityObject( otherJob ) );
+        }
+    }
+
+    /**
+     * Icon that can be used for exporting the current plot to an
+     * external graphics format.
+     */
+    private static class ExportIcon implements Icon {
+
+        private final int xpix_;
+        private final int ypix_;
+        private final Workings workings_;
+        private final boolean forceBitmap_;
+        private final PaperTypeSelector ptSel_;
+        private final Compositor compositor_;
+
+        /** 
+         * Constructor.
+         *
+         * @param  xpix   external width of icon
+         * @param  ypix   external height of icon
+         * @param  workings  contains plot state
+         * @param  forceBitmap   true to force bitmap output of vector graphics,
+         *                       false to use default behaviour
+         * @param  ptSel   rendering policy
+         * @param  compositor  compositor for composition of transparent pixels
+         */
+        public ExportIcon( int xpix, int ypix, Workings workings,
+                           boolean forceBitmap, PaperTypeSelector ptSel,
+                           Compositor compositor ) {
+            xpix_ = xpix;
+            ypix_ = ypix;
+            workings_ = workings;
+            forceBitmap_ = forceBitmap;
+            ptSel_ = ptSel;
+            compositor_ = compositor;
+        }
+
+        public int getIconWidth() {
+            return xpix_;
+        }
+
+        public int getIconHeight() {
+            return ypix_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            g.translate( x, y );
+            Shape clip = g.getClip();
+            DataStore dataStore = workings_.dataStore_;
+            boolean cached = false;
+            for ( Workings.ZoneWork zone : workings_.zones_ ) {
+                PlotPlacement placer = zone.placer_;
+                PlotLayer[] layers = zone.layers_;
+                Map<AuxScale,Range> auxRanges = zone.auxClipRangeMap_;
+                LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
+                PaperType paperType =
+                      forceBitmap_
+                    ? ptSel_.getPixelPaperType( opts, compositor_, c )
+                    : ptSel_.getVectorPaperType( opts );
+                if ( clip != null &&
+                     ! clip.intersects( placer.getSurface()
+                                              .getPlotBounds() ) ) {
+                    layers = new PlotLayer[ 0 ];
+                }
+                PlotUtil.createPlotIcon( placer, layers, auxRanges,
+                                         dataStore, paperType, cached )
+                        .paintIcon( c, g, 0, 0 );
+            }
+            g.translate( -x, -y );
         }
     }
 

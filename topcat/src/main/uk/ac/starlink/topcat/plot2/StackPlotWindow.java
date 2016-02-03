@@ -56,7 +56,6 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
@@ -66,7 +65,6 @@ import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
@@ -331,20 +329,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Prepare the plot export action. */
         final PlotExporter plotExporter = PlotExporter.getInstance();
+        final PlotExporter.IconFactory ifact = new PlotExporter.IconFactory() {
+            public Icon getExportIcon( boolean forceBitmap ) {
+                return plotPanel_.createExportIcon( forceBitmap );
+            }
+        };
         Action exportAction =
                 new BasicAction( "Export plot to file", ResourceIcon.IMAGE,
                                  "Save the plot to a file"
                                + " in one of several graphics formats" ) {
             public void actionPerformed( ActionEvent evt ) {
-                PlotPlacement placer = plotPanel_.getPlotPlacement( IZ0 );
-                PlotLayer[] layers = plotPanel_.getPlotLayers( IZ0 );
-                Map<AuxScale,Range> auxRanges =
-                    plotPanel_.getAuxClipRanges( IZ0 );
-                DataStore dataStore = plotPanel_.getDataStore();
-                plotExporter.exportPlot( StackPlotWindow.this,
-                                         placer, layers, auxRanges, dataStore,
-                                         plotType_.getPaperTypeSelector(),
-                                         compositor );
+                plotExporter.exportPlot( StackPlotWindow.this, ifact );
             }
         };
 
