@@ -6,10 +6,10 @@ import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Input;
-import uk.ac.starlink.ttools.plot2.geom.StackGanger;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
+import uk.ac.starlink.ttools.plot2.geom.TimeStackGanger;
 import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
 
 /**
@@ -21,9 +21,10 @@ import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
 public class TimePlot2Task extends TypedPlot2Task {
 
     private static final TimePlotType PLOTTYPE = TimePlotType.getInstance();
+    private static final Ganger<TimeAspect> GANGER =
+        TimeStackGanger.getInstance();
     private static final Map<ConfigKey<String>,Input> AXLABEL_MAP =
         createAxisLabelMap();
-    private static final Ganger<TimeAspect> GANGER = new TimeStackGanger();
 
     /**
      * Constructor.
@@ -44,20 +45,5 @@ public class TimePlot2Task extends TypedPlot2Task {
         map.put( TimeSurfaceFactory.YLABEL_KEY,
                  TimeDataGeom.Y_COORD.getInput() );
         return Collections.unmodifiableMap( map );
-    }
-
-    /**
-     * Ganger that stacks time plots vertically with a shared time axis.
-     */
-    private static class TimeStackGanger extends StackGanger<TimeAspect> {
-        public double[] getXLimits( TimeAspect aspect ) {
-            return new double[] { aspect.getTMin(), aspect.getTMax() };
-        }
-        public TimeAspect fixXLimits( TimeAspect aspect,
-                                      double xmin, double xmax ) {
-            return new TimeAspect( new double[] { xmin, xmax },
-                                   new double[] { aspect.getYMin(),
-                                                  aspect.getYMax() } );
-        }
     }
 }
