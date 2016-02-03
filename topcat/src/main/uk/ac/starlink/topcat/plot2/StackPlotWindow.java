@@ -118,6 +118,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final boolean canSelectPoints_;
     private final JMenu exportMenu_;
     private final ToggleButtonModel sketchModel_;
+    private final Ganger<A> dfltGanger_;
     private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
@@ -137,6 +138,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;
         canSelectPoints_ = plotTypeGui.hasPositions();
+        dfltGanger_ = new SingleGanger<A>();
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
@@ -205,6 +207,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return shaderControl;
             }
         };
+        Factory<Ganger<A>> gangerFact = new Factory<Ganger<A>>() {
+            public Ganger<A> getItem() {
+                return getGanger();
+            }
+        };
         Factory<ZoneDefiner<P,A>[]> zonesFact =
                 new Factory<ZoneDefiner<P,A>[]>() {
             public ZoneDefiner<P,A>[] getItem() {
@@ -217,12 +224,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return zoneDefs;
             }
         };
-        Ganger<A> ganger = new SingleGanger<A>();
 
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
-            new PlotPanel<P,A>( storeFact, surfFact_, ganger, zonesFact,
+            new PlotPanel<P,A>( storeFact, surfFact_, gangerFact, zonesFact,
                                 posFact, plotType.getPaperTypeSelector(),
                                 compositor, sketchModel_,
                                 placeProgressBar().getModel(),
@@ -591,6 +597,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     public ControlManager getControlManager() {
         return controlManager_;
+    }
+
+    /**
+     * Returns the ganger that controls how multi-zone plots are configured.
+     * The default implementation returns a SingleGanger, but it may be
+     * overridden.  The returned value may change at any time.
+     *
+     * @return  ganger
+     */
+    public Ganger<A> getGanger() {
+        return dfltGanger_;
     }
 
     /**

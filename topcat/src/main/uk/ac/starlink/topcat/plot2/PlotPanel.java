@@ -118,7 +118,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
     private final DataStoreFactory storeFact_;
     private final SurfaceFactory<P,A> surfFact_;
-    private final Ganger<A> ganger_;
+    private final Factory<Ganger<A>> gangerFact_;
     private final Factory<ZoneDefiner<P,A>[]> zonesFact_;
     private final Factory<PlotPosition> posFact_;
     private final PaperTypeSelector ptSel_;
@@ -165,7 +165,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *
      * @param  storeFact   data store factory implementation
      * @param  surfFact   surface factory
-     * @param  ganger     defines how multi-zone plots are grouped
+     * @param  gangerFact  factory for defining how multi-zone plots are grouped
      * @param  zonesFact  acquires per-zone information
      * @param  posFact  supplier of plot position settings
      * @param  ptSel   rendering policy
@@ -177,7 +177,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *                            are reported to the progress bar model
      */
     public PlotPanel( DataStoreFactory storeFact, SurfaceFactory<P,A> surfFact,
-                      Ganger<A> ganger, Factory<ZoneDefiner<P,A>[]> zonesFact,
+                      Factory<Ganger<A>> gangerFact,
+                      Factory<ZoneDefiner<P,A>[]> zonesFact,
                       Factory<PlotPosition> posFact,
                       PaperTypeSelector ptSel, Compositor compositor,
                       ToggleButtonModel sketchModel,
@@ -187,7 +188,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                    ? storeFact
                    : new ProgressDataStoreFactory( storeFact, progModel );
         surfFact_ = surfFact;
-        ganger_ = ganger;
+        gangerFact_ = gangerFact;
         zonesFact_ = zonesFact;
         posFact_ = posFact;
         ptSel_ = ptSel;
@@ -531,6 +532,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Insets insets = plotpos.getPlotInsets();
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
+        Ganger<A> ganger = gangerFact_.getItem();
         ZoneDefiner<P,A>[] zoneDefs = zonesFact_.getItem();
 
         /* Acquire per-zone state. */
@@ -591,7 +593,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         highlightMap_.keySet().retainAll( allSubclouds );
 
         /* Construct and return a plot job that defines what has to be done. */
-        return new PlotJob<P,A>( workings_, surfFact_, ganger_, zones,
+        return new PlotJob<P,A>( workings_, surfFact_, ganger, zones,
                                  storeFact_, bounds, insets, graphicsConfig,
                                  bgColor );
     }
