@@ -367,6 +367,24 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
+     * Returns the zone index for the surface whose data bounds enclose
+     * a given graphics position.  If the position is not within the
+     * data bounds of any displayed plot surface, -1 is returned.
+     *
+     * @param  pos  graphics position to query
+     * @return  zone index, or -1
+     */
+    public int getZoneIndex( Point pos ) {
+        Workings w = workings_;
+        int iz = w.gang_.getNavigationZoneIndex( pos );
+        return iz >= 0 &&
+               w.zones_[ iz ].placer_.getSurface().getPlotBounds()
+                                                  .contains( pos )
+             ? iz
+             : -1;
+    }
+
+    /**
      * Returns the plot surface of a given zone
      * for the most recent completed plot.
      *

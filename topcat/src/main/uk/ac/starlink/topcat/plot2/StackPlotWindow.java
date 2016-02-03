@@ -62,7 +62,6 @@ import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
-import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -122,9 +121,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
-
-    /** Index of sole plot zone. */
-    private static final int IZ0 = 0;
 
     /**
      * Constructor.
@@ -307,7 +303,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  "Define a new row subset containing only "
                                + "currently visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addMaskSubsets( createVisibleMasker() );
+                addMaskSubsets( getBoundsInclusions( true ), null );
             }
         };
 
@@ -316,8 +312,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         blobPanel_ = new BlobPanel2() {
             protected void blobCompleted( Shape blob ) {
                 setListening( false );
-                // will call setActive(false) later
-                addMaskSubsets( createBlobMasker( blob ) );
+                final BlobPanel2 panel = this;
+                addMaskSubsets( getBlobInclusions( blob ), new Runnable() {
+                    public void run() {
+                        panel.setActive( false );
+                    }
+                } );
             }
         };
         stackModel_.addPlotActionListener( new ActionListener() {
@@ -740,82 +740,102 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private void identifyPoint( final Point point ) {
         final Factory<Map<TopcatModel,Long>> finder =
             createPointFinder( point );
-        plotPanel_.submitPlotAnnotator( new Runnable() {
-            public void run() {
-                final Map<TopcatModel,Long> indexMap = finder.getItem();
-                if ( indexMap != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            applyHighlights( indexMap );
-                        }
-                    } );
+        if ( finder != null ) {
+            plotPanel_.submitPlotAnnotator( new Runnable() {
+                public void run() {
+                    final Map<TopcatModel,Long> indexMap = finder.getItem();
+                    if ( indexMap != null ) {
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                applyHighlights( indexMap );
+                            }
+                        } );
+                    }
                 }
-            }
-        } );
+            } );
+        }
     }
 
     /**
      * Returns an object that can identify table row indices close to
      * a given screen position.
      *
-     * @param  point  screen position to query
+     * @param  pos  screen position to query
      * @return  factory that returns a map of topcat models to row indices
-     *          giving rows whose markers are close to the point
+     *          giving rows whose markers are close to the point;
+     *          the returned factory may be null if there are known to be none
      */
     private Factory<Map<TopcatModel,Long>>
-            createPointFinder( final Point point ) {
-        final Surface surface = plotPanel_.getSurface( IZ0 );
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
+            createPointFinder( final Point pos ) {
+        final int iz = plotPanel_.getZoneIndex( pos );
+        if ( iz >= 0 ) {
+            final Surface surface = plotPanel_.getSurface( iz );
+            final GuiPointCloud pointCloud =
+                plotPanel_.createGuiPointCloud( iz );
+            return new Factory<Map<TopcatModel,Long>>() {
+                @Slow
+                public Map<TopcatModel,Long> getItem() {
+                    return findPoints( surface, pointCloud, pos );
+                }
+            };
+        }
+        else {
+            return null;
+        }
+    }
 
-        /* Create and return the object that will do the work. */
-        return new Factory<Map<TopcatModel,Long>>() {
-            @Slow
-            public Map<TopcatModel,Long> getItem() {
+    /**
+     * Iterates over the points in a given cloud to find out whether any
+     * are near to a given screen position.
+     *
+     * @param  surface  plot surface
+     * @param  pointCloud   point cloud
+     * @param  pos   query position in graphics coordinates
+     * @return  map of topcat models to row indices giving rows whose markers
+     *          are close to pos; or null in case of interruption
+     */
+    private static Map<TopcatModel,Long> findPoints( Surface surface,
+                                                     GuiPointCloud pointCloud,
+                                                     Point pos ) {
 
-                /* Prepare a datastore which will watch for interruptions
-                 * and possibly log progress. */
-                DataStore dataStore = pointCloud.createGuiDataStore();
+        /* Prepare a datastore which will watch for interruptions
+         * and possibly log progress. */
+        DataStore dataStore = pointCloud.createGuiDataStore();
 
-                /* Prepare for iteration. */
-                TableCloud[] tclouds = pointCloud.getTableClouds();
-                Map<TopcatModel,Double> closeMap =
-                    new HashMap<TopcatModel,Double>();
-                Map<TopcatModel,Long> indexMap =
-                    new HashMap<TopcatModel,Long>();
+        /* Prepare for iteration. */
+        TableCloud[] tclouds = pointCloud.getTableClouds();
+        Map<TopcatModel,Double> closeMap = new HashMap<TopcatModel,Double>();
+        Map<TopcatModel,Long> indexMap = new HashMap<TopcatModel,Long>();
 
-                /* Iterate over each sub point cloud distinct positions. */
-                for ( int ic = 0; ic < tclouds.length; ic++ ) {
-                    TableCloud tcloud = tclouds[ ic ];
-                    DataGeom geom = tcloud.getDataGeom();
-                    int iPosCoord = tcloud.getPosCoordIndex();
-                    TupleSequence tseq =
-                        tcloud.createTupleSequence( dataStore );
-                    IndicatedRow indicated =
-                        PlotUtil.getClosestRow( surface, geom, iPosCoord, tseq,
-                                                point );
-                    if ( indicated != null ) {
-                        long index = indicated.getIndex();
-                        double distance = indicated.getDistance();
-                        if ( distance <= PlotUtil.NEAR_PIXELS ) {
-                            TopcatModel tcModel = tcloud.getTopcatModel();
-                            Double closest = closeMap.get( tcModel );
-                            if ( closest == null || distance < closest ) {
-                                closeMap.put( tcModel, distance );
-                                indexMap.put( tcModel, index );
-                            }
-                        }
-                    }
-                    if ( Thread.currentThread().isInterrupted() ) {
-                        return null;
+        /* Iterate over each sub point cloud distinct positions. */
+        for ( int ic = 0; ic < tclouds.length; ic++ ) {
+            TableCloud tcloud = tclouds[ ic ];
+            DataGeom geom = tcloud.getDataGeom();
+            int iPosCoord = tcloud.getPosCoordIndex();
+            TupleSequence tseq = tcloud.createTupleSequence( dataStore );
+            IndicatedRow indicated =
+                PlotUtil.getClosestRow( surface, geom, iPosCoord, tseq, pos );
+            if ( indicated != null ) {
+                long index = indicated.getIndex();
+                double distance = indicated.getDistance();
+                if ( distance <= PlotUtil.NEAR_PIXELS ) {
+                    TopcatModel tcModel = tcloud.getTopcatModel();
+                    Double closest = closeMap.get( tcModel );
+                    if ( closest == null || distance < closest ) {
+                        closeMap.put( tcModel, distance );
+                        indexMap.put( tcModel, index );
                     }
                 }
-
-                /* Return a map of the closest row to the reference position
-                 * for each visible table (only populated for each table if the
-                 * point is within a given threshold, NEAR_PIXELS. */
-                return indexMap;
             }
-        };
+            if ( Thread.currentThread().isInterrupted() ) {
+                return null;
+            }
+        }
+
+        /* Return a map of the closest row to the reference position
+         * for each visible table (only populated for each table if the
+         * point is within a given threshold, NEAR_PIXELS. */
+        return indexMap;
     }
 
     /**
@@ -856,20 +876,18 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param   irow   row index
      */
     private void highlightRow( TopcatModel tcModel, long irow ) {
-        Surface surface = plotPanel_.getSurface( IZ0 );
-        if ( surface == null ) {
-            return;
-        }
         Map<SubCloud,double[]> highMap = new LinkedHashMap<SubCloud,double[]>();
-        SubCloud[] subClouds =
-            SubCloud.createSubClouds( plotPanel_.getPlotLayers( IZ0 ), true );
         DataStore dataStore = plotPanel_.getDataStore();
-        for ( int ic = 0; ic < subClouds.length; ic++ ) {
-            SubCloud subCloud = subClouds[ ic ];
-            if ( getTopcatModel( subCloud.getDataSpec() ) == tcModel ) {
-                double[] dpos = getDataPos( subCloud, irow, dataStore );
-                if ( dpos != null ) {
-                    highMap.put( subCloud, dpos );
+        int nz = plotPanel_.getZoneCount();
+        for ( int iz = 0; iz < nz; iz++ ) {
+            for ( SubCloud subCloud :
+                  SubCloud.createSubClouds( plotPanel_.getPlotLayers( iz ),
+                                            true ) ) {
+                if ( getTopcatModel( subCloud.getDataSpec() ) == tcModel ) {
+                    double[] dpos = getDataPos( subCloud, irow, dataStore );
+                    if ( dpos != null ) {
+                        highMap.put( subCloud, dpos );
+                    }
                 }
             }
         }
@@ -923,98 +941,90 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Returns an object to calculate a map of masks giving inclusion
-     * of currently plotted points in a given graphics shape on the screen.
-     * The actual scan may be slow for large data sets, so although this
-     * method may be called on the event dispatch thread, the returned
-     * factory's getItem method should not be.
-     * The object returned by the factory gives a row index inclusion mask
-     * for each visible table.
+     * Returns a list of inclusion objects that describes all the points
+     * currently visible in the plots.  Visibility means that they appear
+     * within the data bounds of plotted surfaces.
      *
+     * <p>Normal data positions within the bounds of the plotting surface
+     * are always included.  But the result may also optinally include
+     * "partial" positions within the bounds;
+     * these partial positions are things like histogram data,
+     * which have an X graphics position but not a Y graphics position.
+     * In the partial case, either X or Y position within the plot
+     * bounds counts as visibility.
+     *
+     * @param   includePartial   true for full and partial positions,
+     *                           false for full positions only
+     * @return   inclusion list
+     */
+    private Inclusion[] getBoundsInclusions( boolean includePartial ) {
+        List<Inclusion> list = new ArrayList<Inclusion>();
+        int nz = plotPanel_.getZoneCount();
+        for ( int iz = 0; iz < nz; iz++ ) {
+            Surface surface = plotPanel_.getSurface( iz );
+            if ( surface != null ) {
+                GuiPointCloud fullCloud = plotPanel_.createGuiPointCloud( iz );
+                if ( fullCloud.getTableClouds().length > 0 ) {
+                    PositionCriterion fullCriterion =
+                        PositionCriterion.createBoundsCriterion( surface );
+                    list.add( new Inclusion( fullCloud, fullCriterion ) );
+                }
+                if ( includePartial ) {
+                    GuiPointCloud partialCloud =
+                        plotPanel_.createPartialGuiPointCloud( iz );
+                    if ( partialCloud.getTableClouds().length > 0 ) {
+                        PositionCriterion partialCriterion =
+                            PositionCriterion
+                           .createPartialBoundsCriterion( surface );
+                        list.add( new Inclusion( partialCloud,
+                                                 partialCriterion ) );
+                    }
+                }
+            }
+        }
+        return list.toArray( new Inclusion[ 0 ] );
+    }
+
+    /**
+     * Returns a list of point inclusion objects corresponding to a
+     * supplied shape in graphics coordinates. 
+     * The returned inclusions correspond to "full" positions only,
+     * "partial" positions are ignored.
+     * 
      * @param   blob  graphical region of interest
-     * @return   factory for deferred calculation of bit masks
+     * @return  array of inclusion objects describing points within blob
      */
-    private Factory<Map<TopcatModel,BitSet>>
-            createBlobMasker( final Shape blob ) {
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
-        final PositionCriterion blobCriterion =
-            PositionCriterion.createBlobCriterion( plotPanel_.getSurface( IZ0 ),
-                                                   blob );
-        return new Factory<Map<TopcatModel,BitSet>>() {
-            @Slow
-            public Map<TopcatModel,BitSet> getItem() {
-                Map<TopcatModel,BitSet> maskMap =
-                    new LinkedHashMap<TopcatModel,BitSet>();
-                updateMasks( maskMap, pointCloud, blobCriterion );
-                return Thread.currentThread().isInterrupted() ? null : maskMap;
+    private Inclusion[] getBlobInclusions( Shape blob ) {
+        int nz = plotPanel_.getZoneCount();
+        List<Inclusion> inclusions = new ArrayList<Inclusion>();
+        for ( int iz = 0; iz < nz; iz++ ) {
+            Surface surface = plotPanel_.getSurface( iz );
+            if ( surface != null &&
+                 blob.intersects( surface.getPlotBounds() ) ) {
+                inclusions.add( new Inclusion( plotPanel_
+                                              .createGuiPointCloud( iz ),
+                                               PositionCriterion
+                                              .createBlobCriterion( surface,
+                                                                    blob ) ) );
             }
-        };
+        }
+        return inclusions.toArray( new Inclusion[ 0 ] );
     }
 
     /**
-     * Returns an object to calculate a map of masks showing currently
-     * visible points.
-     * The actual scan may be slow for large data sets, so although this
-     * method may be called on the event dispatch thread, the returned
-     * factory's getItem method should not be.
-     * The object returned by the factory gives a row index inclusion mask
-     * for each visible table.
-     *
-     * @return   factory for deferred calculation of bit masks
-     */
-    private Factory<Map<TopcatModel,BitSet>> createVisibleMasker() {
-        Surface surface = plotPanel_.getSurface( IZ0 );
-
-        /* Prepare a criterion for inclusion of normal data positions
-         * in the bounds of the plotting surface. */
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
-        final PositionCriterion fullCriterion =
-            PositionCriterion.createBoundsCriterion( surface );
-
-        /* Prepare a criterion for appearance of partial data positions
-         * in the bounds.
-         * These partial positions are things like histogram data,
-         * which have an X graphics position but not a Y graphics position.
-         * For this case, either X or Y position within the plot bounds
-         * counts as visibility. */
-        final GuiPointCloud partialPointCloud =
-            plotPanel_.createPartialGuiPointCloud( IZ0 );
-        final PositionCriterion partialCriterion =
-            PositionCriterion.createPartialBoundsCriterion( surface );
-
-        /* Return an object that will scan the data given these criteria.
-         * This isn't perfect, because this constitutes two scans through
-         * the data (full and partial), and each one of those will update
-         * the progress bar separately.  In practice, most plots will have
-         * either full or partial points, but in the uncommon case where
-         * there are both, you may see the progress bar scan through twice
-         * for this operation. */
-        return new Factory<Map<TopcatModel,BitSet>>() {
-            @Slow
-            public Map<TopcatModel,BitSet> getItem() {
-                Map<TopcatModel,BitSet> maskMap =
-                    new LinkedHashMap<TopcatModel,BitSet>();
-                updateMasks( maskMap, pointCloud, fullCriterion );
-                updateMasks( maskMap, partialPointCloud, partialCriterion );
-                return Thread.currentThread().isInterrupted() ? null : maskMap;
-            }
-        };
-    }
-
-    /**
-     * Scans through points in a point cloud, and updates
+     * Scans through points in a point cloud, and updates a supplied
      * table->row_inclusion_mask map to indicate which rows in the tables
      * are included.
      *
      * @param   maskMap  map to update; will be populated with blank entries
      *                   as required
-     * @param   pointCloud  sequence of points to assess
-     * @param   criterion  condition for inclusion of a point
+     * @param   inclusion  describes point data to include
      */
     @Slow
     private static void updateMasks( Map<TopcatModel,BitSet> maskMap,
-                                     GuiPointCloud pointCloud,
-                                     PositionCriterion criterion ) {
+                                     Inclusion inclusion ) {
+        GuiPointCloud pointCloud = inclusion.pointCloud_;
+        PositionCriterion criterion = inclusion.criterion_;
         TableCloud[] tclouds = pointCloud.getTableClouds();
         DataStore dataStore = pointCloud.createGuiDataStore();
         int nc = tclouds.length;
@@ -1069,33 +1079,25 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  factory for deferred calculation of formatted point count
      */
     private Factory<String> createCounter() {
-        Surface surface = plotPanel_.getSurface( IZ0 );
-        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( IZ0 );
-        final GuiPointCloud partialCloud =
-            plotPanel_.createPartialGuiPointCloud( IZ0 );
-        final PositionCriterion pointCriterion =
-            PositionCriterion.createBoundsCriterion( surface );
-        final PositionCriterion partialCriterion =
-            PositionCriterion.createPartialBoundsCriterion( surface );
+        final Inclusion[] inclusions = getBoundsInclusions( true );
         final DataStore dataStore = plotPanel_.getDataStore();
         return new Factory<String>() {
             @Slow
             public String getItem() {
+                long count = 0;
+                long total = 0;
                 long start = System.currentTimeMillis();
-                long[] pointCounts =
-                    countPoints( pointCloud, pointCriterion, dataStore );
-                long[] partialCounts =
-                    countPoints( partialCloud, partialCriterion, dataStore );
-                if ( Thread.currentThread().isInterrupted() ) {
-                    return null;
+                for ( Inclusion inclusion : inclusions ) {
+                    long[] pc = countPoints( inclusion, dataStore );
+                    count += pc[ 0 ];
+                    total += pc[ 1 ];
+                    if ( Thread.currentThread().isInterrupted() ) {
+                        return null;
+                    }
                 }
-                else {
-                    PlotUtil.logTime( logger_, "Count", start );
-                    long count = pointCounts[ 0 ] + partialCounts[ 0 ];
-                    long total = pointCounts[ 1 ] + partialCounts[ 1 ];
-                    return TopcatUtils.formatLong( count ) + " / "
-                         + TopcatUtils.formatLong( total );
-                }
+                PlotUtil.logTime( logger_, "Count", start );
+                return TopcatUtils.formatLong( count ) + " / "
+                     + TopcatUtils.formatLong( total );
             }
         };
     }
@@ -1107,16 +1109,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * by applying a supplied position criterion to each of the positions
      * in the cloud.
      *
-     * @param   pointCloud  aggregation of points contributed by multiple tables
-     * @param   criterion   test to define what counts as an included point
+     * @param   inclusion   defines data points to be included
      * @param   dataStore   data storage object
      * @return  2-element array giving (actual,potential) counts
      */
     @Slow
-    private static long[] countPoints( GuiPointCloud pointCloud,
-                                       PositionCriterion criterion,
+    private static long[] countPoints( Inclusion inclusion,
                                        DataStore dataStore ) {
-        TableCloud[] tclouds = pointCloud.getTableClouds();
+        TableCloud[] tclouds = inclusion.pointCloud_.getTableClouds();
+        PositionCriterion criterion = inclusion.criterion_;
         long count = 0;
         long total = 0;
         for ( int ic = 0; ic < tclouds.length; ic++ ) {
@@ -1137,23 +1138,50 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Adds subsets to topcat models given a map of tables to masks.
+     * Takes a list of inclusion objects describing a selection of points,
+     * and does what's required to add them as Row Subsets in their
+     * respective TopcatModels.
+     * This method dispatches a request to identifies the row masks
+     * asynchronously, and when it's done, adds whatever subsets it finds,
+     * with user interaction as required, on the Event Dispatch Thread.
+     * A hook is provided to perform an optional callback on the EDT
+     * when it's all done.
      *
-     * @param   maskMap   map from topcat model to subset bit mask
+     * @param   inclusions  sets of points to include
+     * @param   completionCallback  runnable which will be executed
+     *                              unconditionally on the
+     *                              Event Dispatch Thread after the
+     *                              asynchronous operation has completed
      */
-    private void addMaskSubsets( final Factory<Map<TopcatModel,BitSet>>
-                                       maskMapFact ) {
+    private void addMaskSubsets( final Inclusion[] inclusions,
+                                 final Runnable completionCallback ) {
         plotPanel_.submitPlotAnnotator( new Runnable() {
             public void run() {
-                final Map<TopcatModel,BitSet> maskMap = maskMapFact.getItem();
+                final Map<TopcatModel,BitSet> maskMap = getMaskMap();
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         if ( maskMap != null ) {
                             applyMasks( maskMap );
                         }
-                        blobPanel_.setActive( false );
+                        if ( completionCallback != null ) {
+                            completionCallback.run();
+                        }
                     }
                 } );
+            }
+            @Slow
+            private Map<TopcatModel,BitSet> getMaskMap() {
+                Map<TopcatModel,BitSet> maskMap =
+                    new LinkedHashMap<TopcatModel,BitSet>();
+                long start = System.currentTimeMillis();
+                for ( Inclusion inclusion : inclusions ) {
+                    updateMasks( maskMap, inclusion );
+                    if ( Thread.currentThread().isInterrupted() ) {
+                        return null;
+                    }
+                }
+                PlotUtil.logTime( logger_, "Subset", start );
+                return maskMap;
             }
         } );
     }
@@ -1205,34 +1233,28 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Work out if it makes any sense to do a blob or visibility
          * selection. */
-        boolean hasPoints =
-            plotPanel_.createGuiPointCloud( IZ0 ).getTableClouds().length > 0;
-        boolean hasPartialPoints =
-            plotPanel_.createPartialGuiPointCloud( IZ0 )
-                      .getTableClouds().length > 0;
-        blobAction_.setEnabled( hasPoints );
-        fromVisibleAction_.setEnabled( hasPoints || hasPartialPoints );
+        boolean hasAnyPoints = getBoundsInclusions( true ).length > 0;
+        boolean hasFullPoints = hasAnyPoints &&
+                                getBoundsInclusions( false ).length > 0;
+        blobAction_.setEnabled( hasFullPoints );
+        fromVisibleAction_.setEnabled( hasAnyPoints );
 
         /* Update plot reports. */
-        PlotLayer[] layers = plotPanel_.getPlotLayers( IZ0 );
-        ReportMap[] reports = plotPanel_.getReports( IZ0 );
-        int nl = layers.length;
-        assert nl == reports.length;
         Map<LayerId,ReportMap> rmap = new HashMap<LayerId,ReportMap>();
-        for ( int il = 0; il < nl; il++ ) {
-            rmap.put( LayerId.createLayerId( layers[ il ] ), reports[ il ] );
-        }
-        axisController_.submitReports( rmap );
-        for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
-            control.submitReports( rmap );
-        }
-        if ( logger_.isLoggable( REPORT_LEVEL ) ) {
+        int nz = plotPanel_.getZoneCount();
+        for ( int iz = 0; iz < nz; iz++ ) {
+            PlotLayer[] layers = plotPanel_.getPlotLayers( iz );
+            ReportMap[] reports = plotPanel_.getReports( iz );
+            int nl = layers.length;
+            assert nl == reports.length;
             for ( int il = 0; il < nl; il++ ) {
                 ReportMap report = reports[ il ];
-                if ( report != null ) {
+                rmap.put( LayerId.createLayerId( layers[ il ] ), report );
+                if ( report != null && logger_.isLoggable( REPORT_LEVEL ) ) {
                     String rtxt = report.toString( false );
                     if ( rtxt.length() > 0 ) {
                         String msg = new StringBuffer()
+                            .append( nz > 1 ? "Zone " + iz + ", " : "" )
                             .append( "Layer " )
                             .append( il )
                             .append( ": " )
@@ -1242,6 +1264,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     }
                 }
             }
+        }
+        axisController_.submitReports( rmap );
+        for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
+            control.submitReports( rmap );
         }
 
         /* Initiate updating point count, which may be slow. */
@@ -1280,9 +1306,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private void displayPosition( Point point ) {
         String pos = null;
         if ( point != null ) {
-            Surface surface = plotPanel_.getSurface( IZ0 );
-            if ( surface != null &&
-                 surface.getPlotBounds().contains( point ) ) {
+            int iz = plotPanel_.getZoneIndex( point );
+            if ( iz >= 0 ) {
+                Surface surface = plotPanel_.getSurface( iz );
                 double[] dataPos = surface.graphicsToData( point, null );
                 if ( dataPos != null ) {
                     pos = surface.formatPosition( dataPos );
@@ -1299,10 +1325,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param  pos  cursor position, or null if outside the plot panel
      */
     private void displayNavHelp( Point pos ) {
-        Surface surface = plotPanel_.getSurface( IZ0 );
         final Map<Gesture,String> navOpts;
         final boolean active;
-        if ( surface != null ) {
+        int iz = pos == null
+               ? -1
+               : plotPanel_.getGang().getNavigationZoneIndex( pos );
+        if ( iz >= 0 ) {
+            Surface surface = plotPanel_.getSurface( iz );
             Navigator<A> navigator = getNavigator();
 
             /* Get a notional position for the navigation help to refer to.
@@ -1363,6 +1392,27 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }
         return false;
+    }
+
+    /**
+     * Characterises a set of included points within a plot zone,
+     * by aggregating a description of the set of points, and a
+     * criterion for whether a point is included in the set.
+     */
+    private static class Inclusion {
+        final GuiPointCloud pointCloud_;
+        final PositionCriterion criterion_;
+
+        /**
+         * Constructor.
+         *
+         * @param  pointCloud  set of data points
+         * @param  criterion  inclusion criterion
+         */
+        Inclusion( GuiPointCloud pointCloud, PositionCriterion criterion ) {
+            pointCloud_ = pointCloud;
+            criterion_ = criterion;
+        }
     }
 
     /**
