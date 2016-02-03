@@ -22971,6 +22971,9 @@ introduced since the last version:
         services that declare themselves UWS 1.1 compliant.</li>
     <li>UType matching is now case-insensitive when identifying likely
         columns in Activation window.</li>
+    <li>Fix bug in which expression metadata was sometimes not revealed
+        in Columns Window display following addition of a new synthetic column
+        (regression bug since v4.0b).</li>
     </ul>
     </p></dd>
 
