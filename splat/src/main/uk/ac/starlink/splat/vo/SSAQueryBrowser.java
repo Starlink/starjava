@@ -2772,9 +2772,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             nameField.setText("");
             radiusField.setText("10.0");//default value
             lowerBandField.setText("");
-            upperBandField.setText("");
             lowerTimeField.setText("");
             upperTimeField.setText("");
+            queryLine = new SSAQuery("<SERVER>");
 
             return;
         } 
@@ -3063,7 +3063,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             return;
             //selected=anyIndex;
             //resultsPane.setSelectedIndex(selected);        
-         dataLinkFrame.setServer(resultsPane.getTitleAt(selected));            
+         dataLinkFrame.setServer(resultsPane.getTitleAt(selected)); 
     }
   
     /**
