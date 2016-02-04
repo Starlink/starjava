@@ -58,7 +58,7 @@ public class DataLinkParams {
     /**
      * Constructs the DataLink Parameters from an URL string  containing a
      *  VOTable with DataLink information
-     *  The VOTABLE must contain only Datalink info! ????? 
+     *  The VOTABLE must contain only Datalink info
      * @throws IOException 
      */
     public DataLinkParams( String dataLinksrc) throws IOException {
@@ -206,33 +206,7 @@ public class DataLinkParams {
     public int getServiceCount() {
         return service.size();
     }
-    /*
-    public String  getCurrentQueryIdSource() {     // return the information for the last added service
-        int current=service.size();
-        if (current > 0)
-            return service.get(current-1).getParam("idSource");
-        else return (null);
-    }
-    
- //   public ParamElement  getCurrentQueryRequest() {
-//        return request;
- //   }
-    
-    public String getCurrentQueryAccessURL() { 
-        int current=service.size();
-        if (current > 0)
-            return service.get(current-1).getParam("accessURL");
-        else return (null);
-    }
-    public String  getQueryIdSource(int queryIndex) {       
-        return service.get(queryIndex).getParam("idSource");
-    }
-    
- //   public ParamElement  getQueryRequest(int queryIndex) {
- //       return service.get(queryIndex).getParam("idSource");
- ///       return request;
-    }
-    */
+ 
     public String getQueryAccessURL(int queryIndex) {
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
             String idsrc;
@@ -282,10 +256,7 @@ public class DataLinkParams {
         }
         else return null;
     }
- //   public ParamElement[]  getParams() {
- //       return (ParamElement[]) paramList.toArray( new ParamElement[ 0 ] );
- //   }
-
+ 
 
     public void setServiceElement(ArrayList<VOElement> serviceEl) {
         serviceElement=serviceEl;
