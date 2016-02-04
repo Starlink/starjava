@@ -129,6 +129,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final List<ChangeListener> changeListenerList_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
+    private final Workings<A> dummyWorkings_;
     private PlotJob<P,A> plotJob_;
     private PlotJobRunner plotRunner_;
     private Cancellable plotNoteRunner_;
@@ -201,6 +202,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
                   ? Executors.newSingleThreadExecutor()
                   : plotExec_;
+        dummyWorkings_ = createDummyWorkings( surfFact );
         plotRunner_ = new PlotJobRunner();
         plotNoteRunner_ = new Cancellable();
         extraNoteRunner_ = new Cancellable();
@@ -486,7 +488,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         plotRunner_ = new PlotJobRunner();
         plotNoteRunner_ = new Cancellable();
         extraNoteRunner_ = new Cancellable();
-        workings_ = new Workings<A>();
+        workings_ = dummyWorkings_;
         navDecoration_ = null;
     }
 
@@ -627,7 +629,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * to fit this component.  However, if the size has been set
          * explicitly (by supplying a PlotPosition object), it's useful
          * to be able to see where the outline is. */
-        if ( extBox != null ) {
+        if ( extBox != null && workings_.dataStore_ != null ) {
             Color color0 = g.getColor();
             g.setColor( Color.GRAY );
             g.drawRect( insets.left - 1, insets.top - 1,
@@ -824,6 +826,55 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
+     * Constructs a placeholder ZoneWork object.
+     *
+     * @param  surfFact  surface factory
+     * @return   dummy zonework object
+     */
+    private static <P,A> Workings.ZoneWork<A>
+            createDummyZoneWork( SurfaceFactory<P,A> surfFact ) {
+        ConfigMap config = new ConfigMap();
+        P profile = surfFact.createProfile( config );
+        A aspect = surfFact.createAspect( profile, config, null );
+        Rectangle box = new Rectangle( 400, 300 );
+        Surface surf = surfFact.createSurface( box, profile, aspect );
+        PlotPlacement placer = new PlotPlacement( box, surf );
+        return new Workings.ZoneWork<A>( new PlotLayer[ 0 ], new Object[ 0 ],
+                                         surf, new Range[ 0 ], aspect,
+                                         new HashMap<AuxScale,Range>(),
+                                         new HashMap<AuxScale,Range>(),
+                                         placer, (Icon) null, (Icon) null,
+                                         new ReportMap[ 0 ], null );
+    }
+
+    /**
+     * Constructs a placeholder workings object.
+     * It contains a single dummy zone rather than no zones,
+     * for the convenience of single-zone plots who just use zone 0.
+     *
+     * @param  surfFact  surface factory
+     * @return   dummy workings object
+     */
+    private static <P,A> Workings<A>
+            createDummyWorkings( SurfaceFactory<P,A> surfFact ) {
+        Gang gang = new Gang() {
+            public int getNavigationZoneIndex( Point p ) {
+                return -1;
+            }
+            public int getZoneCount() {
+                return 1;
+            }
+            public Rectangle getZonePlotBounds( int iz ) {
+                return new Rectangle( 400, 300 );
+            }
+        };
+        Workings.ZoneWork[] zones = new Workings.ZoneWork[] {
+            createDummyZoneWork( surfFact ),
+        };
+        return new Workings<A>( gang, zones, (DataStore) null, 1, 0L );
+    }
+
+    /**
      * Immutable object representing the input to and result of a PlotJob.
      * If you've generated a Workings object you have done all the work
      * that can be done outside of the Event Dispatch Thread for making a plot.
@@ -855,34 +906,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             dataStore_ = dataStore;
             rowStep_ = rowStep;
             plotMillis_ = plotMillis;
-        }
-
-        /**
-         * Constructs a dummy (contentless) workings object.
-         * It contains a single dummy zone rather than no zones,
-         * for the convenience of single-zone plots who just use zone 0.
-         */
-        Workings() {
-            this( new Gang() {
-                      public int getNavigationZoneIndex( Point p ) {
-                          return -1;
-                      }
-                      public int getZoneCount() {
-                          return 1;
-                      }
-                      public Rectangle getZonePlotBounds( int iz ) {
-                          return new Rectangle( 0, 0 );
-                      }
-                  },
-                  (ZoneWork<A>[]) new ZoneWork<?>[] {
-                      new ZoneWork<A>( new PlotLayer[ 0 ], new Object[ 0 ],
-                                       null, new Range[ 0 ], null,
-                                       new HashMap<AuxScale,Range>(),
-                                       new HashMap<AuxScale,Range>(),
-                                       new PlotPlacement( new Rectangle( 0, 0 ),
-                                                          null ),
-                                       null, null, new ReportMap[ 0 ], null ),
-                  }, null, 1, 0L );
         }
 
         @Equality
@@ -951,16 +974,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 axisController_ = axisController;
             }
 
-            /* Constructs a dummy instance. */
-            ZoneWork() {
-                this( new PlotLayer[ 0 ], new Object[ 0 ], (Surface) null,
-                      new Range[ 0 ], (A) null,
-                      new HashMap<AuxScale,Range>(),
-                      new HashMap<AuxScale,Range>(),
-                      (PlotPlacement) null, (Icon) null, (Icon) null,
-                      new ReportMap[ 0 ], (AxisController<?,A>) null );
-            }
-
             /**
              * Returns an object which characterises the data content of this
              * zone.  Two workings objects which have equal DataIconIds will
@@ -1004,6 +1017,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private final Insets insets_;
         private final GraphicsConfiguration graphicsConfig_;
         private final Color bgColor_;
+        private final Workings.ZoneWork<A> dummyZoneWork_;
 
         /**
          * Constructor.
@@ -1035,6 +1049,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             insets_ = insets;
             graphicsConfig_ = graphicsConfig;
             bgColor_ = bgColor;
+            dummyZoneWork_ = createDummyZoneWork( surfFact );
         }
 
         /**
@@ -1302,7 +1317,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             long startAux = System.currentTimeMillis();
             for ( int iz = 0; iz < nz; iz++ ) {
                 Zone<P,A> zone = zones_[ iz ];
-                Workings.ZoneWork<A> oldZoneWork = oldWorkings_.zones_[ iz ];
+                Workings.ZoneWork<A> oldZoneWork =
+                      iz < oldWorkings_.zones_.length
+                    ? oldWorkings_.zones_[ iz ]
+                    : dummyZoneWork_;
 
                 /* Work out the required aux scale ranges.
                  * First find out which ones we need. */
@@ -1366,9 +1384,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * plan and plot the layers onto them, and save the result into
              * per-zone ZoneWork objects. */
             Set oldPlans = new HashSet();
-            for ( int iz = 0; iz < nz; iz++ ) {
-                oldPlans.addAll( Arrays
-                                .asList( oldWorkings_.zones_[ iz ].plans_ ) );
+            for ( Workings.ZoneWork<A> zone : oldWorkings_.zones_ ) {
+                oldPlans.addAll( Arrays.asList( zone.plans_ ) );
             }
             long planMillis = 0;
             long paintMillis = 0;
@@ -1380,7 +1397,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 Workings.ZoneWork<A> oldZoneWork =
                       iz < oldWorkings_.zones_.length
                     ? oldWorkings_.zones_[ iz ]
-                    : new Workings.ZoneWork<A>();
+                    : dummyZoneWork_;
 
                 /* Calculate the plot surface. */
                 Rectangle dataBounds = gang.getZonePlotBounds( iz );
