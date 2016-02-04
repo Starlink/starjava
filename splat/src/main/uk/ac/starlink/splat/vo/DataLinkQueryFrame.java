@@ -203,6 +203,9 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                    String description = params[i].getDescription();                  
                    String value = params[i].getValue();
                    String unit = params[i].getUnit();
+                   String xtype = params[i].getXtype();
+                   long[] arraysize = params[i].getArraysize();
+                   
                    ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
                    String [] options = null;
                    
@@ -241,22 +244,36 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        queryComponents.add(optbox);
 
                    } else {
+                       
                        c.gridx=1;
                        c.gridwidth=1;
                        c.weightx=0.0;
-                       JTextField paramField = new JTextField(8);
-
-                       if (description != null && description.length() > 0) {
-                           paramField.setToolTipText(description);
+                       if ( xtype != null && xtype.equalsIgnoreCase("interval") && arraysize != null && arraysize[0]!=1) {
+                          
+                           IntervalField interval = new IntervalField();                           
+                           interval.setName(paramName);
+                           servicePanel.add(interval, c);
+                           queryComponents.add(interval); 
+                            
                        }
-                       paramField.setName(paramName);
-                       paramField.addActionListener(this);
-                       paramField.getDocument().putProperty("owner", paramField); //set the owner
-                       paramField.getDocument().addDocumentListener(this);
-                       Dimension size=new Dimension(paramField.getPreferredSize().width, paramField.getPreferredSize().height+5);
-                       paramField.setMinimumSize(size);
-                       paramField.setMaximumSize(size);
-                     
+                       else {
+                           
+                           JTextField paramField = new JTextField(8);
+
+                           if (description != null && description.length() > 0) {
+                               paramField.setToolTipText(description);
+                           }                           
+                           paramField.setName(paramName);
+                           paramField.addActionListener(this);
+                           paramField.getDocument().putProperty("owner", paramField); //set the owner
+                           paramField.getDocument().addDocumentListener(this);
+                           Dimension size=new Dimension(paramField.getPreferredSize().width, paramField.getPreferredSize().height+5);
+                           paramField.setMinimumSize(size);
+                           paramField.setMaximumSize(size);
+                           servicePanel.add(paramField, c);
+                           queryComponents.add(paramField);
+                       }
+                       
                        VOElement constraint = values.getChildByName("MIN"); 
                        String min=constraint.getAttribute("value");
                        constraint = values.getChildByName("MAX");
@@ -264,14 +281,14 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        String info="";
                        if (min != null || max != null) 
                            info = "["+min+".."+max+"]";
-                       if (unit != "")
+                       if ( unit != null && !unit.isEmpty())
                            info += "   "+unit;
-                       paramField.setToolTipText(description);
+                   
                        JLabel infoLabel = new JLabel(info);
-                       servicePanel.add(paramField, c);
+                     
                        c.gridx=2;
                        servicePanel.add(infoLabel, c);
-                       queryComponents.add(paramField);
+                       
                    } // else      
                    i++;
                } //while
@@ -315,6 +332,10 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                     JTextField tf = (JTextField) c;
                     tf.setText("");
                 }
+                if (c instanceof IntervalField) { // interval
+                    IntervalField intp = (IntervalField) c;
+                    intp.clear();
+                }
             }
             
         } else if (source.equals(submitButton)) {
@@ -333,11 +354,17 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                 if (c instanceof JTextField) {
                     JTextField tf = (JTextField) c;
                     String name = tf.getName();
-
                     // to do: consistency checking, add values/ranges
                     dataLinkParam.put(name, tf.getText());   
-
                 }
+                if (c instanceof IntervalField) { // interval
+                    IntervalField intp = (IntervalField) c;
+                    String name = intp.getName();
+                    
+                    // to do: consistency checking, add values/ranges
+                    dataLinkParam.put(name, intp.getText());   
+                }
+                
             } // for    
 
             if (ok)
@@ -355,6 +382,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     public String setServer(String server) {
         
         paramPanel.removeAll();
+        okLabel.setIcon(null);
         if (servers.get(server) == null)
             return null;
         currentServer=server;
@@ -436,5 +464,39 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         return (String[]) s.toArray(new String[s.size()]);
     }
 
+    
+    class IntervalField extends JPanel {
+        JTextField _lower;
+        JTextField _upper;
+        
+        IntervalField () {
+            _lower=new JTextField(8);
+            _upper=new JTextField(8);
+          
+
+            this.add(_lower);
+            this.add(new JLabel(" "));
+            this.add(_upper);
+        }
+        
+        String getText() {
+            String value="";
+            String   txt=_lower.getText();
+            if ( txt == null || txt.isEmpty())           
+                txt="-Inf";
+            value=txt+"/";
+            txt=_upper.getText();
+            if ( txt == null || txt.isEmpty())           
+                txt="+Inf";
+            value+=txt;  
+            
+            return value;   
+        }
+        void clear() {
+            _lower.setText("");
+            _upper.setText("");
+        }
+        
+    }
     
 }
