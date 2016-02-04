@@ -40,7 +40,7 @@ import uk.ac.starlink.ttools.plot2.data.Input;
  * @author   Mark Taylor
  * @since    15 Mar 2013
  */
-public class GangControlManager implements ControlManager {
+public class GroupControlManager implements ControlManager {
 
     private final ControlStack stack_;
     private final PlotType plotType_;
@@ -66,9 +66,10 @@ public class GangControlManager implements ControlManager {
      *                     for it to listen to whatever is the currently
      *                     selected TopcatModel
      */
-    public GangControlManager( ControlStack stack, PlotType plotType,
-                               PlotTypeGui plotTypeGui, Configger baseConfigger,
-                               TopcatListener tcListener ) {
+    public GroupControlManager( ControlStack stack, PlotType plotType,
+                                PlotTypeGui plotTypeGui,
+                                Configger baseConfigger,
+                                TopcatListener tcListener ) {
         stack_ = stack;
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;
@@ -92,7 +93,7 @@ public class GangControlManager implements ControlManager {
             plotterMap_.get( ctyp ).add( plotter );
         }
 
-        /* Add gang controls grouping suitably categorised plotters. */
+        /* Add group controls grouping suitably categorised plotters. */
         for ( CoordsType ctyp : CoordsType.values() ) {
             if ( ctyp.getIcon() != null &&
                  ! plotterMap_.get( ctyp ).isEmpty() ) {
@@ -105,7 +106,7 @@ public class GangControlManager implements ControlManager {
                                                           actDescrip,
                                                           stack_ ) {
                     public LayerControl createLayerControl() {
-                        return createGangControl( ctyp0, true );
+                        return createGroupControl( ctyp0, true );
                     }
                 } );
             }
@@ -150,7 +151,7 @@ public class GangControlManager implements ControlManager {
 
     public void addLayer( LayerCommand lcmd ) throws LayerException {
         logger_.info( "Add layer: " + lcmd );
-        getGangControl( lcmd ).addLayer( lcmd );
+        getGroupControl( lcmd ).addLayer( lcmd );
     }
 
     /**
@@ -163,7 +164,7 @@ public class GangControlManager implements ControlManager {
      * @return  control in the stack for which <code>addLayer(lcmd)</code>
      *          will work
      */
-    private MultiFormLayerControl getGangControl( LayerCommand lcmd )
+    private MultiFormLayerControl getGroupControl( LayerCommand lcmd )
             throws LayerException {
         ControlStackModel stackModel = stack_.getStackModel();
 
@@ -171,17 +172,17 @@ public class GangControlManager implements ControlManager {
         for ( int ic = 0; ic < stackModel.getSize(); ic++ ) {
             Control control = stackModel.getControlAt( ic );
             if ( control instanceof MultiFormLayerControl ) {
-                MultiFormLayerControl gangControl =
+                MultiFormLayerControl groupControl =
                     (MultiFormLayerControl) control;
-                if ( isCompatible( gangControl, lcmd ) ) {
-                    return gangControl;
+                if ( isCompatible( groupControl, lcmd ) ) {
+                    return groupControl;
                 }
             }
         }
 
         /* If there wasn't one, create a new one, add it to the stack,
          * and return it. */
-        MultiFormLayerControl control = createGangControl( lcmd );
+        MultiFormLayerControl control = createGroupControl( lcmd );
         stack_.addControl( control );
         return control;
     }
@@ -216,7 +217,7 @@ public class GangControlManager implements ControlManager {
         }
 
         /* Must have the same, single, subset.  It could be possible
-         * under some circumstances to add to a gang control with
+         * under some circumstances to add to a group control with
          * multiple subsets, but the logic is tricky, so this is not
          * currently supported by addLayer. */
         RowSubset rset = lcmd.getRowSubset();
@@ -247,19 +248,19 @@ public class GangControlManager implements ControlManager {
     }
 
     /**
-     * Constructs a new gang layer control which is capable of having a
+     * Constructs a new group layer control which is capable of having a
      * specified layer added to it.
      *
      * @param  lcmd  layer specification
      * @return  new control for which <code>addLayer(lcmd)</code> will work
      */
-    private MultiFormLayerControl createGangControl( LayerCommand lcmd )
+    private MultiFormLayerControl createGroupControl( LayerCommand lcmd )
             throws LayerException {
 
         /* Create the control. */
         int npos = lcmd.getPlotter().getCoordGroup().getPositionCount();
         CoordsType ctyp = CoordsType.getInstance( lcmd.getPlotter() );
-        MultiFormLayerControl control = createGangControl( ctyp, false );
+        MultiFormLayerControl control = createGroupControl( ctyp, false );
 
         /* Set the table. */
         control.setTopcatModel( lcmd.getTopcatModel() );
@@ -299,14 +300,14 @@ public class GangControlManager implements ControlManager {
     }
 
     /**
-     * Creates a new empty gang layer control.
+     * Creates a new empty group layer control.
      *
      * @param   ctyp  common coordinate set type
      * @param   autoPlot  true to attempt a plot without further
      *                    user interaction
-     * @return   gang control, or null if it would be useless
+     * @return   group control, or null if it would be useless
      */
-    private MultiFormLayerControl createGangControl( CoordsType ctyp,
+    private MultiFormLayerControl createGroupControl( CoordsType ctyp,
                                                      boolean autoPlot ) {
         List<Plotter> plotterList = plotterMap_.get( ctyp );
         if ( plotterList != null && plotterList.size() > 0 ) {
@@ -332,7 +333,7 @@ public class GangControlManager implements ControlManager {
     /**
      * Categorises the kind of plot.
      * This categorisation is used to determine what kinds of
-     * plots can be grouped together in the same GangControl.
+     * plots can be grouped together in the same GroupControl.
      */
     private enum CoordsType {
 
