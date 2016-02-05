@@ -63,6 +63,7 @@ import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
+import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -172,7 +173,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
                 new SmartColumnFactory( new MemoryColumnFactory() ) );
-        legendControl_ = new LegendControl( stackModel_, configger );
+        legendControl_ = new LegendControl( configger );
         sketchModel_ =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "
@@ -747,11 +748,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         List<ZoneDef<P,A>> zdefs = new ArrayList<ZoneDef<P,A>>();
         for ( ZoneId zid : zoneMap.keySet() ) {
             List<PlotLayer> layerList = new ArrayList<PlotLayer>();
+            List<LegendEntry> legList = new ArrayList<LegendEntry>();
             for ( LayerControl control : zoneMap.get( zid ) ) {
                 layerList.addAll( Arrays.asList( control.getPlotLayers() ) );
+                legList.addAll( Arrays.asList( control.getLegendEntries() ) );
             }
             final PlotLayer[] layers = layerList.toArray( new PlotLayer[ 0 ] );
-            final Icon legend = legendControl_.getLegendIcon();
+            final Icon legend =
+                legendControl_
+               .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ) );
             final AxisController<P,A> axisController = axisController_;
             final float[] legpos = legendControl_.getLegendPosition();
             final String title = frameControl_.getPlotTitle();
