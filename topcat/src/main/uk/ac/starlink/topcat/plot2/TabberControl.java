@@ -9,7 +9,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.border.Border;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.LineBox;
 
 /**
  * Control implementation that has a tabber as its panel.
@@ -86,6 +88,17 @@ public class TabberControl implements Control {
             holder.add( comp, BorderLayout.CENTER );
         }
         tabber_.add( name, holder );
+    }
+
+    /**
+     * Adds a zone selection tab to this control.
+     *
+     * @param   zsel    zone id specifier, not null
+     */
+    public void addZoneTab( Specifier<ZoneId> zsel ) {
+        addControlTab( "Zone",
+                       new LineBox( "Zone", zsel.getComponent() ), true );
+        zsel.addActionListener( actionForwarder_ );
     }
 
     public void addActionListener( ActionListener listener ) {

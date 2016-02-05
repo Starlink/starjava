@@ -119,7 +119,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final DataStoreFactory storeFact_;
     private final SurfaceFactory<P,A> surfFact_;
     private final Factory<Ganger<A>> gangerFact_;
-    private final Factory<ZoneDefiner<P,A>[]> zonesFact_;
+    private final Factory<ZoneDef<P,A>[]> zonesFact_;
     private final Factory<PlotPosition> posFact_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
@@ -179,7 +179,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public PlotPanel( DataStoreFactory storeFact, SurfaceFactory<P,A> surfFact,
                       Factory<Ganger<A>> gangerFact,
-                      Factory<ZoneDefiner<P,A>[]> zonesFact,
+                      Factory<ZoneDef<P,A>[]> zonesFact,
                       Factory<PlotPosition> posFact,
                       PaperTypeSelector ptSel, Compositor compositor,
                       ToggleButtonModel sketchModel,
@@ -535,12 +535,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
         Ganger<A> ganger = gangerFact_.getItem();
-        ZoneDefiner<P,A>[] zoneDefs = zonesFact_.getItem();
+        ZoneDef<P,A>[] zoneDefs = zonesFact_.getItem();
 
         /* Acquire per-zone state. */
         List<PlotJob.Zone<P,A>> zoneList = new ArrayList<PlotJob.Zone<P,A>>();
         List<SubCloud> allSubclouds = new ArrayList<SubCloud>();
-        for ( ZoneDefiner zoneDef : zoneDefs ) {
+        for ( ZoneDef zoneDef : zoneDefs ) {
             PlotLayer[] layers = zoneDef.getLayers();
             assert layerListEquals( layers, zoneDef.getLayers() );
             assert layerSetEquals( layers, zoneDef.getLayers() );

@@ -10,7 +10,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
  * @author   Mark Taylor
  * @since    28 Jan 2016
  */
-public interface ZoneDefiner<P,A> {
+public interface ZoneDef<P,A> {
 
     /**
      * Returns the axis control GUI component for this zone.

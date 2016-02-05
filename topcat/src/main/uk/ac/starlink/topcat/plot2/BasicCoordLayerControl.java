@@ -43,21 +43,24 @@ public class BasicCoordLayerControl extends ConfigControl
     private final JComboBox subsetSelector_;
     private final ComboBoxModel dummyComboBoxModel_;
     private final ConfigStyler styler_;
+    private final Specifier<ZoneId> zsel_;
     private TopcatModel tcModel_;
 
     /**
      * Constructor.
      *
      * @param   plotter  plotter
+     * @param   zsel    zone id specifier, may be null for single-zone case
      * @param   coordPanel   panel which displays the plotter's coordinates,
      *                       and supplies a DataGeom
      * @param   baseConfigger   provides global configuration info
      */
-    public BasicCoordLayerControl( Plotter<?> plotter,
+    public BasicCoordLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                    PositionCoordPanel coordPanel,
                                    Configger baseConfigger ) {
         super( null, plotter.getPlotterIcon() );
         plotter_ = plotter;
+        zsel_ = zsel;
         coordPanel_ = coordPanel;
         baseConfigger_ = baseConfigger;
         styler_ = new ConfigStyler( coordPanel_.getComponent() );
@@ -105,6 +108,9 @@ public class BasicCoordLayerControl extends ConfigControl
         if ( styleSpecifier.getConfigKeys().length > 0 ) {
             addSpecifierTab( "Style", styleSpecifier );
         }
+        if ( zsel != null ) {
+            addZoneTab( zsel );
+        }
     }
 
     @Override
@@ -134,6 +140,10 @@ public class BasicCoordLayerControl extends ConfigControl
 
     public LegendEntry[] getLegendEntries() {
         return new LegendEntry[ 0 ];
+    }
+
+    public Specifier<ZoneId> getZoneSpecifier() {
+        return zsel_;
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {

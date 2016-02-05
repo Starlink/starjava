@@ -4,6 +4,7 @@ import javax.swing.Icon;
 import javax.swing.JScrollPane;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 
 /**
@@ -23,6 +24,7 @@ public class SingleFormLayerControl extends FormLayerControl {
      *
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
+     * @param  zsel    zone id specifier, may be null for single-zone plots
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
      *                       with some suitable values
@@ -34,11 +36,11 @@ public class SingleFormLayerControl extends FormLayerControl {
      *                        options
      */
     public SingleFormLayerControl( PositionCoordPanel posCoordPanel,
-                                   boolean autoPopulate,
+                                   Specifier<ZoneId> zsel, boolean autoPopulate,
                                    NextSupplier nextSupplier,
                                    TopcatListener tcListener, Icon controlIcon,
                                    Plotter plotter, Configger baseConfigger ) {
-        super( posCoordPanel, autoPopulate, nextSupplier, tcListener,
+        super( posCoordPanel, zsel, autoPopulate, nextSupplier, tcListener,
                controlIcon );
         formControl_ =
             new SimpleFormControl( baseConfigger, plotter, new Coord[ 0 ] );
@@ -47,6 +49,9 @@ public class SingleFormLayerControl extends FormLayerControl {
         formScroller.setHorizontalScrollBarPolicy( JScrollPane
                                                   .HORIZONTAL_SCROLLBAR_NEVER );
         addControlTab( "Form", formScroller, false );
+        if ( zsel != null ) {
+            addZoneTab( zsel );
+        }
     }
 
     protected FormControl[] getActiveFormControls() {

@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ColorConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -45,6 +46,7 @@ public class GroupControlManager implements ControlManager {
     private final ControlStack stack_;
     private final PlotType plotType_;
     private final PlotTypeGui plotTypeGui_;
+    private final Factory<Specifier<ZoneId>> zsFact_;
     private final Configger baseConfigger_;
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
@@ -78,6 +80,7 @@ public class GroupControlManager implements ControlManager {
         nextSupplier_ = new NextSupplier();
         nextSupplier_.putValues( StyleKeys.COLOR,
                                  ColorConfigKey.getPlottingColors() );
+        zsFact_ = plotTypeGui.createZoneSpecifierFactory();
         List<Action> stackActList = new ArrayList<Action>();
 
         /* Split the list up by the number of positional coordinates
@@ -117,7 +120,7 @@ public class GroupControlManager implements ControlManager {
         for ( Plotter plotter : plotterMap_.get( CoordsType.MISC ) ) {
             Action stackAct =
                 LayerControlAction
-               .createPlotterAction( plotter, stack, nextSupplier_,
+               .createPlotterAction( plotter, stack, zsFact_, nextSupplier_,
                                      tcListener_, baseConfigger_ );
             if ( stackAct != null ) {
                 stackActList.add( stackAct );
@@ -308,15 +311,17 @@ public class GroupControlManager implements ControlManager {
      * @return   group control, or null if it would be useless
      */
     private MultiFormLayerControl createGroupControl( CoordsType ctyp,
-                                                     boolean autoPlot ) {
+                                                      boolean autoPlot ) {
         List<Plotter> plotterList = plotterMap_.get( ctyp );
         if ( plotterList != null && plotterList.size() > 0 ) {
             PositionCoordPanel coordPanel =
                 ctyp.createPositionCoordPanel( plotType_, plotTypeGui_ );
+            Specifier<ZoneId> zsel = zsFact_.getItem();
             boolean autoPop = ctyp.isAutoPopulate();
             MultiFormLayerControl control = 
-                new MultiFormLayerControl( coordPanel, autoPop, nextSupplier_,
-                                           tcListener_, ctyp.getIcon(),
+                new MultiFormLayerControl( coordPanel, zsel, autoPop,
+                                           nextSupplier_, tcListener_,
+                                           ctyp.getIcon(),
                                            plotterList
                                           .toArray( new Plotter[ 0 ] ),
                                            baseConfigger_ );

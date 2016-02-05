@@ -21,6 +21,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.layer.ModePlotter;
 
@@ -49,6 +50,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      *
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
+     * @param  zsel    zone id specifier, may be null for single-zone plots
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
      *                       with some suitable values
@@ -61,12 +63,12 @@ public class MultiFormLayerControl extends FormLayerControl {
      *                        options
      */
     public MultiFormLayerControl( PositionCoordPanel posCoordPanel,
-                                  boolean autoPopulate,
+                                  Specifier<ZoneId> zsel, boolean autoPopulate,
                                   NextSupplier nextSupplier,
                                   TopcatListener tcListener, Icon controlIcon,
                                   Plotter[] plotters,
                                   Configger baseConfigger ) {
-        super( posCoordPanel, autoPopulate, nextSupplier, tcListener,
+        super( posCoordPanel, zsel, autoPopulate, nextSupplier, tcListener,
                controlIcon );
         baseConfigger_ = baseConfigger;
         subsetKeys_ = nextSupplier.getKeys();
@@ -152,6 +154,9 @@ public class MultiFormLayerControl extends FormLayerControl {
         formToolbar.add( removeAction );
         formPanel.add( formToolbar, BorderLayout.NORTH );
         addControlTab( "Form", formPanel, false );
+        if ( zsel != null ) {
+            addZoneTab( zsel );
+        }
         dfltFormAct_ = formActionList.get( 0 );
     }
 

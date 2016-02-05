@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -108,6 +109,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackModel stackModel_;
     private final ControlManager controlManager_;
     private final ToggleButtonModel showProgressModel_;
+    private final LegendControl legendControl_;
+    private final ShaderControl shaderControl_;
+    private final FrameControl frameControl_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
     private final NavigationHelpPanel navPanel_;
@@ -120,6 +124,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ToggleButtonModel sketchModel_;
     private final Ganger<A> dfltGanger_;
     private static final Level REPORT_LEVEL = Level.INFO;
+    private static final ZoneId DEFAULT_ZONE = new ZoneId( "DEFAULT" );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -153,23 +158,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackModel_ = stack_.getStackModel();
         MultiConfigger configger = new MultiConfigger();
         axisController_ = plotTypeGui.createAxisController( stack_ );
-        final FrameControl frameControl = new FrameControl();
+        frameControl_ = new FrameControl();
         Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
             public PlotPosition getItem() {
-                return frameControl.getPlotPosition();
+                return frameControl_.getPlotPosition();
             }
         };
         ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
         surfFact_ = axisController_.getSurfaceFactory();
         configger.addConfigger( axisController_ );
-        final ShaderControl shaderControl =
-            new ShaderControl( stackModel_, configger );
-        configger.addConfigger( shaderControl );
+        shaderControl_ = new ShaderControl( stackModel_, configger );
+        configger.addConfigger( shaderControl_ );
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
                 new SmartColumnFactory( new MemoryColumnFactory() ) );
-        final LegendControl legendControl =
-            new LegendControl( stackModel_, configger );
+        legendControl_ = new LegendControl( stackModel_, configger );
         sketchModel_ =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "
@@ -186,42 +189,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                    "Give visual feedback for plot navigation "
                                  + "gestures" );
         navdecModel.setSelected( true );
-
-        final ZoneDefiner<P,A> zoneDef = new ZoneDefiner<P,A>() {
-            public AxisController<P,A> getAxisController() {
-                return axisController_;
-            }
-            public PlotLayer[] getLayers() {
-                return readPlotLayers( true );
-            }
-            public Icon getLegend() {
-                return legendControl.getLegendIcon();
-            }
-            public float[] getLegendPosition() {
-                return legendControl.getLegendPosition();
-            }
-            public String getTitle() {
-                return frameControl.getPlotTitle();
-            }
-            public ShaderControl getShaderControl() {
-                return shaderControl;
-            }
-        };
         Factory<Ganger<A>> gangerFact = new Factory<Ganger<A>>() {
             public Ganger<A> getItem() {
                 return getGanger();
             }
         };
-        Factory<ZoneDefiner<P,A>[]> zonesFact =
-                new Factory<ZoneDefiner<P,A>[]>() {
-            public ZoneDefiner<P,A>[] getItem() {
-                List<ZoneDefiner<P,A>> list = new ArrayList<ZoneDefiner<P,A>>();
-                list.add( zoneDef );
-                @SuppressWarnings("unchecked")
-                ZoneDefiner<P,A>[] zoneDefs =
-                    (ZoneDefiner<P,A>[])
-                    list.toArray( new ZoneDefiner<?,?>[ 0 ] );
-                return zoneDefs;
+        Factory<ZoneDef<P,A>[]> zonesFact = new Factory<ZoneDef<P,A>[]>() {
+            public ZoneDef<P,A>[] getItem() {
+                return getZoneDefs();
             }
         };
 
@@ -238,10 +213,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * that might change the plot appearance.  Each of these controls
          * is forwarding actions from all of its constituent controls. */
         stackModel_.addPlotActionListener( plotPanel_ );
-        frameControl.addActionListener( plotPanel_ );
-        legendControl.addActionListener( plotPanel_ );
+        frameControl_.addActionListener( plotPanel_ );
+        legendControl_.addActionListener( plotPanel_ );
         axisController_.addActionListener( plotPanel_ );
-        shaderControl.addActionListener( plotPanel_ );
+        shaderControl_.addActionListener( plotPanel_ );
         navdecModel.addActionListener( plotPanel_ );
 
         /* Arrange for user navigation actions to adjust the view. */
@@ -398,12 +373,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         JToolBar stackToolbar = new JToolBar();
         final ControlStackPanel stackPanel =
             new ControlStackPanel( stack_, stackToolbar );
-        stackPanel.addFixedControl( frameControl );
+        stackPanel.addFixedControl( frameControl_ );
         Control[] axisControls = axisController_.getControls();
         for ( int i = 0; i < axisControls.length; i++ ) {
             stackPanel.addFixedControl( axisControls[ i ] );
         }
-        stackPanel.addFixedControl( legendControl );
+        stackPanel.addFixedControl( legendControl_ );
 
         /* The shader control is only visible in the stack when one of the
          * layers is making use of it. */
@@ -414,10 +389,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     hasShadedLayers( readPlotLayers( false ) );
                 if ( hasShader ^ requiresShader ) {
                     if ( requiresShader ) {
-                        stackPanel.addFixedControl( shaderControl );
+                        stackPanel.addFixedControl( shaderControl_ );
                     }
                     else {
-                        stackPanel.removeFixedControl( shaderControl );
+                        stackPanel.removeFixedControl( shaderControl_ );
                     }
                     hasShader = requiresShader;
                 }
@@ -738,6 +713,71 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             layerList.addAll( Arrays.asList( layers ) );
         }
         return layerList.toArray( new PlotLayer[ 0 ] );
+    }
+
+    /**
+     * Gathers state information from the GUI to feed to the PlotPanel.
+     * This information is returned in the form of an array of zone
+     * definition objects.  For a single-zone plot, this array will have
+     * exactly one element.  The result will always have at least one element.
+     *
+     * @return  zone definition array
+     */
+    private ZoneDef<P,A>[] getZoneDefs() {
+
+        /* Prepare a map of LayerControl lists keyed by the zone ID in which
+         * their plots will appear. */
+        Map<ZoneId,List<LayerControl>> zoneMap =
+            new TreeMap<ZoneId,List<LayerControl>>();
+        for ( LayerControl control : stackModel_.getLayerControls( true ) ) {
+            Specifier<ZoneId> zsel = control.getZoneSpecifier();
+            ZoneId zid = zsel == null ? DEFAULT_ZONE : zsel.getSpecifiedValue();
+            if ( ! zoneMap.containsKey( zid ) ) {
+                zoneMap.put( zid, new ArrayList<LayerControl>() );
+            }
+            zoneMap.get( zid ).add( control );
+        }
+
+        /* Make sure there is always at least one zone. */
+        if ( zoneMap.size() == 0 ) {
+            zoneMap.put( new ZoneId( "EMPTY" ), new ArrayList<LayerControl>() );
+        }
+
+        /* Package the result up into a ZoneDef object per zone, and return. */
+        List<ZoneDef<P,A>> zdefs = new ArrayList<ZoneDef<P,A>>();
+        for ( ZoneId zid : zoneMap.keySet() ) {
+            List<PlotLayer> layerList = new ArrayList<PlotLayer>();
+            for ( LayerControl control : zoneMap.get( zid ) ) {
+                layerList.addAll( Arrays.asList( control.getPlotLayers() ) );
+            }
+            final PlotLayer[] layers = layerList.toArray( new PlotLayer[ 0 ] );
+            final Icon legend = legendControl_.getLegendIcon();
+            final AxisController<P,A> axisController = axisController_;
+            final float[] legpos = legendControl_.getLegendPosition();
+            final String title = frameControl_.getPlotTitle();
+            final ShaderControl shaderControl = shaderControl_;
+            zdefs.add( new ZoneDef<P,A>() {
+                public AxisController<P,A> getAxisController() {
+                    return axisController;
+                }
+                public PlotLayer[] getLayers() {
+                    return layers;
+                }
+                public Icon getLegend() {
+                    return legend;
+                }
+                public float[] getLegendPosition() {
+                    return legpos;
+                }
+                public String getTitle() {
+                    return title;
+                }
+                public ShaderControl getShaderControl() {
+                    return shaderControl;
+                }
+            } );
+        }
+        return (ZoneDef<P,A>[]) zdefs.toArray( new ZoneDef[ 0 ] );
     }
 
     /**

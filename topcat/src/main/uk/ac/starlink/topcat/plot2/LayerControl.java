@@ -4,6 +4,7 @@ import java.util.Map;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 
 /**
  * Control subinterface for controls that can contribute PlotLayers
@@ -48,4 +49,14 @@ public interface LayerControl extends Control {
      * @return   text label associated with user coordinate
      */
     String getCoordLabel( String userCoordName );
+
+    /**
+     * Returns a specifier that determines which zone of a multi-zone plot
+     * this control's layers will be displayed in.
+     * If this control is known to be used in a single-zone context,
+     * null should be returned.
+     *
+     * @return   zone id specifier, or null
+     */
+    Specifier<ZoneId> getZoneSpecifier();
 }

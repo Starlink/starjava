@@ -36,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
@@ -476,6 +477,9 @@ public class HistogramPlotWindow
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
                   .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
+        }
+        public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
+            return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
         }
         public boolean hasPositions() {
             return false;

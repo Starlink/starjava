@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.topcat.RowSubset;
@@ -57,6 +58,7 @@ public abstract class FormLayerControl
     private final SubsetConfigManager subsetManager_;
     private final TopcatListener tcListener_;
     private final SubsetStack subStack_;
+    private final Specifier<ZoneId> zsel_;
     private TopcatModel tcModel_;
 
     /**
@@ -64,6 +66,7 @@ public abstract class FormLayerControl
      *
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
+     * @param  zsel    zone id specifier, may be null for single-zone plots
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
      *                       with some suitable values
@@ -74,11 +77,12 @@ public abstract class FormLayerControl
      * @param  controlIcon  icon for control stack
      */
     protected FormLayerControl( PositionCoordPanel posCoordPanel,
-                                boolean autoPopulate,
+                                Specifier<ZoneId> zsel, boolean autoPopulate,
                                 NextSupplier nextSupplier,
                                 TopcatListener tcListener, Icon controlIcon ) {
         super( null, controlIcon );
         posCoordPanel_ = posCoordPanel;
+        zsel_ = zsel;
         autoPopulate_ = autoPopulate;
         final TopcatListener externalTcListener = tcListener;
 
@@ -225,6 +229,10 @@ public abstract class FormLayerControl
             }
         }
         return entries.toArray( new LegendEntry[ 0 ] );
+    }
+
+    public Specifier<ZoneId> getZoneSpecifier() {
+        return zsel_;
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {

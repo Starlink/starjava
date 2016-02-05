@@ -79,6 +79,10 @@ public class SkyPlotWindow
         public boolean hasPositions() {
             return true;
         }
+
+        public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
+            return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
+        } 
     }
 
     /**

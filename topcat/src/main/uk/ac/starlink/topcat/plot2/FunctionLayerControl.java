@@ -28,6 +28,7 @@ public class FunctionLayerControl extends ConfigControl
                                   implements LayerControl {
 
     private final FunctionPlotter plotter_;
+    private final Specifier<ZoneId> zsel_;
     private static final ConfigKey<String> FUNCLABEL_KEY =
         new StringConfigKey( new ConfigMeta( "label", "Label" ), "Function" );
 
@@ -35,10 +36,13 @@ public class FunctionLayerControl extends ConfigControl
      * Constructor.
      *
      * @param   plotter  function plotter
+     * @param   zsel    zone id specifier, may be null for single-zone plots
      */
-    public FunctionLayerControl( FunctionPlotter plotter ) {
+    public FunctionLayerControl( FunctionPlotter plotter,
+                                 Specifier<ZoneId> zsel ) {
         super( plotter.getPlotterName(), plotter.getPlotterIcon() );
         plotter_ = plotter;
+        zsel_ = zsel;
         AutoConfigSpecifier legendSpecifier =
             new AutoConfigSpecifier( new ConfigKey[] { FUNCLABEL_KEY,
                                                        StyleKeys.SHOW_LABEL },
@@ -80,6 +84,9 @@ public class FunctionLayerControl extends ConfigControl
         addSpecifierTab( "Function", funcSpecifier );
         addSpecifierTab( "Style", otherSpecifier );
         addSpecifierTab( "Label", legendSpecifier );
+        if ( zsel != null ) {
+            addZoneTab( zsel );
+        }
     }
 
     public PlotLayer[] getPlotLayers() {
@@ -96,6 +103,10 @@ public class FunctionLayerControl extends ConfigControl
         return showLabel && style != null && label != null
              ? new LegendEntry[] { new LegendEntry( label, style ) }
              : new LegendEntry[ 0 ];
+    }
+
+    public Specifier<ZoneId> getZoneSpecifier() {
+        return zsel_;
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {
