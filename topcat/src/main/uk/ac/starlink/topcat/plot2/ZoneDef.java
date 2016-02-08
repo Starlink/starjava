@@ -1,7 +1,10 @@
 package uk.ac.starlink.topcat.plot2;
 
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.Subrange;
 
 /**
  * Supplies information about the content and configuration
@@ -50,9 +53,31 @@ public interface ZoneDef<P,A> {
     String getTitle();
 
     /**
-     * Returns the shader control GUI component for this zone.
+     * Returns the shade axis factory for this zone.
      *
-     * @return  shader control
+     * @return  shade axis factory
      */
-    ShaderControl getShaderControl();
+    ShadeAxisFactory getShadeAxisFactory();
+
+    /**
+     * Fixed range for shading coordinate if known.  May be definite,
+     * partial (one-ended) or null.
+     *
+     * @return  aux fixed range if known
+     */
+    Range getShadeFixRange();
+
+    /**
+     * Subrange for shading coordinate.
+     *
+     * @return  aux shade subrange
+     */
+    Subrange getShadeSubrange();
+
+    /**
+     * Log flag for shade axis.
+     *
+     * @return  true for log aux scaling, false for linear
+     */
+    boolean isShadeLog();
 }

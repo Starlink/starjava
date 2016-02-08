@@ -57,6 +57,7 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
@@ -69,9 +70,11 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -168,7 +171,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
         surfFact_ = axisController_.getSurfaceFactory();
         configger.addConfigger( axisController_ );
-        shaderControl_ = new ShaderControl( stackModel_, configger );
+        shaderControl_ = new ShaderControl( configger );
         configger.addConfigger( shaderControl_ );
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
@@ -744,12 +747,33 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             zoneMap.put( new ZoneId( "EMPTY" ), new ArrayList<LayerControl>() );
         }
 
+        /* Configure auto settings for the shader control.
+         * This includes displaying the default value for the aux axis label
+         * in the GUI.  It's not essential to do that, but it helps the user
+         * a bit to see what's going on.  It's only possible to do it
+         * in a reasonable way if there is one shader control per zone.
+         * If that's the case (currently, only if there is exactly one zone),
+         * do it by hand here.  Otherwise (multi-zone case) fix it so that
+         * those values are not filled in.
+         * If the GUI one day gets per-zone shader controls, this can be
+         * implemented in a less hacky way. */
+        LayerControl[] ctrls =
+              zoneMap.size() == 1
+            ? zoneMap.values().iterator().next()
+                                         .toArray( new LayerControl[ 0 ] )
+            : new LayerControl[ 0 ];
+        shaderControl_.configureForLayers( ctrls );
+
         /* Package the result up into a ZoneDef object per zone, and return. */
         List<ZoneDef<P,A>> zdefs = new ArrayList<ZoneDef<P,A>>();
-        for ( ZoneId zid : zoneMap.keySet() ) {
+        for ( Map.Entry<ZoneId,List<LayerControl>> entry :
+              zoneMap.entrySet() ) {
+            ZoneId zid = entry.getKey();
+            LayerControl[] controls =
+                entry.getValue().toArray( new LayerControl[ 0 ] );
             List<PlotLayer> layerList = new ArrayList<PlotLayer>();
             List<LegendEntry> legList = new ArrayList<LegendEntry>();
-            for ( LayerControl control : zoneMap.get( zid ) ) {
+            for ( LayerControl control : controls ) {
                 layerList.addAll( Arrays.asList( control.getPlotLayers() ) );
                 legList.addAll( Arrays.asList( control.getLegendEntries() ) );
             }
@@ -760,7 +784,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             final AxisController<P,A> axisController = axisController_;
             final float[] legpos = legendControl_.getLegendPosition();
             final String title = frameControl_.getPlotTitle();
-            final ShaderControl shaderControl = shaderControl_;
+            final ShadeAxisFactory shadeFact =
+                shaderControl_.createShadeAxisFactory( controls );
+            final Range shadeFixRange = shaderControl_.getFixRange();
+            final Subrange shadeSubrange = shaderControl_.getSubrange();
+            final boolean isShadeLog = shaderControl_.isLog();
             zdefs.add( new ZoneDef<P,A>() {
                 public AxisController<P,A> getAxisController() {
                     return axisController;
@@ -777,8 +805,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 public String getTitle() {
                     return title;
                 }
-                public ShaderControl getShaderControl() {
-                    return shaderControl;
+                public ShadeAxisFactory getShadeAxisFactory() {
+                    return shadeFact;
+                }
+                public Range getShadeFixRange() {
+                    return shadeFixRange;
+                }
+                public Subrange getShadeSubrange() {
+                    return shadeSubrange;
+                }
+                public boolean isShadeLog() {
+                    return isShadeLog;
                 }
             } );
         }

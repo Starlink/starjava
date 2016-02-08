@@ -558,15 +558,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             axisController.updateState( profile, layers );
             A fixAspect = axisController.getAspect();
             Range[] geomFixRanges = axisController.getRanges();
-            ShaderControl shaderControl = zoneDef.getShaderControl();
-            ShadeAxisFactory shadeFact = shaderControl.createShadeAxisFactory();
+            ShadeAxisFactory shadeFact = zoneDef.getShadeAxisFactory();
             Map<AuxScale,Range> auxFixRanges = new HashMap<AuxScale,Range>();
             Map<AuxScale,Subrange> auxSubranges =
                 new HashMap<AuxScale,Subrange>();
             Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
-            auxFixRanges.put( AuxScale.COLOR, shaderControl.getFixRange() );
-            auxSubranges.put( AuxScale.COLOR, shaderControl.getSubrange() );
-            auxLogFlags.put( AuxScale.COLOR, shaderControl.isLog() );
+            auxFixRanges.put( AuxScale.COLOR, zoneDef.getShadeFixRange() );
+            auxSubranges.put( AuxScale.COLOR, zoneDef.getShadeSubrange() );
+            auxLogFlags.put( AuxScale.COLOR, zoneDef.isShadeLog() );
             Icon legend = zoneDef.getLegend();
             assert legend == null || zoneDef.getLegend().equals( legend );
             float[] legpos = zoneDef.getLegendPosition();
@@ -1766,7 +1765,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * @param   shadeFact   shader axis factory
              * @param   auxFixRanges  fixed ranges for aux scales, where known
              * @param   auxSubranges  subranges for aux scales, where present
-             * @param   auxLogFlags  logarithmic slcae flags for aux scales
+             * @param   auxLogFlags  logarithmic scale flags for aux scales
              *                       (either absent or false means linear)
              * @param   legend   legend icon, or null
              * @param   legpos   legend position as (x,y) array of
