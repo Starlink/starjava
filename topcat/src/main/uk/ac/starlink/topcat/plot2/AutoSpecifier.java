@@ -77,12 +77,30 @@ public class AutoSpecifier<T> extends SpecifierPanel<T> {
     }
 
     /**
+     * Returns the value that will be returend when the auto button is on.
+     *
+     * @return  auto value
+     */
+    public T getAutoValue() {
+        return autoValue_;
+    }
+
+    /**
      * Sets whether the auto button is on or off.
      *
      * @param  isAuto  true for automatic values
      */
     public void setAuto( boolean isAuto ) {
         autoModel_.setSelected( isAuto );
+    }
+
+    /**
+     * Indicates whether the auto button is on or off.
+     *
+     * @return  true iff the auto value will be returned
+     */
+    public boolean isAuto() {
+        return autoModel_.isSelected();
     }
 
     public T getSpecifiedValue() {
