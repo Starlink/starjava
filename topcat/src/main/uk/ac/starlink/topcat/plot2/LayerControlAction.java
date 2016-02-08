@@ -105,7 +105,8 @@ public abstract class LayerControlAction extends BasicAction {
             final SpectrogramPlotter sPlotter = (SpectrogramPlotter) plotter;
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
-                    return new SpectrogramLayerControl( sPlotter );
+                    return new SpectrogramLayerControl( sPlotter,
+                                                        baseConfigger );
                 }
             };
         }
@@ -134,7 +135,9 @@ public abstract class LayerControlAction extends BasicAction {
                     PositionCoordPanel coordPanel =
                         new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
-                    return new BasicCoordLayerControl( plotter, coordPanel );
+                    return new BasicCoordLayerControl( plotter,
+                                                       coordPanel,
+                                                       baseConfigger );
                 }
             };
         }
