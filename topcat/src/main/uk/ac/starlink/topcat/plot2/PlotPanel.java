@@ -555,7 +555,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             AxisController<P,A> axisController = zoneDef.getAxisController();
             ConfigMap surfConfig = axisController.getConfig();
             P profile = surfFact_.createProfile( surfConfig );
-            axisController.configureForLayers( profile, layers );
+            axisController.updateState( profile, layers );
             A fixAspect = axisController.getAspect();
             Range[] geomFixRanges = axisController.getRanges();
             ShaderControl shaderControl = zoneDef.getShaderControl();

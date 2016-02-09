@@ -284,13 +284,13 @@ public abstract class AxisController<P,A> implements Configger {
      * <p>This isn't perfect, since it only allows to clear the range or not.
      * Sometimes you might want finer control, e.g. to clear the
      * range in one dimension and retain it in others.  It may be
-     * possible to fit that into the configureForLayers API, but it
+     * possible to fit that into the updateState API, but it
      * would require more work.
      *
      * @param  profile   surface profile
      * @param  layers   layers which will be plotted
      */
-    public void configureForLayers( P profile, PlotLayer[] layers ) {
+    public void updateState( P profile, PlotLayer[] layers ) {
         if ( clearRange( lastProfile_, profile, lastLayers_, layers,
                          stickyModel_.isSelected() ) ) {
             setRanges( null );
