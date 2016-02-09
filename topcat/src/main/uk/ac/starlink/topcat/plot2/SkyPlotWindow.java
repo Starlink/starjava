@@ -64,7 +64,7 @@ public class SkyPlotWindow
         }
 
         public AxisController<SkySurfaceFactory.Profile,SkyAspect>
-                createAxisController( ControlStack stack ) {
+                createAxisController() {
             return axisController_;
         }
 

@@ -74,8 +74,8 @@ public class TimePlotWindow
     private static class TimePlotTypeGui
             implements PlotTypeGui<TimeSurfaceFactory.Profile,TimeAspect> {
         public AxisController<TimeSurfaceFactory.Profile,TimeAspect>
-                createAxisController( ControlStack stack ) {
-            return new TimeAxisController( stack );
+                createAxisController() {
+            return new TimeAxisController();
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             DataGeom geom = PLOT_TYPE.getPointDataGeoms()[ 0 ];

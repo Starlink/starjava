@@ -34,8 +34,8 @@ public class CubePlotWindow
     private static class CubePlotTypeGui
             implements PlotTypeGui<CubeSurfaceFactory.Profile,CubeAspect> {
         public AxisController<CubeSurfaceFactory.Profile,CubeAspect>
-                createAxisController( ControlStack stack ) {
-            return new CubeAxisController( false, stack );
+                createAxisController() {
+            return new CubeAxisController( false );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel

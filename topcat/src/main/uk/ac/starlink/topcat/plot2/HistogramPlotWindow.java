@@ -471,8 +471,8 @@ public class HistogramPlotWindow
     private static class HistogramPlotTypeGui
             implements PlotTypeGui<PlaneSurfaceFactory.Profile,PlaneAspect> {
         public AxisController<PlaneSurfaceFactory.Profile,PlaneAspect>
-                createAxisController( ControlStack stack ) {
-            return new HistogramAxisController( stack );
+                createAxisController() {
+            return new HistogramAxisController();
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel

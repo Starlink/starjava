@@ -35,8 +35,8 @@ public class SpherePlotWindow
     private static class SpherePlotTypeGui
             implements PlotTypeGui<CubeSurfaceFactory.Profile,CubeAspect> {
         public AxisController<CubeSurfaceFactory.Profile,CubeAspect>
-                createAxisController( ControlStack stack ) {
-            return new CubeAxisController( true, stack );
+                createAxisController() {
+            return new CubeAxisController( true );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel

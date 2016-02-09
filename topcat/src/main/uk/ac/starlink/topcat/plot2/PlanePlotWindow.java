@@ -35,8 +35,8 @@ public class PlanePlotWindow
     private static class PlanePlotTypeGui
             implements PlotTypeGui<PlaneSurfaceFactory.Profile,PlaneAspect> {
         public AxisController<PlaneSurfaceFactory.Profile,PlaneAspect>
-                createAxisController( ControlStack stack ) {
-            return new PlaneAxisController( stack );
+                createAxisController() {
+            return new PlaneAxisController();
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel

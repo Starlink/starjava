@@ -49,12 +49,10 @@ public class HistogramAxisController
 
     /**
      * Constructor.
-     *
-     * @param  stack  control stack
      */
-    public HistogramAxisController( ControlStack stack ) {
+    public HistogramAxisController() {
         super( new HistogramSurfaceFactory(), "histogramNavigation",
-               PlaneAxisController.createAxisLabelKeys(), stack );
+               PlaneAxisController.createAxisLabelKeys() );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 

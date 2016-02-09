@@ -111,6 +111,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final PlotPanel<P,A> plotPanel_;
     private final ControlStack stack_;
     private final ControlStackModel stackModel_;
+    private final ControlStackPanel stackPanel_;
     private final ControlManager controlManager_;
     private final ToggleButtonModel showProgressModel_;
     private final LegendControl legendControl_;
@@ -127,6 +128,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final JMenu exportMenu_;
     private final ToggleButtonModel sketchModel_;
     private final Ganger<A> dfltGanger_;
+    private boolean hasShader_;
     private static final Level REPORT_LEVEL = Level.INFO;
     private static final ZoneId DEFAULT_ZONE = new ZoneId( "DEFAULT" );
     private static final Logger logger_ =
@@ -161,7 +163,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stack_ = new ControlStack();
         stackModel_ = stack_.getStackModel();
         MultiConfigger configger = new MultiConfigger();
-        axisController_ = plotTypeGui.createAxisController( stack_ );
+        axisController_ = plotTypeGui.createAxisController();
         frameControl_ = new FrameControl();
         Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
             public PlotPosition getItem() {
@@ -216,7 +218,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Ensure that the plot panel is messaged when a GUI action occurs
          * that might change the plot appearance.  Each of these controls
          * is forwarding actions from all of its constituent controls. */
-        stackModel_.addPlotActionListener( plotPanel_ );
+        stackModel_.addPlotActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                updateGuiForStack();
+                plotPanel_.actionPerformed( evt );
+            }
+        } );
         frameControl_.addActionListener( plotPanel_ );
         legendControl_.addActionListener( plotPanel_ );
         axisController_.addActionListener( plotPanel_ );
@@ -305,11 +312,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 } );
             }
         };
-        stackModel_.addPlotActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                blobPanel_.setActive( false );
-            }
-        } );
         blobAction_ = blobPanel_.getBlobAction();
 
         /* Prepare the plot export action. */
@@ -375,33 +377,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * either at the bottom of the plot window or floated into a
          * separate window. */
         JToolBar stackToolbar = new JToolBar();
-        final ControlStackPanel stackPanel =
-            new ControlStackPanel( stack_, stackToolbar );
-        stackPanel.addFixedControl( frameControl_ );
+        stackPanel_ = new ControlStackPanel( stack_, stackToolbar );
+        stackPanel_.addFixedControl( frameControl_ );
         Control[] axisControls = axisController_.getControls();
         for ( int i = 0; i < axisControls.length; i++ ) {
-            stackPanel.addFixedControl( axisControls[ i ] );
+            stackPanel_.addFixedControl( axisControls[ i ] );
         }
-        stackPanel.addFixedControl( legendControl_ );
-
-        /* The shader control is only visible in the stack when one of the
-         * layers is making use of it. */
-        stackModel_.addPlotActionListener( new ActionListener() {
-            boolean hasShader;
-            public void actionPerformed( ActionEvent evt ) {
-                boolean requiresShader =
-                    hasShadedLayers( readPlotLayers( false ) );
-                if ( hasShader ^ requiresShader ) {
-                    if ( requiresShader ) {
-                        stackPanel.addFixedControl( shaderControl_ );
-                    }
-                    else {
-                        stackPanel.removeFixedControl( shaderControl_ );
-                    }
-                    hasShader = requiresShader;
-                }
-            }
-        } );
+        stackPanel_.addFixedControl( legendControl_ );
 
         /* Prepare the panel that holds the plot itself.  Blob drawing
          * is superimposed using an OverlayLayout. */
@@ -474,7 +456,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * window. */
         FloatManager floater =
             FloatManager
-           .createFloatManager( getMainArea(), displayPanel, stackPanel );
+           .createFloatManager( getMainArea(), displayPanel, stackPanel_ );
         ToggleButtonModel floatModel = floater.getFloatToggle();
      
         /* Add actions etc to the toolbars. */
@@ -540,8 +522,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Set default component dimensions. */
         displayPanel.setMinimumSize( new Dimension( 150, 150 ) );
         displayPanel.setPreferredSize( new Dimension( 500, 400 ) );
-        stackPanel.setMinimumSize( new Dimension( 200, 100 ) );
-        stackPanel.setPreferredSize( new Dimension( 500, 240 ) );
+        stackPanel_.setMinimumSize( new Dimension( 200, 100 ) );
+        stackPanel_.setPreferredSize( new Dimension( 500, 240 ) );
         getBodyPanel().setBorder( BorderFactory
                                  .createEmptyBorder( 10, 10, 2, 10 ) );
 
@@ -720,14 +702,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Gathers state information from the GUI to feed to the PlotPanel.
-     * This information is returned in the form of an array of zone
-     * definition objects.  For a single-zone plot, this array will have
-     * exactly one element.  The result will always have at least one element.
+     * Returns a map of layer controls keyed by their ZoneId.
+     * The returned map always contains at least one entry.
+     * In the case of a single-zone plot, it will contain exactly one entry.
      *
-     * @return  zone definition array
+     * @return   ordered map of layer controls by zone
      */
-    private ZoneDef<P,A>[] getZoneDefs() {
+    private Map<ZoneId,LayerControl[]> getLayerControlsByZone() {
 
         /* Prepare a map of LayerControl lists keyed by the zone ID in which
          * their plots will appear. */
@@ -744,33 +725,34 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Make sure there is always at least one zone. */
         if ( zoneMap.size() == 0 ) {
-            zoneMap.put( new ZoneId( "EMPTY" ), new ArrayList<LayerControl>() );
+            zoneMap.put( DEFAULT_ZONE, new ArrayList<LayerControl>() );
         }
 
-        /* Configure auto settings for the shader control.
-         * This includes displaying the default value for the aux axis label
-         * in the GUI.  It's not essential to do that, but it helps the user
-         * a bit to see what's going on.  It's only possible to do it
-         * in a reasonable way if there is one shader control per zone.
-         * If that's the case (currently, only if there is exactly one zone),
-         * do it by hand here.  Otherwise (multi-zone case) fix it so that
-         * those values are not filled in.
-         * If the GUI one day gets per-zone shader controls, this can be
-         * implemented in a less hacky way. */
-        LayerControl[] ctrls =
-              zoneMap.size() == 1
-            ? zoneMap.values().iterator().next()
-                                         .toArray( new LayerControl[ 0 ] )
-            : new LayerControl[ 0 ];
-        shaderControl_.configureForLayers( ctrls );
-
-        /* Package the result up into a ZoneDef object per zone, and return. */
-        List<ZoneDef<P,A>> zdefs = new ArrayList<ZoneDef<P,A>>();
+        /* Retype and return. */
+        Map<ZoneId,LayerControl[]> amap =
+            new LinkedHashMap<ZoneId,LayerControl[]>();
         for ( Map.Entry<ZoneId,List<LayerControl>> entry :
               zoneMap.entrySet() ) {
+            amap.put( entry.getKey(),
+                      entry.getValue().toArray( new LayerControl[ 0 ] ) );
+        }
+        return amap;
+    }
+
+    /**
+     * Gathers state information from the GUI to feed to the PlotPanel.
+     * This information is returned in the form of an array of zone
+     * definition objects.  For a single-zone plot, this array will have
+     * exactly one element.  The result will always have at least one element.
+     *
+     * @return  zone definition array
+     */
+    private ZoneDef<P,A>[] getZoneDefs() {
+        List<ZoneDef<P,A>> zdefs = new ArrayList<ZoneDef<P,A>>();
+        for ( Map.Entry<ZoneId,LayerControl[]> entry :
+              getLayerControlsByZone().entrySet() ) {
             ZoneId zid = entry.getKey();
-            LayerControl[] controls =
-                entry.getValue().toArray( new LayerControl[ 0 ] );
+            LayerControl[] controls = entry.getValue();
             List<PlotLayer> layerList = new ArrayList<PlotLayer>();
             List<LegendEntry> legList = new ArrayList<LegendEntry>();
             for ( LayerControl control : controls ) {
@@ -820,6 +802,45 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             } );
         }
         return (ZoneDef<P,A>[]) zdefs.toArray( new ZoneDef[ 0 ] );
+    }
+
+    /**
+     * Perform GUI updates related to a material change in the control stack.
+     */
+    private void updateGuiForStack() {
+
+        /* If the blob drawing is active, kill it. */
+        blobPanel_.setActive( false );
+
+        /* The shader control is only visible in the stack when one of the
+         * layers is making use of it. */
+        boolean requiresShader = hasShadedLayers( readPlotLayers( false ) );
+        if ( hasShader_ ^ requiresShader ) {
+            if ( requiresShader ) {
+                stackPanel_.addFixedControl( shaderControl_ );
+            }
+            else {
+                stackPanel_.removeFixedControl( shaderControl_ );
+            }
+            hasShader_ = requiresShader;
+        }
+
+        /* Configure auto settings for the shader and axis controls.
+         * This includes displaying the default value for the aux axis label
+         * in the GUI.  It's not essential to do that, but it helps the user
+         * a bit to see what's going on.  It's only possible to do it
+         * in a reasonable way if there is one shader control per zone.
+         * If that's the case (currently, only if there is exactly one zone),
+         * do it by hand here.  Otherwise (multi-zone case) fix it so that
+         * those values are not filled in.
+         * If the GUI one day gets per-zone shader and /or axis controls,
+         * this can be implemented in a less hacky way. */
+        Map<ZoneId,LayerControl[]> zoneMap = getLayerControlsByZone();
+        LayerControl[] ctrls = zoneMap.size() == 1
+                             ? zoneMap.values().iterator().next()
+                             : new LayerControl[ 0 ];
+        shaderControl_.configureForLayers( ctrls );
+        axisController_.configureForLayers( ctrls );
     }
 
     /**

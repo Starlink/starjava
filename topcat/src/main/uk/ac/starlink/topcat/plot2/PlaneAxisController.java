@@ -24,12 +24,10 @@ public class PlaneAxisController
 
     /**
      * Constructor.
-     *
-     * @param  stack   control stack
      */
-    public PlaneAxisController( ControlStack stack ) {
+    public PlaneAxisController() {
         super( new PlaneSurfaceFactory(), "planeNavigation",
-               createAxisLabelKeys(), stack );
+               createAxisLabelKeys() );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
    

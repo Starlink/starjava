@@ -222,6 +222,16 @@ public abstract class AxisController<P,A> implements Configger {
     }
 
     /**
+     * This abstract method provides a hook for implementations to adjust
+     * their GUI state based on the layer controls which will be supplying
+     * layers for them to plot.
+     *
+     * @param   layerControls   layer controls expected to provide layers
+     *                          to be plotted on these axes
+     */
+    public abstract void configureForLayers( LayerControl[] layerControls );
+
+    /**
      * Adds a tab to the main control for selecting navigator options.
      * These are determined by the surface factory.
      */

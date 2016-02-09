@@ -90,6 +90,12 @@ public class SkyAxisController
     }
 
     /**
+     * No-op.
+     */
+    public void configureForLayers( LayerControl[] layerControls ) {
+    }
+
+    /**
      * Specifier which allows the user to enter a field of view centre and
      * radius to fix the sky aspect.
      */
