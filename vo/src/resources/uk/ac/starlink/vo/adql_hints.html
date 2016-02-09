@@ -133,7 +133,7 @@ SELECT ...
    FROM &lt;table1&gt; AS a
    JOIN &lt;table2&gt; AS b
    ON 1=CONTAINS( POINT('ICRS', a.ra, a.dec),
-                 CIRCLE('ICRS', b.ra, b.dec), &lt;radius-in-degrees&gt;)
+                 CIRCLE('ICRS', b.ra, b.dec, &lt;radius-in-degrees&gt;))
 </pre>
 <p id="indent">
 (Note: the 'ICRS' argument usually doesn't do anything, but you need it anyway)

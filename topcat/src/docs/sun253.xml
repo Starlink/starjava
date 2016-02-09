@@ -22974,6 +22974,8 @@ introduced since the last version:
     <li>Fix bug in which expression metadata was sometimes not revealed
         in Columns Window display following addition of a new synthetic column
         (regression bug since v4.0b).</li>
+    <li>Fix the sky join syntax example in the TAP window Hints panel,
+        which was incorrect (comma and parenthesis misplaced).</li>
     </ul>
     </p></dd>
 
