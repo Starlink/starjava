@@ -65,9 +65,10 @@ public abstract class NavigationListener<A>
      * Returns a navigator which is used to convert mouse gestures into
      * navigation actions.
      *
-     * @return  current navigator, may be null
+     * @param   isurf  surface index returned from <code>getSurfaceIndex</code>
+     * @return  current navigator for indicated surface, may be null
      */
-    public abstract Navigator<A> getNavigator();
+    public abstract Navigator<A> getNavigator( int isurf );
 
     /**
      * Returns an iterable over a sequence of data space positions,
@@ -128,10 +129,13 @@ public abstract class NavigationListener<A>
 
         /* Start a drag gesture. */
         Point pos = evt.getPoint();
-        dragged_ = createDragContext( pos );
+        int isurf = getSurfaceIndex( pos );
+        Surface surface = getSurface( isurf );
+        dragged_ = surface == null ? null
+                                   : new DragContext( isurf, surface, pos );
 
         /* Arrange to display the relevant decoration if there is one. */
-        Navigator<A> navigator = getNavigator();
+        Navigator<A> navigator = getNavigator( isurf );
         if ( dragged_ != null && navigator != null ) {
             int ibutt = PlotUtil.getButtonDownIndex( evt );
             NavAction<A> drag0act =
@@ -149,7 +153,7 @@ public abstract class NavigationListener<A>
 
         /* Reposition surface midway through drag gesture. */
         if ( dragged_ != null ) {
-            Navigator<A> navigator = getNavigator();
+            Navigator<A> navigator = getNavigator( dragged_.isurf_ );
             if ( navigator != null ) {
                 Point pos = evt.getPoint();
                 int ibutt = PlotUtil.getButtonDownIndex( evt );
@@ -173,7 +177,7 @@ public abstract class NavigationListener<A>
         if ( dragged_ != null ) {
 
             /* Pass on the endDrag action, if appropriate. */
-            Navigator<A> navigator = getNavigator();
+            Navigator<A> navigator = getNavigator( dragged_.isurf_ );
             final NavAction<A> navact;
             if ( navigator != null ) {
                 Point pos = evt.getPoint();
@@ -207,8 +211,8 @@ public abstract class NavigationListener<A>
         Point pos = evt.getPoint();
         int ibutt = PlotUtil.getButtonChangedIndex( evt );
         if ( ibutt == 3 ) {
-            Navigator<A> navigator = getNavigator();
             int isurf = getSurfaceIndex( pos );
+            Navigator<A> navigator = getNavigator( isurf );
             if ( navigator != null ) {
                 handleClick( navigator, isurf, pos, ibutt,
                              createDataPosIterable( pos ) );
@@ -245,9 +249,9 @@ public abstract class NavigationListener<A>
     }
 
     public void mouseWheelMoved( MouseWheelEvent evt ) {
-        Navigator<A> navigator = getNavigator();
         Point pos = evt.getPoint();
         int isurf = getSurfaceIndex( pos );
+        Navigator<A> navigator = getNavigator( isurf );
         Surface surface = getSurface( isurf );
         if ( navigator != null && surface != null ) {
             int wheelrot = evt.getWheelRotation();
@@ -293,20 +297,6 @@ public abstract class NavigationListener<A>
         component.removeMouseListener( this );
         component.removeMouseMotionListener( this );
         component.removeMouseWheelListener( this );
-    }
-
-    /**
-     * Returns a drag context corresponding to a drag start position.
-     *
-     * @param  startPos  drag start position
-     * @return  new drag context; may be null if no surface available
-     */
-    private DragContext createDragContext( Point startPos ) {
-        int isurf = getSurfaceIndex( startPos );
-        Surface surface = getSurface( isurf );
-        return surface == null
-             ? null
-             : new DragContext( isurf, surface, startPos );
     }
 
     /**

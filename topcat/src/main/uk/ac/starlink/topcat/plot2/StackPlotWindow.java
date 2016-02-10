@@ -235,7 +235,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Arrange for user navigation actions to adjust the view. */
         new GuiNavigationListener<A>( plotPanel_ ) {
-            public Navigator<A> getNavigator() {
+            public Navigator<A> getNavigator( int isurf ) {
                 return axisController_.getNavigator();
             }
             public void setAspect( int isurf, A aspect ) {

@@ -148,7 +148,7 @@ public class PlotDisplay<P,A> extends JComponent {
                 public Surface getSurface( int isurf ) {
                     return isurf >= 0 ? zones_[ isurf ].surface_ : null;
                 }
-                public Navigator<A> getNavigator() {
+                public Navigator<A> getNavigator( int isurf ) {
                     return navigator;
                 }
                 public Iterable<double[]> createDataPosIterable( Point pos ) {
