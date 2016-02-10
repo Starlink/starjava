@@ -11,7 +11,6 @@ import java.util.Set;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ResourceIcon;
-import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
@@ -40,7 +39,6 @@ public abstract class AxisController<P,A> implements Configger {
     private final SurfaceFactory<P,A> surfFact_;
     private final String navHelpId_;
     private final ConfigControl mainControl_;
-    private final ToggleButtonModel stickyModel_;
     private final ActionForwarder actionForwarder_;
     private final List<ConfigControl> controlList_;
     private final Set<DataId> seenDataIdSet_;
@@ -65,9 +63,6 @@ public abstract class AxisController<P,A> implements Configger {
         surfFact_ = surfFact;
         navHelpId_ = navHelpId;
         mainControl_ = new ConfigControl( "Axes", ResourceIcon.AXIS_CONFIG );
-        stickyModel_ =
-            new ToggleButtonModel( "Lock Axes", ResourceIcon.AXIS_LOCK,
-                                   "Do not auto-rescale axes" );
         actionForwarder_ = new ActionForwarder();
         controlList_ = new ArrayList<ConfigControl>();
         addControl( mainControl_ );
@@ -94,18 +89,6 @@ public abstract class AxisController<P,A> implements Configger {
      */
     public String getNavigatorHelpId() {
         return navHelpId_;
-    }
-
-    /**
-     * Returns a toggler which controls whether auto-rescaling should be
-     * inhibited.  May be overridden to return null if this controller
-     * does not honour the setting of such a model.
-     *
-     * @return   axis lock model, or null
-     * @see   #clearRange
-     */
-    public ToggleButtonModel getAxisLockModel() {
-        return stickyModel_;
     }
 
     /**
@@ -299,10 +282,14 @@ public abstract class AxisController<P,A> implements Configger {
      *
      * @param  profile   surface profile
      * @param  layers   layers which will be plotted
+     * @param  axisLock  whether re-ranging is inhibited;
+     *                   normally, if true axes will not be reset by this
+     *                   method, but the implementation can override that
+     *                   if it needs to
      */
-    public void updateState( P profile, PlotLayer[] layers ) {
+    public void updateState( P profile, PlotLayer[] layers, boolean axisLock ) {
         if ( clearRange( lastProfile_, profile, lastLayers_, layers,
-                         stickyModel_.isSelected() ) ) {
+                         axisLock ) ) {
             setRanges( null );
             setAspect( null );
         }

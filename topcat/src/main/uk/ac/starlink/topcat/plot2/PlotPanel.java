@@ -126,6 +126,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ToggleButtonModel sketchModel_;
     private final BoundedRangeModel progModel_;
     private final ToggleButtonModel showProgressModel_;
+    private final ToggleButtonModel axisLockModel_;
     private final List<ChangeListener> changeListenerList_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
@@ -176,6 +177,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  progModel  progress bar model for showing plot progress
      * @param  showProgressModel  model to decide whether data scan operations
      *                            are reported to the progress bar model
+     * @param  axisLockModel  model to determine whether auto-rescaling
+     *                        should be inhibited
      */
     public PlotPanel( DataStoreFactory storeFact, SurfaceFactory<P,A> surfFact,
                       Factory<Ganger<A>> gangerFact,
@@ -184,7 +187,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       PaperTypeSelector ptSel, Compositor compositor,
                       ToggleButtonModel sketchModel,
                       BoundedRangeModel progModel,
-                      ToggleButtonModel showProgressModel ) {
+                      ToggleButtonModel showProgressModel,
+                      ToggleButtonModel axisLockModel ) {
         storeFact_ = progModel == null
                    ? storeFact
                    : new ProgressDataStoreFactory( storeFact, progModel );
@@ -197,6 +201,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         sketchModel_ = sketchModel;
         progModel_ = progModel;
         showProgressModel_ = showProgressModel;
+        axisLockModel_ = axisLockModel;
         changeListenerList_ = new ArrayList<ChangeListener>();
         plotExec_ = Executors.newSingleThreadExecutor();
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
@@ -535,6 +540,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
         Ganger<A> ganger = gangerFact_.getItem();
+        boolean axisLock = axisLockModel_.isSelected();
         ZoneDef<P,A>[] zoneDefs = zonesFact_.getItem();
 
         /* Acquire per-zone state. */
@@ -555,7 +561,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             AxisController<P,A> axisController = zoneDef.getAxisController();
             ConfigMap surfConfig = axisController.getConfig();
             P profile = surfFact_.createProfile( surfConfig );
-            axisController.updateState( profile, layers );
+            axisController.updateState( profile, layers, axisLock );
             A fixAspect = axisController.getAspect();
             Range[] geomFixRanges = axisController.getRanges();
             ShadeAxisFactory shadeFact = zoneDef.getShadeAxisFactory();

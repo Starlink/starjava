@@ -127,6 +127,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final boolean canSelectPoints_;
     private final JMenu exportMenu_;
     private final ToggleButtonModel sketchModel_;
+    private final ToggleButtonModel axisLockModel_;
     private final Ganger<A> dfltGanger_;
     private boolean hasShader_;
     private static final Level REPORT_LEVEL = Level.INFO;
@@ -170,7 +171,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return frameControl_.getPlotPosition();
             }
         };
-        ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
+        axisLockModel_ =
+            new ToggleButtonModel( "Lock Axes", ResourceIcon.AXIS_LOCK,
+                                   "Do not auto-rescale axes" );
         surfFact_ = axisController_.getSurfaceFactory();
         configger.addConfigger( axisController_ );
         shaderControl_ = new ShaderControl( configger );
@@ -213,7 +216,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                 posFact, plotType.getPaperTypeSelector(),
                                 compositor, sketchModel_,
                                 placeProgressBar().getModel(),
-                                showProgressModel_ );
+                                showProgressModel_, axisLockModel_ );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
          * that might change the plot appearance.  Each of these controls
@@ -472,8 +475,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getToolBar().add( fromVisibleAction_ );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction_ );
-        if ( axlockModel != null ) {
-            getToolBar().add( axlockModel.createToolbarButton() );
+        if ( axisLockModel_ != null ) {
+            getToolBar().add( axisLockModel_.createToolbarButton() );
         }
         getToolBar().add( sketchModel_.createToolbarButton() );
         getToolBar().add( showProgressModel_.createToolbarButton() );
@@ -507,8 +510,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( replotAction );
         plotMenu.add( resizeAction_ );
-        if ( axlockModel != null ) {
-            plotMenu.add( axlockModel.createMenuItem() );
+        if ( axisLockModel_ != null ) {
+            plotMenu.add( axisLockModel_.createMenuItem() );
         }
         plotMenu.add( sketchModel_.createMenuItem() );
         plotMenu.add( showProgressModel_.createMenuItem() );
