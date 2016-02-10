@@ -44,7 +44,7 @@ public class SkyAxisController
      * Constructor.
      */
     public SkyAxisController() {
-        super( new SkySurfaceFactory(), "skyNavigation" );
+        super( new SkySurfaceFactory() );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 

@@ -24,8 +24,7 @@ public class TimeAxisController
      * Constructor.
      */
     public TimeAxisController() {
-        super( new TimeSurfaceFactory(), "timeNavigation",
-               createAxisLabelKeys() );
+        super( new TimeSurfaceFactory(), createAxisLabelKeys() );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 

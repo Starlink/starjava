@@ -24,13 +24,11 @@ public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
      * Constructor.
      *
      * @param  surfFact  plot surface factory
-     * @param  navHelpId  help ID for navigator actions, if any
      * @param  axisLabelKeys  config keys for axis labels
      */
     public CartesianAxisController( SurfaceFactory<P,A> surfFact,
-                                    String navHelpId,
                                     ConfigKey<String>[] axisLabelKeys ) {
-        super( surfFact, navHelpId );
+        super( surfFact );
         ndim_ = axisLabelKeys.length;
         axisLabelKeys_ = axisLabelKeys;
 

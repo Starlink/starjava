@@ -34,9 +34,7 @@ public class CubeAxisController
      * @param  isIso   true for isotropic, false for anisotropic
      */
     public CubeAxisController( boolean isIso ) {
-        super( new CubeSurfaceFactory( isIso ),
-               isIso ? "sphereNavigation" : "cubeNavigation",
-               createAxisLabelKeys() );
+        super( new CubeSurfaceFactory( isIso ), createAxisLabelKeys() );
         isIso_ = isIso;
         final SurfaceFactory<CubeSurfaceFactory.Profile,CubeAspect> surfFact =
             getSurfaceFactory();

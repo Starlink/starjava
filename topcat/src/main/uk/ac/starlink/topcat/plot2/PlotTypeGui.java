@@ -45,4 +45,11 @@ public interface PlotTypeGui<P,A> {
      * @return   zone id specifier factory
      */
     Factory<Specifier<ZoneId>> createZoneSpecifierFactory();
+
+    /**
+     * Returns the help ID describing the navigation actions for this plot.
+     *
+     * @return  navigator help id
+     */
+    public String getNavigatorHelpId();
 }

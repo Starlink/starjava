@@ -484,5 +484,8 @@ public class HistogramPlotWindow
         public boolean hasPositions() {
             return false;
         }
+        public String getNavigatorHelpId() {
+            return "histogramNavigation";
+        }
     }
 }

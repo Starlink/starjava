@@ -406,7 +406,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         cpanel.add( statusLine );
 
         /* Get action to provide plot-specific navigation help. */
-        String navHelpId = axisController_.getNavigatorHelpId();
+        String navHelpId = plotTypeGui_.getNavigatorHelpId();
         Action navHelpAction =
               navHelpId != null && HelpAction.helpIdExists( navHelpId )
             ? new HelpAction( navHelpId, this )

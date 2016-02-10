@@ -48,5 +48,8 @@ public class SpherePlotWindow
         public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
             return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
         } 
+        public String getNavigatorHelpId() {
+            return "sphereNavigation";
+        }
     }
 }

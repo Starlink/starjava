@@ -83,6 +83,10 @@ public class SkyPlotWindow
         public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
             return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
         } 
+
+        public String getNavigatorHelpId() {
+            return "skyNavigation";
+        }
     }
 
     /**

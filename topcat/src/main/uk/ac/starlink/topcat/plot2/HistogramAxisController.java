@@ -51,7 +51,7 @@ public class HistogramAxisController
      * Constructor.
      */
     public HistogramAxisController() {
-        super( new HistogramSurfaceFactory(), "histogramNavigation",
+        super( new HistogramSurfaceFactory(),
                PlaneAxisController.createAxisLabelKeys() );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();

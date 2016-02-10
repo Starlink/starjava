@@ -47,5 +47,8 @@ public class CubePlotWindow
         public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
             return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
         }
+        public String getNavigatorHelpId() {
+            return "cubeNavigation";
+        }
     }
 }

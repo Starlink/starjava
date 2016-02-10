@@ -122,5 +122,8 @@ public class TimePlotWindow
         public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
             return ZoneSpecifiers.createIntegerZoneSpecifierFactory( true );
         }
+        public String getNavigatorHelpId() {
+            return "timeNavigation";
+        }
     }
 }

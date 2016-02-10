@@ -37,7 +37,6 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 public abstract class AxisController<P,A> implements Configger {
 
     private final SurfaceFactory<P,A> surfFact_;
-    private final String navHelpId_;
     private final ConfigControl mainControl_;
     private final ActionForwarder actionForwarder_;
     private final List<ConfigControl> controlList_;
@@ -57,11 +56,9 @@ public abstract class AxisController<P,A> implements Configger {
      * convenient to store it here.
      *
      * @param  surfFact  plot surface factory
-     * @param  navHelpId  help ID for navigator actions, if any
      */
-    protected AxisController( SurfaceFactory<P,A> surfFact, String navHelpId ) {
+    protected AxisController( SurfaceFactory<P,A> surfFact ) {
         surfFact_ = surfFact;
-        navHelpId_ = navHelpId;
         mainControl_ = new ConfigControl( "Axes", ResourceIcon.AXIS_CONFIG );
         actionForwarder_ = new ActionForwarder();
         controlList_ = new ArrayList<ConfigControl>();
@@ -79,16 +76,6 @@ public abstract class AxisController<P,A> implements Configger {
      */
     public SurfaceFactory<P,A> getSurfaceFactory() {
         return surfFact_;
-    }
-
-    /**
-     * Returns the help ID describing the navigation actions
-     * for this controller.
-     *
-     * @return  navigator help id
-     */
-    public String getNavigatorHelpId() {
-        return navHelpId_;
     }
 
     /**
