@@ -83,7 +83,7 @@ public abstract class LayerControlAction extends BasicAction {
                                  final Factory<Specifier<ZoneId>> zsFact,
                                  final NextSupplier nextSupplier,
                                  final TopcatListener tcListener,
-                                 final Configger baseConfigger ) {
+                                 final MultiConfigger baseConfigger ) {
         final CoordGroup cgrp = plotter.getCoordGroup();
 
         /* This disjunction is currently a rather messy and ad hoc list of
@@ -110,9 +110,10 @@ public abstract class LayerControlAction extends BasicAction {
             final SpectrogramPlotter sPlotter = (SpectrogramPlotter) plotter;
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
-                    return new SpectrogramLayerControl( sPlotter,
-                                                        zsFact.getItem(),
-                                                        baseConfigger );
+                    Specifier<ZoneId> zsel = zsFact.getItem();
+                    Configger configger = baseConfigger.layerConfigger( zsel );
+                    return new SpectrogramLayerControl( sPlotter, zsel,
+                                                        configger );
                 }
             };
         }
@@ -122,13 +123,13 @@ public abstract class LayerControlAction extends BasicAction {
                     PositionCoordPanel posCoordPanel =
                         new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
-                    return new SingleFormLayerControl( posCoordPanel,
-                                                       zsFact.getItem(),
+                    Specifier<ZoneId> zsel = zsFact.getItem();
+                    Configger configger = baseConfigger.layerConfigger( zsel );
+                    return new SingleFormLayerControl( posCoordPanel, zsel,
                                                        true, nextSupplier,
                                                        tcListener,
                                                        plotter.getPlotterIcon(),
-                                                       plotter,
-                                                       baseConfigger );
+                                                       plotter, configger );
                 }
             };
         }
@@ -142,10 +143,10 @@ public abstract class LayerControlAction extends BasicAction {
                     PositionCoordPanel coordPanel =
                         new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
-                    return new BasicCoordLayerControl( plotter,
-                                                       zsFact.getItem(),
-                                                       coordPanel,
-                                                       baseConfigger );
+                    Specifier<ZoneId> zsel = zsFact.getItem();
+                    Configger configger = baseConfigger.layerConfigger( zsel );
+                    return new BasicCoordLayerControl( plotter, zsel,
+                                                       coordPanel, configger );
                 }
             };
         }

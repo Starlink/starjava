@@ -393,6 +393,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
+     * Returns the zone ID of a given zone for the most recently 
+     * completed plot.
+     *
+     * @param   iz   zone index
+     * @return  zone id
+     */
+    public ZoneId getZoneId( int iz ) {
+        return workings_.zones_[ iz ].zid_;
+    }
+
+    /**
      * Returns the plot surface of a given zone
      * for the most recent completed plot.
      *
@@ -579,20 +590,21 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
             PaperType paperType =
                 ptSel_.getPixelPaperType( opts, compositor_, this );
+            ZoneId zid = zoneDef.getZoneId();
             PlotJob.Zone<P,A> zone =
                 new PlotJob.Zone<P,A>( layers, profile, fixAspect,
                                        geomFixRanges, surfConfig, shadeFact,
                                        auxFixRanges, auxSubranges, auxLogFlags,
                                        legend, legpos, title, highlights,
-                                       paperType, axisController );
+                                       paperType, axisController, zid );
             zoneList.add( zone );
         }
         @SuppressWarnings("unchecked")
         PlotJob.Zone<P,A>[] zones =
             (PlotJob.Zone<P,A>[]) zoneList.toArray( new PlotJob.Zone[ 0 ] );
 
-        /* If no layers in any zone contains one of the
-         * highlighted points, drop that highlight permanently.
+        /* For any of the currently highlighted points, if no layer
+         * in any zone contains it, drop that highlight permanently.
          * You could argue that this should be done at plot time rather
          * than at plot job creation, since creating a plot job does
          * not entail that it will ever be plotted, but it's likely
@@ -849,7 +861,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                          new HashMap<AuxScale,Range>(),
                                          new HashMap<AuxScale,Range>(),
                                          placer, (Icon) null, (Icon) null,
-                                         new ReportMap[ 0 ], null );
+                                         new ReportMap[ 0 ], null, null );
     }
 
     /**
@@ -938,6 +950,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final Icon plotIcon_;
             final ReportMap[] reports_;
             final AxisController<?,A> axisController_;
+            final ZoneId zid_;
 
             /**
              * Constructor.
@@ -957,6 +970,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * @param  reports    reported info from plot layers
              * @param  axisController   axis controller to be updated on
              *                          zone plot completion
+             * @param  zid   zone identifier
              */
             ZoneWork( PlotLayer[] layers, Object[] plans,
                       Surface approxSurf, Range[] geomRanges, A aspect,
@@ -964,7 +978,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       Map<AuxScale,Range> auxClipRangeMap,
                       PlotPlacement placer, Icon dataIcon, Icon plotIcon,
                       ReportMap[] reports,
-                      AxisController<?,A> axisController ) {
+                      AxisController<?,A> axisController, ZoneId zid ) {
                 layers_ = layers;
                 plans_ = plans;
                 approxSurf_ = approxSurf;
@@ -977,6 +991,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 plotIcon_ = plotIcon;
                 reports_ = reports;
                 axisController_ = axisController;
+                zid_ = zid;
             }
 
             /**
@@ -1287,6 +1302,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 geomRanges[ iz ] = gRanges;
             }
             PlotUtil.logTime( logger_, "Range", startRange );
+            aspects = ganger_.adjustAspects( aspects, -1 );
 
             /* Work out gang geometry if we can (probably not). */
             Gang gang;
@@ -1524,8 +1540,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                                   auxDataRangeMaps[ iz ],
                                                   auxClipRangeMaps[ iz ],
                                                   placer, dataIcon, plotIcon,
-                                                  reports,
-                                                  zone.axisController_ );
+                                                  reports, zone.axisController_,
+                                                  zone.zid_ );
                 }
                 zoneWorks[ iz ] = zoneWork;
             }
@@ -1758,6 +1774,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final double[][] highlights_;
             final PaperType paperType_;
             final AxisController<P,A> axisController_;
+            final ZoneId zid_;
 
             /**
              * Constructor.
@@ -1781,6 +1798,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * @param   highlights  array of highlight data positions
              * @param   paperType   rendering implementation
              * @param   axisController  GUI component corresponding to this zone
+             * @param   zid   zone identifier
              */
             Zone( PlotLayer[] layers, P profile, A fixAspect,
                   Range[] geomFixRanges, ConfigMap aspectConfig,
@@ -1790,7 +1808,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                   Map<AuxScale,Boolean> auxLogFlags,
                   Icon legend, float[] legpos, String title,
                   double[][] highlights, PaperType paperType,
-                  AxisController<P,A> axisController ) {
+                  AxisController<P,A> axisController, ZoneId zid ) {
                 layers_ = layers;
                 profile_ = profile;
                 fixAspect_ = fixAspect;
@@ -1806,6 +1824,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 highlights_ = highlights;
                 paperType_ = paperType;
                 axisController_ = axisController;
+                zid_ = zid;
             }
         }
     }

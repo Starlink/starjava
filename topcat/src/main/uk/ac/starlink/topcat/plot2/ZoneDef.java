@@ -16,6 +16,13 @@ import uk.ac.starlink.ttools.plot2.Subrange;
 public interface ZoneDef<P,A> {
 
     /**
+     * Returns the zone identifier object for this zone.
+     *
+     * @return  zone id
+     */
+    public ZoneId getZoneId();
+
+    /**
      * Returns the axis control GUI component for this zone.
      *
      * @return  axis controller

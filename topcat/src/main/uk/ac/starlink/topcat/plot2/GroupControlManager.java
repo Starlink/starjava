@@ -47,7 +47,7 @@ public class GroupControlManager implements ControlManager {
     private final PlotType plotType_;
     private final PlotTypeGui plotTypeGui_;
     private final Factory<Specifier<ZoneId>> zsFact_;
-    private final Configger baseConfigger_;
+    private final MultiConfigger baseConfigger_;
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
     private final Map<CoordsType,List<Plotter>> plotterMap_;
@@ -70,7 +70,7 @@ public class GroupControlManager implements ControlManager {
      */
     public GroupControlManager( ControlStack stack, PlotType plotType,
                                 PlotTypeGui plotTypeGui,
-                                Configger baseConfigger,
+                                MultiConfigger baseConfigger,
                                 TopcatListener tcListener ) {
         stack_ = stack;
         plotType_ = plotType;
@@ -324,7 +324,8 @@ public class GroupControlManager implements ControlManager {
                                            ctyp.getIcon(),
                                            plotterList
                                           .toArray( new Plotter[ 0 ] ),
-                                           baseConfigger_ );
+                                           baseConfigger_
+                                          .layerConfigger( zsel ) );
             if ( autoPlot ) {
                 control.addDefaultLayer();
             }

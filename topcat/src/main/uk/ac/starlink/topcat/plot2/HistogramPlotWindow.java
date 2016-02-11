@@ -368,7 +368,7 @@ public class HistogramPlotWindow
             PlotUtil.padRange( yrange, ylogFlag );
             double[] ybounds = yrange.getFiniteBounds( ylogFlag );
             PlaneAspect aspect = new PlaneAspect( xbounds, ybounds );
-            getAxisController().setAspect( aspect );
+            getAxisController( iz ).setAspect( aspect );
             plotPanel.replot();
         }
     }

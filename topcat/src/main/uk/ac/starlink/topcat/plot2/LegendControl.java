@@ -30,7 +30,7 @@ public class LegendControl extends TabberControl {
     /* This class could perhaps be written in a more generic way
      * (subclassing ConfigControl). */
 
-    private final Configger configger_;
+    private final MultiConfigger configger_;
     private final ToggleButtonModel visibleModel_;
     private final ToggleButtonModel opaqueModel_;
     private final ToggleButtonModel borderModel_;
@@ -45,7 +45,7 @@ public class LegendControl extends TabberControl {
      * @param   configger   config source containing some plot-wide config,
      *                      specifically captioner style
      */
-    public LegendControl( Configger configger ) {
+    public LegendControl( MultiConfigger configger ) {
         super( "Legend", ResourceIcon.LEGEND );
         configger_ = configger;
         final ActionListener forwarder = getActionForwarder();
@@ -121,9 +121,11 @@ public class LegendControl extends TabberControl {
     /**
      * Returns the legend icon for the current state of the stack model.
      *
+     * @param   entries   entries to include in legend
+     * @param   zid      zone identifier for legend zone
      * @return  legend icon, or null if not visible
      */
-    public Icon createLegendIcon( LegendEntry[] entries ) {
+    public Icon createLegendIcon( LegendEntry[] entries, ZoneId zid ) {
 
         /* Update visibility defaults based on how many entries the legend
          * would have - it's not very useful if it only has one entry.
@@ -144,7 +146,8 @@ public class LegendControl extends TabberControl {
             }
             else {
                 Captioner captioner =
-                    StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
+                    StyleKeys.CAPTIONER
+                   .createValue( configger_.getZoneConfig( zid ) );
                 boolean border = borderModel_.isSelected();
                 Color bgColor = opaqueModel_.isSelected() ? Color.WHITE : null;
                 return new LegendIcon( entries, captioner, border, bgColor );

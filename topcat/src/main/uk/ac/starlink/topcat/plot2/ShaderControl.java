@@ -35,7 +35,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
  */
 public class ShaderControl extends ConfigControl {
 
-    private final Configger configger_;
+    private final MultiConfigger configger_;
     private final AutoSpecifier<String> labelSpecifier_;
     private final AutoSpecifier<Boolean> visibleSpecifier_;
     private final ConfigSpecifier rangeSpecifier_;
@@ -54,7 +54,7 @@ public class ShaderControl extends ConfigControl {
      * @param   configger   config source containing some plot-wide config,
      *                      specifically captioner style
      */
-    public ShaderControl( Configger configger ) {
+    public ShaderControl( MultiConfigger configger ) {
         super( SCALE.getName() + " Axis", ResourceIcon.COLORS );
         configger_ = configger;
         ActionListener forwarder = getActionForwarder();
@@ -117,10 +117,13 @@ public class ShaderControl extends ConfigControl {
      * based on current config of this component and a set of layer controls.
      *
      * @param  controls   list of layer controls to which the axis will apply
+     * @param  zid     identifier for zone to which axis factory applies
      * @return   shade axis factory
      */
-    public ShadeAxisFactory createShadeAxisFactory( LayerControl[] controls ) {
+    public ShadeAxisFactory createShadeAxisFactory( LayerControl[] controls,
+                                                    ZoneId zid ) {
         final ConfigMap config = getConfig();
+        config.putAll( configger_.getZoneConfig( zid ) );
         PlotLayer scaleLayer = getFirstAuxLayer( controls, SCALE );
         boolean autoVis = scaleLayer != null;
         String autoLabel = scaleLayer == null
@@ -143,8 +146,7 @@ public class ShaderControl extends ConfigControl {
             };
         }
         double crowd = config.get( StyleKeys.AUX_CROWD ).doubleValue();
-        Captioner captioner =
-            StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
+        Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         return RampKeySet
               .createShadeAxisFactory( ramp, captioner, label, crowd );

@@ -106,13 +106,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
     private final PlotType plotType_;
     private final PlotTypeGui<P,A> plotTypeGui_;
-    private final AxisController<P,A> axisController_;
     private final SurfaceFactory<P,A> surfFact_;
     private final PlotPanel<P,A> plotPanel_;
     private final ControlStack stack_;
     private final ControlStackModel stackModel_;
     private final ControlStackPanel stackPanel_;
     private final ControlManager controlManager_;
+    private final MultiController multiControl_;
     private final ToggleButtonModel showProgressModel_;
     private final LegendControl legendControl_;
     private final ShaderControl shaderControl_;
@@ -159,13 +159,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * so a bit of re-engineering would be required. */
         final Compositor compositor = new Compositor.BoostCompositor( 0.05f );
 
-        /* Set up user interface components in the window that can gather
-         * all the information required to perform (re-)plots. */
-        stack_ = new ControlStack();
-        stackModel_ = stack_.getStackModel();
+        /* Set up fixed configuration controls. */
         MultiConfigger configger = new MultiConfigger();
-        axisController_ = plotTypeGui.createAxisController();
         frameControl_ = new FrameControl();
+        shaderControl_ = new ShaderControl( configger );
+        legendControl_ = new LegendControl( configger );
+        configger.addGlobalConfigger( shaderControl_ );
+
+        /* Set up various user interface components in the window that can
+         * gather all the information required to perform (re-)plots. */
         Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
             public PlotPosition getItem() {
                 return frameControl_.getPlotPosition();
@@ -174,14 +176,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         axisLockModel_ =
             new ToggleButtonModel( "Lock Axes", ResourceIcon.AXIS_LOCK,
                                    "Do not auto-rescale axes" );
-        surfFact_ = axisController_.getSurfaceFactory();
-        configger.addConfigger( axisController_ );
-        shaderControl_ = new ShaderControl( configger );
-        configger.addConfigger( shaderControl_ );
+        surfFact_ = plotType_.getSurfaceFactory();
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
                 new SmartColumnFactory( new MemoryColumnFactory() ) );
-        legendControl_ = new LegendControl( configger );
         sketchModel_ =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "
@@ -209,6 +207,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
 
+        /* Prepare the panel containing the user controls.  This may appear
+         * either at the bottom of the plot window or floated into a
+         * separate window. */
+        stack_ = new ControlStack();
+        stackModel_ = stack_.getStackModel();
+        JToolBar stackToolbar = new JToolBar();
+        stackPanel_ = new ControlStackPanel( stack_, stackToolbar );
+
+        /* Populate it with the fixed controls. */
+        stackPanel_.addFixedControl( frameControl_ );
+        stackPanel_.addFixedControl( legendControl_ );
+        multiControl_ =
+            new MultiController( plotTypeGui_, stackPanel_, configger );
+
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
@@ -229,17 +241,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         } );
         frameControl_.addActionListener( plotPanel_ );
         legendControl_.addActionListener( plotPanel_ );
-        axisController_.addActionListener( plotPanel_ );
+        multiControl_.addActionListener( plotPanel_ );
         shaderControl_.addActionListener( plotPanel_ );
         navdecModel.addActionListener( plotPanel_ );
 
         /* Arrange for user navigation actions to adjust the view. */
         new GuiNavigationListener<A>( plotPanel_ ) {
             public Navigator<A> getNavigator( int isurf ) {
-                return axisController_.getNavigator();
+                return getAxisController( isurf ).getNavigator();
             }
             public void setAspect( int isurf, A aspect ) {
-                axisController_.setAspect( aspect );
+                multiControl_.setAspect( getGanger(),
+                                         plotPanel_.getZoneId( isurf ),
+                                         aspect );
                 plotPanel_.replot();
             }
             public void setDecoration( Decoration navDec ) {
@@ -248,14 +262,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 }
             }
         }.addListeners( plotPanel_ );
-
-        /* Arrange to update the GUI appropriately when the user moves the
-         * mouse around. */
-        axisController_.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                updatePositionDisplay( plotPanel_.getMousePosition() );
-            }
-        } );
 
         /* Arrange for user clicks to identify points. */
         if ( canSelectPoints_ ) {
@@ -338,9 +344,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 new BasicAction( "Rescale", ResourceIcon.RESIZE,
                                  "Rescale plot to view all plotted data" ) {
             public void actionPerformed( ActionEvent evt ) {
-                axisController_.setAspect( null );
-                axisController_.setRanges( null );
-                axisController_.clearAspect();
+                multiControl_.resetAspects();
                 plotPanel_.replot();
             }
         };
@@ -375,18 +379,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             stack_.createRemoveAction( "Remove Current Control",
                                        "Delete the current layer control"
                                      + " from the stack" );
-
-        /* Prepare the panel containing the user controls.  This may appear
-         * either at the bottom of the plot window or floated into a
-         * separate window. */
-        JToolBar stackToolbar = new JToolBar();
-        stackPanel_ = new ControlStackPanel( stack_, stackToolbar );
-        stackPanel_.addFixedControl( frameControl_ );
-        Control[] axisControls = axisController_.getControls();
-        for ( int i = 0; i < axisControls.length; i++ ) {
-            stackPanel_.addFixedControl( axisControls[ i ] );
-        }
-        stackPanel_.addFixedControl( legendControl_ );
 
         /* Prepare the panel that holds the plot itself.  Blob drawing
          * is superimposed using an OverlayLayout. */
@@ -533,6 +525,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Place the plot and control components. */
         getMainArea().setLayout( new BorderLayout() );
         floater.init();
+        updateGuiForStack();
     }
 
     /**
@@ -584,12 +577,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Returns this window's AxisController.
+     * Returns the AxisController for a given zone.
      *
+     * @param   iz  zone index
      * @return  axis controller
      */
-    public AxisController getAxisController() {
-        return axisController_;
+    public AxisController getAxisController( int iz ) {
+        return multiControl_.getAxisController( plotPanel_.getZoneId( iz ) );
     }
 
     /**
@@ -754,7 +748,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         List<ZoneDef<P,A>> zdefs = new ArrayList<ZoneDef<P,A>>();
         for ( Map.Entry<ZoneId,LayerControl[]> entry :
               getLayerControlsByZone().entrySet() ) {
-            ZoneId zid = entry.getKey();
+            final ZoneId zid = entry.getKey();
             LayerControl[] controls = entry.getValue();
             List<PlotLayer> layerList = new ArrayList<PlotLayer>();
             List<LegendEntry> legList = new ArrayList<LegendEntry>();
@@ -765,16 +759,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             final PlotLayer[] layers = layerList.toArray( new PlotLayer[ 0 ] );
             final Icon legend =
                 legendControl_
-               .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ) );
-            final AxisController<P,A> axisController = axisController_;
+               .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ),
+                                  zid );
+            final AxisController<P,A> axisController =
+                multiControl_.getAxisController( zid );
             final float[] legpos = legendControl_.getLegendPosition();
             final String title = frameControl_.getPlotTitle();
             final ShadeAxisFactory shadeFact =
-                shaderControl_.createShadeAxisFactory( controls );
+                shaderControl_.createShadeAxisFactory( controls, zid );
             final Range shadeFixRange = shaderControl_.getFixRange();
             final Subrange shadeSubrange = shaderControl_.getSubrange();
             final boolean isShadeLog = shaderControl_.isLog();
             zdefs.add( new ZoneDef<P,A>() {
+                public ZoneId getZoneId() {
+                    return zid;
+                }
                 public AxisController<P,A> getAxisController() {
                     return axisController;
                 }
@@ -828,7 +827,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             hasShader_ = requiresShader;
         }
 
-        /* Configure auto settings for the shader and axis controls.
+        /* Update the axis control display for currently active zones. */
+        Map<ZoneId,LayerControl[]> zoneMap = getLayerControlsByZone();
+        multiControl_.setZones( zoneMap.keySet() );
+        for ( Map.Entry<ZoneId,LayerControl[]> entry : zoneMap.entrySet() ) {
+            multiControl_.getAxisController( entry.getKey() )
+                         .configureForLayers( entry.getValue() );
+        }
+
+        /* Configure auto settings for the shader control.
          * This includes displaying the default value for the aux axis label
          * in the GUI.  It's not essential to do that, but it helps the user
          * a bit to see what's going on.  It's only possible to do it
@@ -838,21 +845,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * those values are not filled in.
          * If the GUI one day gets per-zone shader and /or axis controls,
          * this can be implemented in a less hacky way. */
-        Map<ZoneId,LayerControl[]> zoneMap = getLayerControlsByZone();
         LayerControl[] ctrls = zoneMap.size() == 1
                              ? zoneMap.values().iterator().next()
                              : new LayerControl[ 0 ];
         shaderControl_.configureForLayers( ctrls );
-        axisController_.configureForLayers( ctrls );
-    }
-
-    /**
-     * Returns the navigator currently in use for this window.
-     *
-     * @return  navigator
-     */
-    private Navigator<A> getNavigator() {
-        return axisController_.getNavigator();
     }
 
     /**
@@ -1363,11 +1359,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         fromVisibleAction_.setEnabled( hasAnyPoints );
 
         /* Update plot reports. */
-        Map<LayerId,ReportMap> rmap = new HashMap<LayerId,ReportMap>();
+        Map<LayerId,ReportMap> reportsMap = new HashMap<LayerId,ReportMap>();
         int nz = plotPanel_.getZoneCount();
         for ( int iz = 0; iz < nz; iz++ ) {
             PlotLayer[] layers = plotPanel_.getPlotLayers( iz );
             ReportMap[] reports = plotPanel_.getReports( iz );
+            Map<LayerId,ReportMap> rmap = new HashMap<LayerId,ReportMap>();
             int nl = layers.length;
             assert nl == reports.length;
             for ( int il = 0; il < nl; il++ ) {
@@ -1387,10 +1384,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     }
                 }
             }
+            getAxisController( iz ).submitReports( rmap );
+            reportsMap.putAll( rmap );
         }
-        axisController_.submitReports( rmap );
         for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
-            control.submitReports( rmap );
+            control.submitReports( reportsMap );
         }
 
         /* Initiate updating point count, which may be slow. */
@@ -1455,7 +1453,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                : plotPanel_.getGang().getNavigationZoneIndex( pos );
         if ( iz >= 0 ) {
             Surface surface = plotPanel_.getSurface( iz );
-            Navigator<A> navigator = getNavigator();
+            Navigator<A> navigator = getAxisController( iz ).getNavigator();
 
             /* Get a notional position for the navigation help to refer to.
              * If the reported position is within the plot panel, use that.
