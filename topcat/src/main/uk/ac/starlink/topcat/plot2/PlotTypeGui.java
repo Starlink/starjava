@@ -1,7 +1,5 @@
 package uk.ac.starlink.topcat.plot2;
 
-import uk.ac.starlink.ttools.plot2.config.Specifier;
-
 /**
  * Provides PlotType-specific aspects of the GUI, used by the 
  * generic PlotWindow GUI.
@@ -36,15 +34,13 @@ public interface PlotTypeGui<P,A> {
     boolean hasPositions();
 
     /**
-     * Returns a factory for zone selectors to be used by layer controls
-     * for this plot.  This determines how zone selection for multi-zone
-     * plots is done.  The return value of this method must not be null,
-     * but in the case of a single-zone plot type, the specifiers it
-     * dispenses may be null.
+     * Returns a new zone ID factory for use with this plot.
+     * This determines how zone selection for multi-zone plots is done.
+     * A new instance should be acquired for each plot window.
      *
-     * @return   zone id specifier factory
+     * @return   zone id factory
      */
-    Factory<Specifier<ZoneId>> createZoneSpecifierFactory();
+    ZoneFactory createZoneFactory();
 
     /**
      * Returns the help ID describing the navigation actions for this plot.

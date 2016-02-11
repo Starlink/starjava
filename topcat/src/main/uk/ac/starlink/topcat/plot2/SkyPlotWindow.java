@@ -80,8 +80,8 @@ public class SkyPlotWindow
             return true;
         }
 
-        public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
-            return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
+        public ZoneFactory createZoneFactory() {
+            return ZoneFactories.FIXED;
         } 
 
         public String getNavigatorHelpId() {

@@ -70,8 +70,7 @@ public abstract class LayerControlAction extends BasicAction {
      *
      * @param  plotter   plotter to provide an action for
      * @param  stack    stack to which controls are to be added
-     * @param  zsFact   factory for zone id specifiers; this must not be null,
-     *                  but the zone id specifiers it dispenses may be
+     * @param  zfact    zone id factory
      * @param  nextSupplier  manages global dispensing for some style options
      * @param  tcListener  listener for TopcatEvents
      * @param  baseConfigger  configuration source for some global config
@@ -80,7 +79,7 @@ public abstract class LayerControlAction extends BasicAction {
      */
     public static LayerControlAction
             createPlotterAction( final Plotter plotter, ControlStack stack,
-                                 final Factory<Specifier<ZoneId>> zsFact,
+                                 final ZoneFactory zfact,
                                  final NextSupplier nextSupplier,
                                  final TopcatListener tcListener,
                                  final MultiConfigger baseConfigger ) {
@@ -101,8 +100,10 @@ public abstract class LayerControlAction extends BasicAction {
             final FunctionPlotter fPlotter = (FunctionPlotter) plotter;
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
-                    return new FunctionLayerControl( fPlotter,
-                                                     zsFact.getItem() );
+                    Specifier<ZoneId> zsel = zfact.isSingleZone()
+                                           ? null
+                                           : zfact.createZoneSpecifier();
+                    return new FunctionLayerControl( fPlotter, zsel );
                 }
             };
         }
@@ -110,7 +111,9 @@ public abstract class LayerControlAction extends BasicAction {
             final SpectrogramPlotter sPlotter = (SpectrogramPlotter) plotter;
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
-                    Specifier<ZoneId> zsel = zsFact.getItem();
+                    Specifier<ZoneId> zsel = zfact.isSingleZone()
+                                           ? null
+                                           : zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zsel );
                     return new SpectrogramLayerControl( sPlotter, zsel,
                                                         configger );
@@ -123,7 +126,9 @@ public abstract class LayerControlAction extends BasicAction {
                     PositionCoordPanel posCoordPanel =
                         new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
-                    Specifier<ZoneId> zsel = zsFact.getItem();
+                    Specifier<ZoneId> zsel = zfact.isSingleZone()
+                                           ? null
+                                           : zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zsel );
                     return new SingleFormLayerControl( posCoordPanel, zsel,
                                                        true, nextSupplier,
@@ -143,7 +148,9 @@ public abstract class LayerControlAction extends BasicAction {
                     PositionCoordPanel coordPanel =
                         new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
-                    Specifier<ZoneId> zsel = zsFact.getItem();
+                    Specifier<ZoneId> zsel = zfact.isSingleZone()
+                                           ? null
+                                           : zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zsel );
                     return new BasicCoordLayerControl( plotter, zsel,
                                                        coordPanel, configger );

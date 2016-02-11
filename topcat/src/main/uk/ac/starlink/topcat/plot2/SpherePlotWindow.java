@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
-import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
@@ -45,8 +44,8 @@ public class SpherePlotWindow
         public boolean hasPositions() {
             return true;
         }
-        public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
-            return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
+        public ZoneFactory createZoneFactory() {
+            return ZoneFactories.FIXED;
         } 
         public String getNavigatorHelpId() {
             return "sphereNavigation";

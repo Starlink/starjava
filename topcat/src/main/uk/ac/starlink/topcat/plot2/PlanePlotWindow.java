@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
 import uk.ac.starlink.ttools.plot2.PlotType;
-import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
@@ -45,8 +44,8 @@ public class PlanePlotWindow
         public boolean hasPositions() {
             return true;
         }
-        public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
-            return ZoneSpecifiers.createEmptyZoneSpecifierFactory();
+        public ZoneFactory createZoneFactory() {
+            return ZoneFactories.FIXED;
         } 
         public String getNavigatorHelpId() {
             return "planeNavigation";

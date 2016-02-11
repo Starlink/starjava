@@ -46,7 +46,7 @@ public class GroupControlManager implements ControlManager {
     private final ControlStack stack_;
     private final PlotType plotType_;
     private final PlotTypeGui plotTypeGui_;
-    private final Factory<Specifier<ZoneId>> zsFact_;
+    private final ZoneFactory zfact_;
     private final MultiConfigger baseConfigger_;
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
@@ -62,6 +62,7 @@ public class GroupControlManager implements ControlManager {
      * @param   stack  control stack which this object will manage
      * @param   plotType  defines basic plot characteristics
      * @param   plotTypeGui  defines GUI-specific plot characteristics
+     * @param   zfact   zone id factory
      * @param   baseConfigger  configuration source for some global config
      *                        options
      * @param   tcListener listener for TopcatEvents; this manager will arrange
@@ -69,18 +70,18 @@ public class GroupControlManager implements ControlManager {
      *                     selected TopcatModel
      */
     public GroupControlManager( ControlStack stack, PlotType plotType,
-                                PlotTypeGui plotTypeGui,
+                                PlotTypeGui plotTypeGui, ZoneFactory zfact,
                                 MultiConfigger baseConfigger,
                                 TopcatListener tcListener ) {
         stack_ = stack;
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;
+        zfact_ = zfact;
         baseConfigger_ = baseConfigger;
         tcListener_ = tcListener;
         nextSupplier_ = new NextSupplier();
         nextSupplier_.putValues( StyleKeys.COLOR,
                                  ColorConfigKey.getPlottingColors() );
-        zsFact_ = plotTypeGui.createZoneSpecifierFactory();
         List<Action> stackActList = new ArrayList<Action>();
 
         /* Split the list up by the number of positional coordinates
@@ -120,7 +121,7 @@ public class GroupControlManager implements ControlManager {
         for ( Plotter plotter : plotterMap_.get( CoordsType.MISC ) ) {
             Action stackAct =
                 LayerControlAction
-               .createPlotterAction( plotter, stack, zsFact_, nextSupplier_,
+               .createPlotterAction( plotter, stack, zfact_, nextSupplier_,
                                      tcListener_, baseConfigger_ );
             if ( stackAct != null ) {
                 stackActList.add( stackAct );
@@ -316,7 +317,9 @@ public class GroupControlManager implements ControlManager {
         if ( plotterList != null && plotterList.size() > 0 ) {
             PositionCoordPanel coordPanel =
                 ctyp.createPositionCoordPanel( plotType_, plotTypeGui_ );
-            Specifier<ZoneId> zsel = zsFact_.getItem();
+            Specifier<ZoneId> zsel = zfact_.isSingleZone()
+                                   ? null
+                                   : zfact_.createZoneSpecifier();
             boolean autoPop = ctyp.isAutoPopulate();
             MultiFormLayerControl control = 
                 new MultiFormLayerControl( coordPanel, zsel, autoPop,

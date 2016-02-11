@@ -33,16 +33,18 @@ public class MultiController<P,A> {
      * Constructor.
      *
      * @param  plotType   plot type
+     * @param  zfact     zone id factory
      * @param  stackPanel   container for fixed (not per-layer) stack controls
      * @param  configger   manages global and per-zone axis config items
      */
-    public MultiController( PlotTypeGui<P,A> plotType,
+    public MultiController( PlotTypeGui<P,A> plotType, ZoneFactory zfact,
                             ControlStackPanel stackPanel,
                             MultiConfigger configger ) {
         plotType_ = plotType;
         stackPanel_ = stackPanel;
         configger_ = configger;
-        axisControllers_ = new java.util.HashMap<ZoneId,AxisController<P,A>>();
+        axisControllers_ =
+            new TreeMap<ZoneId,AxisController<P,A>>( zfact.getComparator() );
         lastZones_ = new ArrayList<ZoneId>();
         actionForwarder_ = new ActionForwarder();
     }

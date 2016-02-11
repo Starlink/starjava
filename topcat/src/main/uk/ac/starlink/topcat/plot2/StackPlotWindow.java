@@ -106,6 +106,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
     private final PlotType plotType_;
     private final PlotTypeGui<P,A> plotTypeGui_;
+    private final ZoneFactory zoneFact_;
     private final SurfaceFactory<P,A> surfFact_;
     private final PlotPanel<P,A> plotPanel_;
     private final ControlStack stack_;
@@ -129,9 +130,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ToggleButtonModel sketchModel_;
     private final ToggleButtonModel axisLockModel_;
     private final Ganger<A> dfltGanger_;
+    private final ZoneId dfltZone_;
     private boolean hasShader_;
     private static final Level REPORT_LEVEL = Level.INFO;
-    private static final ZoneId DEFAULT_ZONE = new ZoneId( "DEFAULT" );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -149,7 +150,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         super( name, parent );
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;
+        zoneFact_ = plotTypeGui_.createZoneFactory();
         canSelectPoints_ = plotTypeGui.hasPositions();
+        dfltZone_ = zoneFact_.getDefaultZone();
         dfltGanger_ = new SingleGanger<A>();
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
@@ -219,7 +222,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackPanel_.addFixedControl( frameControl_ );
         stackPanel_.addFixedControl( legendControl_ );
         multiControl_ =
-            new MultiController( plotTypeGui_, stackPanel_, configger );
+            new MultiController( plotTypeGui_, zoneFact_, stackPanel_,
+                                 configger );
 
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
@@ -370,8 +374,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
         controlManager_ =
-            new GroupControlManager( stack_, plotType, plotTypeGui, configger,
-                                     tcListener );
+            new GroupControlManager( stack_, plotType, plotTypeGui, zoneFact_,
+                                     configger, tcListener );
 
         /* Prepare actions for adding and removing stack controls. */
         Action[] stackActions = controlManager_.getStackActions();
@@ -710,10 +714,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Prepare a map of LayerControl lists keyed by the zone ID in which
          * their plots will appear. */
         Map<ZoneId,List<LayerControl>> zoneMap =
-            new TreeMap<ZoneId,List<LayerControl>>();
+            new TreeMap<ZoneId,List<LayerControl>>( zoneFact_.getComparator() );
         for ( LayerControl control : stackModel_.getLayerControls( true ) ) {
             Specifier<ZoneId> zsel = control.getZoneSpecifier();
-            ZoneId zid = zsel == null ? DEFAULT_ZONE : zsel.getSpecifiedValue();
+            ZoneId zid = zsel == null ? dfltZone_ : zsel.getSpecifiedValue();
             if ( ! zoneMap.containsKey( zid ) ) {
                 zoneMap.put( zid, new ArrayList<LayerControl>() );
             }
@@ -722,7 +726,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Make sure there is always at least one zone. */
         if ( zoneMap.size() == 0 ) {
-            zoneMap.put( DEFAULT_ZONE, new ArrayList<LayerControl>() );
+            zoneMap.put( dfltZone_, new ArrayList<LayerControl>() );
         }
 
         /* Retype and return. */

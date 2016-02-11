@@ -9,7 +9,6 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.PlotType;
-import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
@@ -119,8 +118,8 @@ public class TimePlotWindow
         public boolean hasPositions() {
             return true;
         }
-        public Factory<Specifier<ZoneId>> createZoneSpecifierFactory() {
-            return ZoneSpecifiers.createIntegerZoneSpecifierFactory( true );
+        public ZoneFactory createZoneFactory() {
+            return ZoneFactories.createIntegerZoneFactory( true );
         }
         public String getNavigatorHelpId() {
             return "timeNavigation";
