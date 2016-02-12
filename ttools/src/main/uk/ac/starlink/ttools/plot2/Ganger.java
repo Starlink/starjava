@@ -53,6 +53,19 @@ public interface Ganger<A> {
                          ShadeAxis[] shadeAxes, boolean withScroll );
 
     /**
+     * Constructs an approximate gang instance given only minimal information.
+     * This may be sufficient for passing the user a visual indication
+     * of roughly how zones are arranged, or making initial guesses
+     * at zone dimensions.
+     *
+     * @param  extBounds  total area enclosing all zones and associated
+     *                    axis labels, annotations etc
+     * @param  nz        number of zones
+     * @return  new approximate gang
+     */
+    Gang createApproxGang( Rectangle extBounds, int nz );
+
+    /**
      * Adjusts plot surface aspects as required to ensure that plot data
      * regions in a ganged set of zones are consistent.
      *

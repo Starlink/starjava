@@ -66,7 +66,7 @@ public abstract class StackGanger<A> implements Ganger<A> {
                                 P[] profiles, A[] aspects,
                                 ShadeAxis[] shadeAxes, boolean withScroll ) {
         if ( nz == 0 ) {
-            throw new IllegalArgumentException( "no regions" );
+            throw new IllegalArgumentException( "no zones" );
         }
         int[] heights = new int[ nz ];
         for ( int iz = 0; iz < nz; iz++ ) {
@@ -104,6 +104,19 @@ public abstract class StackGanger<A> implements Ganger<A> {
             zboxes[ iz ].width = Math.max( minxhi - maxxlo, 10 );
         }
         return new StackGang( zboxes );
+    }
+
+    public Gang createApproxGang( Rectangle extBounds, int nz ) {
+        int h = extBounds.height / nz;
+        Rectangle[] boxes = new Rectangle[ nz ];
+        for ( int iz = 0; iz < nz; iz++ ) {
+            boxes[ iz ] =
+               new Rectangle( extBounds.x,
+                              extBounds.y + h * ( isUp_ ? nz - 1 - iz : iz ),
+                              extBounds.width,
+                              h );
+        }
+        return new StackGang( boxes );
     }
 
     public A[] adjustAspects( A[] aspects, int index ) {

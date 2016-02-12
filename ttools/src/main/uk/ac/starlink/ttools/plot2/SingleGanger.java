@@ -40,6 +40,15 @@ public class SingleGanger<A> implements Ganger<A> {
         return new SingleGang( plotBounds );
     }
 
+    public Gang createApproxGang( Rectangle extBounds, int nz ) {
+        if ( nz == 1 ) {
+            return new SingleGang( extBounds );
+        }
+        else {
+            throw new IllegalArgumentException( "Not single zone" );
+        }
+    }
+
     public A[] adjustAspects( A[] oldAspects, int iz ) {
         return oldAspects;
     }
