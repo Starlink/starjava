@@ -61,6 +61,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
+import uk.ac.starlink.ttools.plot2.Gang;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
@@ -222,8 +223,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackPanel_.addFixedControl( frameControl_ );
         stackPanel_.addFixedControl( legendControl_ );
         multiControl_ =
-            new MultiController( plotTypeGui_, zoneFact_, stackPanel_,
-                                 configger );
+            new MultiController( plotTypeGui_, zoneFact_, configger );
+        for ( Control c : multiControl_.getStackControls() ) {
+            stackPanel_.addFixedControl( c );
+        }
 
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
@@ -245,9 +248,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         } );
         frameControl_.addActionListener( plotPanel_ );
         legendControl_.addActionListener( plotPanel_ );
-        multiControl_.addActionListener( plotPanel_ );
         shaderControl_.addActionListener( plotPanel_ );
         navdecModel.addActionListener( plotPanel_ );
+        for ( Control c : multiControl_.getStackControls() ) {
+            c.addActionListener( plotPanel_ );
+        }
 
         /* Arrange for user navigation actions to adjust the view. */
         new GuiNavigationListener<A>( plotPanel_ ) {
@@ -833,7 +838,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Update the axis control display for currently active zones. */
         Map<ZoneId,LayerControl[]> zoneMap = getLayerControlsByZone();
-        multiControl_.setZones( zoneMap.keySet() );
+        ZoneId[] zones = zoneMap.keySet().toArray( new ZoneId[ 0 ] );
+        Arrays.sort( zones, zoneFact_.getComparator() );
+        Gang gang = getGanger().createApproxGang( getBounds(), zones.length );
+        multiControl_.setZones( zones, gang );
         for ( Map.Entry<ZoneId,LayerControl[]> entry : zoneMap.entrySet() ) {
             multiControl_.getAxisController( entry.getKey() )
                          .configureForLayers( entry.getValue() );
