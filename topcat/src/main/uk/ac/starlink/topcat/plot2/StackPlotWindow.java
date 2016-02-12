@@ -114,7 +114,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackModel stackModel_;
     private final ControlStackPanel stackPanel_;
     private final ControlManager controlManager_;
-    private final MultiAxisController multiAxisController_;
+    private final MultiAxisController<P,A> multiAxisController_;
     private final ToggleButtonModel showProgressModel_;
     private final LegendControl legendControl_;
     private final ShaderControl shaderControl_;
@@ -592,8 +592,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  axis controller
      */
     public AxisController getAxisController( int iz ) {
-        return multiAxisController_
-              .getAxisController( plotPanel_.getZoneId( iz ) );
+        return multiAxisController_.getController( plotPanel_.getZoneId( iz ) );
     }
 
     /**
@@ -772,7 +771,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ),
                                   zid );
             final AxisController<P,A> axisController =
-                multiAxisController_.getAxisController( zid );
+                multiAxisController_.getController( zid );
             final float[] legpos = legendControl_.getLegendPosition();
             final String title = frameControl_.getPlotTitle();
             final ShadeAxisFactory shadeFact =
@@ -844,7 +843,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         Gang gang = getGanger().createApproxGang( getBounds(), zones.length );
         multiAxisController_.setZones( zones, gang );
         for ( Map.Entry<ZoneId,LayerControl[]> entry : zoneMap.entrySet() ) {
-            multiAxisController_.getAxisController( entry.getKey() )
+            multiAxisController_.getController( entry.getKey() )
                                 .configureForLayers( entry.getValue() );
         }
 
