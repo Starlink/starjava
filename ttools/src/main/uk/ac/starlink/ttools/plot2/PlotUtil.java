@@ -313,6 +313,31 @@ public class PlotUtil {
     }
 
     /**
+     * Determines the union of the data bounds of zones in a gang.
+     *
+     * @param  gang  gang
+     * @return   rectangle containing all data bounds rectangles in gang,
+     *           or null if no zones
+     */
+    public static Rectangle getGangBounds( Gang gang ) {
+        int nz = gang.getZoneCount();
+        int xmin = Integer.MAX_VALUE;
+        int ymin = Integer.MAX_VALUE;
+        int xmax = Integer.MIN_VALUE;
+        int ymax = Integer.MIN_VALUE;
+        for ( int iz = 0; iz < nz; iz++ ) {
+            Rectangle rect = gang.getZonePlotBounds( iz );
+            xmin = Math.min( xmin, rect.x );
+            ymin = Math.min( ymin, rect.y );
+            xmax = Math.max( xmax, rect.x + rect.width );
+            ymax = Math.max( ymax, rect.y + rect.height );
+        }
+        return xmax >= xmin && ymax >= ymin
+             ? new Rectangle( xmin, ymin, xmax - xmin, ymax - ymin )
+             : null;
+    }
+
+    /**
      * Turns an Icon into a Picture.
      *
      * @param   icon   icon
