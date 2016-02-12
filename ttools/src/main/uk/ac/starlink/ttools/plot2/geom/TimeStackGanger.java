@@ -15,6 +15,7 @@ public class TimeStackGanger extends StackGanger<TimeAspect> {
      * Private constructor prevents public instantiation of singleton class.
      */
     private TimeStackGanger() {
+        super( false );
     }
 
     public double[] getXLimits( TimeAspect aspect ) {

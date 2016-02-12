@@ -18,6 +18,18 @@ import uk.ac.starlink.ttools.plot2.ZoneContent;
  */
 public abstract class StackGanger<A> implements Ganger<A> {
 
+    private final boolean isUp_;
+
+    /**
+     * Constructor.
+     *
+     * @param  isUp  true if zones are ordered upwards on the graphics plane,
+     *               false if they go down
+     */
+    protected StackGanger( boolean isUp ) {
+        isUp_ = isUp;
+    }
+
     /**
      * Returns the data limits of the horizontal axis defined by a given aspect.
      *
@@ -66,7 +78,8 @@ public abstract class StackGanger<A> implements Ganger<A> {
         for ( int iz = 0; iz < nz; iz++ ) {
             int h = heights[ iz ];
             Rectangle zoneExtBox =
-                new Rectangle( gangExtBox.x, gangExtBox.height - y - h,
+                new Rectangle( gangExtBox.x,
+                               isUp_ ? gangExtBox.height - y - h : y,
                                gangExtBox.width, h );
             y += h;
             ZoneContent content = contents[ iz ];
