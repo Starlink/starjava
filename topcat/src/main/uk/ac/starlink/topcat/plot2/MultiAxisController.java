@@ -28,12 +28,12 @@ import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Manages control of GUI components that work with multiple plotting zones.
+ * Manages control of AxisControllers that work with multiple plotting zones.
  *
  * @author   Mark Taylor
  * @since    11 Feb 2016
  */
-public class MultiController<P,A> {
+public class MultiAxisController<P,A> {
 
     private final PlotTypeGui<P,A> plotType_;
     private final MultiConfigger configger_;
@@ -54,8 +54,8 @@ public class MultiController<P,A> {
      * @param  zfact     zone id factory
      * @param  configger   manages global and per-zone axis config items
      */
-    public MultiController( PlotTypeGui<P,A> plotType, ZoneFactory zfact,
-                            MultiConfigger configger ) {
+    public MultiAxisController( PlotTypeGui<P,A> plotType, ZoneFactory zfact,
+                                MultiConfigger configger ) {
         plotType_ = plotType;
         configger_ = configger;
         axisControllers_ =

@@ -114,7 +114,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackModel stackModel_;
     private final ControlStackPanel stackPanel_;
     private final ControlManager controlManager_;
-    private final MultiController multiControl_;
+    private final MultiAxisController multiAxisController_;
     private final ToggleButtonModel showProgressModel_;
     private final LegendControl legendControl_;
     private final ShaderControl shaderControl_;
@@ -222,9 +222,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Populate it with the fixed controls. */
         stackPanel_.addFixedControl( frameControl_ );
         stackPanel_.addFixedControl( legendControl_ );
-        multiControl_ =
-            new MultiController( plotTypeGui_, zoneFact_, configger );
-        for ( Control c : multiControl_.getStackControls() ) {
+        multiAxisController_ =
+            new MultiAxisController<P,A>( plotTypeGui_, zoneFact_, configger );
+        for ( Control c : multiAxisController_.getStackControls() ) {
             stackPanel_.addFixedControl( c );
         }
 
@@ -250,7 +250,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         legendControl_.addActionListener( plotPanel_ );
         shaderControl_.addActionListener( plotPanel_ );
         navdecModel.addActionListener( plotPanel_ );
-        for ( Control c : multiControl_.getStackControls() ) {
+        for ( Control c : multiAxisController_.getStackControls() ) {
             c.addActionListener( plotPanel_ );
         }
 
@@ -260,9 +260,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return getAxisController( isurf ).getNavigator();
             }
             public void setAspect( int isurf, A aspect ) {
-                multiControl_.setAspect( getGanger(),
-                                         plotPanel_.getZoneId( isurf ),
-                                         aspect );
+                multiAxisController_.setAspect( getGanger(),
+                                                plotPanel_.getZoneId( isurf ),
+                                                aspect );
                 plotPanel_.replot();
             }
             public void setDecoration( Decoration navDec ) {
@@ -353,7 +353,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 new BasicAction( "Rescale", ResourceIcon.RESIZE,
                                  "Rescale plot to view all plotted data" ) {
             public void actionPerformed( ActionEvent evt ) {
-                multiControl_.resetAspects();
+                multiAxisController_.resetAspects();
                 plotPanel_.replot();
             }
         };
@@ -592,7 +592,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  axis controller
      */
     public AxisController getAxisController( int iz ) {
-        return multiControl_.getAxisController( plotPanel_.getZoneId( iz ) );
+        return multiAxisController_
+              .getAxisController( plotPanel_.getZoneId( iz ) );
     }
 
     /**
@@ -771,7 +772,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ),
                                   zid );
             final AxisController<P,A> axisController =
-                multiControl_.getAxisController( zid );
+                multiAxisController_.getAxisController( zid );
             final float[] legpos = legendControl_.getLegendPosition();
             final String title = frameControl_.getPlotTitle();
             final ShadeAxisFactory shadeFact =
@@ -841,10 +842,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         ZoneId[] zones = zoneMap.keySet().toArray( new ZoneId[ 0 ] );
         Arrays.sort( zones, zoneFact_.getComparator() );
         Gang gang = getGanger().createApproxGang( getBounds(), zones.length );
-        multiControl_.setZones( zones, gang );
+        multiAxisController_.setZones( zones, gang );
         for ( Map.Entry<ZoneId,LayerControl[]> entry : zoneMap.entrySet() ) {
-            multiControl_.getAxisController( entry.getKey() )
-                         .configureForLayers( entry.getValue() );
+            multiAxisController_.getAxisController( entry.getKey() )
+                                .configureForLayers( entry.getValue() );
         }
 
         /* Configure auto settings for the shader control.
