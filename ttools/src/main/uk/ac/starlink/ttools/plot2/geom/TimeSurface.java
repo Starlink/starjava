@@ -41,6 +41,7 @@ public class TimeSurface implements Surface {
     private final Captioner captioner_;
     private final boolean grid_;
     private final TimeFormat tformat_;
+    private final boolean tannotate_;
     private final Axis tAxis_;
     private final Axis yAxis_;
 
@@ -66,6 +67,7 @@ public class TimeSurface implements Surface {
      * @param  captioner  text renderer for axis labels etc
      * @param  grid   whether to draw grid lines
      * @param  tformat  time labelling format
+     * @param  tannotate  whether to annotate time axis
      */
     public TimeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double dtlo, double dthi, double dylo, double dyhi,
@@ -73,7 +75,7 @@ public class TimeSurface implements Surface {
                         Tick[] tticks, Tick[] yticks,
                         String tlabel, String ylabel,
                         Captioner captioner, boolean grid,
-                        TimeFormat tformat ) {
+                        TimeFormat tformat, boolean tannotate ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -91,6 +93,7 @@ public class TimeSurface implements Surface {
         captioner_ = captioner;
         grid_ = grid;
         tformat_ = tformat;
+        tannotate_ = tannotate;
         tAxis_ = Axis.createAxis( gxlo_, gxhi_, dtlo_, dthi_, false, false );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
                                   yflip_ ^ INVERT_Y );
@@ -273,7 +276,7 @@ public class TimeSurface implements Surface {
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
                                         tAxis_, yAxis_, tticks_, yticks_,
                                         tlabel_, ylabel_, captioner_,
-                                        true, true );
+                                        tannotate_, true );
     }
 
     @Override
@@ -296,6 +299,7 @@ public class TimeSurface implements Surface {
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + ( grid_ ? 11 : 13 );
         code = 23 * code + tformat_.hashCode();
+        code = 23 * code + ( tannotate_ ? 17 : 23 );
         return code;
     }
 
@@ -319,7 +323,8 @@ public class TimeSurface implements Surface {
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
                 && this.captioner_.equals( other.captioner_ )
                 && this.grid_ == other.grid_
-                && this.tformat_.equals( other.tformat_ );
+                && this.tformat_.equals( other.tformat_ )
+                && this.tannotate_ == other.tannotate_;
         }
         else {
             return false;
@@ -345,6 +350,7 @@ public class TimeSurface implements Surface {
      * @param  ycrowd   crowding factor for tick marks on Y axis;
      *                  1 is normal
      * @param  minor   whether to paint minor tick marks on axes
+     * @param  tannotate  whether to annotate time axis
      * @return  new plot surface
      */
     public static TimeSurface createSurface( Rectangle plotBounds,
@@ -354,7 +360,8 @@ public class TimeSurface implements Surface {
                                              Captioner captioner, boolean grid,
                                              TimeFormat tformat,
                                              double tcrowd, double ycrowd,
-                                             boolean minor ) {
+                                             boolean minor,
+                                             boolean tannotate ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
@@ -373,6 +380,6 @@ public class TimeSurface implements Surface {
                                   plotBounds.height, ycrowd );
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
                                 ylog, yflip, tticks, yticks, tlabel, ylabel,
-                                captioner, grid, tformat );
+                                captioner, grid, tformat, tannotate );
     }
 }

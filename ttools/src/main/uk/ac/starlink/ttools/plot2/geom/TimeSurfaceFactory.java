@@ -136,7 +136,7 @@ public class TimeSurfaceFactory
               .createSurface( plotBounds, aspect,
                               p.ylog_, p.yflip_, p.tlabel_, p.ylabel_,
                               p.captioner_, p.grid_, p.tformat_,
-                              p.tcrowd_, p.ycrowd_, p.minor_ );
+                              p.tcrowd_, p.ycrowd_, p.minor_, p.tannotate_ );
     }
 
     public ConfigKey[] getProfileKeys() {
@@ -168,7 +168,7 @@ public class TimeSurfaceFactory
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( ylog, yflip, tlabel, ylabel, captioner,
-                            grid, tcrowd, ycrowd, tformat, minor );
+                            grid, tcrowd, ycrowd, tformat, minor, true );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -291,6 +291,7 @@ public class TimeSurfaceFactory
         private final double ycrowd_;
         private final TimeFormat tformat_;
         private final boolean minor_;
+        private final boolean tannotate_;
 
         /**
          * Constructor.
@@ -307,11 +308,12 @@ public class TimeSurfaceFactory
          *                 1 is normal
          * @param  tformat time labelling format
          * @param  minor   whether to draw minor ticks
+         * @param  tannotate  whether to annotate time axis
          */
         public Profile( boolean ylog, boolean yflip,
                         String tlabel, String ylabel, Captioner captioner,
                         boolean grid, double tcrowd, double ycrowd,
-                        TimeFormat tformat, boolean minor ) {
+                        TimeFormat tformat, boolean minor, boolean tannotate ) {
             ylog_ = ylog;
             yflip_ = yflip;
             tlabel_ = tlabel;
@@ -322,6 +324,7 @@ public class TimeSurfaceFactory
             ycrowd_ = ycrowd;
             tformat_ = tformat;
             minor_ = minor;
+            tannotate_ = tannotate;
         }
 
         /**
@@ -331,6 +334,19 @@ public class TimeSurfaceFactory
          */
         public boolean getYLog() {
             return ylog_;
+        }
+
+        /**
+         * Returns a new profile instance the same as this one,
+         * except that the flag for whether to annotate the time axis
+         * may be set.
+         *
+         * @param   tannotate  whether to annotate time axis
+         */
+        public Profile fixTimeAnnotation( boolean tannotate ) {
+            return new Profile( ylog_, yflip_, tlabel_, ylabel_, captioner_,
+                                grid_, tcrowd_, ycrowd_, tformat_, minor_,
+                                tannotate );
         }
     }
 }

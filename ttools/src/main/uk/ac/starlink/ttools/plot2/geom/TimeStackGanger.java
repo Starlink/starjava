@@ -11,12 +11,13 @@ public class TimeStackGanger
         extends StackGanger<TimeSurfaceFactory.Profile,TimeAspect> {
 
     private static final TimeStackGanger INSTANCE = new TimeStackGanger();
+    private static final boolean UP = false;
 
     /**
      * Private constructor prevents public instantiation of singleton class.
      */
     private TimeStackGanger() {
-        super( false );
+        super( UP );
     }
 
     public double[] getXLimits( TimeAspect aspect ) {
@@ -28,6 +29,20 @@ public class TimeStackGanger
         return new TimeAspect( new double[] { xmin, xmax },
                                new double[] { aspect.getYMin(),
                                               aspect.getYMax() } );
+    }
+
+    @Override
+    public TimeSurfaceFactory.Profile[]
+            adjustProfiles( TimeSurfaceFactory.Profile[] profiles ) {
+
+        /* Only the bottom plot gets horizontal axis labels. */
+        profiles = profiles.clone();
+        for ( int i = 0; i < profiles.length; i++ ) { 
+            if ( UP ? i > 0 : i < profiles.length - 1 ) {
+                profiles[ i ] = profiles[ i ].fixTimeAnnotation( false );
+            }
+        }   
+        return profiles;
     }
 
     /**
