@@ -20,6 +20,7 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -335,6 +336,52 @@ public class PlotUtil {
         return xmax >= xmin && ymax >= ymin
              ? new Rectangle( xmin, ymin, xmax - xmin, ymax - ymin )
              : null;
+    }
+
+    /**
+     * Returns a single-element array from an object with a parameterised type.
+     * The array element type is taken from the runtime type of the single
+     * element.
+     *
+     * @param   object  array element
+     * @return   array containing element
+     */
+    public static <T> T[] singletonArray( T object ) {
+        T[] array = (T[]) Array.newInstance( object.getClass(), 1 );
+        array[ 0 ] = object;
+        return array;
+    }
+
+    /**
+     * Returns an empty array suitable (it has the right parameterised type)
+     * for containing elements that are profiles for a given surface factory.
+     *
+     * @param   surfFact  surface factory
+     * @param   length   array size
+     * @return   new empty array
+     */
+    public static <P> P[] createProfileArray( SurfaceFactory<P,?> surfFact,
+                                              int length ) {
+        P profile = surfFact.createProfile( new ConfigMap() );
+        P[] array = (P[]) Array.newInstance( profile.getClass(), length );
+        return array;
+    }
+
+    /**
+     * Returns an empty array suitable (it has the right parameterised type)
+     * for containing elements that are aspects for a given surface factory.
+     *
+     * @param   surfFact  surface factory
+     * @param   length   array size
+     * @return   new empty array
+     */
+    public static <P,A> A[] createAspectArray( SurfaceFactory<P,A> surfFact,
+                                               int length ) {
+        ConfigMap config = new ConfigMap();
+        P profile = surfFact.createProfile( config );
+        A aspect = surfFact.createAspect( profile, config, null );
+        A[] array = (A[]) Array.newInstance( aspect.getClass(), length );
+        return array;
     }
 
     /**

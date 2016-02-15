@@ -166,8 +166,8 @@ public class PlotGenerator<P,A> {
                                    new ZoneContent( layers_, legend_,
                                                     legPos_, title_ )
                                },
-                               (P[]) new Object[] { profile_ },
-                               (A[]) new Object[] { aspect_ },
+                               PlotUtil.singletonArray( profile_ ),
+                               PlotUtil.singletonArray( aspect_ ),
                                new ShadeAxisFactory[] { shadeFact_ },
                                new Range[] { shadeFixRange_ },
                                ptSel_, compositor_, dataStore_,

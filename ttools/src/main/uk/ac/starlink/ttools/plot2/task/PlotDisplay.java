@@ -257,8 +257,8 @@ public class PlotDisplay<P,A> extends JComponent {
               new ZoneContent[] {
                   new ZoneContent( layers, legend, legPos, title )
               },
-              (P[]) new Object[] { profile },
-              (A[]) new Object[] { aspect },
+              PlotUtil.singletonArray( profile ),
+              PlotUtil.singletonArray( aspect ),
               new ShadeAxisFactory[] { shadeFact },
               new Range[] { shadeFixRange },
               navigator, ptSel, compositor, dataStore,
@@ -476,7 +476,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @return   per-zone array of current aspects
      */
     public A[] getAspects() {
-        A[] aspects = (A[]) new Object[ nz_ ];
+        A[] aspects = PlotUtil.createAspectArray( surfFact_, nz_ );
         for ( int iz = 0; iz < nz_; iz++ ) {
             aspects[ iz ] = zones_[ iz ].aspect_;
         }
@@ -538,8 +538,8 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     private Gang createGang( Rectangle extBounds ) {
         ZoneContent[] contents = new ZoneContent[ nz_ ];
-        A[] aspects = (A[]) new Object[ nz_ ];
-        P[] profiles = (P[]) new Object[ nz_ ];
+        A[] aspects = PlotUtil.createAspectArray( surfFact_, nz_ );
+        P[] profiles = PlotUtil.createProfileArray( surfFact_, nz_ );
         ShadeAxis[] shadeAxes = new ShadeAxis[ nz_ ];
         for ( int iz = 0; iz < nz_; iz++ ) {
             Zone<P,A> zone = zones_[ iz ];
@@ -697,8 +697,8 @@ public class PlotDisplay<P,A> extends JComponent {
         ZoneContent[] contents = new ZoneContent[] {
             new ZoneContent( layers, legend, legPos, title ),
         };
-        A[] aspects = (A[]) new Object[] { aspect };
-        P[] profiles = (P[]) new Object[] { profile };
+        A[] aspects = PlotUtil.singletonArray( aspect );
+        P[] profiles = PlotUtil.singletonArray( profile );
         ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[] { shadeFact };
         Range[] shadeFixRanges = new Range[] { shadeFixRange };
 
@@ -753,7 +753,7 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Determine aspects.  This may or may not require reading the ranges
          * from the data (slow).  */
-        A[] aspects = (A[]) new Object[ nz ];
+        A[] aspects = PlotUtil.createAspectArray( surfFact, nz );
         long t0 = System.currentTimeMillis();
         for ( int iz = 0; iz < nz; iz++ ) {
             P profile = profiles[ iz ];

@@ -1111,7 +1111,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Prepare parallel arrays of per-zone information for the plotting. */
         final int nz = zoneSuffixes.length;
         final ZoneContent[] contents = new ZoneContent[ nz ];
-        final Object[] profiles = new Object[ nz ];
+        final Object[] profiles = PlotUtil.createProfileArray( surfFact, nz );
         final ConfigMap[] aspectConfigs = new ConfigMap[ nz ];
         final ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[ nz ];
         final Range[] shadeFixRanges = new Range[ nz ];
