@@ -10505,6 +10505,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix some parameter handling errors in <code>coneskymatch</code>.</li>
     <li>Fix NullPointerException bug for disjoint regions in some cases in
         <code>tmatchn</code>.</li>
+    <li>Add <ref id="layer-fill">Fill</ref> layer type for Plane and Time
+        plots.</li>
     </ul>
     </p></dd>
 
