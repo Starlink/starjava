@@ -1254,7 +1254,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * Calculate those, and retain other intermediate results
              * we'll need later that we generate along the way. */
             int nz = zones_.length;
-            A[] aspects = (A[]) new Object[ nz ];
+            A[] aspects = PlotUtil.createAspectArray( surfFact_, nz );
             Range[][] geomRanges = new Range[ nz ][];
             long startRange = System.currentTimeMillis();
             for ( int iz = 0; iz < nz; iz++ ) {
@@ -1578,7 +1578,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             /* First try to work out the aspects. */
             int nz = zones_.length;
-            A[] aspects = (A[]) new Object[ nz ];
+            A[] aspects = PlotUtil.createAspectArray( surfFact_, nz );
             boolean hasAllAspects = true;
             for ( int iz = 0; iz < nz; iz++ ) {
                 Zone<P,A> zone = zones_[ iz ];
@@ -1679,7 +1679,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private Gang createGang( A[] aspects, ShadeAxis[] shadeAxes ) {
             int nz = zones_.length;
             ZoneContent[] zoneContents = new ZoneContent[ nz ];
-            P[] profiles = (P[]) new Object[ nz ];
+            P[] profiles = PlotUtil.createProfileArray( surfFact_, nz );
             for ( int iz = 0; iz < nz; iz++ ) {
                 Zone<P,A> zone = zones_[ iz ];
                 profiles[ iz ] = zone.profile_;
