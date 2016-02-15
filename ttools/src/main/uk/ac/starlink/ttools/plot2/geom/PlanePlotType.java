@@ -95,7 +95,7 @@ public class PlanePlotType implements PlotType {
             new LabelPlotter(),
             new ContourPlotter(),
             new DensityPlotter( true, true ),
-            new FillPlotter(),
+            new FillPlotter( true ),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
             new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
             new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),

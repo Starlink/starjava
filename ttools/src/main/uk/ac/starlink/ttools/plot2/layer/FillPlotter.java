@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.Graphics;
 import java.awt.image.IndexColorModel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -46,6 +48,8 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  */
 public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
 
+    private final boolean hasHorizontal_;
+
     /** Key to configure whether fill is vertical or horizontal. */
     public static final ConfigKey<Boolean> HORIZONTAL_KEY = 
         new BooleanConfigKey(
@@ -79,9 +83,13 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
 
     /**
      * Constructor.
+     *
+     * @param  hasHorizontal  true iff horizontal fill is offered
+     *                        (otherwise only vertical)
      */
-    public FillPlotter() {
+    public FillPlotter( boolean hasHorizontal ) {
         super( "Fill", ResourceIcon.FORM_FILL, 1, new Coord[ 0 ] );
+        hasHorizontal_ = hasHorizontal;
     }
 
     public String getPlotterDescription() {
@@ -93,8 +101,8 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
             "(because of rapid function variation within the width",
             "of a single pixel)",
             "are represented using appropriate alpha-blending.",
-            "The filled area may alternatively be that above the curve",
-            "or to its left or right.",
+            "The filled area may alternatively be that above the curve"
+            + ( hasHorizontal_ ? " or to its left or right." : "." ),
             "</p>",
             "<p>One example of its use is to reconstruct the appearance",
             "of a histogram plot from a set of histogram bins.",
@@ -105,12 +113,14 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
     }
 
     public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
-            StyleKeys.COLOR,
-            StyleKeys.TRANSPARENCY,
-            HORIZONTAL_KEY,
-            POSITIVE_KEY,
-        };
+        List<ConfigKey> list = new ArrayList<ConfigKey>();
+        list.add( StyleKeys.COLOR );
+        list.add( StyleKeys.TRANSPARENCY );
+        if ( hasHorizontal_ ) {
+            list.add( HORIZONTAL_KEY );
+        }
+        list.add( POSITIVE_KEY );
+        return list.toArray( new ConfigKey[ 0 ] );
     }
 
     public FillStyle createStyle( ConfigMap config ) {

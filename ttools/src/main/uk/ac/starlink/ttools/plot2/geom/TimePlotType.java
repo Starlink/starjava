@@ -55,7 +55,7 @@ public class TimePlotType implements PlotType {
         return new Plotter[] {
             new LinePlotter(),
             ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE ),
-            new FillPlotter(),
+            new FillPlotter( false ),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),
