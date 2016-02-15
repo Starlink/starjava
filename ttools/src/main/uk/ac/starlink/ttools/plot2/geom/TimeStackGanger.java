@@ -7,7 +7,8 @@ package uk.ac.starlink.ttools.plot2.geom;
  * @author   Mark Taylor
  * @since    3 Feb 2016
  */
-public class TimeStackGanger extends StackGanger<TimeAspect> {
+public class TimeStackGanger
+        extends StackGanger<TimeSurfaceFactory.Profile,TimeAspect> {
 
     private static final TimeStackGanger INSTANCE = new TimeStackGanger();
 

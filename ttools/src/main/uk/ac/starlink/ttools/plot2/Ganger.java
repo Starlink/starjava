@@ -12,7 +12,7 @@ import java.awt.Rectangle;
  * @author   Mark Taylor
  * @since    25 Jan 2016
  */
-public interface Ganger<A> {
+public interface Ganger<P,A> {
 
     /**
      * Creates a gang given the graphics coordinates of the individual zones.
@@ -47,10 +47,10 @@ public interface Ganger<A> {
      *                     even after some user scrolling
      * @return   new gang
      */
-    <P> Gang createGang( Rectangle extBounds, SurfaceFactory<P,A> surfFact,
-                         int nz, ZoneContent[] zoneContents,
-                         P[] profiles, A[] aspects,
-                         ShadeAxis[] shadeAxes, boolean withScroll );
+    Gang createGang( Rectangle extBounds, SurfaceFactory<P,A> surfFact,
+                     int nz, ZoneContent[] zoneContents,
+                     P[] profiles, A[] aspects,
+                     ShadeAxis[] shadeAxes, boolean withScroll );
 
     /**
      * Constructs an approximate gang instance given only minimal information.
@@ -82,7 +82,18 @@ public interface Ganger<A> {
      *
      * @param  aspects  unadjusted aspects
      * @param  iz    index of reference aspect in array, or -1 for no reference
-     * @return   array of consistent aspects based on input array
+     * @return   array of consistent aspects based on input array,
+     *           same size as input
      */
     A[] adjustAspects( A[] aspects, int iz );
+
+    /**
+     * Adjusts plot surface profiles as required for plots appearing
+     * in multiple plots within a gang.
+     *
+     * @param   profiles  unadjusted profiles
+     * @return   array of consistent profiles based on input array,
+     *           same size as input
+     */
+    P[] adjustProfiles( P[] profiles );
 }

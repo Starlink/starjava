@@ -10,7 +10,7 @@ import java.util.Arrays;
  * @author   Mark Taylor
  * @since    25 Jan 2016
  */
-public class SingleGanger<A> implements Ganger<A> {
+public class SingleGanger<P,A> implements Ganger<P,A> {
 
     public Gang createGang( Rectangle[] zonePlotBounds ) {
         if ( zonePlotBounds.length == 1 ) {
@@ -21,11 +21,11 @@ public class SingleGanger<A> implements Ganger<A> {
         }
     }
 
-    public <P> Gang createGang( Rectangle extBounds,
-                                SurfaceFactory<P,A> surfFact, int nz,
-                                ZoneContent[] contents,
-                                P[] profiles, A[] aspects,
-                                ShadeAxis[] shadeAxes, boolean withScroll ) {
+    public Gang createGang( Rectangle extBounds,
+                            SurfaceFactory<P,A> surfFact, int nz,
+                            ZoneContent[] contents,
+                            P[] profiles, A[] aspects,
+                            ShadeAxis[] shadeAxes, boolean withScroll ) {
         if ( nz != 1 ) {
             throw new IllegalArgumentException( "Not single zone" );
         }
@@ -51,6 +51,10 @@ public class SingleGanger<A> implements Ganger<A> {
 
     public A[] adjustAspects( A[] oldAspects, int iz ) {
         return oldAspects;
+    }
+
+    public P[] adjustProfiles( P[] oldProfiles ) {
+        return oldProfiles;
     }
 
     /**

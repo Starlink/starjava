@@ -31,7 +31,7 @@ public class MultiAxisController<P,A>
      *                 can, but probably shouldn't, be null
      * @param   aspect  new aspect
      */
-    public void setAspect( Ganger<A> ganger, ZoneId zid, A aspect ) {
+    public void setAspect( Ganger<P,A> ganger, ZoneId zid, A aspect ) {
 
         /* Assemble an array of existing aspects. */
         ZoneId[] zones = getZones();

@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.ZoneContent;
  * @author   Mark Taylor
  * @since    25 Jan 2016
  */
-public abstract class StackGanger<A> implements Ganger<A> {
+public abstract class StackGanger<P,A> implements Ganger<P,A> {
 
     private final boolean isUp_;
 
@@ -60,11 +60,11 @@ public abstract class StackGanger<A> implements Ganger<A> {
         }
     }
 
-    public <P> Gang createGang( Rectangle gangExtBox,
-                                SurfaceFactory<P,A> surfFact,
-                                int nz, ZoneContent[] contents,
-                                P[] profiles, A[] aspects,
-                                ShadeAxis[] shadeAxes, boolean withScroll ) {
+    public Gang createGang( Rectangle gangExtBox,
+                            SurfaceFactory<P,A> surfFact,
+                            int nz, ZoneContent[] contents,
+                            P[] profiles, A[] aspects,
+                            ShadeAxis[] shadeAxes, boolean withScroll ) {
         if ( nz == 0 ) {
             throw new IllegalArgumentException( "no zones" );
         }
@@ -145,6 +145,10 @@ public abstract class StackGanger<A> implements Ganger<A> {
         else {
             return aspects;
         }
+    }
+
+    public P[] adjustProfiles( P[] profiles ) {
+        return profiles;
     }
 
     /**

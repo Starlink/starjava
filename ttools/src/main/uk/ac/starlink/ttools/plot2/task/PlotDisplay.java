@@ -62,7 +62,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  */
 public class PlotDisplay<P,A> extends JComponent {
 
-    private final Ganger<A> ganger_;
+    private final Ganger<P,A> ganger_;
     private final DataStore dataStore_;
     private final SurfaceFactory<P,A> surfFact_;
     private final int nz_;
@@ -114,7 +114,7 @@ public class PlotDisplay<P,A> extends JComponent {
      *                   if false it will be regenerated from the data
      *                   on every repaint
      */
-    public PlotDisplay( Ganger<A> ganger, SurfaceFactory<P,A> surfFact,
+    public PlotDisplay( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
                         int nz, ZoneContent[] zoneContents,
                         P[] profiles, A[] aspects,
                         ShadeAxisFactory[] shadeFacts, Range[] shadeFixRanges,
@@ -126,6 +126,7 @@ public class PlotDisplay<P,A> extends JComponent {
         surfFact_ = surfFact;
         nz_ = nz;
         zones_ = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
+        profiles = ganger.adjustProfiles( profiles.clone() );
         A[] okAspects = ganger.adjustAspects( aspects.clone(), -1 );
         for ( int iz = 0; iz < nz_; iz++ ) {
             zones_[ iz ] = new Zone( zoneContents[ iz ], profiles[ iz ],
@@ -253,7 +254,7 @@ public class PlotDisplay<P,A> extends JComponent {
                         PaperTypeSelector ptSel, Compositor compositor,
                         DataStore dataStore, boolean surfaceAuxRanging,
                         boolean caching ) {
-        this( new SingleGanger<A>(), surfFact, 1,
+        this( new SingleGanger<P,A>(), surfFact, 1,
               new ZoneContent[] {
                   new ZoneContent( layers, legend, legPos, title )
               },
@@ -693,7 +694,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                            : null;
 
         /* Prepare gang configuration; the gang has only a single member. */
-        Ganger<A> ganger = new SingleGanger<A>();
+        Ganger<P,A> ganger = new SingleGanger<P,A>();
         ZoneContent[] contents = new ZoneContent[] {
             new ZoneContent( layers, legend, legPos, title ),
         };
@@ -742,7 +743,7 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     @Slow
     public static <P,A> PlotDisplay<P,A>
-            createGangDisplay( Ganger<A> ganger, SurfaceFactory<P,A> surfFact,
+            createGangDisplay( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
                                int nz, ZoneContent[] contents, P[] profiles,
                                ConfigMap[] aspectConfigs,
                                ShadeAxisFactory[] shadeFacts,

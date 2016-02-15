@@ -161,7 +161,7 @@ public class PlotGenerator<P,A> {
      */
     public Icon createIcon( boolean forceBitmap ) {
         return AbstractPlot2Task
-              .createPlotIcon( new SingleGanger<A>(), surfFact_, 1,
+              .createPlotIcon( new SingleGanger<P,A>(), surfFact_, 1,
                                new ZoneContent[] {
                                    new ZoneContent( layers_, legend_,
                                                     legPos_, title_ )

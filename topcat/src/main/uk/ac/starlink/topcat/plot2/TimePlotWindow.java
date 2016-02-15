@@ -38,7 +38,7 @@ public class TimePlotWindow
     }
 
     @Override
-    public Ganger<TimeAspect> getGanger() {
+    public Ganger<TimeSurfaceFactory.Profile,TimeAspect> getGanger() {
         return TimeStackGanger.getInstance();
     }
 

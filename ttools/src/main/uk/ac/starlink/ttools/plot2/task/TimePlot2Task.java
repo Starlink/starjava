@@ -21,7 +21,7 @@ import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
 public class TimePlot2Task extends TypedPlot2Task {
 
     private static final TimePlotType PLOTTYPE = TimePlotType.getInstance();
-    private static final Ganger<TimeAspect> GANGER =
+    private static final Ganger<TimeSurfaceFactory.Profile,TimeAspect> GANGER =
         TimeStackGanger.getInstance();
     private static final Map<ConfigKey<String>,Input> AXLABEL_MAP =
         createAxisLabelMap();

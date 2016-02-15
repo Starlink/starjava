@@ -118,7 +118,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
     private final DataStoreFactory storeFact_;
     private final SurfaceFactory<P,A> surfFact_;
-    private final Factory<Ganger<A>> gangerFact_;
+    private final Factory<Ganger<P,A>> gangerFact_;
     private final Factory<ZoneDef<P,A>[]> zonesFact_;
     private final Factory<PlotPosition> posFact_;
     private final PaperTypeSelector ptSel_;
@@ -131,6 +131,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private final Workings<A> dummyWorkings_;
+    private final P[] profiles0_;
     private PlotJob<P,A> plotJob_;
     private PlotJobRunner plotRunner_;
     private Cancellable plotNoteRunner_;
@@ -181,7 +182,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *                        should be inhibited
      */
     public PlotPanel( DataStoreFactory storeFact, SurfaceFactory<P,A> surfFact,
-                      Factory<Ganger<A>> gangerFact,
+                      Factory<Ganger<P,A>> gangerFact,
                       Factory<ZoneDef<P,A>[]> zonesFact,
                       Factory<PlotPosition> posFact,
                       PaperTypeSelector ptSel, Compositor compositor,
@@ -207,6 +208,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
                   ? Executors.newSingleThreadExecutor()
                   : plotExec_;
+        profiles0_ = PlotUtil.createProfileArray( surfFact_, 0 );
         dummyWorkings_ = createDummyWorkings( surfFact );
         plotRunner_ = new PlotJobRunner();
         plotNoteRunner_ = new Cancellable();
@@ -550,14 +552,27 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Insets insets = plotpos.getPlotInsets();
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
-        Ganger<A> ganger = gangerFact_.getItem();
+        Ganger<P,A> ganger = gangerFact_.getItem();
         boolean axisLock = axisLockModel_.isSelected();
         ZoneDef<P,A>[] zoneDefs = zonesFact_.getItem();
+        int nz = zoneDefs.length;
+
+        /* Get profiles, made consistent across multi-zone plots. */
+        List<ConfigMap> surfConfigs = new ArrayList<ConfigMap>();
+        List<P> profileList = new ArrayList<P>();
+        for ( ZoneDef zoneDef : zoneDefs ) {
+            ConfigMap surfConfig = zoneDef.getAxisController().getConfig();
+            surfConfigs.add( surfConfig );
+            profileList.add( surfFact_.createProfile( surfConfig ) );
+        }
+        P[] profiles =
+            ganger.adjustProfiles( profileList.toArray( profiles0_ ) );
 
         /* Acquire per-zone state. */
         List<PlotJob.Zone<P,A>> zoneList = new ArrayList<PlotJob.Zone<P,A>>();
         List<SubCloud> allSubclouds = new ArrayList<SubCloud>();
-        for ( ZoneDef zoneDef : zoneDefs ) {
+        for ( int iz = 0; iz < nz; iz++ ) {
+            ZoneDef zoneDef = zoneDefs[ iz ];
             PlotLayer[] layers = zoneDef.getLayers();
             assert layerListEquals( layers, zoneDef.getLayers() );
             assert layerSetEquals( layers, zoneDef.getLayers() );
@@ -570,8 +585,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             double[][] highlights =
                 highMap.values().toArray( new double[ 0 ][] );
             AxisController<P,A> axisController = zoneDef.getAxisController();
-            ConfigMap surfConfig = axisController.getConfig();
-            P profile = surfFact_.createProfile( surfConfig );
+            ConfigMap surfConfig = surfConfigs.get( iz );
+            P profile = profiles[ iz ];
             axisController.updateState( profile, layers, axisLock );
             A fixAspect = axisController.getAspect();
             Range[] geomFixRanges = axisController.getRanges();
@@ -1030,7 +1045,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
        
         private final Workings<A> oldWorkings_;
         private final SurfaceFactory<P,A> surfFact_;
-        private final Ganger<A> ganger_;
+        private final Ganger<P,A> ganger_;
         private final Zone<P,A>[] zones_;
         private final DataStoreFactory storeFact_;
         private final Rectangle extBounds_;
@@ -1057,7 +1072,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param   bgColor   background colour
          */
         PlotJob( Workings<A> oldWorkings, SurfaceFactory<P,A> surfFact,
-                 Ganger<A> ganger, Zone<P,A>[] zones,
+                 Ganger<P,A> ganger, Zone<P,A>[] zones,
                  DataStoreFactory storeFact, Rectangle extBounds, Insets insets,
                  GraphicsConfiguration graphicsConfig, Color bgColor ) {
             oldWorkings_ = oldWorkings;

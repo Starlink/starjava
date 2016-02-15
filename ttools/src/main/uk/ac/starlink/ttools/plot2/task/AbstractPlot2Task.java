@@ -2358,7 +2358,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  icon  icon for plotting
      */
     public static <P,A> Icon
-            createPlotIcon( Ganger<A> ganger,
+            createPlotIcon( Ganger<P,A> ganger,
                             final SurfaceFactory<P,A> surfFact,
                             final int nz, final ZoneContent[] contents,
                             final P[] profiles, final A[] aspects,

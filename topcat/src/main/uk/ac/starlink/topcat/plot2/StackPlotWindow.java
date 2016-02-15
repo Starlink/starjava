@@ -130,7 +130,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final JMenu exportMenu_;
     private final ToggleButtonModel sketchModel_;
     private final ToggleButtonModel axisLockModel_;
-    private final Ganger<A> dfltGanger_;
+    private final Ganger<P,A> dfltGanger_;
     private final ZoneId dfltZone_;
     private boolean hasShader_;
     private static final Level REPORT_LEVEL = Level.INFO;
@@ -154,7 +154,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         zoneFact_ = plotTypeGui_.createZoneFactory();
         canSelectPoints_ = plotTypeGui.hasPositions();
         dfltZone_ = zoneFact_.getDefaultZone();
-        dfltGanger_ = new SingleGanger<A>();
+        dfltGanger_ = new SingleGanger<P,A>();
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
@@ -200,8 +200,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                    "Give visual feedback for plot navigation "
                                  + "gestures" );
         navdecModel.setSelected( true );
-        Factory<Ganger<A>> gangerFact = new Factory<Ganger<A>>() {
-            public Ganger<A> getItem() {
+        Factory<Ganger<P,A>> gangerFact = new Factory<Ganger<P,A>>() {
+            public Ganger<P,A> getItem() {
                 return getGanger();
             }
         };
@@ -572,7 +572,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *
      * @return  ganger
      */
-    public Ganger<A> getGanger() {
+    public Ganger<P,A> getGanger() {
         return dfltGanger_;
     }
 
