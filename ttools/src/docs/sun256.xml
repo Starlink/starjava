@@ -5807,7 +5807,7 @@ stilts plot2time tmin=2007-06-07T02:40 tmax=2007-06-07T06:20 tformat=mjd
                  in=STEREO_STA_L1_SEPT_20070607_V05.cdf t=epoch_ns
                  ylabel=Channel
                  layer_3=spectrogram spectrum_3=Spec_0_NS
-                 spectromap_3=accent spectrolog_3=true
+                 auxmap=accent auxfunc=log
 </verbatim></dt>
 <dd><p>Plots a spectrogram from a CDF file.
     The range along the horizontal axis is specified explicitly using

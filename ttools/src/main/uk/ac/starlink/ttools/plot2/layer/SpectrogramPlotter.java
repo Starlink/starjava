@@ -64,11 +64,12 @@ public class SpectrogramPlotter
     private final int icX_;
     private final int icExtent_;
     private final int icSpectrum_;
+    private final boolean reportAuxKeys_;
 
-    private static final AuxScale SPECTRO_SCALE = new AuxScale( "Spectral" );
-    private static final RampKeySet RAMP_KEYS = StyleKeys.SPECTRO_RAMP;
+    private static final AuxScale SPECTRO_SCALE = AuxScale.COLOR;
+    private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
     private static final ConfigKey<Color> NULLCOLOR_KEY =
-        StyleKeys.createNullColorKey( "spectro", "Spectral" );
+        StyleKeys.AUX_NULLCOLOR;
     private static final ChannelGrid DEFAULT_CHANGRID =
         new AssumedChannelGrid();
     private static final int MAX_SAMPLE = 100;
@@ -131,6 +132,10 @@ public class SpectrogramPlotter
         icX_ = spectroCoordGrp_.getExtraCoordIndex( 0, null );
         icSpectrum_ = spectroCoordGrp_.getExtraCoordIndex( 1, null );
         icExtent_ = spectroCoordGrp_.getExtraCoordIndex( 2, null );
+
+        /* Set reportAuxKeys false, since the colour ramp config will
+         * usually be controlled globally at the level of the plot. */
+        reportAuxKeys_ = false;
     }
 
     /**
@@ -160,16 +165,28 @@ public class SpectrogramPlotter
     }
 
     public String getPlotterDescription() {
-        return PlotUtil.concatLines( new String[] {
-            "<p>Plots spectrograms.",
-            "A spectrogram is a sequence of spectra plotted as vertical",
-            "1-d images, each one plotted at a different horizontal",
-            "coordinate.",
-            "</p>",
-            "<p>This specialised layer is only available for",
-            "<ref id='plot2time'><code>time</code></ref> plots.",
-            "</p>",
-        } );
+        StringBuffer sbuf = new StringBuffer()
+            .append( "<p>Plots spectrograms.\n" )
+            .append( "A spectrogram is a sequence of spectra " )
+            .append( "plotted as vertical 1-d images, each one\n" )
+            .append( "plotted at a different horizontal coordinate.\n" )
+            .append( "</p>\n" )
+            .append( "<p>This specialised layer is only available for\n" )
+            .append( "<ref id='plot2time'><code>time</code></ref> plots.\n" )
+            .append( "</p>\n" );
+        sbuf.append( "<p>" );
+        if ( reportAuxKeys_ ) {
+            sbuf.append( "There are additional options to adjust\n" )
+                .append( "the way data values are mapped to colours.\n" );
+        }
+        else {
+            sbuf.append( "The way that data values are mapped\n" )
+                .append( "to colours is usually controlled by options\n" )
+                .append( "at the level of the plot itself,\n" )
+                .append( "rather than by per-layer configuration.\n" );
+        }
+        sbuf.append( "</p>\n" );
+        return sbuf.toString();
     }
 
     public CoordGroup getCoordGroup() {
@@ -178,8 +195,10 @@ public class SpectrogramPlotter
 
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
-        keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
-        keyList.add( NULLCOLOR_KEY );
+        if ( reportAuxKeys_ ) {
+            keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+            keyList.add( NULLCOLOR_KEY );
+        }
         return keyList.toArray( new ConfigKey[ 0 ] );
     }
 
