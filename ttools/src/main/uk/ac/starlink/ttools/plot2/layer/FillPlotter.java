@@ -255,16 +255,6 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         int nx = gridder.getWidth();
         int ny = gridder.getHeight();
 
-        /* Work out whether there are any points outside the X range.
-         * This affects whether we fill in values at the edge of the plot
-         * later. */
-        int syhi = 0;
-        int sylo = 0;
-        for ( int iy = 0; iy < ny; iy++ ) {
-            sylo += ylos[ iy ];
-            syhi += yhis[ iy ];
-        }
-
         /* Prepare the pixel grid for turning into an image.
          * Pixel values correspond to a scaled alpha value (0..nlevel)
          * in the painted image; zero if above the curve
@@ -273,8 +263,7 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
          * this pixel column).  If it's above some points and below
          * others, it will be somewhere in between. */
         int[] pixels = new int[ gridder.getLength() ];
-        int kx = -1;
-        int lx = -1;
+        boolean[] hasDatas = new boolean[ nx ];
         for ( int ix = 0; ix < nx; ix++ ) {
 
             /* Count how many points total in this pixel column. */
@@ -287,6 +276,7 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
             /* If there are any, work out if the current pixel is
              * above/below them. */
             if ( count > 0 ) {
+                hasDatas[ ix ] = true;
                 double factor = ( nlevel - 1 ) / (double) count;
                 int sum = (invert ? xhis : xlos)[ ix ];
                 for ( int iy = 0; iy < ny; iy++ ) {
@@ -295,44 +285,68 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
                     sum += binner.getCount( ig );
                     pixels[ ig ] = (int) ( factor * sum );
                 }
-                lx = ix;
-                if ( kx < 0 ) {
-                    kx = ix;
-                }
-            }
-
-            /* If there are none, then copy this column's value from the
-             * last column where we actually had data.
-             * Note that this shifts plotted bars to the right, rather than
-             * centering them on actual values.  It would be better to center
-             * them really. */
-            else if ( lx > 0 ) {
-                for ( int iy = 0; iy < ny; iy++ ) {
-                    pixels[ gridder.getIndex( ix, iy ) ] =
-                        pixels[ gridder.getIndex( lx, iy ) ];
-                }
             }
         }
 
-        /* Edge effects. */
-        if ( lx >= 0 ) {
+        /* Fill in gaps between plotted columns; if there are columns
+         * with no data, fill them in as copies of the nearest column
+         * that does have data. */
+        int kx = -1;
+        for ( int ix = 0; ix < nx; ix++ ) {
+            if ( hasDatas[ ix ] ) {
+                if ( kx != ix - 1 && kx >= 0 ) {
+                    int mx = kx + ( ix - kx ) / 2;
+                    for ( int jx = kx + 1; jx < ix; jx++ ) {
+                        int lx = jx <= mx ? kx : ix;
+                        for ( int iy = 0; iy < ny; iy++ ) {
+                            pixels[ gridder.getIndex( jx, iy ) ] =
+                                pixels[ gridder.getIndex( lx, iy ) ];
+                        }
+                    }
+                }
+                kx = ix;
+            }
+        }
 
-            /* If there are unplotted values on the left end, fill in the
-             * left end by copying the first one for which we have data. */
-            if ( sylo > 0 ) {
-                for ( int ix = 0; ix < kx; ix++ ) {
-                    for ( int iy = 0; iy < ny; iy++ ) {
-                        pixels[ gridder.getIndex( ix, iy ) ] =
-                            pixels[ gridder.getIndex( kx, iy ) ];
+        /* Work out whether there are any points outside the X range.
+         * If so we will need to fill in columns at the left or right end. */
+        boolean hasUnplottedLo = false;
+        boolean hasUnplottedHi = false;
+        for ( int iy = 0; iy < ny; iy++ ) {
+            hasUnplottedLo = hasUnplottedLo || ylos[ iy ] > 0;
+            hasUnplottedHi = hasUnplottedHi || yhis[ iy ] > 0;
+        }
+        if ( hasUnplottedLo || hasUnplottedHi ) {
+
+            /* Work out the lowest and highest pixel columns with data. */
+            int kxlo = -1;
+            int kxhi = nx;
+            for ( int ix = 0; ix < nx; ix++ ) {
+                if ( hasDatas[ ix ] ) {
+                    kxhi = ix;
+                    if ( kxlo < 0 ) {
+                        kxlo = ix;
                     }
                 }
             }
-            /* If there are no unplotted values on the right end, blank out
-             * copies we put there. */
-            if ( syhi == 0 ) {
-                for ( int ix = lx + 1; ix < nx; ix++ ) {
+
+            /* If there is unplotted data to the low end of the plot, copy
+             * the lowest populated pixel column all the way to the left. */
+            if ( hasUnplottedLo && kxlo > 0 ) {
+                for ( int ix = 0; ix < kxlo; ix++ ) {
                     for ( int iy = 0; iy < ny; iy++ ) {
-                        pixels[ gridder.getIndex( ix, iy ) ] = 0;
+                        pixels[ gridder.getIndex( ix, iy ) ] =
+                            pixels[ gridder.getIndex( kxlo, iy ) ];
+                    }
+                }
+            }
+
+            /* And do the same at the upper end. */
+            if ( hasUnplottedHi && kxhi < nx - 1 ) {
+                for ( int ix = kxhi + 1; ix < nx; ix++ ) {
+                    for ( int iy = 0; iy < ny; iy++ ) {
+                        pixels[ gridder.getIndex( ix, iy ) ] =
+                            pixels[ gridder.getIndex( kxhi, iy ) ];
                     }
                 }
             }
