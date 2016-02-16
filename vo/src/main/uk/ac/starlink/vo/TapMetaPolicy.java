@@ -44,6 +44,12 @@ public abstract class TapMetaPolicy {
     /** Uses the non-standard proposed VOSI 1.1 two-level tables endpoint. */
     public static final TapMetaPolicy CADC;
 
+    /** Uses the proposed VOSI 1.1 one-stage /tables endpoint. */
+    public static final TapMetaPolicy VOSI11_1;
+
+    /** Uses the proposed VOSI 1.1 two-stage (detail=min) /tables endpoint. */
+    public static final TapMetaPolicy VOSI11_2;
+
     private static final TapMetaPolicy[] KNOWN_VALUES = {
         AUTO = new TapMetaPolicy( "Auto",
                                   "Chooses a suitable place to get table "
@@ -94,6 +100,8 @@ public abstract class TapMetaPolicy {
                 return new CadcTapMetaReader( tablesetUrl, config, coding );
             }
         },
+        VOSI11_1 = createVosiPolicy( "VOSI11-1step", true ),
+        VOSI11_2 = createVosiPolicy( "VOSI11-2step", false ),
     };
 
     /**
@@ -194,6 +202,35 @@ public abstract class TapMetaPolicy {
 
 
     /**
+     * Create a policy instance that uses the VOSI-1.1 WD20160129
+     * proposal.
+     *
+     * @param  name  policy name
+     * @param  popTables   true if full table metadata is requested
+     *                     (will not necessarily be honoured) in initial query
+     */
+    private static TapMetaPolicy createVosiPolicy( String name,
+                                                   final boolean popTables ) {
+        StringBuffer sbuf = new StringBuffer()
+            .append( "Reads metadata from the VOSI-1.1 WD20160129" )
+            .append( "/tables endpoint\n" );
+        if ( popTables ) {
+            sbuf.append( ", if possible all metadata is read at once" );
+        }
+        else {
+            sbuf.append( ", column and foreign-key metadata is only read" )
+                .append( " as required (detail=min)" );
+        }
+        return new TapMetaPolicy( name, sbuf.toString() ) {
+            public TapMetaReader createMetaReader( EndpointSet endpointSet,
+                                                   ContentCoding coding ) {
+                URL tablesUrl = endpointSet.getTablesEndpoint();
+                return new Vosi11TapMetaReader( tablesUrl, coding, popTables );
+            }
+        };
+    }
+
+    /**
      * Returns a policy instance that uses TAP_SCHEMA metadata.
      *
      * @param  name  policy name
@@ -220,7 +257,6 @@ public abstract class TapMetaPolicy {
         else {
             sbuf.append( "columns and foreign keys are read as required" );
         }
-        String descrip = sbuf.toString();
         return new TapMetaPolicy( name, sbuf.toString() ) {
             public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
