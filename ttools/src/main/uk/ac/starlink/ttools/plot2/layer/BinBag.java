@@ -145,8 +145,10 @@ public class BinBag {
                 }
                 public Bin next() {
                     if ( ib < nbin ) {
-                        Bin bin = createBin( index++, binValues[ ib ] );
-                        if ( index >= binIndices[ ib ] ) {
+                        assert index >= binIndices[ ib ];
+                        Bin bin = createBin( index, binValues[ ib ] );
+                        index++;
+                        if ( ib == nbin - 1 || index == binIndices[ ib + 1 ] ) {
                             ib++;
                         }
                         return bin;

@@ -23034,6 +23034,7 @@ introduced since the last version:
         which was incorrect (comma and parenthesis misplaced).</li>
     <li>Add <ref id="form-fill">Fill</ref> plotting mode for Plane and Time
         plots.</li>
+    <li>Fix bug in cumulative histogram calculation.</li>
     </ul>
     </p></dd>
 

@@ -10507,6 +10507,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>tmatchn</code>.</li>
     <li>Add <ref id="layer-fill">Fill</ref> layer type for Plane and Time
         plots.</li>
+    <li>Fix bug in cumulative histogram calculation.</li>
     </ul>
     </p></dd>
 
