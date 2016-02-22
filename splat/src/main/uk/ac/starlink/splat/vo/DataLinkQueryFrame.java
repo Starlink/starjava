@@ -475,7 +475,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
           
 
             this.add(_lower);
-            this.add(new JLabel(" "));
+            this.add(new JLabel("/"));
             this.add(_upper);
         }
         
@@ -484,7 +484,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             String   txt=_lower.getText();
             if ( txt == null || txt.isEmpty())           
                 txt="-Inf";
-            value=txt+"/";
+            value=txt+" ";
             txt=_upper.getText();
             if ( txt == null || txt.isEmpty())           
                 txt="+Inf";
