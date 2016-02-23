@@ -2,6 +2,7 @@ package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -17,6 +18,7 @@ import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 //import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -53,8 +55,10 @@ import jsky.coords.Coordinates;
 import jsky.coords.DMS;
 import jsky.coords.HMS;
 import jsky.coords.WorldCoords;
+import jsky.util.SwingWorker;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-//import uk.ac.starlink.splat.iface.ProgressFrame;
+import uk.ac.starlink.splat.iface.ProgressFrame;
+import uk.ac.starlink.splat.iface.ProgressPanel;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SplatBrowser;
@@ -96,9 +100,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     /**
      * The ProgressFrame. This appears to denote that something is happening.
      */
-   // private ProgressFrame progressFrame =
-   //     new ProgressFrame( "Loading spectra..." );
-
+    static ProgressPanelFrame progressFrame = null;
     
     /** NED name resolver catalogue */
     protected SkycatCatalog nedCatalogue = null;
@@ -370,68 +372,126 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     
     }
     
-
-    private void makeQuery(int[] services, String query) {
-        TapQuery tq=null;
-        StarTableFactory tfact = new StarTableFactory();
+    /**
+     * Query the selected services.
+     */
+    private void makeQuery(int[] services, String querystr) {
+        final String query = querystr;
+        final TapQuery tq=null;
         boolean ok=true;
         resultsPanel.removeAllResults();
         //resultsTabPane.removeAll();
        // resultsPanel.updateUI();
+        if (progressFrame != null) {
+            progressFrame.closeWindowEvent();
+            progressFrame=null;
+        }
+       // final ProgressPanelFrame 
+        progressFrame = new ProgressPanelFrame( "Querying ObsCore servers" );
        
         for (int i=0; i<services.length; i++) {
             ok=true;
-            String s=null;
-            String shortname=null;
+            
             int row = serverTable.convertRowIndexToModel(services[i]);
-            try {
-                 s = serverTable.getAccessURL(row);
-                 // if shortname is empty, go on using the accessURL
-                 shortname = serverTable.getShortName(row);
-                 if (shortname == null)
-                     shortname = s;
-               
-                 tq =  new TapQuery( new URL(s), query,  null );
-            } catch (Exception e) {
-                ErrorDialog.showError( this, "Error: ", e, "Query returned an error for "+shortname );
-                ok = false;
-                e.printStackTrace();
-               ok=false;
-            }
-            if (ok) {
-                StarTable table = null;
-             
-                
-                try {
-                    table = tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
-                  
-                } catch (IOException e) {
-                    
-                    ErrorDialog.showError( this, "Error: ", e, "Query returned an error for "+shortname );
-                     ok = false;
-                } 
-               
-                if (ok ) {
-                    logger.info("Status "+table.getParameterByName("QUERY_STATUS"));
-                 
-                    if ( table != null &&  table.getRowCount() > 0 ) {
-                        
-                        StarPopupTable jtable = new StarPopupTable(table, false);
-                        jtable.setComponentPopupMenu(specPopup);
-                        jtable.configureColumnWidths(200, jtable.getRowCount());
-                       
-                       resultScroller=new JScrollPane(jtable);
-                       jtable.addMouseListener( this );
-                       resultsPanel.addTab(shortname, resultScroller );
-                    
-                    } 
-                    
+            final String serverUrl = serverTable.getAccessURL(row);
+            final String shortname;
+            String sname = serverTable.getShortName(row);
+            if (sname==null)
+                shortname=serverUrl;
+            else shortname = sname;
+
+            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
+            progressFrame.addProgressPanel( progressPanel );
+
+            final SwingWorker worker = new SwingWorker()
+            {
+                boolean interrupted = false;
+                public Object construct() 
+                {
+                    progressPanel.start();
+                    try {
+                        startQuery( serverUrl, shortname, query, progressPanel );
+                    }
+                    catch (Exception e) {
+                        interrupted = true;
+                    }
+                    return null;
                 }
-            }
+
+                public void finished()
+                {
+                    progressPanel.stop();
+                    //  Display the results.
+                    if ( ! interrupted ) {
+                //        addResultsDisplay( ssaQuery );
+                    }
+                }
+            };
+            progressPanel.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( worker != null ) {
+                         worker.interrupt();
+                    }
+                }
+            });
+
+            worker.start();  
         }
-        //if (resultsTabPane.getTabCount() > 0)
-          //  resultsPanel.setResults(resultsTabPane);
-        resultsPanel.updateUI();
+           
+         resultsPanel.updateUI();        
+    }
+    
+    /**
+     * Send a tap query to a service
+     */   
+    void startQuery(String queryUrl, String shortname, String query, ProgressPanel progressPanel ) throws InterruptedException {
+        logger.info( "Querying: " + queryUrl );
+        progressPanel.logMessage( query );
+        TapQuery tq;
+
+        // Initializes TapQuery
+        try {
+            tq =  new TapQuery( new URL(queryUrl), query,  null );
+        } catch (MalformedURLException e) {
+            progressPanel.logMessage( e.getMessage() );
+            logger.info( "Malformed URL "+queryUrl );
+            return;
+        }
+        
+        // Execute query
+        StarTableFactory tfact = new StarTableFactory();
+        StarTable table = null;
+        try {
+            table = tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
+
+        } catch (IOException e) {
+            progressPanel.logMessage( e.getMessage() );
+            logger.info( "Exception "+queryUrl );
+            return;
+        } 
+
+        // add table
+        if ( table != null &&  table.getRowCount() > 0 ) {
+
+            StarPopupTable jtable = new StarPopupTable(table, false);
+            jtable.setComponentPopupMenu(specPopup);
+            jtable.configureColumnWidths(200, jtable.getRowCount());
+
+            //resultScroller=new JScrollPane(jtable);
+            jtable.addMouseListener( this );
+            resultsPanel.addTab(shortname, jtable );
+            progressPanel.logMessage( "Completed download" );
+            
+        } else {
+            progressPanel.logMessage( "No results returned" );
+        }
+        
+        if ( Thread.interrupted() ) {
+            progressPanel.logMessage( "Interrupted" );
+            throw new InterruptedException();
+        }
         
     }
 
@@ -642,7 +702,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         radiusField.getDocument().addDocumentListener( this );
         
         JLabel maxrecLabel = new JLabel( "Maxrec:" );
-        maxrecField = new JTextField( "", 10 );      //  queryLine.setmaxrec(10.0);
+        maxrecField = new JTextField( "10000", 10 );      //  queryLine.setmaxrec(10.0);
         maxrecField.addActionListener( this );
         maxrecField.setToolTipText( "Enter maxrec of field to search" +
                 " from given centre, arcminutes" );
@@ -919,11 +979,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 throw e;
             }
         }
-        if (maxrec == 0) {
-            queryString = queryPrefix;
-        } else {
-            queryString = "SELECT TOP "+maxrec+ " * from ivoa.Obscore WHERE dataproduct_type=\'spectrum\' ";
-        }
+       
         
         //  Get the position. Allow the object name to be passed using
         //  TARGETNAME, useful for solar system objects.
@@ -1008,9 +1064,12 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 queryString += " AND t_max>=\'"+ upperTime+"\'";
         }    
         
-        if (maxrec == 0) 
+        if (maxrec == 0) {
             return queryPrefix+queryString;
-        return queryString;
+        } else {
+            return  "SELECT TOP "+maxrec+ " * from ivoa.Obscore WHERE dataproduct_type=\'spectrum\' "+queryString;
+        }
+       
     }
           
  
@@ -1081,6 +1140,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         serverTable.setModel( model );
       
     }
+    
+
  
     /**
      * Get the main SPLAT browser to download and display spectra.
