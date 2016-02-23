@@ -271,10 +271,17 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     protected void displaySpectra( boolean selected, boolean display,
             StarJTable table, int row )
     {
+      StarJTable currentTable = null;
+      if (table == null) {
+          JScrollPane pane = (JScrollPane) resultsPane.getSelectedComponent();
+          currentTable = (StarJTable) pane.getViewport().getView();
+      } else {
+          currentTable=table;
+      }
       if (obsQueryBrowser!=null)
-          obsQueryBrowser.displaySpectra(selected, display, table, row);
+          obsQueryBrowser.displaySpectra(selected, display, currentTable, row);
       if (ssaQueryBrowser!=null)
-          ssaQueryBrowser.displaySpectra(selected, display, table, row);
+          ssaQueryBrowser.displaySpectra(selected, display, currentTable, row);
     }
 
     
@@ -290,6 +297,19 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
       //if (obsQueryBrowser!=null)
       //    obsQueryBrowser.deselectSpectra(all);
      
+      if (obsQueryBrowser!=null) {
+          if (all ) {
+              for (int i=0;i<resultsPane.getTabCount(); i++) {
+                  JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
+                  StarPopupTable table = (StarPopupTable) pane.getViewport().getView();
+                  table.clearSelection();
+              }
+          } else {
+              JScrollPane pane = (JScrollPane) resultsPane.getSelectedComponent();
+              StarPopupTable table = (StarPopupTable) pane.getViewport().getView();
+              table.clearSelection();
+          }
+      }
       if (ssaQueryBrowser!=null)
           ssaQueryBrowser.deselectSpectra(all, resultsPane.getSelectedComponent());
     }
@@ -355,14 +375,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      * <p>
      *
      */
-    protected void addTab(String shortName, JScrollPane scrollpane)
+    protected void addTab(String shortName, StarPopupTable table)
     {
-      resultsPane.addTab(shortName, scrollpane);
+        JScrollPane resultScroller=new JScrollPane(table);
+        resultsPane.addTab(shortName, resultScroller );       
     }
     
-    protected void addTab(String shortName, ImageIcon icon, JScrollPane scrollpane)
+    protected void addTab(String shortName, ImageIcon icon, StarPopupTable table)
     {
-      resultsPane.addTab(shortName, icon, scrollpane);
+      JScrollPane resultScroller=new JScrollPane(table);
+      resultsPane.addTab(shortName, icon, table);
     }
 
     public void removeDataLinkButton() {

@@ -1733,7 +1733,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             if (  nrows > 0 ) {
                 table = new StarPopupTable( starTable, true );
                 table.rearrange();
-                scrollPane = new JScrollPane( table );
+                //scrollPane = new JScrollPane( table );
                 table.setComponentPopupMenu(specPopupMenu);
               //  scrollPane.setPreferredSize(new Dimension(600,400));
                 
@@ -1748,9 +1748,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                     //dataLinkButton.setEnabled(true);
                     //dataLinkButton.setVisible(true);
                     //resultsPane.addTab( shortName, cutImage, scrollPane );
-                    resultsPanel.addTab(shortName, cutImage, scrollPane );
+                    resultsPanel.addTab(shortName, cutImage, table );
                 }
-                else resultsPanel.addTab( shortName, scrollPane );
+                else resultsPanel.addTab( shortName, table );
                 starJTables.add( table );
 
                 //  Set widths of columns.
