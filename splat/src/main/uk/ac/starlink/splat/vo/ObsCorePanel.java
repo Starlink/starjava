@@ -147,10 +147,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     protected JTextField nameField = null;
 
     /** Resolve object name button */
-    protected JButton nameLookup = null;
-
-    /** Make the query to all selected servers */
-    protected JButton goButton = null;
+    protected JButton nameLookup = null;   
     
     /** the  value to the adql search parameter */
     protected JTextField textValue = null;
@@ -331,15 +328,23 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
        
        queryTabPanel.add("ADQL search", initQueryADQLPanel());
        
-       JButton getbutton = new JButton("Send Query");
-       getbutton.addActionListener( this );
-       getbutton.setActionCommand( "QUERY" );    
+       JButton getButton = new JButton("Send Query");
+       getButton.addActionListener( this );
+       getButton.setActionCommand( "QUERY" );    
+       
+       JButton clearButton = new JButton("Clear");
+       clearButton.addActionListener( this );
+       clearButton.setActionCommand( "CLEAR" );    
+       
+       JPanel queryButtonsPanel = new JPanel();
+       queryButtonsPanel.add(clearButton);
+       queryButtonsPanel.add(getButton);
      
        JPanel queryPanel = new JPanel();
        queryPanel.setBorder(BorderFactory.createEtchedBorder() );
        queryPanel.setLayout(new BoxLayout(queryPanel, BoxLayout.PAGE_AXIS));   
        queryPanel.add(queryTabPanel);
-       queryPanel.add(getbutton);
+       queryPanel.add(queryButtonsPanel);
        leftPanel.add(queryPanel);
        leftPanel.add(servPanel);
        
@@ -796,13 +801,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         Object obj = e.getSource();
      
        
-        if ( obj.equals( goButton ) ) {
-            {             
-               querySelectedServices( true );
-               
-            }        
-            return;
-        } 
+        
+        
      
         if ( obj.equals( nameLookup ) /*|| obj.equals( nameField ) */) {
                      
@@ -810,83 +810,22 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
             return;
         } 
-/*           
-        if (obj.equals(raField) || obj.equals(decField) || obj.equals(nameField)) {
 
-                //  Get the position. Allow the object name to be passed using
-                //  TARGETNAME, useful for solar system objects.
-                String ra = raField.getText();
-                String dec = decField.getText();
-                String objectName = nameField.getText();
-                if ( ra == null || ra.length() == 0 ||
-                        dec == null || dec.length() == 0 ) {
-
-                    //  Check for an object name. Need one or the other.
-                    if ( objectName != null && objectName.length() > 0 ) {
-                        ra = null;
-                        dec = null;
-                    }
-                    else { 
-                        //  To be clear.
-                        ra = null;
-                        dec = null;
-                        objectName = null;
-                    }
-                }
-         
-               return;   
-            }
-            if ( obj.equals( radiusField )  ) {
-            
-                String radiusText = radiusField.getText();
-                double radius = 0.0;
-                if ( radiusText != null && radiusText.length() > 0 ) {
-                    try {
-                        radius = Double.parseDouble( radiusText );
-                    }
-                    catch (NumberFormatException e1) {
-                        ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
-                        return;
-                    }
-                }
-         //       queryLine.setRadius(radius);
-            
-             
-                return;            
-            }
-            
-            //  Spectral bandpass. These should be in meters. XXX allow other
-            //  units and do the conversion.
-            if (  obj.equals( lowerBandField ) || obj.equals( upperBandField )) {
-                 
-                String lowerBand = lowerBandField.getText();
-                if ( "".equals( lowerBand ) ) {
-                    lowerBand = null;
-                }
-                String upperBand = upperBandField.getText();
-                if ( "".equals( upperBand ) ) {
-                    upperBand = null;
-                }
-        //          queryLine.setBand(lowerBand, upperBand);
-                 
-                  return;            
-            }
-           
-            if (  obj.equals( upperTimeField ) || obj.equals( lowerTimeField ))  {
-                
-                String lowerTime = lowerTimeField.getText();
-                if ( "".equals( lowerTime ) ) {
-                    lowerTime = null;
-                }
-                String upperTime = upperTimeField.getText();
-                if ( "".equals( upperTime ) ) {
-                    upperTime = null;
-                }
-   //               queryLine.setTime(lowerTime, upperTime);
-               
-                  return;            
-            }
-   */     
+        if ( command.equals( "CLEAR" ) ) {
+            {             
+                int index=queryTabPanel.getSelectedIndex();
+                if (queryTabPanel.getTitleAt(index).equals("Simple search")) {
+                    queryTabPanel.remove(index);
+                    queryTabPanel.addTab("Simple search", initSimpleQueryPanel());                   
+                } 
+                else {
+                    queryTabPanel.remove(index);
+                    queryTabPanel.addTab("ADQL search", initQueryADQLPanel());
+                } 
+                queryTabPanel.setSelectedIndex(index==0?1:0); // back to the right tab
+            }        
+            return;
+        } 
         if ( command.equals( "QUERY" ) ) // query
         {
              if (queryTabPanel.getTitleAt(queryTabPanel.getSelectedIndex()).equals("Simple search")) {
@@ -956,10 +895,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
       //  queryADQLPanel.updateUI();
     }
 
-    
-   
-        
-    
+
+
     /**
      * Returns the adql query for a query from the simple query interface      
      */
