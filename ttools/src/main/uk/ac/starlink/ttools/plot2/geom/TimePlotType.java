@@ -1,5 +1,8 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -14,6 +17,8 @@ import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
+import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
+import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
@@ -52,15 +57,21 @@ public class TimePlotType implements PlotType {
                                 CartesianErrorCoordSet
                                .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
                                 false, StyleKeys.ERROR_SHAPE_1D );
-        return new Plotter[] {
+        ShapeForm[] modeForms = new ShapeForm[] { MarkForm.SINGLE };
+        List<Plotter> plotters = new ArrayList<Plotter>();
+        plotters.addAll( Arrays
+                        .asList( ShapePlotter
+                                .createShapePlotters( modeForms,
+                                                      ShapeMode.MODES_2D ) ) );
+        plotters.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
-            ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE ),
             new FillPlotter( false ),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),
             FunctionPlotter.PLANE,
-        };
+        } ) );
+        return plotters.toArray( new Plotter[ 0 ] );
     }
 
     public SurfaceFactory getSurfaceFactory() {
