@@ -1,4 +1,9 @@
 1 Starlink SPLAT news.
+   3.11-3
+   ======
+   - Improvements in the ObsCore interface
+   - Several bug fixes
+   - update to Datalink(SODA) protocol changes
 
    3.11-2
    ======
