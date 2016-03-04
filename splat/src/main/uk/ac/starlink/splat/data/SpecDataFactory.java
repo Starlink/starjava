@@ -35,7 +35,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.sun.xml.internal.ws.encoding.ContentType;
+import javax.activation.MimeType;
+
 
 
 
@@ -1311,7 +1312,7 @@ public class SpecDataFactory
     {
         PathParser namer = null;
         boolean compressed = false;
-        ContentType  mimetype = null;
+        MimeType mimetype = null;
        
         try {
             
@@ -1341,7 +1342,7 @@ public class SpecDataFactory
                             " for the URL : " + url.toString()    );
                 }
                 compressed = ("gzip".equals(connection.getContentEncoding()));
-                mimetype = new ContentType(connection.getContentType());
+                mimetype = new MimeType(connection.getContentType());
                 
             }
             connection.setConnectTimeout(10*1000); // 10 seconds
