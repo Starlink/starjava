@@ -187,7 +187,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
     private ServerPopupTable serverTable;
     
-    JPopupMenu specPopup=null;
+  
     
  //   private SSAServerTable serverTable;
     
@@ -222,8 +222,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         JPopupMenu serverPopup = makeServerPopup();
         serverTable.setComponentPopupMenu(serverPopup);
         
-        specPopup = makeSpecPopup();
-        
         initComponents();
       
         setVisible(true);
@@ -240,23 +238,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         popup.add(infoMenuItem);
         return popup;
     }
-    
-    private JPopupMenu makeSpecPopup() {
-        JPopupMenu popup = new JPopupMenu();
-
-        JMenuItem dlMenuItem = new JMenuItem("Download");
-        dlMenuItem.addActionListener(new SpecPopupMenuAction());
-        popup.add(dlMenuItem);
-        JMenuItem infoMenuItem = new JMenuItem("Info");
-        infoMenuItem.addActionListener(new SpecPopupMenuAction());
-        popup.add(infoMenuItem);
-        JMenuItem dispMenuItem = new JMenuItem("Display");
-        dispMenuItem.addActionListener(new SpecPopupMenuAction());
-        popup.add(dispMenuItem);
-        return popup;
-    }
-
-
+ 
 
     /**
      *  Initialise all visual components.
@@ -476,8 +458,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         if ( table != null &&  table.getRowCount() > 0 ) {
 
             StarPopupTable jtable = new StarPopupTable(table, false);
-            jtable.setComponentPopupMenu(specPopup);
-            jtable.configureColumnWidths(200, jtable.getRowCount());
+ //           jtable.setComponentPopupMenu(specPopup);
+ //           jtable.configureColumnWidths(200, jtable.getRowCount());
 
             //resultScroller=new JScrollPane(jtable);
             jtable.addMouseListener( this );
@@ -1673,30 +1655,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         }
     }
     
-    
-    private class SpecPopupMenuAction extends AbstractAction
-    {
-        
-        public void actionPerformed( ActionEvent e) {
-            JMenuItem jmi  = (JMenuItem) e.getSource();
-            JPopupMenu jpm = (JPopupMenu) jmi.getParent();
-            StarPopupTable table = (StarPopupTable) jpm.getInvoker();
-           
-           int row = table.getPopupRow();
-          
-            if (e.getActionCommand().equals("Info")) {
-                table.showInfo(row);
-            }
-            else if (e.getActionCommand().equals("Display")) {
-                displaySpectra( false, true, (StarJTable) table, row );
-            }   
-            else if (e.getActionCommand().equals("Download")) {
-                displaySpectra( false, true, (StarJTable) table, row );
-            } 
-            
-        }
-    }
-
+ 
     public void mouseClicked(MouseEvent me) {
 
         if ( me.getClickCount() == 2 ) { // display if StarJTable
