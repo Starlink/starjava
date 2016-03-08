@@ -48,6 +48,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     private JToggleButton dataLinkButton;
     private SSAQueryBrowser ssaQueryBrowser;
     private ObsCorePanel obsQueryBrowser;
+    private JPopupMenu popupMenu;
    
     /**
      * @uml.property  name="dataLinkFrame"
@@ -182,7 +183,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         gbc.anchor = GridBagConstraints.PAGE_END;
         gbc.fill=GridBagConstraints.HORIZONTAL;
         this.add( controlPanel, gbc );
-      makeSpecPopup();
+        popupMenu = makeSpecPopup();
      
     }
 
@@ -377,14 +378,18 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      */
     protected void addTab(String shortName, StarPopupTable table)
     {
+        table.setComponentPopupMenu(popupMenu);
+        table.configureColumnWidths(200, table.getRowCount());
         JScrollPane resultScroller=new JScrollPane(table);
         resultsPane.addTab(shortName, resultScroller );       
     }
     
     protected void addTab(String shortName, ImageIcon icon, StarPopupTable table)
     {
+      table.setComponentPopupMenu(popupMenu);
+      table.configureColumnWidths(200, table.getRowCount());
       JScrollPane resultScroller=new JScrollPane(table);
-      resultsPane.addTab(shortName, icon, table);
+      resultsPane.addTab(shortName, icon, resultScroller);
     }
 
     public void removeDataLinkButton() {
