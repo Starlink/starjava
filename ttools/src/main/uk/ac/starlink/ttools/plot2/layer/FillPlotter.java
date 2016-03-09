@@ -205,7 +205,8 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
             if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                 surface.dataToGraphics( dpos, false, gp ) ) {
+                 surface.dataToGraphics( dpos, false, gp ) &&
+                 PlotUtil.isPointReal( gp ) ) {
                 int x = (int) gp.x - x0;
                 int y = (int) gp.y - y0;
                 boolean inX = x >= 0 && x < nx;
