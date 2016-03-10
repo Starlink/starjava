@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.Graphics;
@@ -202,6 +203,10 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         int[] xhis = new int[ nx ];
         int[] ylos = new int[ ny ];
         int[] yhis = new int[ ny ];
+        Point cpXlo = null;
+        Point cpXhi = null;
+        Point cpYlo = null;
+        Point cpYhi = null;
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
             if ( geom.readDataPos( tseq, icPos, dpos ) &&
@@ -215,14 +220,37 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
                     binner.increment( gridder.getIndex( x, y ) );
                 }
                 else if ( inX ) {
-                    ( y < 0 ? xlos : xhis )[ x ]++;
+                    if ( y < 0 ) {
+                        xlos[ x ]++;
+                        if ( cpYlo == null || y > cpYlo.y ) {
+                            cpYlo = new Point( x, y );
+                        }
+                    }
+                    else {
+                        xhis[ x ]++;
+                        if ( cpYhi == null || y < cpYhi.y ) {
+                            cpYhi = new Point( x, y );
+                        }
+                    }
                 }
                 else if ( inY ) {
-                    ( x < 0 ? ylos : yhis )[ y ]++;
+                    if ( x < 0 ) {
+                        ylos[ y ]++;
+                        if ( cpXlo == null || x > cpXlo.x ) {
+                           cpXlo = new Point( x, y );
+                        }
+                    }
+                    else {
+                        yhis[ y ]++;
+                        if ( cpXhi == null || x < cpXhi.x ) {
+                            cpXhi = new Point( x, y );
+                        }
+                    }
                 }
             }
         }
         return new FillPlan( binner, gridder, xlos, xhis, ylos, yhis,
+                             cpXlo, cpXhi, cpYlo, cpYhi,
                              geom, dataSpec, surface );
     }
 
@@ -245,6 +273,8 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         final int[] xhis;
         final int[] ylos;
         final int[] yhis;
+        final Point cpXlo;
+        final Point cpXhi;
         final Gridder gridder;
 
         /* Horizontal plots can be handled with mostly the same logic,
@@ -254,6 +284,8 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
             xhis = plan.yhis_;
             ylos = plan.xlos_;
             yhis = plan.xhis_;
+            cpXlo = transposePoint( plan.cpYlo_ );
+            cpXhi = transposePoint( plan.cpYhi_ );
             gridder = Gridder.transpose( plan.gridder_ );
         }
         else {
@@ -261,6 +293,8 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
             xhis = plan.xhis_;
             ylos = plan.ylos_;
             yhis = plan.yhis_;
+            cpXlo = plan.cpXlo_;
+            cpXhi = plan.cpXhi_;
             gridder = plan.gridder_;
         }
         int nx = gridder.getWidth();
@@ -361,6 +395,22 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
                     }
                 }
             }
+
+            /* If there are no points in the whole plot area, but there are
+             * unplotted points outside of it, we need to work out how far
+             * up the plot the fill will go, and copy it across the whole
+             * width. */
+            if ( kxlo < 0 && kxhi >= nx && cpXlo != null && cpXhi != null ) {
+                for ( int ix = 0; ix < nx; ix++ ) {
+                    for ( int iy = 0; iy < ny; iy++ ) {
+                        Point closest = ( ix - cpXlo.x ) < ( cpXhi.x - ix )
+                                      ? cpXlo : cpXhi;
+                        boolean isFill = invert ^ ( iy > closest.y );
+                        pixels[ gridder.getIndex( ix, iy ) ] =
+                            isFill ? nlevel - 1 : 0;
+                    }
+                }
+            }
         }
 
         /* Turn the density map into a colour mapped image,
@@ -368,6 +418,18 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         Rectangle bounds = surface.getPlotBounds();
         new PixelImage( bounds.getSize(), pixels, colorModel )
            .paintPixels( g, bounds.getLocation() );
+    }
+
+    /**
+     * Returns the transpose of the given graphics position.
+     * Null input gives null result without error.
+     *
+     * @param  gp  input point
+     * @return   transpose of gp
+     */
+    private static Point transposePoint( Point gp ) {
+        return gp == null ? null
+                          : new Point( gp.y, gp.x );
     }
 
     /**
@@ -474,8 +536,8 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
     /**
      * Plan object for fill plots.
      * This is an unweighted pixel density map (2d histogram),
-     * plus a row of bins along each of the 4 edges containing counts
-     * of all the points that are outside the map itself.
+     * plus some additional compact information describing the data
+     * that falls outside of the plot density map.
      */
     private static class FillPlan {
         final Binner binner_;
@@ -484,6 +546,10 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         final int[] xhis_;
         final int[] ylos_;
         final int[] yhis_;
+        final Point cpXlo_;
+        final Point cpXhi_;
+        final Point cpYlo_;
+        final Point cpYhi_;
         final DataGeom geom_;
         final DataSpec dataSpec_;
         final Surface surface_;
@@ -497,12 +563,21 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
          * @param  xhis    bins counting all points below each pixel column
          * @param  ylos    bins counting all points to left of each pixel row
          * @param  yhis    bins counding all points to right of each pixel row
+         * @param  cpXlo   closest point to the lower X boundary
+         *                 that falls outside the grid
+         * @param  cpXhi   closest point to the upper X boundary
+         *                 that falls outside the grid
+         * @param  cpYlo   closest point to the lower Y boundary
+         *                 that falls outside the grid
+         * @param  cpYhi   closest point to the upper Y boundary
+         *                 that falls outside the grid
          * @param  geom   data geom
          * @param  dataSpec  data specification
          * @param  surface  plot surface
          */
         FillPlan( Binner binner, Gridder gridder,
                   int[] xlos, int[] xhis, int[] ylos, int[] yhis,
+                  Point cpXlo, Point cpXhi, Point cpYlo, Point cpYhi,
                   DataGeom geom, DataSpec dataSpec, Surface surface ) {
             binner_ = binner;
             gridder_ = gridder;
@@ -510,6 +585,10 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
             xhis_ = xhis;
             ylos_ = ylos;
             yhis_ = yhis;
+            cpXlo_ = cpXlo;
+            cpXhi_ = cpXhi;
+            cpYlo_ = cpYlo;
+            cpYhi_ = cpYhi;
             geom_ = geom;
             dataSpec_ = dataSpec;
             surface_ = surface;
