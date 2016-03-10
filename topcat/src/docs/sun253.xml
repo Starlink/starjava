@@ -23041,6 +23041,9 @@ introduced since the last version:
         Time plot, rather than throwing an error.
         However, it doesn't work very well, since the time coordinate
         is in unix seconds rather than something more user-friendly.</li>
+    <li>Don't use white as one of the auto-selected plotting colours,
+        since it's likely to be invisible
+        (this was a regression bug introduced at v4.3-2).</li>
     </ul>
     </p></dd>
 

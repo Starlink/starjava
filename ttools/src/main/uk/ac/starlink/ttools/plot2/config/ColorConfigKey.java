@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.Color;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -169,6 +170,13 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
             new LinkedHashMap<String,Color>( STANDARD_COLORS );
         map.remove( COLORNAME_LIGHTGREY );
         map.remove( COLORNAME_BLACK );
+        for ( Iterator<Map.Entry<String,Color>> it = map.entrySet().iterator();
+              it.hasNext(); ) {
+            Map.Entry entry = it.next();
+            if ( Color.WHITE.equals( entry.getValue() ) ) {
+                it.remove();
+            }
+        }
         return map.values().toArray( new Color[ 0 ] );
     }
 
