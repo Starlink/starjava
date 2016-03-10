@@ -38,7 +38,6 @@ import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
-import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
@@ -385,15 +384,14 @@ public class FunctionPlotter extends
         /** Independent variable is X coordinate. */
         X( "Horizontal" ) {
             public double[] getXValues( Surface surface ) {
-                PlaneSurface psurf = (PlaneSurface) surface;
-                Rectangle plotBounds = psurf.getPlotBounds();
+                Rectangle plotBounds = surface.getPlotBounds();
                 int gxlo = plotBounds.x - 1;
                 int gxhi = plotBounds.x + plotBounds.width + 1;
                 int np = (int) ( ( gxhi - gxlo ) / PIXEL_SPACING );
                 double[] xs = new double[ np ];
                 Point2D.Double gpos = new Point2D.Double( gxlo, plotBounds.y );
                 for ( int ip = 0; ip < np; ip++ ) {
-                    xs[ ip ] = psurf.graphicsToData( gpos, null )[ 0 ];
+                    xs[ ip ] = surface.graphicsToData( gpos, null )[ 0 ];
                     gpos.x += PIXEL_SPACING;
                 }
                 return xs;
@@ -410,15 +408,14 @@ public class FunctionPlotter extends
         /** Independent variable is Y coordinate. */
         Y( "Vertical" ) {
             public double[] getXValues( Surface surface ) {
-                PlaneSurface psurf = (PlaneSurface) surface;
-                Rectangle plotBounds = psurf.getPlotBounds();
+                Rectangle plotBounds = surface.getPlotBounds();
                 int gylo = plotBounds.y - 1;
                 int gyhi = plotBounds.y + plotBounds.height + 1;
                 int np = (int) ( ( gyhi - gylo ) / PIXEL_SPACING );
                 double[] ys = new double[ np ];
                 Point2D.Double gpos = new Point2D.Double( plotBounds.x, gylo );
                 for ( int ip = 0; ip < np; ip++ ) {
-                    ys[ ip ] = psurf.graphicsToData( gpos, null )[ 1 ];
+                    ys[ ip ] = surface.graphicsToData( gpos, null )[ 1 ];
                     gpos.y += PIXEL_SPACING;
                 }
                 return ys;
@@ -434,10 +431,9 @@ public class FunctionPlotter extends
 
    //   THETA( "Rotation" ) {
    //       public double[] getXValues( Surface surface ) {
-   //           PlaneSurface psurf = (PlaneSurface) surface;
    //           Rectangle plotBounds = psurf.getPlotBounds();
    //           Point origin = new double[ 2 ];
-   //           psurf.dataToGraphics( new double[] { 0, 0 }, false, origin );
+   //           surface.dataToGraphics( new double[] { 0, 0 }, false, origin );
    //    fiddly bit here: try to work out sensible theta positions by
    //    looking at the corners of the bounds in relation to positio of
    //    the space origin.  Careful of log axes.

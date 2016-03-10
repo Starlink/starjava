@@ -23037,6 +23037,10 @@ introduced since the last version:
     <li>Fix bug in cumulative histogram calculation.</li>
     <li>Fix bugs that led to timezone-dependent results when
         reading ISO-8601 or decimal year time columns.</li>
+    <li>The Function layer control now works in the experimental
+        Time plot, rather than throwing an error.
+        However, it doesn't work very well, since the time coordinate
+        is in unix seconds rather than something more user-friendly.</li>
     </ul>
     </p></dd>
 
