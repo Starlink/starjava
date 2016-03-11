@@ -271,60 +271,91 @@ public class DataLinkParams {
         // 
 
         for (int i=0; i<service.size(); i++) {
-            writer.write( "<RESOURCE utype=\"adhoc:service\" name=\""+sname+"\">" );
             ParamElement[] pel = service.get(i).getQueryParams();
-            if (pel.length >0) 
-                writer.write( "<GROUP name\"inputparams\">");
-            /* writer.write("<PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" ucd="meta.id;meta.main" value="">");
-            writer.write("<DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>");                
-            writer.write("<LINK content-role="ddl:id-source" value="#ssa_pubDID"/> );
-            writer.write("</PARAM>"); */
-            for (int j=0;j<pel.length; j++) {
-                String arraysize=pel[j].getAttribute("arraysize");
-                String datatype=pel[j].getAttribute("datatype");
-                String name=pel[j].getAttribute("name");
-                String ucd=pel[j].getAttribute("ucd");
-                String utype=pel[j].getAttribute("utype");
-                String attrvalue=pel[j].getAttribute("value");
+            if (pel.length >0) {
+                writer.write( "<RESOURCE utype=\"adhoc:service\" name=\""+sname+"\">" );
+                writer.newLine();
+                writer.write( "<GROUP name=\"inputparams\">");
+                writer.newLine();
+                writer.write( "<PARAM arraysize=\"*\" datatype=\"char\" name=\"ID\" ref=\"ssa_pubDID\" ucd=\"meta.id;meta.main\" value=\""+id_source+"\"></PARAM>");
+                writer.newLine();
+                
+                for (int j=0;j<pel.length; j++) {
+                    String arraysize=pel[j].getAttribute("arraysize");
+                    String datatype=pel[j].getAttribute("datatype");
+                    String name=pel[j].getAttribute("name");
+                    String ucd=pel[j].getAttribute("ucd");
+                    String utype=pel[j].getAttribute("utype");
+                    String attrvalue=pel[j].getAttribute("value");
 
-
-                String value = pel[j].getValue();                               
-                ValuesElement values = (ValuesElement) pel[j].getChildByName("VALUES");
-                if (values != null ) {
-                    String [] options = values.getOptions(); 
-                    if (options != null && options.length >0) {                   
-                        writer.write("<PARAM arraysize=\""+arraysize+ "\" datatype=\""+datatype+"\" name=\""+name+ 
-                                "\" ucd=\""+ucd+ "\" utype=\""+utype+ "\" value=\"\""+attrvalue+">");
-                        writer.write("<DESCRIPTION>"+pel[j].getDescription()+"<\\DESCRIPTION>");
-
-                        writer.write("<VALUES>" );
-                        for (int k=0;k<options.length; k++) {
-                            writer.write("<OPTION name=\""+options[k]+ "\">" );
+                    ValuesElement values = (ValuesElement) pel[j].getChildByName("VALUES");
+                    if (values != null ) {
+                        String [] options = values.getOptions(); 
+                        if (options != null && options.length >0) {                   
+                            writer.write("<PARAM arraysize=\""+arraysize+ "\" datatype=\""+datatype+"\" name=\""+name+ 
+                                    "\" ucd=\""+ucd+ "\" utype=\""+utype+ "\" value=\""+attrvalue+"\">");
+                            writer.write("<DESCRIPTION>"+pel[j].getDescription()+"</DESCRIPTION>");
+                            writer.newLine();
+                            writer.write("<VALUES>" );
+                            writer.newLine();
+                            for (int k=0;k<options.length; k++) {
+                                writer.write("<OPTION value=\""+options[k]+ "\"></OPTION>" );
+                            }
+                            writer.newLine();
+                            writer.write("</VALUES>");
+                            writer.newLine();
+                            writer.write("</PARAM>");
+                            writer.newLine();
+                        } else {
+                            writer.write("<PARAM ID=\"id"+j+"\" datatype=\""+datatype+"\" name=\""+name+ 
+                                    "\" ucd=\""+ucd+ "\" utype=\""+utype+"\" unit=\""+pel[j].getUnit()+ "\" value=\""+attrvalue+"\">");
+                            writer.newLine();
+                            writer.write("<DESCRIPTION>"+pel[j].getDescription()+"</DESCRIPTION>");
+                            writer.newLine();
+                            String max = values.getMaximum();
+                            String min=values.getMinimum();
+                            if (! max.isEmpty() || !min.isEmpty() ) {
+                                writer.write("<VALUES>" );
+                                writer.newLine();
+                                if (!min.isEmpty())
+                                    writer.write("<MIN value=\""+min+"\" ></MIN>" );
+                                writer.newLine();
+                                if (!max.isEmpty())
+                                    writer.write("<MAX value=\""+max+"\" ></MAX>" );
+                                writer.newLine();
+                                writer.write("</VALUES>");
+                                writer.newLine();
+                                writer.write("</PARAM>");
+                                writer.newLine();
+                            }
                         }
-                        writer.write("<\\VALUES>");
                     } else {
                         writer.write("<PARAM ID=x datatype=\""+datatype+"\" name=\""+name+ 
-                                "\" ucd=\""+ucd+ "\" utype=\""+utype+"\" unit=\""+pel[j].getUnit()+ "\" value=\"\""+attrvalue+">");
-                        writer.write("<DESCRIPTION>"+pel[j].getDescription()+"<\\DESCRIPTION>");
-                        String max = values.getMaximum();
-                        String min=values.getMinimum();
-                        if (! max.isEmpty() || !min.isEmpty() ) {
-                            writer.write("<VALUES>" );
-                            if (!min.isEmpty())
-                                writer.write("<MIN value=\""+min+"\" >" );
-                            if (!max.isEmpty())
-                                writer.write("<MAX value=\""+max+"\" >" );
-                            writer.write("<\\VALUES>");
-                        }
+                                "\" ucd=\""+ucd+ "\" utype=\""+utype+"\" unit=\""+pel[j].getUnit()+ "\" value=\""+attrvalue+"\"></PARAM>");
+                        writer.newLine();
+                        writer.write("<DESCRIPTION>"+pel[j].getDescription()+"</DESCRIPTION>");
+                        writer.newLine();
+                        writer.write("</PARAM>");
+                        writer.newLine();
                     }
-                } else {
-                    writer.write("<PARAM ID=x datatype=\""+datatype+"\" name=\""+name+ 
-                            "\" ucd=\""+ucd+ "\" utype=\""+utype+"\" unit=\""+pel[j].getUnit()+ "\" value=\"\""+attrvalue+">");
-                    writer.write("<DESCRIPTION>"+pel[j].getDescription()+"<\\DESCRIPTION>");
-                }
-            } // for j
+                } // for j
+                writer.write("</GROUP>");
+                writer.newLine();
+       //         writer.write("<GROUP name=\"inputParams\">");
+       //         writer.newLine();
+       ////         writer.write("<PARAM arraysize=\"*\" datatype=\"char\" name=\"ID\" ref=\"ssa_pubDID\" ucd=\"meta.id;meta.main\" value=\"\">");
+        //        writer.newLine();
+        //        writer.write("<LINK content-role=\"ddl:id-source\" value=\"#"+id_source+"\"></LINK></PARAM>");
+        //        writer.newLine();
+         //       writer.write("</GROUP>");
+        //        writer.newLine();
+                writer.write("<PARAM arraysize=\"*\" datatype=\"char\" name=\"accessURL\" ucd=\"meta.ref.url\" value=\""+getQueryAccessURL(i)+"\"></PARAM>");
+                writer.newLine();
+                writer.write("</RESOURCE>");
+                writer.newLine();
+            }
         } // for i       
-        writer.write("<\\RESOURCE>");
+      
     }
     
   /*
