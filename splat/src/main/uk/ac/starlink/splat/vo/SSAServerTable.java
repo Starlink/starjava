@@ -144,7 +144,8 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
     
     
     // user defined tags
-    private JComboBox<String> tagCombo;
+    @SuppressWarnings("rawtypes")
+    private JComboBox tagCombo;
     
     // sizes
     
@@ -1151,7 +1152,9 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
             
             logger.info("Selected: "+selected);
             if (filters.size() >0) {  
-              filters.add(RowFilter.orFilter(bandfilters));
+              RowFilter<DefaultTableModel,Object> orFilter =  RowFilter.orFilter(bandfilters);
+              //filters.add(RowFilter.orFilter(bandfilters));
+              filters.add(orFilter);
               sorter.setRowFilter(RowFilter.andFilter(filters));
             }
             
@@ -1332,7 +1335,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         JPanel getTagPanel = new JPanel();
         getTagPanel.setLayout(new BorderLayout());
        // boolean newTag = true;
-       final JComboBox<String> newTagCombo = new JComboBox<String>();
+       final JComboBox newTagCombo = new JComboBox();
        final JTextField tagText=new JTextField(15);
         newTagCombo.setModel(tagCombo.getModel());
         newTagCombo.addItemListener(new ItemListener() {

@@ -16,7 +16,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
 
-import com.sun.xml.internal.ws.wsdl.writer.document.Types;
 
 import uk.ac.starlink.vo.RegistryProtocol;
 import uk.ac.starlink.vo.RegistryQuery;
@@ -38,7 +37,7 @@ public class SSAPRegistryQueryPanel extends JPanel {
     private JComboBox querySelector_;
     private JComponent qBox;
     private String [] protocols = new String[] {"RegTap (recommended)", "RI1"};
-    private JComboBox<String> regtypes ;
+    private JComboBox regtypes ;
     
     /**
      * Constructor.
@@ -54,7 +53,7 @@ public class SSAPRegistryQueryPanel extends JPanel {
         urlSelector_ = new RegistrySelector(new RegistrySelectorModel(RegistryProtocol.REGTAP));  
 
 
-        regtypes = new JComboBox<String>(protocols);
+        regtypes = new JComboBox(protocols);
         qBox.add( regtypes );
         regtypes.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) {
