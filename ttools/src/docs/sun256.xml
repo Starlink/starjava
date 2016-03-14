@@ -10514,6 +10514,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>plot2time</code> plot, rather than throwing an error.
         However, it doesn't work very well, since the time coordinate
         is in unix seconds rather than something more user-friendly.</li>
+    <li>Fix numeric field truncation bug in LaTeX table output.</li>
     </ul>
     </p></dd>
 

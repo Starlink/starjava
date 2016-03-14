@@ -23044,6 +23044,7 @@ introduced since the last version:
     <li>Don't use white as one of the auto-selected plotting colours,
         since it's likely to be invisible
         (this was a regression bug introduced at v4.3-2).</li>
+    <li>Fix numeric field truncation bug in LaTeX table output.</li>
     </ul>
     </p></dd>
 
