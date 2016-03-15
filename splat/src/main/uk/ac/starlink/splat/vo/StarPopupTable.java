@@ -163,15 +163,28 @@ public class StarPopupTable extends  StarJTable {
   
    
    /** 
-    * Display the columns in a pre-chosen order (by ucd) 
-    * (assuming that the ucds are properly defined)
+    * Display the columns in a pre-chosen order (by utype) 
+    * (assuming that the utypes are properly defined)
     **/
-   // assuming that the ucds are properly defined
    
    public void rearrange() {
        // UCDs order :
        ArrayList<String> order = new ArrayList<String>(Arrays.asList(
-                          "query.score", //score
+               "char.spectralaxis.coverage.bounds.start", // spec start
+               "char.spectralaxis.coverage.bounds.stop",  // spec stop 
+               "char.spectralaxis.coverage.location.value", // spec start (option 2)
+               "char.spectralaxis.coverage.bounds.extent",  // spec stop 
+               "dataid.title", 
+               "target.name", 
+               "char.timeaxis.coverage.location.value", // time start
+               "char.timeaxis.coverage.bounds.extent", //  time stop 
+               "derived.snr", 
+               "dataset.length", 
+               "access.reference", 
+               "access.format", 
+               "access.size"
+               ));
+            /*              "query.score", //score
                           "target.name", // target name
                           "char.spatialaxis.coverage.location.value", //location                        
                           "char.spectralaxis.coverage.bounds.start", //spec_min
@@ -180,18 +193,18 @@ public class StarPopupTable extends  StarJTable {
                           "char.timeaxis.coverage.bounds.start", // dateObs
                           "char.timeaxis.coverage.bounds.stop", // dateObs
                           "access.format" //mime type
-                          ));
+                          ));*/
 
      // find indices of this columns from DefaultColumnModel   
  
-     int [] newOrder = {-1,-1,-1,-1,-1,-1,-1,-1, -1}; 
+     int [] newOrder = {-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1}; 
             
        StarTable startable = this.getStarTable();
        int cols = startable.getColumnCount();
       
        for (int i=0;i<cols;i++) {
-           
            ColumnInfo ci =  startable.getColumnInfo(i);
+          
            if (ci != null) {
                String utype = ci.getUtype();
                if (utype != null) {
@@ -202,6 +215,11 @@ public class StarPopupTable extends  StarJTable {
                    }
                }
            }
+       }
+       
+       if (newOrder[0]!=-1 && newOrder[1]!=-1 && newOrder[2]!=-1 && newOrder[3]!=-1) {
+           newOrder[2]=-1; // skip redundant information about wavelength range
+           newOrder[3]=-1;
        }
              
        TableColumnModel model = this.getColumnModel();
