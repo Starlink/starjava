@@ -1748,7 +1748,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                     resultsPanel.addTab(shortName, cutImage, table );
                 }
                 else {
-                    if  (dataLinkFrame.getServerParams(shortName) != null )  // if table is read from a file, dataLinkFrame has already been set                         
+                    if  (dataLinkFrame != null && dataLinkFrame.getServerParams(shortName) != null )  // if table is read from a file, dataLinkFrame has already been set                         
                         resultsPanel.addTab( shortName, cutImage, table );
                     else 
                         resultsPanel.addTab( shortName, table );
