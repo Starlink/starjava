@@ -1,7 +1,6 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,13 +53,13 @@ public abstract class RegRole {
      * Performs a RegTAP query to return all the role records corresponding
      * to a given registry resource (ivoid).
      *
-     * @param   regTapUrl  service URL for RegTAP service
+     * @param   regTapEndpointSet  TAP endpoints for RegTAP service
      * @param   ivoid    identifier for resource
      * @param  coding  configures HTTP compression
      * @return  role records for resource
      */
-    public static RegRole[] readRoles( String regTapUrl, String ivoid,
-                                       ContentCoding coding )
+    public static RegRole[] readRoles( EndpointSet regTapEndpointSet,
+                                       String ivoid, ContentCoding coding )
             throws IOException {
         final String NAME = "role_name";
         final String EMAIL = "email";
@@ -80,8 +79,7 @@ public abstract class RegRole {
             .append( " WHERE ivoid='" )
             .append( ivoid )
             .append( "'" );
-        TapQuery tq =
-            new TapQuery( new URL( regTapUrl ), sbuf.toString(), null );
+        TapQuery tq = new TapQuery( regTapEndpointSet, sbuf.toString(), null );
         StarTable result =
             tq.executeSync( StoragePolicy.PREFER_MEMORY, coding );
         int nc = colNames.length;

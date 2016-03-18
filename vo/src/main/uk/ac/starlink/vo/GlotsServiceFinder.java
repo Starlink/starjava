@@ -1,8 +1,6 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +30,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class GlotsServiceFinder implements TapServiceFinder {
 
-    private final URL tapUrl_;
+    private final EndpointSet endpointSet_;
     private final ContentCoding coding_;
     private final AdqlSyntax syntax_;
     public static final String GAVO_DC_TAP_URL = "http://reg.g-vo.org/tap";
@@ -43,22 +41,20 @@ public class GlotsServiceFinder implements TapServiceFinder {
      * Constructs a default instance.
      */
     public GlotsServiceFinder() {
-        this( GAVO_DC_TAP_URL, ContentCoding.GZIP );
+        this( Endpoints.createDefaultTapEndpointSet( GAVO_DC_TAP_URL ),
+              ContentCoding.GZIP );
     }
 
     /**
      * Constructs an instance with custom configuration.
      *
-     * @param  glotsUrl   base URL of a TAP service containing GloTS tables
+     * @param  glotsEndpointSet   TAP endpoints for a service
+     *                            containing GloTS tables
      * @param  coding   controls HTTP-level compression during TAP queries
      */
-    public GlotsServiceFinder( String glotsUrl, ContentCoding coding ) {
-        try {
-            tapUrl_ = new URL( glotsUrl );
-        }
-        catch ( MalformedURLException e ) {
-            throw new IllegalArgumentException( "Bad URL " + glotsUrl, e );
-        }
+    public GlotsServiceFinder( EndpointSet glotsEndpointSet,
+                               ContentCoding coding ) {
+        endpointSet_ = glotsEndpointSet;
         coding_ = coding;
         syntax_ = AdqlSyntax.getInstance();
     }
@@ -100,7 +96,7 @@ public class GlotsServiceFinder implements TapServiceFinder {
             .append( ")" )
             .toString();
         logger_.info( "TAP Query: " + adql );
-        TapQuery tq = new TapQuery( tapUrl_, adql, null );
+        TapQuery tq = new TapQuery( endpointSet_, adql, null );
         final List<Service> serviceList = new ArrayList<Service>();
         try { 
             boolean isTrunc = tq.executeSync( new TableSink() {
@@ -199,7 +195,7 @@ public class GlotsServiceFinder implements TapServiceFinder {
             sbuf.append( ")" );
         }
         logger_.info( "TAP Query: " + sbuf );
-        TapQuery tq = new TapQuery( tapUrl_, sbuf.toString(), null );
+        TapQuery tq = new TapQuery( endpointSet_, sbuf.toString(), null );
         final List<Table> tableList = new ArrayList<Table>();
         try {
             boolean isTrunc = tq.executeSync( new TableSink() {

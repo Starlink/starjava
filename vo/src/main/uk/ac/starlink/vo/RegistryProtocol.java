@@ -1,6 +1,7 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 import java.util.TreeSet;
@@ -256,7 +257,15 @@ public abstract class RegistryProtocol {
 
         public String[] discoverRegistryUrls( String regUrl0 )
                 throws IOException {
-            return RegTapRegistryQuery.getSearchableRegistries( regUrl0 );
+            try {
+                EndpointSet endpointSet0 =
+                    Endpoints.createDefaultTapEndpointSet( new URL( regUrl0 ) );
+                return RegTapRegistryQuery
+                      .getSearchableRegistries( endpointSet0 );
+            }
+            catch ( MalformedURLException e ) {
+                return new String[ 0 ];
+            }
         }
 
         public RegistryQuery createIdListQuery( String[] ivoids,
@@ -277,7 +286,9 @@ public abstract class RegistryProtocol {
             }
             sbuf.append( ")" );
             String idsWhere = sbuf.toString();
-            return new RegTapRegistryQuery( regUrl.toString(),
+            EndpointSet endpointSet =
+                Endpoints.createDefaultTapEndpointSet( regUrl );
+            return new RegTapRegistryQuery( endpointSet,
                                             capability.getStandardId()
                                                       .toLowerCase(),
                                             idsWhere );
@@ -323,7 +334,9 @@ public abstract class RegistryProtocol {
                                + failFields );
             }
             String keywordWhere = sbuf.toString();
-            return new RegTapRegistryQuery( regUrl.toString(),
+            EndpointSet endpointSet =
+                Endpoints.createDefaultTapEndpointSet( regUrl );
+            return new RegTapRegistryQuery( endpointSet,
                                             capability.getStandardId()
                                                       .toLowerCase(),
                                             keywordWhere );

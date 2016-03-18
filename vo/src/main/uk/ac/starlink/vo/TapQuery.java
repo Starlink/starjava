@@ -53,7 +53,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class TapQuery {
 
-    private final URL serviceUrl_;
+    private final EndpointSet endpointSet_;
     private final String adql_;
     private final Map<String,String> stringMap_;
     private final Map<String,HttpStreamParam> streamMap_;
@@ -77,14 +77,14 @@ public class TapQuery {
      * Private constructor, performs common initialisation and
      * invoked by public constructors.
      *
-     * @param  serviceUrl  base service URL for TAP service
+     * @param  endpointSet  locations of TAP service endpoints
      * @param  adql   text of ADQL query
      * @param  extraParams  key->value map for optional parameters;
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      */
-    private TapQuery( URL serviceUrl, String adql,
+    private TapQuery( EndpointSet endpointSet, String adql,
                       Map<String,String> extraParams, long uploadLimit ) {
-        serviceUrl_ = serviceUrl;
+        endpointSet_ = endpointSet;
         adql_ = adql;
         uploadLimit_ = uploadLimit;
 
@@ -102,17 +102,16 @@ public class TapQuery {
     /**
      * Constructs a query with no uploaded tables.
      *
-     * @param  serviceUrl  base service URL for TAP service
-     *                     (excluding "/[a]sync")
+     * @param  endpointSet  locations of TAP service endpoints
      * @param  adql   text of ADQL query
      * @param  extraParams  key-&gt;value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care (may be null)
      */
-    public TapQuery( URL serviceUrl, String adql,
+    public TapQuery( EndpointSet endpointSet, String adql,
                      Map<String,String> extraParams ) {
-        this( serviceUrl, adql, extraParams, -1 );
+        this( endpointSet, adql, extraParams, -1 );
     }
 
     /**
@@ -120,8 +119,7 @@ public class TapQuery {
      * May throw an IOException if the tables specified for
      * upload exceed the stated upload limit.
      *
-     * @param  serviceUrl  base service URL for TAP service
-     *                     (excluding "/[a]sync")
+     * @param  endpointSet  locations of TAP service endpoints
      * @param  adql   text of ADQL query
      * @param  extraParams  key-&gt;value map for optional parameters;
      *                      if any of these match the names of standard
@@ -137,12 +135,12 @@ public class TapQuery {
      *                    if null a default value is used
      * @throws   IOException   if upload tables exceed the upload limit
      */
-    public TapQuery( URL serviceUrl, String adql,
+    public TapQuery( EndpointSet endpointSet, String adql,
                      Map<String,String> extraParams,
                      Map<String,StarTable> uploadMap,
                      long uploadLimit, VOTableWriter vowriter )
             throws IOException {
-        this( serviceUrl, adql, extraParams, uploadLimit );
+        this( endpointSet, adql, extraParams, uploadLimit );
 
         /* Prepare the map of streamed parameters, required for table uploads.
          * This also affects the string parameter map. */
@@ -176,6 +174,30 @@ public class TapQuery {
     }
 
     /**
+     * Convenience constructor that uses a URL rather than an EndpointSet.
+     * This just uses {@link Endpoints#createDefaultTapEndpointSet}
+     * and then invokes one of the other constructors.
+     *
+     * <p>This form is mildly deprecated, it is preferred to create
+     * your own EndpointSet as above and submit that to one of the
+     * other constructors instead.  It's present because other classes
+     * rely on it, but there is no intention to add URL-based
+     * constructors corresponding to the other EndpointSet-based forms.
+     *
+     * @param  serviceUrl   base URL of TAP service
+     * @param  adql   text of ADQL query
+     * @param  extraParams  key-&gt;value map for optional parameters;
+     *                      if any of these match the names of standard
+     *                      parameters (upper case) the standard values will
+     *                      be overwritten, so use with care (may be null)
+     */
+    public TapQuery( URL serviceUrl, String adql,
+                     Map<String,String> extraParams ) {
+        this( Endpoints.createDefaultTapEndpointSet( serviceUrl ),
+              adql, extraParams );
+    }
+
+    /**
      * Returns the text of the ADQL query for this object.
      *
      * @return  ADQL query text
@@ -185,12 +207,13 @@ public class TapQuery {
     }
 
     /**
-     * Returns the TAP service URL to which this query will be submitted.
+     * Returns the endpoints of TAP services
+     * to which this query will be submitted.
      *
-     * @return  serviceUrl
+     * @return  service locations
      */
-    public URL getServiceUrl() {
-        return serviceUrl_;
+    public EndpointSet getEndpointSet() {
+        return endpointSet_;
     }
 
     /**
@@ -251,8 +274,11 @@ public class TapQuery {
      */
     public HttpURLConnection createSyncConnection( ContentCoding coding )
             throws IOException {
-        return UwsJob.postForm( new URL( serviceUrl_ + "/sync" ), coding,
-                                stringMap_, streamMap_ );
+        URL url = endpointSet_.getSyncEndpoint();
+        if ( url == null ) {
+            throw new IOException( "No known sync endpoint?" );
+        }
+        return UwsJob.postForm( url, coding, stringMap_, streamMap_ );
     }
 
     /**
@@ -262,9 +288,12 @@ public class TapQuery {
      * @return   new UWS job for this query
      */
     public UwsJob submitAsync() throws IOException {
+        URL url = endpointSet_.getAsyncEndpoint();
+        if ( url == null ) {
+            throw new IOException( "No known async endpoint?" );
+        }
         try {
-            return UwsJob.createJob( serviceUrl_ + "/async",
-                                     stringMap_, streamMap_ );
+            return UwsJob.createJob( url.toString(), stringMap_, streamMap_ );
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
             throw asIOException( e, "Synchronous might work?" );
@@ -372,32 +401,19 @@ public class TapQuery {
     }
 
     /**
-     * Reads capability information from a TAP service.
-     *
-     * @param  serviceUrl  base TAP service URL
-     * @return   capability information
-     */
-    public static TapCapability readTapCapability( URL serviceUrl )
-            throws IOException, SAXException {
-        URL curl = new URL( serviceUrl + "/capabilities" );
-        logger_.info( "Reading capability metadata from " + curl );
-        return TapCapability.readTapCapability( curl );
-    }
-
-    /**
      * Utility method to obtain a single-cell table as the result of a
      * synchronous TAP query.
      *
-     * @param   serviceUrl     TAP service URL
+     * @param   endpointSet   locations of TAP services
      * @param   adql   query string
      * @param   clazz   class of required value
      * @return   single value, or null if no rows
      * @throws   IOException  if required result cannot be got
      */
-    public static <T> T scalarQuery( URL serviceUrl, String adql,
+    public static <T> T scalarQuery( EndpointSet endpointSet, String adql,
                                      Class<T> clazz )
             throws IOException {
-        TapQuery tq = new TapQuery( serviceUrl, adql, null );
+        TapQuery tq = new TapQuery( endpointSet, adql, null );
         StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY,
                                            ContentCoding.NONE );
         int ncol = result.getColumnCount();

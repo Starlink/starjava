@@ -1,7 +1,6 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,9 +35,9 @@ public class CadcTapMetaReader implements TapMetaReader {
     /**
      * Constructs a default instance.
      *
-     * @param    tablesetUrl  URL of TAPVizieR service followed by /tables
+     * @param    tablesetUrl  URL for CADC-like tableset service
      */
-    public CadcTapMetaReader( String tablesetUrl ) {
+    public CadcTapMetaReader( URL tablesetUrl ) {
         this( tablesetUrl, Config.POPULATE_SCHEMAS, ContentCoding.GZIP );
     }
 
@@ -46,18 +45,13 @@ public class CadcTapMetaReader implements TapMetaReader {
      * Constructs an instance with a configurable metadata object population
      * policy.
      *
-     * @param    tablesetUrl  URL of TAPVizieR service followed by /tables
+     * @param    tablesetUrl  URL for CADC-like tableset service
      * @param   config  population configuration
      * @param    coding   configures HTTP content-coding
      */
-    public CadcTapMetaReader( String tablesetUrl, Config config,
+    public CadcTapMetaReader( URL tablesetUrl, Config config,
                               ContentCoding coding ) {
-        try {
-            url_ = new URL( tablesetUrl );
-        }
-        catch ( MalformedURLException e ) {
-            throw new IllegalArgumentException( "Not a URL: " + tablesetUrl );
-        }
+        url_ = tablesetUrl;
         config_ = config;
         coding_ = coding;
         schemaMap_ = new HashMap<String,String>();

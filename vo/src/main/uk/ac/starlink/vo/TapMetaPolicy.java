@@ -24,7 +24,7 @@ public abstract class TapMetaPolicy {
     /** Tries its best to do something sensible. */
     public static final TapMetaPolicy AUTO;
 
-    /** Uses the /tables endpoint. */
+    /** Uses the VOSI tables endpoint. */
     public static final TapMetaPolicy TABLESET;
 
     /** Uses the TAP_SCHEMA tables, with columns on demand. */
@@ -36,10 +36,10 @@ public abstract class TapMetaPolicy {
     /** Uses the TAP_SCHEMA tables, all data loaded at once. */
     public static final TapMetaPolicy TAPSCHEMA;
 
-    /** Uses the non-standard VizieR two-level /tables endpoint. */
+    /** Uses the non-standard VizieR two-level tables endpoint. */
     public static final TapMetaPolicy VIZIER;
 
-    /** Uses the non-standard proposed VOSI 1.1 two-level /tables endpoint. */
+    /** Uses the non-standard proposed VOSI 1.1 two-level tables endpoint. */
     public static final TapMetaPolicy CADC;
 
     private static final TapMetaPolicy[] KNOWN_VALUES = {
@@ -47,23 +47,23 @@ public abstract class TapMetaPolicy {
                                   "Chooses a suitable place to get table "
                                 + "metadata. "
                                 + "Some services may have custom protocols. "
-                                + "Otherwise, use the /tables endpoint "
+                                + "Otherwise, use the VOSI tables endpoint "
                                 + "when there are a moderate number of tables, "
                                 + "or TAP_SCHEMA queries if there are many" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl,
+            public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
-                return createAutoMetaReader( serviceUrl, coding, 5000 );
+                return createAutoMetaReader( endpointSet, coding, 5000 );
             }
         },
         TABLESET = new TapMetaPolicy( "TableSet",
                                       "Reads all metadata in one go from the "
-                                    + "vs:TableSet document at the /tables "
+                                    + "vs:TableSet document at the VOSI tables "
                                     + "endpoint of the TAP service" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl,
+            public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
-                String tablesetUrl = serviceUrl + "/tables";
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
-                return new TableSetTapMetaReader( tablesetUrl, fixer, coding );
+                URL tablesUrl = endpointSet.getTablesEndpoint();
+                return new TableSetTapMetaReader( tablesUrl, fixer, coding );
             }
         },
         TAPSCHEMA_C = createTapSchemaPolicy( "TAP_SCHEMA_C", false, true ),
@@ -73,20 +73,20 @@ public abstract class TapMetaPolicy {
             createTapSchemaPolicy( "TAP_SCHEMA", true, false ),
         VIZIER = new TapMetaPolicy( "VizieR",
                                     "Uses TAPVizieR's non-standard two-stage "
-                                  + "/tables endpoint" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl,
+                                  + "VOSI tables endpoint" ) {
+            public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
-                String tablesetUrl = serviceUrl + "/tables";
+                URL tablesetUrl = endpointSet.getTablesEndpoint();
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
                 return new VizierTapMetaReader( tablesetUrl, fixer, coding );
             }
         },
         CADC = new TapMetaPolicy( "CADC",
                                   "Uses CADC's non-standard multi-stage "
-                                + "/tables endpoint" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl,
+                                + "VOSI tables endpoint" ) {
+            public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
-                String tablesetUrl = serviceUrl + "/tables";
+                URL tablesetUrl = endpointSet.getTablesEndpoint();
                 CadcTapMetaReader.Config config =
                     CadcTapMetaReader.Config.POPULATE_SCHEMAS;
                 return new CadcTapMetaReader( tablesetUrl, config, coding );
@@ -125,15 +125,15 @@ public abstract class TapMetaPolicy {
 
     /**
      * Creates an object capable of acquiring TAP metadata for a TAP service
-     * at a given URL.
+     * with a given set of service endpoints.
      *
-     * @param    serviceUrl   base URL of the TAP service
+     * @param    endpointSet   locations of TAP services
      * @param    coding  configures HTTP compression;
      *                   implementations may honour this hint but are not
      *                   required to
      * @return   new metadata reader
      */
-    public abstract TapMetaReader createMetaReader( URL serviceUrl,
+    public abstract TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                     ContentCoding coding );
 
     /**
@@ -184,12 +184,12 @@ public abstract class TapMetaPolicy {
         }
         String descrip = sbuf.toString();
         return new TapMetaPolicy( name, sbuf.toString() ) {
-            public TapMetaReader createMetaReader( URL serviceUrl,
+            public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
                 int maxrec = 99999;
                 boolean popSchemas = true;
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
-                return new TapSchemaTapMetaReader( serviceUrl.toString(),
+                return new TapSchemaTapMetaReader( endpointSet,
                                                    maxrec, coding, popSchemas,
                                                    popTables, fixer,
                                                    preloadKeys );
@@ -201,12 +201,12 @@ public abstract class TapMetaPolicy {
      * Returns a TapMetaReader instance for a given service with policy
      * determined by the apparent size of the metadata set.
      *
-     * @param  serviceUrl   TAP service URL
+     * @param  endpointSet   TAP service locations
      * @param    coding  configures HTTP compression
      * @param  maxrow     maximum number of records to tolerate from a single
      *                    TAP metadata query 
      */
-    private static TapMetaReader createAutoMetaReader( URL serviceUrl,
+    private static TapMetaReader createAutoMetaReader( EndpointSet endpointSet,
                                                        ContentCoding coding,
                                                        int maxrow ) {
         MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
@@ -215,7 +215,7 @@ public abstract class TapMetaPolicy {
          * The columns table is almost certainly the longest one we would
          * have to cope with.  In principle it could be the foreign key table,
          * but that seems very unlikely. */
-        long ncol = readRowCount( serviceUrl,
+        long ncol = readRowCount( endpointSet,
                                   TapSchemaInterrogator.COLUMN_QUERIER
                                                        .getTableName() );
 
@@ -224,10 +224,11 @@ public abstract class TapMetaPolicy {
         if ( ncol >= 0 && ncol > maxrow ) {
             logger_.info( "Many columns in TAP service ("
                         + ncol + " > " + maxrow + "); "
-                        + "use TAP_SCHEMA queries for " + serviceUrl );
+                        + "use TAP_SCHEMA queries for "
+                        + endpointSet.getIdentity() );
             String linkTableName =
                 TapSchemaInterrogator.LINK_QUERIER.getTableName();
-            long nlink = readRowCount( serviceUrl, linkTableName );
+            long nlink = readRowCount( endpointSet, linkTableName );
             boolean preloadFkeys = nlink < 0 || nlink <= maxrow;
             if ( nlink >= 0 ) {
                 String msg = new StringBuffer()
@@ -248,7 +249,7 @@ public abstract class TapMetaPolicy {
                                      Math.max( ncol + 1, nlink + 1 ) );
             boolean popSchema = true;
             boolean popTable = false;
-            return new TapSchemaTapMetaReader( serviceUrl.toString(), maxrec,
+            return new TapSchemaTapMetaReader( endpointSet, maxrec,
                                                coding, popSchema, popTable,
                                                fixer, preloadFkeys );
         }
@@ -258,9 +259,10 @@ public abstract class TapMetaPolicy {
         }
 
         /* If there are fewer columns than the threshold, or the column
-         * count failed, use the VOSI /tables endpoint instead. */
-        logger_.info( "Use /tables endpoint for " + serviceUrl );
-        return new TableSetTapMetaReader( serviceUrl + "/tables",
+         * count failed, use the VOSI tables endpoint instead. */
+        logger_.info( "Use VOSI tables endpoint for "
+                    + endpointSet.getIdentity() );
+        return new TableSetTapMetaReader( endpointSet.getTablesEndpoint(),
                                           fixer, coding );
     }
 
@@ -268,15 +270,16 @@ public abstract class TapMetaPolicy {
      * Return the number of rows in a named TAP table.
      * In case of failure, a logging message is issued and -1 is returned.
      *
-     * @param   serviceUrl  TAP service URL
+     * @param   endpointSet  TAP service locations
      * @param   tableName  fully qualified ADQL table name
      * @return   number of rows in table, or -1
      */
-    private static long readRowCount( URL serviceUrl, String tableName ) {
+    private static long readRowCount( EndpointSet endpointSet,
+                                      String tableName ) {
         String adql = "SELECT COUNT(*) AS nrow FROM " + tableName;
         Number nrow;
         try {
-            nrow = TapQuery.scalarQuery( serviceUrl, adql, Number.class );
+            nrow = TapQuery.scalarQuery( endpointSet, adql, Number.class );
         }
         catch ( IOException e ) {
             logger_.log( Level.WARNING,

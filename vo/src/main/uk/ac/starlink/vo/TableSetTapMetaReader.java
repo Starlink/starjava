@@ -1,7 +1,6 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
@@ -39,14 +38,9 @@ public class TableSetTapMetaReader implements TapMetaReader {
      *                  has no effect for compliant VODataService documents
      * @param    coding  configures HTTP compression
      */
-    public TableSetTapMetaReader( String tablesetUrl, MetaNameFixer fixer,
+    public TableSetTapMetaReader( URL tablesetUrl, MetaNameFixer fixer,
                                   ContentCoding coding ) {
-        try {
-            url_ = new URL( tablesetUrl );
-        }
-        catch ( MalformedURLException e ) {
-            throw new IllegalArgumentException( "Not a URL: " + tablesetUrl );
-        }
+        url_ = tablesetUrl;
         fixer_ = fixer;
         coding_ = coding;
     }

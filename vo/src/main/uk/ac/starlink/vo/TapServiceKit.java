@@ -44,7 +44,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class TapServiceKit {
 
-    private final URL serviceUrl_;
+    private final EndpointSet endpointSet_;
     private final String ivoid_;
     private final TapMetaPolicy metaPolicy_;
     private final ContentCoding coding_;
@@ -58,7 +58,7 @@ public class TapServiceKit {
     /**
      * Constructor.
      *
-     * @param   serviceUrl  base URL of TAP service
+     * @param   endpointSet service location set
      * @param   ivoid       IVORN of TAP service, if known (may be null)
      * @param   metaPolicy  implementation for reading table metadata
      * @param   coding      configures HTTP compression
@@ -66,10 +66,10 @@ public class TapServiceKit {
      *                      to service; more than that and older ones
      *                      will be dropped
      */
-    public TapServiceKit( URL serviceUrl, String ivoid,
+    public TapServiceKit( EndpointSet endpointSet, String ivoid,
                           TapMetaPolicy metaPolicy, ContentCoding coding,
                           int queueLimit ) {
-        serviceUrl_ = serviceUrl;
+        endpointSet_ = endpointSet;
         ivoid_ = ivoid;
         metaPolicy_ = metaPolicy;
         coding_ = coding;
@@ -78,12 +78,12 @@ public class TapServiceKit {
     }
 
     /**
-     * Returns the TAP service URL used by this kit.
+     * Returns the endpoint set used by this kit.
      *
-     * @return   service URL
+     * @return   service locations
      */
-    public URL getServiceUrl() {
-        return serviceUrl_;
+    public EndpointSet getEndpointSet() {
+        return endpointSet_;
     }
 
     /**
@@ -206,8 +206,13 @@ public class TapServiceKit {
                                    ResultHandler<TapCapability> handler ) {
         acquireData( handler, new DataCallable<TapCapability>() {
             public TapCapability call() throws IOException {
+                URL curl = endpointSet_.getCapabilitiesEndpoint();
+                if ( curl == null ) {
+                    throw new IOException( "No capabilities endpoint" );
+                }
+                logger_.info( "Reading capability metadata from " + curl );
                 try {
-                    return TapQuery.readTapCapability( serviceUrl_ );
+                    return TapCapability.readTapCapability( curl );
                 }
                 catch ( SAXException e ) {
                     throw (IOException)
@@ -230,7 +235,7 @@ public class TapServiceKit {
                                  ResultHandler<Map<String,String>> handler ) {
         acquireData( handler, new DataCallable<Map<String,String>>() {
             public Map<String,String> call() throws IOException {
-                return readResourceInfo( getRegTapUrl(), ivoid_ );
+                return readResourceInfo( getRegTapEndpointSet(), ivoid_ );
             }
         } );
     }
@@ -244,7 +249,8 @@ public class TapServiceKit {
     public void acquireRoles( final ResultHandler<RegRole[]> handler ) {
         acquireData( handler, new DataCallable<RegRole[]>() {
             public RegRole[] call() throws IOException {
-                return RegRole.readRoles( getRegTapUrl(), ivoid_, coding_ );
+                return RegRole.readRoles( getRegTapEndpointSet(),
+                                          ivoid_, coding_ );
             }
         } );
     }
@@ -256,27 +262,30 @@ public class TapServiceKit {
      * @param  handler  receiver for example list
      */
     public void acquireExamples( final ResultHandler<DaliExample[]> handler ) {
-        acquireData( handler, new DataCallable<DaliExample[]>() {
-            public DaliExample[] call() throws IOException {
-                return new DaliExampleReader()
-                      .readExamples( new URL( serviceUrl_ + "/examples" ) );
-            }
-        } );
+        final URL examplesUrl = endpointSet_.getExamplesEndpoint();
+        if ( examplesUrl != null ) {
+            acquireData( handler, new DataCallable<DaliExample[]>() {
+                public DaliExample[] call() throws IOException {
+                    return new DaliExampleReader().readExamples( examplesUrl );
+                }
+            } );
+        }
+        else {
+            logger_.warning( "No examples endpoint" );
+        }
     }
 
     /**
      * Returns the URL at which a RegTAP service lives that can be queried
      * for information about this service's registry record.
      *
-     * <p>The current implementation returns a hardcoded value,
-     * the main GAVO registry service.  Perhaps it should be pluggable,
-     * but this information is not critical (TAP can work without registry
-     * info), and the GAVO RegTAP service is expected to be pretty reliable.
+     * <p>The default implementation returns the default value from
+     * {@link Endpoints#getRegTapEndpointSet}.
      *
      * @return  RegTAP URL
      */
-    public String getRegTapUrl() {
-        return RegTapRegistryQuery.GAVO_REG;
+    public EndpointSet getRegTapEndpointSet() {
+        return Endpoints.getRegTapEndpointSet();
     }
 
     /**
@@ -328,7 +337,7 @@ public class TapServiceKit {
                                  new Callable<TapMetaReader>() {
                     public TapMetaReader call() {
                         return metaPolicy_
-                              .createMetaReader( serviceUrl_, coding_ );
+                              .createMetaReader( endpointSet_, coding_ );
                     }
                 } );
             }
@@ -497,13 +506,13 @@ public class TapServiceKit {
      * The result is a map of standard RegTAP resource column names
      * to their values.
      *
-     * @param  regUrl   service URL of registry service
+     * @param  regEndpointSet   endpoints for RegTAP service
      * @param  ivoid    ivorn for resource of interest
      * @return  map from resource column name to value for selected resource
      *          metadata items
      */
-    private static Map<String,String> readResourceInfo( String regUrl,
-                                                        String ivoid )
+    private static Map<String,String>
+            readResourceInfo( EndpointSet regEndpointSet, String ivoid )
             throws IOException {
         String[] items = new String[] {
             "short_name",
@@ -521,7 +530,7 @@ public class TapServiceKit {
             .append( " WHERE ivoid='" )
             .append( ivoid )
             .append( "'" );
-        TapQuery tq = new TapQuery( new URL( regUrl ), adql.toString(), null );
+        TapQuery tq = new TapQuery( regEndpointSet, adql.toString(), null );
         StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY,
                                            ContentCoding.NONE );
         result = Tables.randomTable( result );

@@ -1,8 +1,6 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +22,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class AuxServiceFinder implements TapServiceFinder {
 
-    private final URL regtapUrl_;
+    private final EndpointSet regtapEndpointSet_;
     private final ContentCoding coding_;
     private final AdqlSyntax syntax_;
 
@@ -35,22 +33,18 @@ public class AuxServiceFinder implements TapServiceFinder {
      * Constructs a default instance.
      */
     public AuxServiceFinder() {
-        this( RegTapRegistryQuery.GAVO_REG, ContentCoding.GZIP );
+        this( Endpoints.getRegTapEndpointSet(), ContentCoding.GZIP );
     }
 
     /**
      * Constructs an instance with custom configuration.
      *
-     * @param  regtapUrl  URL for a TAP service with the RegTAP tables
+     * @param  regtapEndpointSet  TAP endpoints for RegTAP service
      * @param  coding  controls HTTP-level compression during TAP queries
      */
-    public AuxServiceFinder( String regtapUrl, ContentCoding coding ) {
-        try {
-            regtapUrl_ = new URL( regtapUrl );
-        }
-        catch ( MalformedURLException e ) {
-            throw new IllegalArgumentException( "Bad URL " + regtapUrl, e );
-        }
+    public AuxServiceFinder( EndpointSet regtapEndpointSet,
+                             ContentCoding coding ) {
+        regtapEndpointSet_ = regtapEndpointSet;
         coding_ = coding;
         syntax_ = AdqlSyntax.getInstance();
     }
@@ -102,7 +96,7 @@ public class AuxServiceFinder implements TapServiceFinder {
             .append( " ON aux.service_id = serv.ivoid" )
             .toString();
         logger_.info( "TAP Query: " + adql );
-        TapQuery tq = new TapQuery( regtapUrl_, adql, null );
+        TapQuery tq = new TapQuery( regtapEndpointSet_, adql, null );
         final List<Service> serviceList = new ArrayList<Service>();
         try {
             boolean isTrunc = tq.executeSync( new TableSink() {
@@ -219,7 +213,7 @@ public class AuxServiceFinder implements TapServiceFinder {
         }
         sbuf.append( " )" );
         logger_.info( "TAP Query: " + sbuf );
-        TapQuery tq = new TapQuery( regtapUrl_, sbuf.toString(), null );
+        TapQuery tq = new TapQuery( regtapEndpointSet_, sbuf.toString(), null );
         final List<Table> tableList = new ArrayList<Table>();
         try {
             boolean isTrunc = tq.executeSync( new TableSink() {

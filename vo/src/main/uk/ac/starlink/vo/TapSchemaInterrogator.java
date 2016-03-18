@@ -26,7 +26,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class TapSchemaInterrogator {
 
-    private final URL serviceUrl_;
+    private final EndpointSet endpointSet_;
     private final Map<String,String> extraParams_;
     private final int maxrec_;
     private final ContentCoding coding_;
@@ -72,13 +72,13 @@ public class TapSchemaInterrogator {
     /**
      * Constructs an interrogator with explicit configuration.
      *
-     * @param  serviceUrl  TAP base service URL
+     * @param  endpointSet  TAP service locations
      * @param  maxrec  maximum number of records to retrieve per query
      * @param  coding  configures HTTP compression
      */
-    public TapSchemaInterrogator( URL serviceUrl, int maxrec,
+    public TapSchemaInterrogator( EndpointSet endpointSet, int maxrec,
                                   ContentCoding coding ) {
-        serviceUrl_ = serviceUrl;
+        endpointSet_ = endpointSet;
         maxrec_ = maxrec;
         coding_ = coding;
         extraParams_ = new LinkedHashMap<String,String>();
@@ -88,12 +88,12 @@ public class TapSchemaInterrogator {
     }
 
     /**
-     * Returns the TAP service URL used by this interrogator.
+     * Returns the TAP endpoint locations used by this interrogator.
      *
-     * @return  service URL
+     * @return  TAP endpoints
      */
-    public URL getServiceUrl() {
-        return serviceUrl_;
+    public EndpointSet getEndpointSet() {
+        return endpointSet_;
     }
 
     /**
@@ -281,7 +281,7 @@ public class TapSchemaInterrogator {
      * @return  query to execute
      */
     protected TapQuery createTapQuery( String adql ) {
-        return new TapQuery( serviceUrl_, adql, extraParams_ );
+        return new TapQuery( endpointSet_, adql, extraParams_ );
     }
 
     /**
@@ -716,10 +716,12 @@ public class TapSchemaInterrogator {
      */
     public static void main( String[] args ) throws IOException {
         String url = args[ 0 ];
+        EndpointSet endpointSet =
+            Endpoints.createDefaultTapEndpointSet( new URL( url ) );
         int maxrec = 100000;
         ContentCoding coding = ContentCoding.GZIP;
         SchemaMeta[] smetas =
-            new TapSchemaInterrogator( new URL( url ), maxrec, coding )
+            new TapSchemaInterrogator( endpointSet, maxrec, coding )
            .readSchemas( true, true, true );
         for ( int is = 0; is < smetas.length; is++ ) {
             SchemaMeta smeta = smetas[ is ];

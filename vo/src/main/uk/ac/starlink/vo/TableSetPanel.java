@@ -301,7 +301,8 @@ public class TableSetPanel extends JPanel {
         }
         else {
             final String ivoid = serviceKit.getIvoid();
-            servicePanel_.setId( serviceKit.getServiceUrl(), ivoid );
+            servicePanel_.setId( serviceKit.getEndpointSet().getIdentity(),
+                                 ivoid );
             serviceKit.acquireResource(
                            new ResultHandler<Map<String,String>>() {
                 public boolean isActive() {
@@ -443,16 +444,17 @@ public class TableSetPanel extends JPanel {
 
     /**
      * Sets whether an examples document is known to be available
-     * in the standard location (&lt;serviceUrl&gt;/examples).
+     * at the examples endpoint.
      *
      * @param   hasExamples  true iff examples are known to exist
      */
     public void setHasExamples( boolean hasExamples ) {
-        String exampleUrl = hasExamples && serviceKit_ != null
-                          ? serviceKit_.getServiceUrl() + "/examples"
-                          : null;
-        servicePanel_.setExamplesUrl( exampleUrl );
-        hintPanel_.setExamplesUrl( exampleUrl );
+        URL exampleUrl = hasExamples && serviceKit_ != null
+                       ? serviceKit_.getEndpointSet().getExamplesEndpoint()
+                       : null;
+        String exurl = exampleUrl == null ? null : exampleUrl.toString();
+        servicePanel_.setExamplesUrl( exurl );
+        hintPanel_.setExamplesUrl( exurl );
     }
 
     /**
@@ -1530,12 +1532,11 @@ public class TableSetPanel extends JPanel {
         /**
          * Sets basic identity information for this service.
          *
-         * @param  serviceUrl   TAP service URL, may be null
+         * @param  serviceLabel   TAP service label, may be null
          * @param  ivoid  ivorn for TAP service registry resource, may be null
          */
-        public void setId( URL serviceUrl, String ivoid ) {
-            setFieldText( servurlField_,
-                          serviceUrl == null ? null : serviceUrl.toString() );
+        public void setId( String serviceLabel, String ivoid ) {
+            setFieldText( servurlField_, serviceLabel );
             setFieldText( ivoidField_, ivoid );
         }
 

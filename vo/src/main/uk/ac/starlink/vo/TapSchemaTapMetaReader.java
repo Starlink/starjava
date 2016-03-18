@@ -1,8 +1,6 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -35,7 +33,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     /**
      * Constructor.
      *
-     * @param  serviceUrl  TAP service URL
+     * @param  endpointSet  TAP service locations
      * @param  maxrec   maximum number of records to be requested at once
      * @param  coding  configures HTTP compression
      * @param  populateSchemas   whether SchemaMeta objects will be
@@ -50,22 +48,13 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      * @param  preloadFkeys  if true, all foreign key info is loaded in one go,
      *                       if false it's read per-table as required
      */
-    public TapSchemaTapMetaReader( String serviceUrl, int maxrec,
+    public TapSchemaTapMetaReader( EndpointSet endpointSet, int maxrec,
                                    ContentCoding coding,
                                    boolean populateSchemas,
                                    boolean populateTables,
                                    MetaNameFixer fixer,
                                    boolean preloadFkeys ) {
-        final URL url;
-        try {
-            url = new URL( serviceUrl );
-        }
-        catch ( MalformedURLException e ) {
-            throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Bad URL: " + serviceUrl )
-                 .initCause( e );
-        }
-        tsi_ = new TapSchemaInterrogator( url, maxrec, coding ) {
+        tsi_ = new TapSchemaInterrogator( endpointSet, maxrec, coding ) {
             @Override
             protected StarTable executeQuery( TapQuery tq ) throws IOException {
                 logger_.info( tq.getAdql() );
@@ -80,7 +69,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     }
 
     public String getSource() {
-        return tsi_.getServiceUrl().toString();
+        return tsi_.getEndpointSet().getIdentity();
     }
 
     public String getMeans() {
