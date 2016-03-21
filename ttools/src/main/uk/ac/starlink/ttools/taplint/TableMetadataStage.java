@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.taplint;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,6 +11,7 @@ import java.util.Map;
 import uk.ac.starlink.util.CountMap;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
@@ -75,14 +75,14 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      * Returns an array providing table metadata to check.
      *
      * @param  reporter   destination for validation messages
-     * @param  serviceUrl  TAP service URL
+     * @param  endpointSet  TAP service endpoints
      * @return   list of fully populated schema metadata elements
      */
-    protected abstract SchemaMeta[] readTableMetadata( Reporter reporter,
-                                                       URL serviceUrl );
+    protected abstract SchemaMeta[]
+            readTableMetadata( Reporter reporter, EndpointSet endpointSet );
 
-    public void run( Reporter reporter, URL serviceUrl ) {
-        SchemaMeta[] smetas = readTableMetadata( reporter, serviceUrl );
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
+        SchemaMeta[] smetas = readTableMetadata( reporter, endpointSet );
         checkSchemas( reporter, smetas );
         smetas_ = smetas;
     }

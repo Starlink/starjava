@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.taplint;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +13,7 @@ import java.util.Set;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 
 /**
@@ -51,10 +51,12 @@ public class TapLinter {
     public TapLinter() {
 
         /* Create all known validation stages. */
-        tmetaXsdStage_ =
-            XsdStage.createXsdStage( IvoaSchemaResolver.VODATASERVICE_URI,
-                                     "tableset", "/tables", false,
-                                     "table metadata" );
+        tmetaXsdStage_ = new XsdStage( IvoaSchemaResolver.VODATASERVICE_URI,
+                                       "tableset", false, "table metadata" ) {
+            public URL getDocumentUrl( EndpointSet endpointSet ) {
+                return endpointSet.getTablesEndpoint();
+            }
+        };
         tmetaStage_ = new TablesEndpointStage();
         tapSchemaStage_ =
             new TapSchemaStage( VotLintTapRunner.createGetSyncRunner( true ) );
@@ -72,15 +74,19 @@ public class TapLinter {
         } );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmetaStage_, tapSchemaStage_ );
-        tcapXsdStage_ =
-            XsdStage.createXsdStage( IvoaSchemaResolver.CAPABILITIES_URI,
-                                     "capabilities", "/capabilities", true,
-                                     "capabilities" );
+        tcapXsdStage_ = new XsdStage( IvoaSchemaResolver.CAPABILITIES_URI,
+                                      "capabilities", true, "capabilities" ) {
+            public URL getDocumentUrl( EndpointSet endpointSet ) {
+                return endpointSet.getCapabilitiesEndpoint();
+            }
+        };
         tcapStage_ = new CapabilityStage();
-        availXsdStage_ =
-            XsdStage.createXsdStage( IvoaSchemaResolver.AVAILABILITY_URI,
-                                     "availability", "/availability", false,
-                                     "availability" );
+        availXsdStage_ = new XsdStage( IvoaSchemaResolver.AVAILABILITY_URI,
+                                       "availability", false, "availability" ) {
+            public URL getDocumentUrl( EndpointSet endpointSet ) {
+                return endpointSet.getAvailabilityEndpoint();
+            }
+        };
         getQueryStage_ =
             new QueryStage( VotLintTapRunner.createGetSyncRunner( true ),
                             metaHolder, tcapStage_ );
@@ -155,7 +161,7 @@ public class TapLinter {
      * Creates and returns an executable for TAP validation.
      *
      * @param  reporter  validation message destination
-     * @param  serviceUrl  TAP service URL
+     * @param  endpointSet  locations of TAP services
      * @param  stageCodeSet  unordered collection of code strings indicating
      *         which stages should be run
      * @param  maxTestTables  limit on the number of tables to test,
@@ -163,7 +169,7 @@ public class TapLinter {
      * @return   tap validator executable
      */
     public Executable createExecutable( final OutputReporter reporter,
-                                        final URL serviceUrl,
+                                        final EndpointSet endpointSet,
                                         Set<String> stageCodeSet,
                                         int maxTestTables )
             throws TaskException {
@@ -205,32 +211,13 @@ public class TapLinter {
                     Stage stage = stageSet_.getStage( code );
                     assert stage != null;
                     reporter.startSection( code, stage.getDescription() );
-                    stage.run( reporter, serviceUrl );
+                    stage.run( reporter, endpointSet );
                     reporter.summariseUnreportedMessages( code );
                     reporter.endSection();
                 }
                 reporter.end();
             }
         };
-    }
-
-    /**
-     * Utility method to turn a string into a URL without worrying about
-     * pesky MalformedURLExceptions.  Any MUE is rethrown as an
-     * IllegalArgumentException instead.
-     *
-     * @param  url  string
-     * @return  URL
-     */
-    private static URL toUrl( String url ) {
-        try {
-            return new URL( url );
-        }
-        catch ( MalformedURLException e ) {
-            throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Bad URL " + url )
-                 .initCause( e );
-        }
     }
 
     /**

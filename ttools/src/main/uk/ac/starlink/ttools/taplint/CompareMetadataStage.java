@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.taplint;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -9,6 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
@@ -50,7 +50,7 @@ public class CompareMetadataStage implements Stage {
         return "Compare table metadata from " + srcDesc1_ + " and " + srcDesc2_;
     }
 
-    public void run( Reporter reporter, URL serviceUrl ) {
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
         SchemaMeta[] smetas1 = metaHolder1_.getTableMetadata();
         SchemaMeta[] smetas2 = metaHolder2_.getTableMetadata();
         if ( smetas1 == null || smetas2 == null ) {

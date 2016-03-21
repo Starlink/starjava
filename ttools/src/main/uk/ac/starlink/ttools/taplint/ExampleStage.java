@@ -40,6 +40,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlValidator;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.TapQuery;
 
 /**
@@ -101,17 +102,10 @@ public class ExampleStage implements Stage {
         return "Check content of examples document";
     }
 
-    public void run( Reporter reporter, URL serviceUrl ) {
-        final URL exUrl;
-        try {
-            exUrl = new URL( serviceUrl + "/examples" );
-        }
-        catch ( MalformedURLException e ) {
-            reporter.report( FixedCode.F_MURL, "Bad URL?" );
-            return;
-        }
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
+        URL exUrl = endpointSet.getExamplesEndpoint();
         ExampleRunner runner =
-            new ExampleRunner( reporter, serviceUrl, tapRunner_,
+            new ExampleRunner( reporter, endpointSet, tapRunner_,
                                capHolder_, metaHolder_ );
         try {
             runner.checkExamplesDocument( exUrl );
@@ -457,7 +451,7 @@ public class ExampleStage implements Stage {
     private static class ExampleRunner {
 
         private final Reporter reporter_;
-        private final URL serviceUrl_;
+        private final EndpointSet endpointSet_;
         private final TapRunner tapRunner_;
         private final CapabilityHolder capHolder_;
         private final MetadataHolder metaHolder_;
@@ -472,15 +466,16 @@ public class ExampleStage implements Stage {
         /**
          * Constructor.
          * @param   reporter   reporter
-         * @param   serviceUrl   TAP base service URL
+         * @param   endpointSet   TAP service endpoints
          * @param   tapRunner  runs TAP queries; if null, no queries attempted
          * @param   capHolder  provides capability metadata at runtime
          * @param   metaHolder provides table metadata at runtime
          */
-        ExampleRunner( Reporter reporter, URL serviceUrl, TapRunner tapRunner,
-                       CapabilityHolder capHolder, MetadataHolder metaHolder ) {
+        ExampleRunner( Reporter reporter, EndpointSet endpointSet,
+                       TapRunner tapRunner, CapabilityHolder capHolder,
+                       MetadataHolder metaHolder ) {
             reporter_ = reporter;
-            serviceUrl_ = serviceUrl;
+            endpointSet_ = endpointSet;
             tapRunner_ = tapRunner;
             capHolder_ = capHolder;
             metaHolder_ = metaHolder;
@@ -971,14 +966,14 @@ public class ExampleStage implements Stage {
 
             /* Maybe attempt to execute the query. */
             final Boolean executed;
-            if ( ! hasUploads && tapRunner_ != null && serviceUrl_ != null ) {
+            if ( ! hasUploads && tapRunner_ != null && endpointSet_ != null ) {
                 Map<String,String> extraParams =
                     new LinkedHashMap<String,String>();
                 if ( QUERY_MAXREC >= 0 ) {
                     extraParams.put( "MAXREC",
                                      Integer.toString( QUERY_MAXREC ) );
                 }
-                TapQuery tq = new TapQuery( serviceUrl_, query, extraParams );
+                TapQuery tq = new TapQuery( endpointSet_, query, extraParams );
                 StarTable table;
                 try {
                     table = tapRunner_.attemptGetResultTable( reporter_, tq );

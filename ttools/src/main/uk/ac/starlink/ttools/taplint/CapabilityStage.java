@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.OutputFormat;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
@@ -58,17 +59,9 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         return tcap_;
     }
 
-    public void run( Reporter reporter, URL serviceUrl ) {
-        URL capUrl;
-        try {
-            capUrl = new URL( serviceUrl + "/capabilities" );
-        }
-        catch ( MalformedURLException e ) {
-            capUrl = null;
-            reporter.report( FixedCode.F_CAIO,
-                             "Bad URL " + serviceUrl + "?", e );
-        }
-        tcap_ = checkCapabilities( reporter, capUrl );
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
+        tcap_ = checkCapabilities( reporter,
+                                   endpointSet.getCapabilitiesEndpoint() );
     }
 
     /**

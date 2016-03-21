@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +11,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
@@ -41,13 +41,13 @@ public class TapSchemaStage extends TableMetadataStage {
     }
 
     @Override
-    public void run( Reporter reporter, URL serviceUrl ) {
-        super.run( reporter, serviceUrl );
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
+        super.run( reporter, endpointSet );
         tapRunner_.reportSummary( reporter );
     }
 
     protected SchemaMeta[] readTableMetadata( Reporter reporter,
-                                              URL serviceUrl ) {
+                                              EndpointSet endpointSet ) {
 
         /* Work out the MAXREC value to use for metadata queries.
          * If this is not set, and the service default value is used,
@@ -58,9 +58,9 @@ public class TapSchemaStage extends TableMetadataStage {
          * There are other possibilities for doing this more carefully,
          * for instance checking after each query that the table has
          * not been truncated when read. */
-        int maxrec = getMetaMaxrec( reporter, serviceUrl, tapRunner_ ) + 10;
+        int maxrec = getMetaMaxrec( reporter, endpointSet, tapRunner_ ) + 10;
         LintTapSchemaInterrogator tsi =
-            new LintTapSchemaInterrogator( reporter, serviceUrl, maxrec,
+            new LintTapSchemaInterrogator( reporter, endpointSet, maxrec,
                                            tapRunner_ );
 
         /* Perform some column-specific checks. */
@@ -153,12 +153,12 @@ public class TapSchemaStage extends TableMetadataStage {
      * to retrieve all the TAP_SCHEMA metadata items.
      *
      * @param  reporter    destination for validation messages
-     * @param  serviceUrl  TAP service URL
+     * @param  endpointSet   locations of TAP endpoints
      * @param  tapRunner   object to perform TAP queries
      * @return   maximum record count required for metadata queries,
      *           or 0 if it could not be determined
      */
-    private int getMetaMaxrec( Reporter reporter, URL serviceUrl,
+    private int getMetaMaxrec( Reporter reporter, EndpointSet endpointSet,
                                TapRunner tapRunner ) {
         String[] tnames = new String[] {
             "TAP_SCHEMA.schemas",
@@ -169,7 +169,7 @@ public class TapSchemaStage extends TableMetadataStage {
         };
         int maxrec = 0;
         for ( String tname : tnames ) {
-            int nr = Math.max( maxrec, getRowCount( reporter, serviceUrl,
+            int nr = Math.max( maxrec, getRowCount( reporter, endpointSet,
                                                     tapRunner, tname ) );
             if ( nr < 0 ) {
                 return 0;
@@ -185,15 +185,15 @@ public class TapSchemaStage extends TableMetadataStage {
      * Returns the number of rows in a named TAP table.
      *
      * @param  reporter    destination for validation messages
-     * @param  serviceUrl  TAP service URL
+     * @param  endpointSet  locations of TAP endpoints
      * @param  tapRunner   object to perform TAP queries
      * @param  tname       name of table in TAP db
      * @return   number of rows counted, or -1 if some error
      */
-    private int getRowCount( Reporter reporter, URL serviceUrl,
+    private int getRowCount( Reporter reporter, EndpointSet endpointSet,
                              TapRunner tapRunner, String tname ) {
         String adql = "SELECT COUNT(*) AS nr FROM " + tname;
-        TapQuery tq = new TapQuery( serviceUrl, adql, null );
+        TapQuery tq = new TapQuery( endpointSet, adql, null );
         StarTable result = tapRunner.getResultTable( reporter, tq );
         if ( result != null ) {
             try {
@@ -266,13 +266,14 @@ public class TapSchemaStage extends TableMetadataStage {
          * Constructor.
          *
          * @param  reporter  validation message destination
-         * @param  serviceUrl  TAP service URL
+         * @param  endpointSet  TAP service endpoints
          * @param  maxrec     maximum record count (0 for default limit)
          * @param  tapRunner  object to perform TAP queries
          */
-        public LintTapSchemaInterrogator( Reporter reporter, URL serviceUrl,
+        public LintTapSchemaInterrogator( Reporter reporter,
+                                          EndpointSet endpointSet,
                                           int maxrec, TapRunner tapRunner ) {
-            super( serviceUrl, maxrec, ContentCoding.NONE );
+            super( endpointSet, maxrec, ContentCoding.NONE );
             reporter_ = reporter;
             tapRunner_ = tapRunner;
         }

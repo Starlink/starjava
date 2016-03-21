@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import javax.xml.XMLConstants;
 import javax.xml.transform.sax.SAXResult;
@@ -15,6 +14,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.vo.EndpointSet;
 
 /**
  * Validation stage for validating a document against a given XML schema.
@@ -26,6 +26,8 @@ public abstract class XsdStage implements Stage {
 
     private final String topElName_;
     private final String topElNamespaceUri_;
+    private final boolean isMandatory_;
+    private final String description_;
     private Result result_;
 
     /**
@@ -33,36 +35,49 @@ public abstract class XsdStage implements Stage {
      *
      * @param  topElNamespaceUri  namespace of required document root element
      * @param  topElName      local name of required document root element
+     * @param  isMandatory   true iff resource is REQUIRED by standard
+     * @param  resourceDescription  short description of what resource contains
      */
-    protected XsdStage( String topElNamespaceUri, String topElName ) {
+    protected XsdStage( String topElNamespaceUri, String topElName,
+                        boolean isMandatory, String resourceDescription ) {
         topElName_ = topElName;
         topElNamespaceUri_ = topElNamespaceUri;
+        isMandatory_ = isMandatory;
+        description_ = "Validate " + resourceDescription
+                     + " against XML schema";
+    }
+
+    public String getDescription() {
+        return description_;
     }
 
     /**
      * Returns the URL of the document to validate, given the service URL
      * for the TAP service.
      *
-     * @param  serviceUrl   TAP service URL
+     * @param  endpointSet  TAP endpoint locations
      * @return   url of XML document to validate
      */
-    public abstract String getDocumentUrl( URL serviceUrl );
+    public abstract URL getDocumentUrl( EndpointSet endpointSet );
 
-    public void run( Reporter reporter, URL serviceUrl ) {
-        String durl = getDocumentUrl( serviceUrl );
-        URL docUrl;
-        try {
-            docUrl = new URL( durl );
-        }
-        catch ( MalformedURLException e ) {
-            reporter.report( FixedCode.F_XURL, "Bad document URL" );
-            result_ = Result.FAILURE;
-            return;
-        }
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
+        URL docUrl = getDocumentUrl( endpointSet );
         reporter.report( FixedCode.I_VURL,
                          "Validating " + docUrl + " as "
                        + topElName_ + " (" + topElNamespaceUri_ + ")" );
         result_ = validateDoc( reporter, docUrl );
+        if ( result_ == Result.NOT_FOUND ) {
+            if ( isMandatory_ ) {
+                reporter.report( FixedCode.E_GONM,
+                                 "Mandatory resource " + docUrl
+                               + " not present" );
+            }
+            else {
+                reporter.report( FixedCode.W_GONO,
+                                 "Optional resource " + docUrl
+                               + " not present" );
+            }
+        }
     }
 
     /**
@@ -238,52 +253,6 @@ public abstract class XsdStage implements Stage {
             }
             reporter.report( FixedCode.S_VALI, errHandler.getSummary() );
         }
-    }
-
-    /**
-     * Returns a new XsdStage suitable for one of the standard TAP XML
-     * endpoints.
-     *
-     * @param  topElName  required local name for top-level document element
-     * @param  topElNamespace  expected XML namespace for top-level document
-     *                         element (not currently required, which I think
-     *                         is correct, but I could be wrong)
-     * @param  docUrlSuffix   suffix (include leading /) of TAP service URL
-     *                        giving resource endpoint
-     * @param  mandatory   true iff resource is REQUIRED by standard
-     * @param  resourceDescription  short description of what resource contains
-     * @return   new stage for XSD validation
-     */
-    public static XsdStage createXsdStage( String topElName,
-                                           String topElNamespace,
-                                           final String docUrlSuffix,
-                                           final boolean mandatory,
-                                           final String resourceDescription ) {
-        return new XsdStage( topElName, topElNamespace ) {
-            public String getDescription() {
-                return "Validate " + resourceDescription
-                     + " against XML schema";
-            }
-            public String getDocumentUrl( URL serviceUrl ) {
-                return serviceUrl + docUrlSuffix;
-            }
-            public void run( Reporter reporter, URL serviceUrl ) {
-                super.run( reporter, serviceUrl );
-                Result result = getResult();
-                if ( result == Result.NOT_FOUND ) {
-                    if ( mandatory ) {
-                        reporter.report( FixedCode.E_GONM,
-                                         "Mandatory resource " + docUrlSuffix
-                                       + " not present" );
-                    }
-                    else {
-                        reporter.report( FixedCode.W_GONO,
-                                         "Optional resource " + docUrlSuffix
-                                       + " not present" );
-                    }
-                }
-            }
-        };
     }
 
     /**

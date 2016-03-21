@@ -25,6 +25,8 @@ import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.TapUploadMatcher;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.Endpoints;
 
 /**
  * Upload matcher that uses an external TAP service.
@@ -266,6 +268,8 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         final String inlonString = inlonParam_.stringValue( env );
         final String inlatString = inlatParam_.stringValue( env );
         URL tapurl = urlParam_.objectValue( env );
+        EndpointSet endpointSet =
+            Endpoints.createDefaultTapEndpointSet( tapurl );
         String taptable = taptableParam_.stringValue( env );
         String taplonString = taplonParam_.stringValue( env );
         String taplatString = taplatParam_.stringValue( env );
@@ -282,9 +286,9 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         boolean isSync = syncParam_.booleanValue( env );
         ContentCoding coding = codingParam_.codingValue( env );
         TapUploadMatcher umatcher =
-            new TapUploadMatcher( tapurl, taptable, taplonString, taplatString,
-                                  srString, isSync, tapcols, serviceMode,
-                                  coding );
+            new TapUploadMatcher( endpointSet, taptable,
+                                  taplonString, taplatString, srString,
+                                  isSync, tapcols, serviceMode, coding );
         final String adql = umatcher.getAdql( maxrec );
         final QuerySequenceFactory qsFact =
             new JELQuerySequenceFactory( inlonString, inlatString, "0" );

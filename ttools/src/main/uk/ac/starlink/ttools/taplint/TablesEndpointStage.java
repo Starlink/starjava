@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableSetSaxHandler;
 
@@ -22,13 +23,12 @@ public class TablesEndpointStage extends TableMetadataStage {
     }
 
     protected SchemaMeta[] readTableMetadata( Reporter reporter,
-                                              URL serviceUrl ) {
-        String turl = serviceUrl + "/tables";
+                                              EndpointSet endpointSet ) {
+        URL turl = endpointSet.getTablesEndpoint();
         reporter.report( FixedCode.I_TURL,
                          "Reading table metadata from " + turl );
         try {
-            return TableSetSaxHandler.readTableSet( new URL( turl ),
-                                                    ContentCoding.NONE );
+            return TableSetSaxHandler.readTableSet( turl, ContentCoding.NONE );
         }
         catch ( SAXException e ) {
             reporter.report( FixedCode.E_FLSX,

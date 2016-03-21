@@ -23,6 +23,8 @@ import uk.ac.starlink.ttools.taplint.ReportType;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TextOutputReporter;
 import uk.ac.starlink.ttools.taplint.TapLinter;
+import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.Endpoints;
 
 /**
  * TAP Validator task.
@@ -205,6 +207,8 @@ public class TapLint implements Task {
 
     public Executable createExecutable( Environment env ) throws TaskException {
         URL serviceUrl = urlParam_.objectValue( env );
+        EndpointSet endpointSet =
+            Endpoints.createDefaultTapEndpointSet( serviceUrl );
         PrintStream out = env.getOutputStream();
         String typeStr = reportParam_.stringValue( env );
         List<ReportType> typeList = new ArrayList<ReportType>();
@@ -240,7 +244,7 @@ public class TapLint implements Task {
         }
         OutputReporter reporter =
             new TextOutputReporter( out, types, maxRepeat, debug, maxChar );
-        return tapLinter_.createExecutable( reporter, serviceUrl, stageSet,
+        return tapLinter_.createExecutable( reporter, endpointSet, stageSet,
                                             maxTestTables );
     }
 }

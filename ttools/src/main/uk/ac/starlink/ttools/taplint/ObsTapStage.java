@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,6 +12,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
@@ -54,7 +54,7 @@ public class ObsTapStage implements Stage {
         return "Test implementation of ObsCore Data Model";
     }
 
-    public void run( Reporter reporter, URL serviceUrl ) {
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
 
         /* Check prerequisites. */
         boolean obsDeclared;
@@ -125,7 +125,7 @@ public class ObsTapStage implements Stage {
                        + ( is11 ? "1.1" : "1.0" ) );
 
         /* Run tests. */
-        new ObsTapRunner( reporter, serviceUrl, obsMeta, is11, tapRunner_ )
+        new ObsTapRunner( reporter, endpointSet, obsMeta, is11, tapRunner_ )
            .run();
     }
 
@@ -227,7 +227,7 @@ public class ObsTapStage implements Stage {
      */
     private static class ObsTapRunner implements Runnable {
         private final Reporter reporter_;
-        private final URL serviceUrl_;
+        private final EndpointSet endpointSet_;
         private final TapRunner tRunner_;
         private final Map<String,ColumnMeta> gotColMap_;
         private final Map<String,ObsCol> reqColMap_;
@@ -237,15 +237,15 @@ public class ObsTapStage implements Stage {
          * Constructor.
          *
          * @param  reporter  validation message destination
-         * @param  serviceUrl  TAP base URL
+         * @param  endpointSet  locations of TAP services
          * @param  obsMeta   table metadata for ivoa.ObsCore table
          * @param  is11   true for ObsCore-1.1, false for ObsCore-1.0
          * @param  tapRunner  runs TAP queries
          */
-        ObsTapRunner( Reporter reporter, URL serviceUrl, TableMeta obsMeta,
-                      boolean is11, TapRunner tapRunner ) {
+        ObsTapRunner( Reporter reporter, EndpointSet endpointSet,
+                      TableMeta obsMeta, boolean is11, TapRunner tapRunner ) {
             reporter_ = reporter;
-            serviceUrl_ = serviceUrl;
+            endpointSet_ = endpointSet;
             gotColMap_ = toMap( obsMeta.getColumns() );
             tRunner_ = tapRunner;
             reqColMap_ = createMandatoryColumns( is11 );
@@ -579,7 +579,7 @@ public class ObsTapStage implements Stage {
          * @return   table result, or null
          */
         private TableData runQuery( String adql ) {
-            TapQuery tq = new TapQuery( serviceUrl_, adql, null );
+            TapQuery tq = new TapQuery( endpointSet_, adql, null );
             StarTable table = tRunner_.getResultTable( reporter_, tq );
             if ( table == null ) {
                 return null;

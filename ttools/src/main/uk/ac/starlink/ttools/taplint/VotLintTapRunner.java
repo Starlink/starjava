@@ -525,7 +525,7 @@ public abstract class VotLintTapRunner extends TapRunner {
             protected URLConnection getResultConnection( Reporter reporter,
                                                          TapQuery tq )
                     throws IOException {
-                return UwsJob.postForm( new URL( tq.getServiceUrl() + "/sync" ),
+                return UwsJob.postForm( tq.getEndpointSet().getSyncEndpoint(),
                                         ContentCoding.NONE,
                                         tq.getStringParams(),
                                         tq.getStreamParams() );
@@ -546,13 +546,14 @@ public abstract class VotLintTapRunner extends TapRunner {
             protected URLConnection getResultConnection( Reporter reporter,
                                                          TapQuery tq )
                     throws IOException {
+                URL syncEndpoint = tq.getEndpointSet().getSyncEndpoint();
                 if ( tq.getStreamParams() == null ||
                      tq.getStreamParams().isEmpty() ) {
                     String ptxt =
                         new String( UwsJob
                                    .toPostedBytes( tq.getStringParams() ),
                                     "utf-8" );
-                    URL qurl = new URL( tq.getServiceUrl() + "/sync?" + ptxt );
+                    URL qurl = new URL( syncEndpoint + "?" + ptxt );
                     if ( doChecks ) {
                         reporter.report( FixedCode.I_QGET,
                                          "Query GET URL: " + qurl );
@@ -560,11 +561,9 @@ public abstract class VotLintTapRunner extends TapRunner {
                     return qurl.openConnection();
                 }
                 else {
-                    return UwsJob
-                          .postForm( new URL( tq.getServiceUrl() + "/sync" ),
-                                     ContentCoding.NONE,
-                                     tq.getStringParams(),
-                                     tq.getStreamParams() );
+                    return UwsJob.postForm( syncEndpoint, ContentCoding.NONE,
+                                            tq.getStringParams(),
+                                            tq.getStreamParams() );
                 }
             }
         };
@@ -586,7 +585,8 @@ public abstract class VotLintTapRunner extends TapRunner {
                                                          TapQuery tq )
                     throws IOException {
                 UwsJob uwsJob =
-                    UwsJob.createJob( tq.getServiceUrl()+ "/async",
+                    UwsJob.createJob( tq.getEndpointSet().getAsyncEndpoint()
+                                                         .toString(),
                                       tq.getStringParams(),
                                       tq.getStreamParams() );
                 URL jobUrl = uwsJob.getJobUrl();

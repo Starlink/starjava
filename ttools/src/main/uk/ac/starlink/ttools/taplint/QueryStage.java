@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -18,6 +17,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
@@ -60,7 +60,7 @@ public class QueryStage implements Stage {
              + " mode";
     }
 
-    public void run( Reporter reporter, URL serviceUrl ) {
+    public void run( Reporter reporter, EndpointSet endpointSet ) {
         SchemaMeta[] smetas = metaHolder_.getTableMetadata();
         String[] adqlLangs = capHolder_ == null
                            ? null
@@ -96,8 +96,8 @@ public class QueryStage implements Stage {
         TableMeta[] tmetas =
             ( dataTables.size() > 0 ? dataTables : allTables )
            .toArray( new TableMeta[ 0 ] );
-        new Querier( reporter, serviceUrl, tmetas, adqlLangs ).run();
-        runDuffQuery( reporter, serviceUrl );
+        new Querier( reporter, endpointSet, tmetas, adqlLangs ).run();
+        runDuffQuery( reporter, endpointSet );
         tapRunner_.reportSummary( reporter );
     }
 
@@ -137,15 +137,15 @@ public class QueryStage implements Stage {
      * in the correct way.
      *
      * @param  reporter  validation message destination
-     * @param  serviceUrl   URL of TAP service
+     * @param  endpointSet  locations of TAP services
      */
-    private void runDuffQuery( Reporter reporter, URL serviceUrl ) {
+    private void runDuffQuery( Reporter reporter, EndpointSet endpointSet ) {
         String duffAdql = "DUFF QUERY";
         reporter.report( FixedCode.I_DUFF,
                          "Submitting duff query: " + duffAdql );
         VOElement resultsEl;
         try {
-            TapQuery tq = new TapQuery( serviceUrl, duffAdql, null );
+            TapQuery tq = new TapQuery( endpointSet, duffAdql, null );
             InputStream in = tapRunner_.readResultInputStream( reporter, tq );
             VODocument doc = tapRunner_.readResultDocument( reporter, in );
             resultsEl = tapRunner_.getResultsResourceElement( reporter, doc );
@@ -225,7 +225,7 @@ public class QueryStage implements Stage {
      */
     private class Querier implements Runnable {
         private final Reporter reporter_;
-        private final URL serviceUrl_;
+        private final EndpointSet endpointSet_;
         private final String[] adqlLangs_;
         private final TableMeta tmeta1_;
         private final TableMeta tmeta2_;
@@ -235,13 +235,13 @@ public class QueryStage implements Stage {
          * Constructor.
          *
          * @param  reporter  validation message destination
-         * @param  serviceUrl  TAP service URL
+         * @param  endpointSet  locations of TAP services
          * @param  tmetas  metadata for known tables
          */
-        Querier( Reporter reporter, URL serviceUrl, TableMeta[] tmetas,
+        Querier( Reporter reporter, EndpointSet endpointSet, TableMeta[] tmetas,
                  String[] adqlLangs ) {
             reporter_ = reporter;
-            serviceUrl_ = serviceUrl;
+            endpointSet_ = endpointSet;
             adqlLangs_ = adqlLangs;
 
             /* Pick some representative tables for later testing.
@@ -334,7 +334,7 @@ public class QueryStage implements Stage {
                         new HashMap<String,String>();
                     extraParams.put( "LANG", lang );
                     TapQuery tq =
-                        new TapQuery( serviceUrl_, vAdql, extraParams );
+                        new TapQuery( endpointSet_, vAdql, extraParams );
                     StarTable result =
                         tapRunner_.getResultTable( reporter_, tq );
                     ( result == null ? failLangList
@@ -448,7 +448,7 @@ public class QueryStage implements Stage {
             if ( maxrec >= 0 ) {
                 extraParams.put( "MAXREC", Integer.toString( maxrec ) );
             }
-            TapQuery tq = new TapQuery( serviceUrl_, adql, extraParams );
+            TapQuery tq = new TapQuery( endpointSet_, adql, extraParams );
             StarTable table = tapRunner_.getResultTable( reporter_, tq );
             if ( table != null ) {
                 int nrow = (int) table.getRowCount();

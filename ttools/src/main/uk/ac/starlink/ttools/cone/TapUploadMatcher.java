@@ -13,6 +13,7 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.DataFormat;
@@ -33,7 +34,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class TapUploadMatcher implements UploadMatcher {
 
-    private final URL serviceUrl_;
+    private final EndpointSet endpointSet_;
     private final String tableName_;
     private final String raExpr_;
     private final String decExpr_;
@@ -53,7 +54,7 @@ public class TapUploadMatcher implements UploadMatcher {
     /**
      * Constructor.
      *
-     * @param  serviceUrl  TAP service base URL
+     * @param  endpointSet  TAP service endpoint locations
      * @param  tableName   name of table in TAP service to match against
      * @param  raExpr    column name (or ADQL expression) for RA
      *                   in decimal degrees in TAP table
@@ -67,12 +68,12 @@ public class TapUploadMatcher implements UploadMatcher {
      * @param  serviceMode  type of match
      * @param  coding     configures HTTP compression for result
      */
-    public TapUploadMatcher( URL serviceUrl, String tableName,
+    public TapUploadMatcher( EndpointSet endpointSet, String tableName,
                              String raExpr, String decExpr,
                              String radiusDegExpr, boolean isSync,
                              String[] tapCols, ServiceFindMode serviceMode,
                              ContentCoding coding ) {
-        serviceUrl_ = serviceUrl;
+        endpointSet_ = endpointSet;
         tableName_ = tableName;
         raExpr_ = raExpr;
         decExpr_ = decExpr;
@@ -101,7 +102,7 @@ public class TapUploadMatcher implements UploadMatcher {
         VOTableWriter voWriter =
             new VOTableWriter( DataFormat.BINARY, true, VOTableVersion.V12 );
         TapQuery tapQuery =
-            new TapQuery( serviceUrl_, adql, extraParams, uploadMap, -1,
+            new TapQuery( endpointSet_, adql, extraParams, uploadMap, -1,
                           voWriter );
         final URLConnection conn;
         if ( isSync_ ) {

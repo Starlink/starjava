@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
-import java.net.URL;
+import uk.ac.starlink.vo.EndpointSet;
 
 /**
  * Represents a stage of validator processing.
@@ -21,7 +21,7 @@ public interface Stage {
      * Performs the validation checks for this stage.
      *
      * @param  reporter   destination for validation messages
-     * @param  serviceUrl  TAP service URL
+     * @param  endpointSet  locations of TAP service endpoints
      */
-    void run( Reporter reporter, URL serviceUrl );
+    void run( Reporter reporter, EndpointSet endpointSet );
 }
