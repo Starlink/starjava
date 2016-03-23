@@ -1734,6 +1734,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             if (  nrows > 0 ) {
                 table = new StarPopupTable( starTable, true );
                 table.rearrange();
+                //table.removeduplicates();
                 //scrollPane = new JScrollPane( table );
                 table.setComponentPopupMenu(specPopupMenu);
               //  scrollPane.setPreferredSize(new Dimension(600,400));
@@ -2556,6 +2557,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             metaPanel.updateUI();
             try {
                 serverList.saveServers();
+                serverTable.saveServerTags();
             } catch (SplatException e) {
                 logger.info("serverList backup failed"+e.getMessage());
             }

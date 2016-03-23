@@ -109,7 +109,7 @@ public class SSAServerList
     
     public void addNewServers(StarTable table, ArrayList<String> manuallyAddedServices) {
         
-        serverList.clear();
+        
         HashMap<String, SSAPRegResource> newServerList = new HashMap<String, SSAPRegResource>();
         if (manuallyAddedServices != null) {
 
@@ -117,7 +117,10 @@ public class SSAServerList
                 String key=manuallyAddedServices.get(i);
                 newServerList.put(key, serverList.get(key));
             }
+            serverList.clear();
             serverList = newServerList;
+        } else {
+            serverList.clear();
         }
         addNewServers(table);
 
