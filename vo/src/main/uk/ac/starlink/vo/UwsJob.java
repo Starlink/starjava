@@ -114,8 +114,50 @@ public class UwsJob {
      * @param  phase  UWS job phase to assign
      */
     public void postPhase( String phase ) throws IOException {
-        HttpURLConnection hconn =
-            postForm( new URL( jobUrl_ + "/phase" ), "PHASE", phase );
+        postUwsParameter( "/phase", "PHASE", phase );
+    }
+
+    /**
+     * Posts a value of the destruction time for this job.
+     * The service is not obliged to accept it; completion without error
+     * does not necessarily mean that it has done.
+     * May not work after job has started.
+     *
+     * @param  epoch   destruction time which should be an ISO-8601 string;
+     *                 it is passed directly to the service
+     */
+    public void postDestruction( String epoch ) throws IOException {
+        postUwsParameter( "/destruction", "DESTRUCTION", epoch );
+    }
+
+    /**
+     * Posts a value of the execution duration parameter for this job.
+     * The service is not obliged to accept it; completion without error
+     * does not necessarily mean that it has done.
+     * May not work after job has started.
+     *
+     * @param   nsec   number of elapsed seconds for which job is permitted
+     *                 to run; zero is supposed to mean unlimited
+     */
+    public void postExecutionDuration( long nsec ) throws IOException {
+        postUwsParameter( "/executionduration", "EXECUTIONDURATION",
+                          Long.toString( nsec ) );
+    }
+
+    /**
+     * Posts a parameter value to this UWS job.
+     *
+     * @param   relativeLocation  parameter posting endpoint relative to
+     *                            this job's endpoint (include a leading "/"
+     *                            if it's a sub-resource)
+     * @param   paramName   name of job parameter
+     * @param   paramValue  new value of job parameter
+     */
+    private void postUwsParameter( String relativeLocation, String paramName,
+                                   String paramValue )
+            throws IOException {
+        URL postUrl = new URL( jobUrl_ + relativeLocation );
+        HttpURLConnection hconn = postForm( postUrl, paramName, paramValue );
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {
             throw new IOException( "Non-303 response: " + code + " " +

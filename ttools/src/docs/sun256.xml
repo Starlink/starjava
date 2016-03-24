@@ -10515,6 +10515,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         However, it doesn't work very well, since the time coordinate
         is in unix seconds rather than something more user-friendly.</li>
     <li>Fix numeric field truncation bug in LaTeX table output.</li>
+    <li>Add new parameters
+        <code>executionduration</code> and <code>destruction</code> to
+        <ref id="tapquery"><code>tapquery</code></ref> command.
+        These let you request resource limit adjustments when submitting
+        an asynchronous TAP job.</li>
     </ul>
     </p></dd>
 

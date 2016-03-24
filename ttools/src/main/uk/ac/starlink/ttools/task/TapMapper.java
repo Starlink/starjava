@@ -45,6 +45,8 @@ public class TapMapper implements TableMapper {
     private final BooleanParameter syncParam_;
     private final StringParameter langParam_;
     private final LongParameter maxrecParam_;
+    private final StringParameter destructionParam_;
+    private final LongParameter durationParam_;
     private final ContentCodingParameter codingParam_;
     private final Parameter<VOTableWriter> vowriterParam_;
     private final TapResultReader resultReader_;
@@ -126,6 +128,45 @@ public class TapMapper implements TableMapper {
         maxrecParam_.setMinimum( 0L );
         maxrecParam_.setNullPermitted( true );
         paramList.add( maxrecParam_ );
+
+        destructionParam_ = new StringParameter( "destruction" );
+        destructionParam_.setPrompt( "Async job destruction time (ISO8601)" );
+        destructionParam_.setDescription( new String[] {
+            "<p>Posts an updated value of the UWS DESTRUCTION parameter",
+            "to the query job before it starts.",
+            "This only makes sense for asynchronous jobs",
+            "(<code>" + syncParam_.getName() + "</code>=false).",
+            "</p>",
+            "<p>The supplied value should be an ISO-8601-like string,",
+            "giving the new requested job destruction time.",
+            "The service is not obliged to honour this request.",
+            "See <webref url='http://www.ivoa.net/documents/UWS/20101010/'",
+            ">UWS v1.0</webref>, sec 2.2.3.3.",
+            "</p>",
+        } );
+        destructionParam_.setNullPermitted( true );
+        paramList.add( destructionParam_ );
+
+        durationParam_ = new LongParameter( "executionduration" );
+        durationParam_.setPrompt( "Async job max duration (seconds)" );
+        durationParam_.setDescription( new String[] {
+            "<p>Posts an updated value of the UWS EXECUTIONDURATION parameter",
+            "to the query job before it starts.",
+            "This only makes sense for asynchronous jobs",
+            "(<code>" + syncParam_.getName() + "</code>=false).",
+            "</p>",
+            "<p>The supplied value is an integer giving the maximum number",
+            "of wall-clock seconds for which the job is permitted to",
+            "execute before being forcibly terminated.",
+            "A value of zero indicates unlimited duration.",
+            "The service is not obliged to honour this request.",
+            "See <webref url='http://www.ivoa.net/documents/UWS/20101010/'",
+            ">UWS v1.0</webref>, sec 2.2.3.4.",
+            "</p>",
+        } );
+        durationParam_.setMinimum( 0 );
+        durationParam_.setNullPermitted( true );
+        paramList.add( durationParam_ );
 
         codingParam_ = new ContentCodingParameter();
         paramList.add( codingParam_ );
@@ -233,6 +274,8 @@ public class TapMapper implements TableMapper {
                 resultReader_.createResultProducer( env, coding );
             final boolean progress =
                 resultReader_.getProgressParameter().booleanValue( env );
+            final String destruction = destructionParam_.stringValue( env );
+            final Long duration = durationParam_.objectValue( env );
             final PrintStream errStream = env.getErrorStream();
             return new TableMapping() {
                 public StarTable mapTables( InputTableSpec[] inSpecs )
@@ -244,6 +287,12 @@ public class TapMapper implements TableMapper {
                     if ( progress ) {
                         errStream.println( "SUBMITTED ..." );
                         errStream.println( tapJob.getJobUrl() );
+                    }
+                    if ( duration != null ) {
+                        tapJob.postExecutionDuration( duration.longValue() );
+                    }
+                    if ( destruction != null ) { 
+                        tapJob.postDestruction( destruction );
                     }
                     tapJob.start();
                     return resultProducer.waitForResult( tapJob );
