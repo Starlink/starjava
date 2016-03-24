@@ -5575,7 +5575,7 @@ stilts plot2sky projection=aitoff
 stilts plot2sky xpix=1000 ypix=500 fontsize=18 crowd=2
                 projection=aitoff viewsys=galactic
                 layer1=mark size1=0
-                shading1=density densemap1=gnuplot2 denselog1=true
+                shading1=density densemap1=gnuplot2 densefunc1=log
                 densesub1=0.5,.95 denseclip1=0.02,1
                 in1=gums_mw_all.fits
                 lon1=alpha lat1=delta datasys1=equatorial 
