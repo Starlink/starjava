@@ -229,7 +229,7 @@ public class SkyDensityPlotter
      * @param  surface
      * @return  approximately corresponding HEALPix level
      */
-    private static int getPixelLevel( SkySurface surface ) {
+    public static int getPixelLevel( SkySurface surface ) {
 
         /* Identify the graphics pixel at the center of the sky projection.
          * It may be off the currently visible part of the screen;
