@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
+import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
@@ -73,6 +74,7 @@ public class SkyPlotType implements PlotType {
             new LabelPlotter(),
             new ContourPlotter(),
             new SkyDensityPlotter( true, true ),
+            new HealpixPlotter( true ),
         } ) );
         return list.toArray( new Plotter[ 0 ] );
     }
