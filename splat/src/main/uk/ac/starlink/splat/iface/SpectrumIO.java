@@ -5,11 +5,19 @@
  *  History:
  *     13-SEP-2004 (Peter W. Draper):
  *       Original version.
+ *     2012 (Margarida Castro Neves)
+ * 	added getData support
+ *     2013
+ *      added DataLink support 
+ *     2015
+ *	removed getData	support
  */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Vector;
 
 import uk.ac.starlink.ast.FrameSet;
@@ -49,6 +57,17 @@ public class SpectrumIO
     //  require a lot of work catching the problems with interrupting
     //  incomplete objects.
 
+    /**
+     * Source types, from which the spectra may come from
+     */
+    // TODO: implement the source identification to remaining spectra's inputs 
+    public static enum SourceType {
+        UNDEFINED,
+        SAMP,
+        SSAP,
+        LOCAL
+    };
+    
     /**
      * Private constructor so that only one instance can exist.
      */
@@ -354,6 +373,13 @@ public class SpectrumIO
         protected String dataColumn;
         protected String coordColumn;
         protected String errorColumn;
+        protected SourceType sourceType;
+        protected String idValue;
+        protected String idSource;
+        protected String dataLinkRequest;
+        protected String dataLinkFormat;
+
+        protected String serverURL;
 
         public Props( String spectrum )
         {
@@ -375,9 +401,19 @@ public class SpectrumIO
         }
 
         public Props( String spectrum, int type, String shortName,
+                String dataUnits, String coordUnits,
+                String dataColumn, String coordColumn,
+                String errorColumn )
+        {
+           
+            this( spectrum, type, shortName, dataUnits, coordUnits,
+                  dataColumn, coordColumn, null, SourceType.UNDEFINED, null, null );
+        }
+        
+        public Props( String spectrum, int type, String shortName,
                       String dataUnits, String coordUnits,
                       String dataColumn, String coordColumn,
-                      String errorColumn )
+                      String errorColumn, SourceType sourceType, String idsrc, String idValue )
         {
             this.spectrum = spectrum;
             this.type = type;
@@ -387,10 +423,38 @@ public class SpectrumIO
             this.dataColumn = dataColumn;
             this.coordColumn = coordColumn;
             this.errorColumn = errorColumn;
+            this.sourceType = sourceType;
+            this.dataLinkRequest=null;
+            this.dataLinkFormat=null; 
+            this.idValue=idValue;
+            this.idSource = idsrc;
+            this.serverURL=null;
         }
 
         public String getSpectrum()
         {
+            if (serverURL == null )
+                return spectrum;
+            
+            if (idValue != null && dataLinkRequest != null && ! dataLinkRequest.isEmpty()) 
+                if ( serverURL.endsWith("?"))
+                    try {
+                        return (serverURL+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
+                       // return (serverURL+"ID="+idValue+);
+                    } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                else
+                    try {
+                     
+                        return (serverURL+ "?"+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
+            
+                    } catch (UnsupportedEncodingException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+            
             return spectrum;
         }
 
@@ -408,7 +472,6 @@ public class SpectrumIO
         {
             this.type = type;
         }
-
         public String getShortName()
         {
             return shortName;
@@ -467,6 +530,43 @@ public class SpectrumIO
         public void setErrorColumn( String errorColumn )
         {
             this.errorColumn = errorColumn;
+        }
+        
+        public SourceType getSourceType() {
+            return sourceType;
+        }
+        
+        public void setSourceType(SourceType sourceType) {
+            this.sourceType = sourceType;
+        }
+
+        public String getidValue()
+        {
+            return idValue;
+        }
+
+        public void setIdValue( String idValue )
+        {
+            this.idValue = idValue; //!!!
+        }
+
+        public void setDataLinkRequest( String dataLinkRequest )
+        {
+            this.dataLinkRequest = dataLinkRequest;
+        }
+        public String getDataLinkRequest()
+        {
+            return dataLinkRequest;
+        }
+
+        public String getServerURL()
+        {
+            return serverURL;
+        }
+
+        public void setServerURL( String serverURL )
+        {
+            this.serverURL = serverURL;
         }
 
         //  Create a copy of this object.
@@ -533,7 +633,16 @@ public class SpectrumIO
                     e.printStackTrace();
                 }
             }
-
+            /*
+            if ( pubdidColumn != null && pubdidColumn.length() != 0 ) {
+                try {
+                    spectrum.setsetGetDataColumnName( pubdidColumn );
+                }
+                catch (SplatException e) {
+                    e.printStackTrace();
+                }
+            }
+             */
             if ( initialiseNeeded ) {
                 //  Probably changed something important to the coordinate
                 //  systems, so make sure AST descriptions are up to date.
@@ -545,6 +654,24 @@ public class SpectrumIO
                 }
             }
         }
+
+        public void setDataLinkFormat(String format) {
+            
+            dataLinkFormat = format;
+            
+        }
+        public String getDataLinkFormat() {
+            
+            return dataLinkFormat;
+            
+        }
+
+        public void setIdSource(String idsrc) {
+            
+            idSource = idsrc;
+            
+        }
+
     }
 
     // Inner class for loading and saving Spectra.

@@ -1,9 +1,12 @@
 package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeSupport;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -12,7 +15,13 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
+
+
+import uk.ac.starlink.vo.RegistryProtocol;
+import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistrySelector;
+import uk.ac.starlink.vo.RegistrySelectorModel;
+import uk.ac.starlink.vo.Ri1RegistryQuery;
 /**
  * Component which allows the user to select a registry to interrogate
  * and a query string representing the query to be done.
@@ -22,29 +31,63 @@ import uk.ac.starlink.vo.RegistrySelector;
  */
 public class SSAPRegistryQueryPanel extends JPanel {
 
+    private PropertyChangeSupport protocolChange;
     private RegistrySelector urlSelector_;
+    private RegistryProtocol regProtocol_;
     private JComboBox querySelector_;
-
+    private JComponent qBox;
+    private String [] protocols = new String[] {"RegTap (recommended)", "RI1"};
+    private JComboBox regtypes ;
+    
     /**
      * Constructor.
      */
-    public SSAPRegistryQueryPanel() {
+    public SSAPRegistryQueryPanel(String queryProtocol) {
         super( new BorderLayout() );
-        JComponent qBox = Box.createVerticalBox();
+        
+        qBox = Box.createVerticalBox();
         add( qBox, BorderLayout.CENTER );
 
-        /* Registry URL selector. */
-        urlSelector_ = new RegistrySelector();
-        qBox.add( urlSelector_ );
-        qBox.add( Box.createVerticalStrut( 5 ) );
+        /* Registry protocol  selector. */
 
+        urlSelector_ = new RegistrySelector(new RegistrySelectorModel(RegistryProtocol.REGTAP));  
+
+
+        regtypes = new JComboBox(protocols);
+        qBox.add( regtypes );
+        regtypes.addActionListener (new ActionListener () {
+            public void actionPerformed(ActionEvent e) {
+                JComboBox source = (JComboBox) e.getSource();
+                String regProto =  (String) source.getModel().getSelectedItem();
+                if (regProto.equals(protocols[0])) {
+                    regProtocol_=RegistryProtocol.REGTAP;
+                } else if (regProto.equals(protocols[1])) {
+                    regProtocol_=RegistryProtocol.RI1;
+                }
+                urlSelector_.setModel( new  RegistrySelectorModel(regProtocol_));
+            }
+        });
+        regtypes.setSelectedIndex(0);
+        if (queryProtocol.equalsIgnoreCase("obscore"))  // for ObsCore we just use RegTap
+            regtypes.setEnabled(false);
+        else 
+            regtypes.setEnabled(true);
+
+
+        /* Registry URL selector. */
+//        urlSelector_ = new RegistrySelector( new  RegistrySelectorModel(RegistryProtocol.REGTAP));
+        qBox.add( urlSelector_);
+        
+      
         /* Query text selector. */
         JComponent queryLine = Box.createHorizontalBox();
         querySelector_ = new JComboBox();
         querySelector_.setEditable( true );
         queryLine.add( new JLabel( "Query: " ) );
         queryLine.add( querySelector_ );
-        qBox.add( queryLine );
+       // not used anyways
+       // qBox.add( queryLine );
+        
     }
 
     /**
@@ -67,13 +110,11 @@ public class SSAPRegistryQueryPanel extends JPanel {
      *
      * @return  query object
      */
-    public SSAPRegistryQuery getRegistryQuery() throws MalformedURLException {
+    public RegistryQuery getRegistryQuery(String type) throws MalformedURLException {
+           
         String regServ = (String) urlSelector_.getUrl();
-        String query = (String) querySelector_.getSelectedItem();
-        if ( query == null || query.trim().length() == 0 ) {
-            throw new MalformedURLException( "Query URL is blank" );
-        }
-        URL regURL;
+        
+        URL regURL = null;
         if ( regServ == null || regServ.trim().length() == 0 ) {
             throw new MalformedURLException( "Registry URL is blank" );
         }
@@ -83,26 +124,28 @@ public class SSAPRegistryQueryPanel extends JPanel {
         catch ( MalformedURLException e ) {
             throw new MalformedURLException( "Bad registry URL: " + regServ );
         }
+        
+        if (regProtocol_.equals(RegistryProtocol.REGTAP)) {
+            if (type.equalsIgnoreCase("ObsCore")) 
+                return new SplatRegistryQuery( regURL.toString(), "ObsCore" );
+            else    
+                return new SplatRegistryQuery( regURL.toString(), "SSAP");
 
-        /* If this query looks OK, add it to the combo box model. */
-        ComboBoxModel qModel = querySelector_.getModel();
-        if ( qModel instanceof MutableComboBoxModel ) {
-            boolean present = false;
-            for ( int i = 0; ! present && i < qModel.getSize(); i++ ) {
-                if ( query.equals( qModel.getElementAt( i ) ) ) {
-                    present = true;
-                }
+        } else if (regProtocol_.equals(RegistryProtocol.RI1)) {
+            if (type.equalsIgnoreCase("ObsCore")) {
+                return (RegistryQuery) new SSAPRegistryQuery(regURL.toString(), (String) querySelector_.getSelectedItem().toString());
             }
-            if ( ! present ) {
-                ((MutableComboBoxModel) qModel).addElement( query );
+            else {
+                return (RegistryQuery) new SSAPRegistryQuery(regURL.toString(), (String) querySelector_.getSelectedItem().toString());
             }
         }
-        return new SSAPRegistryQuery( regURL.toString(), query );
+        return null; // should never happen
     }
-
+ 
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
         urlSelector_.setEnabled( enabled );
-        querySelector_.setEnabled( enabled );
+        querySelector_.setEnabled( false );
     }
+
 }

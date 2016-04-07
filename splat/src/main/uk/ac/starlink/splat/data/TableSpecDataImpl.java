@@ -11,6 +11,7 @@ package uk.ac.starlink.splat.data;
 import java.util.List;
 import java.io.IOException;
 
+import nom.tam.fits.Header;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
@@ -18,6 +19,7 @@ import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -43,22 +45,22 @@ public class TableSpecDataImpl
     extends MEMSpecDataImpl
 {
     /** Index of the column containing the coordinates */
-    private int coordColumn = -1;
+    protected int coordColumn = -1;
 
     /** Index of the column containing the data values */
-    private int dataColumn = -1;
+    protected int dataColumn = -1;
 
     /** Index of the column containing the data errors */
-    private int errorColumn = -1;
+    protected int errorColumn = -1;
 
     /** Names of all the columns in the table */
-    private String[] columnNames = null;
+    protected String[] columnNames = null;
 
     /** ColumnInfo objects for all columns */
-    private ColumnInfo[] columnInfos = null;
+    protected ColumnInfo[] columnInfos = null;
 
     /** Dimension of a column. */
-    private int[] dims = new int[1];
+    protected int[] dims = new int[1];
 
     /** Counter for generating application unique names */
     static int uniqueCount = 0;
@@ -131,6 +133,20 @@ public class TableSpecDataImpl
     }
 
     /**
+     * Create an object by reusing an existing instance if StarTable,
+     * reading only one row (SDFITS).
+     *
+     * @param starTable reference to a {@link StarTable}.
+     */
+    public TableSpecDataImpl( StarTable starTable,  long row )
+        throws SplatException
+    {
+        super( starTable.getName() );
+        setName( starTable );
+        openTable( starTable , row);
+    }
+
+    /**
      * Create an object by reusing an existing instance if StarTable.
      *
      * @param starTable reference to a {@link StarTable}.
@@ -141,10 +157,26 @@ public class TableSpecDataImpl
                               String fullName )
         throws SplatException
     {
+        this(starTable, shortName, fullName, null);
+    }
+     
+     /**
+      * Create an object by reusing an existing instance of StarTable.
+      *
+      * @param starTable reference to a {@link StarTable}.
+      * @param shortName a short name for the table.
+      * @param fullName a long name for the table.
+      * @param fitsHeaders original FITS headers that will be used if no accumulated
+      */
+     public TableSpecDataImpl( StarTable starTable, String shortName,
+                               String fullName, Header fitsHeaders )
+         throws SplatException
+     {
         super( shortName );
         openTable( starTable );
         this.shortName = shortName;
         this.fullName = fullName;
+        this.originalFitsHeaders = fitsHeaders;
     }
 
     /**
@@ -180,6 +212,7 @@ public class TableSpecDataImpl
 
     public String getCoordinateColumnName()
     {
+        
         return columnNames[coordColumn];
     }
 
@@ -188,9 +221,16 @@ public class TableSpecDataImpl
     {
         for ( int i = 0; i < columnNames.length; i++ ) {
             if ( columnNames[i].equals( name ) ) {
+               
                 if ( coordColumn != i ) {
                     coordColumn = i;
-                    readColumn( coords, coordColumn );
+                    long nrrows = starTable.getRowCount();
+                    if (nrrows==1) {
+                        coords = readCell( 0, coordColumn );
+                       
+                    } else {
+                         readColumn( coords, coordColumn );
+                   }
                     createAst();
                 }
                 break;
@@ -210,7 +250,13 @@ public class TableSpecDataImpl
             if ( columnNames[i].equals( name ) ) {
                 if ( dataColumn != i ) {
                     dataColumn = i;
-                    readColumn( data, dataColumn );
+                    long nrrows = starTable.getRowCount();
+                    if (nrrows==1) {
+                        data = readCell( 0, dataColumn );
+                        
+                    } else {
+                        readColumn( data, dataColumn );  
+                   }
                     createAst();
                 }
                 break;
@@ -241,8 +287,14 @@ public class TableSpecDataImpl
                         errorColumn = i;
                         if ( errors == null && ! name.equals( "" ) ) {
                             errors = new double[dims[0]];
+                        } 
+                        long nrrows = starTable.getRowCount();
+                        if (nrrows==1) {                     
+                                errors = readCell( 0, errorColumn );
+                        } else {
+                       
+                            readColumn( errors, errorColumn );
                         }
-                        readColumn( errors, errorColumn );
                     }
                     break;
                 }
@@ -267,6 +319,18 @@ public class TableSpecDataImpl
         return writer.getKnownFormats();
     }
 
+    @Override
+    public Header getFitsHeaders() {
+        Header accumulatedHeaders = super.getFitsHeaders();
+        // if no (or empty) accumulated headers, return the original headers (if any)
+        if (accumulatedHeaders != null
+                && accumulatedHeaders.getDataSize() == 0
+                && originalFitsHeaders != null) {
+            return originalFitsHeaders;
+        }
+        return accumulatedHeaders;
+    }
+    
     //
     // Implementation specific methods and variables.
     //
@@ -275,7 +339,12 @@ public class TableSpecDataImpl
      * Reference to the StarTable.
      */
     protected StarTable starTable = null;
-
+    
+   /**
+    * Reference to the original FITS headers of the input FITS file.
+    */
+   protected Header originalFitsHeaders = null;
+   
     /**
      * Writer for tables.
      */
@@ -311,7 +380,11 @@ public class TableSpecDataImpl
         //  is already random.
         try {
             this.starTable = Tables.randomTable( starTable );
-            readTable( -1 );
+          //  if (starTable.getName().equals("SINGLE DISH")) { // read SDFITS format
+         //       readSDTable(-1);
+       //     } else {          
+                readTable( -1 );
+       //     }
         }
         catch (SEDSplatException e) {
             throw e;
@@ -320,6 +393,15 @@ public class TableSpecDataImpl
             throw new SplatException( "Failed to open table: " +
                                       starTable.getName(), e );
         }
+    }
+    
+    /**
+     * Open a table. Throws a SEDSplatException, if the table may be an SED
+     */
+    protected void openTable( StarTable starTable, long row )
+        throws SplatException
+    {
+        // do nothing right now
     }
 
     /**
@@ -526,6 +608,11 @@ public class TableSpecDataImpl
                 ( "Tables must contain at least two numeric columns" );
         }
 
+        if ( coordColumn == dataColumn  ) {
+            throw new SplatException
+                ( "Tables must contain at least two numeric columns" );
+        }
+
         //  No fallback for errors, just don't have any.
         errorColumn =
             TableColumnChooser.getInstance().getErrorMatch( columnInfos,
@@ -533,7 +620,8 @@ public class TableSpecDataImpl
 
         //  Find the size of the table. Limited to 2G cells.
         dims[0] = (int) starTable.getRowCount();
-
+        
+      
         //  If dims is 1, the data could be be vector cells. Allow a test for
         //  that, but we do the next part whenever we have a row.
         if ( dims[0] == 1 && row == -1 ) {
@@ -567,6 +655,8 @@ public class TableSpecDataImpl
         createAst();
     }
 
+ 
+    
     /**
      * Read an array of data from a vector cell. Returns the values as a
      * double array.
@@ -582,14 +672,23 @@ public class TableSpecDataImpl
         catch (IOException e) {
             throw new SplatException( e );
         }
+     
         if ( cellData instanceof double[] ) {
             data = (double []) cellData;
+            for ( int i = 0; i < data.length; i++ ) {
+                if (Double.isNaN(data[i]))
+                    data[i]=SpecData.BAD;
+            }
+            
         }
         else if ( cellData instanceof float[] ) {
             float[] fdata = (float []) cellData;
             data = new double[fdata.length];
             for ( int i = 0; i < fdata.length; i++ ) {
-                data[i] = (double) fdata[i];
+                if ( ! Float.isNaN(fdata[i]))  // NaN values will be BAD. 
+                    data[i] = (double) fdata[i];
+                else 
+                    data[i]=SpecData.BAD;
             }
         }
         else if ( cellData instanceof int[] ) {
@@ -597,6 +696,8 @@ public class TableSpecDataImpl
             data = new double[fdata.length];
             for ( int i = 0; i < fdata.length; i++ ) {
                 data[i] = (double) fdata[i];
+                if (Double.isNaN(data[i]))
+                    data[i]=SpecData.BAD;
             }
         }
         else if ( cellData instanceof long[] ) {
@@ -604,6 +705,8 @@ public class TableSpecDataImpl
             data = new double[fdata.length];
             for ( int i = 0; i < fdata.length; i++ ) {
                 data[i] = (double) fdata[i];
+                if (Double.isNaN(data[i]))
+                    data[i]=SpecData.BAD;
             }
         }
         else if ( cellData instanceof short[] ) {
@@ -611,6 +714,8 @@ public class TableSpecDataImpl
             data = new double[fdata.length];
             for ( int i = 0; i < fdata.length; i++ ) {
                 data[i] = (double) fdata[i];
+                if (Double.isNaN(data[i]))
+                    data[i]=SpecData.BAD;
             }
         }
         else if ( cellData instanceof byte[] ) {
@@ -618,6 +723,8 @@ public class TableSpecDataImpl
             data = new double[fdata.length];
             for ( int i = 0; i < fdata.length; i++ ) {
                 data[i] = (double) fdata[i];
+                if (Double.isNaN(data[i]))
+                    data[i]=SpecData.BAD;
             }
         }
         else {
@@ -680,9 +787,16 @@ public class TableSpecDataImpl
         catch (ClassCastException e) {
             //  Isn't a Number, is it a vector?
             if ( isPrimitiveArray( cellData ) ) {
-                //  Read vector data from first row. XXX handle SED.
-                double newdata[] = readCell( 0, index );
-                System.arraycopy( newdata, 0, data, 0, newdata.length );
+                
+                if (starTable.getRowCount()==1) {
+                                    
+                    //  Read vector data from first row. XXX handle SED.
+                    double newdata[] = readCell( 0, index );
+                    System.arraycopy( newdata, 0, data, 0, newdata.length );
+                } else {
+                    throw new SEDSplatException( dims[0], 
+                    "Table contains vector cells, assuming it is an SED" );
+                }
             }
             else {
                 throw new SplatException
@@ -751,7 +865,8 @@ public class TableSpecDataImpl
 
         //  Base frame. Indices of data values array.
         astref.setCurrent( base );
-        guessUnitsDescription( dataColumn );
+        if (dataColumn >=0)
+              guessUnitsDescription( dataColumn );
 
         //  Set the units and label for data.
         setDataUnits( astref.getUnit( 1 ) );
@@ -759,7 +874,8 @@ public class TableSpecDataImpl
         
         //  Coordinate units.
         astref.setCurrent( current );
-        guessUnitsDescription( coordColumn );
+        if (dataColumn >=0)
+            guessUnitsDescription( coordColumn );
     }
 
     /**

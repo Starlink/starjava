@@ -9,12 +9,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import uk.ac.starlink.registry.ResourceSink;
+
 import uk.ac.starlink.registry.AbstractRegistryClient;
+import uk.ac.starlink.registry.ResourceSink;
 import uk.ac.starlink.registry.SoapClient;
 
 /**
@@ -136,9 +138,7 @@ public class SSAPRegistryClient extends AbstractRegistryClient<SSAPRegResource> 
                 ACCESSURL_PATH,
                 VERSION_PATH,
                 DATASOURCE_PATH,
-                CREATIONTYPE_PATH,                
-           
-               
+                CREATIONTYPE_PATH, 
             } ) );
         }
     
@@ -284,6 +284,7 @@ public class SSAPRegistryClient extends AbstractRegistryClient<SSAPRegResource> 
             resource.setReferenceUrl( rStore.removeScalar( REFURL_PATH ) );
             resource.setSubjects( rStore.removeArray( SUBJECT_PATH ) );
             String status = rStore.removeScalar( STATUS_PATH );
+            resource.setContentType( rStore.removeScalar( DATATYPE_PATH ) );
             resource.setWaveband( wband );
             assert rStore.keySet().isEmpty();
             return resource;
@@ -303,7 +304,7 @@ public class SSAPRegistryClient extends AbstractRegistryClient<SSAPRegResource> 
             cap.setVersion( cStore.removeScalar( VERSION_PATH ) );
             cap.setXsiType( cStore.removeScalar( XSITYPE_PATH ) );
             cap.setDataSource( cStore.removeScalar( DATASOURCE_PATH ) );
-            cap.setDataType( cStore.removeScalar( DATATYPE_PATH ) );
+            
             cap.setCreationType( cStore.removeScalar( CREATIONTYPE_PATH ) );
             assert cStore.keySet().isEmpty();
             return cap;

@@ -67,9 +67,11 @@ public class TableColumnChooser
         addCoordNamePattern( "redshift.*" );
         addCoordNamePattern( "pos.*" );
         addCoordNamePattern( "x*." );
+        addCoordNamePattern( "time*." );
 
         coordUtypePatterns = new ArrayList();
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP
+        addCoordUtypePattern( ".*timeaxis.*" );       // LightCurves
         addCoordUtypePattern( ".*line\\.wavelength" );     // SLAP
 
         dataNamePatterns = new ArrayList();
@@ -215,7 +217,7 @@ public class TableColumnChooser
                                 result = k;
                             }
                             else {
-                                if ( ucd.indexOf( "meta.main" ) > 0 ) {
+                                if ( ucd != null && ucd.indexOf( "meta.main" ) > 0 ) {
                                     result = k;
                                 }
                             }

@@ -10,21 +10,17 @@
 package uk.ac.starlink.splat.vo;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 
 import jsky.coords.DMS;
 import jsky.coords.HMS;
-
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.util.gui.ErrorDialog;
-
-import uk.ac.starlink.vo.RegCapabilityInterface;
-import uk.ac.starlink.vo.RegResource;
 
 /**
  * Construct a URL query for contacting an SSA server. Also hold various
@@ -61,6 +57,9 @@ public class SSAQuery
     /** Radius of the query */
     private double queryRadius = 0.0;
 
+    /** maximum number of records */
+    private int queryMaxrec = 0;
+
     /** The format of any returned spectra, we ask for this. */
     private String queryFormat = null;
 
@@ -84,7 +83,19 @@ public class SSAQuery
 
     /** The StarTable formed from the results of the query */
     private StarTable starTable = null;
+    
+    /** The StarTable formed from the getData Parameters of the query */
+   // private GetDataTable getDataTable = null;
+    
+    /** The DataLink input parameters  */
+    private DataLinkParams dataLinkParams = null;
 
+    /** Extended Query with metadata parameters  */
+    private String extendedQuery = "";
+
+    /** Extended Query with metadata parameters  */
+    private String queryText = "";
+    
     /**
      * Create an instance with the given base URL for an SSA service.
      */
@@ -106,6 +117,7 @@ public class SSAQuery
         this.queryDec = q.queryDec;
         this.targetName = q.targetName; 
         this.queryRadius = q.queryRadius ;
+        this.queryMaxrec = q.queryMaxrec ;
         this.queryFormat = q.queryFormat ;
         this.waveCalib = q.waveCalib ;
         this.fluxCalib = q.fluxCalib ;
@@ -114,6 +126,7 @@ public class SSAQuery
         this.queryTimeUpper = q.queryTimeUpper ;
         this.queryTimeLower = q.queryTimeLower ;
         this.starTable = q.starTable; 
+     //   this.getDataTable = q.getDataTable; 
 
     }
   
@@ -128,7 +141,7 @@ public class SSAQuery
                                                //  interface. 
         this.description = server.getShortName();
     }
-
+   
     /**
      * Set the position used for the query. The values are in degrees and must
      * be in ICRS (FK5/J2000 will do if accuracy isn't a problem). To not
@@ -175,17 +188,25 @@ public class SSAQuery
     {
         this.queryRadius = queryRadius / 60.0;
     }
-
+    /**
+     * Set the maximum numbre of records returned by the query
+     */
+    public void setMaxrec( int maxrec )
+    {
+        this.queryMaxrec = maxrec;
+    }
+    
     /**
      * Set the format that we want the spectra in. For SPLAT we clearly
      * require spectral data in FITS (VOTable will also do when we know how to
      * deal with spectral coordinates), but we cannot use that by default as
      * one of the servers currently doesn't support that query. Formats are
      * MIME types (application/fits, application/x-votable+xml etc.).
+     * @throws UnsupportedEncodingException 
      */
-    public void setFormat( String queryFormat )
+    public void setFormat( String queryFormat ) throws UnsupportedEncodingException
     {
-        this.queryFormat = queryFormat;
+       this.queryFormat = URLEncoder.encode(queryFormat,"UTF-8");
     }
 
     /**
@@ -273,6 +294,38 @@ public class SSAQuery
     }
 
     /**
+     * Set the StarTable created as a result of downloading the VOTables GETDATA table.
+     */
+/*    public void setGetDataTable( GetDataTable gdTable )
+    {
+        this.getDataTable = gdTable;
+    }*/
+
+    /**
+     * Get then getDataTable, if defined, if not return null.
+     */
+ /*   public GetDataTable getGetDataTable()
+    {
+        return getDataTable;
+    }*/
+    
+    /**
+     * Set the DataLink parameters
+     */
+    public void setDataLinkParams( DataLinkParams dlparams )
+    {
+        this.dataLinkParams = dlparams;
+    }
+
+    /**
+     * Get then DataLink parameters, if defined, if not return null.
+     */
+    public DataLinkParams getDataLinkParams()
+    {
+        return dataLinkParams;
+    }
+    
+    /**
      * Get the constructed query as a URL. This should be used to contact the
      * server and the content downloaded as a VOTable (which should then be
      * used to create a StarTable).
@@ -283,6 +336,7 @@ public class SSAQuery
         return new URL(getQueryURLText());
     }
     
+    
     public String getQueryURLText() throws UnsupportedEncodingException
     {
           
@@ -292,9 +346,9 @@ public class SSAQuery
             //  No ? in URL.
             buffer.append( "?" );
         }
-        else if ( ! baseURL.endsWith( "?" ) ) {
-            //  Have ? but not at end.
-            buffer.append( "&" );
+        else if ( ! baseURL.endsWith( "?" ) && !baseURL.endsWith( "&")) {
+            //  Contains ? but not at end. Also doesn't end with &
+                buffer.append( "&" );
         }
         //  Else ends with a ?, so that's OK already.
 
@@ -317,6 +371,8 @@ public class SSAQuery
         }
         if (queryRadius > 0)
             buffer.append( "&SIZE=" + queryRadius );
+        if (queryMaxrec > 0)
+            buffer.append( "&MAXREC=" + queryMaxrec );
 
         //  The spectral bandpass. SSAP spec allows "lower/upper" range,
         //  or bounded from above or below.
@@ -360,6 +416,69 @@ public class SSAQuery
         this.baseURL = rci[0].getAccessUrl();  //  Fudge one capability per   interface. 
         this.description = server.getShortName();
     }
-        
+    
+    public void setServer( String server) {                   
+        this.baseURL = server;   
+    }
+    
+    public String getShortName() {
+        return this.description;
+    }
+    
+    public void setQuery(String q) {
+       this.queryText = q.substring("<SERVER>?".length(), q.length());
+    }
  
+    public String getQueryText() {
+        return this.queryText;
+       
+     }
+   // public String getExtendedQuery() {
+   //     return this.extendedQuery;
+   // }
+    
+    /**
+     * Parse a query line into an array of parameter names 
+     * returns the extended parameters
+     */
+    public ArrayList<String> getParamList( String queryparams) {
+        
+        ArrayList<String> extp = new ArrayList <String>();
+        //String sub = "";
+        String[] paramdata = queryparams.split("&");
+        if (paramdata.length >1)
+            for ( int i = 1; i<paramdata.length; i++) { // the first one is thrown away
+                String param = paramdata[i].substring(0, paramdata[i].indexOf("="));
+                if ( !param.equals("TARGETNAME") && !param.equals("POS") && !param.equals("SIZE") && 
+                        !param.equals("BAND") && !param.equals("TIME") && !param.equals("FORMAT") && 
+                        !param.equals("WAVECALIB") && !param.equals("FLUXCALIB") && !param.equals("MAXREC")) 
+                    extp.add(param);
+            }
+        
+        if (extp.isEmpty())
+            return null;
+        else 
+            return extp;
+    }
+    
+    
+    /**
+     * Returns the full request URL as String
+     */
+    public URL getRequestURL() 
+            throws MalformedURLException, UnsupportedEncodingException
+    {
+        String newURL = this.baseURL;
+        if ( newURL.indexOf( '?' ) == -1 )  //  No ? in URL.
+            newURL += ( "?" );
+        else if ( !newURL.endsWith("?")  && !newURL.endsWith("&")) //? is not at the end
+            newURL += ( "&" );
+           
+        newURL += this.queryText;
+        
+        URL url = new URL (newURL);
+        url.getQuery();
+        return new URL(newURL);
+        
+    }
 }

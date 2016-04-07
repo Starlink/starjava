@@ -10,14 +10,12 @@ package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -31,8 +29,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 
-import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.iface.ProgressPanel;
+import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
 
 /**

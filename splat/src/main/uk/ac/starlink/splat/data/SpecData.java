@@ -204,6 +204,8 @@ public class SpecData
         this.yPosOri = null;
         this.yErr = null;
         this.yErrOri = null;
+        this.xPosG = null;
+        this.yPosG = null;
         this.astJ = null;
         super.finalize();
     }
@@ -372,6 +374,20 @@ public class SpecData
     protected double[] yErr = null;
     protected double[] yErrOri = null;
 
+    /**
+     * The X positions transformed into graphics coordinates.
+     * 
+     * Available after first drawSpec() call.
+     */
+    protected double[] xPosG = null;
+    
+    /**
+     * The Y positions transformed into graphics coordinates.
+     * 
+     * Available after first drawSpec() call.
+     */
+    protected double[] yPosG = null;
+    
     /**
      * Symbolic name of the spectrum.
      */
@@ -666,6 +682,24 @@ public class SpecData
     public double[] getYDataErrors()
     {
         return yErr;
+    }
+    
+    /**
+     * Get references to spectrum X graphics coordinates
+     * 
+     * @return reference to spectrum X graphics coordinates
+     */
+    public double[] getXGraphicsCoordinates() {
+    	return xPosG;
+    }
+    
+    /**
+     * Get references to spectrum Y graphics coordinates
+     * 
+     * @return reference to spectrum Y graphics coordinates
+     */
+    public double[] getYGraphicsCoordinates() {
+    	return yPosG;
     }
 
 
@@ -2324,6 +2358,9 @@ public class SpecData
             xpos[j] = xygpos[0][j];
             ypos[j] = xygpos[1][j];
         }
+
+        xPosG = xpos;
+        yPosG = ypos;
 
         //  Do the same for the clip region.
         Rectangle cliprect = null;

@@ -1,4 +1,22 @@
 1 Starlink SPLAT news.
+   3.11-3
+   ======
+   - Improvements in the ObsCore interface
+   - Several bug fixes
+   - update to Datalink(SODA) protocol changes
+
+   3.11-2
+   ======
+
+   - Several improvements/corrections in services GUI
+   - Query results list witth context menu (info/preview, 
+	copy line to clipboard, download)
+
+   3.11-1
+   ======
+
+   - new server and metadata selection GUI
+   - several problems corrected
 
    3.11-0
    ======
@@ -11,6 +29,81 @@
    SPLAT can run without attempting to communicate with any running
    SAMP hubs.
 
+   
+   3.10-8
+   ======
+
+   - registry interface uses now RegTap
+   - new service and metadata selection GUI
+   - several problems corrected
+
+   3.10-7
+   ======
+
+   - Support for spectra in SDFITS format
+
+
+   3.10-6
+   ======
+
+   - New metadata selection panel. All metadata parameters are listed and can be selected.
+   - Update Datalink parser to changed syntax
+
+   3.10-5
+   ======
+
+   - Splat checks now the http header Content-Type for determining the file format.
+     This solves the problem of error messages when file format not defined.
+
+   3.10-4
+   ======
+
+   Changes: 
+   - Bug correction. DataLink parameters are now properly removed when
+     "Clear Parameters"button is pressed.
+   - Error messages correctios (e.g. if a table contains no data)
+   
+
+   3.10-3
+   ======
+
+   This version introduces new features contributed by David Andresic:
+	- visual selection of spectra 
+	- saving/restoring a stack of spectra using a standard multi-HDU 
+	FITS file
+
+   Several bug corrections from the last versioni has been corrected, 
+   as well as updates for conformity to the DATALINK standard.
+   
+
+   3.10-2
+   ======
+
+   Changes in this version:
+
+	- new feature: Search for spectra using ObsCore/Tap.
+   
+	- getData operation will not be supported anymore, instead the same
+	funcionality will be covered using DATALINK (change is transparent 
+	to the user)
+
+	-  Echelle Spectra: A new data model for chelle spectra has been 
+	introduced, making it possible to download only selected orders.
+
+   3.10-1
+   ======
+
+   This version introduces server-side manipulations using the SSAP getData operation.
+
+   Besides that some improvements have been made in the server selection interface:
+	- User-defined server tags are now saved and loaded next time SPLAT starts.
+	- Added "all theoretical" / "all observational" server options.
+
+   Several bug fixes, including 
+	- correct display of server resources containing more than one SSAP capability
+	- correction of server information display
+
+	- big fix: Exception when querying registry
 
    3.10-0
    ======
@@ -69,9 +162,10 @@
    has been fixed. Previously SPLAT ran out of memory after printing a plot
    around 24 times.
 
+
+
    Post Hikianalia
    Post Kapuahi
-
    3.9-8
    =====
 

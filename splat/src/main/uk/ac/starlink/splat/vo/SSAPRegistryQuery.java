@@ -12,12 +12,13 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import uk.ac.starlink.registry.RegistryRequestFactory;
-import uk.ac.starlink.registry.RegistryQueryException;
 import uk.ac.starlink.registry.SoapClient;
 import uk.ac.starlink.registry.SoapRequest;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.vo.RegistryQuery;
+import uk.ac.starlink.vo.RegResource;
 
 /**
  * Describes a query on a registry.
@@ -25,16 +26,16 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    4 Jan 2005
  */
-public class SSAPRegistryQuery {
+public class SSAPRegistryQuery implements RegistryQuery {
 
     private final SSAPRegistryClient regClient_;
     private final String text_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.splat.vo" );
 
-    private static final String SEARCHABLE_REG_QUERY =
+   private static final String SEARCHABLE_REG_QUERY =
         "capability/@standardID = 'ivo://ivoa.net/std/Registry'" +
-        " AND " +
+       " AND " +
         "capability/@xsi:type LIKE '%:Search'" +
         " AND " +
         "full LIKE 'true'";
@@ -243,99 +244,4 @@ public class SSAPRegistryQuery {
         return text_;
     }
 
-/*******
-    /**
-     * Adapter from BasicResource to RegResource.
-     *
-    private static class SSAPRegResource implements RegResource {
-        private final String title_;
-        private final String shortName_;
-        private final String identifier_;
-        private final String publisher_;
-        private final String contact_;
-        private final String[] subjects_;
-        private final String referenceUrl_;
-        private final RegCapabilityInterface[] caps_;
-
-        /**
-         * Constructor.
-         *
-        SSAPRegRegResource( SSAPRegResource bres ) {
-            title_ = bres.getTitle();
-            shortName_ = bres.getShortName();
-            identifier_ = bres.getIdentifier();
-            publisher_ = bres.getPublisher();
-            contact_ = bres.getContact();
-            subjects_ = bres.getSubjects();
-            referenceUrl_ = bres.getReferenceUrl();
-            SSAPRegCapability[] bcaps = bres.getCapabilities();
-            caps_ = new SSAPRegRegCapability[ bcaps.length ];
-            for ( int ic = 0; ic < bcaps.length; ic++ ) {
-                caps_[ ic ] = new SSAPRegRegCapability( bcaps[ ic ] );
-            }
-        }
-
-        public String getTitle() {
-            return title_;
-        }
-        public String getShortName() {
-            return shortName_;
-        }
-        public String getIdentifier() {
-            return identifier_;
-        }
-        public String getPublisher() {
-            return publisher_;
-        }
-        public String getContact() {
-            return contact_;
-        }
-        public String[] getSubjects() {
-            return subjects_;
-        }
-        public String getReferenceUrl() {
-            return referenceUrl_;
-        }
-        public RegCapabilityInterface[] getCapabilities() {
-            return caps_;
-        }
-    }
-
-    /**
-     * Adapter from BasicCapability to RegCapabilityInterface.
-     *
-    private static class BasicRegCapability implements RegCapabilityInterface {
-        private final String accessUrl_;
-        private final String standardId_;
-        private final String xsiType_;
-        private final String description_;
-        private final String version_;
-
-        /**
-         * Constructor.
-         *
-        SSAPRegRegCapability( SSAPRegCapability bcap ) {
-            accessUrl_ = bcap.getAccessUrl();
-            standardId_ = bcap.getStandardId();
-            xsiType_ = bcap.getXsiType();
-            description_ = bcap.getDescription();
-            version_ = bcap.getVersion();
-        }
-
-        public String getAccessUrl() {
-            return accessUrl_;
-        }
-        public String getStandardId() {
-            return standardId_;
-        }
-        public String getXsiType() {
-            return xsiType_;
-        }
-        public String getDescription() {
-            return description_;
-        }
-        public String getVersion() {
-            return version_;
-        }
-    }*/
 }

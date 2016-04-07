@@ -7,10 +7,17 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.sound.sampled.SourceDataLine;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecList;
+import uk.ac.starlink.splat.iface.SpectrumIO.SourceType;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.plot.PlotControlList;
 import uk.ac.starlink.splat.util.SplatException;
@@ -68,6 +75,11 @@ public class GlobalSpecPlotList
 //  Spectra changes interface.
 //
     protected EventListenerList specListeners = new EventListenerList();
+    
+    /**
+     * Map of PlotControls last used for specific source types
+     */
+    protected Map<SourceType, PlotControl> sourceTypesLastPlots = new HashMap<SourceType, PlotControl>();
 
     /**
      *  Return the number of spectra in the global list.
@@ -163,6 +175,10 @@ public class GlobalSpecPlotList
         return specList.indexOf( shortName );
     }
 
+    public SourceType getSourceType(SpecData spectrum) {
+    	return specList.getSourceType(spectrum);
+    }
+    
     /**
      *  Add a spectrum to the global list. Informs any listeners.
      *
@@ -170,10 +186,22 @@ public class GlobalSpecPlotList
      *
      *  @return index of the spectrum in global list.
      */
-    public int add( SpecData spectrum )
+    public int add( SpecData spectrum ) {
+    	return add(spectrum, SourceType.UNDEFINED);
+    }
+    
+    /**
+     *  Add a spectrum to the global list. Informs any listeners.
+     *
+     *  @param spectrum reference to a SpecData object.
+     *  @param sourceType source typefrom which the spectra came from
+     *
+     *  @return index of the spectrum in global list.
+     */
+    public int add( SpecData spectrum, SourceType sourceType )
     {
         if ( spectrum != null ) {
-            int index = specList.add( spectrum );
+            int index = specList.add( spectrum , sourceType);
             fireSpectrumAdded( index );
             return index;
         }
@@ -189,10 +217,24 @@ public class GlobalSpecPlotList
      *
      *  @return index of the spectrum in global list, or -1.
      */
-    public int add( int index, SpecData spectrum )
+    public int add( int index, SpecData spectrum ) {
+    	return add(index, spectrum, SourceType.UNDEFINED);
+    }
+    
+    /**
+     *  Replace or add a spectrum. Informs any listeners of change.
+     *
+     *  @param index index of the spectrum to replace. Appended to end
+     *               if index not used.
+     *  @param spectrum reference to a SpecData object.
+     *  @param sourceType source typefrom which the spectra came from
+     *
+     *  @return index of the spectrum in global list, or -1.
+     */
+    public int add( int index, SpecData spectrum, SourceType sourceType )
     {
         if ( spectrum != null ) {
-            index = specList.add( index, spectrum );
+            index = specList.add( index, spectrum, sourceType );
             fireCurrentSpectrumChanged();
             return index;
         }
@@ -497,6 +539,26 @@ public class GlobalSpecPlotList
     }
 
     /**
+     * 
+     * @param sourceType
+     * @return PlotControl that has been used for the sourceType last time (or NULL if none)
+     */
+    public PlotControl getLastPlotForSourceType(SourceType sourceType) {
+
+    	PlotControl plotControl = sourceTypesLastPlots.get(sourceType);
+    	if (plotControl != null) {
+    		if (!((JFrame) SwingUtilities.getWindowAncestor(plotControl)).isVisible())
+    			return null;
+    	}
+
+    	return plotControl;
+    }
+    
+    public void setLastPlotForSourceType(SourceType sourceType, PlotControl plot) {
+    	sourceTypesLastPlots.put(sourceType, plot);
+    }
+    
+    /**
      *  Add a plot (immediately after creation).
      *
      *  @param plot reference to a PlotControl object.
@@ -506,6 +568,7 @@ public class GlobalSpecPlotList
     public int add( PlotControl plot )
     {
         int index = plotList.add( plot );
+        noteLastPlotForSourceType(plot, plot.getSpecDataComp().get());
         firePlotCreated( index );
         return index;
     }
@@ -533,7 +596,9 @@ public class GlobalSpecPlotList
     public void addSpectrum( int plotIndex, SpecData spectrum )
         throws SplatException
     {
-        ((PlotControl)plotList.get( plotIndex )).addSpectrum( spectrum );
+        PlotControl plot = ((PlotControl)plotList.get( plotIndex ));
+        plot.addSpectrum( spectrum );
+        noteLastPlotForSourceType(plot, spectrum);
         firePlotChanged( plotIndex );
     }
 
@@ -546,7 +611,9 @@ public class GlobalSpecPlotList
     public void addSpectra( int plotIndex, SpecData spectra[] )
         throws SplatException
     {
-        ((PlotControl)plotList.get( plotIndex )).addSpectra( spectra );
+    	PlotControl plot = ((PlotControl)plotList.get( plotIndex ));
+    	plot.addSpectra( spectra );
+        noteLastPlotForSourceType(plot, spectra);
         firePlotChanged( plotIndex );
     }
 
@@ -560,6 +627,7 @@ public class GlobalSpecPlotList
         throws SplatException
     {
         plot.addSpectrum( spectrum );
+        noteLastPlotForSourceType(plot, spectrum);
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
     }
@@ -573,7 +641,8 @@ public class GlobalSpecPlotList
     public void addSpectra( PlotControl plot, SpecData spectra[] )
         throws SplatException
     {
-        plot.addSpectra( spectra );
+    	plot.addSpectra( spectra );
+        noteLastPlotForSourceType(plot, spectra);
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
     }
@@ -589,6 +658,7 @@ public class GlobalSpecPlotList
     {
         SpecData spectrum = getSpectrum( specIndex );
         plot.addSpectrum( spectrum );
+        noteLastPlotForSourceType(plot, spectrum);
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
     }
@@ -607,6 +677,7 @@ public class GlobalSpecPlotList
             spectra[i] = getSpectrum( specIndices[i] );
         }
         plot.addSpectra( spectra );
+        noteLastPlotForSourceType(plot, spectra);
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
     }
@@ -623,6 +694,7 @@ public class GlobalSpecPlotList
         SpecData spectrum = getSpectrum( specIndex );
         PlotControl plot = getPlot( plotIndex );
         plot.addSpectrum( spectrum );
+        noteLastPlotForSourceType(plot, spectrum);
         firePlotChanged( plotIndex );
     }
 
@@ -641,6 +713,7 @@ public class GlobalSpecPlotList
         }
         PlotControl plot = getPlot( plotIndex );
         plot.addSpectra( spectra );
+        noteLastPlotForSourceType(plot, spectra);
         firePlotChanged( plotIndex );
     }
 
@@ -806,5 +879,23 @@ public class GlobalSpecPlotList
                 ((PlotListener)listeners[i+1]).plotChanged( e );
             }
         }
+    }
+    
+    /**
+     * Creates a reference to the PlotControl that has been
+     * used for a spectra's source type last time
+     */
+    protected void noteLastPlotForSourceType(PlotControl plot, SpecData spectrum) {
+    	sourceTypesLastPlots.put(getSourceType(spectrum), plot);
+    }
+    
+    /**
+     * Creates a reference to the PlotControl that has been
+     * used for a spectra's source type last time
+     */
+    protected void noteLastPlotForSourceType(PlotControl plot, SpecData[] spectra) {
+    	for (int i = 0; i < spectra.length; i++) {
+    		sourceTypesLastPlots.put(getSourceType(spectra[i]), plot);
+    	}
     }
 }

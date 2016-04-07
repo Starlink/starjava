@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import uk.ac.starlink.datanode.factory.CreationState;
@@ -29,8 +30,8 @@ import uk.ac.starlink.datanode.nodes.VOTableTableDataNode;
 import uk.ac.starlink.datanode.nodes.XMLDataNode;
 import uk.ac.starlink.datanode.nodes.ZipFileDataNode;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.splat.data.SpecData;
-import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.util.ConstrainedList;
+import uk.ac.starlink.splat.util.ConstrainedList.ConstraintType;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -115,26 +116,48 @@ public class SplatDataNode
     }
 
     /**
-     * Turns a DataNode object into a {@link SpecData} instance.
+     * Turns a DataNode object into a {@link SpecData} instance 
+     * (first found if multiple SpecData instances are detected).
      *
      * @param  node  the data node
      * @return SpecData made from <tt>node</tt>
      * @throws IOException if there's trouble
      */
     public static SpecData makeSpecData( DataNode node )
-        throws IOException, SplatException
+            throws IOException, SplatException
     {
+        List<SpecData> specDataList = makeSpecDataList(node);
+        if (specDataList != null && !specDataList.isEmpty())
+            return specDataList.get(0);
+        else
+            return null;
+    }
+
+    /**
+     * Turns a DataNode object into a List of {@link SpecData} instances.
+     *
+     * @param  node  the data node
+     * @return List of SpecData made from <tt>node</tt>
+     * @throws IOException if there's trouble
+     */
+    public static List<SpecData> makeSpecDataList( DataNode node )
+            throws IOException, SplatException
+    {
+        List<SpecData> specDataList = new ConstrainedList<SpecData>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+        
         if ( isChoosable( node ) ) {
 
             // StarTable.
             if ( node.hasDataObject( DataType.TABLE ) ) {
-                return makeSpecDataFromTable( node );
+                specDataList.add(makeSpecDataFromTable( node ));
+                return specDataList;
             }
 
             // VOTable
             if ( node instanceof VOTableDataNode ||
-                 node instanceof VOTableTableDataNode ) {
-                return makeSpecDataFromVOTable( node );
+                    node instanceof VOTableTableDataNode ) {
+                specDataList.add(makeSpecDataFromVOTable( node ));
+                return specDataList;
             }
 
             // FITS file (local).
@@ -152,8 +175,9 @@ public class SplatDataNode
                     file = (File) obj;
                 }
                 if ( file != null ) {
-                    return specFactory.get( file.getPath(),
-                                            SpecDataFactory.FITS );
+                    specDataList.addAll(specFactory.getAll( file.getPath(),
+                            SpecDataFactory.FITS ));
+                    return specDataList;
                 }
             }
 
@@ -172,14 +196,16 @@ public class SplatDataNode
                     file = (File) obj;
                 }
                 if ( file != null ) {
-                    return specFactory.get( file.getPath(),
-                                            SpecDataFactory.TABLE );
+                    specDataList.add(specFactory.get1( file.getPath(),
+                            SpecDataFactory.TABLE ));
+                    return specDataList;
                 }
             }
 
             // NDX.
             if ( node.hasDataObject( DataType.NDX ) ) {
-                return makeSpecDataFromNdx( node );
+                specDataList.add(makeSpecDataFromNdx( node ));
+                return specDataList;
             }
 
             // Text file? Suck and see. Note backing must be a file.
@@ -194,14 +220,16 @@ public class SplatDataNode
                     file = (File) datsrc;
                 }
                 if ( file != null ) {
-                    return specFactory.get( file.getPath(),
-                                            SpecDataFactory.TEXT );
+                    specDataList.add(specFactory.get1( file.getPath(),
+                            SpecDataFactory.TEXT ));
+                    return specDataList;
                 }
             }
 
             // Zipped file. Only supported as tables, so try that.
             if ( node instanceof ZipFileDataNode ) {
-                return makeSpecDataFromTable( node );
+                specDataList.add(makeSpecDataFromTable( node ));
+                return specDataList;
             }
         }
         else {

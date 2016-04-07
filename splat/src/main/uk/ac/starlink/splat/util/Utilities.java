@@ -7,13 +7,22 @@
  */
 package uk.ac.starlink.splat.util;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
-import javax.swing.JComponent;
-import javax.swing.JViewport;
 import java.util.prefs.Preferences;
+
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.JViewport;
+
+import uk.ac.starlink.splat.vo.SSAQueryResultsTableSelectionMenu;
 
 /**
  * Class of static members that provide utility functions. The major
@@ -97,7 +106,7 @@ public class Utilities
      */
     public static String getAuthors()
     {
-        return "Peter W. Draper, Mark B. Taylor &amp; Margarida Castro Neves";
+        return "Peter W. Draper, Mark B. Taylor, Margarida Castro Neves &amp; David Andresic";
     }
 
     /**
@@ -453,5 +462,79 @@ public class Utilities
             onetwo[j++] = two[i];
         }
         return onetwo;
+    }
+    
+    /**
+     * Inverts color parsed as integer
+     * 
+     * @param color 
+     * @return inverted color as integer
+     * @see java.awt.Color
+     */
+    public static int invertColor(int color) {
+    	Color origColor = new Color(color);
+    	
+    	/*
+    	 * color's integer has format:
+    	 * red: bits  16-23
+    	 * green: bits 8-15
+    	 * blue: bits 0-7
+    	 * 
+    	 * so we need to invert the individual components (R,G,B)
+    	 * and put them to their decade
+    	 */
+    	
+    	int invertedRed = ((255 - origColor.getRed()) * 65536);
+		int invertedGreen = ((255 - origColor.getGreen()) * 256);
+		int invertedBlue = ((255 - origColor.getBlue()));
+		
+		return invertedRed + invertedGreen + invertedBlue;
+    }
+    
+    /**
+     * Adds the given String to clipboard
+     * @param selection
+     */
+    public static void addStringToClipboard(String selection) {
+		StringSelection content = new StringSelection(selection);     
+
+        final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(content, content);
+	}
+    
+    /**
+     * Generates an array of integers in range from 'from' to 'to'-1;
+     * 
+     * @param from
+     * @param to
+     * @return
+     */
+    public static int[] range(int from, int to) {
+    	if (from > to) {
+    		throw new IllegalArgumentException(String.format("Invalid 'from' (%d) and 'to' (%d) values.", from, to));
+    	}
+    	
+    	int count = to-from;
+    	int[] r = new int[count];
+    	
+    	for (int i = 0; i < count; i++) {
+    		r[i] = from;
+    		from++;
+    	}
+    	
+    	return r;
+    }
+    
+    /**
+     * Checks whether the given object is null 
+     * 
+     * @param object
+     * @param exceptionMessage
+     * @throws IllegalArgumentException
+     */
+    public static void checkObject(Object object, String exceptionMessage) {
+    	if (object == null) {
+    		throw new IllegalArgumentException(exceptionMessage);
+    	}
     }
 }

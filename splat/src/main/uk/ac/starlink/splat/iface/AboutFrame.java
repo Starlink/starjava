@@ -53,7 +53,7 @@ public class AboutFrame extends JDialog
     protected static final ImageIcon splatImage =
         new ImageIcon( ImageHolder.class.getResource( "hsplat.gif" ) );
     protected static final ImageIcon starlinkImage =
-        new ImageIcon( ImageHolder.class.getResource( "starlink_logo_small.gif" ) );
+        new ImageIcon( ImageHolder.class.getResource( "starlink_gavo_thumb.gif" ) );
 
     protected String description =
         "<body> <html>" +

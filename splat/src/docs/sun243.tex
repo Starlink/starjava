@@ -18,7 +18,7 @@
 \stardocauthors     {Peter W. Draper, Mark Taylor \& Margarida Castro Neves}
 \stardocdate        {1 May 2015}
 \stardoctitle       {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\stardocversion     {3.11-0}
+\stardocversion     {3.11-2}
 \stardocmanual      {User's Manual}
 \stardocabstract {
 \xlabel{abstract}
@@ -51,7 +51,7 @@ spectra that can also interact with the Virtual Observatory.
 \providecommand{\clippedmainfigure}[1]
 {\begin{quote}
     \ifpdf
-    \includegraphics[scale=0.5,clip=true]{sun243_figures/#1.eps}
+    \includegraphics[scale=0.5,clip=true]{sun243_figures/#1}
     \else
     \includegraphics{#1}
     \fi
@@ -91,7 +91,6 @@ spectra that can also interact with the Virtual Observatory.
 
 % End of document specific commands
 % -----------------------------------------------------------------------------
-
 \begin{document}
 
 % In html version, use gif as higher priority than png in order to
@@ -109,7 +108,7 @@ spectra that can also interact with the Virtual Observatory.
 \section{Overview\xlabel{overview}}
 
 \SPLAT\ is a graphical tool for displaying, comparing, modifying and analysing
-astronomical spectra stored in FITS, TEXT and NDF/NDX format. It can read
+astronomical spectra stored in FITS, VOTABLE, TEXT and NDF/NDX format. It can read
 spectra from local disk files, download them over the Internet, or it can
 interact with the Virtual Observatory and query servers for spectral data in a
 region of the sky.
@@ -164,6 +163,13 @@ support email list at:
    starlink@jiscmail.ac.uk
 \end{terminalv}
 \end{quote}
+or to the \SPLAT\ mailing-list at:
+\begin{quote}
+\begin{terminalv}
+http://lists.g-vo.org/cgi-bin/mailman/listinfo/splat-users
+\end{terminalv}
+\end{quote}
+
 where hopefully someone can help you.
 
 \section{Getting started\xlabel{getting_started}}
@@ -173,6 +179,7 @@ how to display many spectra. If you're new to \SPLAT\ then do take the
 time to read these through and try out the example commands.
 
 \newpage
+
 \subsection{Displaying a spectrum\xlabel{displaying_a_spectrum}}
 
 To start \SPLAT\ you should just need to type the command:
@@ -219,7 +226,7 @@ the command-line:
 \end{quote}
 Which will read the spectrum stored in the named file. \SPLAT\ will read
 spectra stored in most astronomical formats (Starlink NDF, FITS spectra and
-tables, simple TEXT files).
+tables, VOTables, simple TEXT files).
 
 Now that you've actually read in a spectrum it will be immediately
 displayed in a `plot'. Have a look at this plot window briefly, if you
@@ -323,7 +330,16 @@ spectrum from a plot. The first thing to do is select a spectrum in the
 this shows its properties in the
 \labelitem{Properties of current spectra:}
 side of the browser window, including which views
-are being made (\ie\ which plots are displaying it). To add or remove
+are being made (\ie\ which plots are displaying it). 
+
+If you click on one of the displayed
+spectra on a plot, the respective entry in the \labelitem{Global list of
+spectra:} will be highlighted. By clicking on 
+an entry at the \labelitem{Global list of
+spectra:}, the respective plotted spectrum will
+blink a few times (if it's plotted). 
+
+To add or remove
 a spectrum from a plot you need to click on the square shown in the
 \labelitem{Displayed} column, so that it becomes ticked or unticked. See
 in the following image that \hitext{test spectrum 2} is currently
@@ -412,7 +428,7 @@ in the following figure:
 
 \subheading{Global list of spectra}
 \begin{quote}
- In the \labelitem{Global list of spectra} short names for each
+ In the \labelitem{Global list of spectra} short names for each5
  spectra are shown. The short names are intended to allow the quick
  identification of spectra and can be modified at any time by
  selecting the name and then typing a new name in the
@@ -494,6 +510,10 @@ in the following figure:
 
   \item[\inline{ssap}] Query any known Simple Spectral Access Protocol (SSAP)
   servers about spectra that they hold on a region of the sky and download
+  these to \SPLAT. This tool provides access to the Virtual Observatory.
+  
+   \item[\inline{obscore}] Query any known Observation Data Model Core (ObsCore)
+  spectral services using the Table Access Protocoll (TAP)  and download
   these to \SPLAT. This tool provides access to the Virtual Observatory.
 
   \item[\inline{browse}] Browse a hierarchy of files. This dialogue can be used
@@ -602,7 +622,7 @@ in the following figure:
  coordinate system (like GRID to see the channel numbers), it might fail, so
  switching this off gives you complete control. This option can also be
  enabled using the \verb+-k,--keepcoords+ switches on the command-line.
-
+\\
 \end{quote}
 
 \subheading{Accelerator keys}
@@ -1192,10 +1212,10 @@ these servers you want to query. That is important if you are only interested
 in spectra covering specific wavelengths or types of observations. These
 searches can be further refined using additional parameters like a range of
 wavelengths or times. Addtional \labelitem{Optional Parameters} are also
-provided for even more refinement, but note these may not be supported by all
+provided for even more refinement, but note that these may not be supported by all
 SSAP servers.
 
-\clippedmainfigure{ssapwindow}
+\mainfigure{ssapwindow}
 
 The figure above shows the window after a query has been made.  The window is
 divided in three main areas.  The left area is the SSAP server selection area,
@@ -1206,21 +1226,19 @@ area, showing the query results.
 
 \subheading{Server selection}
 
-When clicking on a server in the SSAP Servers list you can see all information
-stored about this server.  A subset of servers can be selected by data source
-(theory, survey, pointed, custom, artificial) or by waveband. It is also
-possible to add a tag to servers, so only the tagged servers will be queried
-if the tag is selected. Servers are added to a tag by selecting them in the
-\labelitem{SSAP Servers} list and then creating the tag.
-
+You can select one or more servers from the \labelitem{SSAP Servers} list by clicking
+on them.
+It's  also possible to select a subset of servers based on their given metadata. Selection can be
+made according to data source (observation or theory data), and waveband.
+It's also possible to add tags to one or more servers,  so only the tagged servers will be 
+queried if the tag is selected.
+When right-clicking on a server in the \labelitem{SSAP Servers} list you get a popup menu
+containing options  to tag,  to remove, or to see information on the service.   
 To add a new SSAP server, which is currently unknown to the VO, to the current
-server list, click on the \labelitem{+} button. A new window will open where
-the information about the new server can be filled in.  Servers can also be
-removed from the list with \labelitem{Remove selected} 
-and \labelitem{Remove unselected} buttons.  The \labelitem{Query registry} 
+server list, click on the \labelitem{Add New Server} button. A new window will open where
+the information about the new server can be filled in.  The \labelitem{Query registry} 
 allows you to query a VO registry for a list of all the SSAP servers it
 has registered.
-
 
 \subheading{SSAP query}
 
@@ -1241,16 +1259,15 @@ to include by setting just a lower limit).
 The \labelitem{Time} entries define either a time that should match the
 time the spectra where taken, or a range in which they should match (again
 not all servers support this option).
-
+The \labelitem{MAXREC} field will define the maximum number of spectra that will 
+be retrieved from each selected service.
 The file format, wavelength and flux calibration options can also be chosen.
 If the value is "None", the query will not contain these parameters.
 
 Besides the mandatory parameters, some servers also support a set of other
-metadata parameters. By clicking \labelitem{Add Parameter} a list of all
-supported parameters supported by the selected SSAP servers will be displayed,
-and one can be chosen.  The chosen parameters will appear in the optional
-parameters list. If provided, the default values will be inserted into the
-value field. The checked parameters having a non empty value field will be
+metadata parameters. The \labelitem{Optional Parameters} panel shows the
+metadata parameter supported by at least one of the selected services.
+The checked parameters having a non empty value field will be
 added to the query.
 
 Once you have identified the region to search or object press the green
@@ -1258,13 +1275,18 @@ Once you have identified the region to search or object press the green
 these queries it may be necessary for you to tell \SPLAT\ about your local
 web-proxy server (this is the same as that you use in your Internet browser),
 select the \submenuitem{Options}{Configure proxy...} item to do this.
+ 
 
 \subheading {Query results}
 
 Once the SSAP query is complete lists of spectra that the servers hold will be
 shown in the \labelitem{Query results:} region. There is a tab of results for
-each server. If the tab is empty then the server has no spectra for the
-selected region.
+each server.  If no tab has been created for a selected server, then the server 
+has no spectra for the selected region or is not available at the moment.
+
+When right-clicking on a spectra, a popup menu will appear. From this menu you can
+download or display the spectrum, see its fields (and, if supported, see a preview), or
+copy the contents of the current table, line or cell to the clipboard.
 
 The next action is to select which spectra you want to download and view in
 \SPLAT. If you press \labelitem{Display all} then all the spectra from all the
@@ -1287,6 +1309,11 @@ item is still switched on in the plot window.
 To view a single spectrum quickly just double click on its row. This will
 download the spectrum and display it in its own plot window.\\
 
+\subheading{Server-side manipulation with DataLink}
+
+\SPLAT\ supports server-side manipulation through \textbf{DataLink}. After a SSAP Query is sent, \SPLAT\ checks the responding servers for  \textbf{DataLink} parameters, and marks them with a symbol (\inline{cutter}). If  at least one \textbf{DataLink} supporting server has been found, a \textbf{DataLink} button will appear below the query results. By clicking on it, \textbf{DataLink}. will be activated, and all results tabs will be deactivated except the results from servers that support \textbf{DataLink}. When you choose one of the active services, a window will appear, where the respective parameters for sever-side manipulation can be entered. The parameters will be set by clicking on the \textbf{set parameters} button. While  \textbf{dataLink} is activated and the parameters are set, the spectra you select and display or download will be manipulated using the chosen parameters. To deactivate \textbf{dataLink} and have retrieve the original spectra just click on the \textbf{dataLink} button again.
+\mainfigure{datalinkparams}
+
 \subheading{Implementation status}
 
 SSAP is a protocol being developed by the IVOA
@@ -1294,7 +1321,7 @@ SSAP is a protocol being developed by the IVOA
 {http://www.ivoa.net/}).
 
 Currently spectra returned from SSAP servers may only be in basic formats,
-that is simple FITS and VOTables (not the full SED data model serialisation).
+that is simple FITS and VOTables (partially some SED data model serialisation).
 However, the \SPLAT\ data model includes errors as well as coordinates and
 data values.
 
@@ -1311,6 +1338,9 @@ Conversion between fluxes is currently restricted to flux per unit wavelength
 and flux per unit frequency is provided and does not require any `dimensional
 analysis' information to be present, just correctly formed units strings.
 
+Server metadata information is provided by the respective maintainers, and may
+not be complete or accurate.
+
 \subheading{Accelerator keys}
 
 \begin{itemize}
@@ -1318,6 +1348,59 @@ analysis' information to be present, just correctly formed units strings.
 \item \labelitem{F1} Display help on \SPLAT.
 \item \labelitem{Shift-F1} Display help on window.
 \end{itemize}
+
+\newpage
+\subsection{Query VO using ObsCore TAP}{\xlabel{obscore_window}}
+
+Besides SSAP, SPLAT can also query VO services supporting \textbf{ObsCore }
+(Observation Data Model Core) components via TAP (Table Access Protocol).
+This services are known as ObsTAP services. There are two ways of doing that
+in \SPLAT\, by using a cone search interface, like the SSAP query, or by sending an ADQL
+query. ADQL stands for Astronomical Data Query Language, based on SQL. There
+are introductions and tutorials for ADQL for instance at http://docs.g-vo.org/adql (Markus Demleitner)
+or http://is.gd/ADQLTutorial (Simon Murphy).
+
+\subheading{Server Selection}
+The server selection interface works in the same way as the server selection in the
+SSAP window. Just that the servers list contains ObsTap services instead of SSAP services,
+and there are no optional parameters, as all parameters can be queried using TAP.
+
+\subheading{Simple Search}
+The simple search interface uses the same parameters as the SSAP cone search, with the same
+functionality. 
+
+\mainfigure{obscoresimple}
+
+\subheading{ADQL Search}
+The ADQL search is more flexible and more powerful than the simple cone search.
+The main part is a text area, which can be edited. The beginning of the query
+\begin{verbatim}
+SELECT TOP 10000 * from ivoa.Obscore WHERE dataproduct_type='spectrum' 
+\end{verbatim}
+will get the first 10000 spectra from the selected servers. The TOP value may be changed to 
+another value, if necessary. This query should be then refined or completed, either by choosing the 
+parameters and expressions from the options provided (which will create a simple query) or
+by editing directly the  the text area.  Please refer to the ObsCore standard for the available parameters.
+(http://www.ivoa.net/documents/ObsCore/).
+\mainfigure{obscoreadql}
+The example below shows a query for spectra including 6500 angstroms, spectral resolution better than 15 angstroms, spatial 
+resolution better than 2 arcseconds FWHM, and exposure time longer that 3600 seconds:
+\begin{verbatim}
+SELECT * from ivoa.Obscore
+WHERE dataproduct_type='spectrum'
+AND em_min < 650E-9
+AND em_max > 650E-9
+AND em_res_power > 6500/15.
+AND s_resolution < 2
+AND t_exptime > 3600
+\end{verbatim}
+
+\subheading{Implementation status}
+
+ObsCore and TAP are  being developed by the IVOA
+(\htmladdnormallinkfoot{International Virtual Observatory Alliance}
+{http://www.ivoa.net/}).
+
 
 \newpage
 \subsection{The animation window\xlabel{animation_window}}

@@ -12,6 +12,11 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -21,25 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-import org.apache.commons.codec.binary.Base64;
-
-import sun.misc.BASE64Encoder;
-import uk.ac.starlink.splat.data.NameParser;
 import uk.ac.starlink.splat.iface.ProgressPanel;
-import uk.ac.starlink.splat.util.SplatException;
-
-import java.io.IOException;
-import java.net.Authenticator;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.PasswordAuthentication;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Logger;
 /**
  * Class Authenticator
  * 

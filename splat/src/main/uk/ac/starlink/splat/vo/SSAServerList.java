@@ -18,13 +18,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.logging.Logger;
 
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.BeanStarTable;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.vo.RegResource;
 
 /**
@@ -40,15 +44,88 @@ import uk.ac.starlink.vo.RegResource;
 public class SSAServerList
 {
     private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
-    private HashMap<String, Boolean> selectionList = new HashMap<String, Boolean>();
-    private static String configFile = "SSAPServerListV3.xml";
+   
+ //   private HashMap<String, Boolean> selectionList = new HashMap<String, Boolean>();
+    private static String oldconfigFile = "SSAPServerListV3.xml";
+    private static String configFile = "SSAPServerListV4.xml";
     private static String defaultFile = "serverlist.xml";
+    
+    // Logger.
+    private static Logger logger =
+            Logger.getLogger( "uk.ac.starlink.splat.vo.SSAServerList" );
+
 
     public SSAServerList()
         throws SplatException
     {
         restoreKnownServers();
     }
+    
+    public SSAServerList(StarTable table)  throws SplatException
+    {    
+            addNewServers(table);      
+    }
+
+
+
+    public void addNewServers(StarTable table ) {
+
+        if ( table != null ) {
+          
+            // now add  the new ones
+            if ( table instanceof BeanStarTable ) {
+                Object[] resources = ((BeanStarTable)table).getData();
+                for ( int i = 0; i < resources.length; i++ ) {
+
+                    SSAPRegResource server = (SSAPRegResource)resources[i];
+                    String shortname = server.getShortName();
+                    if (shortname == null || shortname.length()==0)
+                        shortname = server.getTitle(); // avoid problems if server has no name (should not happen, but it does!!!)
+                    SSAPRegCapability caps[] = server.getCapabilities();
+                    int nrcaps = server.getCapabilities().length;
+                    int nrssacaps=0;
+                    // create one serverlist entry for each ssap capability  !!!! TO DO DO THIS ALREADY ON SSAPREGISTRYQUERY!
+                    for (int c=0; c< nrcaps; c++) {
+                //       String xsi= caps[c].getXsiType();
+                //       if (xsi != null && xsi.startsWith("ssa")) {
+                        SSAPRegResource ssapserver = new SSAPRegResource(server);
+                        SSAPRegCapability onecap[] = new SSAPRegCapability[1];
+                        onecap[0] = caps[c];  
+                        String name = shortname;
+                        ssapserver.setCapabilities(onecap);
+                        if (nrssacaps > 0) 
+                            name =  name + "(" + nrssacaps + ")";
+                        ssapserver.setShortName(name);
+                        addServer( ssapserver, false );
+                        nrssacaps++;
+                   }                    
+                }
+            }
+        }      
+        
+    }
+    
+    // add new servers - Before adding, remove all old entries except the manually added ones
+    
+    public void addNewServers(StarTable table, ArrayList<String> manuallyAddedServices) {
+        
+        
+        HashMap<String, SSAPRegResource> newServerList = new HashMap<String, SSAPRegResource>();
+        if (manuallyAddedServices != null) {
+
+            for (int i=0;i<manuallyAddedServices.size(); i++) {
+                String key=manuallyAddedServices.get(i);
+                newServerList.put(key, serverList.get(key));
+            }
+            serverList.clear();
+            serverList = newServerList;
+        } else {
+            serverList.clear();
+        }
+        addNewServers(table);
+
+    }
+
 
     /**
      * Add an SSA server to the known list.
@@ -57,6 +134,7 @@ public class SSAServerList
      */
     public void addServer( SSAPRegResource server )
     {
+        
         addServer( server, true );
     }
 
@@ -68,7 +146,18 @@ public class SSAServerList
      */
     protected void addServer( SSAPRegResource server, boolean save )
     {
-        serverList.put( server.getShortName(), server );
+
+     
+        String shortname = server.getShortName();
+           if (shortname != null)
+               shortname = shortname.trim();
+           else shortname = server.getTitle();
+           SSAPRegResource resource = serverList.get(shortname);
+        if (resource != null && ! resource.getIdentifier().equals( server.getIdentifier()) ) { // there could be more than one service with same shortname
+            shortname=shortname+"+";
+            server.setShortName(shortname);
+        }
+        serverList.put( shortname, server );
         if ( save ) {
             try {
                 saveServers();
@@ -86,10 +175,16 @@ public class SSAServerList
      */
     public void removeServer( SSAPRegResource server )
     {
-        serverList.remove( server.getShortName() );
+        String shortname = server.getShortName();
+        if (shortname != null)
+              shortname = shortname.trim();
+        serverList.remove( shortname );
+      
     }
     public void removeServer( String shortName )
     {
+        if (shortName != null)
+           shortName = shortName.trim();
         serverList.remove( shortName );
     }
 
@@ -148,8 +243,25 @@ public class SSAServerList
      */
     public SSAPRegResource getResource(String shortname)
     {
+        if (shortname != null)
+           shortname = shortname.trim();
         return (SSAPRegResource) serverList.get(shortname);
     }
+    
+    /**
+     * Return a {@link SSAPRegResource} instance matching the short name given
+     * current list of servers.
+     * @param shortname
+     */
+    public String getBaseURL(String shortname)
+    {
+        if (shortname != null)
+            shortname = shortname.trim();
+        SSAPRegResource res = (SSAPRegResource) serverList.get(shortname);
+        SSAPRegCapability[] cap = res.getCapabilities();
+        return cap[0].getAccessUrl();
+    } 
+
 
     /**
      * Initialise the known servers which are kept in a resource file along
@@ -184,6 +296,8 @@ public class SSAServerList
                 e.printStackTrace();
             }
         }
+        
+         
 
         //  If the restore of the user file failed, or it doesn't exist use
         //  the system default version.
@@ -260,11 +374,10 @@ public class SSAServerList
         while ( true ) {
             try {
                 server = (SSAPRegResource) decoder.readObject();
-                String name = server.getShortName();
-                if (name == null || name.length()==0)
-                    name = "<>";
-                serverList.put( name, server );
-                selectionList.put(name, true );
+                addServer(server, false);
+                
+               // serverList.put( name, server );
+                //selectionList.put(name, true );
             }
             catch( ArrayIndexOutOfBoundsException e ) {
                 break; // End of list.
@@ -326,12 +439,13 @@ public class SSAServerList
         //  Note these have to be SSAPRegResource instances, not RegResource.
         //  So that they can be serialised as beans.
         SSAPRegResource server = null;
-        SSAPRegResource resource = null;
+        
         while ( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
             try {
-                resource = new SSAPRegResource( server );
+                SSAPRegResource resource = new SSAPRegResource( server );
                 encoder.writeObject( resource );
+             //   encoder.writeObject( resource.getMetadata());
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -344,26 +458,67 @@ public class SSAServerList
         return serverList.size();
     }
     
+    // add new value to metadata list in servers
+    public void addMetadata(MetadataInputParameter mip) {
+
+
+        ArrayList<String> servers = (ArrayList<String>) mip.getServers(); // list of shortnames 
+        for (int i=0;i<servers.size();i++) {
+            SSAPRegResource srv = getResource(servers.get(i)); 
+            ArrayList<MetadataInputParameter> srvmeta = (ArrayList<MetadataInputParameter>) srv.getMetadata();
+            for (int j=0;j<srvmeta.size();j++) {
+                MetadataInputParameter srvmip = srvmeta.get(j);
+                if (srvmip.getName().equals(mip.getName())) {
+                    srvmeta.set(j, mip);
+                }
+            }
+            srv.setMetadata(srvmeta);
+            serverList.put(servers.get(i), srv);
+        }
+    }
+
+   
     /**
      * set selection tag
-     */
+     *
      public void selectServer(String shortname) {
+         if (shortname != null)
+            shortname = shortname.trim();
          if (serverList.containsKey(shortname))
                  selectionList.put(shortname, true);
      }
      /**
       * set selection tag
-      */
+      *
       public void unselectServer(String shortname) {
+          if (shortname != null)
+              shortname = shortname.trim();
           if (serverList.containsKey(shortname))
                   selectionList.put(shortname, false);
       }
       /**
        * returns selection tag
-       */
+       *
        public boolean isServerSelected(String shortname) {
-           if (serverList.containsKey(shortname))
-                   return selectionList.get(shortname);
+           if (shortname == null)
+               return false; //this should not happen! 
+           else {
+               shortname = shortname.trim();
+               if (shortname.isEmpty())
+                   return false;
+           }
+           if (serverList.containsKey(shortname)) {
+               if (selectionList.containsKey(shortname)) {
+                   // should not happen, but...
+                   // in case get() returns null:
+                   // need to test for null to avoid NPE on Windows
+                  
+                   boolean b = selectionList.get(shortname).booleanValue();
+                   return b;
+               }
+               else return false;
+           }
            return false;
        }
+       */
 }

@@ -1,7 +1,12 @@
 package uk.ac.starlink.splat.vo;
 
-import uk.ac.starlink.vo.RegCapabilityInterface;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import uk.ac.starlink.vo.RegResource;
+import uk.ac.starlink.votable.ParamElement;
 
 /**
  * {@link RegResource} implementation that offers mutability and bean access.
@@ -9,8 +14,7 @@ import uk.ac.starlink.vo.RegResource;
  * @author   Peter W. Draper
  * @since    22 Dec 2008
  */
-public class SSAPRegResource
-//    implements RegResource
+public class SSAPRegResource implements RegResource
 {
     private String shortName;
     private String title;
@@ -19,16 +23,18 @@ public class SSAPRegResource
     private String contact;
     private String referenceUrl;
     private String version;
+    private String contentType;
+    private MetadataParams metadata = null;
     private SSAPRegCapability[] capabilities;
     private String[] subjects = null;
     private String [] waveband = null;
-
+     
     /**
      * Constructor.
      */
     public SSAPRegResource()
     {
-        //  Do nothing.
+        metadata=new MetadataParams();
     }
 
     /**
@@ -47,12 +53,23 @@ public class SSAPRegResource
         subjects = resource.getSubjects();
         version = resource.getVersion();
         waveband = resource.getWaveband();
+        contentType = resource.getContentType();
+        
+        metadata = new MetadataParams();
+        metadata.setParams(resource.getMetadata() );
+        
+        
+        
         //  Need a copy of each capability.
         SSAPRegCapability[] rci = (SSAPRegCapability[]) resource.getCapabilities();
         capabilities = new SSAPRegCapability[rci.length];
         for ( int i = 0; i < rci.length; i++ ) {
             capabilities[i] = new SSAPRegCapability( rci[i] );
         }
+        // for backwards compatibility
+        if ((contentType == null || contentType.isEmpty()) && capabilities.length >0)
+            contentType = capabilities[0].getDataType();
+        
     }
 
     /**
@@ -70,6 +87,28 @@ public class SSAPRegResource
         setTitle(newTitle);
         capabilities = new SSAPRegCapability[1];
         capabilities[0] = new SSAPRegCapability( newDescription, newAccessUrl );
+        metadata=new MetadataParams();
+    }
+
+    /**
+     * Constructor. Initialised from a {@link AddNewServerFrame}, allows
+     * manual insertion of a server}.
+     *
+     * @param   newshortName     resource short name
+     * @param   newTitle         resource title
+     * @param   newDescription   capability description
+     * @param   newAccessUrl     capability access url
+     * @param   newWaveBandl     wave band
+     * @param   newDataSource    data source
+     */
+    public SSAPRegResource( String newShortName, String newTitle, String newDescription, String newAccessUrl, String[] newWaveBand, String newDataSource )
+    {
+        setShortName(newShortName);
+        setTitle(newTitle);
+        setWaveband(newWaveBand);
+        capabilities = new SSAPRegCapability[1];
+        capabilities[0] = new SSAPRegCapability( newDescription, newAccessUrl, newDataSource );
+        metadata = new MetadataParams();
     }
 
     public String getShortName()
@@ -134,7 +173,7 @@ public class SSAPRegResource
 
     public SSAPRegCapability[] getCapabilities()
     {
-        return capabilities = capabilities;
+        return capabilities;
     }
 
     public void setCapabilities( SSAPRegCapability[] capabilities )
@@ -171,6 +210,49 @@ public class SSAPRegResource
     {
         this.version = version;
     }
+    public String getContentType() 
+    {
+        return contentType;
+    }
 
-  
+    public void setContentType( String contentType )
+    {
+        this.contentType = contentType;
+    }
+    
+    public List<MetadataInputParameter> getMetadata() 
+    {
+        return metadata.getParams();
+    }
+
+    public void setMetadata(List<MetadataInputParameter> mips) {
+        if (mips != null)
+            metadata.setParams(mips);        
+    }
+    
+             
+ 
+    public class MetadataParams  {
+        
+        List<MetadataInputParameter>  metadata_=null;
+        
+       public  MetadataParams() {
+            metadata_ = new ArrayList<MetadataInputParameter>();
+        }
+              
+        protected void addParam(MetadataInputParameter mip) {
+            metadata_.add(mip);
+        }
+        protected void setParams(List<MetadataInputParameter> list) {
+            if (list != null) {
+                metadata_= new ArrayList<MetadataInputParameter>();
+                metadata_.addAll(list);
+            } else
+                metadata=null;
+        }
+        protected List<MetadataInputParameter> getParams() {
+            return metadata_;
+        }
+        
+    }
 }

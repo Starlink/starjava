@@ -7,6 +7,10 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import java.util.EventObject;
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.swing.AbstractListModel;
 import javax.swing.ListSelectionModel;
 
@@ -36,6 +40,11 @@ public class SpecListModel
      */
     protected ListSelectionModel selectionModel;
 
+    /**
+     * List of registered selection change listeners
+     */
+    private List<SpecListModelSelectionListener> selectionChangeListeners = new LinkedList<SpecListModelSelectionListener>();
+    
     /**
      * Whether to display shortnames, otherwise long names.
      */
@@ -169,8 +178,32 @@ public class SpecListModel
      */
     public void spectrumCurrent( SpecChangedEvent e ) 
     {
+    	// propagate the selection to the model
         int index = e.getIndex();
         selectionModel.clearSelection();
         selectionModel.setSelectionInterval( index, index );
+        
+        // inform registered listeners
+        SpecListModelSelectionEvent event = new SpecListModelSelectionEvent(this, index);
+        
+        for (SpecListModelSelectionListener listener : selectionChangeListeners) {
+        	listener.selectionChanged(event);
+        }
+    }
+    
+    /**
+     * Adds a listener for SpecListModelSelectionEvent
+     * @param listener
+     */
+    public void addSelectionChangeListener(SpecListModelSelectionListener listener) {
+    	selectionChangeListeners.add(listener);
+    }
+    
+    /**
+     * Removes a listener for SpecListModelSelectionEvent
+     * @param listener
+     */
+    public void removeSelectionChangeListener(SpecListModelSelectionListener listener) {
+    	selectionChangeListeners.remove(listener);
     }
 }
