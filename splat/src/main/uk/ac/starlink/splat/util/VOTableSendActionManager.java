@@ -91,7 +91,6 @@ public class VOTableSendActionManager
             String mime = null;
             URL locUrl = null;
             File tmpFile = null;
-            System.out.println("and146: specdata url: ");
             
             //  See if we already have a VOTable spectrum ready to use.
             if ( "VOTable".equals( fmt ) || "TABLE".equals( fmt )) {
@@ -158,8 +157,6 @@ public class VOTableSendActionManager
             if ( shortName != null && shortName.trim().length() > 0 ) {
                 msg.addParam( "name", shortName );
             }
-            System.out.println("and146: check #3");
-            System.out.println("and146: URL: " + locUrl.toString());
             
             messages.add(msg);
     	}

@@ -1,5 +1,6 @@
 package uk.ac.starlink.splat.vo;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -8,13 +9,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -23,8 +34,25 @@ import javax.swing.JToggleButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
+import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.TableElement;
+import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
+import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOStarTable;
+import uk.ac.starlink.votable.VOTableWriter;
 
 
 /**
@@ -48,6 +76,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     private JToggleButton dataLinkButton;
     private SSAQueryBrowser ssaQueryBrowser;
     private ObsCorePanel obsQueryBrowser;
+    private JPopupMenu popupMenu;
    
     /**
      * @uml.property  name="dataLinkFrame"
@@ -182,7 +211,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         gbc.anchor = GridBagConstraints.PAGE_END;
         gbc.fill=GridBagConstraints.HORIZONTAL;
         this.add( controlPanel, gbc );
-      makeSpecPopup();
+        popupMenu = makeSpecPopup();
      
     }
 
@@ -377,14 +406,18 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      */
     protected void addTab(String shortName, StarPopupTable table)
     {
-        JScrollPane resultScroller=new JScrollPane(table);
+        table.setComponentPopupMenu(popupMenu);
+        table.configureColumnWidths(200, table.getRowCount());
+        JScrollPane resultScroller=new JScrollPane(table); 
         resultsPane.addTab(shortName, resultScroller );       
     }
     
     protected void addTab(String shortName, ImageIcon icon, StarPopupTable table)
     {
-      JScrollPane resultScroller=new JScrollPane(table);
-      resultsPane.addTab(shortName, icon, table);
+        table.setComponentPopupMenu(popupMenu);
+        table.configureColumnWidths(200, table.getRowCount());
+        JScrollPane resultScroller=new JScrollPane(table); 
+        resultsPane.addTab(shortName, icon, resultScroller );   
     }
 
     public void removeDataLinkButton() {
@@ -397,6 +430,256 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         dataLinkFrame=datalinkframe;
         
     }
+    
+    /**
+     *  Interactively get a file name and save current query results to it as
+     *  a VOTable.
+     */
+    public void saveQueryToFile()
+    {
+        if ( resultsPane == null || resultsPane.getTabCount() == 0 ) {
+            JOptionPane.showMessageDialog( this,
+                    "There are no queries to save",
+                    "No queries", JOptionPane.ERROR_MESSAGE );
+            return;
+        }
+
+       
+        BasicFileChooser fileChooser = new BasicFileChooser( false );
+        fileChooser.setMultiSelectionEnabled( false );
+
+        //  Add a filter for XML files.
+        BasicFileFilter xmlFileFilter = new BasicFileFilter( "xml", "XML files" );
+       fileChooser.addChoosableFileFilter( xmlFileFilter );
+
+        //  But allow all files as well.
+        fileChooser.addChoosableFileFilter( fileChooser.getAcceptAllFileFilter() );
+        int result = fileChooser.showSaveDialog( this );
+        if ( result == JFileChooser.APPROVE_OPTION ) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                saveQuery( file );
+            }
+            catch (SplatException e) {
+                ErrorDialog.showError( this, e );
+            }
+        }
+    }
+   
+    
+    /**
+     *  Save current query to a File, writing the results as a VOTable.
+     */
+    protected void saveQuery( File file )
+            throws SplatException
+     {
+        BufferedWriter writer = null;
+
+        try {
+            writer = new BufferedWriter( new FileWriter( file ) );
+        }
+        catch (IOException e) {
+            throw new SplatException( e );
+        }
+        saveQuery(writer);
+     }
+
+    /**
+     *  Save current query results to a BufferedWriter. The resulting document
+     *  is a VOTable with a RESOURCE that contains a TABLE for each set of
+     *  query results.
+     */
+    protected void saveQuery( BufferedWriter writer )
+            throws SplatException
+            {
+
+        String xmlDec = VOTableWriter.DEFAULT_XML_DECLARATION;
+    
+        try {
+            writer.write( xmlDec );
+            writer.newLine();
+            writer.write( "<VOTABLE version=\"1.1\"" );
+            writer.newLine();
+            writer.write( "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" );
+            writer.newLine();
+            writer.write( "xsi:schemaLocation=\"http://www.ivoa.net/xml/VOTable/v1.1\"" );
+            writer.newLine();
+            writer.write( "xmlns=\"http://www.ivoa.net/xml/VOTable/v1.1\">" );
+            writer.newLine();
+            writer.write( "<RESOURCE>" );
+            writer.newLine();
+           
+            StarJTable starJTable = null;
+            VOSerializer serializer = null;
+            StarTable table = null;
+            
+
+            for (int i=0;i<resultsPane.getTabCount(); i++ ) {
+                  
+                Component comp = resultsPane.getComponentAt(i);
+                if (comp.getClass()==JScrollPane.class) {
+                    JScrollPane pane = (JScrollPane) comp;               
+                    starJTable = (StarJTable) pane.getViewport().getView();
+                } else {
+                    starJTable = (StarJTable) comp;
+                }
+                table = starJTable.getStarTable();
+                table.setName(resultsPane.getTitleAt(i));
+               
+                //String name = table.getName();
+                int n = table.getColumnCount();
+                for ( int j = 0; j < n; j++ ) {
+                    ColumnInfo ci = table.getColumnInfo( j );
+                    ci.setAuxDatum( new DescribedValue( VOStarTable.ID_INFO, null ) );
+                }
+                serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
+                serializer.writeInlineTableElement( writer );                
+            }
+            writer.write( "</RESOURCE>" );
+            writer.newLine();
+            if (dataLinkFrame != null)
+                saveDataLinkParams(writer);
+            writer.write( "</VOTABLE>" );
+            writer.newLine();
+            writer.close();
+            
+        }
+        catch (IOException e) {
+            throw new SplatException( "Failed to save queries", e );
+        }
+    }
+    
+    protected void saveDataLinkParams( BufferedWriter writer ) throws IOException 
+    {
+        
+        String [] servers = dataLinkFrame.getServers();
+        for (int i=0;i<servers.length; i++) {
+            DataLinkParams dlp = dataLinkFrame.getServerParams(servers[i]);
+            if ( dlp.getServiceCount() > 0 )
+                dlp.writeParamToFile(writer, servers[i]);            
+        } 
+
+    }
+
+    /**
+     *  Restore a set of previous query results that have been written to a
+     *  VOTable. The file name is obtained interactively.
+     */
+    public ArrayList<VOStarTable> readQueryFromFile()
+    {
+        BasicFileChooser fileChooser = new BasicFileChooser( false );
+        fileChooser.setMultiSelectionEnabled( false );
+
+        //  Add a filter for XML files.
+        BasicFileFilter xmlFileFilter = new BasicFileFilter( "xml", "XML files" );
+        fileChooser.addChoosableFileFilter( xmlFileFilter );
+        int result = fileChooser.showOpenDialog( this );
+        if ( result == JFileChooser.APPROVE_OPTION ) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                return readQuery( file );
+            }
+            catch (SplatException e) {
+                ErrorDialog.showError( this, e );
+            }
+        }
+        return null;
+    }
+
+    /**
+     *  Restore a set of query results from a File. The File should have the
+     *  results written previously as a VOTable, with a RESOURCE containing
+     *  the various query results as TABLEs.
+     */
+    
+    protected ArrayList<VOStarTable> readQuery( File file )
+            throws SplatException
+    {
+    
+        DataLinkQueryFrame newFrame = null;
+        VOElement rootElement = null;
+        InputSource inSrc = null;
+        VOElementFactory vofact = new VOElementFactory();
+        try {
+            inSrc = new InputSource(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            throw new SplatException( "Failed to open query results file", e );
+        }
+        try {
+             //rootElement = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
+             rootElement = new VOElementFactory().makeVOElement( file );
+        } catch (IOException e) {
+            throw new SplatException( "Failed to open query results file", e );
+        } catch (SAXException e) {
+            //TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+       
+       // try {
+       //     rootElement = new VOElementFactory().makeVOElement( file );
+       //     
+       // }
+       // catch (Exception e) {
+       //     throw new SplatException( "Failed to open query results file", e );
+       // }
+
+        //  First element should be a RESOURCE.
+        VOElement[] resource = rootElement.getChildren();
+        VOStarTable table = null;
+        ArrayList<VOStarTable> tableList = new ArrayList<VOStarTable>();
+        String tagName = null;        
+        
+        for ( int i = 0; i < resource.length; i++ ) {
+            tagName = resource[i].getTagName();
+            if ( "RESOURCE".equals( tagName ) ) {
+               String utype=resource[i].getAttribute("utype");
+                //  Look for the TABLEs.
+                VOElement child[] = resource[i].getChildren();
+                for ( int j = 0; j < child.length; j++ ) {
+                    tagName = child[j].getTagName();
+                    if ( "TABLE".equals( tagName ) ) {
+                        try {
+                            table = new VOStarTable( (TableElement) child[j] );
+                            
+                        }
+                        catch (IOException e) {
+                            throw new SplatException( "Failed to read query result", e );
+                        }
+                        tableList.add( table );
+                    }
+                    else if (utype!= null && utype.equals("adhoc:service")) {
+                        String name=resource[i].getAttribute("name");
+                        DataLinkParams dlp = new DataLinkParams(resource[i]);
+                        if ( newFrame == null ) {
+                            newFrame = new DataLinkQueryFrame();
+                       } 
+                       newFrame.addServer(name, dlp);  // associate this datalink service information to the current server
+                    }
+                }
+            }
+        }
+        if ( tableList.size() > 0 ) {
+            
+            if (newFrame != null) {
+                enableDataLink(newFrame);
+                deactivateDataLinkSupport();
+            }
+            else {
+                dataLinkButton.setVisible(false);
+            }
+            return tableList ;
+        }
+        else {
+            throw new SplatException( "No query results found" );
+        }
+       
+     }
+    
+    protected DataLinkQueryFrame getDataLinkFrame() {
+        return dataLinkFrame;
+    }
+
 
     //
     // MouseListener interface. Double clicks display the clicked spectrum.

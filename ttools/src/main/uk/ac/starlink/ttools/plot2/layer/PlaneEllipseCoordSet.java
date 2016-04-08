@@ -18,11 +18,21 @@ public class PlaneEllipseCoordSet implements MultiPointCoordSet {
         FloatingCoord.createCoord(
             new InputMeta( "ra", "Primary Radius" )
            .setShortDescription( "Ellipse first principal radius" )
+           .setXmlDescription( new String[] {
+                "<p>Ellipse first principal radius.",
+                "</p>",
+            } )
         , true );
     private static final FloatingCoord BR_COORD =
         FloatingCoord.createCoord(
             new InputMeta( "rb", "Secondary Radius" )
            .setShortDescription( "Ellipse second principal radius" )
+           .setXmlDescription( new String[] {
+                "<p>Ellipse second principal radius.",
+                "If this value is blank, the two radii will be assumed equal,",
+                "i.e. the ellipses will be circles.",
+                "</p>",
+            } )
         , false );
     private static final FloatingCoord POSANG_COORD =
         FloatingCoord.createCoord(

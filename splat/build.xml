@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.11-2"/>
+  <property name="version" value="3.11-3"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -184,14 +184,14 @@
   <!-- Local webstart properties. Note this needs a local keystore,
    !   assumed to be called keystore in $star.build.dir, .. by
    !   default. -->
-  <property name="webstart.codebase"
+  <!--property name="webstart.codebase"
             value="http://starlink.jach.hawaii.edu/starjava/lib"/>
   <property name="webstart.alias" value="Starlink-UK"/>
   <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/-->
 
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
@@ -437,7 +437,6 @@
            source="${source.version}">
 
       <compilerarg value="-proc:none" compiler="javac1.6"/>
-      <compilerarg value="-XDignore.symbol.file" />
       <classpath refid="classpath"/>
 
       <!-- Exclude any Java files in the source tree that should not be
@@ -778,7 +777,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             maxmemory="128m"
+             maxmemory="512m"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
@@ -801,10 +800,11 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           codebase="${webstart.codebase}">
       <information>
          <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
-         <vendor>Starlink UK</vendor>
+         <vendor>GAVO</vendor>
          <homepage href="${home.page}"/>
-         <icon kind="splash" href="splat_splash.gif"/>
-         <icon href="${webstart.starlink_logo}"/>
+         <icon kind="splash" href="${webstart.splashicon}"/>
+         <icon kind="shortcut" href="${webstart.shortcuticon}"/>
+         <icon href="${webstart.shortcuticon}"/>
          <description>Starlink SPLAT-VO - Webstart edition</description>
          <offline_allowed/>
        </information>
@@ -825,9 +825,9 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           codebase="${webstart.codebase}">
       <information>
          <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
-         <vendor>Starlink UK</vendor>
+         <vendor>GAVO</vendor>
          <homepage href="${home.page}"/>
-         <icon kind="splash" href="splat_splash.gif"/>
+         <icon kind="splash" href="${webstart.splashicon}"/>
          <icon href="${webstart.starlink_logo}"/>
          <description>"Starlink SPLAT-VO - Webstart edition"</description>
          <offline_allowed/>
@@ -850,7 +850,6 @@ JNI libraries not built (NDF library not installed in ${stardev})"
          <extension name="HELP" href="help.jnlp"/>
          <extension name="TABLE" href="table.jnlp"/>
          <extension name="VO" href="vo.jnlp"/>
-         <extension name="PLASTIC" href="plastic.jnlp"/>
          <extension name="JSAMP" href="jsamp.jnlp"/>
        </resources>
 
@@ -880,18 +879,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           <nativelib href="x86/${name}_libs.jar"/>
        </resources-->
 
-       <!-- SUN Solaris >
-       <resources os="SunOS" arch="sparc">
-         <nativelib href="sparc/${name}_libs.jar"/>
-       </resources>
-       <resources os="SunOS" arch="x86">
-         <nativelib href="x86/${name}_libs.jar"/>
-       </resources-->
-
        <!-- Mac OS X >
-       <resources os="Mac OS X" arch="ppc">
-         <nativelib href="ppc/${name}_libs.jar"/>
-       </resources>
        <resources os="Mac OS X" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
        </resources>

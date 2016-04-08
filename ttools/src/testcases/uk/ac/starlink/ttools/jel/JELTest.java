@@ -1,18 +1,25 @@
 package uk.ac.starlink.ttools.jel;
 
+import gnu.jel.CompiledExpression;
+import gnu.jel.Library;
 import gnu.jel.CompilationException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.CsvStarTable;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.QuickTable;
+import uk.ac.starlink.util.ByteArrayDataSource;
 
 public class JELTest extends TableTestCase {
 
     public JELTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testJELTable() throws Exception {
@@ -71,6 +78,53 @@ public class JELTest extends TableTestCase {
             fail();
         }
         catch ( CompilationException e ) {
+        }
+    }
+
+    public void testObject() throws Throwable {
+        byte[] buf = new StringBuffer()
+            .append( "a,b,s\n" )
+            .append( "1,10,one\n" )
+            .append( ",20,\n" )
+            .toString().getBytes( "utf-8" );
+        StarTable t2 =
+            Tables.randomTable(
+                new CsvStarTable( new ByteArrayDataSource( "buf", buf ) ) );
+        RandomJELRowReader rdr = new RandomJELRowReader( t2 );
+        rdr.setCurrentRow( 0 );
+        Class[] staticLib = new Class[] { FuncLib.class };
+        Class[] dynamicLib = new Class[] { rdr.getClass() };
+        Library lib = new Library( staticLib, dynamicLib, new Class[ 0 ],
+                                   rdr, null );
+        CompiledExpression pExpr =
+            JELUtils.compile( lib, t2, "triplePrim(a)" );
+        CompiledExpression oExpr =
+            JELUtils.compile( lib, t2, "tripleObj(Object$a)" );
+ 
+        assertEquals( new Integer( 3 ), rdr.evaluateAtRow( pExpr, 0 ) );
+        assertEquals( new Integer( 3 ), rdr.evaluateAtRow( oExpr, 0 ) );
+        assertEquals( null, rdr.evaluateAtRow( pExpr, 1 ) );
+        assertEquals( new Integer( Integer.MIN_VALUE ),
+                      rdr.evaluateAtRow( oExpr, 1 ) );
+
+        CompiledExpression soExpr =
+            JELUtils.compile( lib, t2, "Object$s" );
+        CompiledExpression sExpr =
+            JELUtils.compile( lib, t2, "s" );
+        assertEquals( "one", rdr.evaluateAtRow( soExpr, 0 ) );
+        assertEquals( "one", rdr.evaluateAtRow( sExpr, 0 ) );
+        assertEquals( null, rdr.evaluateAtRow( soExpr, 1 ) );
+        assertEquals( null, rdr.evaluateAtRow( sExpr, 1 ) );
+    }
+
+    public static class FuncLib {
+        public static int triplePrim( int a ) {
+            return 3 * a;
+        }
+
+        public static int tripleObj( Object a ) {
+            return a instanceof Number ? 3 * ((Number) a).intValue()
+                                       : Integer.MIN_VALUE;
         }
     }
 }

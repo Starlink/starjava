@@ -73,6 +73,7 @@ import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.xml.sax.InputSource;
 
 import jsky.catalog.BasicQueryArgs;
 import jsky.catalog.QueryArgs;
@@ -83,9 +84,6 @@ import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
-
-import org.xml.sax.InputSource;
-
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
@@ -1696,6 +1694,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         starJTables.clear();
 
         if ( tableList != null ) {
+            dataLinkFrame = resultsPanel.getDataLinkFrame();
             Iterator<VOStarTable> i = tableList.iterator();
             while ( i.hasNext() ) {
                 addResultsDisplay( i.next() );
@@ -1738,7 +1737,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         }
         else if ( next instanceof StarTable) {
             starTable = (StarTable) next;
-                
+            
             dValue = starTable.getParameterByName( "ShortName" );
             if ( dValue == null ) {
                 shortName = starTable.getName();
@@ -1746,7 +1745,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             else {
                 shortName = (String)dValue.getValue();
             }
-           
+            
         }
         else {
             logger.info( "Couldn't handle: " + next );
@@ -1757,6 +1756,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             if (  nrows > 0 ) {
                 table = new StarPopupTable( starTable, true );
                 table.rearrange();
+                //table.removeduplicates();
                 //scrollPane = new JScrollPane( table );
                 table.setComponentPopupMenu(specPopupMenu);
               //  scrollPane.setPreferredSize(new Dimension(600,400));
@@ -1766,15 +1766,16 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                     if ( dataLinkFrame == null ) {
                          dataLinkFrame = new DataLinkQueryFrame();
                     } 
-                    
                     dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
                     resultsPanel.enableDataLink(dataLinkFrame);
-                    //dataLinkButton.setEnabled(true);
-                    //dataLinkButton.setVisible(true);
-                    //resultsPane.addTab( shortName, cutImage, scrollPane );
                     resultsPanel.addTab(shortName, cutImage, table );
                 }
-                else resultsPanel.addTab( shortName, table );
+                else {
+                    if  (dataLinkFrame != null && dataLinkFrame.getServerParams(shortName) != null )  // if table is read from a file, dataLinkFrame has already been set                         
+                        resultsPanel.addTab( shortName, cutImage, table );
+                    else 
+                        resultsPanel.addTab( shortName, table );
+                }
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -1860,7 +1861,6 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             try {
                  url = new URL(propList[p].getSpectrum());
                  logger.info("Spectrum URL"+url);
-                 System.out.println("and146: loading: " + propList[p].getSpectrum());
             } catch (MalformedURLException mue) {
                 logger.info(mue.getMessage());
             }
@@ -2303,198 +2303,14 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      */
     public void readQueryFromFile()
     {
-        initFileChooser();
-        int result = fileChooser.showOpenDialog( this );
-        if ( result == JFileChooser.APPROVE_OPTION ) {
-            File file = fileChooser.getSelectedFile();
-            try {
-                readQuery( file );
-            }
-            catch (SplatException e) {
-                ErrorDialog.showError( this, e );
-            }
-        }
-    }
-
-    /**
-     *  Restore a set of query results from a File. The File should have the
-     *  results written previously as a VOTable, with a RESOURCE containing
-     *  the various query results as TABLEs.
-     */
-    protected void readQuery( File file )
-            throws SplatException
-            {
-           
         
-        VOElement rootElement = null;
-        try {
-            rootElement = new VOElementFactory().makeVOElement( file );
-        }
-        catch (Exception e) {
-            throw new SplatException( "Failed to open query results file", e );
-        }
-
-        //  First element should be a RESOURCE.
-        VOElement[] resource = rootElement.getChildren();
-        VOStarTable table = null;
-        ArrayList<VOStarTable> tableList = new ArrayList<VOStarTable>();
-        String tagName = null;
-        for ( int i = 0; i < resource.length; i++ ) {
-            tagName = resource[i].getTagName();
-            if ( "RESOURCE".equals( tagName ) ) {
-
-                //  Look for the TABLEs.
-                VOElement child[] = resource[i].getChildren();
-                for ( int j = 0; j < child.length; j++ ) {
-                    tagName = child[j].getTagName();
-                    if ( "TABLE".equals( tagName ) ) {
-                        try {
-                            table = new VOStarTable( (TableElement) child[j] );
-                            
-                        }
-                        catch (IOException e) {
-                            throw new SplatException( "Failed to read query result", e );
-                        }
-                        tableList.add( table );
-                    }
-                }
-            }
-        }
-        if ( tableList.size() > 0 ) {
+        ArrayList<VOStarTable> tableList = resultsPanel.readQueryFromFile();
+        if ( tableList != null && ! tableList.isEmpty() )
             makeResultsDisplay( tableList );
-        }
-        else {
-            throw new SplatException( "No query results found" );
-        }
-     }
-
-    /**
-     *  Interactively get a file name and save current query results to it as
-     *  a VOTable.
-     */
-    public void saveQueryToFile()
-    {
-        if ( starJTables == null || starJTables.size() == 0 ) {
-            JOptionPane.showMessageDialog( this,
-                    "There are no queries to save",
-                    "No queries", JOptionPane.ERROR_MESSAGE );
-            return;
-        }
-
-        initFileChooser();
-        int result = fileChooser.showSaveDialog( this );
-        if ( result == JFileChooser.APPROVE_OPTION ) {
-            File file = fileChooser.getSelectedFile();
-            try {
-                saveQuery( file );
-            }
-            catch (SplatException e) {
-                ErrorDialog.showError( this, e );
-            }
-        }
-    }
-
-    /**
-     *  Save current query to a File, writing the results as a VOTable.
-     */
-    protected void saveQuery( File file )
-            throws SplatException
-     {
-        BufferedWriter writer = null;
-/*        XMLEncoder xmlwriter = null;
-        String path = file.getPath();
-        String name = file.getName();
-        int index = name.lastIndexOf(".");
-        if ( String ext name.last
-        path.replace(ext, "_dl"+ext);*/
-       // File dlfile = new File();
-        try {
-            writer = new BufferedWriter( new FileWriter( file ) );
- //           xmlwriter = new XMLEncoder( new )
-        }
-        catch (IOException e) {
-            throw new SplatException( e );
-        }
-        saveQuery(writer);
-      /*  try {
-            writer.close();
-        }
-        catch (IOException e) {
-          throw new SplatException( e );
-        }*/
-      //  saveDatalinkParams(writer);
-     }
-
-    /**
-     *  Save current query results to a BufferedWriter. The resulting document
-     *  is a VOTable with a RESOURCE that contains a TABLE for each set of
-     *  query results.
-     */
-    protected void saveQuery( BufferedWriter writer )
-            throws SplatException
-            {
-
-        String xmlDec = VOTableWriter.DEFAULT_XML_DECLARATION;
-    
-        try {
-            writer.write( xmlDec );
-            writer.newLine();
-            writer.write( "<VOTABLE version=\"1.1\"" );
-            writer.newLine();
-            writer.write( "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" );
-            writer.newLine();
-            writer.write( "xsi:schemaLocation=\"http://www.ivoa.net/xml/VOTable/v1.1\"" );
-            writer.newLine();
-            writer.write( "xmlns=\"http://www.ivoa.net/xml/VOTable/v1.1\">" );
-            writer.newLine();
-            writer.write( "<RESOURCE>" );
-            writer.newLine();
-
-            StarJTable starJTable = null;
-            StarTable table = null;
-            VOSerializer serializer = null;
-           
-            Iterator<StarPopupTable> i = starJTables.iterator();
-
-            while ( i.hasNext() ) {
-                starJTable = i.next();
-                table = starJTable.getStarTable();
-                //String name = table.getName();
-                int n = table.getColumnCount();
-                for ( int j = 0; j < n; j++ ) {
-                    ColumnInfo ci = table.getColumnInfo( j );
-                    ci.setAuxDatum( new DescribedValue( VOStarTable.ID_INFO, null ) );
-                }
-                serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
-                serializer.writeInlineTableElement( writer );
-                
-                
-            }
-            writer.write( "</RESOURCE>" );
-            writer.newLine();
-            saveDataLinkParams(writer);
-            writer.write( "</VOTABLE>" );
-            writer.newLine();
-            writer.close();
-            
-        }
-        catch (IOException e) {
-            throw new SplatException( "Failed to save queries", e );
-        }
-    }
-    
-    protected void saveDataLinkParams( BufferedWriter writer ) throws IOException 
-    {
         
-        String [] servers = dataLinkFrame.getServers();
-        for (int i=0;i<servers.length; i++) {
-            DataLinkParams dlp = dataLinkFrame.getServerParams(servers[i]);
-            dlp.writeParamToFile(writer, servers[i]);
-            
-        } 
-
     }
 
+ 
     /**
      * Return a StarTable of the currently selected tab of query results.
      */
@@ -2508,26 +2324,6 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             }
         }
         return null;
-    }
-
-    /**
-     * Initialise the file chooser to have the necessary filters.
-     */
-    protected void initFileChooser()
-    {
-        if ( fileChooser == null ) {
-            fileChooser = new BasicFileChooser( false );
-            fileChooser.setMultiSelectionEnabled( false );
-
-            //  Add a filter for XML files.
-            BasicFileFilter xmlFileFilter =
-                    new BasicFileFilter( "xml", "XML files" );
-            fileChooser.addChoosableFileFilter( xmlFileFilter );
-
-            //  But allow all files as well.
-            fileChooser.addChoosableFileFilter
-            ( fileChooser.getAcceptAllFileFilter() );
-        }
     }
 
     /**
@@ -2822,6 +2618,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             metaPanel.updateUI();
             try {
                 serverList.saveServers();
+                serverTable.saveServerTags();
             } catch (SplatException e) {
                 logger.info("serverList backup failed"+e.getMessage());
             }
@@ -3196,6 +2993,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
        
         //requestFocusInWindow();
      //   if (e.getSource().getClass() == StarTable.class ) {
+
             if ( e.getClickCount() == 2 ) {
                 StarJTable table = (StarJTable) e.getSource();
                 Point p = e.getPoint();
@@ -3273,7 +3071,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                     break;
                 }
                 case SAVE: {
-                    saveQueryToFile();
+                    resultsPanel.saveQueryToFile();
                     break;
                 }
                 case READ: {

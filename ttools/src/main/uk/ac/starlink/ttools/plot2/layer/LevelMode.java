@@ -206,6 +206,7 @@ public abstract class LevelMode {
             int index =
                 (int) ( lastIndex
                       + ( ngood - lastIndex ) * 1. / ( nLevel + offset - il ) );
+            index = Math.min( index, values.length - 1 );
             double level = values[ index ];
             if ( isCounts && level - lastLevel < 1 ) {
                 level = lastLevel + 1;

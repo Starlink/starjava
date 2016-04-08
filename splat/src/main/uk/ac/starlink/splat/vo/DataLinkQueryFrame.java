@@ -82,19 +82,12 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
       //  if (dlp == null) {          
             servers.put(server, dlparams);           
       //  }
-   //     } else {
-            // DO WHAT? Compare parameters?
-   //     }
     }
     
-    private void resetpanels() // is it still needed? 
+    protected void reset() // is it still needed? 
     {
- // RESET dataLink panels
-        
-     //   dataLinkPanel = null;
-    //    paramPanel = null;
-      //  dataLinkScroller  = null; 
-        
+ 
+        servers.clear();
         dataLinkParam.clear();
         queryComponents.clear();
 

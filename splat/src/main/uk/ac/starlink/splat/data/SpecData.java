@@ -480,7 +480,7 @@ public class SpecData
     /**
      * The spectrum plot style.
      */
-    protected int plotStyle = POLYLINE; //and146: set this to POINT
+    protected int plotStyle = POLYLINE; 
 
     /**
      * Whether error bars should be drawn.
@@ -2935,7 +2935,6 @@ public class SpecData
         if ( isColumnMutable() ) {
             String currentName = getYDataColumnName();
             if ( ! currentName.equals( name ) ) {
-            	// and146: tady se nastavuje vse kolem osy y
                 impl.setDataColumnName( name );
                 readData();
                 return true;

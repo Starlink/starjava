@@ -135,8 +135,9 @@ class ResumeTapQueryPanel extends JPanel {
                             if ( jobPanel_.getJob() == job && ! isRunning ) {
                                 String errMsg = null;
                                 isRunning = true;
+                                UwsJobInfo info = null;
                                 try {
-                                    job.readPhase();
+                                    info = job.readInfo();
                                 }
                                 catch ( FileNotFoundException e ) {
                                     errMsg = "Job has been deleted";
@@ -147,6 +148,7 @@ class ResumeTapQueryPanel extends JPanel {
                                 finally {
                                     isRunning = false;
                                 }
+                                final UwsJobInfo info0 = info;
                                 final String errMsg0 = errMsg;
                                 SwingUtilities.invokeLater( new Runnable() {
                                     public void run() {
@@ -154,7 +156,9 @@ class ResumeTapQueryPanel extends JPanel {
                                             setStatus( errMsg0 );
                                             setJob( null );
                                         }
-                                        updateJobState();
+                                        else {
+                                            setJobState( job, info0 );
+                                        }
                                     }
                                 } );
                             }
@@ -166,7 +170,7 @@ class ResumeTapQueryPanel extends JPanel {
         phaseTimer_.setRepeats( true );
         phaseTimer_.setInitialDelay( 0 );
         phaseTimer_.setCoalesce( true );
-        updateJobState();
+        jobPanel_.setJob( null );
 
         /* Place components. */
         JComponent urlBox = Box.createVerticalBox();
@@ -222,7 +226,8 @@ class ResumeTapQueryPanel extends JPanel {
         if ( job == null ) {
             return null;
         }
-        String phase = job.getLastPhase();
+        UwsJobInfo info = job.getLastInfo();
+        String phase = info == null ? null : info.getPhase();
         UwsStage stage = UwsStage.forPhase( phase );
         final String summary = "Resumed TAP Query";
 
@@ -258,7 +263,6 @@ class ResumeTapQueryPanel extends JPanel {
                         throws IOException {
                     if ( unstarted ) {
                         job.start();
-                        job.readPhase();
                     }
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
@@ -322,8 +326,9 @@ class ResumeTapQueryPanel extends JPanel {
         fetcher_ = new Thread( "read UWS phase " + urlTxt ) {
             public void run() {
                 final Thread fetcher = this;
+                final UwsJobInfo info;
                 try {
-                    job.readPhase();
+                    info = job.readInfo();
                 }
                 catch ( IOException e ) {
                     final String msg = e instanceof FileNotFoundException
@@ -340,7 +345,7 @@ class ResumeTapQueryPanel extends JPanel {
                 }
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        if ( fetcher == fetcher ) {
+                        if ( fetcher == fetcher_ ) {
                             setStatus( null );
                             setJob( job );
                         }
@@ -355,23 +360,29 @@ class ResumeTapQueryPanel extends JPanel {
     /**
      * Updates the state of the GUI displaying the job.  The job display
      * itself and any relevant actions are updated.
+     *
+     * @param   job  job
+     * @param   info   job state
      */
-    private void updateJobState() {
-        UwsJob job = jobPanel_.getJob();
-        jobPanel_.updatePhase();
-        String phase = job == null ? null : job.getLastPhase();
-        UwsStage stage = UwsStage.forPhase( phase );
-        if ( "COMPLETED".equals( phase ) ) {
-            loadResultAct_.setEnabled( true );
-            resumeAct_.setEnabled( false );
-        }
-        else if ( stage == UwsStage.UNSTARTED || stage == UwsStage.RUNNING ) {
-            resumeAct_.setEnabled( true );
-            loadResultAct_.setEnabled( false );
-        }
-        else {
-            loadResultAct_.setEnabled( false );
-            resumeAct_.setEnabled( false );
+    private void setJobState( UwsJob job, UwsJobInfo info ) {
+        if ( job == jobPanel_.getJob() ) {
+            jobPanel_.setJobInfo( info );
+            String phase = info == null ? null : info.getPhase();
+            UwsStage stage = UwsStage.forPhase( phase );
+            if ( "COMPLETED".equals( phase ) ) {
+                loadResultAct_.setEnabled( true );
+                resumeAct_.setEnabled( false );
+                phaseTimer_.stop();
+            }
+            else if ( stage == UwsStage.UNSTARTED ||
+                      stage == UwsStage.RUNNING ) {
+                resumeAct_.setEnabled( true );
+                loadResultAct_.setEnabled( false );
+            }
+            else {
+                loadResultAct_.setEnabled( false );
+                resumeAct_.setEnabled( false );
+            }
         }
     }
 
@@ -408,7 +419,8 @@ class ResumeTapQueryPanel extends JPanel {
             phaseTimer_.stop();
         }
         jobPanel_.setJob( job );
-        updateJobState();
+        UwsJobInfo info = job == null ? null : job.getLastInfo();
+        setJobState( job, info );
         if ( jobPanel_.getJob() != null ) {
             phaseTimer_.start();
         }

@@ -283,7 +283,8 @@ public class TapQuery {
      */
     public static URL waitForResultUrl( UwsJob uwsJob, long pollMillis )
             throws IOException, InterruptedException {
-        String phase = uwsJob.waitForFinish( pollMillis );
+        UwsJobInfo info = uwsJob.waitForFinish( pollMillis );
+        String phase = info.getPhase();
         assert UwsStage.forPhase( phase ) == UwsStage.FINISHED;
         if ( "COMPLETED".equals( phase ) ) {
             return new URL( uwsJob.getJobUrl() + "/results/result" );

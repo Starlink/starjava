@@ -233,15 +233,20 @@ public class SpectrogramPlotter
                     Map<AuxScale,AuxReader> map =
                         new HashMap<AuxScale,AuxReader>();
                     map.put( SPECTRO_SCALE, new AuxReader() {
-                        public void updateAuxRange( Surface surface,
+                        public int getCoordIndex() {
+                            return icSpectrum_;
+                        }
+                        public void adjustAuxRange( Surface surface,
                                                     TupleSequence tseq,
                                                     Range range ) {
-                            double[] spectrum =
-                                spectrumCoord_
-                               .readArrayCoord( tseq, icSpectrum_ );
-                            int nchan = spectrum.length;
-                            for ( int ic = 0; ic < nchan; ic++ ) {
-                                range.submit( spectrum[ ic ] );
+                            while ( tseq.next() ) {
+                                double[] spectrum =
+                                    spectrumCoord_
+                                   .readArrayCoord( tseq, icSpectrum_ );
+                                int nchan = spectrum.length;
+                                for ( int ic = 0; ic < nchan; ic++ ) {
+                                    range.submit( spectrum[ ic ] );
+                                }
                             }
                         }
                     } );

@@ -2174,8 +2174,6 @@ public class SplatBrowser
                 if (str != null && str.startsWith("order"))
                     props.setShortName(shortname+" ["+str+"]");
                 props.apply( spectra[i] );
-                
-                System.out.println("and146: SED or TABLE #" + i);
             }
         }
         else {
@@ -2185,7 +2183,6 @@ public class SplatBrowser
                 SpecData spectrum;
                 List<SpecData> spectra;
                     if (props.getType() == SpecDataFactory.DATALINK) {
-                        System.out.println("and146: datalink");
                     	DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
                         props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read 
                         String stype = null;

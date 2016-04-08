@@ -343,7 +343,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         final Coverage footprint;
         if ( usefootParam_.booleanValue( env ) &&
              coner_ instanceof ConeSearchConer ) {
-            Integer nSide = nsideParam_.intValue( env );
+            Integer nSide = nsideParam_.objectValue( env );
             if ( nSide != null ) {
                 ((ConeSearchConer) coner_).setNside( nSide.intValue() );
             }

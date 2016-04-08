@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.config.ColorConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -74,7 +75,8 @@ public class GangControlManager implements ControlManager {
         baseConfigger_ = baseConfigger;
         tcListener_ = tcListener;
         nextSupplier_ = new NextSupplier();
-        nextSupplier_.putValues( StyleKeys.COLOR, Styles.COLORS );
+        nextSupplier_.putValues( StyleKeys.COLOR,
+                                 ColorConfigKey.getPlottingColors() );
         List<Action> stackActList = new ArrayList<Action>();
 
         /* Split the list up by the number of positional coordinates

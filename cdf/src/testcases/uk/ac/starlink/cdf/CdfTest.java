@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.bristol.star.cdf.EpochFormatter;
@@ -15,8 +17,8 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.util.URLDataSource;
 
 public class CdfTest extends TestCase {
 
@@ -159,8 +161,10 @@ public class CdfTest extends TestCase {
 
     private String getDate( Object tval, TimeMapper tmapper ) {
         long unixMillis = (long) ( tmapper.toUnixSeconds( tval ) * 1e3 );
-        return new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS" )
-              .format( new Date( unixMillis ) );
+        SimpleDateFormat fmt =
+            new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS", Locale.UK );
+        fmt.setTimeZone( TimeZone.getTimeZone( "UTC" ) );
+        return fmt.format( new Date( unixMillis ) );
     }
 
     private CdfStarTable readTable( String name ) throws IOException {

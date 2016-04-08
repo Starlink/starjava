@@ -57,9 +57,25 @@ class VOTableDomainMappers {
             if ( "iso8601".equals( xtype ) ||
                  ISO8601_UNIT_PATTERN.matcher( xtype ).matches() ||
                  "adql:TIMESTAMP".equalsIgnoreCase( xtype ) ||
+                 "timestamp".equalsIgnoreCase( xtype ) ||
                  ISO8601_UNIT_PATTERN.matcher( units ).matches() ||
                  ISO8601_UCD_PATTERN.matcher( ucd ).matches() ) {
                 mappers.add( TimeMapper.ISO_8601 );
+            }
+        }
+
+        /* Try some numeric time domains. */
+        if ( Number.class.isAssignableFrom( clazz ) ) {
+            if ( "mjd".equalsIgnoreCase( xtype ) ) {
+                mappers.add( TimeMapper.MJD );
+            }
+            else if ( "jd".equalsIgnoreCase( xtype ) ) {
+                mappers.add( TimeMapper.JD );
+            }
+            else if ( "yr".equals( units ) ||
+                      "a".equals( units ) ||
+                      "year".equals( units ) ) {
+                mappers.add( TimeMapper.DECIMAL_YEAR );
             }
         }
 

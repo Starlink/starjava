@@ -74,6 +74,30 @@ public class ReportMap {
         return map_.keySet();
     }
 
+    /**
+     * Returns a string representation of this map, with an option
+     * to include or exclude the non-general-interest entries.
+     *
+     * @param  includeAll  true to include all entries,
+     *                     false to include only general-interest entries
+     * @return   string representation of this map,
+     *           zero-length if there are no items of interest
+     */
+    public String toString( boolean includeAll ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( ReportKey<?> key : keySet() ) {
+            if ( includeAll || key.isGeneralInterest() ) {
+                if ( sbuf.length() > 0 ) {
+                    sbuf.append( ", " );
+                }
+                sbuf.append( key.getMeta().getShortName() )
+                    .append( "=" )
+                    .append( (Object) get( key ) );
+            }
+        }
+        return sbuf.toString();
+    }
+
     @Override
     public int hashCode() {
         int code = 77612;
@@ -92,5 +116,10 @@ public class ReportMap {
         else {
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return toString( false );
     }
 }

@@ -84,11 +84,11 @@ public class LatexTableWriter extends StreamStarTableWriter {
             Class clazz = colinfo.getContentClass();
             if ( Number.class.isAssignableFrom( clazz ) ) {
                 tfmt.append( 'r' );
-                maxWidths[ i ] = 16;
+                maxWidths[ i ] = 32;
             }
             else {
                 tfmt.append( 'l' );
-                maxWidths[ i ] = 66;
+                maxWidths[ i ] = 256;
             }
             tfmt.append( '|' );
         }

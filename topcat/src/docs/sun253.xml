@@ -158,16 +158,22 @@
   <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
   <!ENTITY FIG.mode_density '&figs;mode_density.gif'>
   <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
+  <!ENTITY FIG.mode_weighted '&figs;mode_weighted.gif'>
   <!ENTITY FIG.form_mark '&figs;form_mark.gif'>
   <!ENTITY FIG.form_size '&figs;form_size.gif'>
   <!ENTITY FIG.form_sizexy '&figs;form_sizexy.gif'>
   <!ENTITY FIG.form_vector '&figs;form_vector.gif'>
+  <!ENTITY FIG.form_skyvector '&figs;form_skyvector.gif'>
   <!ENTITY FIG.form_error '&figs;form_error.gif'>
-  <!ENTITY FIG.form_ellipse '&figs;form_ellipse.gif'>
+  <!ENTITY FIG.form_xyellipse '&figs;form_xyellipse.gif'>
+  <!ENTITY FIG.form_skyellipse '&figs;form_skyellipse.gif'>
   <!ENTITY FIG.form_line '&figs;form_line.gif'>
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
+  <!ENTITY FIG.form_fill '&figs;form_fill.gif'>
+  <!ENTITY FIG.form_density '&figs;form_density.gif'>
+  <!ENTITY FIG.form_skydensity '&figs;form_skydensity.gif'>
   <!ENTITY FIG.form_histogram '&figs;form_histogram.gif'>
   <!ENTITY FIG.form_kde '&figs;form_kde.gif'>
   <!ENTITY FIG.form_knn '&figs;form_knn.gif'>
@@ -241,16 +247,26 @@
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
   <!ENTITY FORM.sizexy '&IMG.FORM_SIZEXY; <ref id="form-sizexy">SizeXY</ref>'>
-  <!ENTITY FORM.vector '&IMG.FORM_VECTOR; <ref id="form-vector">Vector</ref>'>
+  <!ENTITY FORM.vector '&IMG.FORM_VECTOR;
+                         <ref id="form-vector">Vector</ref>'>
+  <!ENTITY FORM.skyvector '&IMG.FORM_VECTOR;
+                          <ref id="form-skyvector">SkyVector</ref>'>
   <!ENTITY FORM.error '&IMG.FORM_ERROR; <ref id="form-error">Error Bars</ref>'>
-  <!ENTITY FORM.ellipse '&IMG.FORM_ELLIPSE;
-                        <ref id="form-ellipse">Ellipse</ref>'>
+  <!ENTITY FORM.xyellipse '&IMG.FORM_ELLIPSE;
+                          <ref id="form-xyellipse">XYEllipse</ref>'>
+  <!ENTITY FORM.skyellipse '&IMG.FORM_ELLIPSE;
+                           <ref id="form-skyellipse">SkyEllipse</ref>'>
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
   <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
                           <ref id="form-linearfit">Linear Fit</ref>'>
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
+  <!ENTITY FORM.density '&IMG.FORM_DENSITY;
+                        <ref id="form-density">Density</ref>'>
+  <!ENTITY FORM.skydensity '&IMG.FORM_SKYDENSITY;
+                           <ref id="form-skydensity">SkyDensity</ref>'>
+  <!ENTITY FORM.fill '&IMG.FORM_FILL; <ref id="form-fill">Fill</ref>'>
   <!ENTITY FORM.histogram '&IMG.FORM_HISTOGRAM;
                           <ref id="form-histogram">Histogram</ref>'>
   <!ENTITY FORM.kde '&IMG.FORM_KDE; <ref id="form-kde">KDE</ref>'>
@@ -284,7 +300,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>17 August 2015</docdate>
+<docdate>27 November 2015</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -2622,6 +2638,21 @@ You can do this in three ways:
     parameters (see <ref id="jelParams"/>);
     columns take preference so if a column and a parameter both match
     the requested Utype, the column value will be used.
+    </p></dd>
+
+<dt>With the Object$ prefix</dt>
+<dd><p>If a column is referenced with the prefix "<code>Object$</code>"
+    before its identifier
+    (e.g. "<code>Object$BMAG</code>" for a column named <code>BMAG</code>)
+    the result will be the column value as a java Object.
+    Without that prefix, numeric columns are evaluated as java primitives.
+    In most cases, you <em>don't want to do this</em>, 
+    since it means that you can't use the value in arithmetic expressions.  
+    However, if you need the value to be passed to a 
+    (possibly user-defined activation) method,
+    and you need that method to be invoked even when the value is null,
+    you have to do it like this.  Null-valued primitives
+    otherwise cause expression evaluation to abort.
     </p></dd>
 
 </dl>
@@ -7371,7 +7402,9 @@ in one of the following graphics formats:
     data points.  Plot annotations such as axis labels will not be
     affected - they are still drawn as vector text.
     Note that in some cases (e.g. use of the 
-    <ref id="mode-auto">auto</ref> or <ref id="mode-density">density</ref>
+    <ref id="mode-auto">auto</ref>,
+    <ref id="mode-density">density</ref> or
+    <ref id="mode-weighted">weighted</ref>
     shading modes) this kind of pixellisation will happen in any case.
     </p></dd>
 </dl>
@@ -7394,6 +7427,7 @@ there are a few things to consider:
 <dt>Positional Quantisation</dt>
 <dd><p>Some of the shading modes
     (<ref id="mode-density">Density</ref>,
+     <ref id="mode-weighted">Weighted</ref>,
      <ref id="mode-auto">Auto</ref>) are inherently pixellated,
     and others
     (<ref id="mode-flat">Flat</ref>,
@@ -7470,7 +7504,7 @@ though some plot types may also have their own.
 </p>
 
 <subsubsubsect id="FrameControl">
-<subhead><title>Frame</title></subhead>
+<subhead><title>Frame Control</title></subhead>
 
 <p>The <label>Frame</label> control (&IMG.FRAME_CONFIG;)
 controls the graphical area on which the plot graphic is drawn.
@@ -7515,7 +7549,7 @@ then the given text will appear at the top of the plot.
 </subsubsubsect>
 
 <subsubsubsect id="AxesControl">
-<subhead><title>Axes</title></subhead>
+<subhead><title>Axes Control</title></subhead>
 
 <p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;)
 has a number of tabs specific to the particular plot type.
@@ -7529,7 +7563,7 @@ along with each plot type.
 </subsubsubsect>
 
 <subsubsubsect id="LegendControl">
-<subhead><title>Legend</title></subhead>
+<subhead><title>Legend Control</title></subhead>
 
 <p>The <label>Legend</label> control (&IMG.LEGEND;)
 is always visible in the plot Control Panel.
@@ -7586,14 +7620,28 @@ the <label>Axes</label> selector.
 </subsubsubsect>
 
 <subsubsubsect id="ShaderControl">
-<subhead><title>Aux Axis</title></subhead>
+<subhead><title>Aux Axis Control</title></subhead>
 
-<p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only
-visible when the <ref id="mode-aux" plaintextref="yes">Aux colour mode</ref>
-has been selected for one of the data layers;
-if no layer is using Aux shading, the control will not appear in the stack.
-It controls a single colour scale for points which
-are coloured by data value to represent an additional dimension in the data.
+<p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only visible
+when at least one layer is using the shared colour map.
+The following plot layers do this:
+<ul>
+<li><ref id="mode-aux" plaintextref="yes">Aux colour mode</ref></li>
+<li><ref id="mode-weighted" plaintextref="yes">Weighted colour mode</ref></li>
+<li><ref id="form-density" plaintextref="yes">Density form</ref></li>
+<li><ref id="form-skydensity" plaintextref="yes">Sky Density form</ref></li>
+</ul>
+These all colour parts of the plot in a way that is quantitatively
+significant, and the Aux Axis control gives you a chance to control
+the details of the value-colour mapping,
+and to display the mapping in a colour ramp displayed beside the plot.
+Some other layer types (e.g. <ref id="mode-density">Density mode</ref>)
+also shade the plot according to numeric values,
+but use their own colour map, and don't display the colour ramp.
+</p>
+
+<p>If no layer is using the shared colour map, then this control
+will not appear in the stack.
 </p>
 
 <p>When present, this control has three following tabs.
@@ -7628,7 +7676,7 @@ It has the following options:
     or enter a value in the text field,
     the map will be split into
     a decreasing number of discrete colours.  This can be used to generate
-    a contour-like efect, and may make it easier to trace the boundaries
+    a contour-like effect, and may make it easier to trace the boundaries
     of regions of interest by eye.
     </p></dd>
 <dt>Scaling</dt>
@@ -8115,7 +8163,7 @@ is plotted.  It has the following fields:
     the map will be split into
  the map will be split into
     a decreasing number of discrete colours.  This can be used to generate
-    a contour-like efect, and may make it easier to trace the boundaries
+    a contour-like effect, and may make it easier to trace the boundaries
     of regions of interest by eye.
     </p></dd>
 <dt>Scaling</dt>
@@ -8478,9 +8526,6 @@ This scaling can be adjusted or turned off using the
 <dt>DeltaX, DeltaY, ...</dt>
 <dd><p>The coordinates of the changes in each coordinate which gives the
     vector.  The coordinates here match the coordinates of the plot.
-    For sky coordinates, the supplied longitude delta values are
-    in degrees and <em>are</em>
-    considered to have been already multiplied by cos(latitude).
     </p></dd>
 <dt>Arrow</dt>
 <dd><p>Arrow shape selected from a range of options.
@@ -8504,6 +8549,70 @@ This scaling can be adjusted or turned off using the
 
 </subsubsubsect>
 
+<subsubsubsect id="form-skyvector">
+<subhead><title>SkyVector Form</title></subhead>
+
+<figure>
+<caption><px>SkyVector form configuration panel</px></caption>
+<figureimage src="&FIG.form_skyvector;"/>
+</figure>
+
+<p>The <label>SkyVector</label> form (&IMG.FORM_VECTOR;)
+plots directed lines from the data position
+given relative offsets to longitude.cos(latitude) and latitude
+on the celestial sphere.
+The plotted markers are typically little arrows, but there are
+other options.
+</p>
+
+<p>In some cases such delta values may be the actual magnitude required
+for the plot, but more often the vector data represents a value which
+has a different magnitude or is in different units to the positional data
+(for instance proper motions).
+As a convenience for this case, the plotter can optionally
+(and does by default) scale the magnitudes of all the vectors to make
+them a sensible size (so the largest ones are a few tens of pixels long).
+This scaling can be adjusted or turned off using the
+<label>Scale</label> and <label>Auto Scale</label> options below.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Delta Longitude</dt>
+<dd><p>Change in the longitude coordinate represented by the plotted vector.
+    The supplied value is (if not auto-scaled) an angle in degrees,
+    and <strong>is</strong> considered to be premultiplied by cos(Latitude).
+    </p></dd>
+<dt>Delta Latitude</dt>
+<dd><p>Change in the latitude coordinate represented by the plotted vector.
+    The supplied value is (if not auto-scaled) an angle in degrees.
+    </p></dd>
+<dt>Arrow</dt>
+<dd><p>Arrow shape selected from a range of options.
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all vector sizes are scaled.
+    If the arrows are too small, slide it right, if they are too big,
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default arrow scale size
+    from the data - it will fix it so that the largest arrows are a
+    few tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual values in degrees given by the submitted Delta Lon/Lat
+    coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-error">
 <subhead><title>Error Bars Form</title></subhead>
 
@@ -8519,7 +8628,7 @@ Cartesian plot.
 The shape of the error "bars" is quite configurable, including
 (for 2- and 3-d errors) ellipses, rectangles etc, aligned with the axes
 (for rotated ellipses and rectangles,
-see the <ref id="form-ellipse">Ellipse</ref> form).
+see the <ref id="form-xyellipse">XYEllipse</ref> form).
 </p>
 
 <p>The configuration options are:
@@ -8551,12 +8660,12 @@ see the <ref id="form-ellipse">Ellipse</ref> form).
 
 </subsubsubsect>
 
-<subsubsubsect id="form-ellipse">
+<subsubsubsect id="form-xyellipse">
 <subhead><title>Ellipse Form</title></subhead>
 
 <figure>
 <caption><px>Ellipse form configuration panel</px></caption>
-<figureimage src="&FIG.form_ellipse;"/>
+<figureimage src="&FIG.form_xyellipse;"/>
 </figure>
 
 <p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
@@ -8569,22 +8678,22 @@ major and minor radii and an optional rotation angle.
 <dt>Shading Mode</dt>
 <dd><p>See <ref id="ShapeMode"/>.
     </p></dd>
-<dt>Major Radius, Minor Radius</dt>
-<dd><p>Two radii for the ellipse, in the same units as the
-    position coordinates (which is degrees for the sky plot).
-    It doesn't matter whether the major one is larger than the minor one.
+<dt>Primary Radius, Secondary Radius</dt>
+<dd><p>The two principal radii for the ellipse, in the same units as the
+    position coordinates.
+    It doesn't matter whether the primary is larger than the secondary.
+    If the Secondary Radius field is left blank, it is assumed to equal
+    the Primary Radius field, i.e. the ellipses are circles.
     </p></dd>
 <dt>Orientation</dt>
 <dd><p>Position angle in degrees.
-    For the plane plot it is the angle anticlockwise from the X axis
-    to the major radius.
-    For the sky plot it is the angle from the North pole to the major axis
-    in the direction of positive RA.
+    This is the angle anticlockwise from the X axis
+    to the primary radius.
     If the value is missing (either this field not filled in or blank in
     the data) it is considered to be zero.
     </p></dd>
 <dt>Ellipse</dt>
-<dd><p>Ellipse shape, selected from a range of options
+<dd><p>Ellipse graphical representation, selected from a range of options
     (includes also rectangles, crosses etc).
     </p></dd>
 <dt>Scale</dt>
@@ -8600,6 +8709,60 @@ major and minor radii and an optional rotation angle.
     That scaling can then be adjusted using the <label>Scale</label> slider.
     If unselected, then the default position of the Scale slider corresponds
     to the actual positions given by the submitted ellipse radii coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-skyellipse">
+<subhead><title>SkyEllipse Form</title></subhead>
+
+<figure>
+<caption><px>SkyEllipse form configuration panel</px></caption>
+<figureimage src="&FIG.form_skyellipse;"/>
+</figure>
+
+<p>The <label>SkyEllipse</label> (&IMG.FORM_ELLIPSE;)
+draws an ellipse (or rectangle, triangle, or other similar figure)
+on the celestial sphere defined by
+major and minor radii and an optional rotation angle.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Primary Radius, Secondary Radius</dt>
+<dd><p>The two principal radii for the ellipse.
+    If auto-scaling is off, these are in units of <strong>degrees</strong>.
+    It doesn't matter whether the primary is larger than the secondary.
+    If the Secondary Radius field is left blank, it is assumed to equal
+    the Primary Radius field, i.e. the ellipses are circles.
+    </p></dd>
+<dt>Position Angle</dt>
+<dd><p>Orientation of the ellipse.  This is the angle in degrees
+    from the North pole to the primary axis of the ellipse in the
+    direction of increasing longitude.
+    If the value is missing (either this field not filled in or blank in
+    the data) it is considered to be zero.
+    </p></dd>
+<dt>Ellipse</dt>
+<dd><p>Ellipse graphical representation, selected from a range of options
+    (includes also rectangles, crosses etc).
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all ellipse sizes are scaled.
+    If the ellipses are too small, slide it right, if they are too big,
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default ellipse scale size
+    from the data - it will fix it so that the largest ellipses are a few
+    tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual values in degrees given by the submitted ellipse
+    radii coordinates.
     </p></dd>
 </dl>
 </p>
@@ -8772,8 +8935,9 @@ draws a text label by each point position.
 <p>The <label>Contour</label> form (&IMG.PLOT_CONTOUR;)
 plots position density contours.
 These provide another way
-(alongside the <ref id="mode-auto">Auto</ref> and
-<ref id="mode-density">Density</ref> shading modes)
+(alongside the <ref id="mode-auto">Auto</ref>,
+<ref id="mode-density">Density</ref> and
+<ref id="mode-weighted">Weighted</ref> shading modes)
 to visualise the characteristics of overdense regions in a crowded plot.
 </p>
 
@@ -8803,6 +8967,236 @@ so they don't look very beautiful in exported vector output formats
     others, which are separated from it by a fixed amount) are drawn.
     By sliding this from side to side you can sweep the contours over
     the density range and get a good idea of where interesting features lie.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-density">
+<subhead><title>Density Form</title></subhead>
+
+<figure>
+<caption><px>Density form configuration panel</px></caption>
+<figureimage src="&FIG.form_density;"/>
+</figure>
+
+<p>The <label>Density</label> form (&IMG.FORM_DENSITY;)
+plots a density map (2-d histogram) on the pixel grid of the plot surface,
+coarsened by a configurable factor.
+You can optionally use a weighting for the data values,
+and you can configure how the values are combined
+to produce the output bin values. 
+</p>
+
+<p>This form is somewhat experimental and may be modified in the future.
+</p>
+
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible
+<label>Density</label>,
+<ref id="form-skydensity">SkyDensity</ref>,
+<ref id="mode-aux">Aux</ref> and
+<ref id="mode-weighted">Weighted</ref> layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>The weight value applied to each plotted point.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    The exact way this quantity is used depends on the setting of the
+    <label>Combine</label> control below.
+    If it's left blank, the weighting is considered to be unity
+    (all values are 1); this makes sense for some combination types
+    (e.g. sum) but not others (e.g. mean).
+    </p></dd>
+
+<dt>Bin Size</dt>
+<dd><p>Determines the dimension of grid bins in pixels.
+    Bins are square in pixel dimensions and this value gives the
+    extent in pixels along each side.
+    Currently, only integer values are allowed.
+    </p></dd>
+
+<dt>Combine</dt>
+<dd><p>Determines how the weight values associated with markers
+    plotted covering a given bin are combined
+    to produce the numeric value used for that bin's colour.
+    </p>
+    <p>
+    The following options (some are more useful than others)
+    are currently available:
+    <ul>
+    <li><code>sum</code>: the sum of all weights</li>
+    <li><code>mean</code>: the mean of all weights</li>
+    <li><code>median</code>: the median of all weights;
+        (note, this is expensive to calculate and may be slow)</li>
+    <li><code>variance</code>: the sample variance of all weights</li>
+    <li><code>min</code>: the minimum weight</li>
+    <li><code>max</code>: the maximum weight</li>
+    <li><code>count</code>: the number of points plotted
+        (weight value is ignored, this is like Density mode)</li>
+    <li><code>hit</code>: one if any point is plotted, blank otherwise
+        (weight value is ignored, this is like Flat mode)</li>
+    </ul>
+    </p></dd>
+
+<dt>Opaque Limit</dt>
+<dd><p>Determines transparency of the points.
+    By default, they are fully opaque, but if you slide the slider to
+    the right, they will become progressively more transparent.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-skydensity">
+<subhead><title>SkyDensity Form</title></subhead>
+
+<figure>
+<caption><px>SkyDensity form configuration panel</px></caption>
+<figureimage src="&FIG.form_skydensity;"/>
+</figure>
+
+<p>The <label>SkyDensity</label> form (&IMG.FORM_SKYDENSITY;)
+plots a density map on the sky using a HEALPix grid
+with a configurable resolution.
+You can optionally use a weighting for the data values to accumulate
+within each HEALPix tile,
+and you can configure how the weighted values are combined to
+generate the eventual pixel values (and hence colours).
+<webref url="http://healpix.jpl.nasa.gov/">HEALPix</webref>
+is a tiling scheme for the sky which uses square-ish pixels
+of equal area to cover the celestial sphere.
+</p>
+
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible
+<label>SkyDensity</label>,
+<ref id="form-density">Density</ref>,
+<ref id="mode-aux">Aux</ref> and
+<ref id="mode-weighted">Weighted</ref> layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>The weight value applied to each plotted point.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    The exact way this quantity is used depends on the setting of the
+    <label>Combine</label> control below.
+    If it's left blank, the weighting is considered to be unity
+    (all values are 1); this makes sense for some combination types
+    (e.g. sum) but not others (e.g. mean).
+    </p></dd>
+
+<dt>HEALPix Level</dt>
+<dd><p>This allows you to control the resolution of the HEALPix grid
+    onto which the weighted values are resampled.
+    According to the radio buttons, you can configure this using either
+    a <label>Abs</label>olute or <label>Rel</label>ative value.
+    In Absolute mode you specify the HEALPix level (<em>k</em>) directly;
+    the number of pixels on the sky is 12*2<sup>2k</sup>.
+    In Relative mode the level is set so that a HEALPix tile has
+    approximately the given number of screen pixels along a side,
+    and hence the absolute level will change if you zoom in and out.
+    In either case, you can see the absolute level at the right hand side
+    of the control.
+    </p></dd>
+
+<dt>Combine</dt>
+<dd><p>Determines how the weight values associated with markers
+    plotted covering a given HEALPix tile are combined
+    to produce the numeric value used for that tile's colour.
+    </p>
+    <p>
+    The following options (some are more useful than others)
+    are currently available:
+    <ul>
+    <li><code>sum</code>: the sum of all weights</li>
+    <li><code>mean</code>: the mean of all weights</li>
+    <li><code>median</code>: the median of all weights;
+        (note, this is expensive to calculate and may be slow)</li>
+    <li><code>variance</code>: the sample variance of all weights</li>
+    <li><code>min</code>: the minimum weight</li>
+    <li><code>max</code>: the maximum weight</li>
+    <li><code>count</code>: the number of points plotted
+        (weight value is ignored, this is like Density mode)</li>
+    <li><code>hit</code>: one if any point is plotted, blank otherwise
+        (weight value is ignored, this is like Flat mode)</li>
+    </ul>
+    </p></dd>
+
+<dt>Opaque Limit</dt>
+<dd><p>Determines transparency of the points.
+    By default, they are fully opaque, but if you slide the slider to
+    the right, they will become progressively more transparent.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-fill">
+<subhead><title>Fill Form</title></subhead>
+
+<figure>
+<caption><px>Fill form configuration panel</px></caption>
+<figureimage src="&FIG.form_fill;"/>
+</figure>
+
+<p>If a two-dimensional dataset represents a single-valued function,
+the <label>Fill</label> plotter will fill the area underneath
+the function's curve with a solid colour.
+Parts of the surface which would only be partially covered
+(because of rapid function variation within the width of a single pixel)
+are represented using appropriate alpha-blending.
+The filled area may alternatively be that above the curve
+or (in some plot types) to its left or right.
+</p>
+
+<p>One example of its use is to reconstruct the appearance of a
+histogram plot from a set of histogram bins.
+For X,Y data which is not single-valued, the result may not be very useful. 
+</p>
+
+<p>This form may be used in the 
+<ref id="PlanePlotWindow">Plane</ref> or
+<ref id="TimePlotWindow">Time</ref> plot windows.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the filled area.
+    </p></dd>
+<dt>Horizontal</dt>
+<dd><p>Determines whether the filling is
+    vertical (suitable for functions of the horizontal variable)
+    or horizontal (suitable for functions of the vertical variable).
+    In the Time plot, the fill is always vertical, so this option is not
+    provided.
+    </p></dd>
+<dt>Positive</dt>
+<dd><p>Determines the directional sense of the filling.
+    If false, the fill is between the data points and negative
+    infinity along the relevant axis
+    (e.g. down from the data points to the bottom of the plot).
+    If true, the fill is in the other direction.
     </p></dd>
 </dl>
 </p>
@@ -9268,7 +9662,7 @@ you to use it.
     or enter a value in the text field,
     the map will be split into
     a decreasing number of discrete colours.  This can be used to generate
-    a contour-like efect, and may make it easier to trace the boundaries
+    a contour-like effect, and may make it easier to trace the boundaries
     of regions of interest by eye.
     </p></dd>
 <dt>Scaling</dt>
@@ -9625,7 +10019,7 @@ user-configurable options.  The options are:
     or enter a value in the text field,
     the map will be split into
     a decreasing number of discrete colours.  This can be used to generate
-    a contour-like efect, and may make it easier to trace the boundaries
+    a contour-like effect, and may make it easier to trace the boundaries
     of regions of interest by eye.
     </p></dd>
 <dt>Scaling</dt>
@@ -9643,6 +10037,18 @@ user-configurable options.  The options are:
     ignored), but you can restrict the range using this slider.
     </p></dd>
 </dl>
+</p>
+
+<p>Although these options give you quite some control over how
+densities are mapped to colours, this mode does not display
+the colour mapping in a way that shows you quantitatively
+which colours correspond to which numeric density values.
+If you want that kind of visual feedback,
+you should use the <ref id="mode-weighted">Weighted</ref> shading mode,
+which can be configured to display point densities
+(as well as other quantities),
+and also causes a colour ramp to be displayed under control
+of the <ref id="ShaderControl">Aux Axis control</ref>.
 </p>
 
 <p><strong>Exporting:</strong>
@@ -9668,10 +10074,15 @@ The point colours then represent an additional dimension of the plot.
 There is an additional option to draw the points with a fixed transparency.
 </p>
 
-<p>The shading is done according to a single fixed scale for all
-the data in the plot.  When at least one Aux-mode layer is being plotted,
-the <ref id="ShaderControl" plaintextref="yes">Aux Axis</ref>
-control is visible
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible
+<label>Aux</label>,
+<ref id="mode-weighted">Weighted</ref>, 
+<ref id="form-density">Density</ref> and
+<ref id="form-skydensity">SkyDensity</ref> layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
 in the control panel, which allows you to configure the colour map,
 range, ramp display etc.
 </p>
@@ -9700,6 +10111,86 @@ For PostScript, transparent points are rendered as opaque.
 You can use <label>Force Bitmap</label> with PostScript which
 will get transparency right for this layer, but then any earlier
 layers will be completely obscured.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-weighted">
+<subhead><title>Weighted Mode</title></subhead>
+
+<figure>
+<caption><px>Weighted mode selection</px></caption>
+<figureimage src="&FIG.mode_weighted;"/>
+</figure>
+
+<p>The <label>Weighted</label> shading mode (&IMG.MODE_WEIGHT;)
+paints markers using colours indicating density at each pixel like
+the Density mode, but with an optional weighting coordinate.
+You can configure how the weighted coordinates are combined
+at each pixel to give the final weighted result.
+Depending on the configuration and actual point density,
+this can behave
+in some ways like <ref id="mode-aux">Aux</ref> mode and
+in some ways like <ref id="mode-density">Density</ref> mode,
+but allows you to do things that are not possible in either.
+</p>
+
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible
+<label>Weighted</label>,
+<ref id="mode-aux">Aux</ref>,
+<ref id="form-density">Density</ref> and
+<ref id="form-skydensity">SkyDensity</ref> layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
+</p>
+
+<p>The options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>The weight value applied to each plotted point.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    The exact way this quantity is used depends on the setting of the
+    <label>Combine</label> control below.
+    If it's left blank, the weighting is considered to be unity
+    (all values are 1); this makes sense for some combination types
+    (e.g. sum) but not others (e.g. mean).
+    </p></dd>
+
+<dt>Combine</dt>
+<dd><p>Determines how the weight values associated with markers
+    plotted covering a given screen pixel are combined
+    to produce the numeric value used for that pixel's colour.
+    </p>
+    <p>
+    The following options (some are more useful than others)
+    are currently available:
+    <ul>
+    <li><code>sum</code>: the sum of all weights</li>
+    <li><code>mean</code>: the mean of all weights</li>
+    <li><code>median</code>: the median of all weights;
+        (note, this is expensive to calculate and may be slow)</li>
+    <li><code>variance</code>: the sample variance of all weights</li>
+    <li><code>min</code>: the minimum weight</li>
+    <li><code>max</code>: the maximum weight</li>
+    <li><code>count</code>: the number of points plotted
+        (weight value is ignored, this is like Density mode)</li>
+    <li><code>hit</code>: one if any point is plotted, blank otherwise
+        (weight value is ignored, this is like Flat mode)</li>
+    </ul>
+    </p></dd>
+
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+When exported to vector formats, the output is automatically forced to a
+bitmap for Density-mode layers.
+In the case of PostScript, this completely obscures any previous layers.
 </p>
 
 </subsubsubsect>
@@ -10023,11 +10514,13 @@ see the <label>Coords</label> tab of the
     <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
-    <li>&FORM.ellipse;</li>
+    <li>&FORM.xyellipse;</li>
     <li>&FORM.line;</li>
     <li>&FORM.linearfit;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
+    <li>&FORM.density;</li>
+    <li>&FORM.fill;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
@@ -10308,10 +10801,11 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
     <li>&FORM.sizexy;</li>
-    <li>&FORM.vector;</li>
-    <li>&FORM.ellipse;</li>
+    <li>&FORM.skyvector;</li>
+    <li>&FORM.skyellipse;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
+    <li>&FORM.skydensity;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
@@ -10580,8 +11074,6 @@ see the <label>Coords</label> tab of the
     <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
-    <li>&FORM.ellipse;</li>
-    <li>&FORM.line;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     </ul></li>
@@ -10592,7 +11084,9 @@ see the <label>Coords</label> tab of the
     </ul></li>
 </ul>
 Note that use of the
-<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+<ref id="mode-auto">Auto</ref>,
+<ref id="mode-density">Density</ref> and
+<ref id="mode-weighted">Weighted</ref>
 shading modes can be confusing in 3 dimensions with multiple datasets.
 This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
@@ -10901,7 +11395,9 @@ In many respects this works like the
     </ul></li>
 </ul>
 Note that use of the
-<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+<ref id="mode-auto">Auto</ref>,
+<ref id="mode-density">Density</ref> and
+<ref id="mode-weighted">Weighted</ref>
 shading modes can be confusing in 3 dimensions with multiple datasets.
 This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
@@ -11160,6 +11656,7 @@ but at present it doesn't do that.
     <li>&FORM.mark;</li>
     <li>&FORM.error; (vertical bars only)</li>
     <li>&FORM.label;</li>
+    <li>&FORM.fill;</li>
     </ul>
     </li>
 <li>&CONTROL.spectrogram;</li>
@@ -16539,6 +17036,13 @@ with sky position columns.
 <ref id="DalQueryLoadDialog">Single Positional Search Panel</ref> below.
 </p>
 
+<p>The search panel includes a <label>Verbosity</label> selector as well 
+as the normal features: this allows you to choose options for how many columns
+will appear in the output table, from 1 (minimum) to 3 (maximum).
+Some services will take notice of this parameter and return narrower
+or wider tables respectively, and others will ignore it.
+</p>
+
 </subsubsect>
 
 <subsubsect id="SiapTableLoadDialog">
@@ -17007,11 +17511,11 @@ by clicking on the appropriate tab at the top.
     <dt>Service Discovery</dt>
     <dd><p>Configures how TOPCAT searches for available TAP services.
         There are currently two options,
-        <label>GLoTS</label>, which uses the Global TAP Schema
+        <label>GloTS</label>, which uses the Global TAP Schema
         service list maintained by GAVO, and
         <label>Reg Prototype</label> which uses a proposed convention
         based on the IVOA Registry.  You are advised to use the default
-        value (currently GLoTS) unless you understand what you're doing here.
+        value (currently GloTS) unless you understand what you're doing here.
         </p></dd>
     <dt>HTTP gzip</dt>
     <dd><p>If checked, this option sends <code>Accept-Encoding: gzip</code>
@@ -17227,12 +17731,20 @@ The tabs are as follows:
     click on the <label>Unit</label> column header.
     If no table is selected in the tree, this tab will be empty.
     </p></dd>
-<dt>Foreign Keys</dt>
+<dt>FKeys</dt>
 <dd><p>If the service provides information about foreign keys
     (links between fields in different tables in the database)
     they will be tabulated here for the currently selected table.
-    They may help you to formulate efficient queries.
+    If any are present, they may help you to formulate efficient queries.
     If no table is selected in the tree, this tab will be empty.
+    </p></dd>
+<dt>Hints</dt>
+<dd><p>This panel gives you a very basic "Cheat Sheet" for writing ADQL queries.
+    There are just a few hints to jog your memory about the required syntax
+    for some common operations.  But the very best advice it gives
+    you is to use the <label>Examples</label> menu,
+    and the service-provided examples (from the Examples menu or
+    via a link) if available.
     </p></dd>
 </dl>
 </p>
@@ -19115,6 +19627,17 @@ functionality:
 <p>The TOPCAT logo in use since version 4 was kindly drawn by Phil Hall.
 </p>
 
+<p>Colour maps available for the plotting have been taken from
+various places, including SkyCat/GAIA,
+MatPlotLib 1.5,
+Gnuplot, Daniel Michalik,
+<webref url="https://personal.sron.nl/~pault/">Paul Tol</webref>,
+<webref url="http://colorbrewer2.org/">Color Brewer</webref>,
+<webref url="http://hclwizard.org/">HCL Wizard</webref>,
+<webref url="https://www.mrao.cam.ac.uk/~dag/CUBEHELIX/">Dave Green</webref>,
+and probably some others I forgot.
+</p>
+
 <p>TOPCAT has benefitted from, and is largely shaped by, advice,
 comments and feedback from very many users, testers and developers.
 Some of the notable contributers are these:
@@ -19147,6 +19670,7 @@ Some of the notable contributers are these:
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Tim Jenness (JACH)</li>
 <li>JJ Kavelaars (NRC)</li>
+<li>Grant Kennedy (IoA)</li>
 <li>Gerard Lemson (MPE Garching)</li>
 <li>Mark Mahabir (Leicester)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
@@ -19154,10 +19678,13 @@ Some of the notable contributers are these:
 <li>Ben Maughan (Bristol)</li>
 <li>Richard McMahon (IoA)</li>
 <li>Guillaume Mella (JMMC)</li>
+<li>Daniel Michalik (Lund)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
 <li>August Muench (CfA)</li>
 <li>Simon Murphy (ANU)</li>
+<li>John Murrell</li>
+<li>Ada Nebot (CDS)</li>
 <li>Fran&#x00e7;ois Ochsenbein (CDS)</li>
 <li>Clive Page (Leicester)</li>
 <li>Menelaus Perdikeas (ESAC)</li>
@@ -22003,7 +22530,7 @@ introduced since the last version:
         <li>Some "dart" options (fixed-base open or filled triangles)
             added for plotting <ref id="form-vector">vectors</ref>.</li>
         <li>Some "triangle" options (variable-base open or filled triangles)
-            added for plotting <ref id="form-ellipse">ellipses</ref>.</li>
+            added for plotting <ref id="form-xyellipse">ellipses</ref>.</li>
         <li>Max Marker Size option replaced with with Autoscaling option in
             plot <ref id="form-size">Size</ref> form.
             You can now optionally turn off autoscaling and specify marker size
@@ -22341,20 +22868,183 @@ introduced since the last version:
     </dl>
     </p></dd>
 
+<dt>Version 4.3-1 (22 October 2015)</dt>
+<dd><p>
+    <dl>
+    <dt>New features:</dt>
+    <dd><p>
+        <ul>
+        <li>A new <label>Hints</label> tab is added to the
+            <ref id="TapTableLoadDialog_query">TAP load dialogue</ref>,
+            with useful tips to jog your memory about ADQL syntax.</li>
+        <li>The expression language has a new way of
+            <ref id="jelCols">referring to a column</ref>;
+            if you use the form "<code>Object$</code><em>&lt;column-id&gt;</em>"
+            you get the value as an Object not a primitive.
+            This is a special-interest measure for user-defined
+            activation functions that need to see null numeric values.</li>
+        <li>Adjustments to the <ref id="inGbin">GBIN input handler</ref>:
+            avoid descending into Class-typed members of gbin list objects,
+            and add logging for object-&gt;column translations.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix error reporting bug when a non-VOTable response is received
+            from a TAP service.</li>
+        <li>Fix TAP service location bug that caused an error if searching
+            in By Tables tab with only Service field selected.</li>
+        <li>Fix bug in ADQL parsing that failed to recognise column names that
+            are delimited identifiers when qualified by table names.</li>
+        <li>Bugfix updates to ADQL library:
+            disallow use of spurious schema names for tables
+            with no schema name;
+            disallow table-qualified names in ORDER/GROUP BY clauses.</li>
+        <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-Gb)
+            CDF files.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Version 4.3-2 (27 October 2015)</dt>
+<dd><p>
+    <dl>
+    <dt>Crossmatching bug fix</dt>
+    <dd><p>Fix a long-standing crossmatch bug
+        relating to range restriction during pre-processing.
+        This could have caused missed associations (but not false positives)
+        near the edge of coverage regions when using per-row errors, 
+        if the scale of the errors differed
+        (especially differed significantly) between the matched tables.  
+        It affected match algorithms
+        <label>Sky with Errors</label>,
+        <label>&lt;n&gt;-d Cartesian with Errors</label>,
+        <label>2d_ellipse</label> and
+        <label>Sky Ellipses</label> only.
+        Thanks to Grant Kennedy (IoA) for reporting this bug.
+        </p></dd>
+    <dt>Density plots</dt>
+    <dd><p>Some more options for making weighted density plots have been added.
+        Since v4.0 the Density shading mode has let you see the density
+        of plotted points, but this lacked some features.
+        Three new ways to do density plots are added; these all give you
+        the option of weighting by an additional coordinate (like the Aux mode),
+        choosing the combination method (mean, median, sum, max, ...),
+        and displaying the quantitative value-colour mapping
+        on the shared colour ramp (previously aux axis) beside the plot.
+        The new density plots are:
+        <ul>
+        <li><ref id="mode-weighted">Weighted shading mode</ref>,
+            using shaped marker kernels on the screen pixel grid,
+            available for all plot types</li>
+        <li><ref id="form-skydensity">SkyDensity form</ref>,
+            using HEALPix bins on the celestial sphere, for the Sky plot</li>
+        <li><ref id="form-density">Density form</ref>,
+            using square N*N screen pixel bins, for the Plane plot</li>
+        </ul>
+        The details are somewhat experimental and may 
+        undergo some adjustments in future releases (feedback welcome).
+        </p></dd>
+    <dt>Colour maps</dt>
+    <dd><p>There are various changes affecting selection and display of
+        colour maps used for density and aux axis shading:
+        <ul>
+        <li>The default colour map for Aux mode, and other layers using
+            the shared colour map, is no longer Rainbow!  It's Inferno.
+            Rainbow colour maps are much hated by visualisation experts.
+            Of course you can still choose Rainbow if you like.</li>
+        <li>Add some new colour maps:
+            <em>Viridis</em>, <em>Inferno</em>, <em>Magma</em> and
+            <em>Plasma</em> from
+            <webref url="http://bids.github.io/colormap/"
+                    >Matplotlib 1.5</webref>,
+            the <em>SRON</em> rainbow variant developed by
+            <webref url="https://personal.sron.nl/~pault/"
+                    >Paul Tol</webref>,
+            some diverging maps
+            (<em>HotCold</em>, <em>RdBu</em>, <em>PiYG</em>, <em>BrBG</em>)
+            and a qualitative constant chroma/luminance map 
+            <em>HueCL</em>.</li>
+        <li>The options for Density and Aux shading are now mostly the same
+            as each other except where there's good reason to differ.
+            Previously they were different in haphazard ways.
+            The order of the options is now a bit more rational too
+            (similar maps are grouped together,
+            more common ones near the start).</li>
+        <li>An attempt is made to give the default form of each colour map
+            a sensible name, without leading minus signs.</li>
+        <li>Fix it so that the whole range of each map is distinguishable
+            from white.  This is a good idea when you're plotting symbols
+            on a white background, which is common in topcat.
+            Perhaps there are cases it's not such a good idea;
+            if you think so, complain and I may change it back.</li>
+        <li>Try to fix it so that all the colour maps go in the same
+            direction (light-&gt;dark) where applicable.</li>
+        <li>Throw out a couple of particularly useless colour maps.</li>
+        <li>Colour map ramp display is now different for non-absolute maps;
+            their effect is shown on a selection of base colours,
+            not just for one base colour.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor items</dt>
+    <dd><p>
+        <ul>
+        <li>Try harder to identify epoch columns (suitable for time plot), 
+            in particular look for VOTable <code>xtype</code> of JD or MJD,
+            and <code>units</code> of year.</li>
+        <li>Add some functions to the <ref id="Tilings">Tilings</ref> class
+            to do with solid angles
+            (<code>healpixSqdeg</code>,
+             <code>healpixSteradians</code>,
+             <code>steradiansToSqdeg</code>,
+             <code>sqdegToSteradians</code>,
+             <code>SQDEG</code>).</li>
+        <li>Tweaked <code>topcat</code> startup script to work better if it's
+            invoked from a symbolic link.</li>
+        <li>Fix the description in SUN/253 document of Sky ellipse and
+            vector plot forms, previously they were not distinguished
+            from the Plane variants of those forms.</li>
+        <li>Fix plot bug; titles were painted in white
+            for pixel export formats.</li>
+        <li>Rationalise plot report logging.  Some more diagnostic information
+            about plots is now logged at the INFO level
+            (visible if topcat is run with the <code>-verbose</code> flag).</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
 <dt>Next version</dt>
 <dd><p>
     <ul>
-    <li>Fix error reporting bug when a non-VOTable response is received
-        from a TAP service.</li>
-    <li>Fix TAP service location bug that caused an error if searching
-        in By Tables tab with only Service field selected.</li>
-    <li>Fix bug in ADQL parsing that failed to recognise column names that
-        are delimited identifiers when qualified by table names.</li>
-    <li>Bugfix updates to ADQL library:
-        disallow use of spurious schema names for tables with no schema name;
-        disallow table-qualified names in ORDER/GROUP BY clauses.</li>
-    <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-Gb)
-        CDF files.</li>
+    <li>VERBose selector added to <ref id="ConeSearchDialog">Cone Search</ref>
+        dialogue.</li>
+    <li>The TAP window now uses blocking HTTP requests rather than
+        repeated polls
+        to wait for asynchronous TAP job completion from
+        services that declare themselves UWS 1.1 compliant.</li>
+    <li>UType matching is now case-insensitive when identifying likely
+        columns in Activation window.</li>
+    <li>Fix bug in which expression metadata was sometimes not revealed
+        in Columns Window display following addition of a new synthetic column
+        (regression bug since v4.0b).</li>
+    <li>Fix the sky join syntax example in the TAP window Hints panel,
+        which was incorrect (comma and parenthesis misplaced).</li>
+    <li>Add <ref id="form-fill">Fill</ref> plotting mode for Plane and Time
+        plots.</li>
+    <li>Fix bug in cumulative histogram calculation.</li>
+    <li>Fix bugs that led to timezone-dependent results when
+        reading ISO-8601 or decimal year time columns.</li>
+    <li>The Function layer control now works in the experimental
+        Time plot, rather than throwing an error.
+        However, it doesn't work very well, since the time coordinate
+        is in unix seconds rather than something more user-friendly.</li>
+    <li>Don't use white as one of the auto-selected plotting colours,
+        since it's likely to be invisible
+        (this was a regression bug introduced at v4.3-2).</li>
+    <li>Fix numeric field truncation bug in LaTeX table output.</li>
     </ul>
     </p></dd>
 

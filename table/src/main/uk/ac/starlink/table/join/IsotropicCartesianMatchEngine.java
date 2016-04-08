@@ -92,9 +92,8 @@ public class IsotropicCartesianMatchEngine
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
-        return createExtendedBounds( minTuple, maxTuple, getError(),
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        return createExtendedBounds( inRanges[ index ], getError(),
                                      indexRange( 0, ndim_ ) );
     }
 

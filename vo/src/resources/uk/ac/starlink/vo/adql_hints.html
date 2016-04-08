@@ -1,0 +1,191 @@
+<html>
+<head>
+<style type="text/css">
+h1 {
+   color: #303090;
+   font-weight: bold;
+   font-size: x-large;
+   margin-bottom: 4px;
+   margin-top: 0px;
+   text-decoration: underline;
+}
+h2 {
+   color: #303090;
+   font-weight: bold;
+   font-size: large;
+   margin-top: 4px;
+   margin-bottom: 4px;
+   text-decoration: underline;
+}
+p {
+   margin-bottom: 0px;
+   margin-top: 0px;
+}
+code {
+   color: #704010;
+   font-family: monospaced;
+}
+pre {
+   color: #704010;
+   font-family: monospaced;
+   margin-top: 0px;
+   margin-bottom: 4px;
+}
+strong {
+   font-weight: bold;
+}
+a {
+   color: #0000ee;
+   text-decoration: underline;
+}
+#indent {
+   margin-left: 12pt;
+}
+#bgap {
+   margin-bottom: 4px;
+}
+#menu {
+   color: #a03030;
+   font-weight: bold;
+   text-decoration: underline;
+}
+#button {
+   color: #a03030;
+   font-weight: bold;
+   text-decoration: underline;
+}
+#linkurl {
+   color: #b0b0b0;
+}
+</style>
+</head>
+<body>
+
+<h1>Very basic ADQL cheat sheet</h1>
+
+<h2>Examples</h2>
+
+<div id="indent">
+
+<p id="bgap"><strong>Use the <span id="button">Examples</span> button
+at the bottom of this window!
+</strong>
+</p>
+
+<p id="EXAMPLE_CONTENT">
+Examples in the <span id="menu">Service Provided</span> submenu,
+if available, <br></br>
+relate to the current TAP service.
+</p>
+
+</div>
+
+<h2>SELECT statement:</h2>
+
+<div id="indent">
+<pre>
+SELECT [TOP n] &lt;select-list&gt;
+    FROM &lt;table-and-join-expression&gt;
+   [WHERE &lt;conditions&gt;]
+   [GROUP BY &lt;column-list&gt;]
+   [HAVING &lt;conditions&gt;]
+   [ORDER BY &lt;column-list&gt;]
+</pre>
+
+<pre>
+SELECT t.&lt;col1&gt; AS a, t.&lt;col2&gt; AS b FROM &lt;table&gt; AS t
+</pre>
+
+<pre>
+SELECT * FROM &lt;table1&gt; JOIN &lt;table2&gt; ON &lt;expression&gt;
+</pre>
+</div>
+
+<h2>Comparison expressions</h2>
+
+<div id="indent">
+<p id="bgap">
+   <code>&lt;column&gt; LIKE '%star%'</code>
+   ('<code>%</code>' matches string, '<code>_</code>' matches single character)
+</p>
+<pre>
+&lt;column&gt; = 0
+</pre>
+<pre>
+&lt;column&gt; IS NOT NULL
+</pre>
+<pre>
+&lt;column&gt; BETWEEN 0 AND 100
+</pre>
+</div>
+
+<h2>Joins</h2>
+
+<div id="indent">
+<pre>
+SELECT ... FROM &lt;table1&gt; JOIN &lt;table2&gt; ON &lt;expression&gt;
+</pre>
+<pre>
+SELECT ... FROM &lt;table1&gt; JOIN &lt;table2&gt; USING (&lt;common-column-list&gt;)
+</pre>
+<pre style="margin-bottom: 0pt;">
+SELECT ...
+   FROM &lt;table1&gt; AS a
+   JOIN &lt;table2&gt; AS b
+   ON 1=CONTAINS( POINT('ICRS', a.ra, a.dec),
+                 CIRCLE('ICRS', b.ra, b.dec, &lt;radius-in-degrees&gt;))
+</pre>
+<p id="indent">
+(Note: the 'ICRS' argument usually doesn't do anything, but you need it anyway)
+</p>
+</div>
+
+<h2>Upload joins</h2>
+
+<div id="indent">
+<p>
+Reference TOPCAT tables as <code>TAP_UPLOAD.t&lt;n&gt;</code>; <br></br>
+table 3 in Control Window list is <code>TAP_UPLOAD.t3</code>.
+</p>
+<p>Not all services support upload joins.
+</p>
+</div>
+
+<h2>More help</h2>
+
+<div id="indent">
+
+<p>
+<a href="http://docs.g-vo.org/adqlref/adqlref.pdf"
+   >GAVO ADQL Cheat Sheet (PDF)</a>
+<span id="linkurl">
+(http://docs.g-vo.org/adqlref/)
+</span>
+</p>
+
+<p>
+<a href="http://docs.g-vo.org/adql/">GAVO ADQL Introduction</a>
+<span id="linkurl">
+(http://docs.g-vo.org/adql/)
+</span>
+</p>
+
+<p>
+<a href="http://www.ivoa.net/documents/latest/ADQL.html">ADQL Standard</a>
+<span id="linkurl">
+(http://www.ivoa.net/documents/latest/ADQL.html)
+</span>
+</p>
+
+<p>
+<a href="http://wiki.ivoa.net/internal/IVOA/IvoaVOQL/adql-bnf-v2.0.html"
+   >ADQL BNF</a>
+<span id="linkurl">
+(http://wiki.ivoa.net/internal/IVOA/IvoaVOQL/adql-bnf-v2.0.html)
+</span>
+</p>
+
+</div>
+
+</body>
+</html>

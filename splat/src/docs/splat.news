@@ -29,6 +29,7 @@
    SPLAT can run without attempting to communicate with any running
    SAMP hubs.
 
+   
    3.10-8
    ======
 
@@ -103,7 +104,6 @@
 	- correction of server information display
 
 	- big fix: Exception when querying registry
-   
 
    3.10-0
    ======
@@ -162,9 +162,10 @@
    has been fixed. Previously SPLAT ran out of memory after printing a plot
    around 24 times.
 
+
+
    Post Hikianalia
    Post Kapuahi
-
    3.9-8
    =====
 

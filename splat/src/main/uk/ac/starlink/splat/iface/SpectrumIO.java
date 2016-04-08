@@ -429,6 +429,7 @@ public class SpectrumIO
                       String dataColumn, String coordColumn,
                       String errorColumn, SourceType sourceType, String idsrc, String idValue,
                       ObjectTypeEnum objectType)
+
         {
             this.spectrum = spectrum;
             this.type = type;

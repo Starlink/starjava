@@ -126,6 +126,18 @@ public class JELDataSpec extends AbstractDataSpec {
     }
 
     /**
+     * Returns the user input strings used to supply the value for a given
+     * coordinate in this DataSpec.
+     *
+     * @param  ic  coordinate index
+     * @return   array of JEL expressions entered by the user to provide
+     *           data for the coordinate
+     */
+    public String[] getCoordExpressions( int ic ) {
+        return coordIds_[ ic ].exprs_.clone();
+    }
+
+    /**
      * Attempts to create a UserDataReader which evaluates the JEL expressions
      * for this spec.  If compilation of the expressions fails, a
      * TaskException is thrown.

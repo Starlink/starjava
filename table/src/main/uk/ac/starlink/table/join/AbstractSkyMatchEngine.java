@@ -169,18 +169,16 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      * If the RA/Dec bounds cannot be extended appropriately for some reason,
      * null will be used.
      *
-     * @param  minTuple  array of minimum values, may contain nulls
-     * @param  maxTuple  array of maximum values, may contain nulls
+     * @param  inRange   input bounds
      * @param  ialpha    index in tuples of the right ascension coordinate
      * @param  idelta    index in tuples of the declination coordinate
      * @param  err       amount in radians to extend bounds by
-     * @return  2-element array of tuples -
-     *          effectively (minTuple,maxTuple) broadened by errors
+     * @return output bounds - effectively input bounds broadened by errors
      */
-    static Comparable[][] createExtendedSkyBounds( Comparable[] minTuple,
-                                                   Comparable[] maxTuple,
-                                                   int ialpha, int idelta,
-                                                   double err ) {
+    static NdRange createExtendedSkyBounds( NdRange inRange, int ialpha,
+                                            int idelta, double err ) {
+        Comparable[] minTuple = inRange.getMins();
+        Comparable[] maxTuple = inRange.getMaxs();
 
         /* Get numeric values of sky coordinate input limits. */
         double alphaMinIn = getNumberValue( minTuple[ ialpha ] );
@@ -235,7 +233,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
         minOuts[ idelta ] = toFloatingNumber( deltaMinOut, minTuple[ idelta ] );
         maxOuts[ ialpha ] = toFloatingNumber( alphaMaxOut, maxTuple[ ialpha ] );
         maxOuts[ idelta ] = toFloatingNumber( deltaMaxOut, maxTuple[ idelta ] );
-        return new Comparable[][] { minOuts, maxOuts };
+        return new NdRange( minOuts, maxOuts );
     }
 
     /**

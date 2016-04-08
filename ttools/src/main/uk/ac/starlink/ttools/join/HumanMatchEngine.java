@@ -5,6 +5,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.NdRange;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
@@ -114,16 +115,21 @@ public class HumanMatchEngine implements MatchEngine {
         return baseEngine_.canBoundMatch();
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                          Comparable[] maxTuple ) {
-        Comparable[][] unwrappedResult =
-            baseEngine_.getMatchBounds(
-                            toComparables( unwrapTuple( minTuple ) ),
-                            toComparables( unwrapTuple( maxTuple ) ) );
-        return new Comparable[][] {
-            toComparables( wrapTuple( unwrappedResult[ 0 ] ) ),
-            toComparables( wrapTuple( unwrappedResult[ 1 ] ) ),
-        };
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        int nr = inRanges.length;
+        NdRange[] unwrappedInRanges = new NdRange[ nr ];
+        for ( int ir = 0; ir < nr; ir++ ) {
+            NdRange inRng = inRanges[ ir ];
+            unwrappedInRanges[ ir ] =
+                new NdRange( toComparables( unwrapTuple( inRng.getMins() ) ),
+                             toComparables( unwrapTuple( inRng.getMaxs() ) ) );
+        }
+        NdRange unwrappedResult =
+            baseEngine_.getMatchBounds( unwrappedInRanges, index );
+        return new NdRange( toComparables( wrapTuple( unwrappedResult
+                                                     .getMins() ) ),
+                            toComparables( wrapTuple( unwrappedResult
+                                                     .getMaxs() ) ) );
     }
 
     /**

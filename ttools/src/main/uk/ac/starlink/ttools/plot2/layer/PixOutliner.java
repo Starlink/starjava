@@ -1,24 +1,15 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import java.awt.Color;
 import java.awt.Rectangle;
-import javax.swing.Icon;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.Decal;
-import uk.ac.starlink.ttools.plot2.Drawing;
-import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.paper.Paper;
-import uk.ac.starlink.ttools.plot2.paper.PaperType;
-import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 
 /**
  * Partial Outliner implementation which calculates its bin plan
@@ -47,14 +38,12 @@ public abstract class PixOutliner implements Outliner {
 
         /* Otherwise set up a limited PaperType implementation that takes
          * glyphs and turns them into a bit map, and plot the glyphs on it. */
-        BinPaperType ptype = new BinPaperType();
+        BinPaper paper = new BinPaper( surface.getPlotBounds() );
         ShapePainter painter =
-            create2DPainter( surface, geom, auxRanges, ptype );
-        BinPaper paper = new BinPaper( ptype, surface.getPlotBounds() );
-        Color color = Color.BLACK;
+            create2DPainter( surface, geom, auxRanges, paper.getPaperType() );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while( tseq.next() ) {
-            painter.paintPoint( tseq, color, paper );
+            painter.paintPoint( tseq, null, paper );
         }
 
         /* Extract the result as a bin plan. */
@@ -71,87 +60,39 @@ public abstract class PixOutliner implements Outliner {
     }
 
     /**
-     * Partial PaperType implementation that accepts glyphs and uses their
-     * pixel iterators to build a 2-d histogram.  It doesn't do all the
-     * other things that PaperTypes do, like create an icon or support
-     * decals.  That's OK, we're not going to ask it to do those things.
+     * Accepts glyphs and users their pixel iterators to build a
+     * 2-d histogram.
      */
-    private static class BinPaperType implements PaperType2D {
-
-        public void placeGlyph( Paper paper, double dx, double dy, Glyph glyph,
-                                Color color ) {
-            int gx = PlotUtil.ifloor( dx );
-            int gy = PlotUtil.ifloor( dy );
-
-            /* Acquire requisite information from paper object. */
-            BinPaper binPaper = (BinPaper) paper;
-            Rectangle bounds = binPaper.bounds_;
-            Gridder gridder = binPaper.gridder_;
-            int[] counts = binPaper.counts_;
-            int xoff = bounds.x;
-            int yoff = bounds.y;
-
-            /* Get the presented glyph's pixels clipped to bounds. */
-            Rectangle cbox = new Rectangle( bounds );
-            cbox.translate( -gx, -gy );
-            Pixer pixer = glyph.createPixer( cbox );
-
-            /* Increment bins per pixel as appropriate. */
-            if ( pixer != null ) {
-                while ( pixer.next() ) {
-                    int px = gx + pixer.getX();
-                    int py = gy + pixer.getY();
-                    assert bounds.contains( px, py );
-                    int ix = px - xoff;
-                    int iy = py - yoff;
-                    counts[ gridder.getIndex( ix, iy ) ]++;
-                }
-            }
-            binPaper.pointCount_++;
-        }
-
-        public boolean isBitmap() {
-            return true;
-        }
-
-        public Icon createDataIcon( Surface surface, Drawing[] drawings,
-                                    Object[] plans, DataStore dataStore,
-                                    boolean requireCached ) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void placeDecal( Paper paper, Decal decal ) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    /**
-     * Paper implementation for use with BinPaperType.
-     */
-    private static class BinPaper implements Paper {
-        final PaperType paperType_;
+    private static class BinPaper extends GlyphPaper {
         final Rectangle bounds_;
         final Gridder gridder_;
-        final Binner binner_;
+        final int xoff_;
+        final int yoff_;
         final int[] counts_;
         long pointCount_;
- 
+
         /**
          * Constructor.
          *
-         * @param  paperType  paper type
-         * @param  bounds  bitmap bounds
+         * @param  bounds  plot bounds
          */
-        BinPaper( BinPaperType paperType, Rectangle bounds ) {
-            paperType_ = paperType;
+        BinPaper( Rectangle bounds ) {
+            super( bounds );
             bounds_ = new Rectangle( bounds );
             gridder_ = new Gridder( bounds.width, bounds.height );
-            binner_ = new Binner( gridder_.getLength() );
+            xoff_ = bounds_.x;
+            yoff_ = bounds_.y;
             counts_ = new int[ gridder_.getLength() ];
         }
 
-        public PaperType getPaperType() {
-            return paperType_;
+        public void glyphPixels( Pixer pixer ) {
+            while ( pixer.next() ) {
+                int px = pixer.getX();
+                int py = pixer.getY();
+                assert bounds_.contains( px, py );
+                counts_[ gridder_.getIndex( px - xoff_, py - yoff_ ) ]++;
+            }
+            pointCount_++;
         }
     }
 

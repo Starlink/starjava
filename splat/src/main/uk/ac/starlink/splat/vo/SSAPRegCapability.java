@@ -1,4 +1,3 @@
-
 package uk.ac.starlink.splat.vo;
 
 import uk.ac.starlink.vo.RegCapabilityInterface;
@@ -67,8 +66,7 @@ public class SSAPRegCapability
         setAccessUrl( newAccessUrl );
         setDataSource(newDataSource);
     }
-
-  
+    
     public String getAccessUrl()
     {
         return accessUrl;

@@ -139,7 +139,6 @@ public class SSAPRegistryClient extends AbstractRegistryClient<SSAPRegResource> 
                 VERSION_PATH,
                 DATASOURCE_PATH,
                 CREATIONTYPE_PATH, 
-               
             } ) );
         }
     

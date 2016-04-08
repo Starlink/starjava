@@ -173,6 +173,21 @@ public interface MatchEngine {
      * <tt>null</tt> to indicate that no information is available on
      * the bounds of that tuple element (coordinate).
      *
+     * <p>An array of n-dimensional ranges is given, though only one of them
+     * (specified by the <code>index</code> value) forms the basis for
+     * the output range.  The other ranges in the input array may in some
+     * cases be needed as context in order to do the calculation.
+     * If the match error is fixed, only the single input n-d range is needed
+     * to work out the single output range.  However, if the errors are
+     * obtained by looking at the tuples themselves (match errors are per-row)
+     * then in general the broadening has to be done using the maximum
+     * error of <em>any</em> of the tables involved in the match,
+     * not just the one to be broadened.
+     * For a long time, I didn't realise this, so versions of this software
+     * up to STIL v3.0-14 (Oct 2015) were not correctly broadening these
+     * ranges, leading to potentially missed associations near the edge
+     * of bounded regions.
+     *
      * <p>This method can be used by match algorithms which know in advance
      * the range of coordinates they will match against and wish 
      * to reduce workload by not attempting matches which are bound to fail.
@@ -185,23 +200,24 @@ public interface MatchEngine {
      * <p>This method will only be called if {@link #canBoundMatch}
      * returns true.  Thus engines that cannot provide any useful 
      * information along these lines (for instance because none of its
-     * tuple elements is {@link java.lang.Comparable} do not need to
+     * tuple elements is {@link java.lang.Comparable}) do not need to
      * implement it in a meaningful way.
      *
-     * @param  minTuple  tuple consisting of the minimum values of each
-     *         tuple element in a possible match
-     *         (to put it another way - coordinates of one corner of a
-     *         tuple-space rectangle containing such a match)
-     * @param  maxTuple  tuple consisting of the maximum values of each
-     *         tuple element in a possible match
-     *         (to put it another way - coordinates of the other corner of a
-     *         tuple-space rectangle containing such a match)
-     * @return 2-element array of tuples -
-     *         effectively <tt>(minTuple,maxTuple)</tt> broadened by errors
+     * @param inRanges  array of input ranges for the tables on which
+     *                  the match will take place;
+     *                  each element bounds the values for each tuple
+     *                  element in its corresponding table
+     *                  in a possible match
+     *                  (to put it another way - each element gives the
+     *                  coordinates of the opposite corners of a tuple-space
+     *                  rectangle covered by one input table)
+     * @param  index    which element of the <code>inRanges</code> array
+     *                  for which the broadened output value is required
+     * @return  output range, effectively <code>inRanges[index]</code>
+     *          broadened by errors
      * @see   #canBoundMatch
      */
-    Comparable[][] getMatchBounds( Comparable[] minTuple,
-                                   Comparable[] maxTuple );
+    NdRange getMatchBounds( NdRange[] inRanges, int index );
 
     /**
      * Indicates that the {@link #getMatchBounds} method can be invoked

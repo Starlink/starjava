@@ -613,12 +613,14 @@ public class ActivationQueryWindow extends QueryWindow {
          *
          * @param  utype  UType to match
          */
-        protected void selectColumnByUtype( String utype ) {
+        protected void selectColumnByUtype( String uType ) {
+            String utype = uType.toLowerCase();
             for ( int i = 0; i < colSelector_.getItemCount(); i++ ) {
                 Object item = colSelector_.getItemAt( i );
                 if ( item instanceof ColumnData ) {
                     ColumnInfo cinfo = ((ColumnData) item).getColumnInfo();
-                    String ut = cinfo.getUtype();
+                    String uT = cinfo.getUtype();
+                    String ut = uT == null ? null : uT.toLowerCase();
                     if ( ut != null && ut.endsWith( utype ) ) {
                         colSelector_.setSelectedIndex( i );
                         if ( ut.equals( utype ) ||

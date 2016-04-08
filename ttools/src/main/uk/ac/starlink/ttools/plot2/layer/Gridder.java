@@ -51,11 +51,56 @@ public class Gridder {
     }
 
     /**
+     * Returns the X index corresponding to a pixel index.
+     *
+     * @param  index  1-d index
+     * @return  X position
+     */
+    public int getX( int index ) {
+        return index % nx_;
+    }
+
+    /**
+     * Returns the Y index corresponding to a pixel index.
+     *
+     * @param  index  1-d index
+     * @return  Y position
+     */
+    public int getY( int index ) {
+        return index / nx_;
+    }
+
+    /**
      * Returns the number of points in the grid and array.
      *
      * @return  size
      */
     public int getLength() {
         return nx_ * ny_;
+    }
+
+    /**
+     * Returns a Gridder instance that is the transpose of the supplied one.
+     * If the supplied instance does row-major indexing, the result does
+     * column-major instead.
+     *
+     * @param   base  input gridder
+     * @return   gridder with X and Y transposed
+     */
+    public static Gridder transpose( final Gridder base ) {
+        return new Gridder( base.getHeight(), base.getWidth() ) {
+            @Override
+            public int getIndex( int ix, int iy ) {
+                return base.getIndex( iy, ix );
+            }
+            @Override
+            public int getX( int index ) {
+                return base.getY( index );
+            }
+            @Override
+            public int getY( int index ) {
+                return base.getX( index );
+            }
+        };
     }
 }

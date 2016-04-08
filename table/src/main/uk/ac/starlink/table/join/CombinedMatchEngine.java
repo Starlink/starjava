@@ -189,26 +189,34 @@ public class CombinedMatchEngine implements MatchEngine {
         return false;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] min, Comparable[] max ) {
-        min = (Comparable[]) min.clone();
-        max = (Comparable[]) max.clone();
-        for ( int i = 0; i < nPart; i++ ) {
-            if ( engines[ i ].canBoundMatch() ) {
-                int size = tupleSizes[ i ];
-                int start = tupleStarts[ i ];
-                Comparable[] subMin = new Comparable[ size ];
-                Comparable[] subMax = new Comparable[ size ];
-                System.arraycopy( min, start, subMin, 0, size );
-                System.arraycopy( max, start, subMax, 0, size );
-                Comparable[][] subBounds = engines[ i ]
-                                          .getMatchBounds( subMin, subMax );
-                subMin = subBounds[ 0 ];
-                subMax = subBounds[ 1 ];
-                System.arraycopy( subMin, 0, min, start, size );
-                System.arraycopy( subMax, 0, max, start, size );
+    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+        int nr = inRanges.length;
+        Comparable[] outMins = inRanges[ index ].getMins().clone();
+        Comparable[] outMaxs = inRanges[ index ].getMaxs().clone();
+        for ( int ip = 0; ip < nPart; ip++ ) {
+            MatchEngine engine = engines[ ip ];
+            if ( engine.canBoundMatch() ) {
+                int size = tupleSizes[ ip ];
+                int start = tupleStarts[ ip ];
+                NdRange[] subInRanges = new NdRange[ nr ];
+                for ( int ir = 0; ir < nr; ir++ ) {
+                    Comparable[] subInMins = new Comparable[ size ];
+                    Comparable[] subInMaxs = new Comparable[ size ];
+                    System.arraycopy( inRanges[ ir ].getMins(), start,
+                                      subInMins, 0, size );
+                    System.arraycopy( inRanges[ ir ].getMaxs(), start,
+                                      subInMaxs, 0, size );
+                    subInRanges[ ir ] = new NdRange( subInMins, subInMaxs );
+                }
+                NdRange subOutRange =
+                     engine.getMatchBounds( subInRanges, index );
+                System.arraycopy( subOutRange.getMins(), 0,
+                                  outMins, start, size );
+                System.arraycopy( subOutRange.getMaxs(), 0,
+                                  outMaxs, start, size );
             }
         }
-        return new Comparable[][] { min, max };
+        return new NdRange( outMins, outMaxs );
     }
 
     public void setName( String name ) {

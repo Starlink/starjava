@@ -19,12 +19,22 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
             new InputMeta( "ra", "Primary Radius" )  // is "ra" a bad name?
            .setShortDescription( "Ellipse first principal radius in degrees" )
            .setValueUsage( "deg" )
+           .setXmlDescription( new String[] {
+                "<p>Ellipse first principal radius in degrees.",
+                "</p>",
+            } )
         , true );
     private static final FloatingCoord BR_COORD =
         FloatingCoord.createCoord(
             new InputMeta( "rb", "Secondary Radius" )
            .setShortDescription( "Ellipse second principal radius in degrees" )
            .setValueUsage( "deg" )
+           .setXmlDescription( new String[] {
+                "<p>Ellipse second principal radius in degrees.",
+                "If this value is blank, the two radii will be assumed equal,",
+                "i.e. the ellipses will be circles.",
+                "</p>",
+            } )
         , false );
     private static final FloatingCoord POSANG_COORD =
         FloatingCoord.createCoord(

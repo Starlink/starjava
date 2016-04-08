@@ -35,7 +35,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.sun.xml.internal.ws.encoding.ContentType;
+import javax.activation.MimeType;
+
 
 
 
@@ -1311,7 +1312,7 @@ public class SpecDataFactory
     {
         PathParser namer = null;
         boolean compressed = false;
-        ContentType  mimetype = null;
+        MimeType mimetype = null;
        
         try {
             
@@ -1341,7 +1342,7 @@ public class SpecDataFactory
                             " for the URL : " + url.toString()    );
                 }
                 compressed = ("gzip".equals(connection.getContentEncoding()));
-                mimetype = new ContentType(connection.getContentType());
+                mimetype = new MimeType(connection.getContentType());
                 
             }
             connection.setConnectTimeout(10*1000); // 10 seconds
@@ -1867,7 +1868,6 @@ public class SpecDataFactory
     	if (type != null && type.toLowerCase().trim().startsWith("timeseries/")); {
     		objectType = ObjectTypeEnum.TIMESERIES;
     	}
-//    	System.out.println("and146: mimeToObjectType: " + objectType);
     	return objectType;
     }
     
@@ -1878,8 +1878,7 @@ public class SpecDataFactory
      */
     public static int mimeToSPLATType( String type )
     {
-//        System.out.println("and146: type to detect: " + type);
-    	int stype = SpecDataFactory.DEFAULT;
+        int stype = SpecDataFactory.DEFAULT;
         String simpleType = type.toLowerCase();
 
         //   Note allow for application/fits;xxxx, so use startsWith,

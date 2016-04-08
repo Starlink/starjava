@@ -29,13 +29,13 @@ import uk.ac.starlink.table.Tables;
  *     is returned.
  *
  * <dt>Parameter names:
- * <dd>The string {@link #PARAM_PREFIX} followed by the name of a table
+ * <dd>The string {@value #PARAM_PREFIX} followed by the name of a table
  *     parameter (case-insensitive) is a constant for the table
  *     (as a primitive, if applicable).  This can only work
  *     if the parameter name is a legal java identifier.
  *
  * <dt>UCD specifiers:
- * <dd>The string {@link #UCD_PREFIX} followed by the text of a UCD
+ * <dd>The string {@value #UCD_PREFIX} followed by the text of a UCD
  *     giving the required value.  Any punctuation (such as ".", ";", "-")
  *     in the UCD should be replaced with a "_" (since these symbols cannot
  *     appear in identifiers).  If the identifier has a trailing "_",
@@ -44,7 +44,7 @@ import uk.ac.starlink.table.Tables;
  *     parameter value is returned.  UCD matching is case-insensitive.
  *
  * <dt>Utype specifiers:
- * <dd>The string {@link #UTYPE_PREFIX} followed by the text of a Utype
+ * <dd>The string {@value #UTYPE_PREFIX} followed by the text of a Utype
  *     identifying the required value.  Any punctuation (such as ".", ":", "-")
  *     in the Utype should be replaced with a "_" (since these symbols cannot
  *     appear in identifiers).

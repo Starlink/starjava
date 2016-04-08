@@ -130,7 +130,6 @@ public class SSAQueryResultsTableSelectionMenu extends JMenu {
 	}
 	
 	private StarJTable traverseToStarJTable(Component component) {
-		System.out.println("and146: " + component);
 		if (component == null) {
 			return null;
 		}

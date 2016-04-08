@@ -243,7 +243,6 @@ public abstract class SpectraAsTablesSendActionManager
     	
     	if (props != null) {
     		for (Props p : props) {
-    			System.out.println("and146: props url: " + p.getDataLinkRequest() + " / " + p.getidValue() + " / " + p.getShortName() + " / " + p.getSpectrum());
     			if ( p.getType() == SpecDataFactory.SED || p.getType() == SpecDataFactory.TABLE ) {
     				try {
     					List<SpecData> sp = Arrays.asList(SpecDataFactory.getInstance().expandXMLSED( p.getSpectrum() ));

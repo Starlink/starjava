@@ -101,7 +101,13 @@ public class AstTest extends TestCase {
         wcs.addFrame( FrameSet.AST__BASE, map, f );
         assertEquals( "COPY", wcs.getFrame( 5 ).getDomain() );
 
-        assertTrue( wcs.getFrame( FrameSet.AST__CURRENT ).sameObject( f ) );
+        // AST now stores copies of frames in the FrameSet, so we can no
+        // longer test that sameObject(f) returns true for the current frame.
+        // In order to do the test with equals(f) we need also to set the
+        // same ID attribute.
+        Frame wcs_current = wcs.getFrame( FrameSet.AST__CURRENT );
+        wcs_current.setID( "9-8-7-6" );
+        assertTrue( wcs_current.equals( f ) );
 
         f.clear( "ID" );
         f.clear( "Ident" );

@@ -1,19 +1,17 @@
 package uk.ac.starlink.vo;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -36,11 +34,10 @@ import uk.ac.starlink.util.ContentCoding;
 public class UwsJob {
 
     private final URL jobUrl_;
-    private volatile String phase_;
-    private volatile long phaseTime_;
+    private UwsJobInfo info_;
     private boolean deleteAttempted_;
     private Thread deleteThread_;
-    private List<Runnable> phaseWatcherList_;
+    private List<JobWatcher> watcherList_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
     private static final String UTF8 = "UTF-8";
@@ -61,12 +58,12 @@ public class UwsJob {
     /**
      * Constructor.
      *
-     * @param   jobUrl  the UWS {jobs}/(job-id) URL containing 
+     * @param   jobUrl  the UWS {jobs}/(job-id) URL containing
      *                  the details of this job
      */
     public UwsJob( URL jobUrl ) {
         jobUrl_ = jobUrl;
-        phaseWatcherList_ = new ArrayList<Runnable>();
+        watcherList_ = new ArrayList<JobWatcher>();
     }
 
     /**
@@ -81,25 +78,34 @@ public class UwsJob {
     }
 
     /**
-     * Returns the most recently read job phase.  Invoking this method
-     * does not cause the phase to be read.
+     * Adds a callback which will be invoked whenever this job's phase
+     * is found to have changed.  Note that the runnable will not
+     * in general be invoked from the AWT event dispatch thread.
      *
-     * @return  phase
+     * @param  watcher  runnable to be notified on job phase change
      */
-    public String getLastPhase() {
-        return phase_;
+    public void addJobWatcher( JobWatcher watcher ) {
+        watcherList_.add( watcher );
     }
 
     /**
-     * Returns the epoch at which the job phase was last read.
-     * The return value is the value of <code>System.currentTimeMillis()</code>
-     * at that epoch.
+     * Removes a callback previously added by {@link #addJobWatcher}.
+     * Has no effect if <code>watcher</code> is not currently registered.
      *
-     * @return   phase read time epoch in milliseconds
-     * @see   #getLastPhase
+     * @param   watcher  runnable to be removed
      */
-    public long getLastPhaseTime() {
-        return phaseTime_;
+    public void removeJobWatcher( JobWatcher watcher ) {
+        watcherList_.remove( watcher );
+    }
+
+    /**
+     * Returns the most recently read job state.
+     * Invoking this method does not cause the state to be read.
+     *
+     * @return   job state object
+     */
+    public UwsJobInfo getLastInfo() {
+        return info_;
     }
 
     /**
@@ -108,8 +114,50 @@ public class UwsJob {
      * @param  phase  UWS job phase to assign
      */
     public void postPhase( String phase ) throws IOException {
-        HttpURLConnection hconn =
-            postForm( new URL( jobUrl_ + "/phase" ), "PHASE", phase );
+        postUwsParameter( "/phase", "PHASE", phase );
+    }
+
+    /**
+     * Posts a value of the destruction time for this job.
+     * The service is not obliged to accept it; completion without error
+     * does not necessarily mean that it has done.
+     * May not work after job has started.
+     *
+     * @param  epoch   destruction time which should be an ISO-8601 string;
+     *                 it is passed directly to the service
+     */
+    public void postDestruction( String epoch ) throws IOException {
+        postUwsParameter( "/destruction", "DESTRUCTION", epoch );
+    }
+
+    /**
+     * Posts a value of the execution duration parameter for this job.
+     * The service is not obliged to accept it; completion without error
+     * does not necessarily mean that it has done.
+     * May not work after job has started.
+     *
+     * @param   nsec   number of elapsed seconds for which job is permitted
+     *                 to run; zero is supposed to mean unlimited
+     */
+    public void postExecutionDuration( long nsec ) throws IOException {
+        postUwsParameter( "/executionduration", "EXECUTIONDURATION",
+                          Long.toString( nsec ) );
+    }
+
+    /**
+     * Posts a parameter value to this UWS job.
+     *
+     * @param   relativeLocation  parameter posting endpoint relative to
+     *                            this job's endpoint (include a leading "/"
+     *                            if it's a sub-resource)
+     * @param   paramName   name of job parameter
+     * @param   paramValue  new value of job parameter
+     */
+    private void postUwsParameter( String relativeLocation, String paramName,
+                                   String paramValue )
+            throws IOException {
+        URL postUrl = new URL( jobUrl_ + relativeLocation );
+        HttpURLConnection hconn = postForm( postUrl, paramName, paramValue );
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {
             throw new IOException( "Non-303 response: " + code + " " +
@@ -129,102 +177,148 @@ public class UwsJob {
 
     /**
      * Blocks until the job has reached a completion phase.
-     * It is polled at the given interval.
+     * Depending on the service's capabilities, this may be done
+     * using polling or a blocking call.
      *
-     * @param   poll   polling time in milliseconds to assess job completion
-     * @return   final phase
+     * @param   pollMillis   polling time in milliseconds to assess
+     *                       job completion, if polling is required
+     * @return   job info corresponding to a completion state
      * @throws   UnexpectedResponseException  if HTTP responses other than
      *           UWS mandated ones occur
      */
-    public String waitForFinish( final long poll )
+    public UwsJobInfo waitForFinish( final long pollMillis )
             throws IOException, InterruptedException {
-        if ( phase_ == null ) {
-            readPhase();
+        UwsJobInfo info = info_;
+        if ( info == null ) {
+            info = readInfo();
         }
-        while ( UwsStage.forPhase( phase_ ) != UwsStage.FINISHED ) {
-            String phase = phase_;
-            UwsStage stage = UwsStage.forPhase( phase );
-            switch ( stage ) {
+        boolean useBlocking = hasBlocking( info );
+        while ( UwsStage.forPhase( info.getPhase() ) != UwsStage.FINISHED ) {
+            final UwsJobInfo info2;
+            if ( useBlocking ) {
+                logger_.info( "Blocking read of UWS job" );
+                info2 = readInfoBlocking( -1, info );
+            }
+            else {
+                logger_.info( "Poll UWS job after " + pollMillis + "ms" );
+                Thread.sleep( pollMillis );
+                info2 = readInfo();
+            }
+            info = info2;
+            String phase = info.getPhase();
+            switch ( UwsStage.forPhase( phase ) ) {
                 case UNSTARTED:
                     throw new IOException( "Job not started"
                                          + " - phase: " + phase );
-                case UNKNOWN:
-                    logger_.info( "UWS phase " + phase + " reported"
-                                + "; wait and poll" );
-                    // fall through
-                case RUNNING:
-                    Thread.sleep( poll );
-                    break;
-                case FINISHED:
-                    return phase;
                 case ILLEGAL:
                     throw new IOException( "Illegal UWS job phase: " + phase );
+                case UNKNOWN:
+                    logger_.info( "Unknown UWS phase " + phase + " reported"
+                                + "; poll again" );
+                    break;
+                case RUNNING:
+                    break;
+                case FINISHED:
+                    break;
                 default:
                     throw new AssertionError();
             }
-            assert stage == UwsStage.UNKNOWN || stage == UwsStage.RUNNING;
-            readPhase();
         }
-        return phase_;
+        return info;
     }
 
     /**
-     * Reads the current UWS phase for this job from the server
-     * and stores the result.  The result is available from the
-     * {@link #getLastPhase} method, and the associated
-     * {@link #getLastPhaseTime getLastPhaseTime} value is also set.
-     */
-    public void readPhase() throws IOException {
-        URL phaseUrl = new URL( jobUrl_ + "/phase" );
-        InputStream in = new BufferedInputStream( phaseUrl.openStream() );
-        StringBuffer sbuf = new StringBuffer();
-        for ( int c; ( c = in.read() ) >= 0; ) {
-            sbuf.append( (char) ( c & 0xff ) );
-        }
-        in.close();
-        String phase = sbuf.toString();
-        if ( TRIM_TEXT ) {
-            phase = phase.trim();
-        }
-        logger_.info( phaseUrl + " phase: " + phase );
-        phase_ = phase;
-        phaseTime_ = System.currentTimeMillis();
-        for ( Runnable watcher : phaseWatcherList_ ) {
-            watcher.run();
-        }
-    }
-
-    /**
-     * Adds a callback which will be invoked whenever this job's phase
-     * is read by {@link #readPhase}.  Note that the runnable will not
-     * in general be invoked from the AWT event dispatch thread.
-     *
-     * @param  watcher  runnable to be notified on job phase change
-     */
-    public void addPhaseWatcher( Runnable watcher ) {
-        phaseWatcherList_.add( watcher );
-    }
-
-    /**
-     * Removes a callback previously added by {@link #addPhaseWatcher}.
-     * Has no effect if <code>watcher</code> is not currently registered.
-     *
-     * @param   watcher  runnable to be removed
-     */
-    public void removePhaseWatcher( Runnable watcher ) {
-        phaseWatcherList_.remove( watcher );
-    }
-
-    /**
-     * Reads XML text from the job URL which describes the server's
-     * record of the current state of the job, and returns the result
-     * as a UwsJobInfo object.
+     * Reads the current status document for this job from the server
+     * and both stores and returns the result.
+     * The result becomes the new value of the {@link #getLastInfo} method.
      *
      * @return  job status
      */
-    public UwsJobInfo readJob() throws IOException, SAXException {
-        UwsJobInfo[] infos = JobSaxHandler.readJobInfos( jobUrl_ );
-        return infos != null && infos.length > 0 ? infos[ 0 ] : null;
+    public UwsJobInfo readInfo() throws IOException {
+        return readInfoQuery( "" );
+    }
+
+    /**
+     * Makes a blocking call to read the current status document for this job
+     * from the server
+     * and both stores and returns the result.
+     * The result becomes the new value of the {@link #getLastInfo} method.
+     *
+     * @param   timeoutSec  maximum advised timeout in seconds
+     * @param   lastInfo    last known job status
+     * @return  job status
+     */
+    public UwsJobInfo readInfoBlocking( int timeoutSec, UwsJobInfo lastInfo )
+            throws IOException {
+        StringBuffer qbuf = new StringBuffer()
+            .append( "?WAIT=" )
+            .append( timeoutSec );
+        String lastPhase = lastInfo == null ? null : lastInfo.getPhase();
+        UwsStage lastStage = lastPhase == null
+                           ? null
+                           : UwsStage.forPhase( lastPhase );
+        if ( lastStage == UwsStage.RUNNING ||
+             lastStage == UwsStage.UNSTARTED ) {
+            qbuf.append( "&PHASE=" )
+                .append( lastPhase );
+        }
+        return readInfoQuery( qbuf.toString() );
+    }
+
+    /**
+     * Reads the current status document for this job from the server,
+     * appending a supplied query string to the basic job URL,
+     * and both stores and returns the result.
+     * The result becomes the new value of the {@link #getLastInfo} method.
+     *
+     * @param   queryPart   text to be appended to job URL before submission
+     * @return  job status
+     */
+    private UwsJobInfo readInfoQuery( String queryPart ) throws IOException {
+        URL url = new URL( jobUrl_ + queryPart );
+        logger_.info( "Read UWS job: " + url );
+        UwsJobInfo[] infos;
+        try {
+            infos = JobSaxHandler.readJobInfos( url );
+        }
+        catch ( SAXException e ) {
+            throw (IOException)
+                  new IOException( "Parse error in UWS job document at " + url )
+                 .initCause( e );
+        }
+        if ( infos != null && infos.length > 0 ) {
+            UwsJobInfo info = infos[ 0 ];
+            gotInfo( info );
+            return info;
+        }
+        else {
+            throw new IOException( "No UWS job document at " + url );
+        }
+    }
+
+    /**
+     * Performs housekeeping duties on a newly acquired job status document;
+     * logs the fact, stores it for later use, and notifies watchers.
+     *
+     * @param   info   job status
+     */
+    private void gotInfo( final UwsJobInfo info ) {
+        UwsJobInfo info0 = info_;
+        String phase0 = info0 == null ? null : info0.getPhase();
+        String phase1 = info == null ? null : info.getPhase();
+        info_ = info;
+        if ( TRIM_TEXT ) {
+            phase0 = phase0 == null ? null : phase0.trim();
+            phase1 = phase1 == null ? null : phase1.trim();
+        }
+        logger_.info( "UWS job phase: " + phase1 );
+        boolean phaseChanged = phase1 == null ? phase0 != null
+                                              : ! phase1.equals( phase0 );
+        if ( phaseChanged ) {
+            for ( JobWatcher watcher : watcherList_ ) {
+                watcher.jobUpdated( this, info );
+            }
+        }   
     }
 
     /**
@@ -374,7 +468,7 @@ public class UwsJob {
     private static HttpURLConnection postForm( URL url, String name,
                                                String value )
             throws IOException {
-        Map<String,String> paramMap = new HashMap<String,String>();
+        Map<String,String> paramMap = new LinkedHashMap<String,String>();
         paramMap.put( name, value );
         return postUnipartForm( url, ContentCoding.NONE, paramMap );
     }
@@ -431,14 +525,14 @@ public class UwsJob {
         coding.prepareRequest( hconn );
         // We could stream this request, which would seem tidier.
         // However, that inhibits automatic handling of 401 Unauthorized
-        // responses if a java.net.Authenticator is in use, and the 
+        // responses if a java.net.Authenticator is in use, and the
         // amount of data posted is not likely to be large, so don't do it.
         // hconn.setFixedLengthStreamingMode( postBytes.length );
         hconn.setInstanceFollowRedirects( false );
         hconn.setDoOutput( true );
         logger_.info( "POST to " + url );
         logger_.config( "POST content: "
-                              + ( postBytes.length < 200 
+                              + ( postBytes.length < 200
                                     ? new String( postBytes, "utf-8" )
                                     : new String( postBytes, 0, 200, "utf-8" )
                                       + "..." ) );
@@ -490,10 +584,10 @@ public class UwsJob {
 
         /* Open and buffer stream for POST content.  If we simply write to
          * the connection's output stream, the content will be buffered
-         * in memory by the HttpURLConnection implementation, which may 
+         * in memory by the HttpURLConnection implementation, which may
          * cause an OutOfMemoryError in the case of large uploads.
-         * So arrange to stream the data by doing one of two things: 
-         * either use chunked HTTP transfer encoding, or buffer the 
+         * So arrange to stream the data by doing one of two things:
+         * either use chunked HTTP transfer encoding, or buffer the
          * data up front using a StoragePolicy prior to the write.
          * Chunking is generally preferable, but it's possible that some
          * servers don't support it (though RFC2616 sec 3.6.1 says they
@@ -514,7 +608,7 @@ public class UwsJob {
             writeHttpLine( hout, "Content-Type: text/plain; charset=" + UTF8 );
             writeHttpLine( hout, "Content-Disposition: form-data; "
                                + "name=\"" + pName + "\"" );
-            writeHttpLine( hout, "" ); 
+            writeHttpLine( hout, "" );
             hout.write( toTextPlain( pValue, UTF8 ) );
         }
 
@@ -525,14 +619,14 @@ public class UwsJob {
             logger_.config( "POST " + pName + " (streamed data)" );
             writeBoundary( hout, boundary, false );
             writeHttpLine( hout, "Content-Disposition: form-data"
-                               + "; name=\"" + pName + "\"" 
+                               + "; name=\"" + pName + "\""
                                + "; filename=\"" + pName + "\"" );
             for ( Map.Entry<String,String> header :
                   pStreamer.getHttpHeaders().entrySet() ) {
                 writeHttpLine( hout,
                                header.getKey() + ": " + header.getValue() );
             }
-            writeHttpLine( hout, "" ); 
+            writeHttpLine( hout, "" );
             pStreamer.writeContent( hout );
         }
 
@@ -765,7 +859,7 @@ public class UwsJob {
     private static OutputStream
                    createChunkedHttpStream( HttpURLConnection hconn,
                                             int chunkSize )
-            throws IOException { 
+            throws IOException {
         hconn.setChunkedStreamingMode( chunkSize );
         hconn.connect();
         return hconn.getOutputStream();
@@ -776,7 +870,7 @@ public class UwsJob {
      * with buffering managed by a given storage policy.
      * The connection must be unconnected when this is called.
      * The content will be buffered using a ByteStore obtained from the
-     * supplied storage profile, and the actual write (as for an 
+     * supplied storage profile, and the actual write (as for an
      * unstreamed HttpURLConnection) will be done only when the returned
      * output stream is closed.
      *
@@ -804,6 +898,64 @@ public class UwsJob {
                 hcout.close();
             }
         };
+    }
+
+    /**
+     * Indicates whether the job represented by a given status object
+     * supports UWS 1.1-style blocking calls.
+     *
+     * @param  info   job status object
+     * @return   true if the job is known to support blocking
+     */
+    private static boolean hasBlocking( UwsJobInfo info ) {
+        int[] majMin = getVersion( info );
+        if ( majMin != null ) {
+            int maj = majMin[ 0 ];
+            int min = majMin[ 1 ];
+            return maj == 1 && min >= 1
+                || maj > 1;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Parses and returns the version information from a job status object.
+     *
+     * @param  info   job status object
+     * @return   2-element array giving (major,minor) version numbers,
+     *           or null if parsing fails
+     */
+    private static int[] getVersion( UwsJobInfo info ) {
+        if ( info == null ) {
+            return null;
+        }
+        else {
+            String version = info.getUwsVersion();
+            if ( version == null ) {
+                return new int[] { 1, 0 };
+            }
+            else {
+                Matcher matcher =
+                    Pattern.compile( "^\\s*([0-9]+)\\.([0-9]+).*$" )
+                           .matcher( version );
+                if ( matcher.matches() ) {
+                    try {
+                        return new int[] {
+                            Integer.parseInt( matcher.group( 1 ) ),
+                            Integer.parseInt( matcher.group( 2 ) ),
+                        };
+                    }
+                    catch ( NumberFormatException e ) {
+                        return null;
+                    }
+                }
+                else {
+                    return null;
+                }
+            }
+        }
     }
 
     /**
@@ -837,5 +989,21 @@ public class UwsJob {
         public HttpURLConnection getConnection() {
             return hconn_;
         }
+    }
+
+    /**
+     * Callback interface for objects wanting to be notified of job status
+     * changes.
+     */
+    public interface JobWatcher {
+
+        /**
+         * Called when the job status has changed.
+         * Usually, this means a change of the Phase.
+         *
+         * @param  job  job in question
+         * @param  info   new status
+         */
+        void jobUpdated( UwsJob job, UwsJobInfo info );
     }
 }

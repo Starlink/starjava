@@ -185,11 +185,8 @@ public class HistogramPlotter
     }
 
     public HistoStyle createStyle( ConfigMap config ) {
-        Color baseColor = config.get( StyleKeys.COLOR );
-        double alpha = 1 - config.get( StyleKeys.TRANSPARENCY );
-        float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
-        rgba[ 3 ] *= alpha;
-        Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
+        Color color = StyleKeys.getAlphaColor( config, StyleKeys.COLOR,
+                                               StyleKeys.TRANSPARENCY );
         BarStyle.Form barForm = config.get( StyleKeys.BAR_FORM );
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
         boolean cumulative = config.get( StyleKeys.CUMULATIVE );

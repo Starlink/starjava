@@ -45,3 +45,9 @@ public class LutConvert {
 Others were scavenged from image files using the utility
 uk.ac.starlink.ttools.plot.LutSteal.
 
+mpl2_*.lut are taken from MatPlotLib v1.5 source code
+(lib/matplotlib/_cm_listed.py).
+These lookup tables are
+Copyright (c) 2012-2013 Matplotlib Development Team; All Rights Reserved.
+
+Hotcold is from Daniel Michalik, Lund.

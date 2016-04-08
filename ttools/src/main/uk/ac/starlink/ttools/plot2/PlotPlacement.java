@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -364,9 +365,12 @@ public class PlotPlacement {
         public void paintIcon( Component c, Graphics g, int x, int y ) {
             int xoff = x + x_;
             int yoff = y + y_;
+            Color color0 = g.getColor();
+            g.setColor( Color.BLACK );
             g.translate( xoff, yoff );
             captioner_.drawCaption( text_, g );
             g.translate( -xoff, -yoff );
+            g.setColor( color0 );
         }
 
         @Override

@@ -47,35 +47,7 @@ public class GbinTableBuilder implements TableBuilder {
      * Constructs a builder with default options.
      */
     public GbinTableBuilder() {
-        this( new GbinTableProfile() {
-            public boolean isReadMeta() {
-                return true;
-            }
-            public boolean isTestMagic() {
-                return true;
-            }
-            public boolean isHierarchicalNames() {
-                return false;
-            }
-            public String getNameSeparator() {
-                return "_";
-            }
-            public boolean isSortedMethods() {
-                return true;
-            }
-            public String[] getIgnoreMethodNames() {
-                return new String[] {
-                    "getClass",
-                    "getField",
-                    "getStringValue",
-                    "getGTDescription",
-                    "getParamMaxValues",
-                    "getParamMinValues",
-                    "getParamOutOfRangeValues",
-                    "getFieldNames",
-                };
-            }
-        } );
+        this( new DefaultGbinTableProfile() );
     }
 
     /**

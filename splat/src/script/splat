@@ -68,7 +68,7 @@ esac
 # if you start getting out of memory errors. Decrease it for smaller 
 # footprint machines.
 if test -z "$SPLAT_MAXMEM"; then
-   SPLAT_MAXMEM=128m
+   SPLAT_MAXMEM=512m
 fi
 
 # If NDF format conversion if switched on then pass this information into 
@@ -106,6 +106,13 @@ defines="$defines \
 -Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory \
 -Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"
 
+# icon for Mac
+showIcon="";
+if [[ $OSTYPE == darwin* ]]; then
+showIcon="-Xdock:icon=$SPLAT_DIR/../../etc/icons/splat.png";
+fi
+
+
 #  Locate the "starjava" command. This should be in ".." or on the 
 #  PATH. "starjava" also defines the LD_LIBRARY_PATH to locate the
 #  SPLAT shareable library, so it's absence is critical.
@@ -117,5 +124,5 @@ fi
 
 # Run up the main application. Uses the JVM located by the starjava
 # script
-$starjava -mx$SPLAT_MAXMEM $defines -jar $appjar ${1+"$@"}
+$starjava -mx$SPLAT_MAXMEM $defines $showIcon -jar $appjar ${1+"$@"}
 exit

@@ -11,6 +11,17 @@ package uk.ac.starlink.vo;
 public interface UwsJobInfo {
 
     /**
+     * Returns the version of UWS with which this job identifies itself.
+     * A null return means that the <code>version</code> attribute is
+     * absent from the &lt;job&gt; start tag; that ought to indicate
+     * that version 1.0 is in use.
+     *
+     * @return   value of <code>version</code> attribute
+     *           in <code>&lt;job&gt;</code> element
+     */
+    String getUwsVersion();
+
+    /**
      * Returns this job's ID, unique for this UWS service.
      *
      * @return  job ID

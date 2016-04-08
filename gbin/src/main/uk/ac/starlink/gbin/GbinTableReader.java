@@ -8,13 +8,12 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 
@@ -35,10 +34,12 @@ public class GbinTableReader implements RowSequence {
     private final ColumnInfo[] colInfos_;
     private boolean started_;
 
-    /** Accessor method name prefix. */
+    /* Accessor method name prefixes. */
     private static final String GET = "get";
+    private static final String IS = "is";
 
-    private static final Map<Class,Class> primitiveMap_ = createPrimitiveMap();
+    private static final Logger logger_ =
+        Logger.getLogger( GbinTableReader.class.getName() );
 
     /**
      * Constructor.
@@ -160,10 +161,7 @@ public class GbinTableReader implements RowSequence {
     private static ItemReader[] createItemReaders( Class rootClazz,
                                                    GbinTableProfile profile ) {
         List<ItemReader> rdrList = new ArrayList<ItemReader>();
-        addItemReaders( rootClazz, ItemReader.ROOT, rdrList,
-                        profile.isSortedMethods(),
-                        new HashSet<String>(
-                            Arrays.asList( profile.getIgnoreMethodNames() ) ) );
+        addItemReaders( rootClazz, ItemReader.ROOT, rdrList, 0, profile );
         return rdrList.toArray( new ItemReader[ 0 ] );
     }
 
@@ -174,20 +172,40 @@ public class GbinTableReader implements RowSequence {
      * @param  parentClazz  content class of parent reader
      * @param  parentRdr    parent item reader
      * @param  rdrList      list of item readers so far assembled
-     * @param  sortMethods  true iff object methods are to be sorted
-     *                      alphabetically before being added to the list
-     * @param  ignoreNames  method names that should not be used for columns
+     * @param  iLevel       current recursion depth
+     * @param  profile      configures details of table construction
      */
     private static void addItemReaders( Class parentClazz, ItemReader parentRdr,
-                                        List<ItemReader> rdrList,
-                                        boolean sortMethods,
-                                        Collection<String> ignoreNames ) {
+                                        List<ItemReader> rdrList, int iLevel,
+                                        GbinTableProfile profile ) {
+ 
+        /* Logging indentation. */
+        StringBuffer pbuf = new StringBuffer();
+        for ( int i = 0; i < iLevel; i++ ) {
+            pbuf.append( "  " );
+        }
+        String prefix = pbuf.toString();
+        if ( ! parentRdr.isRoot() ) {
+            logger_.config( new StringBuffer()
+                           .append( "GBIN obj: " )
+                           .append( prefix )
+                           .append( "+ " )
+                           .append( parentRdr.getItemName() )
+                           .append( "  (" )
+                           .append( parentRdr.getItemContentClass()
+                                             .getSimpleName() )
+                           .append( ")" )
+                           .toString() );
+        }
+        Collection<String> ignoreNames =
+            new HashSet<String>( Arrays
+                                .asList( profile.getIgnoreMethodNames() ) );
 
         /* Get all methods provided by the parent class. */
         Method[] methods = parentClazz.getMethods();
 
         /* Sort them alphabetically if required. */
-        if ( sortMethods ) {
+        if ( profile.isSortedMethods() ) {
             Arrays.sort( methods, new Comparator<Method>() {
                 public int compare( Method m1, Method m2 ) {
                     return m1.getName().compareTo( m2.getName() );
@@ -195,87 +213,98 @@ public class GbinTableReader implements RowSequence {
             } );
         }
 
-        /* For each method, test whether it looks like a data accessor.
-         * If so, turn it into an ItemReader or a hierarchy of them. */
-        for ( int i = 0; i < methods.length; i++ ) {
-            Method method = methods[ i ];
-            if ( isDataMethod( method, ignoreNames ) ) {
-                ItemReader rdr = new ItemReader( parentRdr, method );
-                Class clazz = rdr.getItemContentClass();
-
-                /* We have to be a bit careful here.  In particular don't
-                 * add any object whose types have already appeared
-                 * higher up in the hierarchy, since that will lead to
-                 * infinite recursion. */
-                if ( isColumnType( clazz ) ||
-                     hasAncestorType( rdr.getParentReader(), clazz ) ) {
-                    rdrList.add( rdr );
+        /* For each method, if it looks like a data accessor, turn it into
+         * an ItemReader or a hierarchy of them. */
+        for ( Method method : methods ) {
+            String itemName = getItemName( method, ignoreNames );
+            if ( itemName != null ) {
+                Representation<?> repr =
+                    profile.createRepresentation( method.getReturnType() );
+                if ( repr == null ) {
+                    logger_.info( "Skip GBIN column " + itemName
+                                + ", return type "
+                                + method.getReturnType().getSimpleName()
+                                + " blocked by profile" );
                 }
                 else {
-                    addItemReaders( clazz, rdr, rdrList,
-                                    sortMethods, ignoreNames );
+                    Class<?> clazz = repr.getContentClass();
+                    ItemReader rdr =
+                        new ItemReader( parentRdr, method, itemName, repr );
+                    if ( repr.isColumn() ) {
+                        rdrList.add( rdr );
+                        logger_.config( new StringBuffer()
+                                      .append( "GBIN col: " )
+                                      .append( prefix )
+                                      .append( "  - " )
+                                      .append( rdr.getItemName() )
+                                      .append( "  (" )
+                                      .append( clazz.getSimpleName() )
+                                      .append( ")" )
+                                      .toString() );
+                    }
+                    else {
+
+                        /* We have to be a bit careful here.
+                         * Don't add any object whose types have already
+                         * appeared higher up in the hierarchy,
+                         * since that will lead to infinite recursion. */
+                        if ( ! hasAncestorType( rdr.getParentReader(),
+                                                clazz ) ) {
+                            addItemReaders( clazz, rdr, rdrList, iLevel + 1,
+                                            profile );
+                        }
+                        else {
+                            logger_.warning( "Skip GBIN column " + rdr
+                                           + " (" + clazz.getSimpleName() + ") "
+                                           + " to avoid infinite recursion" );
+                        }
+                    }
                 }
             }
         }
     }
 
     /**
-     * Determines whether a given method should be used to supply
-     * table data.  The methods we're after are basically public
-     * instance no-arg methods of the form getXxx(),
-     * where Xxx is treated as (at least a component of) the column name.
-     *
-     * <p>This method does not consider return type, except to exclude
-     * void returns.
+     * Determines whether a given method should be used to supply table data,
+     * and if so under what name that data should be referenced.
+     * The methods we're after are basically public instance no-arg
+     * accessor methods, of the form getXxx() or isXxx(),
+     * where Xxx is treated as (at least a component of) the component name.
+     * If the supplied method does not look like a suitable accessor method,
+     * null is returned.
+     * Return type is not much checked here, except to see that it's not null.
      * 
-     * @param   method  method to test
-     * @param   ignoreNames  method names that should be excluded from
-     *                       consideration
-     * @return  true  iff the method should be used to generate a data column
+     * @param   method   method on an object
+     * @param   ignoreNames  list of method names we don't want to use,
+     *                       even if they satisfy other criteria
+     * @return   name of data item accessed by the given method,
+     *           or null if it's not an accessor method
      */
-    private static boolean isDataMethod( Method method,
-                                         Collection<String> ignoreNames ) {
-        String name = method.getName();
+    private static String getItemName( Method method,
+                                       Collection<String> ignoreNames ) { 
+        String methodName = method.getName();
+        Class<?> clazz = method.getReturnType();
         int mods = method.getModifiers();
-        return
-
-            /* Check method name. */
-            ( name.startsWith( GET ) &&
-              ! ignoreNames.contains( name ) ) &&
-
-            /* Check modifiers. */
-            ( Modifier.isPublic( mods ) &&
-              ! Modifier.isStatic( mods ) ) &&
-
-            /* Check parameter list. */
-            ( method.getParameterTypes().length == 0 ) &&
-
-            /* Check it returns something. */
-            ( method.getReturnType() != void.class );
-    }
-
-    /**
-     * Tests whether a method return type is suitable for use as a single
-     * column.  If not, the class will recursively be broken up into
-     * components which are themselves columns.
-     *
-     * <p>Primitives (and their associated wrapper classes) and Strings
-     * are considered suitable for columns.
-     * Note also that any array value is reported suitable for a column.
-     * For arrays of primitives and Strings, that makes good sense.
-     * For arrays of non-primitive values it will probably result
-     * in columns that most STIL output handlers won't cope with,
-     * but it's hard to see what else you can do with them,
-     * since there is no obvious way to turn a variable-length
-     * array of composed objects into a fixed-length list of columns.
-     *
-     * @param  clazz  return type
-     * @return  true iff clazz should be made into a column
-     */
-    private static boolean isColumnType( Class clazz ) {
-        return primitiveMap_.values().contains( clazz )
-            || clazz.equals( String.class )
-            || clazz.getComponentType() != null;
+        if ( ! ignoreNames.contains( methodName ) &&
+             Modifier.isPublic( mods ) &&
+             ! Modifier.isStatic( mods ) &&
+             method.getParameterTypes().length == 0 ) {
+            if ( methodName.matches( "^" + GET + "[A-Z0-9_].*$" ) &&
+                 ! void.class.equals( clazz ) ) {
+                return methodName.substring( GET.length() );
+            }
+            else if ( methodName.matches( "^" + IS + "[A-Z0-9_].*$" ) &&
+                 ( boolean.class.equals( clazz ) ||
+                   Boolean.class.equals( clazz ) ) ) {
+                return methodName.substring( IS.length() );
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -296,25 +325,6 @@ public class GbinTableReader implements RowSequence {
         else {
             return hasAncestorType( rdr.getParentReader(), clazz );
         }
-    }
-
-    /**
-     * Constructs a map of all existing primtive classes to their
-     * corresponding wrapper classes.
-     *
-     * @return  primitive->wrapper class map
-     */
-    private static Map<Class,Class> createPrimitiveMap() {
-        Map<Class,Class> map = new LinkedHashMap<Class,Class>();
-        map.put( boolean.class, Boolean.class );
-        map.put( char.class, Character.class );
-        map.put( byte.class, Byte.class );
-        map.put( short.class, Short.class );
-        map.put( int.class, Integer.class );
-        map.put( long.class, Long.class );
-        map.put( float.class, Float.class );
-        map.put( double.class, Double.class );
-        return Collections.unmodifiableMap( map );
     }
 
     /**
@@ -365,9 +375,12 @@ public class GbinTableReader implements RowSequence {
 
         private final ItemReader parentReader_;
         private final Method method_;
+        private final String itemName_;
+        private final Representation<?> repr_;
 
         /** Special instance used as the reader root. */
-        public static final ItemReader ROOT = new ItemReader( null, null );
+        public static final ItemReader ROOT =
+            new ItemReader( null, null, null, null );
 
         /**
          * Constructor.
@@ -376,10 +389,15 @@ public class GbinTableReader implements RowSequence {
          * @param  method  the no-arg public instance method whose return
          *                 value when applied to the parent reader's object
          *                 gives this column's value
+         * @param  itemName  basic name for this item
+         * @param  repr    value representation
          */
-        public ItemReader( ItemReader parentReader, Method method ) {
+        public ItemReader( ItemReader parentReader, Method method,
+                           String itemName, Representation<?> repr ) {
             parentReader_ = parentReader;
             method_ = method;
+            itemName_ = itemName;
+            repr_ = repr;
         }
 
         /**
@@ -404,10 +422,10 @@ public class GbinTableReader implements RowSequence {
          * Returns the (non-hierarchical) name of the data item represented
          * by this reader.
          *
-         * @return  the Xxx for method getXxx
+         * @return  the Xxx for method getXxx() or isXxx()
          */
         public String getItemName() {
-            return method_.getName().substring( GET.length() );
+            return itemName_;
         }
 
         /**
@@ -415,11 +433,8 @@ public class GbinTableReader implements RowSequence {
          *
          * @return  item content class
          */
-        public Class getItemContentClass() {
-            Class rclazz = method_.getReturnType();
-            return primitiveMap_.containsKey( rclazz )
-                 ? primitiveMap_.get( rclazz )
-                 : rclazz;
+        public Class<?> getItemContentClass() {
+            return repr_.getContentClass();
         }
 
         /**
@@ -441,9 +456,10 @@ public class GbinTableReader implements RowSequence {
                 throws IOException {
             if ( ! itemMap.containsKey( this ) ) {
                 Object parentItem = parentReader_.readItem( itemMap );
-                Object item = parentItem == null
-                            ? null
-                            : invokeMethod( parentItem );
+                Object item =
+                      parentItem == null
+                    ? null
+                    : repr_.representValue( invokeMethod( parentItem ) );
                 itemMap.put( this, item );
             }
             assert itemMap.containsKey( this );

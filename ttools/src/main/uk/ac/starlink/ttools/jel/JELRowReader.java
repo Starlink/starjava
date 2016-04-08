@@ -43,10 +43,20 @@ import java.util.List;
  *     this can only work if the column name is a legal java identifier.
  *
  * <dt>Null queries:
- * <dd>The string {@link #NULL_QUERY_PREFIX} followed by a value identifier
+ * <dd>The string {@value #NULL_QUERY_PREFIX} followed by a value identifier
  *     (column name, column $ID or parameter identifier - see above)
  *     returns a boolean value which is <tt>true</tt> iff the corresponding
  *     value (at the current row, if applicable) has a blank value.
+ *
+ * <dt>Object values:
+ * <dd>The string {@value #OBJECT_PREFIX}
+ *     followed by a column name or column $ID returns the contents of
+ *     the identified column in the current row.  It is returned as an
+ *     Object not a primitive (using a wrapper class if necessary).
+ *     The expression has type {@link java.lang.Object}.
+ *     This can be useful for passing to functions that need to know
+ *     whether a null value is present (which cannot be represented
+ *     in primitive types).
  * </dl>
  * 
  * @author   Mark Taylor (Starlink)
@@ -63,6 +73,12 @@ public abstract class JELRowReader extends DVMap {
      * that the null-ness of the column should be queried.
      */
     public static final String NULL_QUERY_PREFIX = "NULL_";
+
+    /**
+     * The string which, when prefixed to a column identifier, indicates
+     * that the value is required as an Object not a primitive.
+     */
+    public static final String OBJECT_PREFIX = "Object$";
 
     /** Prefix identifying a unique column identifier. */
     public static final char COLUMN_ID_CHAR = '$';
@@ -367,6 +383,13 @@ public abstract class JELRowReader extends DVMap {
             return getTypeName( getColumnClass( icol ) );
         }
 
+        /* See if it's an object-valued column indicator, and return an Object
+         * value type if so. */
+        int iobj = getObjectColumnIndex( name );
+        if ( iobj >= 0 ) {
+            return "Object";
+        }
+
         /* See if it's a null constant indicator, and return a Boolean value
          * type if so. */
         int inulconst = getNullConstantIndex( name );
@@ -428,6 +451,12 @@ public abstract class JELRowReader extends DVMap {
             return new Integer( icol );
         }
 
+        /* See if it corresponds to an object-valued column. */
+        int iobj = getObjectColumnIndex( name );
+        if ( iobj >= 0 ) {
+            return new Integer( iobj );
+        }
+
         /* See if it corresponds to a constant value. */
         int iconst = getConstantIndex( name );
         if ( iconst >= 0 ) {
@@ -486,25 +515,48 @@ public abstract class JELRowReader extends DVMap {
 
     /**
      * Returns the column index in the table model which corresponds to
-     * the column name as a null query.  If <tt>name</tt> has the form
-     * "{@link #NULL_QUERY_PREFIX}<i>column-name</i>" where 
-     * <i>column-name</i> is as 
-     * recognised by the {@link #getColumnIndex} method, then the return
-     * value will be the index of the column corresponding to 
-     * <i>column-name</i>.
-     * Otherwise (if it doesn't start with the NULL_QUERY_PREFIX string or 
-     * the <tt>name</tt> part
-     * doesn't correspond to a known column) the value -1 will be returned.
-     * <p>
-     * Note this method is only called during expression compilation,
-     * so it doesn't need to be particularly efficient.
+     * the column name as an Object-valued column, or -1.
      *
-     * @param   name  null-query column identifier
-     * @return  column index for which <tt>name</tt> is a null-query, 
+     * @param  name  identifier
+     * @return  column index for which <code>name</code> is an object-value,
+     *          or -1
+     */
+    private int getObjectColumnIndex( String name ) {
+        return getPrefixedColumnIndex( name, OBJECT_PREFIX );
+    }
+
+    /**
+     * Returns the column index in the table model which coresponds to
+     * the column name as a null test, or -1.
+     *
+     * @param  name  identifier
+     * @return  column index for which <code>name</code> is a null test,
      *          or -1
      */
     private int getNullColumnIndex( String name ) {
-        String colname = stripPrefix( name, NULL_QUERY_PREFIX );
+        return getPrefixedColumnIndex( name, NULL_QUERY_PREFIX );
+    }
+
+    /**
+     * Returns the column index in the table model which corresponds to
+     * the column name with a supplied prefix.
+     * If <tt>name</tt> has the form <code>prefix</code><i>column-name</i>,
+     * where <i>column-name</i> is as 
+     * recognised by the {@link #getColumnIndex} method, then the return
+     * value will be the index of the column corresponding to 
+     * <i>column-name</i>.
+     * Otherwise (if it doesn't start with the <code>prefix</code> string or 
+     * the <tt>name</tt> part
+     * doesn't correspond to a known column) the value -1 will be returned.
+     *
+     * <p>Note this method is only called during expression compilation,
+     * so it doesn't need to be particularly efficient.
+     *
+     * @param   name  value identifier
+     * @return  column index for column <i>prefix-name</i>, or -1
+     */
+    private int getPrefixedColumnIndex( String name, String prefix ) {
+        String colname = stripPrefix( name, prefix );
         if ( colname != null ) {
             return getColumnIndex( colname );
         }

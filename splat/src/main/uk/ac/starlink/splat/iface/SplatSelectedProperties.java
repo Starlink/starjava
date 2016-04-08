@@ -1025,7 +1025,6 @@ public class SplatSelectedProperties
             spectrum.setLineColour( lineColour );
             spectrum.setLineStyle( lineStyle );
             spectrum.setLineThickness( lineThickness );
-//            System.out.println("and146: #3: " + plotStyle + " / " + spectrum.getPrefferedPlotType() + " [" + spectrum.getObjectType() + "]");
             spectrum.setPlotStyle( defaultProperties.getPlotStyle() );
             spectrum.setPointSize( defaultProperties.getPointSize() );
             spectrum.setPointType( defaultProperties.getPointType() );

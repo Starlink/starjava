@@ -21,6 +21,7 @@ import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputAdapter;
@@ -391,17 +392,28 @@ public class ColumnInfoWindow extends AuxWindow {
         rowHead.addMouseMotionListener( mousey );
 
         /* Ensure that subsequent changes to the main column model are 
-         * reflected in this window.  This listener implemenatation is 
-         * lazy, it could be done more efficiently. */
+         * reflected in this window.  This listener implementation is 
+         * sloppy, it could be done more efficiently. */
         columnModel.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
-                metaTableModel.fireTableDataChanged();
+                changed();
             }
             public void columnMoved( TableColumnModelEvent evt ) {
-                metaTableModel.fireTableDataChanged();
+                changed();
             }
             public void columnRemoved( TableColumnModelEvent evt ) {
-                metaTableModel.fireTableDataChanged();
+                changed();
+            }
+            private void changed() {
+
+                /* Ensure that the metaTableModel is messaged after its data
+                 * has actually changed.  There no doubt exists a nicer,
+                 * though not necessarily more robust, way to do this. */
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        metaTableModel.fireTableDataChanged();
+                    }
+                } );
             }
         } );
 

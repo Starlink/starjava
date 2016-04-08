@@ -6,8 +6,6 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Rectangle;
-import java.net.URL;
-import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -16,7 +14,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
 /**
@@ -39,8 +36,6 @@ public class UwsJobPanel extends JPanel {
     private final ValueField errorField_;
     private final JComponent paramPanel_;
     private UwsJob job_;
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
@@ -103,68 +98,7 @@ public class UwsJobPanel extends JPanel {
         else {
             urlField_.setText( job.getJobUrl().toString() );
         }
-        setJobInfo( null );
-        updatePhase();
-    }
-
-    /**
-     * Override to a no-op.
-     *
-     * <p>I don't understand why, but if I don't do this, when the component
-     * is in a JScrollPane, every time it's refreshed (setJobInfo) it
-     * jerkily scrolls to the bottom of the panel.
-     * Possibly something to do with the hated GridBagLayout.
-     */
-    @Override
-    public void scrollRectToVisible( Rectangle rect ) {
-    }
-
-    /**
-     * Ensures that the GUI is up to date.
-     */
-    public void updatePhase() {
-        phaseField_.setText( job_ == null ? null : job_.getLastPhase() );
-        if ( job_ == null ) {
-            setJobInfo( null );
-        }
-        else {
-            updateJobInfo( job_ );
-        }
-    }
-
-    /**
-     * Triggers an asynchronous read of the job state from the
-     * server followed by a corresponding update of the GUI.
-     * May be called from any thread. 
-     *
-     * @param   job   job whose details are to be acquired
-     */
-    private void updateJobInfo( final UwsJob job ) {
-        final URL url = job.getJobUrl();
-        Thread jobReader = new Thread( "Read job " + job ) {
-            public void run() {
-                UwsJobInfo info;
-                try {
-                    info = job.readJob();
-                }
-                catch ( Exception e ) {
-                    logger_.warning( "Couldn't get job details: " + e );
-                    info = null;
-                }
-                final UwsJobInfo jobInfo = info;
-                if ( jobInfo != null && job == job_ ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            if ( job == job_ ) {
-                                setJobInfo( jobInfo );
-                            }
-                        }
-                    } );
-                }
-            }
-        };
-        jobReader.setDaemon( true );
-        jobReader.start();
+        setJobInfo( job == null ? null : job.getLastInfo() );
     }
 
     /**
@@ -172,8 +106,9 @@ public class UwsJobPanel extends JPanel {
      *
      * @param  jobInfo  job information
      */
-    private void setJobInfo( UwsJobInfo jobInfo ) {
+    public void setJobInfo( UwsJobInfo jobInfo ) {
         if ( jobInfo == null ) {
+            phaseField_.setText( null );
             idField_.setText( null );
             runField_.setText( null );
             ownerField_.setText( null );
@@ -185,6 +120,7 @@ public class UwsJobPanel extends JPanel {
             paramPanel_.removeAll();
         }
         else {
+            phaseField_.setText( jobInfo.getPhase() );
             idField_.setText( jobInfo.getJobId() );
             runField_.setText( jobInfo.getRunId() );
             ownerField_.setText( jobInfo.getOwnerId() );
@@ -221,6 +157,18 @@ public class UwsJobPanel extends JPanel {
             }
         }
         revalidate();
+    }
+
+    /**
+     * Override to a no-op.
+     *
+     * <p>I don't understand why, but if I don't do this, when the component
+     * is in a JScrollPane, every time it's refreshed (setJobInfo) it
+     * jerkily scrolls to the bottom of the panel.
+     * Possibly something to do with the hated GridBagLayout.
+     */
+    @Override
+    public void scrollRectToVisible( Rectangle rect ) {
     }
 
     /**

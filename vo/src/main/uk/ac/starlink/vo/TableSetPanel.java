@@ -83,12 +83,14 @@ public class TableSetPanel extends JPanel {
     private final ResourceMetaPanel servicePanel_;
     private final SchemaMetaPanel schemaPanel_;
     private final TableMetaPanel tablePanel_;
+    private final HintPanel hintPanel_;
     private final JTabbedPane detailTabber_;
     private final int itabService_;
     private final int itabSchema_;
     private final int itabTable_;
     private final int itabCol_;
     private final int itabForeign_;
+    private final int itabHint_;
     private final JComponent treeContainer_;
     private TapServiceKit serviceKit_;
     private SchemaMeta[] schemas_;
@@ -221,7 +223,7 @@ public class TableSetPanel extends JPanel {
         tablePanel_ = new TableMetaPanel();
         schemaPanel_ = new SchemaMetaPanel();
         servicePanel_ = new ResourceMetaPanel( urlHandler );
-
+        hintPanel_ = new HintPanel( urlHandler );
         detailTabber_ = new JTabbedPane();
         int itab = 0;
         detailTabber_.addTab( "Service", metaScroller( servicePanel_ ) );
@@ -232,20 +234,14 @@ public class TableSetPanel extends JPanel {
         itabTable_ = itab++;
         detailTabber_.addTab( "Columns", new JScrollPane( colTable_ ) );
         itabCol_ = itab++;
-        detailTabber_.addTab( "Foreign Keys",
-                              new JScrollPane( foreignTable_ ) );
+        detailTabber_.addTab( "FKeys", new JScrollPane( foreignTable_ ) );
         itabForeign_ = itab++;
+        detailTabber_.addTab( "Hints", new JScrollPane( hintPanel_ ) );
+        itabHint_ = itab++;
         detailTabber_.setSelectedIndex( itabSchema_ );
 
         final JComponent findParamLine = Box.createHorizontalBox();
-        JComponent treePanel = new JPanel( new BorderLayout() ) {
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension( findParamLine.getPreferredSize().width
-                                      + 20,
-                                      super.getPreferredSize().height );
-            }
-        };
+        JComponent treePanel = new JPanel( new BorderLayout() );
         treeContainer_ = new JPanel( new BorderLayout() );
         treeContainer_.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
         treePanel.add( treeContainer_, BorderLayout.CENTER );
@@ -264,10 +260,12 @@ public class TableSetPanel extends JPanel {
 
         JSplitPane metaSplitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
         metaSplitter.setBorder( BorderFactory.createEmptyBorder() );
-        treePanel.setMinimumSize( new Dimension( 100, 100 ) );
-        detailTabber_.setMinimumSize( new Dimension( 100, 100 ) );
+        JComponent detailPanel = new JPanel( new BorderLayout() );
+        detailPanel.add( detailTabber_, BorderLayout.CENTER );
+        detailPanel.add( createHorizontalStrut( 500 ), BorderLayout.SOUTH );
+        treePanel.add( createHorizontalStrut( 200 ), BorderLayout.SOUTH );
         metaSplitter.setLeftComponent( treePanel );
-        metaSplitter.setRightComponent( detailTabber_ );
+        metaSplitter.setRightComponent( detailPanel );
         add( metaSplitter, BorderLayout.CENTER );
 
         setSchemas( null );
@@ -454,6 +452,7 @@ public class TableSetPanel extends JPanel {
                           ? serviceKit_.getServiceUrl() + "/examples"
                           : null;
         servicePanel_.setExamplesUrl( exampleUrl );
+        hintPanel_.setExamplesUrl( exampleUrl );
     }
 
     /**
@@ -1109,6 +1108,19 @@ public class TableSetPanel extends JPanel {
     private static JScrollPane metaScroller( MetaPanel panel ) {
         return new JScrollPane( panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
+    }
+
+    /**
+     * Returns a component with a given preferred width, and zero preferred
+     * height.
+     *
+     * @param  width  preferred width
+     * @return  new component
+     */
+    private static JComponent createHorizontalStrut( int width ) {
+        JComponent c = new JPanel();
+        c.setPreferredSize( new Dimension( width, 0 ) );
+        return c;
     }
 
     /**

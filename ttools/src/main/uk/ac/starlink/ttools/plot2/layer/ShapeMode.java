@@ -2,18 +2,19 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Transparency;
-import java.awt.image.BufferedImage;
+import java.awt.geom.Point2D;
 import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -21,19 +22,25 @@ import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -43,6 +50,8 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
@@ -62,6 +71,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     private final String name_;
     private final Icon icon_;
     private final Coord[] extraCoords_;
+    private final boolean hasReports_;
 
     /**
      * Point count threshold above which some plots may be done by
@@ -74,6 +84,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * and never using a pixel map.
      */
     private static final int NO_BINS = Integer.MAX_VALUE;
+
+    /** Number of entries in a constructed colour map. */
+    private static final int COLOR_MAP_SIZE = 128;
 
     /** Auto density mode, no user settings. */
     public static final ShapeMode AUTO = new AutoDensityMode();
@@ -100,6 +113,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     /** Aux variable colouring mode. */
     public static final ShapeMode AUX = new AuxShadingMode( true, false );
 
+    /** Weighted density mode. */
+    public static final ShapeMode WEIGHTED = new WeightedDensityMode( false );
+
     /** List of modes suitable for use with 2D plotting. */
     public static final ShapeMode[] MODES_2D = new ShapeMode[] {
         AUTO,
@@ -108,6 +124,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         TRANSPARENT2D,
         DENSITY,
         AUX,
+        WEIGHTED,
     };
 
     /** List of modes suitable for use with 3D plotting. */
@@ -117,7 +134,29 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         TRANSPARENT3D,
         DENSITY,
         AUX,
+        WEIGHTED,
     };
+
+    /** Report key for pixel X dimension in data coordinates. */
+    public static final ReportKey<Double> REPKEY_XPIX =
+        new ReportKey<Double>( new ReportMeta( "xpix_size",
+                                               "Pixel X dimension"
+                                             + " in data coords" ),
+                               Double.class, true );
+
+    /** Report key for pixel Y dimension in data coordinates. */
+    public static final ReportKey<Double> REPKEY_YPIX =
+        new ReportKey<Double>( new ReportMeta( "ypix_size",
+                                               "Pixel Y dimension"
+                                             + " in data coords" ),
+                               Double.class, true );
+
+    /** Report key for nominal pixel size in square degrees. */
+    public static final ReportKey<Double> REPKEY_SKYPIX =
+        new ReportKey<Double>( new ReportMeta( "pixel_sqdeg",
+                                               "Pixel size in square degrees"
+                                             + " at projection center" ),
+                               Double.class, true );
 
     /**
      * Constructor.
@@ -126,11 +165,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * @param  icon  mode icon
      * @param  extraCoords  data coordinates associated with this mode
      *                      (not positional ones)
+     * @param  hasReports  whether plot reports containing genera-interest
+     *                     plot information are generated
      */
-    public ShapeMode( String name, Icon icon, Coord[] extraCoords ) {
+    public ShapeMode( String name, Icon icon, Coord[] extraCoords,
+                      boolean hasReports ) {
         name_ = name;
         icon_ = icon;
         extraCoords_ = extraCoords;
+        hasReports_ = hasReports;
     }
 
     public String getModeName() {
@@ -139,6 +182,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
     public Icon getModeIcon() {
         return icon_;
+    }
+
+    /**
+     * Indicates whether the drawing produced by this mode willl return
+     * general interest report information to upstream plotting code.
+     *
+     * @return  true if the plot report may contain interesting information
+     */
+    public boolean hasReports() {
+        return hasReports_;
     }
 
     /**
@@ -159,7 +212,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     }
 
     /**
-     * Returns style configuration keys assocaited with this mode.
+     * Returns style configuration keys associated with this mode.
      * These keys will be used in the config map supplied to
      * {@link #createStamper}.
      *
@@ -195,6 +248,60 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                            Outliner outliner, Stamper stamper );
 
     /**
+     * Returns a report describing pixel sizes for a given surface.
+     * This information is required if you want to do quantitative
+     * analysis on some of the weighted density modes.
+     * What, if any, information is included is dependent on the surface type.
+     *
+     * @param  surface   plotting surface
+     * @return  pixel size report 
+     */
+    private static ReportMap getPixelReport( Surface surface ) {
+        ReportMap report = new ReportMap();
+        if ( surface instanceof PlaneSurface ) {
+            Axis[] axes = ((PlaneSurface) surface).getAxes();
+            addPixelSize( report, REPKEY_XPIX, axes[ 0 ] );
+            addPixelSize( report, REPKEY_YPIX, axes[ 1 ] );
+        }
+        else if ( surface instanceof SkySurface ) {
+            SkySurface ssurf = (SkySurface) surface;
+            Point p = ssurf.getSkyCenter();
+            double[] p1 =
+                ssurf.graphicsToData( new Point2D.Double( p.x - .5, p.y - .5 ),
+                                      null );
+            double[] p2 =
+                ssurf.graphicsToData( new Point2D.Double( p.x + .5, p.y + .5 ),
+                                      null );
+            if ( p1 != null && p2 != null ) {
+                double pixTheta = SkyDensityPlotter.vectorSeparation( p1, p2 )
+                                / Math.sqrt( 2.0 );
+                double pixSteradians = pixTheta * pixTheta;
+                double pixSqdeg = pixSteradians / Tilings.SQDEG;
+                report.put( REPKEY_SKYPIX, pixSqdeg );
+            }
+        }
+        return report;
+    }
+
+    /**
+     * Attempts to add a pixel dimension entry to a given report map
+     * for a certain axis.
+     *
+     * @param  report  map to augment
+     * @param  key   report key for new entry
+     * @param  axis   axis along which dimension is to be reported
+     */
+    private static void addPixelSize( ReportMap report, ReportKey key,
+                                      Axis axis ) {
+        if ( axis.isLinear() ) {
+            int g0 = axis.getGraphicsLimits()[ 0 ];
+            double pixSize = Math.abs( axis.graphicsToData( g0 + 1 )
+                                     - axis.graphicsToData( g0 ) );
+            report.put( key, new Double( pixSize ) );
+        }
+    }
+
+    /**
      * Mode for painting shapes in a single flat colour.
      */
     private static class FlatMode extends ShapeMode {
@@ -215,7 +322,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             super( transparent ? "transparent" : "flat",
                    transparent ? ResourceIcon.MODE_ALPHA_FIX
                                : ResourceIcon.MODE_FLAT,
-                   new Coord[ 0 ] );
+                   new Coord[ 0 ], false );
             transparent_ = transparent;
             binThresh_ = binThresh;
         }
@@ -319,7 +426,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             }
 
             public void paintData( Paper paper, DataStore dataStore ) {
-                Outliner.ShapePainter painter = drawSpec_.painter_;
+                ShapePainter painter = drawSpec_.painter_;
                 TupleSequence tseq =
                     dataStore.getTupleSequence( drawSpec_.dataSpec_ );
                 while ( tseq.next() ) {
@@ -358,8 +465,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
 
                 /* Colour it using a 2-colour colour model. */
-                IndexColorModel colorModel = createMaskColorModel( color_ );
-                return new PixelImage( counts, colorModel );
+                IndexColorModel colorModel =
+                    PixelImage.createMaskColorModel( color_ );
+                Dimension size = drawSpec_.surface_.getPlotBounds().getSize();
+                return new PixelImage( size, counts, colorModel );
             }
         }
 
@@ -413,25 +522,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 return null;
             }
         }
-
-        /**
-         * Returns a 2-colour indexed colour model.
-         *
-         * @param  color  non-blank colour
-         * @return  colour map with two entries,
-         *          <code>color</code> and transparent
-         */
-        private static IndexColorModel createMaskColorModel( Color color ) {
-            IndexColorModel model =
-                new IndexColorModel( 1, 2,
-                                     new byte[] { 0, (byte) color.getRed() },
-                                     new byte[] { 0, (byte) color.getGreen() },
-                                     new byte[] { 0, (byte) color.getBlue() },
-                                     0 );
-            assert model.getTransparency() == Transparency.BITMASK;
-            assert model.getTransparentPixel() == 0;
-            return model;
-        }
     }
 
     /**
@@ -484,7 +574,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         AutoTransparentMode() {
             super( "translucent", ResourceIcon.MODE_ALPHA,
-                   new Coord[ 0 ] );
+                   new Coord[ 0 ], false );
         }
 
         public String getModeDescription() {
@@ -572,7 +662,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 float alpha = (float) getAlpha( counts, level_ );
                 Color color =
                     new Color( rgb_[ 0 ], rgb_[ 1 ], rgb_[ 2 ], alpha );
-                Outliner.ShapePainter painter = drawSpec_.painter_;
+                ShapePainter painter = drawSpec_.painter_;
                 TupleSequence tseq =
                     dataStore.getTupleSequence( drawSpec_.dataSpec_ );
                 while ( tseq.next() ) {
@@ -663,7 +753,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * method.
      */
     private static abstract class AbstractDensityMode extends ShapeMode {
-        static final int COLOR_MAP_SIZE = 128;
 
         /**
          * Constructor.
@@ -672,7 +761,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param  icon  mode icon
          */
         AbstractDensityMode( String name, Icon icon ) {
-            super( name, icon, new Coord[ 0 ] );
+            super( name, icon, new Coord[ 0 ], false );
         }
 
         public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
@@ -681,7 +770,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             final Shader shader = ((DensityStamper) stamper).shader_;
             final Scaling scaling = ((DensityStamper) stamper).scaling_;
             ShapeStyle style = new ShapeStyle( outliner, stamper );
-            LayerOpt opt = LayerOpt.OPAQUE;
+            LayerOpt opt = Shaders.isTransparent( shader ) ? LayerOpt.NO_SPECIAL
+                                                           : LayerOpt.OPAQUE;
             return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
                                        outliner ) {
                 public Drawing createDrawing( DrawSpec drawSpec ) {
@@ -717,9 +807,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  * Trashing the data wouldn't hurt this time,
                  * but the plan may get re-used later. */
                 int[] counts = getBinCounts( plan ).clone();
-                IndexColorModel colorModel = createColorModel( shader_ );
+                IndexColorModel colorModel =
+                    PixelImage.createColorModel( shader_, true );
                 scaleLevels( counts, colorModel.getMapSize() - 1 );
-                return new PixelImage( counts, colorModel );
+                Dimension size = drawSpec_.surface_.getPlotBounds().getSize();
+                return new PixelImage( size, counts, colorModel );
             }
 
             /**
@@ -756,50 +848,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     }
                 }
             }
-        }
-
-        /**
-         * Returns an indexed colour model whose entries range from one end
-         * to the other of a given shader object.
-         *
-         * @param  shader   absolute shader
-         * @return  colour model
-         */
-        private static IndexColorModel createColorModel( Shader shader ) {
-            assert shader.isAbsolute();
-            byte[] red = new byte[ COLOR_MAP_SIZE ];
-            byte[] green = new byte[ COLOR_MAP_SIZE ];
-            byte[] blue = new byte[ COLOR_MAP_SIZE ];
-            float[] rgb = new float[ 4 ];
-            float scale = 1f / ( COLOR_MAP_SIZE - 1 );
-            int iTransparent = 0;
-            for ( int i = 1; i < COLOR_MAP_SIZE; i++ ) {
-                assert i != iTransparent;
-                rgb[ 3 ] = 1f;
-                double level = ( i - 1 ) * scale;
-                shader.adjustRgba( rgb, (float) level );
-                red[ i ] = (byte) ( rgb[ 0 ] * 255 );
-                green[ i ] = (byte) ( rgb[ 1 ] * 255 );
-                blue[ i ] = (byte) ( rgb[ 2 ] * 255 );
-            }
-
-            /* Set the transparent colour to transparent white
-             * not transparent black.
-             * In most cases this makes no difference, but for rendering
-             * targets which ignore transparency (PostScript) it can
-             * help a bit, though such renderers are not going to work
-             * well for multi-layer plots. */
-            red[ iTransparent ] = (byte) 0xff;
-            green[ iTransparent ] = (byte) 0xff;
-            blue[ iTransparent ] = (byte) 0xff;
-            IndexColorModel model =
-                new IndexColorModel( 8, COLOR_MAP_SIZE, red, green, blue,
-                                     iTransparent );
-            assert model.getTransparency() == Transparency.BITMASK;
-            assert model.getMapSize() == COLOR_MAP_SIZE;
-            assert model.getTransparentPixel() == 0;
-            assert model.getPixelSize() == 8;
-            return model;
         }
     }
 
@@ -969,7 +1017,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         /**
          * Constructor.
-         * The reportAuxKeys flag ought normally to be false, since
+         *
+         * <p>The reportAuxKeys flag ought normally to be false, since
          * the same global aux colour ramp should be used for all layers,
          * as only one ramp will be drawn on the axes.
          * But in principle you could have different maps for different layers.
@@ -978,7 +1027,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param   reportAuxKeys  if true, report global aux ramp config keys
          */
         AuxShadingMode( boolean transparent, boolean reportAuxKeys ) {
-            super( "aux", ResourceIcon.MODE_AUX, new Coord[] { SHADE_COORD } );
+            super( "aux", ResourceIcon.MODE_AUX, new Coord[] { SHADE_COORD },
+                   false );
             transparent_ = transparent;
             reportAuxKeys_ = reportAuxKeys;
         }
@@ -1048,8 +1098,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             final Color nullColor = shStamper.nullColor_;
             final float scaleAlpha = shStamper.scaleAlpha_;
             Style style = new ShapeStyle( outliner, stamper );
-            LayerOpt opt = scaleAlpha == 1f ? LayerOpt.OPAQUE
-                                            : LayerOpt.NO_SPECIAL;
+            LayerOpt opt = scaleAlpha < 1f || Shaders.isTransparent( shader )
+                         ? LayerOpt.NO_SPECIAL
+                         : LayerOpt.OPAQUE;
             return new AbstractPlotLayer( plotter, geom, dataSpec,
                                           style, opt ) {
                 @Override
@@ -1185,6 +1236,525 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     }
 
     /**
+     * Mode for displaying density weighted by an additional data coordinate.
+     */
+    private static class WeightedDensityMode extends ShapeMode {
+
+        private final boolean reportAuxKeys_;
+
+        private static final AuxScale SCALE = AuxScale.COLOR;
+        private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
+        private static final ConfigKey<Combiner> COMBINER_KEY =
+            createWeightCombinerKey();
+        private static final FloatingCoord WEIGHT_COORD =
+            FloatingCoord.createCoord(
+                new InputMeta( "weight", "Weight" )
+               .setShortDescription( "Weight coordinate "
+                                   + "for weighted density shading" )
+            , false );
+
+        /**
+         * Constructor.
+         *
+         * <p>The reportAuxKeys flag ought normally to be false, since
+         * the same global aux colour ramp should be used for all layers,
+         * as only one ramp will be drawn on the axes.
+         * But in principle you could have different maps for different layers.
+         *
+         * @param   reportAuxKeys  if true, report global aux ramp config keys
+         */
+        WeightedDensityMode( boolean reportAuxKeys ) {
+            super( "weighted", ResourceIcon.MODE_WEIGHT,
+                   new Coord[] { WEIGHT_COORD }, true );
+            reportAuxKeys_ = reportAuxKeys;
+        }
+
+        public String getModeDescription() {
+            StringBuffer sbuf = new StringBuffer()
+                .append( "<p>Paints markers like the Density mode,\n" )
+                .append( "but with optional weighting by an additional\n" )
+                .append( "coordinate.\n" )
+                .append( "You can configure how the weighted coordinates\n" )
+                .append( "are combined to give the final weighted result.\n" );
+            if ( reportAuxKeys_ ) {
+                sbuf.append( "There are additional options to adjust\n" )
+                    .append( "the way data values are mapped to colours.\n" );
+            }
+            else {
+                sbuf.append( "The way that data values are mapped\n" )
+                    .append( "to colours is usually controlled by options\n" )
+                    .append( "at the level of the plot itself,\n" )
+                    .append( "rather than by per-layer configuration.\n" );
+            }
+            sbuf.append( "</p>\n" );
+            return sbuf.toString();
+        }
+
+        public ConfigKey[] getConfigKeys() {
+            List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+            keyList.add( StyleKeys.COLOR );
+            keyList.add( COMBINER_KEY );
+            if ( reportAuxKeys_ ) {
+                keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+            }
+            return keyList.toArray( new ConfigKey[ 0 ] );
+        }
+
+        public Stamper createStamper( ConfigMap config ) {
+            Color baseColor = config.get( StyleKeys.COLOR );
+            RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
+            Shader baseShader = ramp.getShader();
+            Shader shader =
+                Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
+            Scaling scaling = ramp.getScaling();
+            Combiner combiner = config.get( COMBINER_KEY );
+            return new WeightStamper( shader, scaling, combiner );
+        }
+
+        public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
+                                      DataGeom geom, DataSpec dataSpec,
+                                      Outliner outliner, Stamper stamper ) {
+            return new WeightLayer( plotter, geom, dataSpec, outliner,
+                                    (WeightStamper) stamper );
+        }
+
+        /**
+         * Constructs the config key used to solicit a Combiner value
+         * from the user.
+         *
+         * @return  combiner key
+         */
+        private static ConfigKey<Combiner> createWeightCombinerKey() {
+            ConfigMeta meta = new ConfigMeta( "combine", "Combine" );
+            meta.setShortDescription( "Value combination mode" );
+            meta.setXmlDescription( new String[] {
+                "<p>Defines how values contributing to the same",
+                "pixel are combined together to produce",
+                "the value assigned to that pixel (and hence its colour).",
+                "</p>",
+                "<p>When a weight is in use,",
+                "<code>" + Combiner.MEAN + "</code> or",
+                "<code>" + Combiner.SUM + "</code>",
+                "are typically sensible choices.",
+                "If there is no weight (a pure density map)",
+                "then <code>" + Combiner.COUNT + "</code> is usually better,",
+                "but in that case it may make more sense",
+                "(it is more efficient)",
+                "to use one of the other shading modes instead.",
+                "</p>",
+            } );
+            Combiner[] options = Combiner.getKnownCombiners();
+            Combiner dflt = Combiner.MEAN;
+            OptionConfigKey<Combiner> key =
+                    new OptionConfigKey<Combiner>( meta, Combiner.class,
+                                                   options, dflt ) {
+                public String getXmlDescription( Combiner combiner ) {
+                    return combiner.getDescription();
+                }
+            };
+            key.setOptionUsage();
+            key.addOptionsXml();
+            return key;
+        }
+
+        /**
+         * PlotLayer implementation for use with the weighted density plot.
+         */
+        private static class WeightLayer extends AbstractPlotLayer {
+
+            private final Outliner outliner_;
+            private final WeightStamper wstamper_;
+            private final int icWeight_;
+
+            /**
+             * Constructor.
+             *
+             * @param  plotter  plotter
+             * @param  geom   data geom
+             * @param  dataSpec  data specification
+             * @param  outliner  outliner
+             * @param  wstamper  stamper
+             */
+            WeightLayer( ShapePlotter plotter, DataGeom geom, DataSpec dataSpec,
+                         Outliner outliner, WeightStamper wstamper ) {
+                super( plotter, geom, dataSpec,
+                       new ShapeStyle( outliner, wstamper ),
+                       isTransparent( wstamper ) ? LayerOpt.NO_SPECIAL
+                                                 : LayerOpt.OPAQUE );
+                outliner_ = outliner;
+                wstamper_ = wstamper;
+                icWeight_ = plotter.getModeCoordsIndex( geom );
+                assert dataSpec.getCoord( icWeight_ ) == WEIGHT_COORD;
+            }
+
+            @Override
+            public Map<AuxScale,AuxReader> getAuxRangers() {
+                Map<AuxScale,AuxReader> map = super.getAuxRangers();
+                map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
+                map.put( SCALE, new AuxReader() {
+                    public int getCoordIndex() {
+                        return icWeight_;
+                    }
+                    public void adjustAuxRange( Surface surface,
+                                                TupleSequence tseq,
+                                                Range range ) {
+                        /* We don't have one - have to fake it. */
+                        Map<AuxScale,Range> auxRanges =
+                            new HashMap<AuxScale,Range>();
+                        double[] bounds =
+                            readBinList( surface, tseq, auxRanges )
+                           .getResult()
+                           .getValueBounds();
+                        range.submit( bounds[ 0 ] );
+                        range.submit( bounds[ 1 ] );
+                    }
+                } );
+                return map;
+            }
+
+            public Drawing createDrawing( Surface surface,
+                                          Map<AuxScale,Range> auxRanges,
+                                          PaperType paperType ) {
+                return new WeightDrawing( surface, auxRanges, paperType );
+            }
+
+            /**
+             * Constructs the binlist data structure containing the information
+             * about how to do the plot.
+             *
+             * @param  surface  plot surface
+             * @param  tseq    point sequence
+             * @param  auxRanges   aux data range map
+             */
+            private BinList readBinList( Surface surface, TupleSequence tseq,
+                                         Map<AuxScale,Range> auxRanges ) {
+                DataGeom geom = getDataGeom();
+                WeightPaper wpaper =
+                    new WeightPaper( surface.getPlotBounds(),
+                                     wstamper_.combiner_ );
+                ShapePainter painter =
+                    outliner_.create2DPainter( surface, geom, auxRanges,
+                                               wpaper.getPaperType() );
+
+                /* Under normal circumstances, use the submitted combiner
+                 * to construct a bin list to order. */
+                boolean hasWeight = ! getDataSpec().isCoordBlank( icWeight_ );
+                if ( hasWeight ) {
+                    while ( tseq.next() ) {
+                        double w =
+                            WEIGHT_COORD.readDoubleCoord( tseq, icWeight_ );
+                        if ( ! Double.isNaN( w ) ) {
+                            wpaper.setWeight( w );
+                            painter.paintPoint( tseq, null, wpaper );
+                        }
+                    }
+                }
+
+                /* If no weight coordinate has been supplied,
+                 * assume a weighting of unity. */
+                else {
+                    wpaper.setWeight( 1 );
+                    while ( tseq.next() ) {
+                        painter.paintPoint( tseq, null, wpaper );
+                    }
+                }
+                return wpaper.binList_;
+            }
+
+            /**
+             * Determines whether a given stamper has any transparency.
+             *
+             * @param  wstamper  stamper
+             * @return   true iff any pixels may be painted with alpha&lt;1
+             */
+            private static boolean isTransparent( WeightStamper wstamper ) {
+                return Shaders.isTransparent( wstamper.shader_ );
+            }
+
+            /**
+             * Drawing implementation for use with weighted density layer.
+             */
+            private class WeightDrawing implements Drawing {
+                final Surface surface_;
+                final Map<AuxScale,Range> auxRanges_;
+                final PaperType paperType_;
+
+                /**
+                 * Constructor.
+                 *
+                 * @param  surface  plot surface
+                 * @param  auxRanges   aux data ranges
+                 * @param  paperType   paper type
+                 */
+                WeightDrawing( Surface surface, Map<AuxScale,Range> auxRanges,
+                               PaperType paperType ) {
+                    surface_ = surface;
+                    auxRanges_ = auxRanges;
+                    paperType_ = paperType;
+                }
+
+                public Object calculatePlan( Object[] knownPlans,
+                                             DataStore dataStore ) {
+                    DataGeom geom = getDataGeom();
+                    DataSpec dataSpec = getDataSpec();
+                    for ( Object plan : knownPlans ) {
+                        if ( plan instanceof WeightPlan ) {
+                            WeightPlan wplan = (WeightPlan) plan;
+                            if ( wplan.matches( wstamper_.combiner_, surface_,
+                                                geom, dataSpec, outliner_ ) ) {
+                                return wplan;
+                            }
+                        }
+                    }
+                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                    BinList binList = readBinList( surface_, tseq, auxRanges_ );
+                    int nbin = (int) binList.getSize();  // pixel count
+                    Combiner combiner = binList.getCombiner();
+                    BinList.Result binResult = binList.getResult();
+                    return new WeightPlan( nbin, combiner, binResult,
+                                           surface_, geom, dataSpec,
+                                           outliner_ );
+                }
+
+                public void paintData( Object plan, Paper paper,
+                                       DataStore dataStore ) {
+                    WeightPlan wplan = (WeightPlan) plan;
+                    final int nbin = wplan.nbin_;
+                    final BinList.Result binResult = wplan.binResult_;
+                    paperType_.placeDecal( paper, new Decal() {
+                        public void paintDecal( Graphics g ) {
+                            paintBins( g, nbin, binResult );
+                        }
+                        public boolean isOpaque() {
+                            return ! isTransparent( wstamper_ );
+                        }
+                    } );
+                }
+
+                public ReportMap getReport( Object plan ) {
+                    return getPixelReport( surface_ );
+                }
+
+                /**
+                 * Paints a given bin list onto a graphics context for this
+                 * drawing.
+                 *
+                 * @param   g  graphics context
+                 * @param   nbin  number of (potential) bins
+                 * @param   binResult  bin values
+                 */
+                private void paintBins( Graphics g, int nbin,
+                                        BinList.Result binResult ) {
+                    Range auxRange = auxRanges_.get( SCALE );
+                    if ( auxRange == null ) {
+                        auxRange = new Range();
+                    }
+                    Rectangle plotBounds = surface_.getPlotBounds();
+                    IndexColorModel colorModel =
+                        PixelImage.createColorModel( wstamper_.shader_, true );
+                    Scaler scaler =
+                        Scaling.createRangeScaler( wstamper_.scaling_,
+                                                   auxRange );
+                    int[] pixels =
+                        scaleLevels( nbin, binResult, scaler,
+                                     colorModel.getMapSize() - 1 );
+                    PixelImage image =
+                        new PixelImage( plotBounds.getSize(), pixels,
+                                        colorModel );
+                    image.paintPixels( g, plotBounds.getLocation() );
+                }
+
+                /**
+                 * Turns a populated bin list into an integer array suitable
+                 * for use with an indexed colour map.
+                 * Entry zero of the colour map is transparent,
+                 * and only untouched entries should translate to zero values
+                 * in the output array.
+                 *
+                 * @param  nbin     number of bins
+                 * @param  binResult  contains input data per pixel
+                 * @param  scaler   normalises bin values
+                 * @param  nlevel   number of entries in the colour map;
+                 *                  maximum value in output pixel array
+                 * @return  pixel array for use with an nlevel-entry colour map;
+                 *          zero values are transparent
+                 */
+                private int[] scaleLevels( int nbin, BinList.Result binResult,
+                                           Scaler scaler, int nlevel ) {
+                    int[] pixels = new int[ nbin ];
+                    for ( int i = 0; i < nbin; i++ ) {
+                        double val = binResult.getBinValue( i );
+                        if ( ! Double.isNaN( val ) ) {
+                            int p = (int) ( scaler.scaleValue( val ) * nlevel );
+                            pixels[ i ] = Math.min( 1 + p, nlevel - 1 );
+                        }
+                    }
+                    return pixels;
+                }
+            }
+        }
+
+        /**
+         * Aggregates a BinList with information that characterises its
+         * scope of applicability.
+         */
+        private static class WeightPlan {
+            final int nbin_;
+            final Combiner combiner_;
+            final BinList.Result binResult_;
+            final Surface surface_;
+            final DataGeom geom_;
+            final DataSpec dataSpec_;
+            final Outliner outliner_;
+
+            /**
+             * Constructor.
+             *
+             * @param  nbin      size of bin list
+             * @param  combiner  combination method for values
+             * @param  binResult  contains accumulated weight data
+             * @param  surface   plot surface
+             * @param  geom     geom
+             * @param  dataSpec   data specification
+             * @param  outliner   defines shape of plotted points
+             */
+            WeightPlan( int nbin, Combiner combiner, BinList.Result binResult,
+                        Surface surface, DataGeom geom, DataSpec dataSpec,
+                        Outliner outliner ) {
+                nbin_ = nbin;
+                combiner_ = combiner;
+                binResult_ = binResult;
+                surface_ = surface;
+                geom_ = geom;
+                dataSpec_ = dataSpec;
+                outliner_ = outliner;
+            }
+
+            /**
+             * Indicates whether this plan can be used for a given set
+             * of drawing requirements.
+             *
+             * @param  combiner   target weight combiner
+             * @param  surface   plot surface
+             * @param  geom     geom
+             * @param  dataSpec   data specification
+             * @param  outliner   defines shape of plotted points
+             * @return  true iff this plan's data matches the requirements
+             */
+            public boolean matches( Combiner combiner, Surface surface,
+                                    DataGeom geom, DataSpec dataSpec,
+                                    Outliner outliner ) {
+                return combiner.equals( combiner_ )
+                    && surface.equals( surface_ )
+                    && geom.equals( geom_ )
+                    && dataSpec.equals( dataSpec_ )
+                    && outliner.equals( outliner_ );
+            }
+        }
+
+        /**
+         * Accepts glyphs and turns them into a BinList using weights.
+         */
+        private static class WeightPaper extends GlyphPaper {
+            private final Rectangle bounds_;
+            private final Gridder gridder_;
+            private final BinList binList_;
+            private final int xoff_;
+            private final int yoff_;
+            private double weight_;
+   
+            /**
+             * Constructor.
+             *
+             * @param  bounds  plot bounds
+             * @param  combiner  how to combine value weights
+             */
+            WeightPaper( Rectangle bounds, Combiner combiner ) {
+                super( bounds );
+                bounds_ = new Rectangle( bounds );
+                gridder_ = new Gridder( bounds.width, bounds.height );
+                int nbin = gridder_.getLength();
+                BinList binlist = combiner.createArrayBinList( nbin );
+                binList_ = binlist == null
+                         ? combiner.createHashBinList( nbin )
+                         : binlist;
+                xoff_ = bounds_.x;
+                yoff_ = bounds_.y;
+            }
+
+            /**
+             * Sets the weight value to use for subseqent glyphs when
+             * accumulating values into the bin list.
+             */
+            public void setWeight( double weight ) {
+                weight_ = weight;
+            }
+
+            public void glyphPixels( Pixer pixer ) {
+                while ( pixer.next() ) {
+                    int px = pixer.getX();
+                    int py = pixer.getY();
+                    assert bounds_.contains( px, py );
+                    int ix = px - xoff_;
+                    int iy = py - yoff_;
+                    binList_.submitToBin( gridder_.getIndex( ix, iy ),
+                                          weight_ );
+                }
+            }
+        }
+    }
+
+    /**
+     * Stamper implementation for use with WeightedShadingMode.
+     */
+    public static class WeightStamper implements Stamper {
+        final Shader shader_;
+        final Scaling scaling_;
+        final Combiner combiner_;
+
+        /**
+         * Constructor.
+         *
+         * @param   shader  colour shader
+         * @param  scaling  count scaling strategy
+         * @param  combiner   combiner
+         */
+        public WeightStamper( Shader shader, Scaling scaling,
+                              Combiner combiner ) {
+            shader_ = shader;
+            scaling_ = scaling;
+            combiner_ = combiner;
+        }
+
+        public Icon createLegendIcon( Outliner outliner ) {
+            return createColoredIcon( outliner.getLegendIcon(),
+                                      shader_, 0f );
+        }       
+            
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof WeightStamper ) {
+                WeightStamper other = (WeightStamper) o;
+                return this.shader_.equals( other.shader_ )
+                    && this.scaling_.equals( other.scaling_ )
+                    && this.combiner_.equals( other.combiner_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 3311;
+            code = 23 * code + shader_.hashCode();
+            code = 23 * code + scaling_.hashCode();
+            code = 23 * code + combiner_.hashCode();
+            return code;
+        }
+    }
+
+    /**
      * Stamper implementation for use with AuxShadingMode.
      */
     public static class ShadeStamper implements Stamper {
@@ -1285,7 +1855,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         final Outliner outliner_;
         final Map<AuxScale,Range> auxRanges_;
         final PaperType paperType_;
-        final Outliner.ShapePainter painter_;
+        final ShapePainter painter_;
 
         /**
          * Constructor.
@@ -1456,9 +2026,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
             final PixelImage pim = createPixelImage( plan );
+            final Rectangle bounds = drawSpec_.surface_.getPlotBounds();
             drawSpec_.paperType_.placeDecal( paper, new Decal() {
                 public void paintDecal( Graphics g ) {
-                    paintPixels( g, pim );
+                    pim.paintPixels( g, bounds.getLocation() );
                 }
                 public boolean isOpaque() {
                     return true;
@@ -1468,50 +2039,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         public ReportMap getReport( Object plan ) {
             return null;
-        }
-
-        /**
-         * Does the work for painting the image for this drawing (decal).
-         *
-         * @param  g  graphics context
-         * @param  pim  coloured pixel image
-         */
-        private void paintPixels( Graphics g, PixelImage pim ) {
-            int[] pixels = pim.pixels_;
-            IndexColorModel colorModel = pim.colorModel_;
-            final Rectangle bounds = drawSpec_.surface_.getPlotBounds();
-            int width = bounds.width;
-            int height = bounds.height;
-            final BufferedImage image =
-                new BufferedImage( width, height,
-                                   BufferedImage.TYPE_BYTE_INDEXED,
-                                   colorModel );
-            WritableRaster raster = image.getRaster();
-            assert raster.getNumBands() == 1;
-            raster.setSamples( 0, 0, width, height, 0, pixels );
-            assert raster.getWidth() == width;
-            assert raster.getHeight() == height;
-            g.drawImage( image, bounds.x, bounds.y, null );
-        }
-    }
-
-    /**
-     * Information for generating a colour-mapped image.
-     */
-    private static class PixelImage {
-        final int[] pixels_;
-        final IndexColorModel colorModel_;
-
-        /**
-         * Constructor.
-         *
-         * @param  pixels  pixel array,
-         *                 all values to fall in range of colour model
-         * @param  colorModel  indexed colour model
-         */
-        PixelImage( int[] pixels, IndexColorModel colorModel ) {
-            pixels_ = pixels;
-            colorModel_ = colorModel;
         }
     }
 }

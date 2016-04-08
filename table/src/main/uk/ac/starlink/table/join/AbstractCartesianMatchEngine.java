@@ -273,34 +273,33 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
-     * Utility method to return a pair of min/max comparable arrays
-     * based on an input pair, but with some coordinates extended
+     * Utility method to return output tuple bounds based on given
+     * input bounds, but with some coordinates extended
      * by a given scalar value.  For the indicated tuple elements,
      * the output minima will be reduced, and maxima will be increased,
      * by the supplied error value.  Other elements will be null.
      * Elements which cannot be increased/reduced appropriately for some
      * reason will also be null.
      *
-     * @param  minTuple  array of minimum values, may contain nulls
-     * @param  maxTuple  array of maximum values, may contain nulls
+     * @param  inRange  input range, 
      * @param  err    amount to extend min/max values
      * @param  idims  array of array indices for which minTuple and maxTuple
      *                should be extended
-     * @return  2-element array of tuples - 
-     *          effectively (minTuple,maxTuple) broadened by errors
+     * @return  input range broadened by errors
      * @see   MatchEngine#getMatchBounds
      */
-    static Comparable[][] createExtendedBounds( Comparable[] minTuple,
-                                                Comparable[] maxTuple,
-                                                double err, int[] idims ) {
-        Comparable[] outMins = new Comparable[ minTuple.length ];
-        Comparable[] outMaxs = new Comparable[ maxTuple.length ];
+    static NdRange createExtendedBounds( NdRange inRange, double err,
+                                         int[] idims ) {
+        Comparable[] inMins = inRange.getMins();
+        Comparable[] inMaxs = inRange.getMaxs();
+        Comparable[] outMins = new Comparable[ inMins.length ];
+        Comparable[] outMaxs = new Comparable[ inMaxs.length ];
         for ( int jd = 0; jd < idims.length; jd++ ) {
             int id = idims[ jd ];
-            outMins[ id ] = add( minTuple[ id ], -err );
-            outMaxs[ id ] = add( maxTuple[ id ], +err );
+            outMins[ id ] = add( inMins[ id ], -err );
+            outMaxs[ id ] = add( inMaxs[ id ], +err );
         }
-        return new Comparable[][] { outMins, outMaxs };
+        return new NdRange( outMins, outMaxs );
     }
 
     /**

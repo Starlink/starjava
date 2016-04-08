@@ -34,6 +34,7 @@ import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.config.ColorConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -62,6 +63,8 @@ public abstract class MatchPlotter {
         MarkShape.OPEN_TRIANGLE_UP,
         MarkShape.OPEN_TRIANGLE_DOWN,
     };
+    private static final Color[] SINGLE_COLORS =
+        ColorConfigKey.getPlottingColors();
 
     /**
      * Posts a plot window representing data from tables input to a match
@@ -269,7 +272,8 @@ public abstract class MatchPlotter {
          */
         public ConfigMap createMarkConfig1( int iin ) {
             ConfigMap config = new ConfigMap();
-            config.put( StyleKeys.COLOR, Styles.getColor( iin ) );
+            config.put( StyleKeys.COLOR,
+                        SINGLE_COLORS[ iin % SINGLE_COLORS.length ] );
             config.put( StyleKeys.MARK_SHAPE,
                         SINGLE_SHAPES[ iin % SINGLE_SHAPES.length ] );
             config.put( StyleKeys.SIZE, 2 );

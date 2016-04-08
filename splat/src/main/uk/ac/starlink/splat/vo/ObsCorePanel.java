@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
@@ -21,14 +22,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 //import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -39,6 +44,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
@@ -57,13 +63,18 @@ import jsky.coords.HMS;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
 import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
+import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.vo.SSAQueryBrowser.LocalAction;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -74,6 +85,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.votable.VOStarTable;
 
 
 public class ObsCorePanel extends JFrame implements ActionListener, MouseListener,  DocumentListener, PropertyChangeListener
@@ -83,6 +95,10 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     private static Logger logger =
         Logger.getLogger( "uk.ac.starlink.splat.vo.ObsCorePanel" );
     
+    /** UI preferences. */
+    protected static Preferences prefs = 
+            Preferences.userNodeForPackage( ObsCorePanel.class );
+    
     
     /** The instance of SPLAT we're associated with. */
     private SplatBrowser browser = null;
@@ -91,11 +107,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
      *  Content pane of JFrame.
      */
     protected JPanel contentPane;
-
-    /**
-     *  Main menubar and various menus.
-     */
-    protected JMenuBar menuBar = new JMenuBar();
+    
     
     /**
      * The ProgressFrame. This appears to denote that something is happening.
@@ -223,14 +235,65 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         serverTable.setComponentPopupMenu(serverPopup);
         
         specPopup = makeSpecPopup();
-        
+        initMenubar();
         initComponents();
       
         setVisible(true);
 
     }
     
-    
+    /**
+     *  Initialise the Menubar .
+     */
+    private void initMenubar() {
+        
+        JMenuBar menuBar = new JMenuBar();
+        setJMenuBar( menuBar );
+        //  Get icons.
+        ImageIcon closeImage =
+                new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
+        ImageIcon saveImage =
+                new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
+        ImageIcon readImage =
+                new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
+        ImageIcon helpImage =
+                new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
+        ImageIcon ssaImage =
+                new ImageIcon( ImageHolder.class.getResource("ssapservers.gif") );
+        
+        //  Create the File menu.
+        JMenu fileMenu = new JMenu( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
+        menuBar.add( fileMenu );
+
+        //  Add options to save and restore the query result.
+        LocalAction saveAction = new LocalAction( LocalAction.SAVE,
+                "Save query results",
+                saveImage,
+                "Save results of query "+"to disk file" );
+
+        fileMenu.add( saveAction );
+        
+      
+        LocalAction readAction = new LocalAction( LocalAction.READ,
+                "Restore query results",
+                readImage,
+                "Read results of a " +
+                        "previous query back " +
+                "from disk file" );
+        fileMenu.add( readAction );
+        
+        //  Add an action to close the window.
+        LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
+                "Close", closeImage,
+                "Close window",
+                "control W" );
+        fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
+
+        //  Create the Help menu.
+        HelpFrame.createButtonHelpMenu( "obscore-window", "Help on window", menuBar, null /*toolBar*/ );
+ 
+    }
     
     private JPopupMenu makeServerPopup() {
         JPopupMenu popup = new JPopupMenu();
@@ -493,9 +556,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
             throw new InterruptedException();
         }
         
-    }
-
-    
+    }    
  
     private void getServers() {
 
@@ -1662,28 +1723,72 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
     }
 
-    
-    protected class ServerPopupMenuAction extends AbstractAction
+    /**
+     *  Restore a set of previous query results that have been written to a
+     *  VOTable. The file name is obtained interactively.
+     */
+    public void readQueryFromFile()
     {
+
+        //  Remove existing tables.
+        resultsPanel.removeAllResults();
         
-        public void actionPerformed( ActionEvent e) {
-            int r = serverTable.getPopupRow();
-                serverTable.showInfo(r, "OBSCore");        
-            
-        }
+        ArrayList<VOStarTable> tableList = resultsPanel.readQueryFromFile();
+        if ( tableList != null && ! tableList.isEmpty() ) {
+           
+            Iterator<VOStarTable> i = tableList.iterator();
+            while ( i.hasNext() ) {
+                StarTable table = (StarTable) i.next();
+                // get shortname
+                String shortName = "";
+                DescribedValue  dValue = table.getParameterByName( "ShortName" );
+                if ( dValue == null ) {
+                    shortName = table.getName();
+                }
+                else {
+                    shortName = (String)dValue.getValue();
+                }
+                StarPopupTable jtable = new StarPopupTable(table, false);
+                //jtable.setComponentPopupMenu(specPopup);
+                //jtable.configureColumnWidths(200, jtable.getRowCount());
+                jtable.addMouseListener( this );
+                resultsPanel.addTab(shortName, jtable );
+            }
+        }        
     }
     
-    
+    /**
+     *  Close the window.
+     */
+    protected void closeWindowEvent()
+    {
+       
+        Utilities.saveFrameLocation( this, prefs, "ObsCorePanel" );
+        this.dispose();
+    }
+
+    protected class ServerPopupMenuAction extends AbstractAction
+    {
+
+        public void actionPerformed( ActionEvent e) {
+            int r = serverTable.getPopupRow();
+            serverTable.showInfo(r, "OBSCore");        
+
+        }
+    }
+
+
     private class SpecPopupMenuAction extends AbstractAction
     {
-        
+
         public void actionPerformed( ActionEvent e) {
+
             JMenuItem jmi  = (JMenuItem) e.getSource();
             JPopupMenu jpm = (JPopupMenu) jmi.getParent();
             StarPopupTable table = (StarPopupTable) jpm.getInvoker();
-           
-           int row = table.getPopupRow();
-          
+
+            int row = table.getPopupRow();
+
             if (e.getActionCommand().equals("Info")) {
                 table.showInfo(row);
             }
@@ -1693,7 +1798,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
             else if (e.getActionCommand().equals("Download")) {
                 displaySpectra( false, true, (StarJTable) table, row );
             } 
-            
+
         }
     }
 
@@ -1712,5 +1817,64 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     public void mouseExited(MouseEvent me) {}
     public void mousePressed(MouseEvent me) {}
     public void mouseReleased(MouseEvent me) {}
+    
+    
+    //
+    // LocalAction to encapsulate all trivial local Actions into one class.
+    //
+    class LocalAction
+    extends AbstractAction
+    {
+        //  Types of action.
+        //public static final int PROXY = 0;
+        //public static final int SERVER = 1;
+        public static final int SAVE = 2;
+        public static final int READ = 3;
+        public static final int CLOSE = 4;
+
+        //  The type of this instance.
+        private int actionType = 0;
+
+        public LocalAction( int actionType, String name )
+        {
+            super( name );
+            this.actionType = actionType;
+        }
+
+        public LocalAction( int actionType, String name, Icon icon,
+                String help )
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+            this.actionType = actionType;
+        }
+
+        public LocalAction( int actionType, String name, Icon icon,
+                String help, String accel )
+        {
+            this( actionType, name, icon, help );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
+        }
+
+        public void actionPerformed( ActionEvent ae )
+        {
+            switch ( actionType )
+            {
+                
+                case SAVE: {
+                    resultsPanel.saveQueryToFile();
+                    break;
+                }
+                case READ: {
+                    readQueryFromFile();
+                    break;
+                }
+                case CLOSE: {
+                    closeWindowEvent();
+                    break;
+                }
+            }
+        }
+    }
 
 }

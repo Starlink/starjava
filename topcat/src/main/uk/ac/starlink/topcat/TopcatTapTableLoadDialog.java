@@ -194,7 +194,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         JMenu finderMenu = new JMenu( "Service Discovery" );
         Map<String,TapServiceFinder> finderMap =
             new LinkedHashMap<String,TapServiceFinder>();
-        finderMap.put( "GLoTS", new GlotsServiceFinder() );
+        finderMap.put( "GloTS", new GlotsServiceFinder() );
         finderMap.put( "Reg Prototype", new AuxServiceFinder() );
         ButtonGroup finderButtGroup = new ButtonGroup();
         for ( Map.Entry<String,TapServiceFinder> entry :
@@ -478,6 +478,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         launcher.setNewWindowPolicy( false );
         return new UrlHandler() {
             public void clickUrl( URL url ) {
+                logger_.info( "Passing URL to browser: " + url );
                 launcher.openURLinBrowser( url.toString() );
             }
         };

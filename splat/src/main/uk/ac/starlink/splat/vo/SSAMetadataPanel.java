@@ -83,6 +83,9 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     protected BasicFileChooser fileChooser = null;
     private static String configFile = "SSAPMetaParams.txt";
+    // used to trigger a new server metadata query by SSAQueryBrowser
+
+  //  private PropertyChangeSupport ////;
 
     private static JTable metadataTable;
 
@@ -129,6 +132,8 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         initMetadataTable();
         initUI();
         initMenus();
+       // initFrame();
+   //     queryMetadata = new PropertyChangeSupport(this);
 
     } 
 
@@ -142,6 +147,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         metaParam = new HashMap<String, MetadataInputParameter>();
         // nrServers = 0;
        
+  //      queryMetadata = new PropertyChangeSupport(this);
         initMetadataTable();
         initUI();
         initMenus();

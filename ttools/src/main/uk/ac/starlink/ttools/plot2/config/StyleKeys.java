@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
@@ -114,7 +115,7 @@ public class StyleKeys {
     public static final ConfigKey<Color> COLOR =
         new ColorConfigKey( ColorConfigKey
                            .createColorMeta( "color", "Color", "plotted data" ),
-                            Color.RED, false );
+                            ColorConfigKey.COLORNAME_RED, false );
 
     /** Config key for the opacity limit of transparent plots.
      *  This is the number of times a point has to be hit to result in
@@ -188,7 +189,7 @@ public class StyleKeys {
         new ColorConfigKey( ColorConfigKey
                            .createColorMeta( "gridcolor", "Grid Color",
                                              "the plot grid" ),
-                            Color.LIGHT_GRAY, false );
+                            ColorConfigKey.COLORNAME_LIGHTGREY, false );
 
     /** Config key for axis label colour. */
     public static final ConfigKey<Color> AXLABEL_COLOR =
@@ -196,7 +197,32 @@ public class StyleKeys {
             ColorConfigKey 
            .createColorMeta( "labelcolor", "Label Color",
                              "axis labels and other plot annotations" )
-            , Color.BLACK, false );
+            , ColorConfigKey.COLORNAME_BLACK, false );
+
+    /** Config key for density map combination. */
+    public static final ConfigKey<Combiner> COMBINER =
+        new OptionConfigKey<Combiner>(
+            new ConfigMeta( "combine", "Combine" )
+           .setShortDescription( "Value combination mode" )
+           .setXmlDescription( new String[] {
+                "<p>Defines how values contributing to the same",
+                "density map bin are combined together to produce",
+                "the value assigned to that bin (and hence its colour).",
+                "</p>",
+                "<p>For unweighted values (a pure density map),",
+                "it usually makes sense to use",
+                "<code>" + Combiner.COUNT + "</code>.",
+                "However, if the input is weighted by an additional",
+                "data coordinate, one of the other values such as",
+                "<code>" + Combiner.MEAN + "</code>",
+                "may be more revealing.",
+                "</p>",
+            } )
+        , Combiner.class, Combiner.getKnownCombiners(), Combiner.SUM ) {
+        public String getXmlDescription( Combiner combiner ) {
+            return combiner.getDescription();
+        }
+    };
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
         BarStyle.FORM_OPEN,
@@ -298,6 +324,7 @@ public class StyleKeys {
             }
         }.setOptionUsage()
          .addOptionsXml();
+
 
     /** Config key for line antialiasing. */
     public static final ConfigKey<Boolean> ANTIALIAS =
@@ -580,10 +607,15 @@ public class StyleKeys {
         new RampKeySet( "aux", "Aux",
                         createAuxShaders(), Scaling.LINEAR, false );
 
-    /** Config key set for density shading. */
+    /** Config key set for density point shading. */
     public static final RampKeySet DENSITY_RAMP =
         new RampKeySet( "dense", "Density",
                         createDensityShaders(), Scaling.LOG, true );
+
+    /** Config key set for density map shading. */
+    public static final RampKeySet DENSEMAP_RAMP =
+        new RampKeySet( "dense", "Density",
+                        createDensityMapShaders(), Scaling.LINEAR, true );
 
     /** Config key set for spectrogram shading. */
     public static final RampKeySet SPECTRO_RAMP =
@@ -684,7 +716,7 @@ public class StyleKeys {
                 "value will not be plotted at all.",
                 "</p>",
             } )
-            , Color.GRAY, true );
+            , ColorConfigKey.COLORNAME_GREY, true );
     }
 
     /**
@@ -707,6 +739,24 @@ public class StyleKeys {
                                new ThicknessComboBox( 5 ) );
             }
         };
+    }
+
+    /**
+     * Returns a colour specified by a basic colour key and a transparency key.
+     *
+     * @param   config   config map
+     * @param   colorKey  key for colour, for instance {@link #COLOR}
+     * @param   transparencyKey  key for 1-alpha, for instance
+     *                           {@link #TRANSPARENCY}
+     */
+    public static Color getAlphaColor( ConfigMap config,
+                                       ConfigKey<Color> colorKey,
+                                       ConfigKey<Double> transparencyKey ) {
+        Color baseColor = config.get( colorKey );
+        double alpha = 1 - config.get( transparencyKey );
+        float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
+        rgba[ 3 ] *= alpha;
+        return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
     }
 
     /**
@@ -758,41 +808,31 @@ public class StyleKeys {
     }
 
     /**
-     * Returns a list of shaders suitable for density shading.
+     * Returns a list of shaders suitable for density point shading.
      *
      * @return  shaders
      */
     private static Shader[] createDensityShaders() {
-        return new Shader[] {
-            Shaders.invert( Shaders.SCALE_V ),
-            Shaders.invert( Shaders.LUT_PASTEL ),
-            Shaders.invert( Shaders.LUT_RAINBOW ),
-            Shaders.invert( Shaders.LUT_GLNEMO2 ),
-            Shaders.invert( Shaders.LUT_RAINBOW3 ),
-            Shaders.invert( Shaders.LUT_ACCENT ),
-            Shaders.invert( Shaders.LUT_GNUPLOT ),
-            Shaders.invert( Shaders.LUT_GNUPLOT2 ),
-            Shaders.invert( Shaders.LUT_CUBEHELIX ),
-            Shaders.invert( Shaders.LUT_SPECXB2Y ),
-            Shaders.LUT_SET1,
-            Shaders.LUT_PAIRED,
-            Shaders.CYAN_MAGENTA,
-            Shaders.RED_BLUE,
-            Shaders.LUT_BRG,
-            Shaders.invert( Shaders.LUT_HEAT ),
-            Shaders.invert( Shaders.LUT_COLD ), 
-            Shaders.invert( Shaders.LUT_LIGHT ),
-            Shaders.WHITE_BLACK,
-            Shaders.SCALE_V,
-            Shaders.SCALE_S,
-            Shaders.LUT_COLOR,
-            Shaders.LUT_STANDARD,
-            Shaders.BREWER_BUGN,
-            Shaders.BREWER_BUPU,
-            Shaders.BREWER_ORRD,
-            Shaders.BREWER_PUBU,
-            Shaders.BREWER_PURD,
-        };
+        List<Shader> list = new ArrayList<Shader>();
+        list.add( clip( Shaders.FADE_BLACK, 0, false ) );
+        list.add( clip( Shaders.FADE_WHITE, 0.1, false ) );
+        list.addAll( Arrays.asList( createColorShaders( true ) ) );
+        return list.toArray( new Shader[ 0 ] );
+    }
+
+    /**
+     * Returns a list of shaders suitable for density map shading.
+     *
+     * @return  shaders
+     */
+    private static Shader[] createDensityMapShaders() {
+        List<Shader> list = new ArrayList<Shader>();
+        for ( Shader shader : createColorShaders( false ) ) {
+            if ( shader.isAbsolute() ) {
+                list.add( shader );
+            }
+        }
+        return list.toArray( new Shader[ 0 ] );
     }
 
     /**
@@ -801,45 +841,117 @@ public class StyleKeys {
      * @return  shaders
      */
     public static Shader[] createAuxShaders() {
-        return new Shader[] {
-            Shaders.LUT_RAINBOW,
-            Shaders.LUT_GLNEMO2,
-            Shaders.LUT_PASTEL,
-            Shaders.LUT_ACCENT,
-            Shaders.LUT_GNUPLOT,
-            Shaders.LUT_GNUPLOT2,
-            Shaders.LUT_CUBEHELIX,
-            Shaders.LUT_SPECXB2Y,
-            Shaders.LUT_SET1,
-            Shaders.LUT_PAIRED,
-            Shaders.CYAN_MAGENTA,
-            Shaders.RED_BLUE,
-            Shaders.LUT_BRG,
-            Shaders.LUT_HEAT,
-            Shaders.LUT_COLD,
-            Shaders.LUT_LIGHT,
-            Shaders.LUT_COLOR,
-            Shaders.WHITE_BLACK,
-            Shaders.LUT_STANDARD,
-            Shaders.LUT_RAINBOW3,
+        List<Shader> list = new ArrayList<Shader>();
+        list.addAll( Arrays.asList( createColorShaders( true ) ) );
+        list.addAll( Arrays.asList( new Shader[] {
             Shaders.createMaskShader( "Mask", 0f, 1f, true ),
-            Shaders.FIX_HUE,
-            Shaders.TRANSPARENCY,
-            Shaders.FIX_INTENSITY,
-            Shaders.FIX_RED,
-            Shaders.FIX_GREEN,
-            Shaders.FIX_BLUE,
-            Shaders.HSV_H,
-            Shaders.HSV_S,
-            Shaders.HSV_V,
-            Shaders.FIX_Y,
-            Shaders.FIX_U,
-            Shaders.FIX_V, 
-            Shaders.BREWER_BUGN,
-            Shaders.BREWER_BUPU,
-            Shaders.BREWER_ORRD,
-            Shaders.BREWER_PUBU, 
-            Shaders.BREWER_PURD,
+            clip( Shaders.FADE_BLACK, 0, false ),
+            clip( Shaders.FADE_WHITE, 0.1, false ),
+            clip( Shaders.TRANSPARENCY, 0.1, false ),
+        } ) );
+        return list.toArray( new Shader[ 0 ] );
+    }
+
+    /**
+     * Returns a generic list of shaders suitable for all purposes.
+     * They are provided in a reasonably uniform way; where applicable
+     * the "lighter" end is near zero.
+     * If the <code>isAllVisible</code> flag is set true,
+     * then the resulting shaders will (where possible) supply a colour
+     * range which is visually distinguishable from white over its
+     * entire range.
+     * 
+     * @param  isAllVisible  if true, tweaks are applied as necesary
+     *         so that all the whole range is distinguishable from white
+     * @return  general-purpose shader list
+     */
+    private static Shader[] createColorShaders( boolean isAllVisible ) {
+        double c = isAllVisible ? 1 : 0;
+        return new Shader[] {
+            clip( Shaders.LUT_MPL2INFERNO, c * 0.1, true ),
+            clip( Shaders.LUT_MPL2MAGMA, c * 0.1, true ),
+            clip( Shaders.LUT_MPL2PLASMA, c * 0.1, true ),
+            clip( Shaders.LUT_MPL2VIRIDIS, c * 0.06, true ),
+            clip( Shaders.LUT_CUBEHELIX, c * 0.2, true ),
+            clip( Shaders.SRON_RAINBOW, 0, true ),
+            clip( Shaders.LUT_RAINBOW, 0, true ),
+            clip( Shaders.LUT_GLNEMO2, c * 0.03, true ),
+            clip( Shaders.LUT_RAINBOW3, 0, true ),
+            clip( Shaders.LUT_PASTEL, c * 0.06, true ),
+            clip( Shaders.LUT_ACCENT, 0, true ),
+            clip( Shaders.LUT_GNUPLOT, c * 0.1, true ),
+            clip( Shaders.LUT_GNUPLOT2, c * 0.2, true ),
+            clip( Shaders.LUT_SPECXB2Y, c * 0.1, true ),
+            clip( Shaders.LUT_SET1, 0, true ),
+            clip( Shaders.LUT_PAIRED, 0, true ),
+            clip( Shaders.LUT_HOTCOLD, 0, false ),
+            clip( Shaders.BREWER_RDBU, 0, false ),
+            clip( Shaders.BREWER_PIYG, 0, false ),
+            clip( Shaders.BREWER_BRBG, 0, false ),
+            clip( Shaders.CYAN_MAGENTA, 0, false ),
+            clip( Shaders.RED_BLUE, 0, false ),
+            clip( Shaders.LUT_BRG, 0, true ),
+            clip( Shaders.LUT_HEAT, c * 0.15, true ),
+            clip( Shaders.LUT_COLD, c * 0.15, true ),
+            clip( Shaders.LUT_LIGHT, c * 0.15, true ),
+            clip( Shaders.WHITE_BLACK, c * 0.1, false ),
+            clip( Shaders.LUT_COLOR, 0, true ),
+            clip( Shaders.LUT_STANDARD, 0, true ),
+            clip( Shaders.BREWER_BUGN, c * 0.15, false ),
+            clip( Shaders.BREWER_BUPU, c * 0.15, false ),
+            clip( Shaders.BREWER_ORRD, c * 0.15, false ),
+            clip( Shaders.BREWER_PUBU, c * 0.15, false ),
+            clip( Shaders.BREWER_PURD, c * 0.15, false ),
+            clip( Shaders.HCL_POLAR, 0, false ),
+            clip( Shaders.FIX_HUE, 0, false ),
+            clip( Shaders.FIX_INTENSITY, 0, true ),
+            clip( Shaders.FIX_RED, 0, false ),
+            clip( Shaders.FIX_GREEN, 0, false ),
+            clip( Shaders.FIX_BLUE, 0, false ),
+            clip( Shaders.HSV_H, 0, false ),
+            clip( Shaders.HSV_S, 0, false ),
+            clip( Shaders.HSV_V, 0, true ),
+            clip( Shaders.FIX_Y, 0, true ),
+            clip( Shaders.FIX_U, 0, false ),
+            clip( Shaders.FIX_V, 0, false ),
+            clip( Shaders.SCALE_S, 0, false ),
+            clip( Shaders.SCALE_V, 0, true ),
+            clip( Shaders.SCALE_Y, 0, true ),
         };
+    }
+
+    /**
+     * Adjusts a shader implementation to taste.
+     * The output value has the same name as the input one,
+     * even if it has been adjusted.
+     *
+     * @param  shader  base instance
+     * @param  clip  fraction of the base range amount to exclude
+     *               at the (output) low end
+     * @param  flip  true iff the sense of the input shader is to be inverted
+     * @return  output shader
+     */
+    private static Shader clip( Shader shader, double clip, boolean flip ) {
+        String name = shader.getName();
+        final float f0;
+        final float f1;
+        if ( flip ) {
+            f0 = 1f - (float) clip;
+            f1 = 0f;
+        }
+        else {
+            f0 = (float) clip;
+            f1 = 1f;
+        }
+        if ( f0 == 1f && f1 == 0f ) {
+            shader = Shaders.invert( shader );
+        }
+        else if ( f0 != 0f || f1 != 1f ) {
+            shader = Shaders.stretch( shader, f0, f1 );
+        }
+        if ( ! name.equals( shader.getName() ) ) {
+            shader = Shaders.rename( shader, name );
+        }
+        return shader;
     }
 }
