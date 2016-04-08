@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -77,8 +78,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.xml.sax.InputSource;
-
 import jsky.catalog.BasicQueryArgs;
 import jsky.catalog.QueryArgs;
 import jsky.catalog.QueryResult;
@@ -88,6 +87,9 @@ import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
+
+import org.xml.sax.InputSource;
+
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
@@ -95,6 +97,7 @@ import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.EventEnabledTransmitter;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Transmitter;
@@ -504,6 +507,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /** The list of all input parameters read from the servers */
    // protected static SSAMetadataFrame metaFrame = null;
     protected static SSAMetadataPanel metaPanel = null;
+    
+    /**
+     * SAMP transmitter for selected FITS results
+     */
+    protected EventEnabledTransmitter binFITSTransmitter;
+    
+    /**
+     * SAMP transmitter for selected VOTable results
+     */
+    protected EventEnabledTransmitter voTableTransmitter;
 
     /** Make sure the proxy environment is setup */
     static {
@@ -789,6 +802,17 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( transmitter.createSendMenu() )
         .setMnemonic( KeyEvent.VK_T );
+        
+        interopMenu.addSeparator();
+        binFITSTransmitter = communicator.createBinFITSTableTransmitter( this );
+        interopMenu.add( binFITSTransmitter.getBroadcastAction() );
+        interopMenu.add( binFITSTransmitter.createSendMenu() );
+        
+        interopMenu.addSeparator();
+        voTableTransmitter = communicator.createVOTableTransmitter( this );
+        interopMenu.add( voTableTransmitter.getBroadcastAction() );
+        interopMenu.add( voTableTransmitter.createSendMenu() );
+        
 
         //  Create the Help menu.
         HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window", menuBar, null /*toolBar*/ );
@@ -1943,6 +1967,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
                 //  Double click on row means load just that spectrum.
                 table.addMouseListener( this );
+                table.addMouseListener( binFITSTransmitter );
+                table.addMouseListener( voTableTransmitter );
             }
         }
     }
@@ -1986,24 +2012,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         //  List of all spectra to be loaded and their data formats and short
         //  names etc.
-        ArrayList<Props> specList = new ArrayList<Props>();
-     
-        
-        if ( table == null ) { 
-            
-            if (starJTables == null)  // avoids NPE if no results are present
-                return;
-            //  Visit all the tabbed StarJTables.
-            Iterator<StarPopupTable> i = starJTables.iterator();
-            while ( i.hasNext() ) {
-                extractSpectraFromTable( i.next(), specList,
-                        selected, -1 );
-            }
-        }
-        else {
-            extractSpectraFromTable( table, specList, selected, row );
-        }
+        List<Props> specList = getSpectraAsList(selected, table, row);
 
+        if (specList == null) {
+        	return; // avoids NPE if no results are present
+        }
+        
         //  If we have no spectra complain and stop.
         if ( specList.size() == 0 ) {
             String mess;
@@ -2028,6 +2042,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             try {
                  url = new URL(propList[p].getSpectrum());
                  logger.info("Spectrum URL"+url);
+                 System.out.println("and146: loading: " + propList[p].getSpectrum());
             } catch (MalformedURLException mue) {
                 logger.info(mue.getMessage());
             }
@@ -2036,9 +2051,36 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         browser.threadLoadSpectra( propList, display );
         browser.toFront();
     }
-
-
-
+    
+    public List<Props> getSpectraAsList(boolean selected) {
+    	return getSpectraAsList(selected, null, -1);
+    }
+    
+    private List<Props> getSpectraAsList(boolean selected,
+            StarJTable table, int row) {
+    	//  List of all spectra to be loaded and their data formats and short
+        //  names etc.
+        ArrayList<Props> specList = new ArrayList<Props>();
+     
+        
+        if ( table == null ) { 
+            
+            if (starJTables == null)  // avoids NPE if no results are present
+                return null;
+            //  Visit all the tabbed StarJTables.
+            Iterator<StarPopupTable> i = starJTables.iterator();
+            while ( i.hasNext() ) {
+                extractSpectraFromTable( i.next(), specList,
+                        selected, -1 );
+            }
+        }
+        else {
+            extractSpectraFromTable( table, specList, selected, row );
+        }
+        
+        return specList;
+    }
+    
     /**
      * Extract all the links to spectra for downloading, plus the associated
      * information available in the VOTable. Each set of spectral information
@@ -2087,6 +2129,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int ncol = starTable.getColumnCount();
             int linkcol = -1;
             int typecol = -1;
+            int producttypecol = -1;
             int namecol = -1;
             int axescol = -1;
             int specaxiscol = -1;
@@ -2176,6 +2219,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     pubdidcol = k;
                 if (colInfo.getName().equals(idSource))
                     idsrccol = k;
+                if (colInfo.getName().equals("ssa_producttype"))
+                	producttypecol = k;
                 
             } // for
             
@@ -2225,7 +2270,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     ( specDataFactory
                                             .mimeToSPLATType( value ) );
                                 }
-                            } //while
+                            }
+                            if ( producttypecol != -1 ) {
+                                value = ((String)rseq.getCell( producttypecol ).toString() );
+                                if ( value != null ) {
+                                    value = value.trim();
+                                    props.setObjectType(SpecDataFactory.productTypeToObjectType(value));
+                                }
+                            }//while
                             if ( namecol != -1 ) {
                                 value = ( (String)rseq.getCell( namecol ).toString() );
                                 if ( value != null ) {
@@ -2301,6 +2353,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                    if (format != null && format != "") {
                                        props.setDataLinkFormat(format);
                                        props.setType(specDataFactory.mimeToSPLATType( format ));
+                                       //props.setObjectType(SpecDataFactory.mimeToObjectType(format));
                                    }
                                 }
                             }
@@ -2335,6 +2388,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                         props.setType
                                         ( specDataFactory
                                                 .mimeToSPLATType( value ) );
+                                    }
+                                }
+                                if ( producttypecol != -1 ) {
+                                	value = null;
+                                    Object obj = rseq.getCell(producttypecol);
+                                    if (obj != null) 
+                                        value =((String)rseq.getCell(producttypecol).toString());
+                                    if ( value != null ) {
+                                        value = value.trim();
+                                        props.setObjectType(SpecDataFactory.productTypeToObjectType(value));
                                     }
                                 }
                                 if ( namecol != -1 ) {
@@ -2384,6 +2447,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                        if (format != null && format != "") {
                                            props.setDataLinkFormat(format);
                                            props.setType(specDataFactory.mimeToSPLATType( format ) );
+                                           //props.setObjectType(SpecDataFactory.mimeToObjectType(format));
                                        }
                                     }
                                 }
@@ -3484,7 +3548,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
        
         //requestFocusInWindow();
      //   if (e.getSource().getClass() == StarTable.class ) {
-
             if ( e.getClickCount() == 2 ) {
                 StarJTable table = (StarJTable) e.getSource();
                 Point p = e.getPoint();

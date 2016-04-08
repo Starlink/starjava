@@ -92,4 +92,40 @@ public interface SplatCommunicator
      * @return  spectrum transmitter
      */ 
     Transmitter createSpecTransmitter( JList specList );
+    
+    /**
+     * Returns an object that can send a Binary FITS table from SPLAT
+     * to other applications.
+     *
+     * @param  specList  list of spectra
+     * @return  spectrum transmitter
+     */ 
+    EventEnabledTransmitter createBinFITSTableTransmitter( JList specList );
+    
+    /**
+     * Returns an object that can send a Binary FITS table from SPLAT
+     * to other applications.
+     *
+     * @param  ssaQueryBrowser  SSA Query Browser instance
+     * @return  spectrum transmitter
+     */ 
+    EventEnabledTransmitter createBinFITSTableTransmitter( SSAQueryBrowser ssaQueryBrowser );
+    
+    /**
+     * Returns an object that can send a VOTable from SPLAT
+     * to other applications.
+     *
+     * @param  specList  list of spectra
+     * @return  spectrum transmitter
+     */ 
+    EventEnabledTransmitter createVOTableTransmitter( JList specList );
+    
+    /**
+     * Returns an object that can send a VOTable from SPLAT
+     * to other applications.
+     *
+     * @param  ssaQueryBrowser  SSA Query Browser instance
+     * @return  spectrum transmitter
+     */ 
+    EventEnabledTransmitter createVOTableTransmitter( SSAQueryBrowser ssaQueryBrowser );
 }

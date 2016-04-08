@@ -1854,13 +1854,32 @@ public class SpecDataFactory
     }
 
     /**
+     * Converts a mime type to one of recognized ObjectType.
+     * 
+     * FIXME: Hacky way for quick and partial timeseries support
+     * 
+     * @param type
+     * @return
+     */
+    public static ObjectTypeEnum productTypeToObjectType(String type) {
+    	ObjectTypeEnum objectType = ObjectTypeEnum.SPECTRUM;
+    	
+    	if (type != null && type.toLowerCase().trim().startsWith("timeseries/")); {
+    		objectType = ObjectTypeEnum.TIMESERIES;
+    	}
+//    	System.out.println("and146: mimeToObjectType: " + objectType);
+    	return objectType;
+    }
+    
+    /**
      * Convert a of mime types into the equivalent SPLAT type (these are
      * int constants defined in SpecDataFactory). Note we use the full MIME
      * types and the SSAP shorthand versions (fits, votable, xml).
      */
     public static int mimeToSPLATType( String type )
     {
-        int stype = SpecDataFactory.DEFAULT;
+//        System.out.println("and146: type to detect: " + type);
+    	int stype = SpecDataFactory.DEFAULT;
         String simpleType = type.toLowerCase();
 
         //   Note allow for application/fits;xxxx, so use startsWith,

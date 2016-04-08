@@ -1349,6 +1349,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                                     props.setType
                                     ( specDataFactory
                                             .mimeToSPLATType( value ) );
+                                    //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
                                 }
                             } //while
                             if ( namecol != -1 ) {
@@ -1446,6 +1447,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                                         props.setType
                                         ( specDataFactory
                                                 .mimeToSPLATType( value ) );
+                                        //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
                                     }
                                 }
                                 if ( namecol != -1 ) {

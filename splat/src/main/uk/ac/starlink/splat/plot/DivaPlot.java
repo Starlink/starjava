@@ -64,6 +64,7 @@ import uk.ac.starlink.diva.DrawGraphicsPane;
 import uk.ac.starlink.diva.FigureStore;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.DataLimits;
+import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -735,6 +736,18 @@ public class DivaPlot
             if ( ! dataLimits.isYAutoscaled() ) {
                 yMin = dataLimits.getYLower();
                 yMax = dataLimits.getYUpper();
+            }
+            
+            // inverse Y axis for timeseries
+            if (getSpecDataComp() != null) {
+            	if (getSpecDataComp().get() != null) {
+            		for (SpecData specData : getSpecDataComp().get()) {
+            			if (ObjectTypeEnum.TIMESERIES.equals(specData.getObjectType())) {
+            				dataLimits.setYFlipped(true);
+            				break;
+            			}
+            		}
+            	}
             }
         }
     }

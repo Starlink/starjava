@@ -206,6 +206,26 @@ public class SampCommunicator
     {
         return new SpectrumSendActionManager( specList, hubConnector );
     }
+    
+    public EventEnabledTransmitter createBinFITSTableTransmitter( JList specList )
+    {
+        return new BinFITSTableSendActionManager( specList, hubConnector );
+    }
+    
+    public EventEnabledTransmitter createBinFITSTableTransmitter( SSAQueryBrowser ssaQueryBrowser )
+    {
+        return new BinFITSTableSendActionManager( ssaQueryBrowser, hubConnector );
+    }
+    
+    public EventEnabledTransmitter createVOTableTransmitter( JList specList )
+    {
+        return new VOTableSendActionManager( specList, hubConnector );
+    }
+    
+    public EventEnabledTransmitter createVOTableTransmitter( SSAQueryBrowser ssaQueryBrowser )
+    {
+        return new VOTableSendActionManager( ssaQueryBrowser, hubConnector );
+    }
 
     /**
      * MessageHandler implementation for dealing with spectrum load MTypes.
@@ -370,6 +390,7 @@ public class SampCommunicator
                 if ( key.equals( "vox:spectrum_format" ) ||
                      utypeMatches( key, "access.format" ) ) {
                     props.setType( specDataFactory.mimeToSPLATType( value ) );
+                    //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
                 }
                 else if ( key.equals( "vox:image_title" ) ||
                           utypeMatches( key, "target.name" ) ) {

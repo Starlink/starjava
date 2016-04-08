@@ -1145,6 +1145,18 @@ public class SplatBrowser
         interopMenu.add( specTransmitter.createSendMenu() )
             .setMnemonic( KeyEvent.VK_T );
         
+        Transmitter binFITSTableTransmitter = 
+        		communicator.createBinFITSTableTransmitter(specList);
+        interopMenu.addSeparator();
+        interopMenu.add( binFITSTableTransmitter.getBroadcastAction() );
+        interopMenu.add( binFITSTableTransmitter.createSendMenu() );
+        
+        Transmitter voTableTransmitter = 
+        		communicator.createVOTableTransmitter(specList);
+        interopMenu.addSeparator();
+        interopMenu.add( voTableTransmitter.getBroadcastAction() );
+        interopMenu.add( voTableTransmitter.createSendMenu() );
+        
         
         //  Add checkbox for opening the spectra from SAM to the same plot
         interopMenu.addSeparator();
@@ -2155,10 +2167,15 @@ public class SplatBrowser
             String shortname=props.getShortName();
             for ( int i = 0; i < spectra.length; i++ ) {
                 String str = spectra[i].getShortName();
+                if (spectra[i].getObjectType() == null) {
+                	spectra[i].setObjectType(props.getObjectType());
+                }
                 addSpectrum( spectra[i] );
                 if (str != null && str.startsWith("order"))
                     props.setShortName(shortname+" ["+str+"]");
                 props.apply( spectra[i] );
+                
+                System.out.println("and146: SED or TABLE #" + i);
             }
         }
         else {
@@ -2168,14 +2185,22 @@ public class SplatBrowser
                 SpecData spectrum;
                 List<SpecData> spectra;
                     if (props.getType() == SpecDataFactory.DATALINK) {
-                        DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
+                        System.out.println("and146: datalink");
+                    	DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
                         props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read 
-                        if (props.getDataLinkFormat() != null ) // see if user has changed the output format
-                            props.setType(SpecDataFactory.mimeToSPLATType(props.getDataLinkFormat()));                 
+                        String stype = null;
+                        if (props.getDataLinkFormat() != null ) { // see if user has changed the output format
+                        	stype = props.getDataLinkFormat();
+                        	props.setType(SpecDataFactory.mimeToSPLATType(stype));
+                            //props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
+                        }
                         else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
                             props.setType(SpecDataFactory.GUESS);
-                        else 
-                            props.setType(SpecDataFactory.mimeToSPLATType(dlparams.getQueryContentType(0))); 
+                        else { 
+                            stype = dlparams.getQueryContentType(0);
+                        	props.setType(SpecDataFactory.mimeToSPLATType(stype));
+                        	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
+                        }
                     }
                     spectra = specDataFactory.get( props.getSpectrum(), props.getType() ); ///!!! IF it's a list???
                     for (int s=0; s < spectra.size(); s++ ){
@@ -2183,6 +2208,7 @@ public class SplatBrowser
                         String sname = spectrum.getShortName();
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
+                        spectrum.setObjectType(props.getObjectType());
                         addSpectrum( spectrum );
                         props.apply( spectrum );
                         
