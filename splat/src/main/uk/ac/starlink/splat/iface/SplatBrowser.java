@@ -772,9 +772,9 @@ public class SplatBrowser
         ImageIcon obscoreImage =
                 new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
         LocalAction obsCoreAction = new LocalAction( LocalAction.OBSCORE,
-                                                    "TEST Obscore TAP", 
+                                                    "ObsCore", 
                                                      obscoreImage, 
-                                                     "Test " );
+                                                     "Query VO using ObsCore TAP" );
         fileMenu.add(obsCoreAction);
         toolBar.add( obsCoreAction );
 

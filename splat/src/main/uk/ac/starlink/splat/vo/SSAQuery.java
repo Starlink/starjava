@@ -346,9 +346,9 @@ public class SSAQuery
             //  No ? in URL.
             buffer.append( "?" );
         }
-        else if ( ! baseURL.endsWith( "?" ) ) {
-            //  Have ? but not at end.
-            buffer.append( "&" );
+        else if ( ! baseURL.endsWith( "?" ) && !baseURL.endsWith( "&")) {
+            //  Contains ? but not at end. Also doesn't end with &
+                buffer.append( "&" );
         }
         //  Else ends with a ?, so that's OK already.
 
@@ -417,6 +417,10 @@ public class SSAQuery
         this.description = server.getShortName();
     }
     
+    public void setServer( String server) {                   
+        this.baseURL = server;   
+    }
+    
     public String getShortName() {
         return this.description;
     }
@@ -467,10 +471,13 @@ public class SSAQuery
         String newURL = this.baseURL;
         if ( newURL.indexOf( '?' ) == -1 )  //  No ? in URL.
             newURL += ( "?" );
-        else if ( newURL.indexOf('?') != newURL.length()-1 ) //? is not at the end
+        else if ( !newURL.endsWith("?")  && !newURL.endsWith("&")) //? is not at the end
             newURL += ( "&" );
-            
+           
         newURL += this.queryText;
+        
+        URL url = new URL (newURL);
+        url.getQuery();
         return new URL(newURL);
         
     }

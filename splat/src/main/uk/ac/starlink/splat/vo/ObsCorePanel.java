@@ -2,28 +2,24 @@ package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.Iterator;
+//import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
@@ -33,7 +29,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -42,10 +37,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
-//import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
@@ -59,32 +50,30 @@ import jsky.catalog.QueryArgs;
 import jsky.catalog.QueryResult;
 import jsky.catalog.TableQueryResult;
 import jsky.catalog.skycat.SkycatCatalog;
-import jsky.catalog.skycat.SkycatConfigEntry;
+//import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.DMS;
 import jsky.coords.HMS;
 import jsky.coords.WorldCoords;
+import jsky.util.SwingWorker;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.ProgressFrame;
+import uk.ac.starlink.splat.iface.ProgressPanel;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.vo.SSAServerTable.PopupMenuAction;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.StarJTable;
-import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.table.gui.TableLoadPanel;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.vo.TapQuery;
-import uk.ac.starlink.vo.TapTableLoadDialog;
 
 
 public class ObsCorePanel extends JFrame implements ActionListener, MouseListener,  DocumentListener, PropertyChangeListener
@@ -111,21 +100,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     /**
      * The ProgressFrame. This appears to denote that something is happening.
      */
-    private ProgressFrame progressFrame =
-        new ProgressFrame( "Loading spectra..." );
-
-
-    /**
-     *  Server selection and query panels.
-     */
-    protected JSplitPane splitPane = new JSplitPane();  
-    protected JPanel serverPanel = new JPanel();
-    protected JScrollPane serverScroller = null;
-    protected JPanel querySearchPanel = new JPanel();
-    protected JPanel queryADQLPanel = new JPanel();
-    protected TitledBorder serverTitle =
-            BorderFactory.createTitledBorder( "Spectral services" );
-    
+    static ProgressPanelFrame progressFrame = null;
     
     /** NED name resolver catalogue */
     protected SkycatCatalog nedCatalogue = null;
@@ -136,10 +111,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     /** The current name resolver, if using Skycat method */
     protected SkycatCatalog resolverCatalogue = null;
 
-    /** list of manually added servers **/
- //   StarTableModel addedServers= new StarTableModel(null);
-
-    /**
+   /**
      *  Simple query window like SSAP
      */
     /** Central RA */
@@ -150,6 +122,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
     /** Region radius */
     protected JTextField radiusField = null;
+    
+    /** Maxrec */
+    protected JTextField maxrecField = null;
 
     /** Lower limit for BAND */
     protected JTextField lowerBandField = null;
@@ -174,10 +149,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     protected JTextField nameField = null;
 
     /** Resolve object name button */
-    protected JButton nameLookup = null;
-
-    /** Make the query to all selected servers */
-    protected JButton goButton = null;
+    protected JButton nameLookup = null;   
     
     /** the  value to the adql search parameter */
     protected JTextField textValue = null;
@@ -187,9 +159,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
      *  Results area
      */
     /** Tabbed pane showing the query results tables */
-    protected JPanel resultsPanel = new JPanel();
-    protected JTabbedPane resultsTabPane = null;
+    protected ResultsPanel resultsPanel = null;
     protected JScrollPane resultScroller = null;
+    protected JTabbedPane queryTabPanel = null;
     protected JPanel buttonsPanel = new JPanel();
 
     protected TitledBorder resultsTitle =
@@ -203,12 +175,11 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
     private String queryParams = null;
 
+   
     
     private String[] subquery = null;
- //   private StarTable servers = null;
     private JPanel servPanel;
-    private JPanel rightPanel;
-    private JPanel leftPanel;
+   
     /** The SpecDataFactory.*/
     private SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
 
@@ -240,7 +211,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         setTitle("OBSCORE SPECTRAL SERVICES");
         subquery = new String[4];
         setSize(new Dimension(800, 600) );
-      //  setPreferredSize(new Dimension(800, 600) );
 
         getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.LINE_AXIS) );
        
@@ -251,14 +221,11 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
         JPopupMenu serverPopup = makeServerPopup();
         serverTable.setComponentPopupMenu(serverPopup);
-       // serverTable.addMouseListener(new ServerTableMouseListener());
         
         specPopup = makeSpecPopup();
         
         initComponents();
-        initQueryComponents();
-       // addQueryPanel();
-      //  makeTestQuery();
+      
         setVisible(true);
 
     }
@@ -305,62 +272,45 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
   
         //  Set up split pane.
+        
+        JSplitPane splitPane = new JSplitPane();  
         splitPane.setOneTouchExpandable( true );     
         splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
-        
-        //specList.setSize( new Dimension( 190, 0 ) );
       
         splitPane.setDividerLocation( 320 );
 
         // initialize the right and left panels
-        initialiseUI();
-        //  Finally add the main components to the content and split
-        //  panes. Also positions the toolbar.
-      //  initResultsComponent();
-        splitPane.setLeftComponent( leftPanel );
-        splitPane.setRightComponent( rightPanel );
+     
+        splitPane.setLeftComponent( initializeQueryComponents() );
+        splitPane.setRightComponent( initializeResultsComponents() );
 
       
         contentPane.add( splitPane, BorderLayout.CENTER );
     }
 
-    private void initialiseUI() {
-       leftPanel = new JPanel();
+    private JPanel initializeQueryComponents() {
+       JPanel leftPanel = new JPanel();
        servPanel = new JPanel();
-       rightPanel = new JPanel();
-       JTabbedPane queryTabPanel = new JTabbedPane();
+     
+       queryTabPanel = new JTabbedPane();
        
        leftPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-       leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
-       //leftPanel.add(new JLabel("Obscore Spectral Services"));     
+       leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));    
        leftPanel.setPreferredSize(new Dimension(320,600));
        
-       rightPanel.setLayout( new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS ));
-       rightPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-       rightPanel.setPreferredSize(new Dimension(580,600));
-   //    this.add(leftPanel);
-  //     this.add( rightPanel);
-       
-       servPanel.setBorder(BorderFactory.createTitledBorder("Obscore Spectral Services"));
+       servPanel.setBorder(BorderFactory.createTitledBorder("Obscore Services"));
        servPanel.setLayout( new BoxLayout(servPanel, BoxLayout.PAGE_AXIS ));
-     
-       //  servPanel.setSize(new Dimension(200,200));
+    
        //  Add the list of servers to its scroller.
      
-       serverScroller = new JScrollPane(serverTable); 
+       JScrollPane serverScroller = new JScrollPane(serverTable); 
        serverScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
        servPanel.add(serverScroller);
        
-       //queryPanel = new JPanel();
-       querySearchPanel.setBorder(BorderFactory.createTitledBorder("Query"));
-       querySearchPanel.setLayout( new BoxLayout(querySearchPanel, BoxLayout.PAGE_AXIS ));
-       querySearchPanel.setPreferredSize(new Dimension(310,300));
-       //mainPanel.add(queryPanel);
        
        JPanel buttonsPanel = new JPanel();
        buttonsPanel.setBorder(BorderFactory.createEmptyBorder());
        buttonsPanel.setLayout( new BoxLayout(buttonsPanel, BoxLayout.LINE_AXIS ));
-    //   buttonsPanel.setPreferredSize(new Dimension(310,100));
        
        JButton newServerButton = new JButton("Add New Service");
        newServerButton.addActionListener( this );
@@ -375,104 +325,183 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
        buttonsPanel.add(refreshButton);
        
        servPanel.add(buttonsPanel);
+
+       queryTabPanel.add("Simple search", initSimpleQueryPanel());
        
-       queryTabPanel.add("Cone search", querySearchPanel);
+       queryTabPanel.add("ADQL search", initQueryADQLPanel());
        
-       addQueryADQLPanel();
-       queryTabPanel.add("ADQL search", queryADQLPanel);
+       JButton getButton = new JButton("Send Query");
+       getButton.addActionListener( this );
+       getButton.setActionCommand( "QUERY" );    
        
-       leftPanel.add(queryTabPanel);
+       JButton clearButton = new JButton("Clear");
+       clearButton.addActionListener( this );
+       clearButton.setActionCommand( "CLEAR" );    
+       
+       JPanel queryButtonsPanel = new JPanel();
+       queryButtonsPanel.add(clearButton);
+       queryButtonsPanel.add(getButton);
+     
+       JPanel queryPanel = new JPanel();
+       queryPanel.setBorder(BorderFactory.createEtchedBorder() );
+       queryPanel.setLayout(new BoxLayout(queryPanel, BoxLayout.PAGE_AXIS));   
+       queryPanel.add(queryTabPanel);
+       queryPanel.add(queryButtonsPanel);
+       leftPanel.add(queryPanel);
        leftPanel.add(servPanel);
        
-       resultsPanel = new JPanel();
-       resultsPanel.setBorder(BorderFactory.createTitledBorder("Query results"));
-       resultsPanel.setToolTipText( "Results of query to the current list "+
-               "of SSAP servers. One table per server" );
-       resultsPanel.setLayout( new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS ));
-       resultsPanel.setSize(new Dimension(495,500));
-       resultsTabPane = new JTabbedPane();
-     //  resultsTabPane.setPreferredSize(new Dimension(600,310));
-       resultsPanel.add( resultsTabPane, BorderLayout.NORTH );
-       rightPanel.add(resultsPanel);
+       return leftPanel;
       
     }
+    
+    /**
+     * Make the results component. This is mainly JTabbedPane containing a
+     * JTable for each set of results (the tables are realized later) and
+     * a button to display the selected spectra.
+     */
+    private  JPanel initializeResultsComponents()
+    {
+        
+      resultsPanel = new ResultsPanel(this);
 
-    private void makeQuery(int[] services, String query) {
-        
-        
-        TapQuery tq=null;
-        StarTableFactory tfact = new StarTableFactory();
+      resultsPanel.setBorder(BorderFactory.createTitledBorder("Query results"));
+      resultsPanel.setToolTipText( "Results of query to the current list "+
+              "of Obscore servers. One table per server" );
+   
+      return resultsPanel;
+    
+    }
+    
+    /**
+     * Query the selected services.
+     */
+    private void makeQuery(int[] services, String querystr) {
+        final String query = querystr;
+        final TapQuery tq=null;
         boolean ok=true;
-        resultsPanel.removeAll();
-        resultsTabPane.removeAll();
-        resultsPanel.updateUI();
+        resultsPanel.removeAllResults();
+        //resultsTabPane.removeAll();
+       // resultsPanel.updateUI();
+        if (progressFrame != null) {
+            progressFrame.closeWindowEvent();
+            progressFrame=null;
+        }
+       // final ProgressPanelFrame 
+        progressFrame = new ProgressPanelFrame( "Querying ObsCore servers" );
        
         for (int i=0; i<services.length; i++) {
             ok=true;
-            String s=null;
-            String shortname=null;
-            try {
-                 s = serverTable.getAccessURL(services[i]);
-                 // if shortname is empty, go on using the accessURL
-                 shortname = serverTable.getShortName(services[i]);
-                 if (shortname == null)
-                     shortname = s;
-               
-                 tq =  new TapQuery( new URL(s), query,  null );
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-               ok=false;
-            }
-            if (ok) {
-                StarTable table = null;
-             
-                
-                try {
-                    table = tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
-                  
-                } catch (IOException e) {
-                    
-                    ErrorDialog.showError( this, "TAP query error: ", e, e.getMessage());
-                     ok = false;
-                } 
-               
-                if (ok ) {
-                    logger.info("Status "+table.getParameterByName("QUERY_STATUS"));
-                 
-                    if ( table != null &&  table.getRowCount() > 0 ) {
-                        
-                        StarPopupTable jtable = new StarPopupTable(table, false);
-                        jtable.setComponentPopupMenu(specPopup);
-                        jtable.configureColumnWidths(200, jtable.getRowCount());
-                       
-                       resultScroller=new JScrollPane(jtable);
-                       jtable.addMouseListener( this );
-                       resultsTabPane.addTab(shortname, resultScroller );
-                    
-                    } 
-                    
+            
+            int row = serverTable.convertRowIndexToModel(services[i]);
+            final String serverUrl = serverTable.getAccessURL(row);
+            final String shortname;
+            String sname = serverTable.getShortName(row);
+            if (sname==null)
+                shortname=serverUrl;
+            else shortname = sname;
+
+            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
+            progressFrame.addProgressPanel( progressPanel );
+
+            final SwingWorker worker = new SwingWorker()
+            {
+                boolean interrupted = false;
+                public Object construct() 
+                {
+                    progressPanel.start();
+                    try {
+                        startQuery( serverUrl, shortname, query, progressPanel );
+                    }
+                    catch (Exception e) {
+                        interrupted = true;
+                    }
+                    return null;
                 }
-            }
+
+                public void finished()
+                {
+                    progressPanel.stop();
+                    //  Display the results.
+                    if ( ! interrupted ) {
+                //        addResultsDisplay( ssaQuery );
+                    }
+                }
+            };
+            progressPanel.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    if ( worker != null ) {
+                         worker.interrupt();
+                    }
+                }
+            });
+
+            worker.start();  
         }
-        if (resultsTabPane.getTabCount() > 0)
-            resultsPanel.add(resultsTabPane);
-        resultsPanel.updateUI();
+           
+         resultsPanel.updateUI();        
+    }
+    
+    /**
+     * Send a tap query to a service
+     */   
+    void startQuery(String queryUrl, String shortname, String query, ProgressPanel progressPanel ) throws InterruptedException {
+        logger.info( "Querying: " + queryUrl );
+        progressPanel.logMessage( query );
+        TapQuery tq;
+
+        // Initializes TapQuery
+        try {
+            tq =  new TapQuery( new URL(queryUrl), query,  null );
+        } catch (MalformedURLException e) {
+            progressPanel.logMessage( e.getMessage() );
+            logger.info( "Malformed URL "+queryUrl );
+            return;
+        }
+        
+        // Execute query
+        StarTableFactory tfact = new StarTableFactory();
+        StarTable table = null;
+        try {
+            table = tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
+
+        } catch (IOException e) {
+            progressPanel.logMessage( e.getMessage() );
+            logger.info( "Exception "+queryUrl );
+            return;
+        } 
+
+        // add table
+        if ( table != null &&  table.getRowCount() > 0 ) {
+
+            StarPopupTable jtable = new StarPopupTable(table, false);
+            jtable.setComponentPopupMenu(specPopup);
+            jtable.configureColumnWidths(200, jtable.getRowCount());
+
+            //resultScroller=new JScrollPane(jtable);
+            jtable.addMouseListener( this );
+            resultsPanel.addTab(shortname, jtable );
+            progressPanel.logMessage( "Completed download" );
+            
+        } else {
+            progressPanel.logMessage( "No results returned" );
+        }
+        
+        if ( Thread.interrupted() ) {
+            progressPanel.logMessage( "Interrupted" );
+            throw new InterruptedException();
+        }
         
     }
 
     
  
-    @SuppressWarnings("null")
     private void getServers() {
 
         StarTable st = queryRegistry();
         serverTable.updateServers(st);
-        
-       // serverTable.updateServers(table);
-       //serverScroller = new JScrollPane(serverTable);
-       //serverScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-       
+     
     }
     
     private StarTable queryRegistry() {
@@ -491,13 +520,16 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
  
     }
  
-   private void addQueryADQLPanel() {
+    /** 
+     * initialize the adql input interface  
+     */
+   private JPanel initQueryADQLPanel() {
         
     //    JPanel      queryInputPanel = new JPanel();
         
-      //  queryADQLPanel=new JPanel();
+        JPanel queryADQLPanel=new JPanel();
         queryADQLPanel.setLayout(new BorderLayout());
-        addQueryParams();
+        queryADQLPanel.add(initADQLQueryParams(), BorderLayout.PAGE_START);
         querytext = new JTextArea(10, 8);
         querytext.setLineWrap(true);
         querytext.setEditable(true);
@@ -507,23 +539,12 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         querytext.getDocument().addDocumentListener( this );
         queryADQLPanel.add(querytext,BorderLayout.CENTER);
      
-//        JLabel targetlabel = new JLabel( "Target Name: ");
-//        JTextField targettext = new JTextField(80);
-//        targettext.addActionListener( this );
- //           queryInputPanel.add(targetlabel);
-//        queryInputPanel.add(targettext);
-//        queryInputPanel.add(targetlabel);
-      
-        JButton getbutton = new JButton("Send Query");
-        getbutton.addActionListener( this );
-        getbutton.setActionCommand( "QUERY" );    
-        queryADQLPanel.add(getbutton,BorderLayout.PAGE_END);
-      //  servPanel.add(queryInputPanel);
+       return queryADQLPanel;
         
     }
   
     
-    private void addQueryParams()  {
+    private JPanel initADQLQueryParams()  {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BorderLayout());
         JPanel panel = new JPanel();
@@ -547,8 +568,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         JButton andButton = new JButton("AND"); 
         andButton.addActionListener(this);
         andButton.setActionCommand( "AND" );
- //       panel.add(andButton);
-//        queryPanel.add(panel);
         
         JPanel okpanel = new JPanel();
         JButton backButton = new JButton("Back"); 
@@ -559,23 +578,30 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         okButton.addActionListener(this);
         okButton.setActionCommand( "OK" );
         okpanel.add(okButton);
-        //panel.add(okButton);
+        
         inputPanel.add(panel,BorderLayout.PAGE_START);
         inputPanel.add(okpanel, BorderLayout.PAGE_END);
-        queryADQLPanel.add(inputPanel, BorderLayout.PAGE_START);
-        //queryADQLPanel.add(okpanel,BorderLayout.LINE_END);
+        return inputPanel;
         
+       
     }
     
-
-    private void initQueryComponents()
+    /** 
+     * initialize the simple query input interface  
+     */
+    
+    private JPanel initSimpleQueryPanel()
     {
       
-       // queryPanel = new JPanel();
+      
         JPanel queryParamPanel = new JPanel();
-       // queryPanel.setBorder ( BorderFactory.createTitledBorder( "Search parameters:" ) );
+        JPanel querySearchPanel = new JPanel();
+        querySearchPanel.setBorder(BorderFactory.createTitledBorder("Query"));
+        querySearchPanel.setLayout( new BoxLayout(querySearchPanel, BoxLayout.PAGE_AXIS ));
+        querySearchPanel.setPreferredSize(new Dimension(310,300));
+
         querySearchPanel.setLayout( new GridBagLayout());
-       // customScrollPanel = new JScrollPane( customQueryPanel );
+      
         queryParamPanel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.fill=GridBagConstraints.BOTH;
@@ -597,13 +623,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
        
        
         
-        // The simple query panel
-        //------------------------
-           
-       // GridBagLayouter layouter =  new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 /*SCHEME4*/ );
+        // The simple query panel           
         GridBagLayouter layouter =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
-       // GridBagLayouter layouter2 =  new GridBagLayouter( simpleQuery2/*Panel*/, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
-
 
         //  Object name. Arrange for a resolver to look up the coordinates of
         //  the object name, when return or the lookup button are pressed.
@@ -674,14 +695,35 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         radiusField = new JTextField( "10.0", 10 );
       //  queryLine.setRadius(10.0);
         radiusField.addActionListener( this );
-        layouter.add( radiusLabel, false );
-        layouter.add( radiusField, true );
         radiusField.setToolTipText( "Enter radius of field to search" +
                 " from given centre, arcminutes" );
         radiusField.addActionListener( this );
         radiusField.getDocument().putProperty("owner", radiusField); //set the owner
         radiusField.getDocument().addDocumentListener( this );
-
+        
+        JLabel maxrecLabel = new JLabel( "Maxrec:" );
+        maxrecField = new JTextField( "10000", 10 );      //  queryLine.setmaxrec(10.0);
+        maxrecField.addActionListener( this );
+        maxrecField.setToolTipText( "Enter maxrec of field to search" +
+                " from given centre, arcminutes" );
+        maxrecField.addActionListener( this );
+        maxrecField.getDocument().putProperty("owner", maxrecField); //set the owner
+        maxrecField.getDocument().addDocumentListener( this );
+        
+        JPanel radMaxrecPanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc2 = new GridBagConstraints();
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        radMaxrecPanel.add( radiusField, gbc2 );
+        gbc2.weightx=0.0;
+        gbc2.fill = GridBagConstraints.NONE;
+        radMaxrecPanel.add(maxrecLabel, gbc2);
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        radMaxrecPanel.add(maxrecField, gbc2);
+        
+        layouter.add( radiusLabel, false );
+        layouter.add(radMaxrecPanel,true);
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
@@ -697,21 +739,21 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
 
         JPanel bandPanel = new JPanel( new GridBagLayout() );
-        GridBagConstraints gbc2 = new GridBagConstraints();
+        GridBagConstraints gbc3 = new GridBagConstraints();
 
-        gbc2.weightx = 1.0;
-        gbc2.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( lowerBandField, gbc2 );
+        gbc3.weightx = 1.0;
+        gbc3.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( lowerBandField, gbc3 );
 
      
-        gbc2.weightx = 0.0;
-        gbc2.fill = GridBagConstraints.NONE;
-        bandPanel.add( new JLabel( "/" ), gbc2 );
+        gbc3.weightx = 0.0;
+        gbc3.fill = GridBagConstraints.NONE;
+        bandPanel.add( new JLabel( "/" ), gbc3 );
 
  
-        gbc2.weightx = 1.0;
-        gbc2.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( upperBandField, gbc2 );
+        gbc3.weightx = 1.0;
+        gbc3.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( upperBandField, gbc3 );
 
         layouter.add( bandLabel, false );
         layouter.add( bandPanel, true );
@@ -762,13 +804,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         //
         
         // format and calibration options:
-        JPanel calibOptions = new JPanel(new GridLayout(3,2));
-   //     calibOptions.setPreferredSize(new Dimension(100,200));
-        // Formats
-   
-  
-        
-        layouter.eatSpare();
+    //    JPanel calibOptions = new JPanel(new GridLayout(3,2));        
+    //    layouter.eatSpare();
         
      //   simpleQueryPanel.add(simpleQuery1, BorderLayout.LINE_START);
      //   simpleQueryPanel.add(calibOptions, BorderLayout.LINE_END);
@@ -776,15 +813,15 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
   
          
         // the query string display Panel
-        //-------------------------------
+/*      
         goButton = new JButton( "    SEND QUERY    " );
       //  goButton.setBackground(Color.green);
-        goButton.addActionListener( this );
+        goButton.addActionListener( this );*/
       
   //      showQueryButton = new JButton( "Query: ");
   //      showQueryButton.setToolTipText("show/update query string");
   //      showQueryButton.addActionListener( this );
-        JPanel sendQueryPanel = new JPanel(new BorderLayout());
+   //     JPanel sendQueryPanel = new JPanel(new BorderLayout());
      //   sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
   //      sendQueryPanel.add(showQueryButton, BorderLayout.LINE_START);
     //    queryText = new JTextArea(2,25);
@@ -794,23 +831,24 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
    //     queryText.setEditable(false);
    //     sendQueryPanel.add(queryText);
    //     queryText.setLineWrap(true);     
-        sendQueryPanel.add(goButton, BorderLayout.PAGE_END); // LINE_END
+  //      sendQueryPanel.add(goButton, BorderLayout.PAGE_END); // LINE_END
        
-        c.fill=GridBagConstraints.BOTH;
-        c.anchor=GridBagConstraints.NORTHWEST;
-        c.weighty=.5;
-        c.gridx = 0;
-        c.gridy = 0;
+ //       c.fill=GridBagConstraints.BOTH;
+  //      c.anchor=GridBagConstraints.NORTHWEST;
+  //      c.weighty=.5;
+  //      c.gridx = 0;
+  //      c.gridy = 0;
         
-        querySearchPanel.add(queryParamPanel, c);
-        c.gridy=1;
-        querySearchPanel.add( sendQueryPanel, c);
+  //      querySearchPanel.add(queryParamPanel, c);
+    //    c.gridy=1;
+      //  querySearchPanel.add( sendQueryPanel, c);
        
      //   centrePanel.add( queryPanel, gbcentre );
        
         
         // add query text to query text area
      //   updateQueryText();
+        return queryParamPanel;
         
     }
     /**
@@ -821,15 +859,10 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
         Object command = e.getActionCommand();
         Object obj = e.getSource();
-        JComboBox cb; String str;
+     
        
-        if ( obj.equals( goButton ) ) {
-            {             
-               querySelectedServices( true );
-               
-            }        
-            return;
-        } 
+        
+        
      
         if ( obj.equals( nameLookup ) /*|| obj.equals( nameField ) */) {
                      
@@ -837,86 +870,30 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
             return;
         } 
-           
-        if (obj.equals(raField) || obj.equals(decField) || obj.equals(nameField)) {
 
-                //  Get the position. Allow the object name to be passed using
-                //  TARGETNAME, useful for solar system objects.
-                String ra = raField.getText();
-                String dec = decField.getText();
-                String objectName = nameField.getText();
-                if ( ra == null || ra.length() == 0 ||
-                        dec == null || dec.length() == 0 ) {
-
-                    //  Check for an object name. Need one or the other.
-                    if ( objectName != null && objectName.length() > 0 ) {
-                        ra = null;
-                        dec = null;
-                    }
-                    else { 
-                        //  To be clear.
-                        ra = null;
-                        dec = null;
-                        objectName = null;
-                    }
-                }
-         
-               return;   
-            }
-            if ( obj.equals( radiusField )  ) {
-            
-                String radiusText = radiusField.getText();
-                double radius = 0.0;
-                if ( radiusText != null && radiusText.length() > 0 ) {
-                    try {
-                        radius = Double.parseDouble( radiusText );
-                    }
-                    catch (NumberFormatException e1) {
-                        ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
-                        return;
-                    }
-                }
-         //       queryLine.setRadius(radius);
-            
-             
-                return;            
-            }
-            
-            //  Spectral bandpass. These should be in meters. XXX allow other
-            //  units and do the conversion.
-            if (  obj.equals( lowerBandField ) || obj.equals( upperBandField )) {
-                 
-                String lowerBand = lowerBandField.getText();
-                if ( "".equals( lowerBand ) ) {
-                    lowerBand = null;
-                }
-                String upperBand = upperBandField.getText();
-                if ( "".equals( upperBand ) ) {
-                    upperBand = null;
-                }
-        //          queryLine.setBand(lowerBand, upperBand);
-                 
-                  return;            
-            }
-           
-            if (  obj.equals( upperTimeField ) || obj.equals( lowerTimeField ))  {
-                
-                String lowerTime = lowerTimeField.getText();
-                if ( "".equals( lowerTime ) ) {
-                    lowerTime = null;
-                }
-                String upperTime = upperTimeField.getText();
-                if ( "".equals( upperTime ) ) {
-                    upperTime = null;
-                }
-   //               queryLine.setTime(lowerTime, upperTime);
-               
-                  return;            
-            }
-        
+        if ( command.equals( "CLEAR" ) ) {
+            {             
+                int index=queryTabPanel.getSelectedIndex();
+                if (queryTabPanel.getTitleAt(index).equals("Simple search")) {
+                    queryTabPanel.remove(index);
+                    queryTabPanel.addTab("Simple search", initSimpleQueryPanel());                   
+                } 
+                else {
+                    queryTabPanel.remove(index);
+                    queryTabPanel.addTab("ADQL search", initQueryADQLPanel());
+                } 
+                queryTabPanel.setSelectedIndex(index==0?1:0); // back to the right tab
+            }        
+            return;
+        } 
         if ( command.equals( "QUERY" ) ) // query
         {
-             querySelectedServices( false );       
+             if (queryTabPanel.getTitleAt(queryTabPanel.getSelectedIndex()).equals("Simple search")) {
+                 querySelectedServices( true );
+             }
+             else { // ADQL Search
+                 querySelectedServices( false );       
+             }
         }
         if ( command.equals( "PARAM" ) ) 
         {
@@ -974,21 +951,35 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         {         
             getServers();           
         }
-        querySearchPanel.updateUI();
-        queryADQLPanel.updateUI();
+        //querySearchPanel.updateUI();
+      //  queryADQLPanel.updateUI();
     }
 
-    
-   
-        
-    
+
+
     /**
-     * Perform the query to all the currently selected servers.
+     * Returns the adql query for a query from the simple query interface      
      */
 
-    private String getQueryText() 
+    private String getQueryText() throws NumberFormatException
     {
         String queryString = "";
+        
+//      MAXREC/TOP.
+        int maxrec=0;
+        String maxrecText = maxrecField.getText();
+      
+        if ( maxrecText != null && maxrecText.length() > 0 ) {
+            try {
+                maxrec = Integer.parseInt( maxrecText );
+            }
+            catch (NumberFormatException e) {
+        //        ErrorDialog.showError( this, "Cannot understand maxrec value", e );
+                maxrec=0;
+                throw e;
+            }
+        }
+       
         
         //  Get the position. Allow the object name to be passed using
         //  TARGETNAME, useful for solar system objects.
@@ -1038,21 +1029,24 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                decVal=dms.getVal();
            //    queryString += " AND s_dec="+decVal;
             }
-          
-        
-         
+                   
         //  And the radius.
         String radiusText = radiusField.getText();
         double radius=0;// = 10.0;
         if ( radiusText != null && radiusText.length() > 0 ) {
-            try {
+          //  try {
                 radius = Double.parseDouble( radiusText );
-                queryString += " AND CONTAINS( POINT('ICRS', s_ra, s_dec), CIRCLE('ICRS', "+raVal+", "+decVal+","+radius/60.+")) =1"; // convert to degrees
-            }
-            catch (NumberFormatException e) {
-                ErrorDialog.showError( this, "Cannot understand radius value", e );
-            }
+         //   }
+         //   catch (NumberFormatException e) {
+                //ErrorDialog.showError( this, "Cannot understand radius value", e );
+                
+        //    }
+            queryString += " AND CONTAINS( POINT('ICRS', s_ra, s_dec), CIRCLE('ICRS', "+raVal+", "+decVal+","+radius/60.+")) =1"; // convert to degrees
+
         }
+        
+    
+        
             String lowerBand = lowerBandField.getText();
             if ( ! lowerBand.isEmpty() ) 
                 queryString += " AND em_min<=\'"+ lowerBand+"\'";
@@ -1070,7 +1064,12 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 queryString += " AND t_max>=\'"+ upperTime+"\'";
         }    
         
-        return queryString;
+        if (maxrec == 0) {
+            return queryPrefix+queryString;
+        } else {
+            return  "SELECT TOP "+maxrec+ " * from ivoa.Obscore WHERE dataproduct_type=\'spectrum\' "+queryString;
+        }
+       
     }
           
  
@@ -1099,10 +1098,16 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
 
         if (conesearch ) {
-            String queryText=getQueryText();
+            String queryText=null;
+            try {
+                 queryText=getQueryText();
+            }
+            catch (NumberFormatException e ) {
+                ErrorDialog.showError( this, "Please check given parameters", e );  
+            }
             if (queryText == null)
                 return;
-            queryParams=queryPrefix+queryText;
+            queryParams=queryText; 
         }
         else {   // adql expression search
             String str=querytext.getText();
@@ -1113,10 +1118,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         }
         
         logger.info( "QUERY= "+queryParams);
-        int[] services = serverTable.getSelectedRows();
-       // for (int i=1; i<services.length; i++) {
-            makeQuery(services, queryParams);
-      //  }
+        
+        makeQuery(serverTable.getSelectedRows(), queryParams);
+       
         
     }
 
@@ -1129,14 +1133,15 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
      */
     public void propertyChange(PropertyChangeEvent pvt)
     {
-       //StarTable st new VOStarTable(); // serverList.addServer(addServerWindow.getResource());
-      //  serverList.unselectServer(addServerWindow.getResource().getShortName());
+       
         DefaultTableModel model = (DefaultTableModel) serverTable.getModel();
         
         model.addRow(new Object[]{ addServerWindow.getShortName(), addServerWindow.getServerTitle(),addServerWindow.getDescription(),"","","", addServerWindow.getAccessURL()});
         serverTable.setModel( model );
-      //  updateTree();
+      
     }
+    
+
  
     /**
      * Get the main SPLAT browser to download and display spectra.
@@ -1152,18 +1157,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         //  names etc.
         ArrayList<Props> specList = new ArrayList<Props>();
          
-        if ( table == null ) { 
-            
-      //      if (starJTables == null)  // avoids NPE if no results are present
-      //          return;
-            //  Visit all the tabbed StarJTables.
-     //       Iterator<StarJTable> i = starJTables.iterator();
-   //         while ( i.hasNext() ) {
-      //          extractSpectraFromTable( i.next(), specList,
-      //                  selected, -1 );
-    //        }
-        }
-        else {
+        if ( table != null ) { 
             extractSpectraFromTable( table, specList, selected, row );
         }
 
@@ -1347,9 +1341,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                                 if ( value != null ) {
                                     value = value.trim();
                                     props.setType
-                                    ( specDataFactory
-                                            .mimeToSPLATType( value ) );
-                                    //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
+                                    ( SpecDataFactory.mimeToSPLATType( value ) );
                                 }
                             } //while
                             if ( namecol != -1 ) {
@@ -1445,9 +1437,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                                     if ( value != null ) {
                                         value = value.trim();
                                         props.setType
-                                        ( specDataFactory
-                                                .mimeToSPLATType( value ) );
-                                        //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
+                                        ( SpecDataFactory.mimeToSPLATType( value ) );
                                     }
                                 }
                                 if ( namecol != -1 ) {
@@ -1560,7 +1550,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                             decField.setText( radec[1] );
                             nameField.setForeground(Color.black);
                          
-                         //   queryLine.setPosition(radec[0], radec[1]);
+                         
                         }
                         else {
                             QueryResult r =
@@ -1573,9 +1563,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                                     String[] radec =
                                             ((WorldCoords) coords).format();
                                     raField.setText( radec[0] );
-                                    decField.setText( radec[1] );
-                                    // 
-                           //         queryLine.setPosition(radec[0], radec[1]);
+                                    decField.setText( radec[1] );                                                             
                                 }
                             }
                         }
@@ -1600,7 +1588,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
      * <p>
      * XXX refactor these into an XML file external to the application.
      * Maybe switch to the CDS Sesame webservice.
-     */
+     *
     private void setDefaultNameServers()
     {
         Properties p1 = new Properties();
@@ -1622,13 +1610,17 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 "http://archive.eso.org/skycat/servers/ned-server?&o=%id" );
         entry = new SkycatConfigEntry( p2 );
         nedCatalogue = new SkycatCatalog( entry );
-    }
+    }*/
 
     public void changedUpdate(DocumentEvent arg0) {
         // TODO Auto-generated method stub
         
     }
 
+    public void removeUpdate(DocumentEvent de) {
+        insertUpdate(de);
+    }
+    
     public void insertUpdate(DocumentEvent de) {
         Object owner = de.getDocument().getProperty("owner");
        
@@ -1640,25 +1632,36 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
            
         }
         if (owner == radiusField ) {
-            String radiusText = radiusField.getText();
-            double radius = 0.0;
+            String radiusText = radiusField.getText();            
             if ( radiusText != null && radiusText.length() > 0 ) {
                 try {
-                    radius = Double.parseDouble( radiusText );
+                    double radius = Double.parseDouble( radiusText );
                 }
                 catch (NumberFormatException e1) {
-                    ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
+                    ErrorDialog.showError( this, "Cannot understand radius value", e1);  
+                    radiusField.setForeground(Color.RED);
                     return;
                 }
             }
+            radiusField.setForeground(Color.BLACK);
+        }
+        if (owner == maxrecField ) {      
+            String maxrecText = maxrecField.getText(); 
+            if ( maxrecText != null && maxrecText.length() > 0 ) {
+                try {
+                    int maxrec = Integer.parseInt( maxrecText );
+                }
+                catch (NumberFormatException e2) {
+                   ErrorDialog.showError( this, "Cannot understand maxrec value", e2 );
+                   maxrecField.setForeground(Color.RED);
+                   return;
+                }                            
+            }
+            maxrecField.setForeground(Color.BLACK);               
         }
         
     }
 
-    public void removeUpdate(DocumentEvent arg0) {
-        // TODO Auto-generated method stub
-        
-    }
     
     protected class ServerPopupMenuAction extends AbstractAction
     {
