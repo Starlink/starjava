@@ -407,6 +407,8 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
 
 
 
+                                    //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
+                                        //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
     /**
      * Setup the default name servers (SIMBAD and NED) to use to resolve
      * astronomical object names. Note these are just those used in JSky.

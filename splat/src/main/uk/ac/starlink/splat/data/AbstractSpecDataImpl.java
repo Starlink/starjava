@@ -174,6 +174,8 @@ public abstract class AbstractSpecDataImpl
      * The reference to a parent implementation.
      */
     protected SpecDataImpl parentImpl = null;
+    
+    private ObjectTypeEnum objectType;
 
     /**
      * Reference to another SpecDataImpl that is a "parent" of this
@@ -242,6 +244,16 @@ public abstract class AbstractSpecDataImpl
         throws SplatException
     {
         // Do nothing.
+    }
+    
+    @Override
+    public ObjectTypeEnum getObjectType() {
+    	return objectType;
+    }
+    
+    @Override
+    public void setObjectType(ObjectTypeEnum objectType) {
+    	this.objectType = objectType;
     }
 }
 

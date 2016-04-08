@@ -480,7 +480,7 @@ public class SpecData
     /**
      * The spectrum plot style.
      */
-    protected int plotStyle = POLYLINE;
+    protected int plotStyle = POLYLINE; //and146: set this to POINT
 
     /**
      * Whether error bars should be drawn.
@@ -576,7 +576,7 @@ public class SpecData
      * Whether the Y offsets to coordinates should be applied.
      */
     private boolean applyYOffset = false;
-
+    
     //  ==============
     //  Public methods
     //  ==============
@@ -1787,7 +1787,26 @@ public class SpecData
         return SpecData.searchForSpecFrames;
     }
 
-
+    /**
+     * Getter for object type that identifies type of object (spectrum or timeseries)
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * @return
+     */
+    public ObjectTypeEnum getObjectType() {
+		return impl.getObjectType();
+	}
+    
+    /**
+     * /**
+     * Setter for object type that identifies type of object (spectrum or timeseries)
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     
+     * @param objectType
+     */
+    public void setObjectType(ObjectTypeEnum objectType) {
+		impl.setObjectType(objectType);
+	}
+    
     /**
      * Read the data from the spectrum into local arrays.  This also
      * initialises a suitable AST frameset to describe the coordinate system
@@ -2722,6 +2741,26 @@ public class SpecData
         return bounds;
     }
 
+    public int getPrefferedPlotType() {
+    	int plotType = SpecData.POLYLINE;
+    	
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		plotType = SpecData.POINT;
+    	}
+    	
+    	return plotType;
+    }
+    
+    public int getPrefferedPointType() {
+    	int pointType = 0; // dot
+    	
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		pointType = 1; // cross
+    	}
+    	
+    	return pointType;
+    }
+    
     /**
      * Lookup the physical values (i.e.&nbsp;wavelength and data value) that
      * correspond to a graphics X coordinate. Value is returned as formatted
@@ -2896,6 +2935,7 @@ public class SpecData
         if ( isColumnMutable() ) {
             String currentName = getYDataColumnName();
             if ( ! currentName.equals( name ) ) {
+            	// and146: tady se nastavuje vse kolem osy y
                 impl.setDataColumnName( name );
                 readData();
                 return true;
