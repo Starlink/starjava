@@ -437,6 +437,7 @@
            source="${source.version}">
 
       <compilerarg value="-proc:none" compiler="javac1.6"/>
+      <compilerarg value="-XDignore.symbol.file" />
       <classpath refid="classpath"/>
 
       <!-- Exclude any Java files in the source tree that should not be
