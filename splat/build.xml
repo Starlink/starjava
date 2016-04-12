@@ -184,14 +184,14 @@
   <!-- Local webstart properties. Note this needs a local keystore,
    !   assumed to be called keystore in $star.build.dir, .. by
    !   default. -->
-  <!--property name="webstart.codebase"
+  <property name="webstart.codebase"
             value="http://starlink.jach.hawaii.edu/starjava/lib"/>
   <property name="webstart.alias" value="Starlink-UK"/>
   <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/-->
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
 
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
@@ -777,7 +777,6 @@ JNI libraries not built (NDF library not installed in ${stardev})"
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             maxmemory="512m"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
