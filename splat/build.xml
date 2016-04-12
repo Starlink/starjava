@@ -799,7 +799,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           codebase="${webstart.codebase}">
       <information>
          <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
-         <vendor>GAVO</vendor>
+         <vendor>Starlink Support Community/GAVO</vendor>
          <homepage href="${home.page}"/>
          <icon kind="splash" href="${webstart.splashicon}"/>
          <icon kind="shortcut" href="${webstart.shortcuticon}"/>
@@ -824,7 +824,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           codebase="${webstart.codebase}">
       <information>
          <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
-         <vendor>GAVO</vendor>
+         <vendor>Starlink Support Community/GAVO</vendor>
          <homepage href="${home.page}"/>
          <icon kind="splash" href="${webstart.splashicon}"/>
          <icon href="${webstart.starlink_logo}"/>
