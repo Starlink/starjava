@@ -12,7 +12,9 @@ import java.awt.Frame;
 import java.awt.Toolkit;
 import java.lang.reflect.Method;
 import java.net.URL;
+import javax.swing.UIManager;
 import uk.ac.starlink.splat.iface.SplashWindow;
+import uk.ac.starlink.splat.iface.laf.WorkbenchScale;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.splat.util.Utilities;
@@ -33,7 +35,7 @@ public class SplatMain
     {
         //  Options that must be established before the UI is started.
         Loader.tweakGuiForMac();
-	System.setProperty( "com.apple.mrj.application.apple.menu.about.name",
+        System.setProperty( "com.apple.mrj.application.apple.menu.about.name",
                             Utilities.getReleaseName() );
 
         //  Set User-Agent field so VO servers can identify SPLAT.
@@ -50,6 +52,14 @@ public class SplatMain
         }
         else {
             System.err.println( "Failed to locate splash image" );
+        }
+
+        //  Look and feel default.
+        try {
+            UIManager.setLookAndFeel(new WorkbenchScale.ScaledNimbusLookAndFeel());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
 
         //  Use reflection to load the real SPLAT entry point so that
