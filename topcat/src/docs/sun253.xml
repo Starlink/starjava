@@ -19697,6 +19697,7 @@ Some of the notable contributers are these:
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
+<li>Henrik Rydberg (Gothenburg drinking water laboratory)</li>
 <li>Juan Carlos Segovia (ESAC)</li>
 <li>Petr &#x0160;koda (AIAS, CZ)</li>
 <li>Mattia Vaccari (Western Cape)</li>
@@ -23047,6 +23048,10 @@ introduced since the last version:
     <li>Fix numeric field truncation bug in LaTeX table output.</li>
     <li>This and subsequent releases target Java SE 6, so will no longer
         run under the (now very ancient) Java 5 runtime.</li>
+    <li>Fix bug in ISO-8601 axis labelling in the
+        <ref id="TimePlotWindow">time plot</ref>.
+        In some cases axis labels were being drawn at positions badly
+        different from the correct position.</li>
     </ul>
     </p></dd>
 
