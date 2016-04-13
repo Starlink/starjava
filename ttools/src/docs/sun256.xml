@@ -12,12 +12,12 @@
   <!ENTITY jel.func.docs SYSTEM "jel-javadocs.xml">
 
   <!-- Define external URLs. -->
-  <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.5.0/docs/">
+  <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
   <!ENTITY URL.STIL_JAVADOCS
            "http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/">
 
   <!-- Define javadoc base URLs. -->
-  <!ENTITY corejavadocs "http://java.sun.com/j2se/1.5.0/docs/api/">
+  <!ENTITY corejavadocs "http://docs.oracle.com/javase/6/docs/api/">
   <!ENTITY stiljavadocs "http://www.starlink.ac.uk/stil/javadocs/">
   <!ENTITY stiltsjavadocs "http://andromeda.star.bris.ac.uk/starjavadocs/">
   <!ENTITY starjavasrc "https://github.com/Starlink/starjava/blob/master/">
@@ -10520,6 +10520,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="tapquery"><code>tapquery</code></ref> command.
         These let you request resource limit adjustments when submitting
         an asynchronous TAP job.</li>
+    <li>This and subsequent releases target Java SE 6, so will no longer
+        run under the (now very ancient) Java 5 runtime.</li>
     </ul>
     </p></dd>
 
