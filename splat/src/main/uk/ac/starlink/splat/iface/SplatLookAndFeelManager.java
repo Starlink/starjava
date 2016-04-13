@@ -26,13 +26,6 @@ import javax.swing.UIManager;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
-import javax.swing.plaf.synth.Region;
-import javax.swing.plaf.synth.SynthLookAndFeel;
-import javax.swing.plaf.synth.SynthStyle;
-import javax.swing.plaf.synth.SynthStyleFactory;
-
-import uk.ac.starlink.splat.iface.laf.WorkbenchScale;
-
 import uk.ac.starlink.splat.iface.themes.AquaTheme;
 import uk.ac.starlink.splat.iface.themes.BigContrastMetalTheme;
 import uk.ac.starlink.splat.iface.themes.CharcoalTheme;
@@ -78,14 +71,14 @@ public class SplatLookAndFeelManager implements ActionListener
     /**
      * Motif look and feel.
      */
-    private static final String motif =
+    private static final String motif = 
         "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
 
-    /**
+    /** 
      * Nimbus look and feel.
      */
     private static final String nimbus =
-        "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+        "javax.swing.plaf.nimbus.NimbusLookAndFeel";
 
     /**
      * UI preferences.
@@ -149,7 +142,7 @@ public class SplatLookAndFeelManager implements ActionListener
 
         //  Restore users last default look and theme.
         defaultLook = prefs.get( "SplatLookAndFeelManager_look", defaultLook );
-        String lastTheme =
+        String lastTheme = 
             prefs.get( "SplatLookAndFeelManager_theme", "Default" );
 
         addLookAndFeels();
@@ -169,14 +162,6 @@ public class SplatLookAndFeelManager implements ActionListener
     {
         ButtonGroup lfGroup = new ButtonGroup();
         selectLookMenu = new JMenu( "Look and feel" );
-
-        // Add locals?
-        try {
-            UIManager.setLookAndFeel(new WorkbenchScale.ScaledNimbusLookAndFeel());
-        }
-        catch( Exception e ) {
-            e.printStackTrace();
-        }
 
         final UIManager.LookAndFeelInfo[] lfInfo =
             UIManager.getInstalledLookAndFeels();
@@ -273,7 +258,7 @@ public class SplatLookAndFeelManager implements ActionListener
         for ( int i = 0; i < themeMapping.length; i++ ) {
             if ( themeMapping[i][0].equals( name ) ) {
                 try {
-                    Constructor ct =
+                    Constructor ct = 
                         ((Class)themeMapping[i][1]).getConstructor((Class)null);
                     setTheme( (DefaultMetalTheme)ct.newInstance((Object)null) );
                     prefs.put( "SplatLookAndFeelManager_theme", name );
@@ -293,24 +278,7 @@ public class SplatLookAndFeelManager implements ActionListener
     public void updateLookAndFeel()
     {
         try {
-            //UIManager.setLookAndFeel( defaultLook );
-            UIManager.setLookAndFeel(new WorkbenchScale.ScaledNimbusLookAndFeel());
-
-            System.out.println( defaultLook );
-
-//             if ( defaultLook.equals( nimbus ) ) {
-
-//                 System.out.println("using nimbus");
-
-//                 final SynthStyleFactory styleFactory = SynthLookAndFeel.getStyleFactory();
-//                 SynthLookAndFeel.setStyleFactory(new SynthStyleFactory() {
-//                     @Override
-//                     public SynthStyle getStyle(JComponent c, Region id) {
-//                         c.putClientProperty("JComponent.sizeVariant", "large");
-//                         return styleFactory.getStyle(c, id);
-//                     }
-//                 });
-//             }
+            UIManager.setLookAndFeel( defaultLook );
             SwingUtilities.updateComponentTreeUI( parentWindow );
         }
         catch ( Exception e ) {
