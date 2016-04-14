@@ -549,23 +549,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Place the plot and control components. */
         getMainArea().setLayout( new BorderLayout() );
         floater.init();
-
-        /* The following focus magic is a workaround for some obscure
-         * (buggy?) Swing behaviour.
-         * It seems that if there are two toggle buttons with the same
-         * button model, and one of them has initial focus, then the other
-         * one does not receive an action the first time it's clicked.
-         * That situation applies to this window as currently arranged:
-         * by default, the first toolbar button gets the initial focus,
-         * and the first toolbar button here uses floatModel which is
-         * also used for a button in the stack panel.
-         * By grabbing the focus for some other component, the problem
-         * goes away.
-         * Experiments suggest that the problem exists in Sun/Oracle
-         * Java 1.5.0_22 but not 1.6.0_41, so probably this workaround
-         * could be removed.  But I think it's harmless. */
-        pack();
-        plotPanel_.requestFocusInWindow();
     }
 
     /**
