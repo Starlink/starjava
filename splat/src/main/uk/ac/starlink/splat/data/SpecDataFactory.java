@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.FileNameMap;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.MalformedURLException;
@@ -30,6 +31,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
@@ -1313,7 +1316,8 @@ public class SpecDataFactory
         PathParser namer = null;
         boolean compressed = false;
         MimeType mimetype = null;
-       
+        String remotetype = null;
+      
         try {
             
             //  Contact the resource.
@@ -1343,7 +1347,7 @@ public class SpecDataFactory
                 }
                 compressed = ("gzip".equals(connection.getContentEncoding()));
                 mimetype = new MimeType(connection.getContentType());
-                
+                remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
             }
             connection.setConnectTimeout(10*1000); // 10 seconds
             connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
@@ -1363,7 +1367,7 @@ public class SpecDataFactory
                 type = FITS;
             } else if (mimetype.getPrimaryType().contains("text") && mimetype.getSubType().contains("plain") ) {
                 type = TEXT;
-            }
+            } 
             
             //  Create a temporary file. Use a file extension based on the
             //  type, if known.
@@ -1394,7 +1398,10 @@ public class SpecDataFactory
                 }
                 break;
                 default: {
-                    stype = namer.type();
+                    if (remotetype != null) 
+                        stype=remotetype; // the type of the remote filename
+                    else 
+                        stype = namer.type();
                     
                     if ( stype.equals( "" ) ) {
                         stype = ".tmp";
@@ -1448,6 +1455,25 @@ public class SpecDataFactory
             throw new SplatException( e );
         }
         return namer;
+    }
+
+    
+    /*
+     * getRemoteType
+     * gets remote file type from remote filename contained in HTTP connection header string
+     */
+    private String getRemoteType(String headerstr) {
+        if ( headerstr == null || headerstr.isEmpty() )
+            return null;
+        if (headerstr.contains("filename="))
+        { 
+           String remotename = headerstr.substring(headerstr.indexOf("filename=")+9);
+            if (remotename != null) {
+                PathParser remotenamer = new PathParser(remotename);
+                return remotenamer.type();
+            }
+        }
+        return null;
     }
 
     //  Types of reprocessing of 2D data files. The default is VECTORIZE
