@@ -782,10 +782,11 @@ public class TapServiceKit {
      * In any case I don't think the contract violations of this class
      * are dangerous or even discoverable by clients.
      *
-     * <p>At J2SE 1.6 a class java.util.concurrent.LinkedBlockingDeque
-     * exists which could be built on to provide this functionality.
-     * When starjava targets java 1.6, it might be a good idea to
-     * rewrite this in terms of that library class instead.
+     * <p>An alternative would be to base this implementation on
+     * (JSE6) java.util.concurrent.LinkedBlockingDeque, which has bounds.
+     * But it's fiddly to present the deque as a BlockingQueue, since
+     * all the FIFO methods need to be wired instead to work from the
+     * other end of the deque.
      */
     private static class BoundedBlockingStack<E>
             extends LinkedBlockingStack<E> {
