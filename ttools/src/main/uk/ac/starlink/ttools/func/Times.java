@@ -299,7 +299,7 @@ public class Times {
      * Converts a Modified Julian Date value to a date using a customisable
      * date format.
      * The format is as defined by the 
-     * <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html"
+     * <a href="http://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html"
      *    ><code>java.text.SimpleDateFormat</code></a> class.
      * The default output corresponds to the string
      * "<code>yyyy-MM-dd'T'HH:mm:ss</code>"

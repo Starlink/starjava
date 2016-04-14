@@ -79,7 +79,7 @@ public class Formats {
      * Turns a floating point value into a formatted string using standard
      * settings.
      * The <code>format</code> string is as defined by Java's 
-     * <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/text/DecimalFormat.html"
+     * <a href="http://docs.oracle.com/javase/6/docs/api/java/text/DecimalFormat.html"
      *    ><code>java.text.DecimalFormat</code></a> class.
      *
      * @example   <code>formatDecimal(99, "#.000") = "99.000"</code>
