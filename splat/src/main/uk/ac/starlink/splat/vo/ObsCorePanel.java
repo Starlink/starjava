@@ -512,24 +512,18 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     void startQuery(String queryUrl, String shortname, String query, ProgressPanel progressPanel ) throws InterruptedException {
         logger.info( "Querying: " + queryUrl );
         progressPanel.logMessage( query );
-        TapQuery tq;
-
-        // Initializes TapQuery
+        StarTable table = null;
+        
+        // Execute query
+         
         try {
-            tq =  new TapQuery( new URL(queryUrl), query,  null );
+             table = doQuery( queryUrl, query);
         } catch (MalformedURLException e) {
             progressPanel.logMessage( e.getMessage() );
             logger.info( "Malformed URL "+queryUrl );
             return;
         }
-        
-        // Execute query
-        StarTableFactory tfact = new StarTableFactory();
-        StarTable table = null;
-        try {
-            table = tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
-
-        } catch (IOException e) {
+        catch (IOException e) {
             progressPanel.logMessage( e.getMessage() );
             logger.info( "Exception "+queryUrl );
             return;
@@ -558,6 +552,17 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
     }    
  
+    StarTable doQuery(String queryUrl, String query)  throws IOException {
+
+        TapQuery tq;
+        StarTableFactory tfact = new StarTableFactory();
+        
+        // Initializes TapQuery       
+        tq =  new TapQuery( new URL(queryUrl), query,  null );
+        // Executes query
+        return tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
+    }
+
     private void getServers() {
 
         StarTable st = queryRegistry();
@@ -565,7 +570,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
      
     }
     
-    private StarTable queryRegistry() {
+    StarTable queryRegistry() {
         
         StarTable table;
         try {
