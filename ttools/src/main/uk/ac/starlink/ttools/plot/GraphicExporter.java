@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot;
 
-import Acme.JPM.Encoders.GifEncoder;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
@@ -8,17 +7,11 @@ import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
@@ -36,9 +29,6 @@ public abstract class GraphicExporter {
     private final String mimeType_;
     private final String description_;
     private final String[] fileSuffixes_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.plot" );
 
     /**
      * Constructor.
@@ -164,84 +154,10 @@ public abstract class GraphicExporter {
                               "PNG with transparent background",
                               null, "png", true );
 
-    /**
-     * Exports to GIF format.
-     */
+    /** Exports to GIF format. */
     public static final GraphicExporter GIF =
-            new GraphicExporter( "gif", "image/gif", "GIF",
-                                 new String[] { ".gif", } ) {
-
-        public void exportGraphic( Picture picture, OutputStream out )
-                throws IOException {
-
-            /* Get component dimensions. */
-            int w = picture.getPictureWidth();
-            int h = picture.getPictureHeight();
-
-            /* Create a BufferedImage to draw it onto. */
-            BufferedImage image =
-                new BufferedImage( w, h, BufferedImage.TYPE_3BYTE_BGR );
-
-            /* Clear the background. */
-            Graphics2D g = image.createGraphics();
-            Color color = g.getColor();
-            g.setColor( Color.WHITE );
-            g.fillRect( 0, 0, w, h );
-            g.setColor( color );
-
-            /* Draw the component onto the image. */
-            picture.paintPicture( g );
-            g.dispose();
-
-            /* Count the number of colours represented in the resulting
-             * image. */
-            Set colors = new HashSet();
-            for ( int ix = 0; ix < w; ix++ ) {
-                for ( int iy = 0; iy < h; iy++ ) {
-                    colors.add( new Integer( image.getRGB( ix, iy ) ) );
-                }
-            }
-
-            /* If there are too many, redraw the image into an indexed image
-             * instead.  This is necessary since the GIF encoder we're using
-             * here just gives up if there are too many. */
-            if ( colors.size() > 254 ) {
-                logger_.warning( "GIF export colour map filled up - "
-                               + "JPEG or PNG might do a better job" );
-
-                /* Create an image with a suitable colour model. */
-                IndexColorModel gifColorModel = getGifColorModel();
-                image = new BufferedImage( w, h,
-                                           BufferedImage.TYPE_BYTE_INDEXED,
-                                           gifColorModel );
-
-                /* Zero all pixels to the transparent colour. */
-                WritableRaster raster = image.getRaster();
-                int itrans = gifColorModel.getTransparentPixel();
-                if ( itrans >= 0 ) {
-                    byte[] pixValue = new byte[] { (byte) itrans };
-                    for ( int ix = 0; ix < w; ix++ ) {
-                        for ( int iy = 0; iy < h; iy++ ) {
-                            raster.setDataElements( ix, iy, pixValue );
-                        }
-                    }
-                }
-
-                /* Draw the component on it. */
-                Graphics2D gifG = image.createGraphics();
-
-                /* Set dithering false.  But it still seems to dither on a
-                 * drawImage!  Can't get to the bottom of it. */
-                gifG.setRenderingHint( RenderingHints.KEY_DITHERING,
-                                       RenderingHints.VALUE_DITHER_DISABLE );
-                picture.paintPicture( gifG );
-                gifG.dispose();
-            }
-
-            /* Write the image as a gif down the provided stream. */
-            new GifEncoder( image, out ).encode();
-        }
-    };
+        new ImageIOExporter( "gif", "image/gif", "GIF",
+                             new String[] { ".gif" }, "gif", false );
 
     /** Exports to Encapsulated PostScript. */
     public static final GraphicExporter EPS =
@@ -436,38 +352,5 @@ public abstract class GraphicExporter {
             }
             return sNames;
         }
-    }
-
-    /**
-     * Returns a colour model suitable for use with GIF images.
-     * It has a selection of RGB colours and one transparent colour.
-     *
-     * @return  standard GIF indexed colour model
-     */
-    private static IndexColorModel getGifColorModel() {
-
-        /* Acquire a standard general-purpose 256-entry indexed colour model. */
-        IndexColorModel rgbModel =
-            (IndexColorModel)
-            new BufferedImage( 1, 1, BufferedImage.TYPE_BYTE_INDEXED )
-           .getColorModel();
-
-        /* Get r/g/b entries from it. */
-        byte[][] rgbs = new byte[ 3 ][ 256 ];
-        rgbModel.getReds( rgbs[ 0 ] );
-        rgbModel.getGreens( rgbs[ 1 ] );
-        rgbModel.getBlues( rgbs[ 2 ] );
-
-        /* Set one entry transparent. */
-        int itrans = 254; 
-        rgbs[ 0 ][ itrans ] = (byte) 255;
-        rgbs[ 1 ][ itrans ] = (byte) 255;
-        rgbs[ 2 ][ itrans ] = (byte) 255;
-        IndexColorModel gifModel =
-            new IndexColorModel( 8, 256, rgbs[ 0 ], rgbs[ 1 ], rgbs[ 2 ],
-                                 itrans );
-
-        /* Return the  model. */
-        return gifModel;
     }
 }

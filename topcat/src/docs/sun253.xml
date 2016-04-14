@@ -23052,6 +23052,8 @@ introduced since the last version:
         <ref id="TimePlotWindow">time plot</ref>.
         In some cases axis labels were being drawn at positions badly
         different from the correct position.</li>
+    <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
+        Shouldn't be any noticable difference.</li>
     </ul>
     </p></dd>
 

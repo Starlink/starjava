@@ -10526,6 +10526,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="plot2time">time plot</ref>.
         In some cases axis labels were being drawn at positions badly
         different from the correct position.</li>
+    <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
+        Shouldn't be any noticable difference.
+        Acme encoding dependency removed.</li>
     </ul>
     </p></dd>
 
