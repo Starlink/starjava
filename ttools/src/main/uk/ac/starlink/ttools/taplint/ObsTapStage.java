@@ -772,7 +772,7 @@ public class ObsTapStage implements Stage {
 
         /* ObsTAP B.6.3.3. */
         map.get( "t_calib_status" ).softOptions_ = new String[] {
-            "calibrated", "uncalibrated", "relative", "absolute",
+            "calibrated", "uncalibrated", "relative", "raw",
         };
 
         /* ObsTAP B.6.5.2. */
