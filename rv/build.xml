@@ -363,7 +363,6 @@
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->

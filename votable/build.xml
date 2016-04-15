@@ -362,7 +362,6 @@
            source="${source.version}"
            optimize="${optimize}">
 
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
 
       <!-- Exclude any files in the source tree that should not be
@@ -909,7 +908,6 @@
            source="${source.version}"
            deprecation="${deprecation}" >
 
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
 
     </javac>

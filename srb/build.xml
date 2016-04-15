@@ -419,7 +419,6 @@
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
 
       <include name="**/*.java"/>
     </javac>

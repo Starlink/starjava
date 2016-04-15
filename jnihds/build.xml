@@ -418,7 +418,6 @@
            deprecation="${deprecation}"
            optimize="${optimize}">
 
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
 
       <!-- Exclude any Java files in the source tree that should not be
@@ -1096,7 +1095,6 @@
            destdir="${build.tests}"
            debug="${debug}"
            deprecation="${deprecation}" >
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
     </javac>
 

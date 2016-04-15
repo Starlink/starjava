@@ -432,7 +432,6 @@
            deprecation="${deprecation}"
            source="${source.version}"
            optimize="${optimize}">
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <!-- <compilerarg value="-Xlint:unchecked"/> -->
       <classpath refid="classpath"/>
       <include name="**/*.java"/>
@@ -1005,7 +1004,6 @@
            debug="${debug}"
            source="${source.version}"
            deprecation="${deprecation}" >
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
 
     </javac>

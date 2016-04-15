@@ -402,7 +402,6 @@
            deprecation="${deprecation}"
            source="${source.version}"
            optimize="${optimize}">
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
       <include name="**/*.java"/>
     </javac>
