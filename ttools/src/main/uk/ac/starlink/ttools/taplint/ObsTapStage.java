@@ -37,9 +37,6 @@ public class ObsTapStage implements Stage {
         "ivo://ivoa.net/std/ObsCore-1.0";
     private static final String OBSCORE_TNAME = "ivoa.ObsCore";
 
-    private static Map<String,ObsCol> mandatoryColumnMap_;
-    private static Map<String,ObsCol> optionalColumnMap_;
-
     /**
      * Constructor.
      *
@@ -111,7 +108,9 @@ public class ObsTapStage implements Stage {
         }
 
         /* Run tests. */
-        new ObsTapRunner( reporter, serviceUrl, obsMeta, tapRunner_ ).run();
+        boolean is11 = false;
+        new ObsTapRunner( reporter, serviceUrl, obsMeta, is11, tapRunner_ )
+           .run();
     }
 
     /**
@@ -190,16 +189,17 @@ public class ObsTapStage implements Stage {
          * @param  reporter  validation message destination
          * @param  serviceUrl  TAP base URL
          * @param  obsMeta   table metadata for ivoa.ObsCore table
+         * @param  is11   true for ObsCore-1.1, false for ObsCore-1.0
          * @param  tapRunner  runs TAP queries
          */
         ObsTapRunner( Reporter reporter, URL serviceUrl, TableMeta obsMeta,
-                      TapRunner tapRunner ) {
+                      boolean is11, TapRunner tapRunner ) {
             reporter_ = reporter;
             serviceUrl_ = serviceUrl;
             gotColMap_ = toMap( obsMeta.getColumns() );
             tRunner_ = tapRunner;
-            reqColMap_ = getMandatoryColumns();
-            optColMap_ = getOptionalColumns();
+            reqColMap_ = createMandatoryColumns( is11 );
+            optColMap_ = createOptionalColumns( is11 );
         }
 
         /**
@@ -563,40 +563,22 @@ public class ObsTapStage implements Stage {
     }
 
     /**
-     * Returns metadata objects for the standard required ObsCore columns.
-     *
-     * @return   lazily created name->metadata map
-     */
-    private static Map<String,ObsCol> getMandatoryColumns() {
-        if ( mandatoryColumnMap_ == null ) {
-            mandatoryColumnMap_ = createMandatoryColumns();
-        }
-        return mandatoryColumnMap_;
-    }
-
-    /**
-     * Returns metadata objects for the standard optional ObsCore columns.
-     *
-     * @return  lazily created name->metadata map
-     */
-    private static Map<String,ObsCol> getOptionalColumns() {
-        if ( optionalColumnMap_ == null ) {
-            optionalColumnMap_ = createOptionalColumns();
-        }
-        return optionalColumnMap_;
-    }
-
-    /**
      * Creates a description of the standard required ObsCore columns.
      *
-     * @return  new name->metadata map
+     * @param   is11  true for ObsCore-1.1, false for ObsCore-1.0
+     * @return  new name-&gt;metadata map
      */
-    private static Map<String,ObsCol> createMandatoryColumns() {
-        Map<String,ObsCol> map = toMap( new ObsCol[] {
+    private static Map<String,ObsCol> createMandatoryColumns( boolean is11 ) {
+        List<ObsCol> list = new ArrayList<ObsCol>();
+        list.addAll( Arrays.asList( new ObsCol[] {
             new ObsCol( "dataproduct_type", Type.VARCHAR,
-                        "Obs.dataProductType", "meta.id" ),
+                        is11 ? "ObsDataset.dataProductType"
+                             : "Obs.dataProductType",
+                        "meta.id" ),
             new ObsCol( "calib_level", Type.INTEGER,
-                        "Obs.calibLevel", "meta.code;obs.calib" ),
+                        is11 ? "ObsDataset.calibLevel"
+                             : "Obs.calibLevel",
+                        "meta.code;obs.calib" ),
             new ObsCol( "obs_collection", Type.VARCHAR,
                         "DataID.Collection", "meta.id" ),
             new ObsCol( "obs_id", Type.VARCHAR,
@@ -622,29 +604,44 @@ public class ObsTapStage implements Stage {
                         "phys.angSize;instr.fov", "deg" ),
             new ObsCol( "s_region", Type.REGION,
                         "Char.SpatialAxis.Coverage.Support.Area",
-                        "phys.angArea;obs",
-                        null ), // from ObsTAP Table 6 but not Table 1
+                        is11 ? "phys.outline;obs.field"
+                             : "phys.angArea;obs",
+                        null ), // from ObsTAP 1.0 Table 6 but not Table 1
             new ObsCol( "s_resolution", Type.DOUBLE,
-                        "Char.SpatialAxis.Resolution.refval",
+                        is11 ? "Char.SpatialAxis.Resolution.Refval.value"
+                             : "Char.SpatialAxis.Resolution.refval",
                         "pos.angResolution", "arcsec" ),
             new ObsCol( "t_min", Type.DOUBLE,
-                        "Char.TimeAxis.Coverage.Bounds.Limits.Interval"
-                        + ".StartTime", "time.start;obs.exposure", "d" ),
+                        is11 ? "Char.TimeAxis.Coverage.Bounds.Limits"
+                                                   + ".StartTime"
+                             : "Char.TimeAxis.Coverage.Bounds.Limits"
+                                                   + ".Interval.StartTime",
+                        "time.start;obs.exposure", "d" ),
             new ObsCol( "t_max", Type.DOUBLE,
-                        "Char.TimeAxis.Coverage.Bounds.Limits.Interval"
-                        + ".StopTime", "time.end;obs.exposure", "d" ),
+                        is11 ? "Char.TimeAxis.Coverage.Bounds.Limits"
+                                                   + ".StopTime"
+                             : "Char.TimeAxis.Coverage.Bounds.Limits"
+                                                   + ".Interval.StopTime",
+                        "time.end;obs.exposure", "d" ),
             new ObsCol( "t_exptime", Type.DOUBLE,
                         "Char.TimeAxis.Coverage.Support.Extent",
                         "time.duration;obs.exposure", "s" ),
             new ObsCol( "t_resolution", Type.DOUBLE,
-                        "Char.TimeAxis.Resolution.refval", "time.resolution",
-                        "s" ),
+                        is11 ? "Char.TimeAxis.Resolution.Refval.value"
+                             : "Char.TimeAxis.Resolution.refval",
+                        "time.resolution", "s" ),
             new ObsCol( "em_min", Type.DOUBLE,
-                        "Char.SpectralAxis.Coverage.Bounds.Limits.Interval"
-                        + ".LoLim", "em.wl;stat.min", "m" ),
+                        is11 ? "Char.SpectralAxis.Coverage.Bounds.Limits"
+                                                       + ".LoLimit"
+                             : "Char.SpectralAxis.Coverage.Bounds.Limits"
+                                                       + ".Interval.LoLim",
+                        "em.wl;stat.min", "m" ),
             new ObsCol( "em_max", Type.DOUBLE,
-                        "Char.SpectralAxis.Coverage.Bounds.Limits.Interval"
-                        + ".HiLim", "em.wl;stat.max", "m" ),
+                        is11 ? "Char.SpectralAxis.Coverage.Bounds.Limits"
+                                                       + ".HiLimit"
+                             : "Char.SpectralAxis.Coverage.Bounds.Limits"
+                                                       + ".Interval.HiLim",
+                        "em.wl;stat.max", "m" ),
             new ObsCol( "em_res_power", Type.DOUBLE,
                         "Char.SpectralAxis.Resolution.ResolPower.refVal",
                         "spect.resolution" ),
@@ -659,8 +656,27 @@ public class ObsTapStage implements Stage {
             new ObsCol( "instrument_name", Type.VARCHAR,
                         "Provenance.ObsConfig.instrument.name",
                         "meta.id;instr" ),
-        } );
-        assert map.size() == 25;
+        } ) );
+        assert list.size() == 25;
+
+        /* Add columns introduced in ObsCore 1.1. */
+        if ( is11 ) {
+            list.addAll( Arrays.asList( new ObsCol[] {
+                new ObsCol( "s_xel1", Type.BIGINT,
+                            "Char.SpatialAxis.numBins1", "meta.number" ),
+                new ObsCol( "s_xel2", Type.BIGINT,
+                            "Char.SpatialAxis.numBins2", "meta.number" ),
+                new ObsCol( "t_xel", Type.BIGINT,
+                            "Char.TimeAxis.numBins", "meta.number" ),
+                new ObsCol( "em_xel", Type.BIGINT,
+                            "Char.SpectralAxis.numBins", "meta.number" ),
+                new ObsCol( "pol_xel", Type.BIGINT,
+                            "Char.PolarizationAxis.numBins", "meta.number" ),
+            } ) );
+            assert list.size() == 30;
+        }
+
+        Map<String,ObsCol> map = toMap( list );
 
         /* Note some additional constraints. */
 
@@ -686,12 +702,15 @@ public class ObsTapStage implements Stage {
     /**
      * Creates a description of the standard optional ObsCore columns.
      *
-     * @return  new name->metadata map
+     * @param   is11  true for ObsCore-1.1, false for ObsCore-1.0
+     * @return  new name-&gt;metadata map
      */
-    private static Map<String,ObsCol> createOptionalColumns() {
-        Map<String,ObsCol> map = toMap( new ObsCol[] {
+    private static Map<String,ObsCol> createOptionalColumns( boolean is11 ) {
+        List<ObsCol> list = new ArrayList<ObsCol>();
+        list.addAll( Arrays.asList( new ObsCol[] {
             new ObsCol( "dataproduct_subtype", Type.VARCHAR,
-                        "Obs.dataProductSubtype", "meta.id" ),
+                        is11 ? "ObsDataset.dataProductSubtype"
+                             : "Obs.dataProductSubtype", "meta.id" ),
             new ObsCol( "target_class", Type.VARCHAR,
                         "Target.Class", "src.class" ),
             new ObsCol( "obs_creation_date", Type.TIMESTAMP,
@@ -715,18 +734,28 @@ public class ObsTapStage implements Stage {
             new ObsCol( "s_unit", Type.VARCHAR,
                         "Char.SpatialAxis.unit", "meta.unit" ),
             new ObsCol( "s_resolution_min", Type.DOUBLE,
-                        "Char.SpatialAxis.Resolution.Bounds.Limits.Interval"
-                        + ".LoLim", "pos.angResolution;stat.min", "arcsec" ),
+                        is11 ? "Char.SpatialAxis.Resolution.Bounds.Limits"
+                                                        + ".LoLimit"
+                             : "Char.SpatialAxis.Resolution.Bounds.Limits"
+                                                        + ".Interval.LoLim",
+                        "pos.angResolution;stat.min", "arcsec" ),
             new ObsCol( "s_resolution_max", Type.DOUBLE,
-                        "Char.SpatialAxis.Resolution.Bounds.Limits.Interval"
-                        + ".HiLim", "pos.angResolution;stat.max", "arcsec" ),
+                        is11 ? "Char.SpatialAxis.Resolution.Bounds.Limits"
+                                                        + ".HiLimit"
+                             : "Char.SpatialAxis.Resolution.Bounds.Limits"
+                                                        + ".Interval.HiLim",
+                        "pos.angResolution;stat.max", "arcsec" ),
             new ObsCol( "s_calib_status", Type.VARCHAR,
-                        "Char.SpatialAxis.calibStatus", "meta.code.qual" ),
+                        is11 ? "Char.SpatialAxis.calibrationStatus"
+                             : "Char.SpatialAxis.calibStatus",
+                        "meta.code.qual" ),
             new ObsCol( "s_stat_error", Type.DOUBLE,
                         "Char.SpatialAxis.Accuracy.statError.refval.value",
                         "stat.error;pos.eq", "arcsec" ),
             new ObsCol( "t_calib_status", Type.VARCHAR,
-                        "Char.TimeAxis.calibStatus", "meta.code.qual" ),
+                        is11 ? "Char.TimeAxis.calibrationStatus"
+                             : "Char.TimeAxis.calibStatus",
+                        "meta.code.qual" ),
             new ObsCol( "t_stat_error", Type.DOUBLE,
                         "Char.TimeAxis.Accuracy.StatError.refval.value",
                         "stat.error;time", "s" ),
@@ -735,12 +764,16 @@ public class ObsTapStage implements Stage {
             new ObsCol( "em_unit", Type.VARCHAR,
                         "Char.SpectralAxis.unit", "meta.unit" ),
             new ObsCol( "em_calib_status", Type.VARCHAR,
-                        "Char.SpectralAxis.calibStatus", "meta.code.qual" ),
+                        is11 ? "Char.SpectralAxis.calibrationStatus"
+                             : "Char.SpectralAxis.calibStatus",
+                        "meta.code.qual" ),
             new ObsCol( "em_res_power_min", Type.DOUBLE,
-                        "Char.SpectralAxis.Resolution.ResolPower.LoLim",
+                        is11 ? "Char.SpectralAxis.Resolution.ResolPower.LoLimit"
+                             : "Char.SpectralAxis.Resolution.ResolPower.LoLim",
                         "spect.resolution;stat.min" ),
             new ObsCol( "em_res_power_max", Type.DOUBLE,
-                        "Char.SpectralAxis.Resolution.ResolPower.HiLim",
+                        is11 ? "Char.SpectralAxis.Resolution.ResolPower.HiLimit"
+                             : "Char.SpectralAxis.Resolution.ResolPower.HiLim",
                         "spect.resolution;stat.max" ),
             new ObsCol( "em_resolution", Type.DOUBLE,
                         "Char.SpectralAxis.Resolution.refval.value",
@@ -751,14 +784,31 @@ public class ObsTapStage implements Stage {
             new ObsCol( "o_unit", Type.VARCHAR,
                         "Char.ObservableAxis.unit", "meta.unit" ),
             new ObsCol( "o_calib_status", Type.VARCHAR,
-                        "Char.ObservableAxis.calibStatus", "meta.code.qual" ),
+                        is11 ? "Char.ObservableAxis.calibrationStatus"
+                             : "Char.ObservableAxis.calibStatus",
+                        "meta.code.qual" ),
             new ObsCol( "o_stat_error", Type.DOUBLE,
                         "Char.ObservableAxis.Accuracy.StatError.refval.value",
                         "stat.error;phot.flux" ),
             new ObsCol( "proposal_id", Type.VARCHAR,
                         "Provenance.Proposal.identifier",
                         "meta.id;obs.proposal" ),
-        } );
+        } ) );
+        assert list.size() == 29;
+
+        /* Add columns introduced in ObsCore 1.1. */
+        if ( is11 ) {
+            list.addAll( Arrays.asList( new ObsCol[] {
+                new ObsCol( "s_pixel_scale", Type.DOUBLE,
+                            "Char.SpatialAxis.Sampling.RefVal.SamplingPeriod",
+                            "phys.angSize;instr.pixel", "arcsec" ),
+            } ) );
+            assert list.size() == 30;
+        }
+
+        Map<String,ObsCol> map = toMap( list );
+
+        /* Note some additional constraints. */
 
         /* ObsTAP B.6.1.4. */
         map.get( "s_calib_status" ).softOptions_ = new String[] {
@@ -780,7 +830,6 @@ public class ObsTapStage implements Stage {
             "absolute", "relative", "normalized", "any",
         };
 
-        assert map.size() == 29;
         return map;
     }
 
@@ -858,12 +907,12 @@ public class ObsTapStage implements Stage {
      * @param  cols  column metadata list
      * @return  map
      */
-    private static Map<String,ObsCol> toMap( ObsCol[] cols ) {
+    private static Map<String,ObsCol> toMap( List<ObsCol> cols ) {
         Map<String,ObsCol> map = new LinkedHashMap<String,ObsCol>();
-        for ( int i = 0; i < cols.length; i++ ) {
-            map.put( nameKey( cols[ i ].name_ ), cols[ i ] );
+        for ( ObsCol col : cols ) {
+            map.put( nameKey( col.name_ ), col );
         }
-        assert cols.length == map.size();
+        assert cols.size() == map.size();
         return map;
     }
 
