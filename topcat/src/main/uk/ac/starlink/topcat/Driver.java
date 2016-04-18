@@ -15,6 +15,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.JSamp;
 import org.astrogrid.samp.Response;
@@ -40,12 +41,16 @@ import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.util.gui.ScaledLookAndFeel;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.PropertyAuthenticator;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.VOElementFactory;
+
+//import javax.swing.plaf.synth.NimbusLookAndFeel;
+import com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel;
 
 /**
  * Main class for invoking the TOPCAT application from scratch.
@@ -65,7 +70,7 @@ public class Driver {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
     private static StarTableFactory tabfact;
     private static ControlWindow control;
-    private static final ValueInfo DEMOLOC_INFO = 
+    private static final ValueInfo DEMOLOC_INFO =
         new DefaultValueInfo( "DemoLoc", String.class, "Demo file location" );
     private static final int DEFAULT_SERVER_PORT = 2525;
 
@@ -128,7 +133,7 @@ public class Driver {
             else {
                 String readDir;
                 String writeDir;
-                try { 
+                try {
                     readDir = System.getProperty( "user.home" );
                 }
                 catch ( SecurityException e ) {
@@ -209,7 +214,17 @@ public class Driver {
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
 
-        /* Fine tune the logging - we don't need HDS or AST here, so 
+        /* If using the scaled look and feel, do that now. */
+        try {
+            //UIManager.setLookAndFeel
+            //    (new ScaledLookAndFeel.ScaledNimbusLookAndFeel());
+            UIManager.setLookAndFeel(new NimbusLookAndFeel());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        /* Fine tune the logging - we don't need HDS or AST here, so
          * stop them complaining when they can't be loaded. */
         try {
             Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
@@ -225,7 +240,7 @@ public class Driver {
         }
         String pre = "Usage: " + cmdname;
         String pad = "\n" + pre.replaceAll( ".", " " );
-        String usage = 
+        String usage =
               pre + " [-help] [-version]"
             + pad + " [-stilts <stilts-args>|-jsamp <jsamp-args>]"
             + pad + " [-verbose] [-debug] [-demo] [-running] [-memory|-disk]"
@@ -428,7 +443,7 @@ public class Driver {
                         else if ( ! response.isOK() ) {
                             logger.warning( "Table send warning: " + errmsg );
                         }
-                    } 
+                    }
                 }
                 finally {
                     sender.close();
@@ -494,7 +509,7 @@ public class Driver {
         extraThread.setDaemon( true );
         extraThread.start();
     }
-       
+
     /**
      * Performs startup functions which do not need to complete before
      * the main application is ready for use.
@@ -544,7 +559,7 @@ public class Driver {
 
     /**
      * Returns the ControlWindow used by this application.  It is
-     * constructed lazily, which means if it's never needed (say if 
+     * constructed lazily, which means if it's never needed (say if
      * we're just printing a usage message), the GUI
      * never has to start up.
      *
@@ -584,7 +599,7 @@ public class Driver {
                 final String demoName = demoNames[ i ];
                 try {
                     int fragIndex = demoName.indexOf( '#' );
-                    String name; 
+                    String name;
                     String frag;
                     if ( fragIndex > 0 ) {
                         name = demoName.substring( 0, fragIndex );
@@ -597,7 +612,7 @@ public class Driver {
                     URL url = Driver.class.getClassLoader()
                                     .getResource( base + name );
                     if ( url != null ) {
-                        DataSource datsrc = 
+                        DataSource datsrc =
                             DataSource.makeDataSource( url.toString() );
                         if ( frag != null ) {
                             datsrc.setPosition( frag );
@@ -652,7 +667,7 @@ public class Driver {
                                          + "if one is running" )
            .append( p2 + "-memory        use memory storage for tables" )
            .append( p2 + "-disk          use disk backing store for "
-                                         + "large tables" ) 
+                                         + "large tables" )
            .append( p2 + "-samp          use SAMP for tool interoperability" )
            .append( p2 + "-plastic       use PLASTIC for "
                                          + "tool interoperability" )
@@ -698,7 +713,7 @@ public class Driver {
         }
 
         /* System properties. */
-        buf.append( p1 + "Useful system properties " 
+        buf.append( p1 + "Useful system properties "
                        + "(-Dname=value - lists are colon-separated):" )
            .append( p2 )
            .append( "java.io.tmpdir          temporary filespace directory" )
@@ -783,7 +798,7 @@ public class Driver {
         /* Try to acquire a custom log handler - may fail for security
          * reasons. */
         LogHandler customHandler = LogHandler.getInstance();
-	if ( customHandler == null ) {
+        if ( customHandler == null ) {
             return;
         }
         try {
@@ -792,17 +807,17 @@ public class Driver {
             Logger rootLogger = Logger.getLogger( "" );
             rootLogger.addHandler( customHandler );
 
-            /* Work out the logging level to which the requested verbosity 
+            /* Work out the logging level to which the requested verbosity
              * corresponds. */
             int verbInt = Math.max( Level.ALL.intValue(),
                                     Level.WARNING.intValue()
-                                    - verbosity * 
+                                    - verbosity *
                                       ( Level.WARNING.intValue() -
                                         Level.INFO.intValue() ) );
             Level verbLevel = Level.parse( Integer.toString( verbInt ) );
 
             /* Get the root logger's console handler.  By default
-             * it has one of these; if it doesn't then some custom 
+             * it has one of these; if it doesn't then some custom
              * logging is in place and we won't mess about with it. */
             Handler[] rootHandlers = rootLogger.getHandlers();
             if ( rootHandlers.length > 0 &&
