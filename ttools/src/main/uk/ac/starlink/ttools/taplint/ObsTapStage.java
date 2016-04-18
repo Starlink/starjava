@@ -32,8 +32,7 @@ public class ObsTapStage implements Stage {
     private final CapabilityHolder capHolder_;
     private final MetadataHolder metaHolder_;
 
-    private static final String OBSCORE_ID = "ivo://ivoa.net/std/ObsCore/v1.0";
-    private static final String OBSCORE_ID_WRONG =
+    private static final String OBSCORE10_ID_WRONG =
         "ivo://ivoa.net/std/ObsCore-1.0";
     private static final String OBSCORE_TNAME = "ivoa.ObsCore";
 
@@ -60,19 +59,18 @@ public class ObsTapStage implements Stage {
         /* Check prerequisites. */
         boolean obsDeclared;
         TapCapability tcap = capHolder_.getCapability();
+        final ObscoreVersion obscoreVersion;
         if ( tcap != null ) {
-            if ( hasObscoreDm( reporter, tcap ) ) {
-                obsDeclared = true;
-            }
-            else {
+            obscoreVersion = getObscoreDm( reporter, tcap );
+            if ( obscoreVersion == null ) {
                 reporter.report( FixedCode.I_NODM,
-                                 "Table capabilities lists no DataModel "
-                               + OBSCORE_ID + " - no ObsCore tests" );
+                                 "Table capabilities lists no ObsCore DataModel"
+                               + " - no ObsCore tests" );
                 return;
             }
         }
         else {
-            obsDeclared = false;
+            obscoreVersion = null;
         }
         SchemaMeta[] smetas = metaHolder_.getTableMetadata();
         if ( smetas == null ) {
@@ -93,7 +91,7 @@ public class ObsTapStage implements Stage {
         }
         if ( obsMeta == null ) {
             String missingMsg = "No table with name " + OBSCORE_TNAME;
-            if ( obsDeclared ) {
+            if ( obscoreVersion != null ) {
                 reporter.report( FixedCode.F_NOTB, missingMsg );
             }
             else {
@@ -107,8 +105,23 @@ public class ObsTapStage implements Stage {
             return;
         }
 
+        /* Determine effective DM version. */
+        final boolean is11;
+        if ( obscoreVersion != null ) {
+            is11 = obscoreVersion.is11_;
+        }
+        else {
+            String msg = new StringBuffer()
+               .append( OBSCORE_TNAME )
+               .append( " table present but no ObsCore DM" )
+               .append( " declaration available" )
+               .append( "; assume ObsCore 1.0" )
+               .toString();
+            reporter.report( FixedCode.W_DMDC, msg );
+            is11 = false;
+        }
+
         /* Run tests. */
-        boolean is11 = false;
         new ObsTapRunner( reporter, serviceUrl, obsMeta, is11, tapRunner_ )
            .run();
     }
@@ -117,41 +130,70 @@ public class ObsTapStage implements Stage {
      * Determines whether a table capability reports conformance to the
      * ObsCore data model.  If not, an appropriate report is made.
      *
+     * <p>If both are declared, only return v1.1.
+     * According to PR-ObsCore-v1.1-20160330, ObsCore 1.1 is supposed
+     * to be a superset of ObsCore 1.0, although in fact it is not.
+     * This code needs revisiting when that has been sorted out in
+     * the standard document.
+     *
      * @param  reporter   reporter
      * @param  tcap    tap capability object
-     * @param  true  iff it looks like ObsCore is indicated
+     * @return   version of ObsCore model indicated, or null if no ObsCore
      */
-    private boolean hasObscoreDm( Reporter reporter, TapCapability tcap ) {
+    private ObscoreVersion getObscoreDm( Reporter reporter,
+                                         TapCapability tcap ) {
         String[] dms = tcap.getDataModels();
         List<String> dmList = new ArrayList<String>();
 
-        /* Matching for IDs is case-insensitive - see document
+        /* Match for known data model declarations corresponding to ObsCore.
+         * Matching for IDs is case-insensitive - see document
          * IVOA Identifiers v1.12, section 2. */
         if ( dms != null ) {
             for ( int i = 0; i < dms.length; i++ ) {
                 dmList.add( dms[ i ].toLowerCase() );
             }
         }
+        boolean has10 =
+            dmList.contains( ObscoreVersion.V10.ivoid_.toLowerCase() );
+        boolean has11 =
+            dmList.contains( ObscoreVersion.V11.ivoid_.toLowerCase() );
+        boolean has10wrong =
+            dmList.contains( OBSCORE10_ID_WRONG.toLowerCase() );
 
-        /* Check for OBSCORE_ID, which is the identifier taken from the
-         * ObsCore 1.0 document. */
-        if ( dmList.contains( OBSCORE_ID.toLowerCase() ) ) {
-            return true;
+        /* Check for presence of one of the known ObsCore data models,
+         * and return values accordingly. */
+        if ( has11 ) {
+            if ( ! has10 ) {
+                String msg = new StringBuffer()
+                   .append( "Declared DM " )
+                   .append( ObscoreVersion.V11.ivoid_ )
+                   .append( " but not " )
+                   .append( ObscoreVersion.V10.ivoid_ )
+                   .append( "; 1.1 should imply 1.0" )
+                   .append( " but NOTE problems with this in ObsCore standard" )
+                   .append( " PR-ObsCore-v1.1-20160330" ) 
+                   .toString();
+                reporter.report( FixedCode.W_DMSS, msg );
+            }
+            return ObscoreVersion.V11;
+        }
+        else if ( has10 ) {
+            return ObscoreVersion.V10;
         }
 
-        /* Failing that, check for OBSCORE_ID_WRONG, which is a string
+        /* Failing that, check for OBSCORE10_ID_WRONG, which is a string
          * erroneously used in examples in TAPRegExt 1.0.  This confusion
          * reported on {dal,dm}@ivoa.net mailing lists on 4 Dec 2013. */
-        else if ( dmList.contains( OBSCORE_ID_WRONG.toLowerCase() ) ) {
+        else if ( has10wrong ) {
             String msg = new StringBuffer()
                .append( "Wrong ObsCore identifier " )
-               .append( OBSCORE_ID_WRONG )
+               .append( OBSCORE10_ID_WRONG )
                .append( " reported, should be " )
-               .append( OBSCORE_ID )
+               .append( ObscoreVersion.V10.ivoid_ )
                .append( " (known error in TAPRegExt 1.0 document)" )
                .toString();
             reporter.report( FixedCode.W_WODM, msg );
-            return true;
+            return ObscoreVersion.V10;
         }
 
         /* Failing that, if it says ObsCore, that's probably what it means. */
@@ -162,14 +204,19 @@ public class ObsTapStage implements Stage {
                        .append( "Mis-spelt ObsCore identifier? " )
                        .append( dm )
                        .append( " reported, should be " )
-                       .append( OBSCORE_ID )
+                       .append( ObscoreVersion.V10.ivoid_ )
+                       .append( " or " )
+                       .append( ObscoreVersion.V11.ivoid_ )
+                       .append( "; assuming ObsCore 1.0" )
                        .toString();
                     reporter.report( FixedCode.W_IODM, msg );
-                    return true;
+                    return ObscoreVersion.V10;
                 }
             }
-            return false;
         }
+
+        /* Otherwise: no ObsCore data model declared. */
+        return null;
     }
 
     /**
@@ -961,6 +1008,32 @@ public class ObsTapStage implements Stage {
          * @param  icol  column index
          */
         abstract Object getCell( int irow, int icol );
+    }
+
+    /**
+     * Enumeration for known versions of the ObsCore data model.
+     */
+    private enum ObscoreVersion {
+
+        /* ObsCore 1.0. */
+        V10( "ivo://ivoa.net/std/ObsCore/v1.0", false ),
+
+        /* ObsCore 1.1. */
+        V11( "ivo://ivoa.net/std/ObsCore/v1.1", true );
+
+        final String ivoid_;
+        final boolean is11_;
+
+        /**
+         * Constructor.
+         *
+         * @param   ivoid  datamodel VO identifier, from ObsCore document
+         * @param   is11   true for ObsCore 1.1, false for ObsCore 1.0
+         */
+        ObscoreVersion( String ivoid, boolean is11 ) {
+            ivoid_ = ivoid;
+            is11_ = is11;
+        }
     }
 
     /**

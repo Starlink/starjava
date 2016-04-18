@@ -10530,6 +10530,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Shouldn't be any noticable difference.
         Acme encoding dependency removed.</li>
     <li>Improve sky plot border painting.</li>
+    <li><code>taplint</code> now validates ObsCore 1.1 where declared
+        alongside ObsCore 1.0.  Currently uses PR-ObsCore-v1.1-20160330.</li>
     </ul>
     </p></dd>
 
