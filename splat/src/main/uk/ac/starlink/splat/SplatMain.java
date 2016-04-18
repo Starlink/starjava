@@ -14,9 +14,9 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import javax.swing.UIManager;
 import uk.ac.starlink.splat.iface.SplashWindow;
-import uk.ac.starlink.splat.iface.laf.WorkbenchScale;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.gui.ScaledLookAndFeel;
 import uk.ac.starlink.splat.util.Utilities;
 
 /**
@@ -56,7 +56,8 @@ public class SplatMain
 
         //  Look and feel default.
         try {
-            UIManager.setLookAndFeel(new WorkbenchScale.ScaledNimbusLookAndFeel());
+            UIManager.setLookAndFeel
+                (new ScaledLookAndFeel.ScaledNimbusLookAndFeel());
         }
         catch (Exception e) {
             e.printStackTrace();

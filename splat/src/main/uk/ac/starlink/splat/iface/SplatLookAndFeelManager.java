@@ -31,8 +31,6 @@ import javax.swing.plaf.synth.SynthLookAndFeel;
 import javax.swing.plaf.synth.SynthStyle;
 import javax.swing.plaf.synth.SynthStyleFactory;
 
-import uk.ac.starlink.splat.iface.laf.WorkbenchScale;
-
 import uk.ac.starlink.splat.iface.themes.AquaTheme;
 import uk.ac.starlink.splat.iface.themes.BigContrastMetalTheme;
 import uk.ac.starlink.splat.iface.themes.CharcoalTheme;
@@ -41,6 +39,8 @@ import uk.ac.starlink.splat.iface.themes.EmeraldTheme;
 import uk.ac.starlink.splat.iface.themes.PresentationTheme;
 import uk.ac.starlink.splat.iface.themes.RubyTheme;
 import uk.ac.starlink.splat.iface.themes.SandStoneTheme;
+
+import uk.ac.starlink.util.gui.ScaledLookAndFeel;
 
 /**
  * Class that manages the look and feel used in SPLAT. This offers the
@@ -172,7 +172,8 @@ public class SplatLookAndFeelManager implements ActionListener
 
         // Add locals?
         try {
-            UIManager.setLookAndFeel(new WorkbenchScale.ScaledNimbusLookAndFeel());
+            UIManager.setLookAndFeel
+                (new ScaledLookAndFeel.ScaledNimbusLookAndFeel());
         }
         catch( Exception e ) {
             e.printStackTrace();
@@ -294,7 +295,8 @@ public class SplatLookAndFeelManager implements ActionListener
     {
         try {
             //UIManager.setLookAndFeel( defaultLook );
-            UIManager.setLookAndFeel(new WorkbenchScale.ScaledNimbusLookAndFeel());
+            UIManager.setLookAndFeel
+                (new ScaledLookAndFeel.ScaledNimbusLookAndFeel());
 
             System.out.println( defaultLook );
 
