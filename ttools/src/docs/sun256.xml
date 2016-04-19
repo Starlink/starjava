@@ -10529,6 +10529,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
         Shouldn't be any noticable difference.
         Acme encoding dependency removed.</li>
+    <li>Improve sky plot border painting.</li>
     </ul>
     </p></dd>
 

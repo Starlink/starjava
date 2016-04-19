@@ -23054,6 +23054,7 @@ introduced since the last version:
         different from the correct position.</li>
     <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
         Shouldn't be any noticable difference.</li>
+    <li>Improve sky plot border painting.</li>
     </ul>
     </p></dd>
 

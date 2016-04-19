@@ -155,14 +155,9 @@ public class SkySurface implements Surface {
 
     public void paintBackground( Graphics g ) {
         Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                             antialias_ ? RenderingHints.VALUE_ANTIALIAS_ON
-                                        : RenderingHints.VALUE_ANTIALIAS_OFF );
         final Shape gShape;
         if ( skyFillsBounds_ ) {
             gShape = new Rectangle( getPlotBounds() );
-            ((Rectangle) gShape).width--;
-            ((Rectangle) gShape).height--;
         }
         else {
             g2.setClip( new Rectangle( getPlotBounds() ) );
@@ -173,8 +168,6 @@ public class SkySurface implements Surface {
         }
         g2.setColor( Color.WHITE );
         g2.fill( gShape );
-        g2.setColor( Color.GRAY );
-        g2.draw( gShape );
         g2.dispose();
     }
 
@@ -209,6 +202,18 @@ public class SkySurface implements Surface {
                 }
                 g2.draw( path );
             }
+        }
+        if ( skyFillsBounds_ ) {
+            g2.draw( getPlotBounds() );
+        }
+        else {
+            Graphics2D g2a = (Graphics2D) g.create();
+            g2a.setClip( new Rectangle( getPlotBounds() ) );
+            g2a.translate( gXoff_, gYoff_ );
+            g2a.scale( gZoom_, -gZoom_ );
+            g2a.setStroke( new BasicStroke( (float) ( 1.0 / gZoom_ ) ) );
+            g2a.draw( projection_.getProjectionShape() );
+            g2a.dispose();
         }
         if ( axlabelColor_ != null ) {
             g2.setColor( axlabelColor_ );
