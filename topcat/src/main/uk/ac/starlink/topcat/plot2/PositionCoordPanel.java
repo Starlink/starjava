@@ -5,6 +5,7 @@ import java.util.List;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -22,9 +23,10 @@ public abstract class PositionCoordPanel extends CoordPanel {
      * Constructor.
      *
      * @param  coords  coordinate definitions for which values are required
+     * @param  configKeys  config value keys (often empty)
      */
-    protected PositionCoordPanel( Coord[] coords ) {
-        super( coords );
+    protected PositionCoordPanel( Coord[] coords, ConfigKey[] configKeys ) {
+        super( coords, configKeys );
     }
 
     /**

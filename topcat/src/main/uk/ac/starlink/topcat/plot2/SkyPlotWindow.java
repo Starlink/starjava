@@ -5,12 +5,9 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.Box;
-import javax.swing.JComponent;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
-import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -100,7 +97,6 @@ public class SkyPlotWindow
             extends PositionCoordPanel {
 
         private final Specifier<SkySys> dataSysSpecifier_;
-        private final JComponent panel_;
 
         /**
          * Constructor.
@@ -109,21 +105,10 @@ public class SkyPlotWindow
          */
         SkyPositionCoordPanel( int npos ) {
             super( multiplyCoords( SkyDataGeom.createGeom( null, null )
-                                              .getPosCoords(), npos ) );
-
-            /* But add a data sky system selector. */
-            ConfigSpecifier cspec =
-                new ConfigSpecifier( new ConfigKey[] { DATASYS_KEY } );
-            dataSysSpecifier_ = cspec.getSpecifier( DATASYS_KEY );
-            dataSysSpecifier_.addActionListener( getActionForwarder() );
-            panel_ = Box.createVerticalBox();
-            panel_.add( new LineBox( null, cspec.getComponent(), true ) );
-            panel_.add( super.getComponent() );
-        }
-
-        @Override
-        public JComponent getComponent() {
-            return panel_;
+                                              .getPosCoords(), npos ),
+                   new ConfigKey[] { DATASYS_KEY } );
+            dataSysSpecifier_ =
+                getConfigSpecifier().getSpecifier( DATASYS_KEY );
         }
 
         /**

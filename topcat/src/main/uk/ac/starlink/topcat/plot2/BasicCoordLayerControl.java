@@ -100,6 +100,8 @@ public class BasicCoordLayerControl extends ConfigControl
         List<ConfigKey> klist = new ArrayList<ConfigKey>();
         klist.addAll( Arrays.asList( plotter.getStyleKeys() ) );
         klist.removeAll( baseConfigger_.getConfig().keySet() );
+        klist.removeAll( Arrays.asList( coordPanel_.getConfigSpecifier()
+                                                   .getConfigKeys() ) );
         ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
         ConfigSpecifier styleSpecifier = new ConfigSpecifier( keys );
 
@@ -144,6 +146,13 @@ public class BasicCoordLayerControl extends ConfigControl
 
     public Specifier<ZoneId> getZoneSpecifier() {
         return zsel_;
+    }
+
+    @Override
+    public ConfigMap getConfig() {
+        ConfigMap config = super.getConfig();
+        config.putAll( coordPanel_.getConfigSpecifier().getSpecifiedValue() );
+        return config;
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {

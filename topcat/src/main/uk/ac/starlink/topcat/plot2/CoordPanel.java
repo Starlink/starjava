@@ -17,7 +17,9 @@ import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -32,19 +34,38 @@ import uk.ac.starlink.util.gui.ComboBoxBumper;
 public class CoordPanel {
 
     private final Coord[] coords_;
+    private final ConfigSpecifier cspec_;
     private final ActionForwarder forwarder_;
     private final JComboBox[][] colSelectors_;
     private final JComponent panel_;   
 
     /**
-     * Constructor.
+     * Constructs a CoordPanel for selecting just Coords.
      *
      * @param  coords  coordinate definitions for which values are required
      */
     public CoordPanel( Coord[] coords ) {
+        this( coords, new ConfigKey[ 0 ] );
+    }
+
+    /**
+     * Constructs a CoordPanel for selecting Coords and Config values.
+     *
+     * @param  coords  coordinate definitions for which values are required
+     * @param  configKeys   config value keys
+     */
+    public CoordPanel( Coord[] coords, ConfigKey[] configKeys ) {
         panel_ = new JPanel( new BorderLayout() );
         coords_ = coords;
         forwarder_ = new ActionForwarder();
+        JComponent box = Box.createVerticalBox();
+
+        /* Set up config specifiers for the given config keys. */
+        cspec_ = new ConfigSpecifier( configKeys );
+        cspec_.addActionListener( forwarder_ );
+        if ( configKeys.length > 0 ) {
+            box.add( new LineBox( null, cspec_.getComponent(), true ) );
+        }
 
         /* Place entry components for each required coordinate. */
         int nc = coords.length;
@@ -98,10 +119,13 @@ public class CoordPanel {
                 tipListener.actionPerformed( null );
             }
         }
+        if ( nc > 0 ) {
+            box.add( new LineBox( null, stack, true ) );
+        }
 
         /* Place the lot at the top of the component so it doesn't fill
          * vertical space. */
-        panel_.add( stack, BorderLayout.NORTH );
+        panel_.add( box, BorderLayout.NORTH );
     }
 
     /**
@@ -111,6 +135,15 @@ public class CoordPanel {
      */
     public Coord[] getCoords() {
         return coords_;
+    }
+
+    /**
+     * Returns this panel's config specifier.
+     *
+     * @return  specifier for config values, if there are any
+     */
+    public ConfigSpecifier getConfigSpecifier() {
+        return cspec_;
     }
 
     /**
