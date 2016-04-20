@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Shape;
 import java.util.ArrayList;
@@ -82,7 +83,8 @@ public class HealpixPlotter
             } )
         , false, IntegerCoord.IntType.INT );
 
-    private static final FloatingCoord VALUE_COORD =
+    /** Coordinate for value determining tile colours. */
+    public static final FloatingCoord VALUE_COORD =
         FloatingCoord.createCoord(
             new InputMeta( "value", "Value" )
            .setShortDescription( "Tile value" )
@@ -93,14 +95,12 @@ public class HealpixPlotter
             } )
         , true );
 
-    private static final AuxScale SCALE = AuxScale.COLOR;
-    private static final ConfigKey<Integer> FIXLEVEL_KEY = createLevelKey();
-    private static final ConfigKey<Double> TRANSPARENCY_KEY =
-        StyleKeys.TRANSPARENCY;
-    private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
-    private static final ConfigKey<SkySys> VIEWSYS_KEY =
-        SkySurfaceFactory.VIEWSYS_KEY;
-    private static final ConfigKey<SkySys> DATASYS_KEY =
+
+    /** ConfigKey for HEALPix level corresponding to data HEALPix indices. */
+    public static final ConfigKey<Integer> FIXLEVEL_KEY = createLevelKey();
+
+    /** ConfigKey for Sky System corresponding to data HEALPix indices. */
+    public static final ConfigKey<SkySys> DATASYS_KEY =
         new SkySysConfigKey(
             new ConfigMeta( "datasys", "Data Sky System" )
            .setShortDescription( "Sky system of HEALPix grid" )
@@ -110,6 +110,13 @@ public class HealpixPlotter
                 "</p>",
             } )
         , false );
+
+    private static final AuxScale SCALE = AuxScale.COLOR;
+    private static final ConfigKey<Double> TRANSPARENCY_KEY =
+        StyleKeys.TRANSPARENCY;
+    private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
+    private static final ConfigKey<SkySys> VIEWSYS_KEY =
+        SkySurfaceFactory.VIEWSYS_KEY;
 
     /**
      * Constructor.
@@ -295,7 +302,7 @@ public class HealpixPlotter
         }
 
         public Icon getLegendIcon() {
-            return Shaders.createShaderIcon( shader_, null, true, 16, 8, 2, 2 );
+            return createHealpixIcon( shader_, 18, 16, 1, 1 );
         }
 
         @Override
@@ -442,6 +449,64 @@ public class HealpixPlotter
             }
             g.setColor( color0 );
         }
+    }
+
+    /**
+     * Returns an icon suitable for use in a legend that represents
+     * painting HEALPix tiles.
+     *
+     * @param  shader   shader
+     * @param  width    total icon width in pixels
+     * @param  height   total icon height in pixels
+     * @param  xpad     internal padding in the X direction in pixels
+     * @param  ypad     internal padding in the Y direction in pixels
+     * @return   legend icon
+     */
+    private static Icon createHealpixIcon( final Shader shader,
+                                           final int width, final int height,
+                                           final int xpad, final int ypad ) {
+        final double xd = ( width - 2 * xpad ) * 0.25;
+        final double yd = ( width - 2 * ypad ) * 0.25;
+        return new Icon() {
+            public int getIconWidth() {
+                return width;
+            }
+            public int getIconHeight() {
+                return height;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                int xoff = x + xpad;
+                int yoff = y + ypad;
+                g.translate( xoff, yoff );
+                Color color0 = g.getColor();
+                paintDiamond( g, 1./8., 2, 0 );
+                paintDiamond( g, 5./8., 1, 1 );
+                paintDiamond( g, 7./8., 3, 1 );
+                paintDiamond( g, 3./8., 2, 2 );
+                g.setColor( color0 );
+                g.translate( -xoff, -yoff );
+            }
+            private void paintDiamond( Graphics g, double shade,
+                                       int ix, int iy ) {
+                float[] rgba = new float[] { 0.5f, 0.5f, 0.5f, 1.0f };
+                shader.adjustRgba( rgba, (float) shade );
+                g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
+                                       rgba[ 2 ], rgba[ 3 ] ) );
+                int[] xs = new int[] {
+                    (int) xd * ix,
+                    (int) xd * ( ix - 1 ),
+                    (int) xd * ix,
+                    (int) xd * ( ix + 1 ),
+                };
+                int[] ys = new int[] {
+                    (int) yd * iy,
+                    (int) yd * ( iy + 1 ),
+                    (int) yd * ( iy + 2 ),
+                    (int) yd * ( iy + 1 ),
+                };
+                g.fillPolygon( xs, ys, 4 );
+            }
+        };
     }
 
     /**
