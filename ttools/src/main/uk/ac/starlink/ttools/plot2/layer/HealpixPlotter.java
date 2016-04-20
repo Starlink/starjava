@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
+import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -42,7 +43,10 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.IntegerCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
+import uk.ac.starlink.ttools.plot2.geom.SkySurfaceFactory;
+import uk.ac.starlink.ttools.plot2.geom.SkySys;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
@@ -94,6 +98,18 @@ public class HealpixPlotter
     private static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
     private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
+    private static final ConfigKey<SkySys> VIEWSYS_KEY =
+        SkySurfaceFactory.VIEWSYS_KEY;
+    private static final ConfigKey<SkySys> DATASYS_KEY =
+        new SkySysConfigKey(
+            new ConfigMeta( "datasys", "Data Sky System" )
+           .setShortDescription( "Sky system of HEALPix grid" )
+           .setXmlDescription( new String[] {
+                "<p>The sky coordinate system to which the HEALPix grid",
+                "used by the input pixel file refers.",
+                "</p>",
+            } )
+        , false );
 
     /**
      * Constructor.
@@ -138,6 +154,8 @@ public class HealpixPlotter
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
         keyList.add( FIXLEVEL_KEY );
+        keyList.add( DATASYS_KEY );
+        keyList.add( VIEWSYS_KEY );
         if ( reportAuxKeys_ ) {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
@@ -150,10 +168,13 @@ public class HealpixPlotter
     public HealpixStyle createStyle( ConfigMap config ) {
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         int fixLevel = config.get( FIXLEVEL_KEY );
+        SkySys dataSys = config.get( DATASYS_KEY );
+        SkySys viewSys = config.get( VIEWSYS_KEY );
+        Rotation rotation = Rotation.createRotation( dataSys, viewSys );
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        return new HealpixStyle( fixLevel, scaling, shader );
+        return new HealpixStyle( fixLevel, rotation, scaling, shader );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -238,6 +259,7 @@ public class HealpixPlotter
      */
     public static class HealpixStyle implements Style {
         private final int fixLevel_;
+        private final Rotation rotation_;
         private final Scaling scaling_;
         private final Shader shader_;
 
@@ -247,12 +269,15 @@ public class HealpixPlotter
          * @param   fixLevel  HEALPix level at which the pixel index coordinates
          *                    must be interpreted; if negative, automatic
          *                    detection will be used
+         * @param   rotation  sky rotation to be applied before plotting
          * @param   scaling   scaling function for mapping densities to
          *                    colour map entries
          * @param   shader   colour map
          */
-        public HealpixStyle( int fixLevel, Scaling scaling, Shader shader ) {
+        public HealpixStyle( int fixLevel, Rotation rotation,
+                             Scaling scaling, Shader shader ) {
             fixLevel_ = fixLevel;
+            rotation_ = rotation;
             scaling_ = scaling;
             shader_ = shader;
         }
@@ -277,6 +302,7 @@ public class HealpixPlotter
         public int hashCode() {
             int code = 553227;
             code = 23 * code + fixLevel_;
+            code = 23 * code + rotation_.hashCode();
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + shader_.hashCode();
             return code;
@@ -287,6 +313,7 @@ public class HealpixPlotter
             if ( o instanceof HealpixStyle ) {
                 HealpixStyle other = (HealpixStyle) o;
                 return this.fixLevel_ == other.fixLevel_
+                    && this.rotation_.equals( other.rotation_ )
                     && this.scaling_.equals( other.scaling_ )
                     && this.shader_.equals( other.shader_ );
             }
@@ -378,7 +405,7 @@ public class HealpixPlotter
          * @retrun   tiler
          */
         private SkySurfaceTiler createTiler( SkySurface surf ) {
-            return new SkySurfaceTiler( surf, level_ );
+            return new SkySurfaceTiler( surf, level_, hstyle_.rotation_ );
         }
 
         /**

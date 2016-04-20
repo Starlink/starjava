@@ -8,6 +8,7 @@ import java.awt.Shape;
 import java.awt.geom.Point2D;
 import javax.vecmath.Vector3d;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 
 /**
@@ -23,6 +24,7 @@ public class SkySurfaceTiler {
 
     private final SkySurface surf_;
     private final long nside_;
+    private final Rotation rotation_;
     private final PixTools pixTools_;
     private final boolean hasSubpixelTiles_;
     private final Rectangle plotBox_;
@@ -34,10 +36,13 @@ public class SkySurfaceTiler {
      *
      * @param  surf   sky surface
      * @param  healpixLevel   healpix level (0, 1, 2, ..)
+     * @param  rotation  additional rotation to apply to sky positions, not null
      */
-    public SkySurfaceTiler( SkySurface surf, int healpixLevel ) {
+    public SkySurfaceTiler( SkySurface surf, int healpixLevel,
+                            Rotation rotation ) {
         surf_ = surf;
         nside_ = 1L << healpixLevel;
+        rotation_ = rotation;
         pixTools_ = new PixTools();
         hasSubpixelTiles_ =
             healpixLevel >= SkyDensityPlotter.getPixelLevel( surf );
@@ -59,6 +64,7 @@ public class SkySurfaceTiler {
         dpos_[ 0 ] = v3.x;
         dpos_[ 1 ] = v3.y;
         dpos_[ 2 ] = v3.z;
+        rotation_.rotate( dpos_ );
         return surf_.dataToGraphics( dpos_, true, gpos_ );
     }
 
@@ -87,6 +93,7 @@ public class SkySurfaceTiler {
             dpos_[ 0 ] = v3.x;
             dpos_[ 1 ] = v3.y;
             dpos_[ 2 ] = v3.z;
+            rotation_.rotate( dpos_ );
             return surf_.dataToGraphics( dpos_, true, gpos_ )
                  ? new Rectangle( PlotUtil.ifloor( gpos_.x ),
                                   PlotUtil.ifloor( gpos_.y ), 1, 1 )
@@ -102,6 +109,7 @@ public class SkySurfaceTiler {
                 dpos_[ 0 ] = vertices[ 0 ][ i ];
                 dpos_[ 1 ] = vertices[ 1 ][ i ];
                 dpos_[ 2 ] = vertices[ 2 ][ i ];
+                rotation_.rotate( dpos_ );
                 if ( surf_.dataToGraphics( dpos_, false, gpos_ ) ) {
                     assert ! Double.isNaN( gpos_.x );
                     assert ! Double.isNaN( gpos_.y );
