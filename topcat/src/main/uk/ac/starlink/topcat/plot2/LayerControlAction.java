@@ -10,6 +10,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
+import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 
 /**
@@ -116,6 +117,17 @@ public abstract class LayerControlAction extends BasicAction {
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
                     return new SpectrogramLayerControl( sPlotter, zsel,
                                                         configger );
+                }
+            };
+        }
+        else if ( plotter instanceof HealpixPlotter ) {
+            final HealpixPlotter hPlotter = (HealpixPlotter) plotter;
+            return new LayerControlAction( plotter, stack ) {
+                public LayerControl createLayerControl() {
+                    Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
+                    Configger configger = baseConfigger.layerConfigger( zs0 );
+                    Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
+                    return new HealpixLayerControl( hPlotter, zsel, configger );
                 }
             };
         }
