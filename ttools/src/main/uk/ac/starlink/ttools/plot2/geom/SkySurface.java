@@ -59,6 +59,7 @@ public class SkySurface implements Surface {
     private final int gYoff_;
     private final double gZoom_;
     private final boolean skyFillsBounds_;
+    private final boolean isContinuous_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -104,6 +105,7 @@ public class SkySurface implements Surface {
         zoom_ = zoom;
         xoff_ = xoff;
         yoff_ = yoff;
+        isContinuous_ = projection.isContinuous();
         unrotmat_ = Matrices.invert( rotmat_ );
 
         /* Work out the pixel offsets and scaling factors to transform
@@ -304,12 +306,17 @@ public class SkySurface implements Surface {
                                          double[] dpos1, boolean visibleOnly,
                                          Point2D.Double gpos1 ) {
 
-        /* Because sky plots do not in general have continuous coordinates
-         * (wrap around) implementing this method is not trivial. */
-
         /* Get the graphics position of the offset point the
          * straightforward way. */
         boolean aStatus = dataToGraphics( dpos1, visibleOnly, gpos1 );
+
+        /* For some projections, this is sufficient. */
+        if ( isContinuous_ ) {
+            return aStatus;
+        }
+
+        /* However, in general there may be discontinuities (wrap around),
+         * in which case we need to jump through some hoops. */
         double ax = gpos1.x;
         double ay = gpos1.y;
 
