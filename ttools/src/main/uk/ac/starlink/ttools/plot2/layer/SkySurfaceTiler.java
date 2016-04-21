@@ -88,43 +88,52 @@ public class SkySurfaceTiler {
      * @return   shape of indicated tile on graphics plane, or null
      */
     public Shape getTileShape( long hpxIndex ) {
+        Vector3d v3 = pixTools_.pix2vect_nest( nside_, hpxIndex );
+        dpos_[ 0 ] = v3.x;
+        dpos_[ 1 ] = v3.y;
+        dpos_[ 2 ] = v3.z;
+        rotation_.rotate( dpos_ );
         if ( hasSubpixelTiles_ ) {
-            Vector3d v3 = pixTools_.pix2vect_nest( nside_, hpxIndex );
-            dpos_[ 0 ] = v3.x;
-            dpos_[ 1 ] = v3.y;
-            dpos_[ 2 ] = v3.z;
-            rotation_.rotate( dpos_ );
             return surf_.dataToGraphics( dpos_, true, gpos_ )
                  ? new Rectangle( PlotUtil.ifloor( gpos_.x ),
                                   PlotUtil.ifloor( gpos_.y ), 1, 1 )
                  : null;
         }
         else {
-            double[][] vertices = pixTools_.pix2vertex_nest( nside_, hpxIndex );
-            int[] gxs = new int[ 4 ];
-            int[] gys = new int[ 4 ];
-            int np = 0;
-            int nInvisible = 0;
-            for ( int i = 0; i < 4; i++ ) {
-                dpos_[ 0 ] = vertices[ 0 ][ i ];
-                dpos_[ 1 ] = vertices[ 1 ][ i ];
-                dpos_[ 2 ] = vertices[ 2 ][ i ];
-                rotation_.rotate( dpos_ );
-                if ( surf_.dataToGraphics( dpos_, false, gpos_ ) ) {
-                    assert ! Double.isNaN( gpos_.x );
-                    assert ! Double.isNaN( gpos_.y );
-                    gxs[ np ] = PlotUtil.ifloor( gpos_.x );
-                    gys[ np ] = PlotUtil.ifloor( gpos_.y );
-                    np++;
-                }
-                else {
-                    if ( ++nInvisible > 1 ) {
-                        return null;
+            if ( surf_.dataToGraphics( dpos_, false, gpos_ ) ) {
+                double[][] vertices =
+                    pixTools_.pix2vertex_nest( nside_, hpxIndex );
+                int[] gxs = new int[ 4 ];
+                int[] gys = new int[ 4 ];
+                double[] dpos1 = new double[ 3 ];
+                Point2D.Double gpos1 = new Point2D.Double();
+                int np = 0;
+                int nInvisible = 0;
+                for ( int i = 0; i < 4; i++ ) {
+                    dpos1[ 0 ] = vertices[ 0 ][ i ];
+                    dpos1[ 1 ] = vertices[ 1 ][ i ];
+                    dpos1[ 2 ] = vertices[ 2 ][ i ];
+                    rotation_.rotate( dpos1 );
+                    if ( surf_.dataToGraphicsOffset( dpos_, gpos_, dpos1,
+                                                     false, gpos1 ) ) {
+                        assert ! Double.isNaN( gpos1.x );
+                        assert ! Double.isNaN( gpos1.y );
+                        gxs[ np ] = PlotUtil.ifloor( gpos1.x );
+                        gys[ np ] = PlotUtil.ifloor( gpos1.y );
+                        np++;
+                    }
+                    else {
+                        if ( ++nInvisible > 1 ) {
+                            return null;
+                        }
                     }
                 }
+                Polygon poly = new Polygon( gxs, gys, np );
+                return poly.intersects( plotBox_ ) ? poly : null;
             }
-            Polygon poly = new Polygon( gxs, gys, np );
-            return poly.intersects( plotBox_ ) ? poly : null;
+            else {
+                return null;
+            }
         }
     }
 
