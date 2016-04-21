@@ -109,6 +109,10 @@ public class SkySurfaceTiler {
                 Point2D.Double gpos1 = new Point2D.Double();
                 int np = 0;
                 int nInvisible = 0;
+                int gxmin = Integer.MAX_VALUE;
+                int gxmax = Integer.MIN_VALUE;
+                int gymin = Integer.MAX_VALUE;
+                int gymax = Integer.MIN_VALUE;
                 for ( int i = 0; i < 4; i++ ) {
                     dpos1[ 0 ] = vertices[ 0 ][ i ];
                     dpos1[ 1 ] = vertices[ 1 ][ i ];
@@ -118,8 +122,14 @@ public class SkySurfaceTiler {
                                                      false, gpos1 ) ) {
                         assert ! Double.isNaN( gpos1.x );
                         assert ! Double.isNaN( gpos1.y );
-                        gxs[ np ] = PlotUtil.ifloor( gpos1.x );
-                        gys[ np ] = PlotUtil.ifloor( gpos1.y );
+                        int gx = PlotUtil.ifloor( gpos1.x );
+                        int gy = PlotUtil.ifloor( gpos1.y );
+                        gxs[ np ] = PlotUtil.ifloor( gx );
+                        gys[ np ] = PlotUtil.ifloor( gy );
+                        gxmin = Math.min( gxmin, gx );
+                        gxmax = Math.max( gxmax, gx );
+                        gymin = Math.min( gymin, gy );
+                        gymax = Math.max( gymax, gy );
                         np++;
                     }
                     else {
@@ -128,8 +138,11 @@ public class SkySurfaceTiler {
                         }
                     }
                 }
-                Polygon poly = new Polygon( gxs, gys, np );
-                return poly.intersects( plotBox_ ) ? poly : null;
+                assert np >= 1;
+                return plotBox_
+                      .intersects( gxmin, gymin, gxmax - gxmin, gymax - gymin )
+                     ? new Polygon( gxs, gys, np )
+                     : null;
             }
             else {
                 return null;
