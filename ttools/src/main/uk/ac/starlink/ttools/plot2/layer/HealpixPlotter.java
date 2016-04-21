@@ -97,7 +97,7 @@ public class HealpixPlotter
 
 
     /** ConfigKey for HEALPix level corresponding to data HEALPix indices. */
-    public static final ConfigKey<Integer> FIXLEVEL_KEY = createLevelKey();
+    public static final ConfigKey<Integer> DATALEVEL_KEY = createDataLevelKey();
 
     /** ConfigKey for Sky System corresponding to data HEALPix indices. */
     public static final ConfigKey<SkySys> DATASYS_KEY =
@@ -160,7 +160,7 @@ public class HealpixPlotter
 
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
-        keyList.add( FIXLEVEL_KEY );
+        keyList.add( DATALEVEL_KEY );
         keyList.add( DATASYS_KEY );
         keyList.add( VIEWSYS_KEY );
         if ( reportAuxKeys_ ) {
@@ -174,21 +174,21 @@ public class HealpixPlotter
 
     public HealpixStyle createStyle( ConfigMap config ) {
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
-        int fixLevel = config.get( FIXLEVEL_KEY );
+        int dataLevel = config.get( DATALEVEL_KEY );
         SkySys dataSys = config.get( DATASYS_KEY );
         SkySys viewSys = config.get( VIEWSYS_KEY );
         Rotation rotation = Rotation.createRotation( dataSys, viewSys );
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        return new HealpixStyle( fixLevel, rotation, scaling, shader );
+        return new HealpixStyle( dataLevel, rotation, scaling, shader );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   HealpixStyle style ) {
         final int level;
-        if ( style.fixLevel_ >= 0 ) {
-            level = style.fixLevel_;
+        if ( style.dataLevel_ >= 0 ) {
+            level = style.dataLevel_;
         }
         else {
             long nrow = dataSpec.getSourceTable().getRowCount();
@@ -230,12 +230,13 @@ public class HealpixPlotter
     }
 
     /**
-     * Constructs the config key for supplying HEALPix level.
+     * Constructs the config key for supplying HEALPix level at which
+     * index coordinate values must be interpreted.
      *
-     * @return  HEALPix level key
+     * @return  HEALPix data level key
      */
-    private static ConfigKey<Integer> createLevelKey() {
-        ConfigMeta meta = new ConfigMeta( "level", "HEALPix Level" );
+    private static ConfigKey<Integer> createDataLevelKey() {
+        ConfigMeta meta = new ConfigMeta( "datalevel", "HEALPix Data Level" );
         meta.setShortDescription( "HEALPix level of tile index" );
         meta.setXmlDescription( new String[] {
             "<p>HEALPix level of the (implicit or explicit) tile indices.",
@@ -265,7 +266,7 @@ public class HealpixPlotter
      * Style for configuring the HEALPix plot.
      */
     public static class HealpixStyle implements Style {
-        private final int fixLevel_;
+        private final int dataLevel_;
         private final Rotation rotation_;
         private final Scaling scaling_;
         private final Shader shader_;
@@ -273,7 +274,7 @@ public class HealpixPlotter
         /**
          * Constructor.
          *
-         * @param   fixLevel  HEALPix level at which the pixel index coordinates
+         * @param   dataLevel HEALPix level at which the pixel index coordinates
          *                    must be interpreted; if negative, automatic
          *                    detection will be used
          * @param   rotation  sky rotation to be applied before plotting
@@ -281,9 +282,9 @@ public class HealpixPlotter
          *                    colour map entries
          * @param   shader   colour map
          */
-        public HealpixStyle( int fixLevel, Rotation rotation,
+        public HealpixStyle( int dataLevel, Rotation rotation,
                              Scaling scaling, Shader shader ) {
-            fixLevel_ = fixLevel;
+            dataLevel_ = dataLevel;
             rotation_ = rotation;
             scaling_ = scaling;
             shader_ = shader;
@@ -308,7 +309,7 @@ public class HealpixPlotter
         @Override
         public int hashCode() {
             int code = 553227;
-            code = 23 * code + fixLevel_;
+            code = 23 * code + dataLevel_;
             code = 23 * code + rotation_.hashCode();
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + shader_.hashCode();
@@ -319,7 +320,7 @@ public class HealpixPlotter
         public boolean equals( Object o ) {
             if ( o instanceof HealpixStyle ) {
                 HealpixStyle other = (HealpixStyle) o;
-                return this.fixLevel_ == other.fixLevel_
+                return this.dataLevel_ == other.dataLevel_
                     && this.rotation_.equals( other.rotation_ )
                     && this.scaling_.equals( other.scaling_ )
                     && this.shader_.equals( other.shader_ );
