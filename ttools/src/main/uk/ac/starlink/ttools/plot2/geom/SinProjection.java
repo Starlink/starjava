@@ -31,7 +31,7 @@ public class SinProjection extends SkyviewProjection {
      * Private singleton constructor.
      */
     private SinProjection() {
-        super( new Sin2(), new Ellipse2D.Double( -1, -1, 2, 2 ) );
+        super( new Sin2(), new Ellipse2D.Double( -1, -1, 2, 2 ), true );
     }
 
     @Override

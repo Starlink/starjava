@@ -47,6 +47,10 @@ public class HemisphereProjection implements Projection {
         return "no-frills, possibly buggy projection onto a rotatable sphere";
     }
 
+    public boolean isContinuous() {
+        return true;
+    }
+
     public boolean project( double rx, double ry, double rz,
                             Point2D.Double pos ) {
         if ( rx >= 0 ) {

@@ -28,6 +28,17 @@ public interface Projection {
     String getProjectionDescription();
 
     /**
+     * Indicates whether this projection is known to be continous over
+     * its whole range.  Returns false if there may be any cases for which
+     * small changes in the 3-vector leads to large changes in the plane
+     * position (such as near lon=180 in an Aitoff, but not a Sinus,
+     * projection).
+     *
+     * @return   true iff this projection is known to be continuous
+     */
+    boolean isContinuous();
+
+    /**
      * Transforms a sky position to a plane position.
      *
      * @param  rx  normalised 3D X coordinate
