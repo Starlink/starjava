@@ -337,7 +337,11 @@ public class SkySurface implements Surface {
         if ( aStatus && bStatus ) {
             double ad = Math.hypot( ax - gpos0.x, ay - gpos0.y );
             double bd = Math.hypot( bx - gpos0.x, by - gpos0.y );
-            forward = ad <= bd;
+
+            /* Use the normal transformation unless it's significantly further
+             * away than the other one; we're only looking to pick up
+             * catastrophic mismappings here. */
+            forward = ad < 2 * bd;
         }
         else if ( aStatus && ! bStatus ) {
             forward = true;
