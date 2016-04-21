@@ -186,25 +186,9 @@ public class HealpixPlotter
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   HealpixStyle style ) {
-        final int level;
-        if ( style.dataLevel_ >= 0 ) {
-            level = style.dataLevel_;
-        }
-        else {
-            long nrow = dataSpec.getSourceTable().getRowCount();
-            if ( nrow > 0 ) {
-                double rowLevel = Math.log( ( nrow / 12 ) ) / Math.log( 4 );
-                if ( rowLevel == (int) rowLevel ) {
-                    level = (int) rowLevel;
-                }
-                else {
-                    level = -1;
-                }
-            }
-            else {
-                level = -1;
-            }
-        }
+        int level = style.dataLevel_ >= 0
+                  ? style.dataLevel_
+                  : guessDataLevel( dataSpec.getSourceTable().getRowCount() );
         if ( level >= 0 ) {
             IndexReader rdr =
                   dataSpec.isCoordBlank( icHealpix_ )
@@ -227,6 +211,32 @@ public class HealpixPlotter
         else {
             return null;
         }
+    }
+
+    /**
+     * Attempts to guess the HEALPix level given a row count.
+     * If a reasonable stab can be made at the answer, it is returned.
+     * If we have no idea, -1 is returned.
+     *
+     * @param   nrow   row count; negative if not known
+     * @return   probable healpix level, or -1 if no idea
+     */
+    private static int guessDataLevel( long nrow ) {
+        if ( nrow > 0 ) {
+            for ( int il = 0; il <= MAX_LEVEL; il++ ) {
+                long hprow = 12 * 1 << ( 2 * il );
+
+                /* If there are the same number of rows as healpix pixels,
+                 * or the same plus an extra row for a blank index,
+                 * or nearly enough (a few blank ones), guess it's right. */
+                if ( nrow == hprow ||
+                     nrow == hprow + 1 ||
+                     ( nrow <= hprow && nrow >= 0.95 * hprow ) ) {
+                    return il;
+                }
+            }
+        }
+        return -1;
     }
 
     /**
