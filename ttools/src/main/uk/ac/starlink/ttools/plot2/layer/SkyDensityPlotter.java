@@ -262,6 +262,69 @@ public class SkyDensityPlotter
     }
 
     /**
+     * Given a prepared data structure, paints the results it
+     * represents onto a graphics context appropriate for this drawing.
+     *
+     * @param  g  graphics context
+     * @param  binResult   histogram containing sky pixel values
+     * @param  surface   plot surface
+     * @param  skyPixer  maps sky positions to HEALPix indices
+     * @param  shader   colour shading
+     * @param  scaler   value scaling
+     */
+    public static void paintBins( Graphics g, BinList.Result binResult,
+                                  SkySurface surface, SkyPixer skyPixer,
+                                  Shader shader, Scaler scaler ) {
+        Rectangle bounds = surface.getPlotBounds();
+
+        /* Work out how to scale binlist values to turn into
+         * entries in a colour map.  The first entry in the colour map
+         * (index zero) corresponds to transparency. */
+        IndexColorModel colorModel =
+            PixelImage.createColorModel( shader, true );
+        int ncolor = colorModel.getMapSize() - 1;
+
+        /* Prepare a screen pixel grid. */
+        int nx = bounds.width;
+        int ny = bounds.height;
+        Gridder gridder = new Gridder( nx, ny );
+        int npix = gridder.getLength();
+        int[] pixels = new int[ npix ];
+
+        /* Iterate over screen pixel grid pulling samples from the
+         * sky pixel grid for each screen pixel.  Note this is only
+         * a good strategy if the screen oversamples the sky grid
+         * (i.e. if screen pixels are smaller than the sky pixels). */
+        Point2D.Double point = new Point2D.Double();
+        double x0 = bounds.x + 0.5;
+        double y0 = bounds.y + 0.5;
+        for ( int ip = 0; ip < npix; ip++ ) {
+            point.x = x0 + gridder.getX( ip );
+            point.y = y0 + gridder.getY( ip );
+            double[] dpos = surface.graphicsToData( point, null );
+
+            /* Positions on the sky always have a value >= 1.
+             * Positions outside the sky coord range are untouched,
+             * so have a value of 0 (transparent). */
+            if ( dpos != null ) {
+                double dval =
+                    binResult.getBinValue( skyPixer.getIndex( dpos ) );
+                if ( ! Double.isNaN( dval ) ) {
+                    pixels[ ip ] =
+                        Math.min( 1 + (int) ( scaler.scaleValue( dval )
+                                              * ncolor ),
+                                  ncolor - 1 );
+                }
+            }
+        }
+
+        /* Copy the pixel grid to the graphics context using the
+         * requested colour map. */
+        new PixelImage( bounds.getSize(), pixels, colorModel )
+           .paintPixels( g, bounds.getLocation() );
+    }
+
+    /**
      * Style for configuring with the sky density plot.
      */
     public static class SkyDenseStyle implements Style {
@@ -529,10 +592,15 @@ public class SkyDensityPlotter
 
             public void paintData( Object plan, Paper paper,
                                    DataStore dataStore ) {
-                final SkyDensityPlan dplan = (SkyDensityPlan) plan;
+                final BinList.Result binResult =
+                    ((SkyDensityPlan) plan).binResult_;
+                final Scaler scaler =
+                    Scaling.createRangeScaler( dstyle_.scaling_, auxRange_ );
+                final SkyPixer skyPixer = createSkyPixer( surface_ );
                 paperType_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
-                        paintBins( g, dplan.binResult_ );
+                        paintBins( g, binResult, surface_, skyPixer,
+                                   dstyle_.shader_, scaler );
                     }
                     public boolean isOpaque() {
                         return dstyle_.isOpaque();
@@ -553,66 +621,6 @@ public class SkyDensityPlotter
                     map.put( HPXTABLE_REPKEY, createExportTable( splan ) );
                 }
                 return map;
-            }
-
-            /**
-             * Given a prepared data structure, paints the results it
-             * represents onto a graphics context appropriate for this drawing.
-             *
-             * @param  g  graphics context
-             * @param  binResult   histogram containing sky pixel values
-             */
-            private void paintBins( Graphics g, BinList.Result binResult ) {
-                Rectangle bounds = surface_.getPlotBounds();
-
-                /* Work out how to scale binlist values to turn into
-                 * entries in a colour map.  The first entry in the colour map
-                 * (index zero) corresponds to transparency. */
-                Scaler scaler =
-                    Scaling.createRangeScaler( dstyle_.scaling_, auxRange_ );
-                IndexColorModel colorModel =
-                    PixelImage.createColorModel( dstyle_.shader_, true );
-                int ncolor = colorModel.getMapSize() - 1;
-
-                /* Prepare a screen pixel grid. */
-                int nx = bounds.width;
-                int ny = bounds.height;
-                Gridder gridder = new Gridder( nx, ny );
-                int npix = gridder.getLength();
-                int[] pixels = new int[ npix ];
-
-                /* Iterate over screen pixel grid pulling samples from the
-                 * sky pixel grid for each screen pixel.  Note this is only
-                 * a good strategy if the screen oversamples the sky grid
-                 * (i.e. if screen pixels are smaller than the sky pixels). */
-                Point2D.Double point = new Point2D.Double();
-                double x0 = bounds.x + 0.5;
-                double y0 = bounds.y + 0.5;
-                SkyPixer skyPixer = createSkyPixer( surface_ );
-                for ( int ip = 0; ip < npix; ip++ ) {
-                    point.x = x0 + gridder.getX( ip );
-                    point.y = y0 + gridder.getY( ip );
-                    double[] dpos = surface_.graphicsToData( point, null );
-
-                    /* Positions on the sky always have a value >= 1.
-                     * Positions outside the sky coord range are untouched,
-                     * so have a value of 0 (transparent). */
-                    if ( dpos != null ) {
-                        double dval =
-                            binResult.getBinValue( skyPixer.getIndex( dpos ) );
-                        if ( ! Double.isNaN( dval ) ) {
-                            pixels[ ip ] =
-                                Math.min( 1 + (int) ( scaler.scaleValue( dval )
-                                                      * ncolor ),
-                                          ncolor - 1 );
-                        }
-                    }
-                }
-
-                /* Copy the pixel grid to the graphics context using the
-                 * requested colour map. */
-                new PixelImage( bounds.getSize(), pixels, colorModel )
-                   .paintPixels( g, bounds.getLocation() );
             }
         }
 
