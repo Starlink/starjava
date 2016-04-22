@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
@@ -24,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -32,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -112,11 +115,36 @@ public class HealpixPlotter
         , false );
 
     private static final AuxScale SCALE = AuxScale.COLOR;
+    private static final String BLUR_NAME = "blur";
+    private static final String COMBINER_NAME = "combiner";
+    private static final ConfigKey<Integer> BLUR_KEY =
+        IntegerConfigKey.createSpinnerKey(
+            new ConfigMeta( "blur", "Pixel Blur" )
+           .setShortDescription( "HEALPix level degradation" )
+           .setXmlDescription( new String[] {
+                "<p>Allows the HEALPix grid to be drawn at a less detailed",
+                "level than the level at which the input data are supplied.",
+                "A value of zero (the default) means that the HEALPix tiles",
+                "are painted with the same resolution as the input data,",
+                "but a higher value will degrade resolution of the plot tiles;",
+                "each plotted tile will correspond to",
+                "4^<code>" + BLUR_NAME + "</code> input tiles.",
+                "The way that values are combined within each painted tile",
+                "is controlled by the",
+                "<code>" + COMBINER_NAME + "</code> value.",
+                "</p>"
+            } )
+        , 0, 0, MAX_LEVEL );
     private static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
     private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
     private static final ConfigKey<SkySys> VIEWSYS_KEY =
         SkySurfaceFactory.VIEWSYS_KEY;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
+
+    /** ConfigKey for blurring combiner. */
+    public static final ConfigKey<Combiner> COMBINER_KEY = createCombinerKey();
 
     /**
      * Constructor.
@@ -163,11 +191,13 @@ public class HealpixPlotter
         keyList.add( DATALEVEL_KEY );
         keyList.add( DATASYS_KEY );
         keyList.add( VIEWSYS_KEY );
-        if ( reportAuxKeys_ ) {
-            keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
-        }
+        keyList.add( BLUR_KEY );
+        keyList.add( COMBINER_KEY );
         if ( transparent_ ) {
             keyList.add( TRANSPARENCY_KEY );
+        }
+        if ( reportAuxKeys_ ) {
+            keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
         return keyList.toArray( new ConfigKey[ 0 ] );
     }
@@ -177,19 +207,22 @@ public class HealpixPlotter
         int dataLevel = config.get( DATALEVEL_KEY );
         SkySys dataSys = config.get( DATASYS_KEY );
         SkySys viewSys = config.get( VIEWSYS_KEY );
+        int blur = config.get( BLUR_KEY );
+        Combiner combiner = config.get( COMBINER_KEY );
         Rotation rotation = Rotation.createRotation( dataSys, viewSys );
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        return new HealpixStyle( dataLevel, rotation, scaling, shader );
+        return new HealpixStyle( dataLevel, blur, rotation, scaling, shader,
+                                 combiner );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   HealpixStyle style ) {
-        int level = style.dataLevel_ >= 0
+        int dataLevel = style.dataLevel_ >= 0
                   ? style.dataLevel_
                   : guessDataLevel( dataSpec.getSourceTable().getRowCount() );
-        if ( level >= 0 ) {
+        if ( dataLevel >= 0 ) {
             IndexReader rdr =
                   dataSpec.isCoordBlank( icHealpix_ )
                 ? new IndexReader() {
@@ -202,7 +235,12 @@ public class HealpixPlotter
                           return HEALPIX_COORD.readIntCoord( tseq, icHealpix_ );
                       }
                   };
-            return new HealpixLayer( geom, dataSpec, style, level, rdr );
+            return style.blur_ == 0
+                 ? new SequenceHealpixLayer( geom, dataSpec, style,
+                                             dataLevel, rdr )
+                 : new BinsHealpixLayer( geom, dataSpec, style,
+                                         dataLevel, rdr );
+                   
         }
 
         /* Can't determine or guess HEALPix level.
@@ -273,13 +311,108 @@ public class HealpixPlotter
     }
 
     /**
+     * Constructs the config key for configuring the Combiner object
+     * used when blurring pixels.
+     *
+     * @return   combiner key
+     */
+    private static ConfigKey<Combiner> createCombinerKey() {
+        ConfigMeta meta = new ConfigMeta( COMBINER_NAME, "Combine");
+        meta.setShortDescription( "Pixel blur combination mode" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines how pixel values will be combined if they are",
+            "blurred to a lower resolution than the data HEALPix level.",
+            "This only has any effect if",
+            "<code>" + BLUR_KEY + "</code>&gt;0.",
+            "</p>",
+        } );
+        Combiner[] options = new Combiner[] {
+            Combiner.SUM,
+            Combiner.MEAN,
+            Combiner.MIN,
+            Combiner.MAX,
+        };
+        return new OptionConfigKey<Combiner>( meta, Combiner.class, options,
+                                              Combiner.SUM ) {
+            public String getXmlDescription( Combiner combiner ) {
+                return combiner.getDescription();
+            }
+        };
+    }
+
+    /**
+     * Constructs a bin list for a given combiner, given also the data
+     * HEALPix level and the blurring factor.
+     * Note that the combination semantics of some of the combiners
+     * (those representing intensive, rather than extensive, quantities)
+     * is somewhat changed by the context in which they are used here;
+     * the submission count is implicitly that of the number of HEALPix
+     * subpixels corresponding to the blur, rather than just the number
+     * of data values actually submitted.
+     *
+     * @param  combiner  basic combiner
+     * @param  dataLevel   HEALPix level at which data is supplied
+     * @param  viewLevel   HEALPix level at which pixels are to be calculated
+     * @return  bin list for accumulating pixel values
+     */
+    private static BinList createBinList( final Combiner combiner,
+                                          int dataLevel, int viewLevel ) {
+        int blur = dataLevel - viewLevel;
+        long nbin = 12 * ( 1 << ( 2 * viewLevel ) );
+        boolean isFew = nbin < 1e6;
+        if ( Combiner.MEAN.equals( combiner ) ) {
+            final double factor = 1.0 / ( 1 << ( 2 * blur ) );
+            final BinList baseList =
+                isFew ? Combiner.SUM.createArrayBinList( (int) nbin )
+                      : Combiner.SUM.createHashBinList( nbin );
+            return new BinList() {
+                public Combiner getCombiner() {
+                    return combiner;
+                }
+                public long getSize() {
+                    return baseList.getSize();
+                }
+                public void submitToBin( long index, double datum ) {
+                    baseList.submitToBin( index, datum );
+                }
+                public BinList.Result getResult() {
+                    final BinList.Result baseResult = baseList.getResult();
+                    return new BinList.Result() {
+                        public double getBinValue( long index ) {
+                            return factor * baseResult.getBinValue( index );
+                        }
+                        public double[] getValueBounds() {
+                            double[] bounds =
+                                baseResult.getValueBounds().clone();
+                            bounds[ 0 ] *= factor;
+                            bounds[ 1 ] *= factor;
+                            return bounds;
+                        }
+                    };
+                }
+            };
+        }
+        else { 
+            if ( ! Arrays.asList( new Combiner[] {
+                       Combiner.SUM, Combiner.MIN, Combiner.MAX,
+                   } ).contains( combiner ) ) {
+                logger_.warning( "Unexpected combiner: " + combiner );
+            }
+            return isFew ? combiner.createArrayBinList( (int) nbin )
+                         : combiner.createHashBinList( nbin );
+        }
+    }
+
+    /**
      * Style for configuring the HEALPix plot.
      */
     public static class HealpixStyle implements Style {
         private final int dataLevel_;
+        private final int blur_;
         private final Rotation rotation_;
         private final Scaling scaling_;
         private final Shader shader_;
+        private final Combiner combiner_;
 
         /**
          * Constructor.
@@ -287,17 +420,22 @@ public class HealpixPlotter
          * @param   dataLevel HEALPix level at which the pixel index coordinates
          *                    must be interpreted; if negative, automatic
          *                    detection will be used
+         * @param   blur      HEALPix levels by which to degrade view grid
          * @param   rotation  sky rotation to be applied before plotting
          * @param   scaling   scaling function for mapping densities to
          *                    colour map entries
          * @param   shader   colour map
+         * @param   combiner  combiner, only relevant if blur is non-zero
          */
-        public HealpixStyle( int dataLevel, Rotation rotation,
-                             Scaling scaling, Shader shader ) {
+        public HealpixStyle( int dataLevel, int blur, Rotation rotation,
+                             Scaling scaling, Shader shader,
+                             Combiner combiner ) {
             dataLevel_ = dataLevel;
+            blur_ = blur;
             rotation_ = rotation;
             scaling_ = scaling;
             shader_ = shader;
+            combiner_ = combiner;
         }
 
         /**
@@ -320,9 +458,11 @@ public class HealpixPlotter
         public int hashCode() {
             int code = 553227;
             code = 23 * code + dataLevel_;
+            code = 23 * code + blur_;
             code = 23 * code + rotation_.hashCode();
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + shader_.hashCode();
+            code = 23 * code + ( blur_ == 0 ? 0 : combiner_.hashCode() );
             return code;
         }
 
@@ -331,9 +471,12 @@ public class HealpixPlotter
             if ( o instanceof HealpixStyle ) {
                 HealpixStyle other = (HealpixStyle) o;
                 return this.dataLevel_ == other.dataLevel_
+                    && this.blur_ == other.blur_
                     && this.rotation_.equals( other.rotation_ )
                     && this.scaling_.equals( other.scaling_ )
-                    && this.shader_.equals( other.shader_ );
+                    && this.shader_.equals( other.shader_ )
+                    && ( blur_ == 0 ||
+                         this.combiner_.equals( other.combiner_ ) );
             }
             else {
                 return false;
@@ -342,12 +485,14 @@ public class HealpixPlotter
     }
 
     /**
-     * PlotLayer implementation for HEALPix plotter.
+     * PlotLayer implementation that goes through all the tiles in the input,
+     * and paints a tile for each one.  Only works for blur=0 (no level
+     * degradation).
      */
-    private class HealpixLayer extends AbstractPlotLayer {
+    private class SequenceHealpixLayer extends AbstractPlotLayer {
 
         private final HealpixStyle hstyle_;
-        private final int level_;
+        private final int dataLevel_;
         private final IndexReader indexReader_;
 
         /**
@@ -356,16 +501,18 @@ public class HealpixPlotter
          * @param  geom   data geom
          * @param  dataSpec   data specification
          * @param  hstyle   style
-         * @param  level   definite HEALPix level of data tiles
+         * @param  dataLevel   definite HEALPix level of data tiles
          * @param  indexReader   determines pixel index from data
          */
-        HealpixLayer( DataGeom geom, DataSpec dataSpec, HealpixStyle hstyle,
-                      int level, IndexReader indexReader ) {
+        SequenceHealpixLayer( DataGeom geom, DataSpec dataSpec,
+                              HealpixStyle hstyle, int dataLevel,
+                              IndexReader indexReader ) {
             super( HealpixPlotter.this, geom, dataSpec, hstyle,
                    hstyle.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL );
             hstyle_ = hstyle;
-            level_ = level;
+            dataLevel_ = dataLevel;
             indexReader_ = indexReader;
+            assert hstyle.blur_ == 0;
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -394,10 +541,11 @@ public class HealpixPlotter
                                       Map<AuxScale,Range> auxRanges,
                                       final PaperType paperType ) {
             final SkySurface ssurf = (SkySurface) surf;
+            final DataSpec dataSpec = getDataSpec();
+            final Shader shader = hstyle_.shader_;
             final Scaler scaler =
                 Scaling.createRangeScaler( hstyle_.scaling_,
                                            auxRanges.get( SCALE ) );
-            final Shader shader = hstyle_.shader_;
             final SkySurfaceTiler tiler = createTiler( ssurf );
             return new UnplannedDrawing() {
                 protected void paintData( Paper paper,
@@ -405,7 +553,7 @@ public class HealpixPlotter
                     paperType.placeDecal( paper, new Decal() {
                         public void paintDecal( Graphics g ) {
                             TupleSequence tseq =
-                                dataStore.getTupleSequence( getDataSpec() );
+                                dataStore.getTupleSequence( dataSpec );
                             paintTiles( g, tseq, tiler, scaler, shader );
                         }
                         public boolean isOpaque() {
@@ -423,7 +571,7 @@ public class HealpixPlotter
          * @retrun   tiler
          */
         private SkySurfaceTiler createTiler( SkySurface surf ) {
-            return new SkySurfaceTiler( surf, level_, hstyle_.rotation_ );
+            return new SkySurfaceTiler( surf, dataLevel_, hstyle_.rotation_ );
         }
 
         /**
@@ -459,6 +607,179 @@ public class HealpixPlotter
                 }
             }
             g.setColor( color0 );
+        }
+    }
+
+    /**
+     * PlotLayer implementation that calculates a whole HEALPix map from
+     * the input data (as a plan), and then paints that.
+     * Currently, the painting is done pixel-by-pixel by working
+     * out the required HEALPix tile for each screen pixel.
+     * That only works well if the tiles are bigger than screen pixels,
+     * and it's still not very efficient.
+     */
+    private class BinsHealpixLayer extends AbstractPlotLayer {
+
+        private final HealpixStyle hstyle_;
+        private final int dataLevel_;
+        private final int viewLevel_;
+        private final IndexReader indexReader_;
+
+        /**
+         * Constructor.
+         *
+         * @param  geom   data geom
+         * @param  dataSpec   data specification
+         * @param  hstyle   style
+         * @param  dataLevel   definite HEALPix level of data tiles
+         * @param  indexReader   determines pixel index from data
+         */
+        BinsHealpixLayer( DataGeom geom, DataSpec dataSpec,
+                          HealpixStyle hstyle, int dataLevel,
+                          IndexReader indexReader ) {
+            super( HealpixPlotter.this, geom, dataSpec, hstyle,
+                   hstyle.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL );
+            hstyle_ = hstyle;
+            dataLevel_ = dataLevel;
+            indexReader_ = indexReader;
+            viewLevel_ = Math.max( 0, dataLevel_ - hstyle.blur_ );
+            assert hstyle.blur_ >= 0;
+        }
+
+        public Map<AuxScale,AuxReader> getAuxRangers() {
+            Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
+            map.put( SCALE, new AuxReader() {
+                public int getCoordIndex() {
+                    return icValue_;
+                }
+                public void adjustAuxRange( Surface surface, TupleSequence tseq,
+                                            Range range ) {
+                    double[] bounds = readBins( tseq ).getValueBounds();
+                    range.submit( bounds[ 0 ] );
+                    range.submit( bounds[ 1 ] );
+                }
+            } );
+            return map;
+        }
+
+        public Drawing createDrawing( Surface surf,
+                                      Map<AuxScale,Range> auxRanges,
+                                      final PaperType paperType ) {
+            final SkySurface ssurf = (SkySurface) surf;
+            final DataSpec dataSpec = getDataSpec();
+            final Shader shader = hstyle_.shader_;
+            final Scaler scaler =
+                Scaling.createRangeScaler( hstyle_.scaling_,
+                                           auxRanges.get( SCALE ) );
+            final Rotation unrotation = hstyle_.rotation_.invert();
+            final SkyPixer skyPixer = new SkyPixer( viewLevel_ ) {
+                public long getIndex( double[] v3 ) {
+                    unrotation.rotate( v3 );
+                    return super.getIndex( v3 );
+                }
+            };
+            return new Drawing() {
+                public Object calculatePlan( Object[] knownPlans,
+                                             DataStore dataStore ) {
+                    for ( Object plan : knownPlans ) {
+                        if ( plan instanceof TilePlan ) {
+                            TilePlan tplan = (TilePlan) plan;
+                            if ( tplan.matches( dataLevel_, viewLevel_,
+                                                dataSpec ) ) {
+                                return tplan;
+                            }
+                        }
+                    }
+                    BinList.Result binResult =
+                        readBins( dataStore.getTupleSequence( dataSpec ) );
+                    return new TilePlan( dataLevel_, viewLevel_, dataSpec,
+                                         binResult );
+                }
+                public void paintData( Object plan, Paper paper,
+                                       DataStore dataStore ) {
+                    final BinList.Result binResult =
+                        ((TilePlan) plan).binResult_;
+                    paperType.placeDecal( paper, new Decal() {
+                        public void paintDecal( Graphics g ) {
+                            SkyDensityPlotter
+                           .paintBins( g, binResult, ssurf, skyPixer,
+                                       shader, scaler );
+                        }
+                        public boolean isOpaque() {
+                            return hstyle_.isOpaque();
+                        }
+                    } );
+                }
+                public ReportMap getReport( Object plan ) {
+                    return null;
+                }
+            };
+        }
+
+        /**
+         * Constructs and populates a bin list (tile index -&gt; value map)
+         * suitable for plotting this layer.
+         *
+         * @param  tseq   row iterator
+         * @return   value map
+         */
+        private BinList.Result readBins( TupleSequence tseq ) {
+            int blur = dataLevel_ - viewLevel_;
+            assert blur >= 0;
+            int shift = blur * 2;
+            BinList binList =
+                createBinList( hstyle_.combiner_, dataLevel_, viewLevel_ );
+            while ( tseq.next() ) {
+                double value = tseq.getDoubleValue( icValue_ );
+                if ( ! Double.isNaN( value ) ) {
+                    long hpx = indexReader_.getHealpixIndex( tseq );
+                    long ibin = hpx >> shift;
+                    binList.submitToBin( ibin, value );
+                }
+            }
+            return binList.getResult();
+        }
+    }
+
+    /**
+     * Plot layer plan for use with BinsHealpixLayer.
+     */
+    private static class TilePlan {
+        final int dataLevel_;
+        final int viewLevel_;
+        final DataSpec dataSpec_;
+        final BinList.Result binResult_;
+
+        /**
+         * Constructor.
+         *
+         * @param  dataLevel  HEALPix level at which data was supplied
+         * @param  viewLevel  HEALPix level at which pixels were calculated
+         * @param  dataSpec   data spec
+         * @param  binResult   tile map
+         */
+        TilePlan( int dataLevel, int viewLevel, DataSpec dataSpec,
+                  BinList.Result binResult ) {
+            dataLevel_ = dataLevel;
+            viewLevel_ = viewLevel;
+            dataSpec_ = dataSpec;
+            binResult_ = binResult;
+        }
+
+        /**
+         * Indicates whether this plan can be used for a given plot
+         * specification.
+         *
+         * @param  dataLevel  HEALPix level at which data is supplied
+         * @param  viewLevel  HEALPix level at which pixels is calculated
+         * @param  dataSpec   data spec
+         * @return  true iff this plan can be used for the given parameters
+         */
+        public boolean matches( int dataLevel, int viewLevel,
+                                DataSpec dataSpec ) {
+            return dataLevel_ == dataLevel
+                && viewLevel_ == viewLevel
+                && dataSpec_.equals( dataSpec );
         }
     }
 
