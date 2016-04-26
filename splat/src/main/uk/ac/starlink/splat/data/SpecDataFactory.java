@@ -735,6 +735,7 @@ public class SpecDataFactory
     	List<SpecDataImpl> specDataImpls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
     	boolean singleDish = false;
     	SpecDataImpl implGlobal = null;
+    	boolean success=true;
     	
         implGlobal = new FITSSpecDataImpl( specspec );
     //    if (is_sdfits(implGlobal))
@@ -758,52 +759,56 @@ public class SpecDataFactory
                     if ( i>0 )
                         datsrc.setPosition(pos);
                     starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
-                 
+
                     rowCount = starTable.getRowCount();
                     if ( rowCount == 0 )
                         throw new Exception( "The TABLE is empty");
-                    
+
                     if (starTable.getName().equals("SINGLE DISH") /*&& i==1*/) { // SDFITS format
                         singleDish = true;
                         if ( i == 1) {// skip first header
                             String url = datsrc.getURL().toString();
                             Header header = ((FITSSpecDataImpl)impl).getFitsHeaders();
-                            
+
                             for (int row=0;  row<rowCount; row++) {  // SDFITS: each row is a spectrum
                                 impl = new SDFitsTableSpecDataImpl( starTable, url, header, row );
-                                    specDataImpls.add(impl);   
+                                specDataImpls.add(impl);   
                             }
                         }// if i==1
                     } else { 
                         impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
                                 ((FITSSpecDataImpl)impl).getFitsHeaders());
-                   } // not SDFITS
+                    } // not SDFITS
                 }
                 catch (SEDSplatException se) {
                     se.setType(FITS);
                     se.setSpec(specspec);
-                    throw se;
+                    logger.info(se.getMessage());
+                    success=false;
+                    //throw se;
                 }
                 catch (Exception e) {
-                    if (e.getMessage().contains("TABLE is empty")) {
+                    if (e.getMessage().contains("HDU "+ i +"TABLE is empty")) {
                         impl=null;
-                        logger.info( e.getMessage() );
-                        throw new SplatException (e);
+                        logger.info( e.getMessage() );                       
+                        // throw new SplatException (e);
                     }
-                    else throw new SplatException( "Failed to open FITS table", e );
+                    else logger.info( "Failed to open FITS table "+e.getMessage() );
+                    //throw new SplatException( "Failed to open FITS table", e );
+                    success=false;
                 }
             } 
-           
+
                 /* add only if data array size is not 0 
                  * (we can do this since we loop over all
                  * found HDUs so any relevant, non-zero HDUs
                  * will be treated correctly)
                  */
                 if ( ! singleDish ) { // single dish spectra have been added already
-                    if ((dims == null || (dims !=null && dims[0] != 0)))
+                    if (success && (dims == null || (dims !=null && dims[0] != 0)))
                         specDataImpls.add(impl);
                     else
-                        logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
+                        logger.info(String.format("Ignoring HDU #%d in '%s' (no spectra/data array size 0)", i, impl.getFullName()));
                 }
             
     	} // for 
@@ -1345,7 +1350,8 @@ public class SpecDataFactory
                     throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
                             " for the URL : " + url.toString()    );
                 }
-                compressed = ("gzip".equals(connection.getContentEncoding()));
+                compressed = ("gzip".equals(connection.getContentEncoding()) ||
+                             (connection.getContentType().contains("gzip")));
                 mimetype = new MimeType(connection.getContentType());
                 remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
             }
