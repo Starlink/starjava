@@ -290,11 +290,14 @@ public class PathParser
             }
         }
         if ( i1 > -1 && i2 > -1 ) {
+            if (i2 == specpath.length()-1)
+                
             fitsext_ = specpath.substring( i1, i2 + 1 );
             try {
                 fitshdu_ = Integer.parseInt(specpath.substring( i1 + 1, i2 ));
             }
-            catch ( Exception e ) {
+            catch ( Exception e ) {                
+                fitsext_="";
                 fitshdu_ = 0;
             }
         }
@@ -308,12 +311,15 @@ public class PathParser
      *  or NDF slice) after the first "."  in the string after the last
      *  directory separator. If no type is given then it defaults to
      * ".sdf".
+     * #MCN: Many remote files (access url) don't follow this convention and get
+     * an exception -
      */
     protected void getType()
     {
         File file = new File( specpath );
         String name = file.getName();
         int i1 = name.lastIndexOf( "." ); // Changed: from IndexOf to LastIndexOf MCN 08/2012
+        
         if ( i1 > -1 ) {
             if ( ! fitsext_.equals( "") ) {
                 int i2 = name.indexOf( fitsext_ );
