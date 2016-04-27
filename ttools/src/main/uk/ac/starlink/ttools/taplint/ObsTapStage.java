@@ -120,6 +120,9 @@ public class ObsTapStage implements Stage {
             reporter.report( FixedCode.W_DMDC, msg );
             is11 = false;
         }
+        reporter.report( FixedCode.I_DMID,
+                         "Checking against ObsCore DM "
+                       + ( is11 ? "1.1" : "1.0" ) );
 
         /* Run tests. */
         new ObsTapRunner( reporter, serviceUrl, obsMeta, is11, tapRunner_ )

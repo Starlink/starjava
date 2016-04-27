@@ -196,6 +196,7 @@ public enum FixedCode implements ReportCode {
 
     I_CJOB( "Job created" ),
     I_CURL( "Reading capability metadata" ),
+    I_DMID( "Data model declared" ),
     I_DUFF( "Duff query" ),
     I_JOFI( "Job finished immediately" ),
     I_NODM( "No ObsCore tests" ),
