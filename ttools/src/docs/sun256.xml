@@ -10532,6 +10532,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Improve sky plot border painting.</li>
     <li><code>taplint</code> now validates ObsCore 1.1 where declared
         alongside ObsCore 1.0.  Currently uses PR-ObsCore-v1.1-20160330.</li>
+    <li>Replaced <code>opaque</code> config option with
+        <code>transparency</code> for plane and sky density plots.</li>
     </ul>
     </p></dd>
 

@@ -169,7 +169,7 @@ public class StyleKeys {
             new ConfigMeta( "transparency", "Transparency" )
            .setShortDescription( "Fractional transparency" )
            .setXmlDescription( new String[] {
-                "<p>Transparency with which compoents are plotted,",
+                "<p>Transparency with which components are plotted,",
                 "in the range 0 (opaque) to 1 (invisible).",
                 "The value is 1-alpha.",
                 "</p>",

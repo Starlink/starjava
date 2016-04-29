@@ -23055,6 +23055,8 @@ introduced since the last version:
     <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
         Shouldn't be any noticable difference.</li>
     <li>Improve sky plot border painting.</li>
+    <li>Replace Opaque Limit with Transparency config option for plane and
+        sky density plots.</li>
     </ul>
     </p></dd>
 

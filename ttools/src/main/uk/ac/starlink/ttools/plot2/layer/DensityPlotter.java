@@ -91,7 +91,8 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
                 "</p>",
             } )
         , 2, 1, 50 );
-    private static final ConfigKey<Double> OPAQUE_KEY = StyleKeys.AUX_OPAQUE;
+    private static final ConfigKey<Double> TRANSPARENCY_KEY =
+        StyleKeys.TRANSPARENCY;
 
     /**
      * Constructor.
@@ -164,7 +165,7 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
         if ( transparent_ ) {
-            keyList.add( OPAQUE_KEY );
+            keyList.add( TRANSPARENCY_KEY );
         }
         return keyList.toArray( new ConfigKey[ 0 ] );
     }
@@ -173,7 +174,7 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         int binpix = config.get( BINPIX_KEY );
         Scaling scaling = ramp.getScaling();
-        float scaleAlpha = (float) ( 1.0 / config.get( OPAQUE_KEY ) );
+        float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
         Combiner combiner = weightCoord_ == null
                           ? Combiner.COUNT
