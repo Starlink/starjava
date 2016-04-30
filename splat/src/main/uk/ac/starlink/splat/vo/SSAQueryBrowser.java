@@ -440,7 +440,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * @uml.property  name="resultsPane"
      * @uml.associationEnd  
      */
-    protected JTabbedPane resultsPane = null;
+  //  protected JTabbedPane resultsPane = null;
 
     /**
      * The list of StarJTables in use
@@ -1126,7 +1126,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     private  void initResultsComponent()
     {
         
-        resultsPane = new JTabbedPane();
+        JTabbedPane resultsPane = new JTabbedPane();
   
 //        resultsPane.setPreferredSize(new (600,310));
         
@@ -2256,7 +2256,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     public StarTable getCurrentTable()
     {
         if ( starJTables != null && starJTables.size() > 0 ) {
-            int index = resultsPane.getSelectedIndex();
+            int index = resultsPanel.getSelectedIndex();
             if ( index > -1 ) {
                 StarJTable jTable = starJTables.get( index );
                 return jTable.getStarTable();
