@@ -19,6 +19,34 @@ public class CalcTest extends TestCase {
     public void testCalc() throws Exception {
         assertEquals( "3", eval( "1+2" ) );
         assertEquals( "53729.0", eval( "isoToMjd(\"2005-12-25T00:00:00\")" ) );
+
+        assertEquals( "One2Three4Five999",
+                      eval( "concat(\"One\", "
+                                 + "toString((int)2), "
+                                 + "\"Three\", "
+                                 + "toString(4.0), "
+                                 + "\"Five\", "
+                                 + "null, "
+                                 + "toString(999L))" ) );
+
+        assertEquals( "One2Three4.0Five999",
+                      eval( "concat(\"One\", "
+                                 + "2, "
+                                 + "\"Three\", "
+                                 + "4.0, "
+                                 + "\"Five\", "
+                                 + "null, "
+                                 + "999L)" ) );
+
+        assertEquals( "One, 2, Three, 4.0, Five, null, 999",
+                      eval( "join(\", \", "
+                                + "\"One\", "
+                                + "2, "
+                                + "\"Three\", "
+                                + "4.0, "
+                                + "\"Five\", "
+                                + "null, "
+                                + "999L)" ) );
     }
 
     public void testWithTable() throws Exception {

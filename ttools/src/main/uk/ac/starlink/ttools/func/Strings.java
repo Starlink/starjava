@@ -29,24 +29,48 @@ public class Strings {
     }
 
     /**
-     * Concatenates multiple strings.
-     * In most cases the same effect can be achieved by
-     * writing <code>s1+s2+...</code>, but blank values can sometimes appear as
-     * the string "<code>null</code>" if you do it like that.
+     * Concatenates multiple values into a string.
+     * In some cases the same effect can be achieved by
+     * writing <code>s1+s2+...</code>, but this method makes sure that
+     * values are converted to strings, with the blank value invisible.
      *
      * @example  <code>concat("blue", "moon") = "bluemoon"</code>
-     * @example  <code>concat("1", "2", "3", "4") = "1234"</code>
+     * @example  <code>concat("1", 2, 3, "4") = "1234"</code>
      * @example  <code>concat("Astro", null, "Physics") = "AstroPhysics"</code>
      *
      * @param  strings  one or more strings
      * @return  concatenation of input strings, without separators
      */
-    public static String concat( String... strings ) {
+    public static String concat( Object... strings ) {
         StringBuffer sbuf = new StringBuffer();
-        for ( String s : strings ) {
+        for ( Object s : strings ) {
             if ( s != null ) {
                 sbuf.append( s );
             }
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Joins multiple values into a string, with a given
+     * separator between each pair.
+     *
+     * @example  <code>join("&lt;-&gt;", "alpha", "beta", "gamma")
+     *                 = "alpha&lt;-&gt;beta&lt;-&gt;gamma"</code>
+     * @example  <code>join(" ", 1, "brown", "mouse")
+     *                 = "1 brown mouse"</code>
+     *
+     * @param  separator  string to insert between adjacent words
+     * @param  words   one or more values to join
+     * @return  input values joined together with <code>separator</code>
+     */
+    public static String join( String separator, Object... words ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < words.length; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( separator );
+            }
+            sbuf.append( words[ i ] );
         }
         return sbuf.toString();
     }

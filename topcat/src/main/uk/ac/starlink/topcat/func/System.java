@@ -23,23 +23,32 @@ public class System {
     }
 
     /**
-     * Executes an operating system command composed of one or more words.
+     * Executes an operating system command composed of a command and
+     * one or more arguments.
      *
-     * <p>Each supplied argument is passed to the execution like a single
+     * <p>Each of the <code>words</code> values is treated as a single
      * (possibly quoted) word in a shell command.
-     * The first one is the filename
+     * The first argument is the filename
      * (either a full pathname, or the name of a file on the current path)
      * of an executable file.
+     * These values can be numeric, or strings, or something else, and
+     * are converted automatically to string values.
      *
      * @example  <code>exec("/home/mbt/bin/process_obj.py", OBJ_NAME)</code>
-     * @example  <code>exec("process_coords.py", toString(RA), toString(DEC))
-     *                 </code>
+     * @example  <code>exec("process_skycoords.py", RA, DEC)</code>
+     * @example  <code>exec("process_sphericalcoords.sh", RA, DEC, 1.0)</code>
      *
-     * @param   words  one or more words comprising the command
+     * @param   words  one or more words composing a shell command;
+     *                 first is command and others are arguments
      * @return  short report message
      */
-    public static String exec( String... words ) {
-        return execute( Executor.createExecutor( words ) );
+    public static String exec( Object... words ) {
+        String[] argv = new String[ words.length ];
+        for ( int i = 0; i < words.length; i++ ) {
+            Object word = words[ i ];
+            argv[ i ] = word == null ? "null" : word.toString();
+        }
+        return execute( Executor.createExecutor( argv ) );
     }
 
     /**

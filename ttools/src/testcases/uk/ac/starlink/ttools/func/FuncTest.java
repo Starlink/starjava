@@ -401,6 +401,20 @@ public class FuncTest extends TestCase {
         assertEquals( "starlink", Strings.concat( "star", "link" ) );
         assertEquals( "star", Strings.concat( "star", null ) );
         assertEquals( "link", Strings.concat( "", "link" ) );
+        assertEquals( "1223334444",
+                      Strings.concat( "1", 22, "", "333", null, "4444" ) );
+
+        assertEquals( "A big gale", Strings.join( " ", "A", "big", "gale" ) );
+        assertEquals( "one, 2, 3.0, 4",
+                      Strings.join( ", ", "one", "2", 3.0, 4L ) );
+
+        assertEquals( "One2Three4.0Five999",
+                      Strings.concat( "One", new Integer( 2 ), "Three",
+                                      new Double( 4.0 ), "Five", null,
+                                      new Long( 999L ) ) );
+        assertEquals( "One2Three4.0Five999",
+                      Strings.concat( "One", 2, "Three", 4.0, "Five",
+                                      null, 999L ) );
 
         assertTrue( Strings.contains( "awkward", "awk" ) );
         assertTrue( Strings.contains( "hawkwind", "awk" ) );
