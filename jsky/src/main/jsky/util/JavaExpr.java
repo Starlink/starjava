@@ -70,7 +70,7 @@ public class JavaExpr extends DVMap {
      */
     public JavaExpr(String exprStr) throws Throwable {
         // The namespace is defined by constructing the library class
-        Library lib = new Library(_stLib, _dynLib, null, this);
+        Library lib = new Library(_stLib, _dynLib, null, this, null);
 
         // setup the global context and data
         _context[0] = this; // this pointer for YYY getXXXProperty() methods
@@ -91,7 +91,7 @@ public class JavaExpr extends DVMap {
         _dynLib[0] = resolver.getClass();
 
         // The namespace is defined by constructing the library class
-        Library lib = new Library(_stLib, _dynLib, null, resolver);
+        Library lib = new Library(_stLib, _dynLib, null, resolver, null);
 
         // setup the global context and data
         _context[0] = resolver; // this pointer for YYY getXXXProperty() methods
