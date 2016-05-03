@@ -104,7 +104,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     private void initComponents() {
         this.setLayout(new GridBagLayout());
         this.setBorder ( BorderFactory.createTitledBorder( "Query results:" ) );
-        this.setToolTipText( "Results of query to the current list of SSAP servers. One table per server" );
+        this.setToolTipText( "Results of query to the current list of services. One table per service" );
      
         GridBagConstraints gbc=new GridBagConstraints();
         gbc.gridx=0;
@@ -680,6 +680,10 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         return dataLinkFrame;
     }
 
+    public int getSelectedIndex() {
+        return resultsPane.getSelectedIndex();
+    }    
+    
 
     //
     // MouseListener interface. Double clicks display the clicked spectrum.
@@ -725,6 +729,9 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                 displaySpectra( false, false, (StarJTable) table, row );
             }             
         }
-    }    
-    
+    }
+
+
+
+   
 }
