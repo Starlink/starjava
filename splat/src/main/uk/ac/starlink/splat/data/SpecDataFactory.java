@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.FileNameMap;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.MalformedURLException;
@@ -30,6 +31,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
@@ -732,6 +735,7 @@ public class SpecDataFactory
     	List<SpecDataImpl> specDataImpls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
     	boolean singleDish = false;
     	SpecDataImpl implGlobal = null;
+    	boolean success=true;
     	
         implGlobal = new FITSSpecDataImpl( specspec );
     //    if (is_sdfits(implGlobal))
@@ -755,52 +759,56 @@ public class SpecDataFactory
                     if ( i>0 )
                         datsrc.setPosition(pos);
                     starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
-                 
+
                     rowCount = starTable.getRowCount();
                     if ( rowCount == 0 )
                         throw new Exception( "The TABLE is empty");
-                    
+
                     if (starTable.getName().equals("SINGLE DISH") /*&& i==1*/) { // SDFITS format
                         singleDish = true;
                         if ( i == 1) {// skip first header
                             String url = datsrc.getURL().toString();
                             Header header = ((FITSSpecDataImpl)impl).getFitsHeaders();
-                            
+
                             for (int row=0;  row<rowCount; row++) {  // SDFITS: each row is a spectrum
                                 impl = new SDFitsTableSpecDataImpl( starTable, url, header, row );
-                                    specDataImpls.add(impl);   
+                                specDataImpls.add(impl);   
                             }
                         }// if i==1
                     } else { 
                         impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
                                 ((FITSSpecDataImpl)impl).getFitsHeaders());
-                   } // not SDFITS
+                    } // not SDFITS
                 }
                 catch (SEDSplatException se) {
                     se.setType(FITS);
                     se.setSpec(specspec);
-                    throw se;
+                    logger.info(se.getMessage());
+                    success=false;
+                    //throw se;
                 }
                 catch (Exception e) {
-                    if (e.getMessage().contains("TABLE is empty")) {
+                    if (e.getMessage().contains("HDU "+ i +"TABLE is empty")) {
                         impl=null;
-                        logger.info( e.getMessage() );
-                        throw new SplatException (e);
+                        logger.info( e.getMessage() );                       
+                        // throw new SplatException (e);
                     }
-                    else throw new SplatException( "Failed to open FITS table", e );
+                    else logger.info( "Failed to open FITS table "+e.getMessage() );
+                    //throw new SplatException( "Failed to open FITS table", e );
+                    success=false;
                 }
             } 
-           
+
                 /* add only if data array size is not 0 
                  * (we can do this since we loop over all
                  * found HDUs so any relevant, non-zero HDUs
                  * will be treated correctly)
                  */
                 if ( ! singleDish ) { // single dish spectra have been added already
-                    if ((dims == null || (dims !=null && dims[0] != 0)))
+                    if (success && (dims == null || (dims !=null && dims[0] != 0)))
                         specDataImpls.add(impl);
                     else
-                        logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
+                        logger.info(String.format("Ignoring HDU #%d in '%s' (no spectra/data array size 0)", i, impl.getFullName()));
                 }
             
     	} // for 
@@ -1313,7 +1321,8 @@ public class SpecDataFactory
         PathParser namer = null;
         boolean compressed = false;
         MimeType mimetype = null;
-       
+        String remotetype = null;
+      
         try {
             
             //  Contact the resource.
@@ -1341,9 +1350,10 @@ public class SpecDataFactory
                     throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
                             " for the URL : " + url.toString()    );
                 }
-                compressed = ("gzip".equals(connection.getContentEncoding()));
+                compressed = ("gzip".equals(connection.getContentEncoding()) ||
+                             (connection.getContentType().contains("gzip")));
                 mimetype = new MimeType(connection.getContentType());
-                
+                remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
             }
             connection.setConnectTimeout(10*1000); // 10 seconds
             connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
@@ -1363,7 +1373,7 @@ public class SpecDataFactory
                 type = FITS;
             } else if (mimetype.getPrimaryType().contains("text") && mimetype.getSubType().contains("plain") ) {
                 type = TEXT;
-            }
+            } 
             
             //  Create a temporary file. Use a file extension based on the
             //  type, if known.
@@ -1394,7 +1404,10 @@ public class SpecDataFactory
                 }
                 break;
                 default: {
-                    stype = namer.type();
+                    if (remotetype != null) 
+                        stype=remotetype; // the type of the remote filename
+                    else 
+                        stype = namer.type();
                     
                     if ( stype.equals( "" ) ) {
                         stype = ".tmp";
@@ -1448,6 +1461,25 @@ public class SpecDataFactory
             throw new SplatException( e );
         }
         return namer;
+    }
+
+    
+    /*
+     * getRemoteType
+     * gets remote file type from remote filename contained in HTTP connection header string
+     */
+    private String getRemoteType(String headerstr) {
+        if ( headerstr == null || headerstr.isEmpty() )
+            return null;
+        if (headerstr.contains("filename="))
+        { 
+           String remotename = headerstr.substring(headerstr.indexOf("filename=")+9);
+            if (remotename != null) {
+                PathParser remotenamer = new PathParser(remotename);
+                return remotenamer.type();
+            }
+        }
+        return null;
     }
 
     //  Types of reprocessing of 2D data files. The default is VECTORIZE
