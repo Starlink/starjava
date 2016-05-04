@@ -31,19 +31,19 @@ public class FuncTest extends TestCase {
         assertEquals( 2.3, Arithmetic.abs( -2.3 ) );
 
         assertEquals( 5, Arithmetic.max( (short) 5, (short) 4) );
-        assertEquals( -4.0, Arithmetic.max( -5.0f, -4.0f ) );
+        assertEquals( -4.0, Arithmetic.maxNaN( -5.0f, -4.0f ) );
 
         assertEquals( 4, Arithmetic.min( (short) 5, (short) 4) );
-        assertEquals( -5.0, Arithmetic.min( -5.0f, -4.0f ) );
+        assertEquals( -5.0, Arithmetic.minNaN( -5.0f, -4.0f ) );
 
         assertEquals( 4.0, Arithmetic.maxReal( 4.0, Double.NaN ) );
         assertEquals( 4.0, Arithmetic.maxReal( Double.NaN, 4.0 ) );
         assertEquals( Math.PI, Arithmetic.minReal( Math.PI, Double.NaN ) );
         assertEquals( Math.PI, Arithmetic.minReal( Double.NaN, Math.PI ) );
-        assertTrue( Double.isNaN( Arithmetic.max( 4.0, Double.NaN ) ) );
-        assertTrue( Double.isNaN( Arithmetic.max( Double.NaN, 4.0 ) ) );
-        assertTrue( Double.isNaN( Arithmetic.min( Math.PI, Double.NaN ) ) );
-        assertTrue( Double.isNaN( Arithmetic.min( Double.NaN, Math.PI ) ) );
+        assertTrue( Double.isNaN( Arithmetic.maxNaN( 4.0, Double.NaN ) ) );
+        assertTrue( Double.isNaN( Arithmetic.maxNaN( Double.NaN, 4.0 ) ) );
+        assertTrue( Double.isNaN( Arithmetic.minNaN( Math.PI, Double.NaN ) ) );
+        assertTrue( Double.isNaN( Arithmetic.minNaN( Double.NaN, Math.PI ) ) );
         assertEquals( 4.0, Arithmetic.maxReal( 4.0, Math.PI ) );
         assertEquals( 4.0, Arithmetic.maxReal( Math.PI, 4.0 ) );
         assertEquals( Math.PI, Arithmetic.minReal( 4.0, Math.PI ) );

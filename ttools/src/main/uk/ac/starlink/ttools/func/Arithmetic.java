@@ -115,6 +115,9 @@ public class Arithmetic {
      * Returns the greater of two integer values.
      * If the arguments have the same value, the result is that same value.
      *
+     * <p>Multiple-argument maximum functions are also provided in the
+     * <code>Arrays</code> and <code>Lists</code> packages.
+     *
      * @param   a   an argument.
      * @param   b   another argument.
      * @return  the larger of <code>a</code> and <code>b</code>.
@@ -132,7 +135,7 @@ public class Arithmetic {
      * @param   b   another argument.
      * @return  the larger of <code>a</code> and <code>b</code>.
      */
-    public static double max(double a, double b) {
+    public static double maxNaN(double a, double b) {
         return Math.max( a, b );
     }
 
@@ -141,6 +144,9 @@ public class Arithmetic {
      * If the arguments have the same value, the result is that same value.
      * If one argument is blank, the result is the other one.
      * If both arguments are blank, the result is blank.
+     *
+     * <p>Multiple-argument maximum functions are also provided in the
+     * <code>Arrays</code> and <code>Lists</code> packages.
      *
      * @param   a  an argument
      * @param   b  another argument
@@ -162,6 +168,9 @@ public class Arithmetic {
      * Returns the smaller of two integer values.
      * If the arguments have the same value, the result is that same value.
      *
+     * <p>Multiple-argument minimum functions are also provided in the
+     * <code>Arrays</code> and <code>Lists</code> packages.
+     *
      * @param   a   an argument.
      * @param   b   another argument.
      * @return  the smaller of <code>a</code> and <code>b</code>.
@@ -179,7 +188,7 @@ public class Arithmetic {
      * @param   b   another argument.
      * @return  the smaller of <code>a</code> and <code>b</code>.
      */
-    public static double min(double a, double b) {
+    public static double minNaN(double a, double b) {
         return Math.min( a, b );
     }
 
@@ -188,6 +197,9 @@ public class Arithmetic {
      * If the arguments have the same value, the result is that same value.
      * If one argument is blank, the result is the other one.
      * If both arguments are blank, the result is blank.
+     *
+     * <p>Multiple-argument minimum functions are also provided in the
+     * <code>Arrays</code> and <code>Lists</code> packages.
      *
      * @param   a   an argument
      * @param   b   another argument

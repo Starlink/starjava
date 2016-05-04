@@ -21,6 +21,9 @@ import uk.ac.starlink.ttools.filter.QuantCalc;
  * on multiple values which are not part of an array,
  * it's easier to use the functions from the <code>Lists</code> class.
  *
+ * <p>Note that none of these functions will calculate statistical functions
+ * over a whole column of a table.
+ *
  * <p>The functions fall into a number of categories:
  * <ul>
  * <li>Aggregating operations, which map an array value to a scalar, including
