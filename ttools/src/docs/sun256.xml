@@ -10554,6 +10554,51 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix read failure for FITS files with non-blank TDIM for
         zero-length columns.</li>
     </ul>
+    </p>
+    <p>
+    <dl>
+    <dt>Expression Language</dt>
+    <dd><p>The JEL library underlying the expression language parser
+        has been upgraded to v2.1.1 (thanks to Kontantin Metlov),
+        now supporting variable-length argument lists among other things.
+        This allows the following improvements:
+        <ul>
+        <li>New functions that support any number of arguments are provided:
+            <code>array</code>, <code>intArray</code>, <code>stringArray</code>
+            in class <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
+            <code>concat</code>, <code>join</code>
+            in class <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>;
+            and
+            <code>sum</code>, <code>mean</code>, <code>variance</code>,
+            <code>stdev</code>, <code>min</code>, <code>max</code>,
+            <code>median</code>
+            in new class
+            <ref id="uk.ac.starlink.ttools.func.Lists">Lists</ref>.</li>
+        <li>Some old lists of similarly-named functions with fixed numbers
+            of arguments have been replaced by single functions that
+            take an arbitrary number of arguments
+            (e.g. <code>array(x1)</code>, <code>array(x1,x2)</code>, ...
+                  <code>array(x1,x2,x3,x4,x5,x6,x7,x8)</code>
+            replaced by <code>array(values...)</code>).</li>
+        <li>The 2-argument <code>min</code>/<code>max</code> functions in class
+            <code>Arithmetic</code> have been renamed
+            <code>minNaN</code>/<code>maxNaN</code> to avoid confusion,
+            but in most cases existing expressions involving min/max
+            will work as before.</li>
+        <li>Some functions that used to require string arguments will now
+            auto-convert numeric types
+            (e.g. <code>concat(toString(RA),";",toString(DEC))</code>
+            can now be written <code>concat(RA,";",DEC)</code>).</li>
+        <li>You can now implement
+            <ref id="jelExtend">user-defined functions</ref> with variable
+            numbers of arguments.</li>
+        <li>Writing large (&gt;=2**31) literal integers used to fail with
+            and inscrutable error message.
+            Now the message tells you to append the
+            "<code>L</code>" character.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
