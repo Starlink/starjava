@@ -466,6 +466,15 @@ public class SkySurface implements Surface {
     }
 
     /**
+     * Returns the approximate size of a screen pixel in radians.
+     *
+     * @return   approximate (mean?) linear size of a screen pixel in radians
+     */
+    public double getPixelSize() {
+        return 2.0 * Math.PI / gZoom_;
+    }
+
+    /**
      * Formats a lon/lat position as sexagesimal given the approximate size
      * of a screen pixel.
      * The pixel size is used to determine how much precision to give.
