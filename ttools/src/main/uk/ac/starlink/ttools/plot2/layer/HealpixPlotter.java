@@ -3,7 +3,9 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -623,6 +625,7 @@ public class HealpixPlotter
         private final HealpixStyle hstyle_;
         private final int dataLevel_;
         private final int viewLevel_;
+        private final SkyPixer skyPixer_;
         private final IndexReader indexReader_;
 
         /**
@@ -643,6 +646,13 @@ public class HealpixPlotter
             dataLevel_ = dataLevel;
             indexReader_ = indexReader;
             viewLevel_ = Math.max( 0, dataLevel_ - hstyle.blur_ );
+            final Rotation unrotation = hstyle_.rotation_.invert();
+            skyPixer_ = new SkyPixer( viewLevel_ ) {
+                public long getIndex( double[] v3 ) {
+                    unrotation.rotate( v3 );
+                    return super.getIndex( v3 );
+                }
+            };
             assert hstyle.blur_ >= 0;
         }
 
@@ -654,7 +664,14 @@ public class HealpixPlotter
                 }
                 public void adjustAuxRange( Surface surface, TupleSequence tseq,
                                             Range range ) {
-                    double[] bounds = readBins( tseq ).getValueBounds();
+                    // this is nasty because I need to iterate over the data
+                    // to get the aux range; the plan has that information,
+                    // (which means the actual painting doesn't need the data),
+                    // but I can't see it here.
+                    double[] bounds =
+                        getPixelRange( readBins( tseq ), (SkySurface) surface,
+                                       skyPixer_ )
+                       .getBounds();
                     range.submit( bounds[ 0 ] );
                     range.submit( bounds[ 1 ] );
                 }
@@ -671,13 +688,6 @@ public class HealpixPlotter
             final Scaler scaler =
                 Scaling.createRangeScaler( hstyle_.scaling_,
                                            auxRanges.get( SCALE ) );
-            final Rotation unrotation = hstyle_.rotation_.invert();
-            final SkyPixer skyPixer = new SkyPixer( viewLevel_ ) {
-                public long getIndex( double[] v3 ) {
-                    unrotation.rotate( v3 );
-                    return super.getIndex( v3 );
-                }
-            };
             return new Drawing() {
                 public Object calculatePlan( Object[] knownPlans,
                                              DataStore dataStore ) {
@@ -702,7 +712,7 @@ public class HealpixPlotter
                     paperType.placeDecal( paper, new Decal() {
                         public void paintDecal( Graphics g ) {
                             SkyDensityPlotter
-                           .paintBins( g, binResult, ssurf, skyPixer,
+                           .paintBins( g, binResult, ssurf, skyPixer_,
                                        shader, scaler );
                         }
                         public boolean isOpaque() {
@@ -738,6 +748,39 @@ public class HealpixPlotter
                 }
             }
             return binList.getResult();
+        }
+
+        /**
+         * Returns the range of pixel values found within a given surface.
+         *
+         * @param  binResult   tile bin contents
+         * @param  surface     plot surface
+         * @param  skyPixer    pixel mapper
+         * @return  range of pixel values
+         */
+        private Range getPixelRange( BinList.Result binResult,
+                                     SkySurface surface, SkyPixer skyPixer ) {
+            Rectangle bounds = surface.getPlotBounds();
+            Gridder gridder = new Gridder( bounds.width, bounds.height );
+            int npix = gridder.getLength();
+            Point2D.Double point = new Point2D.Double();
+            double x0 = bounds.x + 0.5;
+            double y0 = bounds.y + 0.5;
+            long hpix0 = -1;
+            Range range = new Range();
+            for ( int ip = 0; ip < npix; ip++ ) {
+                point.x = x0 + gridder.getX( ip );
+                point.y = y0 + gridder.getY( ip );
+                double[] dpos = surface.graphicsToData( point, null );
+                if ( dpos != null ) {
+                    long hpix = skyPixer.getIndex( dpos );
+                    if ( hpix != hpix0 ) {
+                         hpix0 = hpix;
+                        range.submit( binResult.getBinValue( hpix ) );
+                    }
+                }
+            }
+            return range;
         }
     }
 
