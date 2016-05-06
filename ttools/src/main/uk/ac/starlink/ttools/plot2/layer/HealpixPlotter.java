@@ -3,8 +3,8 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,6 +69,8 @@ public class HealpixPlotter
     private final boolean reportAuxKeys_;
     private final int icHealpix_;
     private final int icValue_;
+    private final int maxPaintLevel_;
+    private final int minPaintPixels_;
 
     /** Maximum HEALPix level supported by this plotter. */
     public static final int MAX_LEVEL = 13;
@@ -99,7 +101,6 @@ public class HealpixPlotter
                 "</p>",
             } )
         , true );
-
 
     /** ConfigKey for HEALPix level corresponding to data HEALPix indices. */
     public static final ConfigKey<Integer> DATALEVEL_KEY = createDataLevelKey();
@@ -163,6 +164,8 @@ public class HealpixPlotter
         icValue_ = 1;
         transparent_ = transparent;
         reportAuxKeys_ = false;
+        maxPaintLevel_ = 6;
+        minPaintPixels_ = 20;
     }
 
     public String getPlotterDescription() {
@@ -237,7 +240,7 @@ public class HealpixPlotter
                           return HEALPIX_COORD.readIntCoord( tseq, icHealpix_ );
                       }
                   };
-            return style.blur_ == 0 && dataLevel <= 6
+            return style.blur_ == 0 && dataLevel <= maxPaintLevel_
                  ? new SequenceHealpixLayer( geom, dataSpec, style,
                                              dataLevel, rdr )
                  : new BinsHealpixLayer( geom, dataSpec, style,
@@ -527,7 +530,7 @@ public class HealpixPlotter
                     SkySurfaceTiler tiler = createTiler( (SkySurface) surface );
                     while ( tseq.next() ) {
                         long hpx = indexReader_.getHealpixIndex( tseq );
-                        if ( tiler.isCenterVisible( hpx ) ) {
+                        if ( tiler.isVisible( hpx ) ) {
                             double value =
                                 VALUE_COORD.readDoubleCoord( tseq, icValue_ );
                             range.submit( value );
@@ -572,7 +575,7 @@ public class HealpixPlotter
          * @retrun   tiler
          */
         private SkySurfaceTiler createTiler( SkySurface surf ) {
-            return new SkySurfaceTiler( surf, dataLevel_, hstyle_.rotation_ );
+            return new SkySurfaceTiler( surf, hstyle_.rotation_, dataLevel_ );
         }
 
         /**
@@ -593,17 +596,19 @@ public class HealpixPlotter
                 double value = tseq.getDoubleValue( icValue_ );
                 if ( ! Double.isNaN( value ) ) {
                     long hpx = indexReader_.getHealpixIndex( tseq );
-                    Shape shape = tiler.getTileShape( hpx );
-                    if ( shape != null ) {
-                        rgba[ 0 ] = 0.5f;
-                        rgba[ 1 ] = 0.5f;
-                        rgba[ 2 ] = 0.5f;
-                        rgba[ 3 ] = 1.0f;
-                        float sval = (float) scaler.scaleValue( value );
-                        shader.adjustRgba( rgba, sval );
-                        g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
-                                               rgba[ 2 ], rgba[ 3 ] ) );
-                        tiler.fillTile( g, shape );
+                    if ( tiler.isVisible( hpx ) ) {
+                        Polygon shape = tiler.getTileShape( hpx );
+                        if ( shape != null ) {
+                            rgba[ 0 ] = 0.5f;
+                            rgba[ 1 ] = 0.5f;
+                            rgba[ 2 ] = 0.5f;
+                            rgba[ 3 ] = 1.0f;
+                            float sval = (float) scaler.scaleValue( value );
+                            shader.adjustRgba( rgba, sval );
+                            g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
+                                                   rgba[ 2 ], rgba[ 3 ] ) );
+                            g.fillPolygon( shape );
+                        }
                     }
                 }
             }
@@ -620,7 +625,6 @@ public class HealpixPlotter
         private final HealpixStyle hstyle_;
         private final int dataLevel_;
         private final int viewLevel_;
-        private final SkyPixer skyPixer_;
         private final IndexReader indexReader_;
 
         /**
@@ -640,13 +644,6 @@ public class HealpixPlotter
             dataLevel_ = dataLevel;
             indexReader_ = indexReader;
             viewLevel_ = Math.max( 0, dataLevel_ - hstyle.blur_ );
-            final Rotation unrotation = hstyle_.rotation_.invert();
-            skyPixer_ = new SkyPixer( viewLevel_ ) {
-                public long getIndex( double[] v3 ) {
-                    unrotation.rotate( v3 );
-                    return super.getIndex( v3 );
-                }
-            };
             assert hstyle.blur_ >= 0;
         }
 
@@ -748,25 +745,59 @@ public class HealpixPlotter
          * @return   tile renderer
          */
         private TileRenderer createTileRenderer( Surface surface ) {
-            return new ResampleTileRenderer( (SkySurface) surface, skyPixer_ );
+            Rotation rotation = hstyle_.rotation_;
+            SkySurface ssurf = (SkySurface) surface;
+
+            /* The best strategy depends on how many tiles will be displayed;
+             * if there are few tiles, each covering many screen pixels,
+             * it's faster to paint them using graphics primitives,
+             * but if there are many, of comparable size to screen pixels,
+             * it's better to resample them.
+             * If there's a small number of tiles on the whole sky,
+             * paint it anyway because it will be fast enough. */
+            double tileWidthRadians =
+                Math.sqrt( Math.PI / 3.0 ) / ( 1 << viewLevel_ );
+            double pixelWidthRadians = ssurf.getPixelSize();
+            double pixelsPerTile =
+                Math.pow( tileWidthRadians / pixelWidthRadians, 2 );
+            return ( viewLevel_ <= maxPaintLevel_ ||
+                     pixelsPerTile >= minPaintPixels_ )
+                 ? new PaintTileRenderer( ssurf, viewLevel_, rotation )
+                 : new ResampleTileRenderer( ssurf, viewLevel_, rotation );
         }
     }
 
     /**
      * TileRenderer that resamples values, interrogating the bin list
      * for each screen pixel.
-     * This is correct if bins are bigger than screen pixels
+     * This is correct if healpix tiles are bigger than screen pixels
      * (otherwise averaging is not done correctly - should be drizzled
-     * in that case really), and it is efficient f bins are not too much
+     * in that case really), and it is efficient if tiles are not too much
      * bigger than screen pixels (in that case painting would be faster).
      */
     private static class ResampleTileRenderer implements TileRenderer {
         private final SkySurface surface_;
         private final SkyPixer skyPixer_;
-        ResampleTileRenderer( SkySurface surface, SkyPixer skyPixer ) {
+
+        /**
+         * Constructor.
+         *
+         * @param  surface  plot surface
+         * @param  viewLevel   healpix level of painted tiles
+         * @param  rotation  sky rotation to be applied before plotting
+         */
+        ResampleTileRenderer( SkySurface surface, int viewLevel,
+                              Rotation rotation ) {
             surface_ = surface;
-            skyPixer_ = skyPixer;
+            final Rotation unrotation = rotation.invert();
+            skyPixer_ = new SkyPixer( viewLevel ) {
+                public long getIndex( double[] v3 ) {
+                    unrotation.rotate( v3 );
+                    return super.getIndex( v3 );
+                }
+            };
         }
+
         public Range calculateAuxRange( BinList.Result binResult ) {
             Rectangle bounds = surface_.getPlotBounds();
             Gridder gridder = new Gridder( bounds.width, bounds.height );
@@ -790,10 +821,69 @@ public class HealpixPlotter
             }
             return range;
         }
+
         public void renderBins( Graphics g, BinList.Result binResult,
                                 Shader shader, Scaler scaler ) {
             SkyDensityPlotter.paintBins( g, binResult, surface_, skyPixer_,
                                          shader, scaler );
+        }
+    }
+
+    /**
+     * TileRenderer that paints tiles one at a time using graphics context
+     * primitives.  This is correct and efficient if healpix tiles are
+     * larger (maybe significantly larger) than screen pixels.
+     */
+    private static class PaintTileRenderer implements TileRenderer {
+        private final SkySurfaceTiler tiler_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surface  plot surface
+         * @param  viewLevel   healpix level of painted tiles
+         * @param  rotation  sky rotation to be applied before plotting
+         */
+        PaintTileRenderer( SkySurface surface, int viewLevel,
+                           Rotation rotation ) {
+            tiler_ = new SkySurfaceTiler( surface, rotation, viewLevel );
+        }
+
+        public Range calculateAuxRange( BinList.Result binResult ) {
+            Range range = new Range();
+            for ( Long hpxObj : tiler_.visiblePixels() ) {
+                long hpx = hpxObj.longValue();
+                double value = binResult.getBinValue( hpx );
+                if ( ! Double.isNaN( value ) ) {
+                    range.submit( value );
+                }
+            }
+            return range;
+        }
+
+        public void renderBins( Graphics g, BinList.Result binResult,
+                                Shader shader, Scaler scaler ) {
+            Color color0 = g.getColor();
+            float[] rgba = new float[ 4 ];
+            for ( Long hpxObj : tiler_.visiblePixels() ) {
+                long hpx = hpxObj.longValue();
+                double value = binResult.getBinValue( hpx );
+                if ( ! Double.isNaN( value ) ) {
+                    Polygon shape = tiler_.getTileShape( hpx );
+                    if ( shape != null ) {
+                        rgba[ 0 ] = 0.5f;
+                        rgba[ 1 ] = 0.5f;
+                        rgba[ 2 ] = 0.5f;
+                        rgba[ 3 ] = 1.0f;
+                        float sval = (float) scaler.scaleValue( value );
+                        shader.adjustRgba( rgba, sval );
+                        g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
+                                               rgba[ 2 ], rgba[ 3 ] ) );
+                        g.fillPolygon( shape );
+                    }
+                }
+            }
+            g.setColor( color0 );
         }
     }
 

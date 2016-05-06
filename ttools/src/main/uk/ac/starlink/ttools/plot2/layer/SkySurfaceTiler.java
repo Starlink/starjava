@@ -1,11 +1,17 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import gov.fnal.eag.healpix.PixTools;
-import java.awt.Graphics;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.geom.Point2D;
+import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.vecmath.Vector3d;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.geom.Rotation;
@@ -13,6 +19,11 @@ import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 
 /**
  * Understands the geometry of HEALPix tiles on a given SkySurface.
+ *
+ * <p><strong>Note:</strong> this class is intended for use when the
+ * number of tiles is moderately small.  Use of resources (memory,
+ * runtime?) is likely to be linear in the number of pixels at the
+ * required order appearing within the given surface.
  *
  * <p><strong>Note:</strong> instances of this class are not
  * safe for concurrent use from multiple threads.
@@ -26,148 +37,272 @@ public class SkySurfaceTiler {
     private final long nside_;
     private final Rotation rotation_;
     private final PixTools pixTools_;
-    private final boolean hasSubpixelTiles_;
-    private final Rectangle plotBox_;
-    private final double[] dpos_;
-    private final Point2D.Double gpos_;
+    private final Set<Long> visiblePixels_;
 
     /**
      * Constructor.
      *
      * @param  surf   sky surface
-     * @param  healpixLevel   healpix level (0, 1, 2, ..)
      * @param  rotation  additional rotation to apply to sky positions, not null
+     * @param  hpxOrder   healpix order (0, 1, 2, ..)
      */
-    public SkySurfaceTiler( SkySurface surf, int healpixLevel,
-                            Rotation rotation ) {
+    public SkySurfaceTiler( SkySurface surf, Rotation rotation, int hpxOrder ) {
         surf_ = surf;
-        nside_ = 1L << healpixLevel;
+        nside_ = 1L << hpxOrder;
         rotation_ = rotation;
         pixTools_ = new PixTools();
-        hasSubpixelTiles_ =
-            healpixLevel >= SkyDensityPlotter.getPixelLevel( surf );
-        plotBox_ = surf_.getPlotBounds();
-        dpos_ = new double[ 3 ];
-        gpos_ = new Point2D.Double();
+        visiblePixels_ =
+            Collections.unmodifiableSet( calculateVisiblePixels( surf, rotation,
+                                                                 hpxOrder ) );
     }
 
     /**
-     * Indicates whether the center of a given tile is visible on this
-     * tiler's plot surface.
-     * This may be faster to execute than {@link #getTileShape}.
+     * Returns a collection of pixels that are, or may be, visible on the
+     * surface.  It may contain false positives, but an attempt is made to
+     * keep that number low.  Calling this method is cheap (the same object
+     * is returned every time), and iterating over the result
+     * is a sensible way to find all the visible pixels.
+     *
+     * @return  an unmodifiable set of HEALPix indices for pixesl that are,
+     *          or may be visible on the surface.
+     */
+    public Set<Long> visiblePixels() {
+        return visiblePixels_;
+    }
+
+    /**
+     * Indicates whether a given tile is considered to be visible on this
+     * tiler's plot surface.  False positives are permitted (but preferably
+     * not too many).
+     * This should be faster to execute than {@link #getTileShape}.
      *
      * @param  hpxIndex  HEALPix index
-     * @return   true iff center of index tile is visible
+     * @return   true iff tile may be visible
      */
-    public boolean isCenterVisible( long hpxIndex ) {
-        Vector3d v3 = pixTools_.pix2vect_nest( nside_, hpxIndex );
-        dpos_[ 0 ] = v3.x;
-        dpos_[ 1 ] = v3.y;
-        dpos_[ 2 ] = v3.z;
-        rotation_.rotate( dpos_ );
-        return surf_.dataToGraphics( dpos_, true, gpos_ );
+    public boolean isVisible( long hpxIndex ) {
+        return visiblePixels_.contains( new Long( hpxIndex ) );
     }
 
     /**
      * Returns the shape of the given tile on the sky surface.
      * The result is an approximation using integer graphics coordinates.
-     * It will be one of the following:
-     * <ul>
-     * <li>{@link java.awt.Polygon} (most likely a quadrilateral),
-     *     if the tile is large compared to screen pixel size</li>
-     * <li>{@link java.awt.Rectangle}
-     *     with <code>width</code>=<code>height</code>=1,
-     *     if the tile is approximately equal to or smaller than a screen pixel
-     * <li><code>null</code></li> if the tile is not visible
-     * </ul>
      *
-     * <p>In any case, you can pass the result to this object's
-     * {@link #fillTile fillTile} method.
+     * <p>Calling this method is not an efficient way to determine whether
+     * a given pixel is visible; use {@link #isVisible isVisible} instead.
      *
      * @param   hpxIndex  HEALPix index
-     * @return   shape of indicated tile on graphics plane, or null
+     * @return   shape of indicated tile on graphics plane,
+     *           or null if known to be invisible
      */
-    public Shape getTileShape( long hpxIndex ) {
+    public Polygon getTileShape( long hpxIndex ) {
         Vector3d v3 = pixTools_.pix2vect_nest( nside_, hpxIndex );
-        dpos_[ 0 ] = v3.x;
-        dpos_[ 1 ] = v3.y;
-        dpos_[ 2 ] = v3.z;
-        rotation_.rotate( dpos_ );
-        if ( hasSubpixelTiles_ ) {
-            return surf_.dataToGraphics( dpos_, true, gpos_ )
-                 ? new Rectangle( PlotUtil.ifloor( gpos_.x ),
-                                  PlotUtil.ifloor( gpos_.y ), 1, 1 )
-                 : null;
-        }
-        else {
-            if ( surf_.dataToGraphics( dpos_, false, gpos_ ) ) {
-                double[][] vertices =
-                    pixTools_.pix2vertex_nest( nside_, hpxIndex );
-                int[] gxs = new int[ 4 ];
-                int[] gys = new int[ 4 ];
-                double[] dpos1 = new double[ 3 ];
-                Point2D.Double gpos1 = new Point2D.Double();
-                int np = 0;
-                int nInvisible = 0;
-                int gxmin = Integer.MAX_VALUE;
-                int gxmax = Integer.MIN_VALUE;
-                int gymin = Integer.MAX_VALUE;
-                int gymax = Integer.MIN_VALUE;
-                for ( int i = 0; i < 4; i++ ) {
-                    dpos1[ 0 ] = vertices[ 0 ][ i ];
-                    dpos1[ 1 ] = vertices[ 1 ][ i ];
-                    dpos1[ 2 ] = vertices[ 2 ][ i ];
-                    rotation_.rotate( dpos1 );
-                    if ( surf_.dataToGraphicsOffset( dpos_, gpos_, dpos1,
-                                                     false, gpos1 ) ) {
-                        assert ! Double.isNaN( gpos1.x );
-                        assert ! Double.isNaN( gpos1.y );
-                        int gx = PlotUtil.ifloor( gpos1.x );
-                        int gy = PlotUtil.ifloor( gpos1.y );
-                        gxs[ np ] = PlotUtil.ifloor( gx );
-                        gys[ np ] = PlotUtil.ifloor( gy );
-                        gxmin = Math.min( gxmin, gx );
-                        gxmax = Math.max( gxmax, gx );
-                        gymin = Math.min( gymin, gy );
-                        gymax = Math.max( gymax, gy );
-                        np++;
-                    }
-                    else {
-                        if ( ++nInvisible > 1 ) {
-                            return null;
-                        }
+        double[] dpos0 = { v3.x, v3.y, v3.z };
+        Point2D.Double gpos0 = new Point2D.Double();
+        rotation_.rotate( dpos0 );
+        if ( surf_.dataToGraphics( dpos0, false, gpos0 ) ) {
+            double[][] vertices = pixTools_.pix2vertex_nest( nside_, hpxIndex );
+            int[] gxs = new int[ 4 ];
+            int[] gys = new int[ 4 ];
+            double[] dpos1 = new double[ 3 ];
+            Point2D.Double gpos1 = new Point2D.Double();
+            int np = 0;
+            int nInvisible = 0;
+            for ( int i = 0; i < 4; i++ ) {
+                dpos1[ 0 ] = vertices[ 0 ][ i ];
+                dpos1[ 1 ] = vertices[ 1 ][ i ];
+                dpos1[ 2 ] = vertices[ 2 ][ i ];
+                rotation_.rotate( dpos1 );
+                if ( surf_.dataToGraphicsOffset( dpos0, gpos0, dpos1,
+                                                 false, gpos1 ) ) {
+                    assert ! Double.isNaN( gpos1.x );
+                    assert ! Double.isNaN( gpos1.y );
+                    gxs[ np ] = PlotUtil.ifloor( gpos1.x );
+                    gys[ np ] = PlotUtil.ifloor( gpos1.y );
+                    np++;
+                }
+                else {
+                    if ( ++nInvisible > 1 ) {
+                        return null;
                     }
                 }
-                assert np >= 1;
-                return plotBox_
-                      .intersects( gxmin, gymin, gxmax - gxmin, gymax - gymin )
-                     ? new Polygon( gxs, gys, np )
-                     : null;
             }
-            else {
-                return null;
-            }
+            assert np >= 1;
+            return new Polygon( gxs, gys, np );
+        }
+        else {
+            return null;
         }
     }
 
     /**
-     * Paints a filled tile shape to a graphics context.
+     * Returns a set of HEALPix index values corresponding to all those that
+     * are visible on this tiler's plot surface.
+     * False positives are permitted, but an attempt is made to keep the
+     * number of them low.
+     * The <code>contains</code> method of the returned collection
+     * is expected to be fast.
      *
-     * @param  g   graphics context
-     * @param  shape  shape returned by {@link #getTileShape getTileShape}
+     * @param  surf   sky surface
+     * @param  rotation  additional rotation to apply to sky positions, not null
+     * @param  order   healpix order (0, 1, 2, ..)
+     * @return   set of visible pixel indices
      */
-    public void fillTile( Graphics g, Shape shape ) {
-        if ( shape instanceof Rectangle ) {
-            Rectangle rect = (Rectangle) shape;
-            g.fillRect( rect.x, rect.y, rect.width, rect.height );
+    private static Set<Long> calculateVisiblePixels( SkySurface surf,
+                                                     Rotation rotation,
+                                                     int order ) {
+
+        /* Prepare a polygon corresponding to the plot surface bounds. */
+        List<double[]> vertexList = createSurfacePolygon( surf, rotation );
+
+        /* Try to work out what HEALPix pixels this covers. */
+        List<Long> indexList = vertexList == null
+                             ? null
+                             : queryPolygon( order, vertexList );
+
+        /* If it worked, turn that into an efficient Set, otherwise use a
+         * custom Set that includes all pixels at the current HEALPix order. */
+        return indexList != null
+             ? new TreeSet<Long>( indexList )
+             : createIntegerSet( 12L << ( 2 * order ) );
+    }
+
+    /**
+     * Returns a list of healpix indices at a given order covered
+     * (at least partially) by a polygon whose vertices are supplied.
+     *
+     * @param  order   healpix order (0, 1, 2, ..)
+     * @param  vertices  list of polygon vertices, as unit 3-vectors on the sky 
+     * @return   list of healpix pixel indices
+     */
+    private static List<Long> queryPolygon( int order,
+                                            List<double[]> vertices ) {
+        ArrayList<Vector3d> v3list = new ArrayList<Vector3d>( vertices.size() );
+        for ( double[] dpos : vertices ) {
+            v3list.add( new Vector3d( dpos[ 0 ], dpos[ 1 ], dpos[ 2 ] ) );
         }
-        else if ( shape instanceof Polygon ) {
-            g.fillPolygon( (Polygon) shape );
+        long nside = 1L << order;
+        long nest = 1;
+        long inclusive = 1;
+        try {
+            return new PixTools()
+                  .query_polygon( nside, v3list, nest, inclusive );
         }
-        else if ( shape == null ) {
+        catch ( Exception e ) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a list of Vector3d objects that outline the area visible
+     * within the plotting bounds of this object's plotting surface.
+     *
+     * @param  surf   sky surface
+     * @param  rotation  additional rotation to apply to sky positions, not null
+     * @return   list of polygon vertices outlining plot surface
+     */
+    private static List<double[]> createSurfacePolygon( SkySurface surf,
+                                                        Rotation rotation ) {
+        Rectangle bounds = surf.getPlotBounds();
+        Rotation unrot = rotation.invert();
+        int nq = 4;
+        double nq1 = 1.0 / nq;
+        List<double[]> vertexList = new ArrayList<double[]>( 4 * nq + 1 );
+        for ( int is = 0; is < 4; is++ ) {
+            for ( int iq = 0; iq < nq; iq++ ) {
+                Point2D.Double gpos = traceEdge( bounds, is, iq * nq1 );
+                double[] dpos = surf.graphicsToData( gpos, null );
+                if ( dpos == null ) {
+                    return null;
+                }
+                else {
+                    unrot.rotate( dpos );
+                    vertexList.add( dpos );
+                }
+            }
+        }
+        vertexList.add( vertexList.get( 0 ) );
+        return vertexList;
+    }
+
+    /**
+     * Takes a position part-way along a named edge of a rectangle.
+     * Looping over the sides in order will trace round the edge of the
+     * rectangle.
+     *
+     * @param  bounds  input rectangle
+     * @param  iside   label of side, in range 0..3
+     * @param  fraction  fractional distance along the side, in range 0..1
+     * @return    coordinates for specified point on edge of bounds
+     */
+    private static Point2D.Double traceEdge( Rectangle bounds, int iside,
+                                             double fraction ) {
+        final double gx;
+        final double gy;
+        if ( iside == 0 ) {
+            gx = bounds.x + bounds.width * fraction;
+            gy = bounds.y;
+        }
+        else if ( iside == 1 ) {
+            gx = bounds.x + bounds.width;
+            gy = bounds.y + bounds.height * fraction;
+        }
+        else if ( iside == 2 ) {
+            gx = bounds.x + bounds.width * ( 1.0 - fraction );
+            gy = bounds.y + bounds.height;
+        }
+        else if ( iside == 3 ) {
+            gx = bounds.x;
+            gy = bounds.y + bounds.height * ( 1.0 - fraction );
         }
         else {
-            throw new IllegalArgumentException( "not my tile: " + shape );
+            throw new IllegalArgumentException();
         }
+        return new Point2D.Double( gx, gy );
+    }
+
+    /**
+     * Returns a collection of long integers that contains the first
+     * <code>leng</code> integers.
+     * The implementation is efficient in memory usage and
+     * performance of the <code>contains</code> method.
+     *
+     * @param  leng  number of integers in set
+     * @return  ordered collection of all values &gt;=0 and &lt;leng
+     */
+    private static Set<Long> createIntegerSet( final long leng ) {
+        return new AbstractSet<Long>() {
+            public int size() {
+                return (int) leng;
+            }
+            @Override
+            public boolean contains( Object o ) {
+                if ( o instanceof Number ) {
+                    long l = ((Number) o).longValue();
+                    return l >= 0 && l < leng;
+                }
+                else {
+                    return false;
+                }
+            }
+            public Iterator<Long> iterator() {
+                return new Iterator<Long>() {
+                    private long lx_;
+                    public boolean hasNext() {
+                        return lx_ < leng;
+                    }
+                    public Long next() {
+                        if ( hasNext() ) {
+                            return new Long( lx_++ );
+                        }
+                        else {
+                            throw new NoSuchElementException();
+                        }
+                    }
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+        };
     }
 }
