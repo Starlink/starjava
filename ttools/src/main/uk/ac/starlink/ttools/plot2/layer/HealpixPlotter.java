@@ -237,12 +237,11 @@ public class HealpixPlotter
                           return HEALPIX_COORD.readIntCoord( tseq, icHealpix_ );
                       }
                   };
-            return style.blur_ == 0
+            return style.blur_ == 0 && dataLevel <= 6
                  ? new SequenceHealpixLayer( geom, dataSpec, style,
                                              dataLevel, rdr )
                  : new BinsHealpixLayer( geom, dataSpec, style,
                                          dataLevel, rdr );
-                   
         }
 
         /* Can't determine or guess HEALPix level.
@@ -514,7 +513,7 @@ public class HealpixPlotter
             hstyle_ = hstyle;
             dataLevel_ = dataLevel;
             indexReader_ = indexReader;
-            assert hstyle.blur_ == 0;
+            assert hstyle_.blur_ == 0;
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -613,12 +612,8 @@ public class HealpixPlotter
     }
 
     /**
-     * PlotLayer implementation that calculates a whole HEALPix map from
-     * the input data (as a plan), and then paints that.
-     * Currently, the painting is done pixel-by-pixel by working
-     * out the required HEALPix tile for each screen pixel.
-     * That only works well if the tiles are bigger than screen pixels,
-     * and it's still not very efficient.
+     * PlotLayer implementation for plotting layers that work with bin lists.
+     * A whole HEALPix bin list is calculated from the input data (as a plan).
      */
     private class BinsHealpixLayer extends AbstractPlotLayer {
 
@@ -637,9 +632,8 @@ public class HealpixPlotter
          * @param  dataLevel   definite HEALPix level of data tiles
          * @param  indexReader   determines pixel index from data
          */
-        BinsHealpixLayer( DataGeom geom, DataSpec dataSpec,
-                          HealpixStyle hstyle, int dataLevel,
-                          IndexReader indexReader ) {
+        BinsHealpixLayer( DataGeom geom, DataSpec dataSpec, HealpixStyle hstyle,
+                          int dataLevel, IndexReader indexReader ) {
             super( HealpixPlotter.this, geom, dataSpec, hstyle,
                    hstyle.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL );
             hstyle_ = hstyle;
@@ -668,10 +662,9 @@ public class HealpixPlotter
                     // to get the aux range; the plan has that information,
                     // (which means the actual painting doesn't need the data),
                     // but I can't see it here.
-                    double[] bounds =
-                        getPixelRange( readBins( tseq ), (SkySurface) surface,
-                                       skyPixer_ )
-                       .getBounds();
+                    double[] bounds = createTileRenderer( surface )
+                                     .calculateAuxRange( readBins( tseq ) )
+                                     .getBounds();
                     range.submit( bounds[ 0 ] );
                     range.submit( bounds[ 1 ] );
                 }
@@ -682,12 +675,12 @@ public class HealpixPlotter
         public Drawing createDrawing( Surface surf,
                                       Map<AuxScale,Range> auxRanges,
                                       final PaperType paperType ) {
-            final SkySurface ssurf = (SkySurface) surf;
             final DataSpec dataSpec = getDataSpec();
             final Shader shader = hstyle_.shader_;
             final Scaler scaler =
                 Scaling.createRangeScaler( hstyle_.scaling_,
                                            auxRanges.get( SCALE ) );
+            final TileRenderer renderer = createTileRenderer( surf );
             return new Drawing() {
                 public Object calculatePlan( Object[] knownPlans,
                                              DataStore dataStore ) {
@@ -711,9 +704,7 @@ public class HealpixPlotter
                         ((TilePlan) plan).binResult_;
                     paperType.placeDecal( paper, new Decal() {
                         public void paintDecal( Graphics g ) {
-                            SkyDensityPlotter
-                           .paintBins( g, binResult, ssurf, skyPixer_,
-                                       shader, scaler );
+                            renderer.renderBins( g, binResult, shader, scaler );
                         }
                         public boolean isOpaque() {
                             return hstyle_.isOpaque();
@@ -751,16 +742,33 @@ public class HealpixPlotter
         }
 
         /**
-         * Returns the range of pixel values found within a given surface.
+         * Returns a TileRenderer suitable for use on a given sky surface.
          *
-         * @param  binResult   tile bin contents
-         * @param  surface     plot surface
-         * @param  skyPixer    pixel mapper
-         * @return  range of pixel values
+         * @param  surface  sky surface
+         * @return   tile renderer
          */
-        private Range getPixelRange( BinList.Result binResult,
-                                     SkySurface surface, SkyPixer skyPixer ) {
-            Rectangle bounds = surface.getPlotBounds();
+        private TileRenderer createTileRenderer( Surface surface ) {
+            return new ResampleTileRenderer( (SkySurface) surface, skyPixer_ );
+        }
+    }
+
+    /**
+     * TileRenderer that resamples values, interrogating the bin list
+     * for each screen pixel.
+     * This is correct if bins are bigger than screen pixels
+     * (otherwise averaging is not done correctly - should be drizzled
+     * in that case really), and it is efficient f bins are not too much
+     * bigger than screen pixels (in that case painting would be faster).
+     */
+    private static class ResampleTileRenderer implements TileRenderer {
+        private final SkySurface surface_;
+        private final SkyPixer skyPixer_;
+        ResampleTileRenderer( SkySurface surface, SkyPixer skyPixer ) {
+            surface_ = surface;
+            skyPixer_ = skyPixer;
+        }
+        public Range calculateAuxRange( BinList.Result binResult ) {
+            Rectangle bounds = surface_.getPlotBounds();
             Gridder gridder = new Gridder( bounds.width, bounds.height );
             int npix = gridder.getLength();
             Point2D.Double point = new Point2D.Double();
@@ -771,9 +779,9 @@ public class HealpixPlotter
             for ( int ip = 0; ip < npix; ip++ ) {
                 point.x = x0 + gridder.getX( ip );
                 point.y = y0 + gridder.getY( ip );
-                double[] dpos = surface.graphicsToData( point, null );
+                double[] dpos = surface_.graphicsToData( point, null );
                 if ( dpos != null ) {
-                    long hpix = skyPixer.getIndex( dpos );
+                    long hpix = skyPixer_.getIndex( dpos );
                     if ( hpix != hpix0 ) {
                          hpix0 = hpix;
                         range.submit( binResult.getBinValue( hpix ) );
@@ -782,10 +790,40 @@ public class HealpixPlotter
             }
             return range;
         }
+        public void renderBins( Graphics g, BinList.Result binResult,
+                                Shader shader, Scaler scaler ) {
+            SkyDensityPlotter.paintBins( g, binResult, surface_, skyPixer_,
+                                         shader, scaler );
+        }
     }
 
     /**
-     * Plot layer plan for use with BinsHealpixLayer.
+     * Defines the strategy for rendering tiles to the graphics context.
+     */
+    private interface TileRenderer {
+
+        /**
+         * Returns the range of aux values found within a given surface.
+         *
+         * @param  binResult   tile bin contents
+         * @return  range of pixel values
+         */
+        Range calculateAuxRange( BinList.Result binResult );
+
+        /**
+         * Performs the rendering of a prepared bin list on a graphics surface.
+         *
+         * @param  g  graphics context
+         * @param  binResult   histogram containing sky pixel values
+         * @param  shader   colour shading
+         * @param  scaler   value scaling
+         */
+        void renderBins( Graphics g, BinList.Result binResult,
+                         Shader shader, Scaler scaler );
+    }
+
+    /**
+     * Plot layer plan for use with HealpixLayer.
      */
     private static class TilePlan {
         final int dataLevel_;
