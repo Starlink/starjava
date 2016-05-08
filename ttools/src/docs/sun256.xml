@@ -12,12 +12,12 @@
   <!ENTITY jel.func.docs SYSTEM "jel-javadocs.xml">
 
   <!-- Define external URLs. -->
-  <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.5.0/docs/">
+  <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
   <!ENTITY URL.STIL_JAVADOCS
            "http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/">
 
   <!-- Define javadoc base URLs. -->
-  <!ENTITY corejavadocs "http://java.sun.com/j2se/1.5.0/docs/api/">
+  <!ENTITY corejavadocs "http://docs.oracle.com/javase/6/docs/api/">
   <!ENTITY stiljavadocs "http://www.starlink.ac.uk/stil/javadocs/">
   <!ENTITY stiltsjavadocs "http://andromeda.star.bris.ac.uk/starjavadocs/">
   <!ENTITY starjavasrc "https://github.com/Starlink/starjava/blob/master/">
@@ -10520,6 +10520,20 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="tapquery"><code>tapquery</code></ref> command.
         These let you request resource limit adjustments when submitting
         an asynchronous TAP job.</li>
+    <li>This and subsequent releases target Java SE 6, so will no longer
+        run under the (now very ancient) Java 5 runtime.</li>
+    <li>Fix bug in ISO-8601 axis labelling in the
+        <ref id="plot2time">time plot</ref>.
+        In some cases axis labels were being drawn at positions badly
+        different from the correct position.</li>
+    <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
+        Shouldn't be any noticable difference.
+        Acme encoding dependency removed.</li>
+    <li>Improve sky plot border painting.</li>
+    <li><code>taplint</code> now validates ObsCore 1.1 where declared
+        alongside ObsCore 1.0.  Currently uses PR-ObsCore-v1.1-20160330.</li>
+    <li>Replaced <code>opaque</code> config option with
+        <code>transparency</code> for plane and sky density plots.</li>
     </ul>
     </p></dd>
 

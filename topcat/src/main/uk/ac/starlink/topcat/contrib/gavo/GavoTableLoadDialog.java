@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -47,6 +48,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.util.Base64OutputStream;
 
 public class GavoTableLoadDialog extends AbstractTableLoadDialog {
 
@@ -232,8 +234,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
             throw new AssertionError( "Do what?" );
         }
         String userPassword = user + ":" + pass;
-        final String encoding = new sun.misc.BASE64Encoder()
-                               .encode (userPassword.getBytes());
+        final String encoding = base64Encode(userPassword.getBytes());
         String urlString = url+sqlEncoding;
         final URL queryUrl;
         try {
@@ -293,6 +294,27 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
                 return id;
             }
         };
+    }
+
+    /**
+     * Returns the Base64 encoding of a given byte array.
+     *
+     * @param  buf  input byte array
+     * @return   base64 encoding of input buffer
+     */
+    private static String base64Encode( byte[] buf ) {
+        ByteArrayOutputStream bufout = new ByteArrayOutputStream();
+        Base64OutputStream b64out = new Base64OutputStream( bufout );
+        try {
+            b64out.write( buf );
+            b64out.endBase64();
+            b64out.flush();
+            b64out.close();
+            return new String( bufout.toByteArray(), "UTF-8" );
+        }
+        catch ( IOException e ) {  // shouldn't happen
+            throw new RuntimeException( "Can't base64-encode bytes???" );
+        }
     }
 
     /**

@@ -74,6 +74,12 @@ public class SplatLookAndFeelManager implements ActionListener
     private static final String motif = 
         "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
 
+    /** 
+     * Nimbus look and feel.
+     */
+    private static final String nimbus =
+        "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+
     /**
      * UI preferences.
      */
@@ -156,10 +162,6 @@ public class SplatLookAndFeelManager implements ActionListener
     {
         ButtonGroup lfGroup = new ButtonGroup();
         selectLookMenu = new JMenu( "Look and feel" );
-
-        //  1.4.2 hack, GTK isn't available by default yet. Remove for
-        //  Java 1.5.
-        UIManager.installLookAndFeel( "GTK", gtk );
 
         final UIManager.LookAndFeelInfo[] lfInfo =
             UIManager.getInstalledLookAndFeels();

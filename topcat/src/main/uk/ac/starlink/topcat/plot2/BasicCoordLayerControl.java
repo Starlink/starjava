@@ -4,6 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
@@ -18,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -35,6 +39,7 @@ public class BasicCoordLayerControl extends ConfigControl
     private final Plotter<?> plotter_;
     private final TablesListComboBox tableSelector_;
     private final PositionCoordPanel coordPanel_;
+    private final Configger baseConfigger_;
     private final JComboBox subsetSelector_;
     private final ComboBoxModel dummyComboBoxModel_;
     private final ConfigStyler styler_;
@@ -46,12 +51,15 @@ public class BasicCoordLayerControl extends ConfigControl
      * @param   plotter  plotter
      * @param   coordPanel   panel which displays the plotter's coordinates,
      *                       and supplies a DataGeom
+     * @param   baseConfigger   provides global configuration info
      */
     public BasicCoordLayerControl( Plotter<?> plotter,
-                                   PositionCoordPanel coordPanel ) {
+                                   PositionCoordPanel coordPanel,
+                                   Configger baseConfigger ) {
         super( null, plotter.getPlotterIcon() );
         plotter_ = plotter;
         coordPanel_ = coordPanel;
+        baseConfigger_ = baseConfigger;
         styler_ = new ConfigStyler( coordPanel_.getComponent() );
 
         /* Create data selection components. */
@@ -83,13 +91,20 @@ public class BasicCoordLayerControl extends ConfigControl
                                     new ShrinkWrapper( subsetSelector_ ),
                                     true ) );
 
-        /* Configure panel for specifying style. */
-        ConfigSpecifier styleSpecifier =
-            new ConfigSpecifier( plotter.getStyleKeys() );
+        /* Configure panel for specifying style.
+         * If any of the config keys are supplied by the base configger,
+         * don't re-acquire them here. */
+        List<ConfigKey> klist = new ArrayList<ConfigKey>();
+        klist.addAll( Arrays.asList( plotter.getStyleKeys() ) );
+        klist.removeAll( baseConfigger_.getConfig().keySet() );
+        ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
+        ConfigSpecifier styleSpecifier = new ConfigSpecifier( keys );
 
         /* Add tabs. */
         addControlTab( "Data", dataPanel, true );
-        addSpecifierTab( "Style", styleSpecifier );
+        if ( styleSpecifier.getConfigKeys().length > 0 ) {
+            addSpecifierTab( "Style", styleSpecifier );
+        }
     }
 
     @Override
@@ -106,6 +121,7 @@ public class BasicCoordLayerControl extends ConfigControl
         DataGeom geom = coordPanel_.getDataGeom();
         DataSpec dataSpec = new GuiDataSpec( tcModel_, subset, coordContents );
         ConfigMap config = getConfig();
+        config.putAll( baseConfigger_.getConfig() );
         PlotLayer layer =
             styler_.createLayer( plotter_, geom, dataSpec, config );
         return layer == null ? new PlotLayer[ 0 ] : new PlotLayer[] { layer };

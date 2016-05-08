@@ -67,7 +67,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+  <property name="javaapi.url" value="http://docs.oracle.com/javase/6/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
@@ -348,7 +348,6 @@
            optimize="${optimize}">
 
       <compilerarg value="-Xlint:unchecked"/>
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
 
       <!-- Exclude any files in the source tree that should not be
@@ -897,7 +896,6 @@
            deprecation="${deprecation}" >
 
       <compilerarg value="-Xlint:unchecked"/>
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
 
     </javac>

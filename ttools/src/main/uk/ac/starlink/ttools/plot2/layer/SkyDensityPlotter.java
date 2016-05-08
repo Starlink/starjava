@@ -108,7 +108,8 @@ public class SkyDensityPlotter
                 "</p>",
             } )
         , -3, 29, -8, "Abs", "Rel", ABSLEVEL_REPKEY, RELLEVEL_REPKEY );
-    private static final ConfigKey<Double> OPAQUE_KEY = StyleKeys.AUX_OPAQUE;
+    private static final ConfigKey<Double> TRANSPARENCY_KEY =
+        StyleKeys.TRANSPARENCY;
 
     /**
      * Constructor.
@@ -182,7 +183,7 @@ public class SkyDensityPlotter
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
         if ( transparent_ ) {
-            keyList.add( OPAQUE_KEY );
+            keyList.add( TRANSPARENCY_KEY );
         }
         return keyList.toArray( new ConfigKey[ 0 ] );
     }
@@ -191,7 +192,7 @@ public class SkyDensityPlotter
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         int level = config.get( LEVEL_KEY );
         Scaling scaling = ramp.getScaling();
-        float scaleAlpha = (float) ( 1.0 / config.get( OPAQUE_KEY ) );
+        float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
         Combiner combiner = weightCoord_ == null
                           ? Combiner.COUNT

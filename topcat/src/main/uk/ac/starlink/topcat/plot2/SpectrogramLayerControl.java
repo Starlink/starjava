@@ -20,12 +20,15 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
      * Constructor.
      *
      * @param  plotter  spectrogram plotter
+     * @param   baseConfigger   provides global configuration info
      */
-    public SpectrogramLayerControl( SpectrogramPlotter plotter ) {
+    public SpectrogramLayerControl( SpectrogramPlotter plotter,
+                                    Configger baseConfigger ) {
         super( plotter,
                new SimplePositionCoordPanel( plotter.getCoordGroup()
                                                     .getExtraCoords(),
-                                             null ) );
+                                             null ),
+               baseConfigger );
         plotter_ = plotter;
         assert plotter.getCoordGroup().getPositionCount() == 0;
     }

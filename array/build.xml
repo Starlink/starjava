@@ -65,7 +65,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+  <property name="javaapi.url" value="http://docs.oracle.com/javase/6/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!-- The environment CLASSPATH is ignored by Ant tasks. -->
@@ -363,7 +363,6 @@
            source="${source.version}"
            optimize="${optimize}">
 
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
 
       <!-- Exclude any Java files in the source tree that should not be
@@ -882,7 +881,6 @@
            debug="${debug}"
            source="${source.version}"
            deprecation="${deprecation}" >
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
     </javac>
   </target>

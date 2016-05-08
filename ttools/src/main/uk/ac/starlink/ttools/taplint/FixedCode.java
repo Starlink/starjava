@@ -149,6 +149,8 @@ public enum FixedCode implements ReportCode {
     W_CULF( "Custom language feature type" ),
     W_CUNI( "Unit mismatch" ),
     W_CUTP( "UType mismatch" ),
+    W_DMDC( "DataModel not declared" ),
+    W_DMSS( "DataModel subset undeclared" ),
     W_DQU2( "Unknown value for post-table QUERY_STATUS" ),
     W_DSUC( "Non-error return from duff query" ),
     W_FKUN( "Keys content" ),
@@ -194,6 +196,7 @@ public enum FixedCode implements ReportCode {
 
     I_CJOB( "Job created" ),
     I_CURL( "Reading capability metadata" ),
+    I_DMID( "Data model declared" ),
     I_DUFF( "Duff query" ),
     I_JOFI( "Job finished immediately" ),
     I_NODM( "No ObsCore tests" ),

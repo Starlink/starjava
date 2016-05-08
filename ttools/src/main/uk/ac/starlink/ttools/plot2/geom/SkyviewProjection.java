@@ -25,23 +25,28 @@ public class SkyviewProjection implements Projection {
     private final Projecter projecter_;
     private final Deprojecter deprojecter_;
     private final Shape shape_;
+    private final boolean isContinuous_;
 
     /** Aitoff projection. */
     public static final SkyviewProjection AIT =
-         createProjection( new Ait(), "Aitoff", "Hammer-Aitoff projection" );
+         createProjection( new Ait(), false, "Aitoff",
+                           "Hammer-Aitoff projection" );
 
     /** Cartesian projection. */
     public static final SkyviewProjection CAR1 =
-         createProjection( new Car1(), "Car",
+         createProjection( new Car1(), false, "Car",
                            "Plate Carree projection"
                          + " (lon/lat on Cartesian axes)" );
 
     /** Gnomonic projection. */
-    public static final SkyviewProjection TAN = createProjection( new Tan() );
+    public static final SkyviewProjection TAN =
+        createProjection( new Tan(), true );
 
     // Not whole sky and not currently rotatable - not much use.
-    private static final SkyviewProjection ARC = createProjection( new Arc() );
-    private static final SkyviewProjection STG = createProjection( new Stg() );
+    private static final SkyviewProjection ARC =
+        createProjection( new Arc(), true );
+    private static final SkyviewProjection STG =
+        createProjection( new Stg(), true );
 
     // Predefined Unit vectors.
     private static final double[] RX = new double[] { 1, 0, 0 };
@@ -50,14 +55,21 @@ public class SkyviewProjection implements Projection {
 
     /**
      * Constructor.
+     * You have to tell it whether the projection is known to be continuous.
+     * In more recent SkyView releases, I think this can be determined
+     * programmatically from the Projecter instance by using the
+     * function <code>!projecter.straddleable()</code>.
      *
      * @param  projecter  projecter object
      * @param  shape   shape of the sky in this projection
+     * @param  isContinuous  whether projection is known to be continuous
      */
-    public SkyviewProjection( Projecter projecter, Shape shape ) {
+    public SkyviewProjection( Projecter projecter, Shape shape,
+                              boolean isContinuous ) {
         projecter_ = projecter;
         deprojecter_ = projecter.inverse();
         shape_ = shape;
+        isContinuous_ = isContinuous;
     }
 
     public String getProjectionName() {
@@ -70,6 +82,10 @@ public class SkyviewProjection implements Projection {
 
     public Shape getProjectionShape() {
         return shape_;
+    }
+
+    public boolean isContinuous() {
+        return isContinuous_;
     }
 
     public boolean project( double rx, double ry, double rz,
@@ -147,10 +163,12 @@ public class SkyviewProjection implements Projection {
      * Name and description are taken from the skyview metadata.
      *
      * @param  projecter  skyview projecter
+     * @param  isContinuous  whether projection is known to be continuous
      * @throws  IllegalArgumentException  if the shape is not known
      */
-    public static SkyviewProjection createProjection( Projecter projecter ) {
-        return createProjection( projecter, projecter.getName(),
+    public static SkyviewProjection createProjection( Projecter projecter,
+                                                      boolean isContinuous ) {
+        return createProjection( projecter, isContinuous, projecter.getName(),
                                  projecter.getDescription() );
     }
 
@@ -158,14 +176,17 @@ public class SkyviewProjection implements Projection {
      * Constructs a projection with given projecter, name and desription.
      *
      * @param  projecter  skyview projecter
+     * @param  isContinuous  whether projection is known to be continuous
      * @param  name  projection name
      * @param  descrip  projection description
      * @throws  IllegalArgumentException  if the shape is not known
      */
     private static SkyviewProjection createProjection( Projecter projecter,
+                                                       boolean isContinuous,
                                                        final String name,
                                                        final String descrip ) {
-        return new SkyviewProjection( projecter, getShape( projecter ) ) {
+        return new SkyviewProjection( projecter, getShape( projecter ),
+                                      isContinuous ) {
              @Override
              public String getProjectionName() {
                  return name;

@@ -74,7 +74,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+  <property name="javaapi.url" value="http://docs.oracle.com/javase/6/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!-- Web proxy configuration, you will usually override these in
@@ -184,14 +184,14 @@
   <!-- Local webstart properties. Note this needs a local keystore,
    !   assumed to be called keystore in $star.build.dir, .. by
    !   default. -->
-  <!--property name="webstart.codebase"
+  <property name="webstart.codebase"
             value="http://starlink.jach.hawaii.edu/starjava/lib"/>
   <property name="webstart.alias" value="Starlink-UK"/>
   <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/-->
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
 
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
@@ -436,7 +436,6 @@
            optimize="${optimize}"
            source="${source.version}">
 
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
 
       <!-- Exclude any Java files in the source tree that should not be
@@ -777,7 +776,6 @@ JNI libraries not built (NDF library not installed in ${stardev})"
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             maxmemory="512m"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
@@ -800,7 +798,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           codebase="${webstart.codebase}">
       <information>
          <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
-         <vendor>GAVO</vendor>
+         <vendor>Starlink Support Community/GAVO</vendor>
          <homepage href="${home.page}"/>
          <icon kind="splash" href="${webstart.splashicon}"/>
          <icon kind="shortcut" href="${webstart.shortcuticon}"/>
@@ -825,7 +823,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           codebase="${webstart.codebase}">
       <information>
          <title>Starlink SPLAT-VO - A Spectral Analysis Tool</title>
-         <vendor>GAVO</vendor>
+         <vendor>Starlink Support Community/GAVO</vendor>
          <homepage href="${home.page}"/>
          <icon kind="splash" href="${webstart.splashicon}"/>
          <icon href="${webstart.starlink_logo}"/>
@@ -1380,7 +1378,6 @@ JNI libraries not built (NDF library not installed in ${stardev})"
            destdir="${build.tests}"
            debug="${debug}"
            deprecation="${deprecation}" >
-      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
     </javac>
   </target>

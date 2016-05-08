@@ -617,7 +617,10 @@ public abstract class BasicTicker implements Ticker {
         }
 
         public double indexToValue( long index ) {
-            return index * mult_;
+            double value = index * mult_;
+            assert floorIndex( value + 1e-2 * mult_ ) == index 
+                || Math.abs( index ) > 1e14;  // precision lost
+            return value;
         }
 
         public double[] getMinors( long index ) {
@@ -675,7 +678,10 @@ public abstract class BasicTicker implements Ticker {
         }
 
         public double indexToValue( long index ) {
-            return exp10( (int) index * nDecade_ );
+            double value = exp10( (int) index * nDecade_ );
+            assert floorIndex( value * Math.pow( 10, nDecade_ * 1e-8 ) )
+                   == index;
+            return value;
         }
 
         public double[] getMinors( long index ) {
@@ -725,7 +731,10 @@ public abstract class BasicTicker implements Ticker {
             int[] div = divFloor( (int) index, majors_.length );
             int exp = div[ 0 ];
             int ik = div[ 1 ];
-            return majors_[ ik ] * exp10( exp );
+            double value = majors_[ ik ] * exp10( exp );
+            assert floorIndex( value * 1.001 ) == index
+                || Math.abs( index ) > 1e13;
+            return value;
         }
 
         public double[] getMinors( long index ) {

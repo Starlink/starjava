@@ -226,7 +226,7 @@
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
-  <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.5.0/docs/">
+  <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
 
   <!-- Plot2 control references. -->
   <!ENTITY CONTROL.single
@@ -454,7 +454,7 @@ the Starlink Tables Infrastructure Library
 which is documented more fully in 
 <docxref doc="sun252" plaintextref="yes"/>.
 The software is written in pure Java, and should run on any 
-J2SE platform version 1.5 or later.
+J2SE platform version 1.6 or later.
 This makes it highly portable, since it can run on any machine which has
 a suitable Java installation, which is available for MS Windows, Mac OS X and
 most flavours of Unix amongst others.
@@ -19697,6 +19697,7 @@ Some of the notable contributers are these:
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
+<li>Henrik Rydberg (Gothenburg drinking water laboratory)</li>
 <li>Juan Carlos Segovia (ESAC)</li>
 <li>Petr &#x0160;koda (AIAS, CZ)</li>
 <li>Mattia Vaccari (Western Cape)</li>
@@ -23045,6 +23046,17 @@ introduced since the last version:
         since it's likely to be invisible
         (this was a regression bug introduced at v4.3-2).</li>
     <li>Fix numeric field truncation bug in LaTeX table output.</li>
+    <li>This and subsequent releases target Java SE 6, so will no longer
+        run under the (now very ancient) Java 5 runtime.</li>
+    <li>Fix bug in ISO-8601 axis labelling in the
+        <ref id="TimePlotWindow">time plot</ref>.
+        In some cases axis labels were being drawn at positions badly
+        different from the correct position.</li>
+    <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
+        Shouldn't be any noticable difference.</li>
+    <li>Improve sky plot border painting.</li>
+    <li>Replace Opaque Limit with Transparency config option for plane and
+        sky density plots.</li>
     </ul>
     </p></dd>
 
