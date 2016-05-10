@@ -283,7 +283,14 @@ public abstract class BintableStarTable extends AbstractStarTable {
             /* Do additional column info configuration as directed
              * by the reader. */
             cinfo.setContentClass( reader.getContentClass() );
-            cinfo.setShape( reader.getShape() );
+
+            /* Don't try to set the shape for zero-element readers;
+             * ValueInfo doesn't allow zero values in the dimensions array.
+             * You could argue this is not correct behaviour,
+             * but I'd be surprised if it inconveniences anybody. */
+            if ( reader.getLength() > 0 ) {
+                cinfo.setShape( reader.getShape() );
+            }
             cinfo.setElementSize( reader.getElementSize() );
             if ( reader.isUnsignedByte() ) {
                 cinfo.setAuxDatum( new DescribedValue( Tables.UBYTE_FLAG_INFO,

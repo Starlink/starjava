@@ -23057,6 +23057,8 @@ introduced since the last version:
     <li>Improve sky plot border painting.</li>
     <li>Replace Opaque Limit with Transparency config option for plane and
         sky density plots.</li>
+    <li>Fix read failure for FITS files with non-blank TDIM for
+        zero-length columns.</li>
     </ul>
     </p></dd>
 
