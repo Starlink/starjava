@@ -69,6 +69,7 @@ public class HealpixPlotter
     private final boolean reportAuxKeys_;
     private final int icHealpix_;
     private final int icValue_;
+    private final int minPaintLevel_;
     private final int maxPaintLevel_;
     private final int minPaintPixels_;
 
@@ -164,7 +165,8 @@ public class HealpixPlotter
         icValue_ = 1;
         transparent_ = transparent;
         reportAuxKeys_ = false;
-        maxPaintLevel_ = 6;
+        minPaintLevel_ = 5;
+        maxPaintLevel_ = 7;
         minPaintPixels_ = 20;
     }
 
@@ -240,10 +242,7 @@ public class HealpixPlotter
                           return HEALPIX_COORD.readIntCoord( tseq, icHealpix_ );
                       }
                   };
-            return style.blur_ == 0 && dataLevel <= maxPaintLevel_
-                 ? new SequenceHealpixLayer( geom, dataSpec, style,
-                                             dataLevel, rdr )
-                 : new BinsHealpixLayer( geom, dataSpec, style,
+            return new BinsHealpixLayer( geom, dataSpec, style,
                                          dataLevel, rdr );
         }
 
@@ -489,134 +488,6 @@ public class HealpixPlotter
     }
 
     /**
-     * PlotLayer implementation that goes through all the tiles in the input,
-     * and paints a tile for each one.  Only works for blur=0 (no level
-     * degradation).
-     */
-    private class SequenceHealpixLayer extends AbstractPlotLayer {
-
-        private final HealpixStyle hstyle_;
-        private final int dataLevel_;
-        private final IndexReader indexReader_;
-
-        /**
-         * Constructor.
-         *
-         * @param  geom   data geom
-         * @param  dataSpec   data specification
-         * @param  hstyle   style
-         * @param  dataLevel   definite HEALPix level of data tiles
-         * @param  indexReader   determines pixel index from data
-         */
-        SequenceHealpixLayer( DataGeom geom, DataSpec dataSpec,
-                              HealpixStyle hstyle, int dataLevel,
-                              IndexReader indexReader ) {
-            super( HealpixPlotter.this, geom, dataSpec, hstyle,
-                   hstyle.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL );
-            hstyle_ = hstyle;
-            dataLevel_ = dataLevel;
-            indexReader_ = indexReader;
-            assert hstyle_.blur_ == 0;
-        }
-
-        public Map<AuxScale,AuxReader> getAuxRangers() {
-            Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
-            map.put( SCALE, new AuxReader() {
-                public int getCoordIndex() {
-                    return icValue_;
-                }
-                public void adjustAuxRange( Surface surface, TupleSequence tseq,
-                                            Range range ) {
-                    SkySurfaceTiler tiler = createTiler( (SkySurface) surface );
-                    while ( tseq.next() ) {
-                        long hpx = indexReader_.getHealpixIndex( tseq );
-                        if ( tiler.isVisible( hpx ) ) {
-                            double value =
-                                VALUE_COORD.readDoubleCoord( tseq, icValue_ );
-                            range.submit( value );
-                        }
-                    }
-                }
-            } );
-            return map;
-        }
-
-        public Drawing createDrawing( Surface surf,
-                                      Map<AuxScale,Range> auxRanges,
-                                      final PaperType paperType ) {
-            final SkySurface ssurf = (SkySurface) surf;
-            final DataSpec dataSpec = getDataSpec();
-            final Shader shader = hstyle_.shader_;
-            final Scaler scaler =
-                Scaling.createRangeScaler( hstyle_.scaling_,
-                                           auxRanges.get( SCALE ) );
-            final SkySurfaceTiler tiler = createTiler( ssurf );
-            return new UnplannedDrawing() {
-                protected void paintData( Paper paper,
-                                          final DataStore dataStore ) {
-                    paperType.placeDecal( paper, new Decal() {
-                        public void paintDecal( Graphics g ) {
-                            TupleSequence tseq =
-                                dataStore.getTupleSequence( dataSpec );
-                            paintTiles( g, tseq, tiler, scaler, shader );
-                        }
-                        public boolean isOpaque() {
-                            return hstyle_.isOpaque();
-                        }
-                    } );
-                }
-            };
-        }
-
-        /**
-         * Returns a SkySurfaceTiler for a given sky surface.
-         *
-         * @param  surf  sky surface
-         * @retrun   tiler
-         */
-        private SkySurfaceTiler createTiler( SkySurface surf ) {
-            return new SkySurfaceTiler( surf, hstyle_.rotation_, dataLevel_ );
-        }
-
-        /**
-         * Paints HEALPix pixels on a graphics context.
-         *
-         * @param  g   graphics context
-         * @param  tseq  tuple sequence yielding pixel indices and data values
-         * @param  tiler  handles HEALPix tile geometry on the plotting surface
-         * @param  scaler  scales data values to unit interval
-         * @param  shader  determines colours from unit interval
-         */
-        private void paintTiles( Graphics g, TupleSequence tseq,
-                                 SkySurfaceTiler tiler,
-                                 Scaler scaler, Shader shader ) {
-            Color color0 = g.getColor();
-            float[] rgba = new float[ 4 ];
-            while ( tseq.next() ) {
-                double value = tseq.getDoubleValue( icValue_ );
-                if ( ! Double.isNaN( value ) ) {
-                    long hpx = indexReader_.getHealpixIndex( tseq );
-                    if ( tiler.isVisible( hpx ) ) {
-                        Polygon shape = tiler.getTileShape( hpx );
-                        if ( shape != null ) {
-                            rgba[ 0 ] = 0.5f;
-                            rgba[ 1 ] = 0.5f;
-                            rgba[ 2 ] = 0.5f;
-                            rgba[ 3 ] = 1.0f;
-                            float sval = (float) scaler.scaleValue( value );
-                            shader.adjustRgba( rgba, sval );
-                            g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
-                                                   rgba[ 2 ], rgba[ 3 ] ) );
-                            g.fillPolygon( shape );
-                        }
-                    }
-                }
-            }
-            g.setColor( color0 );
-        }
-    }
-
-    /**
      * PlotLayer implementation for plotting layers that work with bin lists.
      * A whole HEALPix bin list is calculated from the input data (as a plan).
      */
@@ -760,8 +631,9 @@ public class HealpixPlotter
             double pixelWidthRadians = ssurf.getPixelSize();
             double pixelsPerTile =
                 Math.pow( tileWidthRadians / pixelWidthRadians, 2 );
-            return ( viewLevel_ <= maxPaintLevel_ ||
-                     pixelsPerTile >= minPaintPixels_ )
+            return ( viewLevel_ >= minPaintLevel_
+                     && ( viewLevel_ <= maxPaintLevel_ ||
+                          pixelsPerTile >= minPaintPixels_ ) )
                  ? new PaintTileRenderer( ssurf, viewLevel_, rotation )
                  : new ResampleTileRenderer( ssurf, viewLevel_, rotation );
         }
