@@ -51,9 +51,10 @@ public class SkySurfaceTiler {
         nside_ = 1L << hpxOrder;
         rotation_ = rotation;
         pixTools_ = new PixTools();
-        visiblePixels_ =
-            Collections.unmodifiableSet( calculateVisiblePixels( surf, rotation,
-                                                                 hpxOrder ) );
+        Set<Long> visPixels =
+            calculateVisiblePixels( surf, rotation, hpxOrder,
+                                    PolygonTiler.PIXTOOLS );
+        visiblePixels_ = Collections.unmodifiableSet( visPixels );
     }
 
     /**
@@ -149,47 +150,21 @@ public class SkySurfaceTiler {
      */
     private static Set<Long> calculateVisiblePixels( SkySurface surf,
                                                      Rotation rotation,
-                                                     int order ) {
+                                                     int order,
+                                                     PolygonTiler ptiler ) {
 
         /* Prepare a polygon corresponding to the plot surface bounds. */
         List<double[]> vertexList = createSurfacePolygon( surf, rotation );
 
         /* Try to work out what HEALPix pixels this covers. */
-        List<Long> indexList = vertexList == null
-                             ? null
-                             : queryPolygon( order, vertexList );
+        Set<Long> indexSet = vertexList == null
+                           ? null
+                           : ptiler.queryPolygon( order, vertexList );
 
-        /* If it worked, turn that into an efficient Set, otherwise use a
-         * custom Set that includes all pixels at the current HEALPix order. */
-        return indexList != null
-             ? new TreeSet<Long>( indexList )
-             : createIntegerSet( 12L << ( 2 * order ) );
-    }
-
-    /**
-     * Returns a list of healpix indices at a given order covered
-     * (at least partially) by a polygon whose vertices are supplied.
-     *
-     * @param  order   healpix order (0, 1, 2, ..)
-     * @param  vertices  list of polygon vertices, as unit 3-vectors on the sky 
-     * @return   list of healpix pixel indices
-     */
-    private static List<Long> queryPolygon( int order,
-                                            List<double[]> vertices ) {
-        ArrayList<Vector3d> v3list = new ArrayList<Vector3d>( vertices.size() );
-        for ( double[] dpos : vertices ) {
-            v3list.add( new Vector3d( dpos[ 0 ], dpos[ 1 ], dpos[ 2 ] ) );
-        }
-        long nside = 1L << order;
-        long nest = 1;
-        long inclusive = 1;
-        try {
-            return new PixTools()
-                  .query_polygon( nside, v3list, nest, inclusive );
-        }
-        catch ( Exception e ) {
-            return null;
-        }
+        /* If that worked return it, otherwise use a custom Set that includes
+         * all pixels at the current HEALPix order. */
+        return indexSet != null ? indexSet
+                                : createIntegerSet( 12L << ( 2 * order ) );
     }
 
     /**
@@ -304,5 +279,45 @@ public class SkySurfaceTiler {
                 };
             }
         };
+    }
+
+    /**
+     * Abstracts healpix implementation for determining polygon tile inclusion.
+     */
+    private static abstract class PolygonTiler {
+
+        /** PixTools-based implementation. */
+        public static final PolygonTiler PIXTOOLS = new PolygonTiler() {
+            private static final long NEST = 1;
+            private static final long INCLUSIVE = 1;
+            Set<Long> queryPolygon( int order, List<double[]> vertices ) {
+                ArrayList<Vector3d> v3list =
+                    new ArrayList<Vector3d>( vertices.size() );
+                for ( double[] p : vertices ) {
+                    v3list.add( new Vector3d( p[ 0 ], p[ 1 ], p[ 2 ] ) );
+                }
+                long nside = 1L << order;
+                final List<Long> indexList;
+                try {
+                    indexList = new PixTools()
+                               .query_polygon( nside, v3list, NEST, INCLUSIVE );
+                }
+                catch ( Exception e ) {
+                    return null;
+                }
+                return new TreeSet<Long>( indexList );
+            }
+        };
+
+        /**
+         * Returns a list of healpix indices at a given order covered
+         * (at least partially) by a polygon whose vertices are supplied.
+         *
+         * @param  order   healpix order (0, 1, 2, ..)
+         * @param  vertices  list of polygon vertices,
+         *                   as unit 3-vectors on the sky 
+         * @return   list of healpix nested pixel indices
+         */
+        abstract Set<Long> queryPolygon( int order, List<double[]> vertices );
     }
 }
