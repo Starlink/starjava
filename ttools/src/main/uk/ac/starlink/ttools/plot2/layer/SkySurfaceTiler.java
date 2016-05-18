@@ -53,7 +53,7 @@ public class SkySurfaceTiler {
         pixTools_ = new PixTools();
         Set<Long> visPixels =
             calculateVisiblePixels( surf, rotation, hpxOrder,
-                                    PolygonTiler.PIXTOOLS );
+                                    PolygonTiler.PIXTOOLS_DISC );
         visiblePixels_ = Collections.unmodifiableSet( visPixels );
     }
 
@@ -286,8 +286,20 @@ public class SkySurfaceTiler {
      */
     private static abstract class PolygonTiler {
 
-        /** PixTools-based implementation. */
-        public static final PolygonTiler PIXTOOLS = new PolygonTiler() {
+        /**
+         * Implementation based on PixTools.query_polygon.
+         * This looks like it should be the right way to do it,
+         * but in practice it's not much use, since it doesn't work well
+         * if the supplied polygon is not convex (it writes to stdout
+         *    The polygon has more than one concave vertex,
+         *    The result is unpredictable
+         * and the results often miss pixels).  In most cases it seems
+         * that concave polygons are what we need to give it.
+         * Note that the JHealpix queryPolygonInclusiveNest implementation
+         * suffers from the same thing (though that just throws an
+         * exception).
+         */
+        public static final PolygonTiler PIXTOOLS_POLY = new PolygonTiler() {
             private static final long NEST = 1;
             private static final long INCLUSIVE = 1;
             Set<Long> queryPolygon( int order, List<double[]> vertices ) {
@@ -301,6 +313,63 @@ public class SkySurfaceTiler {
                 try {
                     indexList = new PixTools()
                                .query_polygon( nside, v3list, NEST, INCLUSIVE );
+                }
+                catch ( Exception e ) {
+                    return null;
+                }
+                return new TreeSet<Long>( indexList );
+            }
+        };
+
+        /**
+         * Implementation based on PixTools.query_disc.
+         * It essentially draws a circle that encloses all the vertices,
+         * and returns the pixels within that.
+         */
+        public static final PolygonTiler PIXTOOLS_DISC = new PolygonTiler() {
+            private static final int NEST = 1;
+            private static final int INCLUSIVE = 1;
+            Set<Long> queryPolygon( int order, List<double[]> vertices ) {
+
+                /* Determine the vector at the center of the polygon.
+                 * This doesn't need to be that accurate; we need a reference
+                 * point that is ideally equidistant from the vertices. */
+                double[] sv = new double[ 3 ];
+                for ( double[] dpos : vertices ) {
+                    for ( int i = 0; i < 3; i++ ) {
+                        sv[ i ] += dpos[ i ];
+                    }
+                }
+                double fv = 1.0 / Math.sqrt( sv[ 0 ] * sv[ 0 ] +
+                                             sv[ 1 ] * sv[ 1 ] +
+                                             sv[ 2 ] * sv[ 2 ] );
+                double[] c0 = { sv[ 0 ] * fv, sv[ 1 ] * fv, sv[ 2 ] * fv };
+
+                /* Go over each vertex and record the maximum angular distance
+                 * between the center and any of the vertices. */
+                double maxTheta = 0;
+                for ( double[] dpos : vertices ) {
+                    double dotp = c0[ 0 ] * dpos[ 0 ]
+                                + c0[ 1 ] * dpos[ 1 ]
+                                + c0[ 2 ] * dpos[ 2 ];
+                    if ( dotp < 0 ) {
+                        return null;
+                    }
+                    else {
+                        maxTheta = Math.max( maxTheta, Math.acos( dotp ) );
+                    }
+                }
+
+                /* Then get the pixels for a circle thus defined.
+                 * It must enclose all the supplied vertices (though it
+                 * probably includes quite a bit extra too). */
+                final List<Long> indexList;
+                try {
+                    long nside = 1L << order;
+                    Vector3d cv = new Vector3d( c0[ 0 ], c0[ 1 ], c0[ 2 ] );
+                    indexList = new PixTools()
+                               .query_disc( nside, cv, maxTheta,
+                                            NEST, INCLUSIVE );
                 }
                 catch ( Exception e ) {
                     return null;
