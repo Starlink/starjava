@@ -157,7 +157,7 @@ public class HealpixPlotter
      *                      setting the alpha value of the whole layer
      */
     public HealpixPlotter( boolean transparent ) {
-        super( "Healpix", ResourceIcon.FORM_SKYDENSITY,
+        super( "Healpix", ResourceIcon.PLOT_HEALPIX,
                CoordGroup.createCoordGroup( 0, new Coord[] { HEALPIX_COORD,
                                                              VALUE_COORD } ),
                false );

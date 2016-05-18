@@ -36,6 +36,7 @@ public class ResourceIcon {
         PLOT_LINE = readIcon( "plot-line.gif" ),
         PLOT_LABEL = readIcon( "plot-label.gif" ),
         PLOT_SPECTRO = readIcon( "plot-spectro.gif" ),
+        PLOT_HEALPIX = readIcon( "plot-healpix.gif" ),
         FORM_HISTOGRAM = readIcon( "form-histogram.gif" ),
         FORM_KDE = readIcon( "form-kde.gif" ),
         FORM_KNN = readIcon( "form-knn.gif" ),
