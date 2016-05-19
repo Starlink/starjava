@@ -373,12 +373,12 @@ public class Strings {
     }
 
     /**
-     * Returns an uppercased version of a string.
+     * Returns an lowercased version of a string.
      *
      * @example  <code>toLowerCase("Universe") = "universe"</code>
      *
      * @param  str  input string
-     * @return   uppercased version of <code>str</code>
+     * @return   lowercased version of <code>str</code>
      */
     public static String toLowerCase( String str ) {
         return str == null ? null : str.toLowerCase();
