@@ -6509,9 +6509,11 @@ where the parts have the following meanings:
         >VOResource</webref>,
 <webref url="http://www.ivoa.net/Documents/VOSI/">VOSI</webref>,
 <webref url="http://www.ivoa.net/Documents/TAPRegExt/">TAPRegExt</webref>,
+<webref url="http://www.ivoa.net/documents/DALI/">DALI</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsCore/">ObsCore</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
-<webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>),
+<webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>,
+<webref url="https://www.w3.org/TR/rdfa-lite/">RDFa Lite</webref>),
 and it is hard to write a validator which is comprehensive, especially
 one which can provide useful output for services with a range of 
 compliance levels.
@@ -10621,6 +10623,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         If you are using taplint programmatically you may need to make
         small changes.  This results from some refactoring that makes
         it easier to customise taplint output.</li>
+    <li>New stage <code>EXA</code> for <ref id="taplint">taplint</ref>
+        checks TAP <code>/examples</code> endpoint.
+        Note the details of the examples format are still under discussion,
+        (this version targets WD-DALI-1.1-20160415 &amp; WD-TAP-1.1-20160428,
+        somewhat informed by TAPNotes-2013-12-13),
+        so the details may change in future.</li>
     </ul>
     </p>
     <p>

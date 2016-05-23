@@ -39,6 +39,7 @@ public class TapLinter {
     private final ColumnMetadataStage colMetaStage_;
     private final UploadStage uploadStage_;
     private final ObsTapStage obstapStage_;
+    private final ExampleStage exampleStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
 
     /** Name of the MDQ stage. */
@@ -103,6 +104,12 @@ public class TapLinter {
                              new AnyMetadataHolder( new MetadataHolder[] {
                                  tapSchemaStage_, tmetaStage_,
                              } ) );
+        exampleStage_ =
+            new ExampleStage( VotLintTapRunner.createGetSyncRunner( true ),
+                              tcapStage_,
+                              new AnyMetadataHolder( new MetadataHolder[] {
+                                  tapSchemaStage_, tmetaStage_,
+                              } ) );
 
         /* Record them in order. */
         stageSet_ = new StageSet();
@@ -120,6 +127,7 @@ public class TapLinter {
         stageSet_.add( MDQ_NAME, colMetaStage_, true );
         stageSet_.add( "OBS", obstapStage_, true );
         stageSet_.add( "UPL", uploadStage_, true );
+        stageSet_.add( "EXA", exampleStage_, true );
     }
 
     /**
