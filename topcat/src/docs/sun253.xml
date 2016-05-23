@@ -23059,6 +23059,7 @@ introduced since the last version:
         sky density plots.</li>
     <li>Fix read failure for FITS files with non-blank TDIM for
         zero-length columns.</li>
+    <li>Update list of VizieR mirrors.</li>
     </ul>
     </p></dd>
 

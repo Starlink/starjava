@@ -89,17 +89,23 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.vizier" );
 
-    /** URLs known to host a standard VizieR service. */
+    /**
+     * URLs known to host a standard VizieR service.
+     * This list is subject to change, but not very often.
+     * The definitive list is available from
+     * <a href="http://vizier.u-strasbg.fr/vizier/mirrors.gml"
+     *         >http://vizier.u-strasbg.fr/vizier/mirrors.gml</a>.
+     */
     public static final String[] SERVER_URLS = new String[] {
         "http://vizier.u-strasbg.fr/",
         "http://vizier.nao.ac.jp/",
         "http://vizier.hia.nrc.ca/",
         "http://vizier.ast.cam.ac.uk/",
-        "http://vizier.iucaa.ernet.in/",
-        "http://vizier.inasan.ru/",
-        "http://data.bao.ac.cn/",
         "http://vizier.cfa.harvard.edu/",
-        "http://www.ukirt.jach.hawaii.edu/",
+        "http://www.ukirt.hawaii.edu/",
+        "http://vizier.iucaa.in/",
+        "http://vizier.china-vo.org/",
+        "http://viziersaao.chpc.ac.za/",
     };
 
     /**
