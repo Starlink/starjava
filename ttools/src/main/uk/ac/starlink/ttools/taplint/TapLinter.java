@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.taplint;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -189,12 +188,10 @@ public class TapLinter {
 
         /* Create and return an executable which will run the
          * requested stages. */
+        final String[] announcements = getAnnouncements();
         return new Executable() {
             public void execute() {
-                for ( String line : Arrays.asList( getAnnouncements() ) ) {
-                    reporter.println( line );
-                }
-                reporter.start();
+                reporter.start( announcements );
                 for ( int ic = 0; ic < codes.length; ic++ ) {
                     String code = codes[ ic ];
                     Stage stage = stageSet_.getStage( code );
@@ -246,10 +243,10 @@ public class TapLinter {
 
         /* Count by report type of known FixedCode instances. */
         Map<ReportType,int[]> codeMap = new LinkedHashMap<ReportType,int[]>();
-        for ( ReportType type : Arrays.asList( ReportType.values() ) ) {
+        for ( ReportType type : ReportType.values() ) {
             codeMap.put( type, new int[ 1 ] );
         }
-        for ( FixedCode code : Arrays.asList( FixedCode.values() ) ) {
+        for ( FixedCode code : FixedCode.values() ) {
             codeMap.get( code.getType() )[ 0 ]++;
         }
         StringBuffer cbuf = new StringBuffer()

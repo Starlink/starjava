@@ -10613,6 +10613,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         zero-length columns.</li>
     <li>Clean up noisy Cubehelix colour map.</li>
     <li>New function <code>countTrue</code> in class Arrays.</li>
+    <li>The <javadoc docset="&stiltsjavadocs;"
+                     class="uk.ac.starlink.ttools.taplint."
+                     >taplint API</javadoc>
+        has changed slightly: the class that used to be <code>Reporter</code>
+        is now called <code>TextOutputReporter</code>.
+        If you are using taplint programmatically you may need to make
+        small changes.  This results from some refactoring that makes
+        it easier to customise taplint output.</li>
     </ul>
     </p>
     <p>
