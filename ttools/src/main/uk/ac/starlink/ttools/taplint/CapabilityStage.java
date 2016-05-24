@@ -466,8 +466,9 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                               + "<cap-doc-url>" );
             System.exit( 1 );
         }
-        Reporter reporter = new Reporter( System.out, ReportType.values(), 10,
-                                          false, 1024 );
+        Reporter reporter =
+            new OutputReporter( System.out, ReportType.values(), 10,
+                                false, 1024 );
         URL capUrl = new URL( args[ 0 ] );
         checkCapabilities( reporter, capUrl );
     }

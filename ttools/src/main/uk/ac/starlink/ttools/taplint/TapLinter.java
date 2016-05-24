@@ -155,7 +155,7 @@ public class TapLinter {
      *                        or &lt;=0 for no limit
      * @return   tap validator executable
      */
-    public Executable createExecutable( final Reporter reporter,
+    public Executable createExecutable( final OutputReporter reporter,
                                         final URL serviceUrl,
                                         Set<String> stageCodeSet,
                                         int maxTestTables )

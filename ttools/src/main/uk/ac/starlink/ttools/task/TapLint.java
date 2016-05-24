@@ -18,8 +18,8 @@ import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
+import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.ttools.taplint.ReportType;
-import uk.ac.starlink.ttools.taplint.Reporter;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TapLinter;
 
@@ -237,8 +237,8 @@ public class TapLint implements Task {
             }
             stageSet.add( sc );
         }
-        Reporter reporter =
-            new Reporter( out, types, maxRepeat, debug, maxChar );
+        OutputReporter reporter =
+            new OutputReporter( out, types, maxRepeat, debug, maxChar );
         return tapLinter_.createExecutable( reporter, serviceUrl, stageSet,
                                             maxTestTables );
     }

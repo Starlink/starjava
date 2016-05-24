@@ -232,7 +232,10 @@ public abstract class XsdStage implements Stage {
 
         /* Summarise results. */
         finally {
-            reporter.summariseUnreportedMessages( reporter.getSectionCode() );
+            if ( reporter instanceof OutputReporter ) {
+                OutputReporter orep = (OutputReporter) reporter;
+                orep.summariseUnreportedMessages( orep.getSectionCode() );
+            }
             reporter.report( FixedCode.S_VALI, errHandler.getSummary() );
         }
     }
