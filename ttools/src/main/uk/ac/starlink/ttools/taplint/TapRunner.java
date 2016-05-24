@@ -72,7 +72,8 @@ public abstract class TapRunner {
     public StarTable attemptGetResultTable( Reporter reporter, TapQuery tq )
             throws IOException, SAXException {
         reporter.report( FixedCode.I_QSUB,
-                         "Submitting query: " + tq.getAdql() );
+                         "Submitting query: "
+                       + tq.getAdql().trim().replaceAll( "\\s+", " " ) );
         nQuery_++;
         long start = System.currentTimeMillis();
         StarTable table = executeQuery( reporter, tq );
