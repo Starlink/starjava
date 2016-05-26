@@ -872,7 +872,7 @@ public class StyleKeys {
             clip( Shaders.LUT_MPL2MAGMA, c * 0.1, true ),
             clip( Shaders.LUT_MPL2PLASMA, c * 0.1, true ),
             clip( Shaders.LUT_MPL2VIRIDIS, c * 0.06, true ),
-            clip( Shaders.LUT_CUBEHELIX, c * 0.2, true ),
+            clip( Shaders.CUBEHELIX, c * 0.15, true ),
             clip( Shaders.SRON_RAINBOW, 0, true ),
             clip( Shaders.LUT_RAINBOW, 0, true ),
             clip( Shaders.LUT_GLNEMO2, c * 0.03, true ),

@@ -124,6 +124,18 @@ public class Shaders {
     public static final Shader SRON_RAINBOW =
         createSronRainbowShader( "SRON" );
 
+    /** Standard cubehelix shader. */
+    public static final Shader CUBEHELIX =
+        createCubehelixShader( "Cubehelix", 0.5, -1.5, 1.0, 1.0 );
+
+    /** Enhanced hue cubehelix shader. */
+    public static final Shader CUBEHELIX2 =
+        createCubehelixShader( "Cubehelix2", 0.5, -1.5, 1.5, 1.0 );
+
+    /** Lurid cubehelix shader. */
+    public static final Shader CUBEHELIX3 =
+        createCubehelixShader( "Cubehelix3", 2.0, 1.0, 3.0, 1.0 );
+
     /** Shader based on lookup table Aips0. */
     public static final Shader LUT_AIPS0;
 
@@ -184,9 +196,6 @@ public class Shaders {
     /** Shader copied from glNemo2 application. */
     public static final Shader LUT_GLNEMO2;
 
-    /** Shader based on lookup table Cubehelix. */
-    public static final Shader LUT_CUBEHELIX;
-
     /** Shader copied from Matplotlib Gnuplot lookup table. */
     public static final Shader LUT_GNUPLOT;
 
@@ -245,7 +254,6 @@ public class Shaders {
         LUT_ACCENT = new ResourceLutShader( "Accent", "accent.lut" ),
         LUT_COLD = new ResourceLutShader( "Cold", "cold.lut" ),
         LUT_GLNEMO2 = new ResourceLutShader( "Rainbow2", "glnemo2.lut" ),
-        LUT_CUBEHELIX = new ResourceLutShader( "Cubehelix", "cubehelix.lut" ),
         LUT_GNUPLOT = new ResourceLutShader( "Gnuplot", "MPL_gnuplot.lut" ),
         LUT_GNUPLOT2 = new ResourceLutShader( "Gnuplot2", "MPL_gnuplot2.lut" ),
         LUT_SPECXB2Y = new ResourceLutShader( "SpecxBY", "specxbl2yel.lut" ),
@@ -554,6 +562,51 @@ public class Shaders {
                 rgba[ 0 ] = (float) r;
                 rgba[ 1 ] = (float) g;
                 rgba[ 2 ] = (float) b;
+            }
+        };
+    }
+
+    /**
+     * Create one of the cubehelix family of shaders, devised by Dave Green.
+     *
+     * @param  name  shader name
+     * @param  start  colour (1=red, 2=green, 3=blue; 0.5=purple)
+     * @param  rots   rotations in colour, (typically -1.5 to 1.5,
+     *                -1.0 is one blue-green-red cycle
+     * @param  hue    for hue intensity scaling (in the range 0.0 (B+W) to 1.0;
+     *                to be strictly correct, larger values may be OK with
+     *                particular start/end colours
+     * @param  gamma  set the gamma correction for intensity
+     * @return  shader
+     * @see <a href="http://adsabs.harvard.edu/abs/2011BASI...39..289G"
+     *                                            >2011BASI...39..289G</a>
+     * @see <a href="https://www.mrao.cam.ac.uk/~dag/CUBEHELIX/"
+     *              >https://www.mrao.cam.ac.uk/~dag/CUBEHELIX/</a>
+     */
+    private static Shader createCubehelixShader( String name,
+                                                 final double start,
+                                                 final double rots,
+                                                 final double hue,
+                                                 final double gamma ) {
+        final double third = 1.0 / 3.0;
+        final boolean gamma1 = gamma == 1;
+        return new BasicShader( name ) {
+            public void adjustRgba( float[] rgba, float value ) {
+                double angle =
+                    2.0 * Math.PI * ( start * third + 1.0 + rots * value );
+                double fract = gamma1 ? value : Math.pow( value, gamma );
+                double amp = hue * fract * 0.5 * ( 1.0 - fract );
+                double c = Math.cos( angle );
+                double s = Math.sin( angle );
+                rgba[ 0 ] =
+                    (float) ( fract + amp * ( -0.14861 * c + 1.78277 * s ) );
+                rgba[ 1 ] =
+                    (float) ( fract + amp * ( -0.29227 * c - 0.90649 * s ) );
+                rgba[ 2 ] =
+                    (float) ( fract + amp * (  1.97294 * c ) );
+                for ( int i = 0; i < 3; i++ ) {
+                    rgba[ i ] = Math.max( 0f, Math.min( 1f, rgba[ i ] ) );
+                }
             }
         };
     }

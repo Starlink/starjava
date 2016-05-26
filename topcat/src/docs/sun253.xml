@@ -23078,13 +23078,14 @@ introduced since the last version:
     <li>Fix read failure for FITS files with non-blank TDIM for
         zero-length columns.</li>
     <li>Update list of VizieR mirrors.</li>
+    <li>Clean up noisy Cubehelix colour map.</li>
     </ul>
     </p>
     <p>
     <dl>
     <dt>Expression Language</dt>
     <dd><p>The JEL library underlying the expression language parser
-        has been upgraded to v2.1.1 (thanks to Kontantin Metlov),
+        has been upgraded to v2.1.1 (thanks to Konstantin Metlov),
         now supporting variable-length argument lists among other things.
         This allows the following improvements:
         <ul>
