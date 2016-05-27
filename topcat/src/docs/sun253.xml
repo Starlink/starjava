@@ -23079,6 +23079,7 @@ introduced since the last version:
         zero-length columns.</li>
     <li>Update list of VizieR mirrors.</li>
     <li>Clean up noisy Cubehelix colour map.</li>
+    <li>New function <code>countTrue</code> in class Arrays.</li>
     </ul>
     </p>
     <p>
@@ -23096,7 +23097,7 @@ introduced since the last version:
             in class <ref id="Strings">Strings</ref>;
             <code>sum</code>, <code>mean</code>, <code>variance</code>,
             <code>stdev</code>, <code>min</code>, <code>max</code>,
-            <code>median</code>
+            <code>median</code>, <code>countTrue</code>
             in new class <ref id="Lists">Lists</ref>;
             and <code>exec</code>
             in activation class <ref id="System">System</ref>.</li>

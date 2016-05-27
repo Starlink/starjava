@@ -10554,6 +10554,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix read failure for FITS files with non-blank TDIM for
         zero-length columns.</li>
     <li>Clean up noisy Cubehelix colour map.</li>
+    <li>New function <code>countTrue</code> in class Arrays.</li>
     </ul>
     </p>
     <p>
@@ -10572,7 +10573,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             and
             <code>sum</code>, <code>mean</code>, <code>variance</code>,
             <code>stdev</code>, <code>min</code>, <code>max</code>,
-            <code>median</code>
+            <code>median</code>, <code>countTrue</code>
             in new class
             <ref id="uk.ac.starlink.ttools.func.Lists">Lists</ref>.</li>
         <li>Some old lists of similarly-named functions with fixed numbers

@@ -7,6 +7,7 @@ package uk.ac.starlink.ttools.func;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.filter.QuantCalc;
 
 /**
@@ -29,6 +30,7 @@ import uk.ac.starlink.ttools.filter.QuantCalc;
  * <li>Aggregating operations, which map an array value to a scalar, including
  *     <code>size</code>,
  *     <code>count</code>,
+ *     <code>countTrue</code>,
  *     <code>maximum</code>,
  *     <code>minimum</code>,
  *     <code>sum</code>,
@@ -279,8 +281,7 @@ public class Arrays {
             int n = Array.getLength( array );
             int count = 0;
             for ( int i = 0; i < n; i++ ) {
-                double d = Array.getDouble( array, i );
-                if ( ! Double.isNaN( d ) ) {
+                if ( ! Tables.isBlank( Array.get( array, i ) ) ) {
                     count++;
                 }
             }
@@ -289,6 +290,22 @@ public class Arrays {
         catch ( RuntimeException e ) {
             return 0;
         }
+    }
+
+    /**
+     * Returns the number of true elements in an array of boolean values.
+     *
+     * @param  array  array of true/false values
+     * @return  number of true values in <code>array</code>
+     */
+    public static int countTrue( boolean[] array ) {
+        int count = 0;
+        for ( boolean b : array ) {
+             if ( b ) {
+                 count++;
+             }
+        }
+        return count;
     }
 
     /**

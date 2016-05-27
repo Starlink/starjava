@@ -194,4 +194,25 @@ public class Lists {
         return median instanceof Number ? ((Number) median).doubleValue()
                                         : Double.NaN;
     }
+
+    /**
+     * Returns the number of true values in a list of boolean arguments.
+     * Note if any of the values are blank, the result may be blank as well.
+     *
+     * @example  <code>countTrue(false, false, true, false, true) = 2</code>
+     *
+     * @param  values  one or more true/false values
+     * @return   number of elements of <code>values</code> that are true
+     */
+    public static int countTrue( boolean... values ) {
+        int count = 0;
+        if ( values != null ) {
+            for ( boolean b : values ) {
+                if ( b ) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 }

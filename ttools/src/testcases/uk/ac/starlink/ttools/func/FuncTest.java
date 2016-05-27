@@ -154,6 +154,14 @@ public class FuncTest extends TestCase {
         assertEquals( 1, Arrays.median( Arrays
                                        .array( 1, 1, 0, 0, 0, 2, 2, 2 ) ) );
 
+        assertEquals( 2,
+                      Arrays.countTrue( new boolean[] { true, false, true } ) );
+        assertEquals( 2, Lists.countTrue( true, false, true ) );
+        assertEquals( 2, Arrays.count( new Object[] {
+                             Float.NaN, Double.NaN, new Integer( 23 ),
+                             "abc", null, null
+                         } ) );
+
         assertEquals( "1; 2; 4", Arrays.join( new int[] { 1, 2, 4, }, "; " ) );
 
         assertArrayEquals( new double[] { 1.5, 3.5, Double.NaN },
