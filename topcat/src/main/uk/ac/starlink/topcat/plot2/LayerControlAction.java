@@ -111,10 +111,9 @@ public abstract class LayerControlAction extends BasicAction {
             final SpectrogramPlotter sPlotter = (SpectrogramPlotter) plotter;
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
-                    Specifier<ZoneId> zsel = zfact.isSingleZone()
-                                           ? null
-                                           : zfact.createZoneSpecifier();
-                    Configger configger = baseConfigger.layerConfigger( zsel );
+                    Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
+                    Configger configger = baseConfigger.layerConfigger( zs0 );
+                    Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
                     return new SpectrogramLayerControl( sPlotter, zsel,
                                                         configger );
                 }
@@ -126,10 +125,9 @@ public abstract class LayerControlAction extends BasicAction {
                     PositionCoordPanel posCoordPanel =
                         new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
-                    Specifier<ZoneId> zsel = zfact.isSingleZone()
-                                           ? null
-                                           : zfact.createZoneSpecifier();
-                    Configger configger = baseConfigger.layerConfigger( zsel );
+                    Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
+                    Configger configger = baseConfigger.layerConfigger( zs0 );
+                    Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
                     return new SingleFormLayerControl( posCoordPanel, zsel,
                                                        true, nextSupplier,
                                                        tcListener,
@@ -148,10 +146,9 @@ public abstract class LayerControlAction extends BasicAction {
                     PositionCoordPanel coordPanel =
                         new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
-                    Specifier<ZoneId> zsel = zfact.isSingleZone()
-                                           ? null
-                                           : zfact.createZoneSpecifier();
-                    Configger configger = baseConfigger.layerConfigger( zsel );
+                    Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
+                    Configger configger = baseConfigger.layerConfigger( zs0 );
+                    Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
                     return new BasicCoordLayerControl( plotter, zsel,
                                                        coordPanel, configger );
                 }

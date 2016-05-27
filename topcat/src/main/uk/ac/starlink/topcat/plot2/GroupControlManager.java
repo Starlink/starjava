@@ -317,9 +317,9 @@ public class GroupControlManager implements ControlManager {
         if ( plotterList != null && plotterList.size() > 0 ) {
             PositionCoordPanel coordPanel =
                 ctyp.createPositionCoordPanel( plotType_, plotTypeGui_ );
-            Specifier<ZoneId> zsel = zfact_.isSingleZone()
-                                   ? null
-                                   : zfact_.createZoneSpecifier();
+            Specifier<ZoneId> zs0 = zfact_.createZoneSpecifier();
+            Configger zoneConfigger = baseConfigger_.layerConfigger( zs0 );
+            Specifier<ZoneId> zsel = zfact_.isSingleZone() ? null : zs0;
             boolean autoPop = ctyp.isAutoPopulate();
             MultiFormLayerControl control = 
                 new MultiFormLayerControl( coordPanel, zsel, autoPop,
@@ -327,8 +327,7 @@ public class GroupControlManager implements ControlManager {
                                            ctyp.getIcon(),
                                            plotterList
                                           .toArray( new Plotter[ 0 ] ),
-                                           baseConfigger_
-                                          .layerConfigger( zsel ) );
+                                           zoneConfigger );
             if ( autoPlot ) {
                 control.addDefaultLayer();
             }

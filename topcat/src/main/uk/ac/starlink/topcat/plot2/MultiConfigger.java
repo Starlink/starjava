@@ -99,13 +99,8 @@ public class MultiConfigger {
     public Configger layerConfigger( final Specifier<ZoneId> zsel ) {
         return new Configger() {
             public ConfigMap getConfig() {
-                if ( zsel == null ) {
-                    return getGlobalConfig();
-                }
-                else {
-                    assert SwingUtilities.isEventDispatchThread();
-                    return getZoneConfig( zsel.getSpecifiedValue() );
-                }
+                assert SwingUtilities.isEventDispatchThread();
+                return getZoneConfig( zsel.getSpecifiedValue() );
             }
         };
     }
