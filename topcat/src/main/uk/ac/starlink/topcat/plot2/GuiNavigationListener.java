@@ -30,13 +30,31 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
         plotPanel_ = plotPanel;
     }
 
+    /**
+     * May return a negative value if no surface corresponds to the given point.
+     */
     public int getSurfaceIndex( Point pos ) {
         return plotPanel_.getGang().getNavigationZoneIndex( pos );
     }
 
     public Surface getSurface( int isurf ) {
-        return plotPanel_.getLatestSurface( isurf );
+        return isurf >= 0 ? plotPanel_.getLatestSurface( isurf )
+                          : null;
     }
+
+    public Navigator<A> getNavigator( int isurf ) {
+        return isurf >= 0 ? getExistingNavigator( isurf )
+                          : null;
+    }
+
+    /**
+     * Returns the navigator for a surface that is actually known by
+     * this listener.
+     *
+     * @param  isurf  surface index, &gt;=0
+     * @return  navigator for given surface index
+     */
+    protected abstract Navigator<A> getExistingNavigator( int isurf );
 
     @Override
     protected void handleClick( final Navigator<A> navigator, final int isurf,
