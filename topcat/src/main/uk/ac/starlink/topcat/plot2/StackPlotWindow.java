@@ -115,9 +115,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackPanel stackPanel_;
     private final ControlManager controlManager_;
     private final MultiAxisController<P,A> multiAxisController_;
+    private final MultiController<ShaderControl> multiShaderControl_;
     private final ToggleButtonModel showProgressModel_;
     private final LegendControl legendControl_;
-    private final ShaderControl shaderControl_;
     private final FrameControl frameControl_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
@@ -166,9 +166,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Set up fixed configuration controls. */
         MultiConfigger configger = new MultiConfigger();
         frameControl_ = new FrameControl();
-        shaderControl_ = new ShaderControl( configger );
+        multiShaderControl_ = new MultiShaderController( zoneFact_, configger );
         legendControl_ = new LegendControl( configger );
-        configger.addGlobalConfigger( shaderControl_ );
 
         /* Set up various user interface components in the window that can
          * gather all the information required to perform (re-)plots. */
@@ -248,8 +247,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         } );
         frameControl_.addActionListener( plotPanel_ );
         legendControl_.addActionListener( plotPanel_ );
-        shaderControl_.addActionListener( plotPanel_ );
         navdecModel.addActionListener( plotPanel_ );
+        for ( Control c : multiShaderControl_.getStackControls() ) {
+            c.addActionListener( plotPanel_ );
+        }
         for ( Control c : multiAxisController_.getStackControls() ) {
             c.addActionListener( plotPanel_ );
         }
@@ -774,11 +775,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 multiAxisController_.getController( zid );
             final float[] legpos = legendControl_.getLegendPosition();
             final String title = frameControl_.getPlotTitle();
+            ShaderControl shaderControl =
+                multiShaderControl_.getController( zid );
             final ShadeAxisFactory shadeFact =
-                shaderControl_.createShadeAxisFactory( controls, zid );
-            final Range shadeFixRange = shaderControl_.getFixRange();
-            final Subrange shadeSubrange = shaderControl_.getSubrange();
-            final boolean isShadeLog = shaderControl_.isLog();
+                shaderControl.createShadeAxisFactory( controls, zid );
+            final Range shadeFixRange = shaderControl.getFixRange();
+            final Subrange shadeSubrange = shaderControl.getSubrange();
+            final boolean isShadeLog = shaderControl.isLog();
             zdefs.add( new ZoneDef<P,A>() {
                 public ZoneId getZoneId() {
                     return zid;
@@ -827,40 +830,32 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * layers is making use of it. */
         boolean requiresShader = hasShadedLayers( readPlotLayers( false ) );
         if ( hasShader_ ^ requiresShader ) {
-            if ( requiresShader ) {
-                stackPanel_.addFixedControl( shaderControl_ );
+            for ( Control c : multiShaderControl_.getStackControls() ) {
+                if ( requiresShader ) {
+                    stackPanel_.addFixedControl( c );
+                }
+                else {
+                    stackPanel_.removeFixedControl( c );
+                }
+                hasShader_ = requiresShader;
             }
-            else {
-                stackPanel_.removeFixedControl( shaderControl_ );
-            }
-            hasShader_ = requiresShader;
         }
 
-        /* Update the axis control display for currently active zones. */
+        /* Update the multi-zone controls for currently active zones. */
         Map<ZoneId,LayerControl[]> zoneMap = getLayerControlsByZone();
         ZoneId[] zones = zoneMap.keySet().toArray( new ZoneId[ 0 ] );
         Arrays.sort( zones, zoneFact_.getComparator() );
         Gang gang = getGanger().createApproxGang( getBounds(), zones.length );
         multiAxisController_.setZones( zones, gang );
+        multiShaderControl_.setZones( zones, gang );
         for ( Map.Entry<ZoneId,LayerControl[]> entry : zoneMap.entrySet() ) {
-            multiAxisController_.getController( entry.getKey() )
-                                .configureForLayers( entry.getValue() );
+            ZoneId zid = entry.getKey();
+            LayerControl[] layerCtrls = entry.getValue();
+            multiAxisController_.getController( zid )
+                                .configureForLayers( layerCtrls );
+            multiShaderControl_.getController( zid )
+                               .configureForLayers( layerCtrls );
         }
-
-        /* Configure auto settings for the shader control.
-         * This includes displaying the default value for the aux axis label
-         * in the GUI.  It's not essential to do that, but it helps the user
-         * a bit to see what's going on.  It's only possible to do it
-         * in a reasonable way if there is one shader control per zone.
-         * If that's the case (currently, only if there is exactly one zone),
-         * do it by hand here.  Otherwise (multi-zone case) fix it so that
-         * those values are not filled in.
-         * If the GUI one day gets per-zone shader and /or axis controls,
-         * this can be implemented in a less hacky way. */
-        LayerControl[] ctrls = zoneMap.size() == 1
-                             ? zoneMap.values().iterator().next()
-                             : new LayerControl[ 0 ];
-        shaderControl_.configureForLayers( ctrls );
     }
 
     /**
