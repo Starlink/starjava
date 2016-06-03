@@ -135,8 +135,6 @@
   <!ENTITY FIG.SpectrogramLayerControl '&figs;SpectrogramLayerControl.gif'>
   <!ENTITY FIG.SpectrogramLayerControl_data
            '&figs;SpectrogramLayerControl_data.gif'>
-  <!ENTITY FIG.SpectrogramLayerControl_style
-           '&figs;SpectrogramLayerControl_style.gif'>
   <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.gif'>
   <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.gif'>
   <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.gif'>
@@ -183,6 +181,8 @@
   <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
   <!ENTITY FIG.size_tab '&figs;size_tab.gif'>
   <!ENTITY FIG.title_tab '&figs;title_tab.gif'>
+  <!ENTITY FIG.zone_tab '&figs;zone_tab.gif'>
+  <!ENTITY FIG.zone_axes '&figs;zone_axes.gif'>
   <!ENTITY FIG.BinsControl_histogram '&figs;BinsControl_histogram.gif'>
   <!ENTITY FIG.BinsControl_kde '&figs;BinsControl_kde.gif'>
   <!ENTITY FIG.BinsControl_general '&figs;BinsControl_general.gif'>
@@ -8093,8 +8093,8 @@ and can be controlled separately for each histogram.
 <subhead><title>Spectrogram Layer Control</title></subhead>
 
 <p><em>This control is experimental.
-As currently implemented it lacks some important features.
-It may be improved or withdrawn in a future version.
+It is missing some important features, and the interface may be
+changed in a future version.
 </em></p>
 
 <p>The <label>Spectrogram Layer Control</label> (&IMG.PLOT_SPECTRO;)
@@ -8109,8 +8109,9 @@ It is only available for the <em>experimental</em>
 <figureimage src="&FIG.SpectrogramLayerControl;"/>
 </figure>
 
-<p>This control has two tabs, <label>Data</label> and <label>Style</label>,
+<p>This control has only one layer-specific tab, <label>Data</label>,
 described below.
+The <label>Zone</label> tab is described in <ref id="plotZones"/>.
 </p>
 
 <figure>
@@ -8150,61 +8151,8 @@ It has the following fields:
 </dl>
 </p>
 
-<figure>
-<caption><px>Spectrogram control Style tab</px></caption>
-<figureimage src="&FIG.SpectrogramLayerControl_style;"/>
-</figure>
-
-<p>The <label>Style</label> allows you to configure the way the spectrogram
-is plotted.  It has the following fields:
-<dl>
-<dt>Spectral Shader</dt>
-<dd><p>Select the colour map from a list of options.
-    </p></dd>
-<dt>Shader Clip</dt>
-<dd><p>Select a sub-range of the full colour map above.
-    By default the whole colour map is used, but if you want the range
-    of colours in the plot to be formed from only a part of the colour
-    band shown in the <label>Shader</label> control,
-    you can move the handles in from the end of this slider.
-    </p></dd>
-<dt>Shader Flip</dt>
-<dd><p>Whether the spectral values should map forwards or backwards
-    into the colour map.
-    </p></dd>
-<dt>Shader Quantise</dt>
-<dd><p>Allows the colour map to be quantised.
-    By default, the colour map is effectively continuous.
-    If you slide the slider to the right,
-    or enter a value in the text field,
-    the map will be split into
- the map will be split into
-    a decreasing number of discrete colours.  This can be used to generate
-    a contour-like effect, and may make it easier to trace the boundaries
-    of regions of interest by eye.
-    </p></dd>
-<dt>Scaling</dt>
-<dd><p>Determines the function used to map the range of spectral data values
-    onto the colour map.
-    Options are <label>linear</label>,
-                <label>logarithmic</label>,
-                <label>square</label> and
-                <label>square root</label>.
-    </p></dd>
-<dt>Spectral Subrange</dt>
-<dd><p>Adjusts the range of the spectral coordinate over which the
-    colour map is applied.  By default the colour map is scaled using
-    limits found from the spectral data values themselves,
-    but you can restrict the range using this slider.
-    </p></dd>
-<dt>Null Colour</dt>
-<dd><p>What colour should be used to represent spectral samples with a null
-    value.
-    If the associated <label>Hide</label> option is selected,
-    then those points will not appear in the plot at all (they will be
-    transparent).
-    </p></dd>
-</dl>
+<p>To control the colour map used to represent the spectral values,
+use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
 </p>
 
 
@@ -11644,9 +11592,8 @@ It also affects some other things like the legend.
 <subsubsect id="TimePlotWindow">
 <subhead><title>Time Plot Window</title></subhead>
 
-<p><em>This plot window is experimental.
-As currently implemented it lacks some important features.
-It may be improved or withdrawn in a future version.
+<p><em>This plot window is experimental and lacks some useful features.
+The details of the user interface may be changed in future versions.
 </em></p>
 
 <figure>
@@ -11656,13 +11603,20 @@ It may be improved or withdrawn in a future version.
 
 <p>The <label>Time Plot</label> (&IMG.PLOT2_TIME;)
 is intended for plotting time series data.
+You can find it in the <ref id="controlMenus">Graphics</ref>
+menu of the main Control Window, but since it is currently
+experimental it does not appear in the main toolbar.
 </p>
 
 <p>The horizontal axis represents time, and can be labelled accordingly,
 and the window can display functions of time, scatter plots and spectrograms.
-In future versions it may be able to plot multiple time series plots
-stacked vertically using the same horizontal axis,
-but at present it doesn't do that.
+</p>
+
+<p>Unlike the other plot windows (at time of writing) the Time plot
+can display different data plots in different plot
+<ref id="plotZones" plaintextref="yes">Zones</ref>
+stacked vertically on top of each other, so that different plots
+share a time axis but have their own Y axis.
 </p>
 
 <p>The Time Plot offers the following plot controls:
@@ -11684,9 +11638,58 @@ but at present it doesn't do that.
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
 for features common to all plotting windows.
 The following subsections describe
+<ref id="plotZones">zones</ref>,
 <ref id="timeNavigation">navigation</ref> and
 <ref id="TimeAxisControl">axis configuration</ref>.
 </p>
+
+<subsubsubsect id="plotZones">
+<subhead><title>Plot Zones</title></subhead>
+
+<p>Unlike the other plot types, the Time plot can display data in
+multiple panels, known as <label>Zones</label>, stacked vertically.
+All plots therefore share the same time axis, but can have different Y axes.
+</p>
+
+<p>By default, each new plot added is displayed in a new zone stacked
+beneath the existing ones.  By using the <label>Zone</label> tab for
+each plot however, you can control which plots appear in which zones.
+Each zone has a numeric identifier, which by default increments by one
+for each new plot, but if you select the same identifier for several
+plots, they will all appear in the same zone.
+</p>
+
+<figure>
+<caption><px>Zone selection tab</px></caption>
+<figureimage src="&FIG.zone_tab;"/>
+</figure>
+
+<p>Some of the fixed controls
+(<ref id="TimeAxisControl">Axes</ref> &IMG.AXIS_CONFIG; and
+ <ref id="ShaderControl">Aux</ref> &IMG.COLORS;)
+operate on a per-zone basis.
+If multiple zones are visible, then a zone selector is displayed
+above the tabs:
+</p>
+
+<figure>
+<caption><px>Zone selector for Axes Control</px></caption>
+<figureimage src="&FIG.zone_axes;"/>
+</figure>
+
+<p>In this case you should select the zone you want to control
+and adjust the configuration for that zone only.
+The selector shows an icon indicating the position of the zone in question.
+Each zone has to be configured separately.
+In a future release a global zone configuration
+option may be introduced as well.
+</p>
+
+<p>This multi-zone feature is currently available only for the Time plot,
+but it may be added to other plot types at some point in the future.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="timeNavigation">
 <subhead><title>Time Navigation</title></subhead>
@@ -11696,6 +11699,12 @@ Additional configuration options are available in the <label>Navigation</label>
 tab of the <ref id="TimeAxisControl">Axes control</ref>.
 </p>
 
+<p>Horizontal navigation (panning and zooming left and right along the
+shared time axis) affects all the stacked <ref id="plotZones">zones</ref>,
+but vertical navigation (panning and zooming along the Y axis of each zone)
+is done independently for each zone.
+</p>
+
 <p>The navigation actions for this window are:
 <dl>
 <dt>&GESTURE.DRAG1;</dt>
@@ -11703,7 +11712,8 @@ tab of the <ref id="TimeAxisControl">Axes control</ref>.
     On the body of the plot this usually moves it around left/right.
     By default, vertical movement is inhibited since you don't normally
     want it for a time plot.
-    To pan vertically, drag on the left of the Y axis.
+    To pan vertically, drag on the left of the Y axis for the zone
+    you want to affect.
     It is also possible to configure panning on the body of the plot
     to be in both directions using the <label>Pan/Zoom Axes</label>
     in the <label>Navigation</label> axis configuration tab.
@@ -11714,7 +11724,8 @@ tab of the <ref id="TimeAxisControl">Axes control</ref>.
     centered on the horizontal position of the mouse.
     By default, vertical zooming is inhibited since you don't normally
     want it for a time plot.
-    To zoom vertically, drag on the left of the Y axis. 
+    To zoom vertically, drag on the left of the Y axis for the zone
+    you want to affect.
     It is also possible to configure zooming on the body of the plot
     to be in both directions using the <label>Pan/Zoom Axes</label>
     in the <label>Navigation</label> axis configuration tab.
@@ -11728,14 +11739,15 @@ tab of the <ref id="TimeAxisControl">Axes control</ref>.
     using a similar (though not quite the same) mechanism.
     By default, vertical zooming is inhibited since you don't normally
     want it for a time plot.
-    To zoom in/out vertically, drag up/down on the left of the Y axis.
+    To zoom in/out vertically, drag up/down on the left of the Y axis
+    for the zone you want to affect.
     It is also possible to configure zooming on the body of the plot
     to be in both directions using the <label>Pan/Zoom Axes</label>
     in the <label>Navigation</label> axis configuration tab.
     </p></dd>
 <dt>&GESTURE.WHEEL;</dt>
 <dd><p><em>Zoom.</em>
-    Spinning the mouse wheel forwards/backwards will zoom in/out
+    Spinning the mouse wheel forwards/backwards will zoom horizontally in/out
     around the mouse position,
     just like dragging with the right button up-and-right or down-and-left.
     </p></dd>
@@ -11757,7 +11769,12 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
 <subsubsubsect id="TimeAxisControl">
 <subhead><title>Time Axes Control</title></subhead>
 
-<p>The <label>Axes</label> (&IMG.AXIS_CONFIG;) for the
+<p><strong>Note:</strong> the Time Plot has multiple plot
+<ref id="plotZones" plaintextref="yes">Zones</ref>,
+and the axes are configured individually for each zone.
+</p>
+
+<p>The <label>Axes</label> (&IMG.AXIS_CONFIG;) control for the
 time plot window has the following tabs:
 </p>
 
