@@ -10658,6 +10658,38 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             "<code>L</code>" character.</li>
         </ul>
         </p></dd>
+    <dt>Time plots</dt>
+    <dd><p>The <ref id="plot2time"><code>plot2time</code></ref> command
+        has been enhanced so that it can make <em>multi-zone</em> plots - 
+        multiple plots stacked vertically that share the same horizontal
+        (time) axis but have independent vertical axes.
+        The time plot itself and this multi-zone feature are currently
+        experimental; in future versions they may be improved or changed,
+        and the multi-zone feature may be extended to other plot types.
+        Some other changes have gone along with this:
+        <ul>
+        <li>A few API changes have been made to support multi-zone plots,
+            including generalising the <code>NavigationListener</code>
+            interface and rearranging some
+            <code>PlotDisplay</code> and <code>AbstractPlot2Task</code>
+            constructor/factory method arguments.
+            For single-zone plots the changes are not very substantial.
+            This only affects you if you are using the STILTS classes
+            as a java plotting library.
+            If that applies to you and you have trouble upgrading,
+            I'm happy to provide assistance.</li>
+        <li><code>plot2time</code> now supports shading modes
+            (<code>shadingN</code> and associated parameters).</li>
+        <li>The <ref id="layer-spectrogram">spectrogram</ref> layer
+            now uses the (per-plot, or more precisely now per-zone)
+            Aux colour map rather than a layer-specific colour map.
+            This means that the colour ramp is displayed alongside the plot,
+            but also that some parameters have been renamed
+            (e.g. <code>auxmapZ</code> replaces <code>spectromapN</code>,
+            where <code>Z</code> is an optional zone suffix
+            and <code>N</code> is an optional layer suffix).</li>
+        </ul>
+        </p></dd>
     </dl>
     </p></dd>
 
