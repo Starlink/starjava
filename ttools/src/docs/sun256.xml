@@ -5776,9 +5776,33 @@ e.g.:
 </verbatim>
 </p>
 
-<p><em><strong>Note:</strong> this plot type is experimental.
+<p>This command,
+unlike the other <code>plot2*</code> commands at time of writing,
+can be used to draw <em>multi-zone</em> plots.
+These are plots with different panels stacked vertically so that
+different datasets can share the same horizontal (time) axis, but have
+separate vertical axes, colour maps, legends etc.
+The horizontal axes are always synchronized between zones.
+This is currently controlled with the <code>zoneN</code> parameter.
+For any layer with a layer suffix <code>N</code>, you can specify
+a zone identifier as an arbitrary string, <code>Z</code>,
+by supplying the parameter <code>zoneN=Z</code>.
+Layers with the same value of 
+<code>zoneN</code> are plotted in the same zone, and layers with
+different values are plotted in different zones.
+If no <code>zoneN</code> is given, the layer is assigned to 
+a single (unnamed) zone, so with no zone parameters specified
+all plots appear in a single zone.
+Parameters specific to a given zone can then be suffixed with the
+same <code>Z</code> zone identifier.
+The <ref id="plot2time-examples">examples</ref> section illustrates
+what this looks like in practice.
+</p>
+
+<p><em><strong>Note:</strong> this plot type, and the multi-zone feature,
+is experimental.
 As currently implemented it lacks some important features.
-It may be improved or withdrawn in a future version.
+The interface may be changed in a future version.
 </em></p>
 
 &plot2time-layers;
@@ -5803,6 +5827,21 @@ stilts plot2time xpix=1000 ypix=300
     </p></dd>
 
 <dt><verbatim>
+stilts plot2time xpix=1000 ypix=1000
+                 in=ACE_data.vot t=epoch
+                 layer.r=line y.r=Br zone.r=ZR
+                 layer.t=line y.t=Bt zone.t=ZT
+                 layer.n=line y.n=Bn zone.n=ZN
+                 titleZR="Br" titleZT="Bt" titleZN="Bn"
+</verbatim></dt>
+<dd><p>The same data is plotted as in the previous example, but in this
+    case each line is drawn in a different panel (zone), stacked vertically.
+    The default colour is used for each line.
+    Each plot is given a different title; note the <code>title</code>
+    parameter suffixes refer to the zone identifiers not the layer identifiers.
+    </p></dd>
+
+<dt><verbatim>
 stilts plot2time tmin=2007-06-07T02:40 tmax=2007-06-07T06:20 tformat=mjd
                  in=STEREO_STA_L1_SEPT_20070607_V05.cdf t=epoch_ns
                  ylabel=Channel
@@ -5812,6 +5851,25 @@ stilts plot2time tmin=2007-06-07T02:40 tmax=2007-06-07T06:20 tformat=mjd
 <dd><p>Plots a spectrogram from a CDF file.
     The range along the horizontal axis is specified explicitly using
     ISO-8601 date strings, but it is labelled in Modified Julian Date.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2time in=STEREO_STA_L1_SEPT_20070607_V05.cdf t=epoch_ns
+                 layer_1=spectrogram spectrum_1=spec_0_ns zone_1=A
+                 layer_2=spectrogram spectrum_2=spec_0_e  zone_2=B
+                 layer_3=line y_3='mean(spec_0_ns)' color_3=red  zone_3=C
+                 layer_4=line y_4='mean(spec_0_e)'  color_4=blue zone_4=C
+                 ylogC=true
+                 auxfunc=sqrt auxmapA=viridis auxmapB=magma
+</verbatim></dt>
+<dd><p>This is a 3-zone plot; zones <code>A</code> and <code>B</code>
+    each contains a spectrogram (layers <code>_1</code> and <code>_2</code>),
+    and zone <code>C</code> contains two line plots
+    (layers <code>_3</code> and <code>_4</code>).
+    The Y axis is set to logarithmic for zone C only.
+    The colour ramps are configured with <code>aux*</code> parameters;
+    the stretch function is set to <code>sqrt</code> for all zones,
+    and the colour map is set to different values for zones A and B.
     </p></dd>
 
 </dl>
