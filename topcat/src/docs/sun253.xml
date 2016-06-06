@@ -23142,6 +23142,34 @@ introduced since the last version:
             "<code>L</code>" character.</li>
         </ul>
         </p></dd>
+    <dt>Time plot</dt>
+    <dd><p>The <ref id="TimePlotWindow">Time Plot window</ref>
+        (available from the Control window <label>Graphics</label> menu)
+        has been enhanced so that it can make
+        <ref id="plotZones">multi-zone</ref> plots -
+        multiple plots stacked vertically that share the same horizontal
+        (time) axis but have independent vertical axes.
+        The time plot itself and this multi-zone feature are currently
+        experimental; in future versions they may be improved or changed,
+        and the multi-zone feature may be extended to other plot types.
+        Some other changes have gone along with this:
+        <ul>
+        <li>Plotted points (Mark form) in the time plot now supports
+            <ref id="ShapeMode">shading modes</ref>
+            as for other plot types.</li>
+        <li>The <ref id="SpectrogramLayerControl">spectrogram</ref> layer
+            now uses the (per plot, or more precisely per-zone) Aux colour map
+            rather than a colour map specific to the layer.
+            This means that the colour ramp is now displayed alongside
+            the plot, so you can see quantitatively what colour corresponds
+            to what value.  It also means that to adjust the colour map,
+            you now need to use the <ref id="ShaderControl">Aux</ref>
+            fixed control rather than controls in the spectrogram's
+            <label>Style</label> tab.</li>
+        <li>The plot window tries to guess the time coordinate and fill
+            it in automatically.</li>
+        </ul>
+        </p></dd>
     </dl>
     </p></dd>
 
