@@ -118,7 +118,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
     private final boolean allowAnimate_;
     private final Ganger ganger_;
-    private final String zoneSuffix_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
     private final InsetsParameter insetsParam_;
@@ -142,6 +141,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private static final String FILTER_PREFIX = "icmd";
     public static final String EXAMPLE_LAYER_SUFFIX = "N";
     public static final String EXAMPLE_ZONE_SUFFIX = "Z";
+    public static final String DOC_ZONE_SUFFIX = "";
     private static final GraphicExporter[] EXPORTERS =
         GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
     private static final Logger logger_ =
@@ -157,7 +157,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     protected AbstractPlot2Task( boolean allowAnimate, Ganger ganger ) {
         allowAnimate_ = allowAnimate;
         ganger_ = ganger;
-        zoneSuffix_ = ganger_ == null ? null : EXAMPLE_ZONE_SUFFIX;
         List<Parameter> plist = new ArrayList<Parameter>();
 
         insetsParam_ = new InsetsParameter( "insets" );
@@ -320,8 +319,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         legseqParam_.setNullPermitted( true );
         plist.add( legseqParam_ );
 
-        plist.add( createLegendPositionParameter( zoneSuffix_ ) );
-        plist.add( createTitleParameter( zoneSuffix_ ) );
+        plist.add( createLegendPositionParameter( DOC_ZONE_SUFFIX ) );
+        plist.add( createTitleParameter( DOC_ZONE_SUFFIX ) );
 
         plist.addAll( getZoneKeyParams( StyleKeys.AUX_RAMP .getKeys() ) );
         plist.addAll( getZoneKeyParams( new ConfigKey[] {
@@ -329,9 +328,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             StyleKeys.SHADE_HIGH,
         } ) );
 
-        plist.add( createAuxLabelParameter( zoneSuffix_ ) );
-        plist.add( createAuxCrowdParameter( zoneSuffix_ ) );
-        plist.add( createAuxVisibleParameter( zoneSuffix_ ) );
+        plist.add( createAuxLabelParameter( DOC_ZONE_SUFFIX ) );
+        plist.add( createAuxCrowdParameter( DOC_ZONE_SUFFIX ) );
+        plist.add( createAuxVisibleParameter( DOC_ZONE_SUFFIX ) );
 
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setPrompt( "Force non-vector graphics output?" );
@@ -2010,12 +2009,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix, or either null or empty string for all zones
      * @return  parameter to get plot title for zone
      */
-    private static Parameter<String> createTitleParameter( String suffix ) {
+    private Parameter<String> createTitleParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
+        String baseName = "title";
         StringParameter param =
-            new StringParameter( "title" + ( suffix == null ? "" : suffix ) );
+            new StringParameter( baseName + ( suffix == null ? "" : suffix ) );
         param.setPrompt( "Title for plot"
                        + ( suffix == null ? "" : " zone " + suffix ) );
         param.setDescription( new String[] {
@@ -2024,6 +2024,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "If null, the default, no title is shown",
             "and there's more space for the graphics.",
             "</p>",
+            getZoneDoc( baseName, suffix ),
         } );
         param.setNullPermitted( true );
         return param;
@@ -2035,22 +2036,24 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   suffix  zone suffix
      * @return   parameter
      */
-    private static StringParameter createAuxLabelParameter( String suffix ) {
+    private StringParameter createAuxLabelParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
+        String baseName = "auxlabel";
         StringParameter param =
-            new StringParameter( "auxlabel" + ( suffix == null ? ""
-                                                               : suffix ) );
+            new StringParameter( baseName + ( suffix == null ? ""
+                                                             : suffix ) );
         param.setUsage( "<text>" );
         param.setPrompt( "Label for aux axis"
                        + ( suffix == null ? "" : " for zone " + suffix ) );
         param.setDescription( new String[] {
-            "<p>Sets the label used to annotate the aux axis",
-            ( suffix == null ? ","
-                             : " for zone " + suffix + "," ),
+            "<p>Sets the label used to annotate the aux axis"
+            + ( suffix == null ? ","
+                               : " for zone " + suffix + "," ),
             "if it is visible.",
             "</p>",
+            getZoneDoc( baseName, suffix ),
         } );
         param.setNullPermitted( true );
         return param;
@@ -2063,27 +2066,28 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix
      * @return   parameter
      */
-    private static BooleanParameter createAuxVisibleParameter( String suffix ) {
+    private BooleanParameter createAuxVisibleParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
+        String baseName = "auxvisible";
         BooleanParameter param =
-            new BooleanParameter( "auxvisible" + ( suffix == null ? ""
-                                                                  : suffix ) );
+            new BooleanParameter( baseName + ( suffix == null ? "" : suffix ) );
         param.setPrompt( "Display aux colour ramp"
                        + ( suffix == null ? ""
                                           : " for zone " + suffix )
                        + "?" );
         param.setDescription( new String[] {
             "<p>Determines whether the aux axis colour ramp",
-            "is displayed alongside the plot",
-            ( suffix == null ? "."
-                             : " for zone " + suffix + "." ),
+            "is displayed alongside the plot"
+            + ( suffix == null ? "."
+                               : " for zone " + suffix + "." ),
             "</p>",
             "<p>If not supplied (the default),",
             "the aux axis will be visible when aux shading is used",
             "in any of the plotted layers.",
             "</p>",
+            getZoneDoc( baseName, suffix ),
         } );
         param.setNullPermitted( true );
         return param;
@@ -2095,21 +2099,21 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix
      * @return   parameter
      */
-    private static DoubleParameter createAuxCrowdParameter( String suffix ) {
+    private DoubleParameter createAuxCrowdParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
+        String baseName = "auxcrowd";
         DoubleParameter param =
-            new DoubleParameter( "auxcrowd" + ( suffix == null ? ""
-                                                               : suffix ) );
+            new DoubleParameter( baseName + ( suffix == null ? ""
+                                                             : suffix ) );
         param.setUsage( "<factor>" );
         param.setPrompt( "Tick crowding on aux axis"
                        + ( suffix == null ? "" : " for zone " + suffix ) );
         param.setDescription( new String[] {
-            "<p>Determines how closely the tick marks are spaced",
-            "on the Aux axis",
-            ( suffix == null ? ","
-                             : " for zone " + suffix + "," ),
+            "<p>Determines how closely the tick marks are spaced on",
+            "the Aux axis" + ( suffix == null ? ","
+                                              : " for zone " + suffix + "," ),
             "if visible.",
             "The default value is 1, meaning normal crowding.",
             "Larger values result in more ticks,",
@@ -2119,6 +2123,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "so to get very closely spaced marks you may need to",
             "reduce the font size as well.",
             "</p>",
+            getZoneDoc( baseName, suffix ),
         } );
         param.setDoubleDefault( 1 );
         return param;
@@ -2131,13 +2136,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix, or either null or empty string for all zones
      * @return   parameter to get legend position for zone
      */
-    private static DoubleArrayParameter
+    private DoubleArrayParameter
             createLegendPositionParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
+        String baseName = "legpos";
         DoubleArrayParameter param =
-            new DoubleArrayParameter( "legpos" + ( suffix == null ? ""
+            new DoubleArrayParameter( baseName + ( suffix == null ? ""
                                                                   : suffix ),
                                       2 );
         param.setUsage( "<xfrac,yfrac>" );
@@ -2153,9 +2159,52 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "If no value is supplied, the legend will appear outside",
             "the plot boundary.",
             "</p>",
+            getZoneDoc( baseName, suffix ),
         } );
         param.setNullPermitted( true );
         return param;
+    }
+
+    /**
+     * Returns XML text documenting the zone-specific use of a 
+     * zone-suffixed parameter.  If zones are not in use in this task,
+     * an empty string is returned.
+     *
+     * @param   baseName  base name of parameter
+     * @param   suffix   actual zone suffix of the parameter in question
+     * @return  non-null string containing zero or more XML &lt;p&gt; elements
+     */
+    private String getZoneDoc( String baseName, String suffix ) {
+        if ( ganger_ == null ) {
+            return "";
+        }
+        else if ( suffix != null && suffix.length() > 0 ) {
+            return new StringBuffer()
+               .append( "<p>This parameter affects only zone " )
+               .append( "<code>" )
+               .append( suffix )
+               .append( "</code>.\n" )
+               .append( "</p>" )
+               .toString();
+        }
+        else {
+            return new StringBuffer()
+               .append( "<p>If a zone suffix is appended " )
+               .append( "to the parameter name, " )
+               .append( "only that zone is affected,\n" )
+               .append( "e.g. " )
+               .append( "<code>" )
+               .append( baseName )
+               .append( EXAMPLE_ZONE_SUFFIX )
+               .append( "</code>" )
+               .append( " affects only zone " )
+               .append( "<code>" )
+               .append( EXAMPLE_ZONE_SUFFIX )
+               .append( "</code>" )
+               .append( "." )
+               .append( "</p>\n" )
+               .toString();
+        }
     }
 
     /**
@@ -2429,8 +2478,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         List<Parameter> plist = new ArrayList<Parameter>();
         for ( int ik = 0; ik < keys.length; ik++ ) {
             plist.add( ConfigParameter
-                      .createZoneSuffixedParameter( keys[ ik ], zoneSuffix_,
-                                                    true ) );
+                      .createZoneSuffixedParameter( keys[ ik ], DOC_ZONE_SUFFIX,
+                                                    ganger_ != null ) );
         }
         return plist;
     }

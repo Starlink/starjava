@@ -12,7 +12,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
  * Typed parameter subclass intended to get the value for a ConfigKey.
  *
  * @author   Mark Taylor
- * @since    1 Mark 2013
+ * @since    1 Mar 2013
  */
 public class ConfigParameter<T> extends Parameter<T> {
 
@@ -26,10 +26,13 @@ public class ConfigParameter<T> extends Parameter<T> {
      * @param  suffix    parameter suffix, may be empty
      * @param  suffixType  word indicating what suffix identifies,
      *                     ignored if <code>suffix</code> is empty
-     * @param  fullDetail  if true, adds additional description
+     * @param  hasSuffixDetail  if true, adds additional description about how
+     *                          suffixes are used
+     * @param  exampleSuffix  suffix string to use in example documentation
      */
     private ConfigParameter( ConfigKey<T> key, String baseName, String suffix,
-                             String suffixType, boolean fullDetail ) {
+                             String suffixType, boolean hasSuffixDetail,
+                             String exampleSuffix ) {
         super( baseName + suffix, key.getValueClass(), true );
         key_ = key;
         setStringDefault( key.valueToString( key.getDefaultValue() ) );
@@ -47,23 +50,49 @@ public class ConfigParameter<T> extends Parameter<T> {
         String usage = meta.getStringUsage();
         String prompt = meta.getShortDescription();
         String descrip = meta.getXmlDescription();
-        if ( fullDetail ) {
+        if ( hasSuffixDetail ) {
             if ( suffix != null && suffix.length() > 0 ) {
                 if ( prompt != null && prompt.length() > 0 ) {
                     prompt += " for " + suffixType + " " + suffix;
                 }
-                if ( descrip != null && descrip.length() > 0 ) {
-                    descrip = new StringBuffer()
-                        .append( descrip )
-                        .append( "<p>This parameter affects " )
-                        .append( suffixType )
-                        .append( " " )
-                        .append( suffix )
-                        .append( "." )
-                        .append( "</p>" )
-                        .append( "\n" )
-                        .toString();
-                }
+            }
+            final String extraDescrip;
+            if ( suffix != null && suffix.length() > 0 ) {
+                extraDescrip = new StringBuffer()
+                   .append( "<p>This parameter affects " )
+                   .append( suffixType )
+                   .append( " <code>" )
+                   .append( suffix )
+                   .append( "</code>; if the <code>" )
+                   .append( suffix )
+                   .append( "</code> suffix is ommitted, it affects all " )
+                   .append( suffixType )
+                   .append( "s.</p>\n" )
+                   .toString();
+            }
+            else {
+                extraDescrip = new StringBuffer()
+                   .append( "<p>If a " )
+                   .append( suffixType )
+                   .append( " suffix is appended to the parameter name,\n" )
+                   .append( "only that " )
+                   .append( suffixType )
+                   .append( " is affected,\n" )
+                   .append( "e.g. <code>" )
+                   .append( baseName )
+                   .append( exampleSuffix )
+                   .append( "</code> affects only " )
+                   .append( suffixType )
+                   .append( " <code>" )
+                   .append( exampleSuffix )
+                   .append( "</code>.</p>\n" )
+                   .toString();
+            }
+            if ( descrip != null && descrip.length() > 0 ) {
+                descrip = new StringBuffer()
+                         .append( descrip )
+                         .append( extraDescrip )
+                         .toString();
             }
         }
         if ( usage != null ) {
@@ -79,7 +108,7 @@ public class ConfigParameter<T> extends Parameter<T> {
      * @param  key  config key
      */
     public ConfigParameter( ConfigKey<T> key ) {
-        this( key, key.getMeta().getShortName(), "", null, true );
+        this( key, key.getMeta().getShortName(), "", null, false, "???" );
     }
 
     public T stringToObject( Environment env, String stringval )
@@ -103,15 +132,17 @@ public class ConfigParameter<T> extends Parameter<T> {
      *
      * @param  key  config key
      * @param  layerSuffix   suffix part of name
-     * @param  fullDetail  if true, adds additional description
+     * @param  hasSuffixDetail  if true, adds additional description about
+     *                          layer suffix usage
      * @return   new parameter
      */
     public static <T> ConfigParameter<T>
             createLayerSuffixedParameter( ConfigKey<T> key, String layerSuffix,
-                                          boolean fullDetail ) {
+                                          boolean hasSuffixDetail ) {
         return new ConfigParameter<T>( key, key.getMeta().getShortName(),
                                        layerSuffix == null ? "" : layerSuffix,
-                                       "layer", fullDetail );
+                                       "layer", hasSuffixDetail,
+                                       AbstractPlot2Task.EXAMPLE_LAYER_SUFFIX );
     }
 
     /**
@@ -120,14 +151,16 @@ public class ConfigParameter<T> extends Parameter<T> {
      *
      * @param  key  config key
      * @param  zoneSuffix   suffix part of name
-     * @param  fullDetail  if true, adds additional description
+     * @param  hasSuffixDetail  if true, adds additional description about
+     *                          zone suffix usage
      * @return   new parameter
      */
     public static <T> ConfigParameter<T>
             createZoneSuffixedParameter( ConfigKey<T> key, String zoneSuffix,
-                                         boolean fullDetail ) {
+                                         boolean hasSuffixDetail ) {
         return new ConfigParameter<T>( key, key.getMeta().getShortName(),
                                        zoneSuffix == null ? "" : zoneSuffix,
-                                       "zone", fullDetail );
+                                       "zone", hasSuffixDetail,
+                                       AbstractPlot2Task.EXAMPLE_ZONE_SUFFIX );
     }
 }
