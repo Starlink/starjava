@@ -33,7 +33,6 @@ this list up to date, but if there are missing entries please complain.
       jel_g.jar
       jlatexmath.jar
       moc.jar (probably LGPL in future versions)
-      PixTools.jar
 
    GPL with classpath exception:
       jide-oss.jar
@@ -61,6 +60,7 @@ this list up to date, but if there are missing entries please complain.
       adqlParser.jar
       iText_shrunk.jar
       jcdf.jar
+      PixTools.jar
 
    Apache license:
       apache-bzip2.jar
