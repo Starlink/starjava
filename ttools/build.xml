@@ -541,9 +541,8 @@
       <arg value="-xjar"/><arg value="org.mortbay.jmx.jar"/>
       <arg value="-xjar"/><arg value="jasper-combined.jar"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
-      <arg value="-file"/><arg value="${star.build.dir}/src/etc/LICENCE.txt"/>
-      <arg value="-file"/><arg value="${star.docs.pkg}/README.cea"/>
       <arg value="-file"/><arg value="${star.etc.pkg}/stilts.py"/>
+      <arg value="-file"/><arg value="${src.docs}/LICENSE.txt"/>
       <arg value="${star.lib.pkg}/stilts-app.jar"/>
       <arg value="${dist.lib.pkg}/stilts-version.zip"/>
     </java>
@@ -703,7 +702,7 @@
      !   are generated from the source-->
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${build.docs}"
-               includes="${user.doc}/* *.pdf README.*"/>
+               includes="${user.doc}/* *.pdf README.* LICENSE.txt"/>
     </copy>
 
     <!-- Copy extra files. -->
@@ -1112,7 +1111,7 @@
     <copy todir="${build.docs}">
       <fileset dir="${src.docs}" includes="${user.doc}.xml"/>
       <fileset dir="${xdoc.etc}" includes="docs.dtd"/>
-      <fileset dir="${src.docs}" includes="README.*"/>
+      <fileset dir="${src.docs}" includes="README.* LICENSE.txt"/>
       <fileset dir="${src.docs.examp}" includes="*.xml"/>
     </copy>
     <copy todir="${build.docs}/${user.doc}">

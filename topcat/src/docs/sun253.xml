@@ -461,9 +461,20 @@ most flavours of Unix amongst others.
 Some of the external viewer applications it talks to rely on 
 non-Java code however so one or two facilities, 
 such as displaying spectra, may be absent in some cases.
-TOPCAT is available under the terms of the 
-GNU <webref url="http://www.gnu.org/copyleft/gpl.html"
-            >General Public License</webref>.
+</p>
+
+<p>The TOPCAT application is available under the terms of the 
+GNU <webref url="http://www.gnu.org/licenses/gpl.html"
+            >General Public License</webref>,
+since some of the libraries it uses are also GPL.
+However, all of the original code and many of the libraries it
+uses may alternatively be used
+under more permissive licenses such as the
+GNU <webref url="http://www.gnu.org/licenses/lgpl.html"
+            >Lesser General Public License</webref>,
+see documentation of the
+<webref url="http://www.starlink.ac.uk/stilts">STILTS</webref> package
+for more details.
 </p>
 
 </sect>

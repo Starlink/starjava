@@ -1,0 +1,88 @@
+STILTS Licensing Arrangements
+-----------------------------
+
+The STILTS application is licensed under the GNU General Public License
+(GPL) available from http://www.gnu.org/licenses/gpl.html.
+
+Most, though not all, of the library code that it uses is however
+available under more permissive licenses.  The code original to
+STILTS, and all of the other starjava (uk.ac.starlink.*) classes,
+are licensed under the GNU Lesser General Public License (LGPL),
+available from http://www.gnu.org/licenses/lgpl.html.
+The third party dependencies have a mixed bag of licenses.
+(For the original code, if even the LGPL is not acceptable to you,
+I might be able to offer other licenses.)
+
+Not all of these libraries are required for all the functions of STILTS.
+So, depending on what you want to do, you may be able to just throw
+out those libraries whose licenses you find unacceptable and
+use the remainder.  If you don't see runtime NoClassDefFoundErrors,
+it's worked!  For a less haphazard approach to determining whether
+certain libraries are required for certain operations, feel free
+to contact me.
+
+There follows a list of the individual libraries and their licenses.
+These refer to the jar files built used or built by the starjava build
+system, and are available as named if you download STILTS in the form of
+an archive of individual jar files (stilts_jars.zip) rather than
+the monolithic standalone jar file (stilts.jar).  I'll try to keep
+this list up to date, but if there are missing entries please complain.
+
+   GPL:
+      epsgraphics_classes.jar
+      jel_g.jar
+      jlatexmath.jar
+      moc.jar (probably LGPL in future versions)
+      PixTools.jar
+
+   GPL with classpath exception:
+      jide-oss.jar
+
+   LGPL (starjava classes):
+      astrogrid.jar
+      cdf.jar
+      connect.jar
+      fits.jar
+      gbin.jar
+      mirage.jar
+      pal.jar
+      plastic.jar
+      registry.jar
+      stilts-app.jar
+      stilts-version.jar
+      table.jar
+      task.jar
+      ttools.jar
+      util.jar
+      vo.jar
+      votable.jar
+
+   LGPL (other):
+      adqlParser.jar
+      iText_shrunk.jar
+      jcdf.jar
+
+   Apache license:
+      apache-bzip2.jar
+      commons-logging-1.0.4.jar
+      commons-codec-1.3.jar
+      commons-el.jar
+      xmlrpc-2.0.jar
+      jsamp.jar
+      org.mortbay.jetty.jar
+
+   OSI CDDL:
+      javax.servlet.jar
+
+   Other permissive licenses:
+      tamfits.jar (Unlicense)
+      json.jar (JSON license)
+      rayreg.jar (JUNX license)
+
+   Unknown (but probably permissive):
+      rmi-lite.jar
+      htmIndex.jar
+      vecmath.jar
+      skyview-geom.jar
+
+Mark Taylor

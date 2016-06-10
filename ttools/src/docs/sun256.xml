@@ -182,7 +182,9 @@ As well as the tutorial and reference information in this document,
 detailed on-line help is available from the tools themselves.
 </px>
 
-<px>STILTS is available under the GNU General Public Licence.
+<px>The STILTS application is available under the GNU General Public License
+(GPL) though most parts of the library code may alternatively be used
+under the GNU Lesser General Public License (LGPL).
 </px>
 
 </abstract>
@@ -10629,6 +10631,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (this version targets WD-DALI-1.1-20160415 &amp; WD-TAP-1.1-20160428,
         somewhat informed by TAPNotes-2013-12-13),
         so the details may change in future.</li>
+    <li>Provide more careful documentation of licensing arrangements.
+        The distributed LICENSE.txt file notes that the original code is
+        LGPL, and documents licenses for each third-party dependency.</li>
     </ul>
     </p>
     <p>
