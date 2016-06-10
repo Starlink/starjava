@@ -10576,67 +10576,6 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li><code>tapquery</code> and <code>tapresume</code> now use
-        blocking HTTP requests rather than repeated polls
-        to wait for asynchronous TAP job completion from
-        services that declare themselves UWS 1.1 compliant.</li>
-    <li>Fix some parameter handling errors in <code>coneskymatch</code>.</li>
-    <li>Fix NullPointerException bug for disjoint regions in some cases in
-        <code>tmatchn</code>.</li>
-    <li>Add <ref id="layer-fill">Fill</ref> layer type for Plane and Time
-        plots.</li>
-    <li>Fix bug in cumulative histogram calculation.</li>
-    <li>Fix bugs that led to timezone-dependent results when
-        reading ISO-8601 or decimal year time columns.</li>
-    <li>The <code>function</code> layer type now works in the experimental
-        <code>plot2time</code> plot, rather than throwing an error.
-        However, it doesn't work very well, since the time coordinate
-        is in unix seconds rather than something more user-friendly.</li>
-    <li>Fix numeric field truncation bug in LaTeX table output.</li>
-    <li>Add new parameters
-        <code>executionduration</code> and <code>destruction</code> to
-        <ref id="tapquery"><code>tapquery</code></ref> command.
-        These let you request resource limit adjustments when submitting
-        an asynchronous TAP job.</li>
-    <li>This and subsequent releases target Java SE 6, so will no longer
-        run under the (now very ancient) Java 5 runtime.</li>
-    <li>Fix bug in ISO-8601 axis labelling in the
-        <ref id="plot2time">time plot</ref>.
-        In some cases axis labels were being drawn at positions badly
-        different from the correct position.</li>
-    <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
-        Shouldn't be any noticable difference.
-        Acme encoding dependency removed.</li>
-    <li>Improve sky plot border painting.</li>
-    <li><code>taplint</code> now validates ObsCore 1.1 where declared
-        alongside ObsCore 1.0.  Currently uses PR-ObsCore-v1.1-20160330.</li>
-    <li>Replaced <code>opaque</code> config option with
-        <code>transparency</code> for plane and sky density plots.</li>
-    <li>Fix read failure for FITS files with non-blank TDIM for
-        zero-length columns.</li>
-    <li>Clean up noisy Cubehelix colour map.</li>
-    <li>New function <code>countTrue</code> in class Arrays.</li>
-    <li>The <javadoc docset="&stiltsjavadocs;"
-                     class="uk.ac.starlink.ttools.taplint."
-                     >taplint API</javadoc>
-        has changed slightly: the class that used to be <code>Reporter</code>
-        is now called <code>TextOutputReporter</code>.
-        If you are using taplint programmatically you may need to make
-        small changes.  This results from some refactoring that makes
-        it easier to customise taplint output.</li>
-    <li>New stage <code>EXA</code> for <ref id="taplint">taplint</ref>
-        checks TAP <code>/examples</code> endpoint.
-        Note the details of the examples format are still under discussion,
-        (this version targets WD-DALI-1.1-20160415 &amp; WD-TAP-1.1-20160428,
-        somewhat informed by TAPNotes-2013-12-13),
-        so the details may change in future.</li>
-    <li>Provide more careful documentation of licensing arrangements.
-        The distributed LICENSE.txt file notes that the original code is
-        LGPL, and documents licenses for each third-party dependency.</li>
-    </ul>
-    </p>
-    <p>
     <dl>
     <dt>Expression Language</dt>
     <dd><p>The JEL library underlying the expression language parser
@@ -10674,7 +10613,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <ref id="jelExtend">user-defined functions</ref> with variable
             numbers of arguments.</li>
         <li>Writing large (&gt;=2**31) literal integers used to fail with
-            and inscrutable error message.
+            an inscrutable error message.
             Now the message tells you to append the
             "<code>L</code>" character.</li>
         </ul>
@@ -10687,7 +10626,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         The time plot itself and this multi-zone feature are currently
         experimental; in future versions they may be improved or changed,
         and the multi-zone feature may be extended to other plot types.
-        Some other changes have gone along with this:
+        Some other changes and fixes have gone along with this:
         <ul>
         <li>A few API changes have been made to support multi-zone plots,
             including generalising the <code>NavigationListener</code>
@@ -10709,6 +10648,78 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             (e.g. <code>auxmapZ</code> replaces <code>spectromapN</code>,
             where <code>Z</code> is an optional zone suffix
             and <code>N</code> is an optional layer suffix).</li>
+        <li>The <code>function</code> layer type now works in the time plot,
+            rather than throwing an error.
+            However, it doesn't work very well, since the time coordinate
+            is in unix seconds rather than something more user-friendly.</li>
+        <li>Fixed a serious bug in ISO-8601 axis labelling.
+            In some cases axis labels were being drawn at positions badly
+            different from the correct position.</li>
+        </ul>
+        </p></dd>
+    <dt>Miscellaneous enhancements and changes</dt>
+    <dd><p>
+        <ul>
+        <li>This and subsequent releases target <strong>Java SE 6</strong>,
+            so will no longer
+            run under the (now very ancient) Java 5 runtime.</li>
+        <li>Provide more careful documentation of licensing arrangements.
+            The distributed LICENSE.txt file notes that the starjava code is
+            LGPL, and documents licenses for each third-party dependency.</li>
+        <li>Add <ref id="layer-fill">Fill</ref> layer type for Plane and Time
+            plots.</li>
+        <li><code>tapquery</code> and <code>tapresume</code> now use
+            blocking HTTP requests rather than repeated polls
+            to wait for asynchronous TAP job completion from
+            services that declare themselves UWS 1.1 compliant.</li>
+        <li>Add new parameters
+            <code>executionduration</code> and <code>destruction</code> to
+            <ref id="tapquery"><code>tapquery</code></ref> command.
+            These let you request resource limit adjustments when submitting
+            an asynchronous TAP job.</li>
+        <li>Improve sky plot border painting.</li>
+        <li>Clean up noisy Cubehelix colour map.</li>
+        <li>New function <code>countTrue</code> in class
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+        <li>New stage <code>EXA</code> for <ref id="taplint">taplint</ref>
+            checks TAP <code>/examples</code> endpoint.
+            Note the details of the examples format are still under discussion,
+            (this version targets WD-DALI-1.1-20160415 &amp;
+            WD-TAP-1.1-20160428, somewhat informed by TAPNotes-2013-12-13),
+            so the details may change in future.</li>
+        <li><code>taplint</code> now validates ObsCore 1.1 where declared
+            alongside ObsCore 1.0.
+            Currently uses PR-ObsCore-v1.1-20160330.</li>
+        <li>The <javadoc docset="&stiltsjavadocs;"
+                         class="uk.ac.starlink.ttools.taplint."
+                         >taplint API</javadoc>
+            has changed slightly:
+            the class that used to be <code>Reporter</code>
+            is now called <code>TextOutputReporter</code>.
+            If you are using taplint programmatically you may need to make
+            small changes.  This results from some refactoring that makes
+            it easier to customise taplint output.</li>
+        <li>Replaced <code>opaque</code> config option with
+            <code>transparency</code> for plane and sky density plots.</li>
+        <li>Changed implementation of GIF exporter for plots,
+            from Acme to ImageIO.
+            Shouldn't be any noticable difference.
+            Acme encoding dependency removed.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug in cumulative histogram calculation.</li>
+        <li>Fix read failure for FITS files with non-blank TDIM for
+            zero-length columns.</li>
+        <li>Fix bugs that led to timezone-dependent results when
+            reading ISO-8601 or decimal year time columns.</li>
+        <li>Fix numeric field truncation bug in LaTeX table output.</li>
+        <li>Fix some parameter handling errors in <code>coneskymatch</code>.
+            </li>
+        <li>Fix NullPointerException bug for disjoint regions in some cases in
+            <code>tmatchn</code>.</li>
         </ul>
         </p></dd>
     </dl>
