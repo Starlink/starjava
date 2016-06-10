@@ -5743,8 +5743,7 @@ Items available from this menu and not the toolbar are:
 <dd><p>Displays the
     <ref id="LinesWindow">old-style Stacked Line Plot window</ref>
     for plotting multiple vertically stacked line plots
-    against a single X coordinate (this functionality is not currently
-    duplicated in one of the new-style windows).
+    against a single X coordinate.
     </p></dd>
 
 <dt>&IMG.DENSITY; Density Map (old)</dt>
@@ -6876,7 +6875,6 @@ the columns, and you're off.
 <p>Some features from the old-style plots that are <em>not</em>
 currently available in the new-style plots are:
 <ul>
-<li>the stacked line plot</li>
 <li>true RGB density maps (though density shading modes will often do as good
     or a better job)</li>
 <li>fogging in 3D plots</li>
@@ -9136,7 +9134,7 @@ range, ramp display etc.
 </figure>
 
 <p>If a two-dimensional dataset represents a single-valued function,
-the <label>Fill</label> plotter will fill the area underneath
+the <label>Fill</label> form (&IMG.FORM_FILL;) will fill the area underneath
 the function's curve with a solid colour.
 Parts of the surface which would only be partially covered
 (because of rapid function variation within the width of a single pixel)
@@ -23065,52 +23063,6 @@ introduced since the last version:
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>VERBose selector added to <ref id="ConeSearchDialog">Cone Search</ref>
-        dialogue.</li>
-    <li>The TAP window now uses blocking HTTP requests rather than
-        repeated polls
-        to wait for asynchronous TAP job completion from
-        services that declare themselves UWS 1.1 compliant.</li>
-    <li>UType matching is now case-insensitive when identifying likely
-        columns in Activation window.</li>
-    <li>Fix bug in which expression metadata was sometimes not revealed
-        in Columns Window display following addition of a new synthetic column
-        (regression bug since v4.0b).</li>
-    <li>Fix the sky join syntax example in the TAP window Hints panel,
-        which was incorrect (comma and parenthesis misplaced).</li>
-    <li>Add <ref id="form-fill">Fill</ref> plotting mode for Plane and Time
-        plots.</li>
-    <li>Fix bug in cumulative histogram calculation.</li>
-    <li>Fix bugs that led to timezone-dependent results when
-        reading ISO-8601 or decimal year time columns.</li>
-    <li>The Function layer control now works in the experimental
-        Time plot, rather than throwing an error.
-        However, it doesn't work very well, since the time coordinate
-        is in unix seconds rather than something more user-friendly.</li>
-    <li>Don't use white as one of the auto-selected plotting colours,
-        since it's likely to be invisible
-        (this was a regression bug introduced at v4.3-2).</li>
-    <li>Fix numeric field truncation bug in LaTeX table output.</li>
-    <li>This and subsequent releases target Java SE 6, so will no longer
-        run under the (now very ancient) Java 5 runtime.</li>
-    <li>Fix bug in ISO-8601 axis labelling in the
-        <ref id="TimePlotWindow">time plot</ref>.
-        In some cases axis labels were being drawn at positions badly
-        different from the correct position.</li>
-    <li>Changed implementation of GIF exporter for plots, from Acme to ImageIO.
-        Shouldn't be any noticable difference.</li>
-    <li>Improve sky plot border painting.</li>
-    <li>Replace Opaque Limit with Transparency config option for plane and
-        sky density plots.</li>
-    <li>Fix read failure for FITS files with non-blank TDIM for
-        zero-length columns.</li>
-    <li>Update list of VizieR mirrors.</li>
-    <li>Clean up noisy Cubehelix colour map.</li>
-    <li>New function <code>countTrue</code> in class Arrays.</li>
-    </ul>
-    </p>
-    <p>
     <dl>
     <dt>Expression Language</dt>
     <dd><p>The JEL library underlying the expression language parser
@@ -23179,6 +23131,60 @@ introduced since the last version:
             <label>Style</label> tab.</li>
         <li>The plot window tries to guess the time coordinate and fill
             it in automatically.</li>
+        <li>The Function layer control now works in the experimental
+            Time plot, rather than throwing an error.
+            However, it doesn't work very well, since the time coordinate
+            is in unix seconds rather than something more user-friendly.</li>
+        <li>Fixed a serious bug in ISO-8601 axis labelling in the
+            <ref id="TimePlotWindow">time plot</ref>.
+            In some cases axis labels were being drawn at positions badly
+            different from the correct position.</li>
+        </ul>
+        </p></dd>
+    <dt>Miscellaneous enhancements and changes</dt>
+    <dd><p>
+        <ul>
+        <li>This and subsequent releases target <strong>Java SE 6</strong>,
+            so will no longer
+            run under the (now very ancient) Java 5 runtime.</li>
+        <li>Add <ref id="form-fill">Fill</ref> plotting mode for Plane and Time
+            plots.</li>
+        <li>The TAP window now uses blocking HTTP requests rather than
+            repeated polls
+            to wait for asynchronous TAP job completion from
+            services that declare themselves UWS 1.1 compliant.</li>
+        <li>Improve sky plot border painting.</li>
+        <li>Clean up noisy Cubehelix colour map.</li>
+        <li>New function <code>countTrue</code> in class
+            <ref id="Arrays">Arrays</ref>.</li>
+        <li>VERBose selector added to
+            <ref id="ConeSearchDialog">Cone Search</ref> dialogue.</li>
+        <li>UType matching is now case-insensitive when identifying likely
+            columns in Activation window.</li>
+        <li>Replace Opaque Limit with Transparency config option for plane and
+            sky density plots.</li>
+        <li>Update list of VizieR mirrors.</li>
+        <li>Changed implementation of GIF exporter for plots,
+            from Acme to ImageIO.  Shouldn't be any noticable difference.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix the sky join syntax example in the TAP window Hints panel,
+            which was incorrect (comma and parenthesis misplaced).</li>
+        <li>Fix bug in cumulative histogram calculation.</li>
+        <li>Fix read failure for FITS files with non-blank TDIM for
+            zero-length columns.</li>
+        <li>Fix bugs that led to timezone-dependent results when
+            reading ISO-8601 or decimal year time columns.</li>
+        <li>Fix numeric field truncation bug in LaTeX table output.</li>
+        <li>Fix bug in which expression metadata was sometimes not revealed
+            in Columns Window display following addition of a new synthetic
+            column (regression bug since v4.0b).</li>
+        <li>Don't use white as one of the auto-selected plotting colours,
+            since it's likely to be invisible
+            (this was a regression bug introduced at v4.3-2).</li>
         </ul>
         </p></dd>
     </dl>
