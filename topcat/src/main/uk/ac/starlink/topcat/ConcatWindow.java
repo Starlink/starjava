@@ -24,9 +24,6 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.BlankColumn;
@@ -45,8 +42,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor (Starlink)
  * @since    25 Mar 2004
  */
-public class ConcatWindow extends AuxWindow
-                          implements ItemListener, TableColumnModelListener {
+public class ConcatWindow extends AuxWindow {
 
     private final JComboBox t1selector;
     private final JComboBox t2selector;
@@ -68,12 +64,19 @@ public class ConcatWindow extends AuxWindow
         /* Construct base table selection control. */
         t1selector = new TablesListComboBox();
         t1selector.setToolTipText( "Table supplying the columns and top rows" );
-        t1selector.addItemListener( this );
 
         /* Construct added table selection control. */
         t2selector = new TablesListComboBox();
         t2selector.setToolTipText( "Table supplying the bottom rows" );
-        t2selector.addItemListener( this );
+
+        /* Reconfigure display if either table is reselected. */
+        ItemListener tableSelectionListener = new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                updateDisplay();
+            }
+        };
+        t1selector.addItemListener( tableSelectionListener );
+        t2selector.addItemListener( tableSelectionListener );
 
         /* Place table selection controls. */
         Box tBox = Box.createVerticalBox();
@@ -205,11 +208,13 @@ public class ConcatWindow extends AuxWindow
              * other table. */
             if ( matching ) {
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    ColumnInfo info =
-                        ((StarTableColumn) colModel2.getColumn( icol ))
-                                                    .getColumnInfo();
+                    StarTableColumn tcol =
+                        (StarTableColumn) colModel2.getColumn( icol );
+                    ColumnData cdata =
+                        ColumnDataComboBoxModel
+                       .createSimpleColumnData( tc2, tcol );
                     ColumnDataComboBoxModel model = colSelectorModels_[ icol ];
-                    model.setSelectedItem( model.getColumnData( info ) );
+                    model.setSelectedItem( cdata );
                 }
             }
 
@@ -245,56 +250,6 @@ public class ConcatWindow extends AuxWindow
             t2.addColumn( getColumnData( cdata, info ) );
         }
         return new ConcatStarTable( t1, new StarTable[] { t1, t2 } );
-    }
-
-    /**
-     * Update the display of columns if the selected tables change.
-     */
-    public void itemStateChanged( ItemEvent evt ) {
-
-        /* Arrange for this window to listen to column model changes in 
-         * either of the selected tables.  In this way the list of 
-         * columns shown in this window can be kept up to date with the
-         * current state of the tables. */
-        Object source = evt.getSource();
-        if ( source == t1selector || source == t2selector ) {
-            TopcatModel item = (TopcatModel) evt.getItem();
-            if ( item != null ) {
-                if ( evt.getStateChange() == evt.DESELECTED ) {
-                    item.getColumnModel().removeColumnModelListener( this );
-                }
-                else if ( evt.getStateChange() == evt.SELECTED ) {
-                    item.getColumnModel().addColumnModelListener( this );
-                }
-            }
-        }
-
-        /* In any case, update the display based on whatever GUI change 
-         * has just happened. */
-        updateDisplay();
-    }
-
-    /*
-     * Implement TableColumnModelListener.
-     * These could be somewhat slicker - but for now, just invalidate the
-     * current setup if any change occurs in either of the table column 
-     * models which would mean this window did not correctly reflect them.
-     */
-    public void columnAdded( TableColumnModelEvent evt ) {
-        t2selector.setSelectedItem( null );
-        updateDisplay();
-    }
-    public void columnMoved( TableColumnModelEvent evt ) {
-        t2selector.setSelectedItem( null );
-        updateDisplay();
-    }
-    public void columnRemoved( TableColumnModelEvent evt ) {
-        t2selector.setSelectedItem( null );
-        updateDisplay();
-    }
-    public void columnMarginChanged( ChangeEvent evt ) {
-    }
-    public void columnSelectionChanged( ListSelectionEvent evt ) {
     }
 
     /**

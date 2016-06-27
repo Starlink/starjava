@@ -379,6 +379,21 @@ public class ColumnDataComboBoxModel
         return comboBox;
     }
 
+
+    /**
+     * Creates a ColumnData object simply representing a single column
+     * of a table.
+     * Behaviour is undefined if tcol is not associated with the model.
+     *
+     * @param  tcModel  topcat model
+     * @param   tcol   column in model
+     * @return   column data object
+     */
+    public static ColumnData createSimpleColumnData( TopcatModel tcModel,
+                                                     StarTableColumn tcol ) {
+        return new SelectedColumnData( tcModel, tcol );
+    }
+
     /**
      * Returns a ColumnData associated with a given column of a table.
      *
