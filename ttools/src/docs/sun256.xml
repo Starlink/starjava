@@ -10890,6 +10890,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (since currently rather special interest) largely undocumented.</li>
     <li>Fix <code>taplint</code> behaviour in absense of a /tables endpoint
         (404 now gives a Warning not an Error).</li>
+    <li><code>taplint</code> ObsTAP validation updated to
+        PR-ObsCore-v1.1-20160709.</li>
     </ul>
     </p></dd>
 
