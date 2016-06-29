@@ -612,16 +612,6 @@ public class StyleKeys {
         new RampKeySet( "dense", "Density",
                         createDensityShaders(), Scaling.LOG, true );
 
-    /** Config key set for density map shading. */
-    public static final RampKeySet DENSEMAP_RAMP =
-        new RampKeySet( "dense", "Density",
-                        createDensityMapShaders(), Scaling.LINEAR, true );
-
-    /** Config key set for spectrogram shading. */
-    public static final RampKeySet SPECTRO_RAMP =
-        new RampKeySet( "spectro", "Spectral",
-                        createAuxShaders(), Scaling.LINEAR, true );
-
     /**
      * Private constructor prevents instantiation.
      */
@@ -812,27 +802,12 @@ public class StyleKeys {
      *
      * @return  shaders
      */
-    private static Shader[] createDensityShaders() {
-        List<Shader> list = new ArrayList<Shader>();
+    private static ClippedShader[] createDensityShaders() {
+        List<ClippedShader> list = new ArrayList<ClippedShader>();
         list.add( clip( Shaders.FADE_BLACK, 0, false ) );
         list.add( clip( Shaders.FADE_WHITE, 0.1, false ) );
         list.addAll( Arrays.asList( createColorShaders( true ) ) );
-        return list.toArray( new Shader[ 0 ] );
-    }
-
-    /**
-     * Returns a list of shaders suitable for density map shading.
-     *
-     * @return  shaders
-     */
-    private static Shader[] createDensityMapShaders() {
-        List<Shader> list = new ArrayList<Shader>();
-        for ( Shader shader : createColorShaders( false ) ) {
-            if ( shader.isAbsolute() ) {
-                list.add( shader );
-            }
-        }
-        return list.toArray( new Shader[ 0 ] );
+        return list.toArray( new ClippedShader[ 0 ] );
     }
 
     /**
@@ -840,16 +815,16 @@ public class StyleKeys {
      *
      * @return  shaders
      */
-    public static Shader[] createAuxShaders() {
-        List<Shader> list = new ArrayList<Shader>();
+    public static ClippedShader[] createAuxShaders() {
+        List<ClippedShader> list = new ArrayList<ClippedShader>();
         list.addAll( Arrays.asList( createColorShaders( true ) ) );
-        list.addAll( Arrays.asList( new Shader[] {
-            Shaders.createMaskShader( "Mask", 0f, 1f, true ),
+        list.addAll( Arrays.asList( new ClippedShader[] {
+            clip( Shaders.createMaskShader( "Mask", 0f, 1f, true ), 0, false ),
             clip( Shaders.FADE_BLACK, 0, false ),
             clip( Shaders.FADE_WHITE, 0.1, false ),
             clip( Shaders.TRANSPARENCY, 0.1, false ),
         } ) );
-        return list.toArray( new Shader[ 0 ] );
+        return list.toArray( new ClippedShader[ 0 ] );
     }
 
     /**
@@ -865,9 +840,9 @@ public class StyleKeys {
      *         so that all the whole range is distinguishable from white
      * @return  general-purpose shader list
      */
-    private static Shader[] createColorShaders( boolean isAllVisible ) {
+    private static ClippedShader[] createColorShaders( boolean isAllVisible ) {
         double c = isAllVisible ? 1 : 0;
-        return new Shader[] {
+        return new ClippedShader[] {
             clip( Shaders.LUT_MPL2INFERNO, c * 0.1, true ),
             clip( Shaders.LUT_MPL2MAGMA, c * 0.1, true ),
             clip( Shaders.LUT_MPL2PLASMA, c * 0.1, true ),
@@ -931,27 +906,24 @@ public class StyleKeys {
      * @param  flip  true iff the sense of the input shader is to be inverted
      * @return  output shader
      */
-    private static Shader clip( Shader shader, double clip, boolean flip ) {
+    private static ClippedShader clip( Shader shader, double clip,
+                                       boolean flip ) {
         String name = shader.getName();
-        final float f0;
-        final float f1;
         if ( flip ) {
-            f0 = 1f - (float) clip;
-            f1 = 0f;
-        }
-        else {
-            f0 = (float) clip;
-            f1 = 1f;
-        }
-        if ( f0 == 1f && f1 == 0f ) {
             shader = Shaders.invert( shader );
-        }
-        else if ( f0 != 0f || f1 != 1f ) {
-            shader = Shaders.stretch( shader, f0, f1 );
         }
         if ( ! name.equals( shader.getName() ) ) {
             shader = Shaders.rename( shader, name );
         }
-        return shader;
+        final Shader shader0 = shader;
+        final Subrange subrange = new Subrange( clip, 1 );
+        return new ClippedShader() {
+            public Shader getShader() {
+                return shader0;
+            }
+            public Subrange getSubrange() {
+                return subrange;
+            }
+        };
     }
 }

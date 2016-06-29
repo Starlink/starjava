@@ -2,7 +2,9 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
@@ -29,6 +31,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
     private final ConfigKey<Double> quantiseKey_;
     private final OptionConfigKey<Scaling> scalingKey_;
     private final ConfigKey<Subrange> dataclipKey_;
+    private final Map<Shader,Subrange> clipMap_;
     private final ConfigKey[] keys_;
 
     /**
@@ -40,13 +43,22 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
      * @param  dfltScaling  default scaling function
      * @param  hasDataclip  true iff a data subrange key is to be included
      */
-    public RampKeySet( String axname, String axName, Shader[] shaders,
+    public RampKeySet( String axname, String axName, ClippedShader[] shaders,
                        Scaling dfltScaling, boolean hasDataclip ) {
+        clipMap_ = new HashMap<Shader,Subrange>();
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
 
         List<Shader> shaderList = new ArrayList<Shader>();
-        shaderList.addAll( Arrays.asList( shaders ) );
+        for ( ClippedShader cs : shaders ) {
+            Shader shader = cs.getShader();
+            shaderList.add( shader );
+            Subrange clip = cs.getSubrange();
+            if ( clip != null && ! Subrange.isIdentity( clip ) ) {
+                clipMap_.put( shader, clip );
+            }
+        }
         shaderList.addAll( Arrays.asList( Shaders.getCustomShaders() ) );
+
         shaderKey_ = new ShaderConfigKey(
             new ConfigMeta( axname + "map", axName + " Shader" )
            .setShortDescription( "Color map for " + axName + " shading" )
@@ -61,9 +73,28 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
          .setOptionUsage();
         keyList.add( shaderKey_ );
 
-        shadeclipKey_ =
-            new SubrangeConfigKey( SubrangeConfigKey
-                                  .createShaderClipMeta( axname, axName ) );
+        ConfigMeta shadeclipMeta =
+            SubrangeConfigKey.createShaderClipMeta( axname, axName )
+           .appendXmlDescription( new String[] {
+                "<p>If the null (default) value is chosen,",
+                "a default clip will be used.",
+                "This generally covers most or all of the range 0-1",
+                "but for colour maps which fade to white,",
+                "a small proportion of the lower end may be excluded,",
+                "to ensure that all the colours are visually distinguishable",
+                "from a white background.",
+                "This default is usually a good idea if the colour map",
+                "is being used with something like a scatter plot,",
+                "where markers are plotted against a white background.",
+                "However, for something like a density map when the whole",
+                "plotting area is tiled with colours from the map,",
+                "it may be better to supply the whole range",
+                "<code>0,1</code> explicitly.",
+                "</p>",
+            } );
+        shadeclipKey_ = new ToggleNullConfigKey<Subrange>(
+                                new SubrangeConfigKey( shadeclipMeta ),
+                                "Default", true );
         keyList.add( shadeclipKey_ );
 
         ConfigMeta flipMeta = new ConfigMeta( axname + "flip", "Shader Flip" );
@@ -155,9 +186,12 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         /* Determine configured shader instance. */
         Shader shader = config.get( shaderKey_ );
         Subrange shadeclip = config.get( shadeclipKey_ );
+        if ( shadeclip == null ) {
+            shadeclip = clipMap_.get( shader );
+        }
         boolean isFlip = config.get( flipKey_ );
         double quantise = config.get( quantiseKey_ );
-        if ( ! Subrange.isIdentity( shadeclip ) ) {
+        if ( shadeclip != null && ! Subrange.isIdentity( shadeclip ) ) {
             shader = Shaders.stretch( shader, (float) shadeclip.getLow(),
                                               (float) shadeclip.getHigh() );
         }

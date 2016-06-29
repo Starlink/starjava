@@ -55,7 +55,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
     }
 
     public Subrange stringToValue( String txt ) throws ConfigException {
-        String[] limits = txt.split( "," );
+        String[] limits = txt.split( ",", -1 );
         if ( limits.length == 2 ) {
             String slo = limits[ 0 ].trim();
             String shi = limits[ 1 ].trim();
@@ -125,6 +125,8 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
             rmin_ = rmin;
             rmax_ = rmax;
             slider_ = new RangeSlider( MIN, MAX );
+            slider_.setLowValue( MIN );
+            slider_.setHighValue( MAX );
             slider_.addChangeListener( getChangeForwarder() );
             if ( ! ( rmin == 0 && rmax == 1 ) ) {
                 Hashtable<Integer,JComponent> labels =
@@ -241,13 +243,13 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         meta.setXmlDescription( new String[] {
             "<p>Defines a subrange of the colour ramp to be used for",
             axisName + " shading.",
-            "The is specified as a (low,high) comma-separated pair",
+            "The value is specified as a (low,high) comma-separated pair",
             "of two numbers between 0 and 1.",
             "</p>",
-            "<p>If the full range <code>0,1</code> (the default) is used,",
+            "<p>If the full range <code>0,1</code> is used,",
             "the whole range of colours specified by the selected",
             "shader will be used.",
-            "But if, for instance a value of <code>0,0.5</code> is given,",
+            "But if for instance a value of <code>0,0.5</code> is given,",
             "only those colours at the left hand end of the ramp",
             "will be seen.",
             "</p>",
