@@ -10728,6 +10728,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Subrange-typed plot command parameters like
+        <ref id="plot2plane-usage">plot2plane</ref>'s <code>auxclip</code>
+        now have a default value of null.
+        This uses a default clip, which avoids very light colours.
+        Explicitly supplying a subrange value (e.g. "<code>0,1</code>")
+        can now use the whole range; previously the very light colours
+        were inaccessible.</li>
     </ul>
     </p></dd>
 
