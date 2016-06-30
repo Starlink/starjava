@@ -10,7 +10,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.swing.Icon;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.plot.Matrices;
@@ -70,8 +77,7 @@ public class SkyDensityPlotter
     /** Report key for HEALPix tile area in square degrees. */
     public static final ReportKey<Double> TILESIZE_REPKEY =
         new ReportKey<Double>( new ReportMeta( "tile_sqdeg",
-                                               "HEALPix tile size"
-                                             + " in square degrees" ),
+                                               "Tile size/sq.deg" ),
                                Double.class, true );
 
     private static final ReportKey<Integer> ABSLEVEL_REPKEY =
@@ -82,6 +88,10 @@ public class SkyDensityPlotter
         new ReportKey<Integer>( new ReportMeta( "rel_level",
                                                 "Relative HEALPix Level" ),
                                 Integer.class, false );
+    private static final ReportKey<StarTable> HPXTABLE_REPKEY =
+        new ReportKey<StarTable>( new ReportMeta( "hpx_map", "HEALPix Map" ),
+                                  StarTable.class, true );
+
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final FloatingCoord WEIGHT_COORD =
         FloatingCoord.WEIGHT_COORD;
@@ -110,6 +120,8 @@ public class SkyDensityPlotter
         , -3, 29, -8, "Abs", "Rel", ABSLEVEL_REPKEY, RELLEVEL_REPKEY );
     private static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
 
     /**
      * Constructor.
@@ -145,7 +157,7 @@ public class SkyDensityPlotter
     }
 
     public boolean hasReports() {
-        return false;
+        return true;
     }
 
     public String getPlotterDescription() {
@@ -344,6 +356,8 @@ public class SkyDensityPlotter
             icWeight_ = weightCoord_ == null
                       ? -1
                       : coordGrp_.getExtraCoordIndex( 0, geom );
+            assert weightCoord_ == null ||
+                   weightCoord_ == dataSpec.getCoord( icWeight_ );
         }
 
         public Drawing createDrawing( Surface surface,
@@ -424,17 +438,11 @@ public class SkyDensityPlotter
             assert binList != null;
             DataSpec dataSpec = getDataSpec();
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
-            int icWeight = weightCoord_ == null
-                         ? -1
-                         : coordGrp_.getExtraCoordIndex( 0, geom_ );
-            assert weightCoord_ == null ||
-                   weightCoord_ == dataSpec.getCoord( icWeight );
-    
             double[] v3 = new double[ 3 ];
             Point2D.Double gp = new Point2D.Double();
 
             /* Unweighted. */
-            if ( icWeight < 0 || dataSpec.isCoordBlank( icWeight ) ) {
+            if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
                 while ( tseq.next() ) {
                     if ( geom_.readDataPos( tseq, icPos, v3 ) &&
                         ( ! visibleOnly ||
@@ -451,7 +459,7 @@ public class SkyDensityPlotter
                          ( ! visibleOnly ||
                            surface.dataToGraphics( v3, true, gp ) ) ) {
                         double w = weightCoord_
-                                  .readDoubleCoord( tseq, icWeight );
+                                  .readDoubleCoord( tseq, icWeight_ );
                         if ( ! Double.isNaN( w ) ) {
                             binList.submitToBin( skyPixer.getIndex( v3 ), w );
                         }
@@ -540,6 +548,7 @@ public class SkyDensityPlotter
                     map.put( ABSLEVEL_REPKEY, new Integer( absLevel ) );
                     map.put( RELLEVEL_REPKEY, new Integer( relLevel ) );
                     map.put( TILESIZE_REPKEY, new Double( tileSize ) );
+                    map.put( HPXTABLE_REPKEY, createExportTable( splan ) );
                 }
                 return map;
             }
@@ -604,6 +613,66 @@ public class SkyDensityPlotter
                    .paintPixels( g, bounds.getLocation() );
             }
         }
+
+        /**
+         * Returns a StarTable containing the HEALPix bin information
+         * based on a given plan.  Calling this method is not expensive.
+         *
+         * @param   splan  plan representing plotted density map
+         * @return   table suitable for export
+         */
+        private StarTable createExportTable( SkyDensityPlan splan ) {
+            int level = splan.level_;
+            if ( level > 13 ) {
+                return null;
+            }
+            SkyPixer skyPixer = new SkyPixer( level );
+            DataSpec dataSpec = splan.dataSpec_;
+            Combiner combiner = splan.combiner_;
+            BinList.Result binResult = splan.binResult_;
+
+            /* Construct a column containing HEALPix bin indices.
+             * In fact this is a bit superfluous, since the bin indices
+             * are just the same as the row numbers. */
+            String indexDescrip = "HEALPix index, level " + level + ", "
+                                + ( skyPixer.isNested() ? "Nested" : "Ring" )
+                                + " scheme";
+            ColumnInfo indexInfo =
+                new ColumnInfo( "hpx" + level, Integer.class, indexDescrip );
+            ColumnData indexCol = new ColumnData( indexInfo ) {
+                public Object readValue( long irow ) {
+                    return new Integer( (int) irow );
+                }
+            };
+
+            /* Construct a column containing bin contents, given that the
+             * bin index is row number. */
+            ValueInfo weightInfo;
+            if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
+                weightInfo = null;
+            }
+            else {
+                ValueInfo[] winfos = dataSpec.getUserCoordInfos( icWeight_ );
+                weightInfo = winfos != null && winfos.length == 1
+                           ? winfos[ 0 ]
+                           : null;
+            }
+            if ( weightInfo == null ) {
+                weightInfo = new DefaultValueInfo( "data", Double.class );
+            }
+            ValueInfo dataInfo = combiner.createCombinedInfo( weightInfo );
+            ColumnData dataCol =
+                BinResultColumnData.createInstance( dataInfo, binResult );
+
+            /* Combine these into a table and return. */
+            final long nrow = skyPixer.getPixelCount();
+            assert (int) nrow == nrow;
+            ColumnStarTable table =
+                ColumnStarTable.makeTableWithRows( (int) nrow );
+            table.addColumn( indexCol );
+            table.addColumn( dataCol );
+            return table;
+        }
     }
 
     /**
@@ -655,6 +724,104 @@ public class SkyDensityPlotter
                  && combiner_.equals( combiner )
                  && dataSpec_.equals( dataSpec )
                  && geom_.equals( geom );
+        }
+    }
+
+    /**
+     * ColumnData implementation that presents the values from a
+     * BinList.Result object, assuming bin index is the row number.
+     *
+     * @param  <T>  type of ValueInfo content class, should be numeric
+     */
+    private static abstract class BinResultColumnData<T> extends ColumnData {
+        private final BinList.Result binResult_;
+
+        /**
+         * Constructor.
+         *
+         * @param  info   metadata object describing column data;
+         *                the content class must match &lt;T&gt;
+         * @param  binResult  object supplying the data
+         */
+        BinResultColumnData( ValueInfo info, BinList.Result binResult ) {
+            super( info );
+            binResult_ = binResult;
+        }
+
+        public Object readValue( long irow ) {
+            double dval = binResult_.getBinValue( irow );
+            return Double.isNaN( dval ) ? null : convert( dval );
+        }
+
+        /**
+         * Converts a raw (combined) data value to the content class
+         * of this column.
+         *
+         * @param  numeric data value for a row
+         * @param  object representation of <code>dval</code> as ValueInfo type
+         */
+        abstract T convert( double dval );
+
+        /**
+         * Returns a ColumnData instance for a given metadata object and
+         * bin data set.  The content class of <code>info</code> must be
+         * one of the numeric wrapper types.
+         *
+         * @param  info  required metadata for returned column,
+         *               with some numeric content class
+         * @param  binResult  supplies data
+         * @return   new column data
+         */
+        static ColumnData createInstance( ValueInfo info,
+                                          BinList.Result binResult ) {
+            Class clazz = info.getContentClass();
+            if ( Byte.class.equals( clazz ) ) {
+                return new BinResultColumnData<Byte>( info, binResult ) {
+                    Byte convert( double dval ) {
+                        return new Byte( (byte) dval );
+                    }
+                };
+            }
+            else if ( Short.class.equals( clazz ) ) {
+                return new BinResultColumnData<Short>( info, binResult ) {
+                    Short convert( double dval ) {
+                        return new Short( (short) dval );
+                    }
+                };
+            }
+            else if ( Integer.class.equals( clazz ) ) {
+                return new BinResultColumnData<Integer>( info, binResult ) {
+                    Integer convert( double dval ) {
+                        return new Integer( (int) dval );
+                    }
+                };
+            }
+            else if ( Long.class.equals( clazz ) ) {
+                return new BinResultColumnData<Long>( info, binResult ) {
+                    Long convert( double dval ) {
+                        return new Long( (long) dval );
+                    }
+                };
+            }
+            else if ( Float.class.equals( clazz ) ) {
+                return new BinResultColumnData<Float>( info, binResult ) {
+                    Float convert( double dval ) {
+                        return new Float( (float) dval );
+                    }
+                };
+            }
+            else if ( Double.class.equals( clazz ) ) {
+                return new BinResultColumnData<Double>( info, binResult ) {
+                    public Double convert( double dval ) {
+                        return new Double( dval );
+                    }
+                };
+            }
+            else {
+                logger_.warning( "Surprising data type: " + clazz + "; "
+                               + "can't create ColumnData" );
+                return null;
+            }
         }
     }
 }

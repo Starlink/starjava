@@ -2,6 +2,8 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.Equality;
 
 /**
@@ -121,6 +123,16 @@ public abstract class Combiner {
         return description_;
     }
 
+    /**
+     * Returns a metadata object that describes the result of applying
+     * this combiner to data described by a given metadata object.
+     *
+     * @param  info  metadata for values to be combined, usually numeric
+     * @return  metadata for combined values; the content class must be
+     *          be a primitive numeric wrapper class
+     */
+    public abstract ValueInfo createCombinedInfo( ValueInfo info );
+
     @Override
     public String toString() {
         return name_;
@@ -133,6 +145,21 @@ public abstract class Combiner {
      */
     public static Combiner[] getKnownCombiners() {
         return COMBINERS.clone();
+    }
+
+    /**
+     * Utility method to return a string describing the content of a ValueInfo.
+     * It will come up with something, even if the description member is empty.
+     *
+     * @param  info  metadata item
+     * @return   some text describing it, suitable for inclusion in the
+     *           description member of another ValueInfo based on it
+     */
+    private static String getInfoDescription( ValueInfo info ) {
+        String descrip = info.getDescription();
+        return descrip != null && descrip.trim().length() > 0 
+             ? descrip
+             : info.getName();
     }
 
     /**
@@ -218,6 +245,14 @@ public abstract class Combiner {
             return new MeanContainer();
         }
 
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info = new DefaultValueInfo( dataInfo );
+            info.setContentClass( Double.class );
+            info.setDescription( getInfoDescription( dataInfo )
+                               + ", mean value in bin" );
+            return info;
+        }
+
         /**
          * Container that holds a count and a sum.
          * Note this is a static class to keep memory usage down
@@ -259,6 +294,13 @@ public abstract class Combiner {
                            }
                        }
                    } );
+        }
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info = new DefaultValueInfo( dataInfo );
+            info.setContentClass( Double.class );
+            info.setDescription( getInfoDescription( dataInfo )
+                               + ", median value in bin" );
+            return info;
         }
     }
 
@@ -302,6 +344,18 @@ public abstract class Combiner {
         public Container createContainer() {
             return isSampleStdev_ ? new SampleStdevContainer()
                                   : new PopulationStdevContainer();
+        }
+
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info =
+                new DefaultValueInfo( dataInfo.getName() + "_stdev",
+                                      Double.class,
+                                      ( isSampleStdev_ ? "Sample "
+                                                       : "Population " )
+                                    + "standard deviation of "
+                                    + getInfoDescription( dataInfo ) );
+            info.setUnitString( dataInfo.getUnitString() );
+            return info;
         }
 
         /**
@@ -397,6 +451,11 @@ public abstract class Combiner {
             return new CountContainer();
         }
 
+        public ValueInfo createCombinedInfo( ValueInfo info ) {
+            return new DefaultValueInfo( "count", Integer.class,
+                                         "Number of items counted per bin" );
+        }
+
         /**
          * Container that holds a count.
          * Note this is a static class to keep memory usage down
@@ -452,6 +511,16 @@ public abstract class Combiner {
 
         public Container createContainer() {
             return new SumContainer();
+        }
+
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info =
+                new DefaultValueInfo( dataInfo.getName() + "_sum",
+                                      Double.class,
+                                      getInfoDescription( dataInfo )
+                                    + ", sum in bin" );
+            info.setUnitString( dataInfo.getUnitString() );
+            return info;
         }
 
         /**
@@ -512,6 +581,16 @@ public abstract class Combiner {
             return new MinContainer();
         }
 
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info =
+                new DefaultValueInfo( dataInfo.getName() + "_min",
+                                      dataInfo.getContentClass(),
+                                      getInfoDescription( dataInfo )
+                                    + ", minimum value in bin" );
+            info.setUnitString( dataInfo.getUnitString() );
+            return info;
+        }
+
         /**
          * Container that accumulates a minimum.
          * Note this is a static class to keep memory usage down
@@ -570,6 +649,16 @@ public abstract class Combiner {
             return new MaxContainer();
         }
 
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info =
+                new DefaultValueInfo( dataInfo.getName() + "_max",
+                                      dataInfo.getContentClass(),
+                                      getInfoDescription( dataInfo )
+                                    + ", maximum value in bin" );
+            info.setUnitString( dataInfo.getUnitString() );
+            return info;
+        }
+
         /**
          * Container that accumulates a maximum.
          * Note this is a static class to keep memory usage down
@@ -614,6 +703,11 @@ public abstract class Combiner {
 
         public Container createContainer() {
             return new HitContainer();
+        }
+
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            return new DefaultValueInfo( "hit", Short.class,
+                                         "1 if bin contains data, 0 if not" );
         }
 
         private static class HitContainer implements Container {

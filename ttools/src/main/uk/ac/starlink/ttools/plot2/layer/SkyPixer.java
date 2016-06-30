@@ -66,4 +66,13 @@ public class SkyPixer {
         vector3d_.z = v3[ 2 ];
         return pixTools_.vect2pix_nest( nside_, vector3d_ );
     }
+
+    /**
+     * Indicates whether this object uses the HEALPix NESTED or RING scheme.
+     *
+     * @return true for nested, false for ring; currently always true
+     */
+    public boolean isNested() {
+        return true;
+    }
 }
