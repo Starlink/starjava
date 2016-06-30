@@ -9022,9 +9022,9 @@ range, ramp display etc.
     <li><code>mean</code>: the mean of all weights</li>
     <li><code>median</code>: the median of all weights;
         (note, this is expensive to calculate and may be slow)</li>
-    <li><code>variance</code>: the sample variance of all weights</li>
     <li><code>min</code>: the minimum weight</li>
     <li><code>max</code>: the maximum weight</li>
+    <li><code>stdev</code>: the sample standard deviation of all weights</li>
     <li><code>count</code>: the number of points plotted
         (weight value is ignored, this is like Density mode)</li>
     <li><code>hit</code>: one if any point is plotted, blank otherwise
@@ -9115,9 +9115,9 @@ range, ramp display etc.
     <li><code>mean</code>: the mean of all weights</li>
     <li><code>median</code>: the median of all weights;
         (note, this is expensive to calculate and may be slow)</li>
-    <li><code>variance</code>: the sample variance of all weights</li>
     <li><code>min</code>: the minimum weight</li>
     <li><code>max</code>: the maximum weight</li>
+    <li><code>stdev</code>: the sample standard deviation of all weights</li>
     <li><code>count</code>: the number of points plotted
         (weight value is ignored, this is like Density mode)</li>
     <li><code>hit</code>: one if any point is plotted, blank otherwise
@@ -10172,9 +10172,9 @@ range, ramp display etc.
     <li><code>mean</code>: the mean of all weights</li>
     <li><code>median</code>: the median of all weights;
         (note, this is expensive to calculate and may be slow)</li>
-    <li><code>variance</code>: the sample variance of all weights</li>
     <li><code>min</code>: the minimum weight</li>
     <li><code>max</code>: the maximum weight</li>
+    <li><code>stdev</code>: the sample standard deviation of all weights</li>
     <li><code>count</code>: the number of points plotted
         (weight value is ignored, this is like Density mode)</li>
     <li><code>hit</code>: one if any point is plotted, blank otherwise
@@ -23243,6 +23243,8 @@ introduced since the last version:
         <ref id="Tilings">Tilings</ref> class:
         conversions from pixel index to sky position and
         conversions between ring and nested schemes.</li>
+    <li>Combiner option <code>stdev</code> replaces <code>variance</code>
+        in density, sky density and weighted plot layers.</li>
     </ul>
     </p></dd>
 

@@ -33,7 +33,7 @@ public class CombinerTest extends TestCase {
             new CTest( Combiner.MEDIAN, 99,
                        new double[] { .9, 9, 99, 999, 9999 } ),
             new CTest( Combiner.MEDIAN, 2.5, new double[] { 1, 2, 3, 4 } ),
-            new CTest( Combiner.SAMPLE_VARIANCE, 3.5,
+            new CTest( Combiner.SAMPLE_STDEV, Math.sqrt( 3.5 ),
                        new double[] { 1, 2, 3, 4, 5, 6 } ),
         };
         Set<Combiner> cset = new HashSet<Combiner>();

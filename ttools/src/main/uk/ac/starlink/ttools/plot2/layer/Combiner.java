@@ -32,8 +32,8 @@ public abstract class Combiner {
     /** Calculate the median of all submitted values (slow). */
     public static final Combiner MEDIAN;
 
-    /** Calculate the sample variance of all submitted values. */
-    public static final Combiner SAMPLE_VARIANCE;
+    /** Calculate the sample standard deviation of all submitted values. */
+    public static final Combiner SAMPLE_STDEV;
 
     /** Calculate the minimum of all submitted values. */
     public static final Combiner MIN;
@@ -50,7 +50,7 @@ public abstract class Combiner {
         MEDIAN = new MedianCombiner(),
         MIN = new MinCombiner(),
         MAX = new MaxCombiner(),
-        SAMPLE_VARIANCE = new VarianceCombiner( true ),
+        SAMPLE_STDEV = new StdevCombiner( true ),
         COUNT = new CountCombiner(),
         HIT = new HitCombiner(),
     };
@@ -263,23 +263,23 @@ public abstract class Combiner {
     }
 
     /**
-     * Combiner implementation that calculates the variance.
+     * Combiner implementation that calculates the standard deviation.
      */
-    private static class VarianceCombiner extends AbstractCombiner {
-        private final boolean isSampleVariance_;
+    private static class StdevCombiner extends AbstractCombiner {
+        private final boolean isSampleStdev_;
 
         /**
          * Constructor.
          *
-         * @param  isSampleVariance  false for population variance,
-         *                           true for sample variance,
+         * @param  isSampleStdev  false for population standard deviation,
+         *                        true for sample standard deviation
          */
-        public VarianceCombiner( boolean isSampleVariance ) {
-            super( "variance",
-                   "the " + ( isSampleVariance ? "sample" : "population" )
-                          + " variance of the combined values",
+        public StdevCombiner( boolean isSampleStdev ) {
+            super( "stdev",
+                   "the " + ( isSampleStdev ? "sample" : "population" )
+                          + " standard deviation of the combined values",
                    true );
-            isSampleVariance_ = isSampleVariance;
+            isSampleStdev_ = isSampleStdev;
         }
 
         public BinList createArrayBinList( int size ) {
@@ -293,22 +293,22 @@ public abstract class Combiner {
                     sum2s[ index ] += value * value;
                 }
                 public double getBinResultInt( int index ) {
-                    return getVariance( isSampleVariance_, counts[ index ],
-                                        sum1s[ index ], sum2s[ index ] );
+                    return getStdev( isSampleStdev_, counts[ index ],
+                                     sum1s[ index ], sum2s[ index ] );
                 }
             };
         }
 
         public Container createContainer() {
-            return isSampleVariance_ ? new SampleVarianceContainer()
-                                     : new PopulationVarianceContainer();
+            return isSampleStdev_ ? new SampleStdevContainer()
+                                  : new PopulationStdevContainer();
         }
 
         /**
-         * Partial Container implementation for calculating variance-like
-         * quantities.
+         * Partial Container implementation for calculating
+         * standard deviation-like quantities.
          */
-        private static abstract class VarianceContainer implements Container {
+        private static abstract class StdevContainer implements Container {
             int count_;
             double sum1_;
             double sum2_;
@@ -320,49 +320,48 @@ public abstract class Combiner {
         }
 
         /**
-         * Container to calculate a population variance.
+         * Container to calculate a population standard deviation.
          * Note that this is a static class with no unnecessary members
          * to keep memory usage down if there are many instances.
          */
-        private static class PopulationVarianceContainer
-                extends VarianceContainer {
+        private static class PopulationStdevContainer extends StdevContainer {
             public double getResult() {
-                return getVariance( false, count_, sum1_, sum2_ );
+                return getStdev( false, count_, sum1_, sum2_ );
             }
         }
 
         /**
-         * Container to calculate a sample variance.
+         * Container to calculate a sample standard deviation.
          * Note that this is a static class with no unnecessary members
          * to keep memory usage down if there are many instances.
          */
-        private static class SampleVarianceContainer
-                extends VarianceContainer {
+        private static class SampleStdevContainer extends StdevContainer {
             public double getResult() {
-                return getVariance( true, count_, sum1_, sum2_ );
+                return getStdev( true, count_, sum1_, sum2_ );
             }
         }
 
         /**
-         * Utility method to calculate a population or sample variance
-         * from the relevant accumulated quantities.
+         * Utility method to calculate a population or sample
+         * standard deviation from the relevant accumulated quantities.
          *
-         * @param  isSampleVariance   false for population variance,
-         *                            true for sample variance
+         * @param  isSampleStdev   false for population standard deviation,
+         *                         true for sample standard deviation
          * @param  count  number of accumulated values
          * @param  sum1   sum of accumulated values
          * @param  sum2   sum of squares of accumulated values
-         * @return  variance, or NaN if insufficient data
+         * @return  standard deviation, or NaN if insufficient data
          */
-        private static double getVariance( boolean isSampleVariance, int count,
+        private static double getStdev( boolean isSampleStdev, int count,
                                            double sum1, double sum2 ) {
-            if ( count < ( isSampleVariance ? 2 : 1 ) ) {
+            if ( count < ( isSampleStdev ? 2 : 1 ) ) {
                 return Double.NaN;
             }
             else {
                 double dcount = (double) count;
                 double nvar = sum2 - sum1 * sum1 / dcount;
-                return nvar / ( isSampleVariance ? ( dcount - 1 ) : dcount );
+                double divisor = isSampleStdev ? ( dcount - 1 ) : dcount;
+                return Math.sqrt( nvar / divisor );
             }
         }
     }
