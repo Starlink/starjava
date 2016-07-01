@@ -169,13 +169,21 @@ public abstract class FormLayerControl
     }
 
     /**
-     * Returns the controls in the form control list which are contributing
-     * to the plot.  Controls that the user has deactivated (unchecked)
-     * are ignored.
+     * Returns a list of all the form controls, active or not, currently
+     * managd by this layer control.
      *
-     * @return  list of active form controls
+     * @return  list of all form controls
      */
-    protected abstract FormControl[] getActiveFormControls();
+    protected abstract FormControl[] getFormControls();
+
+    /**
+     * Indicates whether a given form control is contributing the the plot
+     * on behalf of this layer control.
+     *
+     * @param  fc  form control managed by this layer control
+     * @return  true iff fc is active (contributing to plot)
+     */
+    protected abstract boolean isControlActive( FormControl fc );
 
     public PlotLayer[] getPlotLayers() {
         RowSubset[] subsets = subStack_.getSelectedSubsets();
@@ -242,28 +250,48 @@ public abstract class FormLayerControl
             return;
         }
         DataGeom geom = posCoordPanel_.getDataGeom();
-        for ( FormControl fc : getActiveFormControls() ) {
+        for ( FormControl fc : getFormControls() ) {
             Map<RowSubset,ReportMap> sreports =
                 new LinkedHashMap<RowSubset,ReportMap>();
-            GuiCoordContent[] extraContents = fc.getExtraCoordContents();
-            if ( extraContents != null ) {
-                GuiCoordContent[] contents =
-                    PlotUtil.arrayConcat( posContents, extraContents );
-                for ( RowSubset rset : subsets ) {
-                    DataSpec dspec =
-                        new GuiDataSpec( tcModel_, rset, contents );
-                    PlotLayer layer = fc.createLayer( geom, dspec, rset );
-                    if ( layer != null ) {
-                        ReportMap report =
-                            reports.get( LayerId.createLayerId( layer ) );
-                        if ( report != null ) {
-                            sreports.put( rset, report );
+            if ( tcModel_ != null && posContents != null && subsets != null &&
+                 isControlActive( fc ) ) {
+                GuiCoordContent[] extraContents = fc.getExtraCoordContents();
+                if ( extraContents != null ) {
+                    GuiCoordContent[] contents =
+                        PlotUtil.arrayConcat( posContents, extraContents );
+                    for ( RowSubset rset : subsets ) {
+                        DataSpec dspec =
+                            new GuiDataSpec( tcModel_, rset, contents );
+                        PlotLayer layer = fc.createLayer( geom, dspec, rset );
+                        if ( layer != null ) {
+                            ReportMap report =
+                                reports.get( LayerId.createLayerId( layer ) );
+                            if ( report != null ) {
+                                sreports.put( rset, report );
+                            }
                         }
                     }
                 }
             }
             fc.submitReports( sreports );
         }
+    }
+
+    /**
+     * Returns the controls in the form control list which are contributing
+     * to the plot.  Controls that the user has deactivated (unchecked)
+     * are ignored.
+     *
+     * @return  list of active form controls
+     */
+    private FormControl[] getActiveFormControls() {
+        List<FormControl> fcs = new ArrayList<FormControl>();
+        for ( FormControl fc : getFormControls() ) {
+            if ( isControlActive( fc ) ) {
+                fcs.add( fc );
+            }
+        }
+        return fcs.toArray( new FormControl[ 0 ] );
     }
 
     /**

@@ -54,7 +54,11 @@ public class SingleFormLayerControl extends FormLayerControl {
         }
     }
 
-    protected FormControl[] getActiveFormControls() {
+    protected FormControl[] getFormControls() {
         return new FormControl[] { formControl_ };
+    }
+
+    protected boolean isControlActive( FormControl fc ) {
+        return fc == formControl_;
     }
 }

@@ -160,23 +160,17 @@ public class MultiFormLayerControl extends FormLayerControl {
         dfltFormAct_ = formActionList.get( 0 );
     }
 
-    /**
-     * Returns the controls in the form control list which are contributing
-     * to the plot.  Controls that the user has deactivated (unchecked)
-     * are ignored.
-     *
-     * @return  list of active form controls
-     */
-    protected FormControl[] getActiveFormControls() {
-        List<FormControl> fcList = new ArrayList<FormControl>();
+    protected FormControl[] getFormControls() {
         int nf = formStackModel_.getSize();
+        FormControl[] fcs = new FormControl[ nf ];
         for ( int ifm = 0; ifm < nf; ifm++ ) {
-            FormControl fc = (FormControl) formStackModel_.getControlAt( ifm );
-            if ( formStackModel_.isControlActive( fc ) ) {
-                fcList.add( fc );
-            }
+            fcs[ ifm ] = (FormControl) formStackModel_.getControlAt( ifm );
         }
-        return fcList.toArray( new FormControl[ 0 ] );
+        return fcs;
+    }
+
+    protected boolean isControlActive( FormControl fc ) {
+        return formStackModel_.isControlActive( fc );
     }
 
     /**
