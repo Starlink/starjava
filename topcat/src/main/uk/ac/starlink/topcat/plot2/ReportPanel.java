@@ -27,6 +27,7 @@ public class ReportPanel extends JPanel {
 
     private final JComboBox subsetSelector_;
     private final Map<ReportKey,JTextField> fieldMap_;
+    private final DefaultComboBoxModel subsetSelModel_;
     private final JPanel reportHolder_;
     private Map<RowSubset,ReportMap> reports_;
 
@@ -35,7 +36,8 @@ public class ReportPanel extends JPanel {
      */
     public ReportPanel() {
         super( new BorderLayout() );
-        subsetSelector_ = new JComboBox();
+        subsetSelModel_ = new DefaultComboBoxModel();
+        subsetSelector_ = new JComboBox( subsetSelModel_ );
         subsetSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 updateDisplay();
@@ -58,10 +60,20 @@ public class ReportPanel extends JPanel {
      */
     public void submitReports( Map<RowSubset,ReportMap> reports ) {
         reports_ = reports;
-        RowSubset[] subsets = reports.keySet().toArray( new RowSubset[ 0 ] );
-        subsetSelector_.setModel( new DefaultComboBoxModel( subsets ) );
-        if ( subsetSelector_.getSelectedIndex() < 0 ) {
-            subsetSelector_.setSelectedIndex( subsets.length - 1 );
+        Object selected = subsetSelModel_.getSelectedItem();
+        subsetSelModel_.removeAllElements();
+        boolean hasSelected = false;
+        for ( RowSubset rset : reports.keySet() ) {
+            subsetSelModel_.addElement( rset );
+            if ( rset.equals( selected ) ) {
+                subsetSelModel_.setSelectedItem( rset );
+                hasSelected = true;
+            }
+        }
+        if ( ! hasSelected ) {
+            subsetSelModel_.setSelectedItem( subsetSelModel_.getSize() > 0
+                                           ? subsetSelModel_.getElementAt( 0 )
+                                           : null );
         }
         updateDisplay();
     }
