@@ -6,8 +6,10 @@ import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
@@ -26,7 +28,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class ReportPanel extends JPanel {
 
     private final JComboBox subsetSelector_;
-    private final Map<ReportKey,JTextField> fieldMap_;
+    private final Map<ReportKey,JComponent> boxMap_;
     private final DefaultComboBoxModel subsetSelModel_;
     private final JPanel reportHolder_;
     private Map<RowSubset,ReportMap> reports_;
@@ -48,7 +50,7 @@ public class ReportPanel extends JPanel {
              BorderLayout.NORTH );
         reportHolder_ = new JPanel( new BorderLayout() );
         add( reportHolder_, BorderLayout.CENTER );
-        fieldMap_ = new LinkedHashMap<ReportKey,JTextField>();
+        boxMap_ = new LinkedHashMap<ReportKey,JComponent>();
         reports_ = new HashMap<RowSubset,ReportMap>();
     }
 
@@ -93,12 +95,13 @@ public class ReportPanel extends JPanel {
     private void displayReport( ReportMap report ) {
 
         /* Assemble a list of key-string pairs to display. */
-        Map<ReportKey,String> txtMap = new LinkedHashMap<ReportKey,String>();
+        Map<ReportKey,JComponent> componentMap =
+            new LinkedHashMap<ReportKey,JComponent>();
         if ( report != null ) {
             for ( ReportKey key : report.keySet() ) {
                 if ( key.isGeneralInterest() ) {
-                    Object val = report.get( key );
-                    txtMap.put( key, val == null ? null : val.toString() );
+                    componentMap.put( key,
+                                      createReportComponent( key, report ) );
                 }
             }
         }
@@ -106,14 +109,13 @@ public class ReportPanel extends JPanel {
         /* Ensure that the display component has slots for each of the
          * items we are going to display.  If not, throw it out and
          * position a new one that does. */
-        if ( ! fieldMap_.keySet().containsAll( txtMap.keySet() ) ) {
-            fieldMap_.clear();
+        if ( ! boxMap_.keySet().containsAll( componentMap.keySet() ) ) {
+            boxMap_.clear();
             LabelledComponentStack stack = new LabelledComponentStack();
-            for ( ReportKey key : txtMap.keySet() ) {
-                JTextField field = new JTextField();
-                field.setEditable( false );
-                stack.addLine( key.getMeta().getLongName(), field );
-                fieldMap_.put( key, field );
+            for ( ReportKey key : componentMap.keySet() ) {
+                JComponent box = Box.createHorizontalBox();
+                stack.addLine( key.getMeta().getLongName(), null, box, true );
+                boxMap_.put( key, box );
             }
             reportHolder_.removeAll();
             reportHolder_.add( stack );
@@ -121,8 +123,32 @@ public class ReportPanel extends JPanel {
         }
 
         /* Display the report items in the display component. */
-        for ( ReportKey key : fieldMap_.keySet() ) {
-            fieldMap_.get( key ).setText( txtMap.get( key ) );
+        for ( Map.Entry<ReportKey,JComponent> entry : boxMap_.entrySet() ) {
+            ReportKey key = entry.getKey();
+            JComponent box = entry.getValue();
+            box.removeAll();
+            JComponent cmp = componentMap.get( key );
+            if ( cmp != null ) {
+                box.add( cmp );
+            }
+            box.revalidate();
         }
+    }
+
+    /**
+     * Returns a GUI component that presents an entry from a report map
+     * to the user.
+     *
+     * @param  key  key
+     * @param  map   report map containing key
+     * @return  component
+     */
+    private static <T> JComponent createReportComponent( ReportKey<T> key,
+                                                         ReportMap map ) {
+        T value = map.get( key );
+        JTextField field = new JTextField();
+        field.setText( value == null ? null : value.toString() );
+        field.setEditable( false );
+        return field;
     }
 }
