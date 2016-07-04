@@ -1,22 +1,32 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Logger;
+import javax.swing.Action;
+import javax.swing.AbstractAction; 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -32,6 +42,8 @@ public class ReportPanel extends JPanel {
     private final DefaultComboBoxModel subsetSelModel_;
     private final JPanel reportHolder_;
     private Map<RowSubset,ReportMap> reports_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
 
     /**
      * Constructor.
@@ -143,12 +155,51 @@ public class ReportPanel extends JPanel {
      * @param  map   report map containing key
      * @return  component
      */
-    private static <T> JComponent createReportComponent( ReportKey<T> key,
-                                                         ReportMap map ) {
-        T value = map.get( key );
-        JTextField field = new JTextField();
-        field.setText( value == null ? null : value.toString() );
-        field.setEditable( false );
-        return field;
+    private <T> JComponent createReportComponent( ReportKey<T> key,
+                                                  ReportMap map ) {
+
+        /* If it's a table, provide buttons for exporting the content. */
+        if ( StarTable.class.isAssignableFrom( key.getValueClass() ) ) {
+            AuxWindow auxWin =
+                (AuxWindow)
+                SwingUtilities.getAncestorOfClass( AuxWindow.class, this );
+            ReportMeta meta = key.getMeta();
+            if ( auxWin != null ) {
+                final StarTable table = (StarTable) map.get( key );
+                TableSource tsrc = new TableSource() {
+                    public StarTable getStarTable() {
+                        return table;
+                    }
+                };
+                String dataType = meta.getLongName();
+                String tcLabel = meta.getShortName();
+                Action importAct =
+                    auxWin.createImportTableAction( dataType, tsrc, tcLabel );
+                importAct.putValue( Action.NAME, "Import" );
+                Action saveAct =
+                    auxWin.createSaveTableAction( dataType, tsrc );
+                saveAct.putValue( Action.NAME, "Save" );
+                Box buttBox = Box.createHorizontalBox();
+                buttBox.add( new JButton( importAct ) );
+                buttBox.add( Box.createHorizontalStrut( 5 ) );
+                buttBox.add( new JButton( saveAct ) );
+                buttBox.add( Box.createHorizontalGlue() );
+                return buttBox;
+            }
+            else {
+                logger_.warning( "No AuxWindow ancestor of "
+                               + getClass().getName() + "??" );
+                return null;
+            }
+        }
+
+        /* Otherwise, assume it can be stringified. */
+        else {
+            T value = map.get( key );
+            JTextField field = new JTextField();
+            field.setText( value == null ? null : value.toString() );
+            field.setEditable( false );
+            return field;
+        }
     }
 }
