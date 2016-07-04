@@ -430,11 +430,6 @@ public class AuxWindow extends JFrame {
                                                   AuxWindow.this, tSrc, sto,
                                                   false );
                     saveWindows.put( dataType, saveWindow );
-
-                    /* Default format is text, since this method is typically
-                     * used for small tables. */
-                    saveWindow.setDefaultFormat( new AsciiTableWriter()
-                                                .getFormatName() );
                 }
 
                 /* Pop up the window thereby inviting the user to save the
