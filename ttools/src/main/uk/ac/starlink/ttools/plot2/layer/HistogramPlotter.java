@@ -62,13 +62,13 @@ public class HistogramPlotter
 
     /** ReportKey for histogram bins. */
     public static final ReportKey<BinBag> BINS_KEY =
-        new ReportKey<BinBag>( new ReportMeta( "bins", "Bins" ), BinBag.class,
-                               false );
+        ReportKey.createUnprintableKey( new ReportMeta( "bins", "Bins" ),
+                                        BinBag.class );
 
     /** ReportKey for actual bin width. */
     public static final ReportKey<Double> BINWIDTH_KEY =
-        new ReportKey<Double>( new ReportMeta( "binwidth", "Bin Width" ),
-                               Double.class, false );
+        ReportKey.createDoubleKey( new ReportMeta( "binwidth", "Bin Width" ),
+                                   false );
 
     /** Config key for bin size configuration. */
     public static final ConfigKey<BinSizer> BINSIZER_KEY =

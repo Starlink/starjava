@@ -59,9 +59,9 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
 
     /** Report key for smoothing width. */
     public static final ReportKey<Double> SMOOTHWIDTH_KEY =
-        new ReportKey<Double>( new ReportMeta( "smoothwidth",
-                                               "Smoothing Width" ),
-                               Double.class, false );
+        ReportKey.createDoubleKey( new ReportMeta( "smoothwidth",
+                                                   "Smoothing Width" ),
+                                   false );
 
     /** Config key for smoothing width configuration. */
     public static final ConfigKey<BinSizer> SMOOTHSIZER_KEY =

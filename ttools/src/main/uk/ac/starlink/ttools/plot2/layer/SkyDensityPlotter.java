@@ -76,21 +76,23 @@ public class SkyDensityPlotter
 
     /** Report key for HEALPix tile area in square degrees. */
     public static final ReportKey<Double> TILESIZE_REPKEY =
-        new ReportKey<Double>( new ReportMeta( "tile_sqdeg",
-                                               "Tile size/sq.deg" ),
-                               Double.class, true );
+        ReportKey.createDoubleKey( new ReportMeta( "tile_sqdeg",
+                                                   "Tile size/sq.deg" ),
+                                   true );
 
     private static final ReportKey<Integer> ABSLEVEL_REPKEY =
-        new ReportKey<Integer>( new ReportMeta( "abs_level",
-                                                "Absolute HEALPix Level" ),
-                                Integer.class, false );
+        ReportKey
+       .createIntegerKey( new ReportMeta( "abs_level",
+                                          "Absolute HEALPix Level" ),
+                                    false );
     private static final ReportKey<Integer> RELLEVEL_REPKEY =
-        new ReportKey<Integer>( new ReportMeta( "rel_level",
-                                                "Relative HEALPix Level" ),
-                                Integer.class, false );
+        ReportKey
+       .createIntegerKey( new ReportMeta( "rel_level",
+                                          "Relative HEALPix Level" ),
+                          false );
     private static final ReportKey<StarTable> HPXTABLE_REPKEY =
-        new ReportKey<StarTable>( new ReportMeta( "hpx_map", "HEALPix Map" ),
-                                  StarTable.class, true );
+        ReportKey.createTableKey( new ReportMeta( "hpx_map", "HEALPix Map" ),
+                                  true );
 
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final FloatingCoord WEIGHT_COORD =

@@ -92,7 +92,7 @@ public class ReportMap {
                 }
                 sbuf.append( key.getMeta().getShortName() )
                     .append( "=" )
-                    .append( (Object) get( key ) );
+                    .append( textValue( key ) );
             }
         }
         return sbuf.toString();
@@ -121,5 +121,15 @@ public class ReportMap {
     @Override
     public String toString() {
         return toString( false );
+    }
+
+    /**
+     * Returns a value from this map for a given key.
+     *
+     * @param   key   typed key
+     * @return  typed value
+     */
+    private <T> String textValue( ReportKey<T> key ) {
+        return key.toText( get( key ) );
     }
 }

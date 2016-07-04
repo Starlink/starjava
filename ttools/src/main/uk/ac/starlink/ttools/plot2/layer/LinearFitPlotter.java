@@ -48,26 +48,30 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
 
     /** Report key for coefficients of linear fit (2 element array (c, m)). */
     public static final ReportKey<double[]> COEFFS_KEY =
-        new ReportKey<double[]>( new ReportMeta( "coeffs", "Coefficients" ),
-                                 double[].class, false );
+            new ReportKey<double[]>( new ReportMeta( "coeffs", "Coefficients" ),
+                                     double[].class, false ) {
+        public String toText( double[] value ) {
+            return Arrays.toString( value );
+        }
+    };
 
     /** Report key for text of linear fit equation. */
     public static final ReportKey<String> EQUATION_KEY =
-        new ReportKey<String>( new ReportMeta( "equation", "Equation" ),
-                               String.class, true );
+        ReportKey.createStringKey( new ReportMeta( "equation", "Equation" ),
+                                   true );
 
     /** Report key for product moment correlation coefficient. */
     public static final ReportKey<Double> CORRELATION_KEY =
-        new ReportKey<Double>( new ReportMeta( "correlation", "Correlation" ),
-                               Double.class, true );
+        ReportKey.createDoubleKey( new ReportMeta( "correlation",
+                                                   "Correlation" ), true );
 
     /** Report key for order zero polynomial coefficient. */
     private static final ReportKey<Double> C0_KEY =
-        new ReportKey<Double>( new ReportMeta( "c", "c" ), Double.class, true );
+        ReportKey.createDoubleKey( new ReportMeta( "c", "c" ), true );
 
     /** Report key for order one polynomial coefficient. */
     private static final ReportKey<Double> C1_KEY =
-        new ReportKey<Double>( new ReportMeta( "m", "m" ), Double.class, true );
+        ReportKey.createDoubleKey( new ReportMeta( "m", "m" ), true );
 
     private static final FloatingCoord WEIGHT_COORD =
         FloatingCoord.createCoord(

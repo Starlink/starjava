@@ -44,8 +44,8 @@ public abstract class AbstractKernelDensityPlotter
 
     /** Report key for plotted bin height in data coordinates. */
     public static final ReportKey<double[]> BINS_KEY =
-        new ReportKey<double[]>( new ReportMeta( "bins", "Bins" ),
-                                 double[].class, false );
+        ReportKey.createUnprintableKey( new ReportMeta( "bins", "Bins" ),
+                                        double[].class );
 
     /** Config key for line thickness (only effective if fill==false). */
     public static final ConfigKey<Integer> THICK_KEY =

@@ -63,17 +63,17 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
 
     /** Report key for bin X dimension in data coordinates. */
     public static final ReportKey<Double> REPKEY_XBIN =
-        new ReportKey<Double>( new ReportMeta( "xbin_size",
-                                               "Bin X dimension"
-                                             + " in data coords" ),
-                               Double.class, true );
+        ReportKey
+       .createDoubleKey( new ReportMeta( "xbin_size",
+                                         "Bin X dimension in data coords" ),
+                         true );
 
     /** Report key for bin Y dimension in data coordinates. */
     public static final ReportKey<Double> REPKEY_YBIN =
-        new ReportKey<Double>( new ReportMeta( "ybin_size",
-                                               "Bin Y dimension"
-                                             + " in data coords" ),
-                               Double.class, true );
+        ReportKey
+       .createDoubleKey( new ReportMeta( "ybin_size",
+                                         "Bin Y dimension in data coords" ),
+                         true );
 
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final FloatingCoord WEIGHT_COORD =

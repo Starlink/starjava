@@ -139,24 +139,24 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
     /** Report key for pixel X dimension in data coordinates. */
     public static final ReportKey<Double> REPKEY_XPIX =
-        new ReportKey<Double>( new ReportMeta( "xpix_size",
-                                               "Pixel X dimension"
-                                             + " in data coords" ),
-                               Double.class, true );
+        ReportKey.createDoubleKey( new ReportMeta( "xpix_size",
+                                                   "Pixel X dimension"
+                                                + " in data coords" ),
+                                   true );
 
     /** Report key for pixel Y dimension in data coordinates. */
     public static final ReportKey<Double> REPKEY_YPIX =
-        new ReportKey<Double>( new ReportMeta( "ypix_size",
-                                               "Pixel Y dimension"
-                                             + " in data coords" ),
-                               Double.class, true );
+        ReportKey.createDoubleKey( new ReportMeta( "ypix_size",
+                                                   "Pixel Y dimension"
+                                                 + " in data coords" ),
+                                   true );
 
     /** Report key for nominal pixel size in square degrees. */
     public static final ReportKey<Double> REPKEY_SKYPIX =
-        new ReportKey<Double>( new ReportMeta( "pixel_sqdeg",
-                                               "Pixel size in square degrees"
-                                             + " at projection center" ),
-                               Double.class, true );
+        ReportKey.createDoubleKey( new ReportMeta( "pixel_sqdeg",
+                                                   "Pixel size in square "
+                                                 + "degrees at proj center" ),
+                                   true );
 
     /**
      * Constructor.

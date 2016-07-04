@@ -27,15 +27,15 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
 
     /** Report key for actual minimum smoothing width. */
     public static final ReportKey<Double> MINWIDTH_RKEY =
-        new ReportKey<Double>( new ReportMeta( "minwidth",
-                                               "Minimum smoothing width" ),
-                               Double.class, false );
+        ReportKey.createDoubleKey( new ReportMeta( "minwidth",
+                                                   "Minimum smoothing width" ),
+                                   false );
 
     /** Report key for actual maximum smoothing width. */
     public static final ReportKey<Double> MAXWIDTH_RKEY =
-        new ReportKey<Double>( new ReportMeta( "maxwidth",
-                                               "Maximum smoothing width" ),
-                               Double.class, false );
+        ReportKey.createDoubleKey( new ReportMeta( "maxwidth",
+                                                   "Maximum smoothing width" ),
+                                   false );
 
     /** Config key for number of nearest neighbours. */
     public static final ConfigKey<Double> KNN_CKEY =
