@@ -44,6 +44,8 @@ import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
@@ -70,7 +72,10 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -128,6 +133,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final Action resizeAction_;
     private final boolean canSelectPoints_;
     private final JMenu exportMenu_;
+    private final JMenu layerDataImportMenu_;
+    private final JMenu layerDataSaveMenu_;
     private final ToggleButtonModel sketchModel_;
     private final ToggleButtonModel axisLockModel_;
     private final Ganger<P,A> dfltGanger_;
@@ -522,6 +529,18 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( exportAction );
+        layerDataImportMenu_ = new JMenu( "Layer Data Import" );
+        layerDataImportMenu_.setIcon( ResourceIcon.IMPORT );
+        layerDataImportMenu_.setToolTipText( "Options to import table into "
+                                           + "application data resulting "
+                                           + "from plot operations" );
+        layerDataSaveMenu_ = new JMenu( "Layer Data Save" );
+        layerDataSaveMenu_.setToolTipText( "Options to export to saved table "
+                                         + "data resulting from "
+                                         + "plot operations" );
+        layerDataSaveMenu_.setIcon( ResourceIcon.SAVE );
+        exportMenu_.add( layerDataImportMenu_ );
+        exportMenu_.add( layerDataSaveMenu_ );
         getJMenuBar().add( exportMenu_ );
 
         /* Set default component dimensions. */
@@ -855,6 +874,81 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                 .configureForLayers( layerCtrls );
             multiShaderControl_.getController( zid )
                                .configureForLayers( layerCtrls );
+        }
+    }
+
+    /**
+     * Returns layer data exporter objects associated with a set of
+     * returned plot reports.
+     *
+     * @param  reports  structured information returned from plotting
+     *                  operations
+     * @return  array of objects that can yield layer data export actions
+     */
+    private LayerDataExporter[]
+            createLayerDataExporters( Map<LayerId,ReportMap> reports ) {
+        List<LayerDataExporter> exporters = new ArrayList<LayerDataExporter>();
+        for ( Map.Entry<LayerId,ReportMap> entry : reports.entrySet() ) {
+            LayerId lid = entry.getKey();
+            ReportMap report = entry.getValue();
+            if ( report != null ) {
+                for ( ReportKey rkey : report.keySet() ) {
+                    if ( rkey.isGeneralInterest() &&
+                         StarTable.class
+                                  .isAssignableFrom( rkey.getValueClass() ) ) {
+                        StarTable table = (StarTable) report.get( rkey );
+                        if ( table != null ) {
+                            LayerDataExporter exp =
+                                new LayerDataExporter( this, rkey.getMeta(),
+                                                       lid, table );
+                            exporters.add( exp );
+                        }
+                    }
+                }
+            }
+        }
+        return exporters.toArray( new LayerDataExporter[ 0 ] );
+    }
+
+    /**
+     * Object that can generate Actions for exporting data generated
+     * during a plot.
+     */
+    private static class LayerDataExporter {
+        final Action importAct_;
+        final Action saveAct_;
+
+        /**
+         * Constructor.
+         *
+         * @param  window  parent window
+         * @param  rmeta   report key metadata for exportable data
+         * @param  lid     layer identifier object
+         * @param  table   table to export
+         */
+        LayerDataExporter( AuxWindow window, ReportMeta rmeta, LayerId lid,
+                           final StarTable table ) {
+            TableSource tsrc = new TableSource() {
+                public StarTable getStarTable() {
+                    return table;
+                }
+            };
+            Plotter plotter = lid.getPlotter();
+            String dtype = rmeta.getLongName();
+            String label = plotter.getPlotterName();
+            importAct_ = window.createImportTableAction( dtype, tsrc, label );
+            saveAct_ = window.createSaveTableAction( dtype, tsrc );
+            importAct_.putValue( Action.NAME,
+                                 "Import " + dtype + " as Table" );
+            saveAct_.putValue( Action.NAME,
+                               "Save " + dtype + " as Table" );
+            Icon picon = plotter.getPlotterIcon();
+            if ( picon != null ) {
+                importAct_.putValue( Action.SMALL_ICON,
+                                     ResourceIcon.toImportIcon( picon ) );
+                saveAct_.putValue( Action.SMALL_ICON,
+                                   ResourceIcon.toSaveIcon( picon ) );
+            }
         }
     }
 
@@ -1397,6 +1491,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
             control.submitReports( reportsMap );
         }
+
+        /* Provide menu items for exporting generated table data. */
+        LayerDataExporter[] exps = createLayerDataExporters( reportsMap );
+        if ( exps.length > 0 || layerDataImportMenu_.getItemCount() > 0
+                             || layerDataSaveMenu_.getItemCount() > 0 ) {
+            layerDataImportMenu_.removeAll();
+            layerDataSaveMenu_.removeAll();
+            for ( LayerDataExporter exp : exps ) {
+                layerDataImportMenu_.add( new JMenuItem( exp.importAct_ ) );
+                layerDataSaveMenu_.add( new JMenuItem( exp.saveAct_ ) );
+            }
+        }
+        boolean hasLayerData = exps.length > 0;
+        layerDataImportMenu_.setEnabled( hasLayerData );
+        layerDataSaveMenu_.setEnabled( hasLayerData );
 
         /* Initiate updating point count, which may be slow. */
         final Factory<String> counter = createCounter();
