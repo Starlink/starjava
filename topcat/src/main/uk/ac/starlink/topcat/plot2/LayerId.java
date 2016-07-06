@@ -40,6 +40,42 @@ public class LayerId {
         style_ = style;
     }
 
+    /**
+     * Returns the plotter.
+     *
+     * @return  plotter
+     */
+    public Plotter getPlotter() {
+        return plotter_;
+    }
+
+    /**
+     * Returns the data spec.
+     *
+     * @return  dataSpec
+     */
+    public DataSpec getDataSpec() {
+        return dataSpec_;
+    }
+
+    /**
+     * Returns the data geom.
+     *
+     * @return  dataGeom
+     */
+    public DataGeom getDataGeom() {
+        return dataGeom_;
+    }
+
+    /**
+     * Returns the style.
+     *
+     * @return  style
+     */
+    public Style getStyle() {
+        return style_;
+    }
+
     @Override
     public int hashCode() {
         int code = 9901;
