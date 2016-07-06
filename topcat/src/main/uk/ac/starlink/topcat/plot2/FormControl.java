@@ -80,7 +80,11 @@ public abstract class FormControl implements Control {
             panel_ = new JPanel( new BorderLayout() );
             panel_.add( getCoordPanel(), BorderLayout.NORTH );
             if ( getPlotter().hasReports() ) {
-                reportPanel_ = new ReportPanel();
+                reportPanel_ = new ReportPanel( new Factory<Plotter>() {
+                    public Plotter getItem() {
+                        return FormControl.this.getPlotter();
+                    }
+                } );
                 reportPanel_.setBorder( AuxWindow
                                        .makeTitledBorder( "Report" ) );
                 panel_.add( reportPanel_, BorderLayout.SOUTH );

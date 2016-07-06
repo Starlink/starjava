@@ -12,6 +12,7 @@ import javax.swing.Action;
 import javax.swing.AbstractAction; 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -23,7 +24,9 @@ import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.LineBox;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
@@ -37,6 +40,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class ReportPanel extends JPanel {
 
+    private final Factory<Plotter> plotterFact_;
     private final JComboBox subsetSelector_;
     private final Map<ReportKey,JComponent> boxMap_;
     private final DefaultComboBoxModel subsetSelModel_;
@@ -47,9 +51,13 @@ public class ReportPanel extends JPanel {
 
     /**
      * Constructor.
+     *
+     * @param  plotterFact   object that can supply the Plotter
+     *                       currently associated with this report panel
      */
-    public ReportPanel() {
+    public ReportPanel( Factory<Plotter> plotterFact ) {
         super( new BorderLayout() );
+        plotterFact_ = plotterFact;
         subsetSelModel_ = new DefaultComboBoxModel();
         subsetSelector_ = new JComboBox( subsetSelModel_ );
         subsetSelector_.addItemListener( new ItemListener() {
@@ -175,10 +183,17 @@ public class ReportPanel extends JPanel {
                 String tcLabel = meta.getShortName();
                 Action importAct =
                     auxWin.createImportTableAction( dataType, tsrc, tcLabel );
-                importAct.putValue( Action.NAME, "Import" );
                 Action saveAct =
                     auxWin.createSaveTableAction( dataType, tsrc );
+                importAct.putValue( Action.NAME, "Import" );
                 saveAct.putValue( Action.NAME, "Save" );
+                Icon picon = plotterFact_.getItem().getPlotterIcon();
+                if ( picon != null ) {
+                    importAct.putValue( Action.SMALL_ICON,
+                                        ResourceIcon.toImportIcon( picon ) );
+                    saveAct.putValue( Action.SMALL_ICON,
+                                      ResourceIcon.toSaveIcon( picon ) );
+                }
                 Box buttBox = Box.createHorizontalBox();
                 buttBox.add( new JButton( importAct ) );
                 buttBox.add( Box.createHorizontalStrut( 5 ) );
