@@ -254,6 +254,8 @@ public class ResourceIcon implements Icon {
         ADD_CONTROL = makeIcon( "addlayer4.png" ),
         AXIS_CONFIG = makeIcon( "axed5.gif" ),
         FRAME_CONFIG = makeIcon( "axframe.gif" ),
+        SAVE_OVERLAY = makeIcon( "save_over.gif" ),
+        IMPORT_OVERLAY = makeIcon( "table_over.gif" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
@@ -417,6 +419,30 @@ public class ResourceIcon implements Icon {
      */
     public static ImageIcon toAddIcon( Icon baseIcon ) {
         return combineIcons( new Icon[] { baseIcon, ADD_CONTROL } );
+    }
+
+    /**
+     * Doctors an icon look like it means saving data associated with that
+     * icon.
+     * Currently, it puts a little floppy disk icon in the corner.
+     *
+     * @param  baseIcon  standard sized (24x24) base icon
+     * @return  doctored icon
+     */
+    public static ImageIcon toSaveIcon( Icon baseIcon ) {
+        return combineIcons( new Icon[] { baseIcon, SAVE_OVERLAY } );
+    }
+
+    /**
+     * Doctors an icon look like it means importing a table
+     * associated with that icon.
+     * Currently, it puts a little table icon in the corner.
+     *
+     * @param  baseIcon  standard sized (24x24) base icon
+     * @return  doctored icon
+     */
+    public static ImageIcon toImportIcon( Icon baseIcon ) {
+        return combineIcons( new Icon[] { baseIcon, IMPORT_OVERLAY } );
     }
 
     /**
