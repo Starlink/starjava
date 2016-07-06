@@ -23193,6 +23193,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix minor border-painting bug in sky plot window
+        (sky outline painted on GUI components).</li>
     </ul>
     </p></dd>
 

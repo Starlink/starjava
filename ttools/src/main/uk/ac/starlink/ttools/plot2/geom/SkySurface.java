@@ -162,7 +162,7 @@ public class SkySurface implements Surface {
             gShape = new Rectangle( getPlotBounds() );
         }
         else {
-            g2.setClip( new Rectangle( getPlotBounds() ) );
+            g2.clip( new Rectangle( getPlotBounds() ) );
             g2.translate( gXoff_, gYoff_ );
             g2.scale( gZoom_, -gZoom_ );
             g2.setStroke( new BasicStroke( (float) ( 1.0 / gZoom_ ) ) );
@@ -210,7 +210,7 @@ public class SkySurface implements Surface {
         }
         else {
             Graphics2D g2a = (Graphics2D) g.create();
-            g2a.setClip( new Rectangle( getPlotBounds() ) );
+            g2a.clip( new Rectangle( getPlotBounds() ) );
             g2a.translate( gXoff_, gYoff_ );
             g2a.scale( gZoom_, -gZoom_ );
             g2a.setStroke( new BasicStroke( (float) ( 1.0 / gZoom_ ) ) );
