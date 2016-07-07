@@ -247,7 +247,7 @@ public class GbinObjectReader {
     public static Object createGbinReaderObject( InputStream in )
             throws IOException {
         try {
-            Class factClazz =
+            Class<?> factClazz =
                 Class.forName( "gaia.cu1.tools.dal.gbin.GbinFactory" );
             Method getReaderMethod =
                 factClazz.getMethod( "getGbinReader",
