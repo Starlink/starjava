@@ -28,6 +28,7 @@ public class GbinTableReader implements RowSequence {
     private final InputStream in_;
     private final GbinObjectReader reader_;
     private final Object gobj0_;
+    private final String gaiaTableName_;
     private final int ncol_;
     private final ItemReader[] itemReaders_;
     private final Map<ItemReader,Object> itemMap_;
@@ -59,6 +60,13 @@ public class GbinTableReader implements RowSequence {
         /* Read the first object.  We need this now so we know the class
          * of all the objects in the file (assumed the same). */
         gobj0_ = reader_.next();
+
+        /* Get the "official" gaia table name from the class of this object,
+         * if it has one. */
+        gaiaTableName_ = gobj0_ == null
+                       ? null
+                       : GbinMetadataReader.getGaiaTableName( gobj0_
+                                                             .getClass() );
 
         /* Construct an array of readers, one for each column, based on
          * the object class. */
@@ -114,6 +122,16 @@ public class GbinTableReader implements RowSequence {
      */
     public Class getItemClass() {
         return gobj0_.getClass();
+    }
+
+    /**
+     * Returns the name of the table as known to the Gaia data model
+     * on the classpath, if any.
+     *
+     * @return  well-known gaia table name, or null
+     */
+    public String getGaiaTableName() {
+        return gaiaTableName_;
     }
 
     public boolean next() throws IOException {

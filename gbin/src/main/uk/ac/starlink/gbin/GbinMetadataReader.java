@@ -2,6 +2,7 @@ package uk.ac.starlink.gbin;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -19,6 +20,7 @@ public class GbinMetadataReader {
         Logger.getLogger( "uk.ac.starlink.gbin" );
     private static final ClassMap classMap_ = createClassMap();
     private static final MetadataReader mr_ = createMetadataReader();
+    private static final Method nameChangeMethod_ = createNameChangeMethod();
 
     /**
      * Private constructor prevents instantiation.
@@ -60,14 +62,11 @@ public class GbinMetadataReader {
      */
     public static String getGaiaTableName( Class<?> objClazz ) {
         Class<?> dmClazz = classMap_.getDefinition( objClazz );
-        if ( dmClazz != null ) {
+        if ( dmClazz != null && nameChangeMethod_ != null ) {
             String dmClazzName = dmClazz.getSimpleName();
             try {
                 return (String)
-                       Class
-                      .forName( "gaia.cu9.tools.nameconventions.NameChanger" )
-                      .getMethod( "convertNameToArchiveFormat",
-                                  new Class<?>[] { String.class } )
+                       nameChangeMethod_
                       .invoke( null, new Object[] { dmClazzName } );
             }
             catch ( Throwable e ) {
@@ -82,6 +81,27 @@ public class GbinMetadataReader {
     }
 
     /**
+     * Converts a java-type name to an archive-type (SQL-friendly) name.
+     *
+     * @param   gbinName   java-type name
+     * @return   archive-type name
+     */
+    public static String convertNameToArchiveFormat( String gbinName ) {
+        Object nameObj = null;
+        if ( nameChangeMethod_ != null ) {
+            try {
+                nameObj = nameChangeMethod_
+                         .invoke( null, new Object[] { gbinName } );
+            }
+            catch ( Throwable e ) {
+                logger_.log( Level.INFO,
+                             "Can't convert gbin name " + gbinName, e );
+            }
+        }
+        return nameObj instanceof String ? (String) nameObj : gbinName;
+    }
+
+    /**
      * Returns a metadata object containing information about an
      * "official" known Gaia table. 
      * The table name may be obtained by calling {@link #getGaiaTableName}.
@@ -91,7 +111,6 @@ public class GbinMetadataReader {
      *
      * @param  gaiaTableName   "official" gaia table name
      * @return   metadata object, or null if table name not known
-     * @see   gaia.cu9.tools.documentationexport.MetadataReader
      */
     public static GaiaTableMetadata getTableMetadata( String gaiaTableName ) {
         return mr_.getTableNameList().indexOf( gaiaTableName ) >= 0
@@ -141,6 +160,26 @@ public class GbinMetadataReader {
             logger_.log( Level.WARNING,
                          "Failed to get Gaia MetadataReader instance" );
             return Proxies.createNullsProxy( MetadataReader.class );
+        }
+    }
+
+    /**
+     * Returns the Method NameChanger.convertNameToArchiveFormat.
+     *
+     * @return   method, or null if there is some problem
+     */
+    private static Method createNameChangeMethod() {
+        String clazzName = "gaia.cu9.tools.nameconventions.NameChanger";
+        String methodName = "convertNameToArchiveFormat";
+        try {
+            return Class
+                  .forName( clazzName )
+                  .getMethod( methodName, new Class<?>[] { String.class } );
+        }
+        catch ( Throwable e ) {
+            logger_.log( Level.WARNING,
+                         "Failed to get " + clazzName + "." + methodName, e );
+            return null;
         }
     }
 

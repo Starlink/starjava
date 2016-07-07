@@ -38,8 +38,24 @@ public class GbinTableBuilder implements TableBuilder {
         new DefaultValueInfo( "GbinClass", String.class,
                               "Classname of GBIN objects" );
 
-    /** ValueInfo for GBIN description string. */
-    public static final ValueInfo DESCRIPTION_INFO =
+    /** ValueInfo for well-known Gaia table name. */
+    public static final ValueInfo GAIATABLENAME_INFO =
+        new DefaultValueInfo( "GaiaTableName", String.class,
+                              "Well-known name of Gaia table" );
+
+    /** ValueInfo for Gaia table description string. */
+    public static final ValueInfo DESCRIP_INFO =
+        new DefaultValueInfo( "Description", String.class,
+                              "Table description from Gaia data model" );
+
+    /** ValueInfo for Gaia column detailed description string. */
+    public static final ValueInfo COLDETAIL_INFO =
+        new DefaultValueInfo( "GaiaDetail", String.class,
+                              "Detailed column description"
+                            + " from Gaia data model" );
+
+    /** ValueInfo for GBIN build description string. */
+    public static final ValueInfo BUILDDESCRIP_INFO =
         new DefaultValueInfo( "GbinDescription", String.class,
                               "GBIN build description" );
 
@@ -136,7 +152,7 @@ public class GbinTableBuilder implements TableBuilder {
                     GbinMetadataReader.attemptReadMetadata( gbinRdrObj );
                 nrowObj = meta.getTotalElementCount();
                 params.add(
-                     new DescribedValue( DESCRIPTION_INFO,
+                     new DescribedValue( BUILDDESCRIP_INFO,
                                          meta.buildDescription( false ) ) );
             }
             catch ( Throwable e ) {
@@ -183,9 +199,77 @@ public class GbinTableBuilder implements TableBuilder {
          */
         GbinStarTable( GbinTableReader trdr, long nrow ) {
             nrow_ = nrow;
-            colInfos_ = trdr.getColumnInfos();
             setParameter( new DescribedValue( CLASSNAME_INFO,
                                               trdr.getItemClass().getName() ) );
+
+            /* Get additional metadata about this table from the classpath
+             * data model classes if available. */
+            String gaiaTableName = trdr.getGaiaTableName();
+            final GaiaTableMetadata tmeta;
+            if ( gaiaTableName != null ) {
+                setName( gaiaTableName );
+                setParameter( new DescribedValue( GAIATABLENAME_INFO,
+                                                  gaiaTableName ) );
+                tmeta = GbinMetadataReader.getTableMetadata( gaiaTableName );
+            }
+            else {
+                tmeta = null;
+            }
+
+            /* Table description. */
+            if ( tmeta != null ) {
+                String descrip = tmeta.getTableDescription();
+                if ( descrip != null ) {
+                    setParameter( new DescribedValue( DESCRIP_INFO, descrip ) );
+                }
+            }
+
+            /* Column metadata. */
+            ColumnInfo[] cinfos = trdr.getColumnInfos();
+            int ncol = cinfos.length;
+            colInfos_ = new ColumnInfo[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                ColumnInfo cinfo = new ColumnInfo( cinfos[ icol ] );
+                String archName = GbinMetadataReader
+                                 .convertNameToArchiveFormat( cinfo.getName() );
+                if ( archName != null ) {
+                    cinfo.setName( archName );
+                }
+                if ( tmeta != null ) {
+                    String cname = cinfo.getName();
+
+                    /* Column description. */
+                    String descrip = tmeta.getParameterDescription( cname );
+                    if ( descrip != null && descrip.trim().length() > 0 ) {
+                        cinfo.setDescription( descrip );
+                    }
+
+                    /* Column UCDs. */
+                    List<?> ucdList = tmeta.getUcds( cname );
+                    if ( ucdList != null && ucdList.size() > 0 ) {
+                        StringBuffer ucdBuf = new StringBuffer();
+                        for ( Object ucd : ucdList ) {
+                            if ( ucdBuf.length() > 0 ) {
+                                ucdBuf.append( ";" );
+                            }
+                            ucdBuf.append( ucd );
+                        }
+                        if ( ucdBuf.length() > 0 ) {
+                            cinfo.setUCD( ucdBuf.toString() );
+                        }
+                    }
+
+                    /* Column extra detail (ends up in STIL but probably
+                     * not in any serialized formats). */
+                    String detail =
+                        tmeta.getParameterDetailedDescription( cname );
+                    if ( detail != null && detail.trim().length() > 0 ) {
+                        cinfo.setAuxDatum( new DescribedValue( COLDETAIL_INFO,
+                                                               detail ) );
+                    }
+                }
+                colInfos_[ icol ] = cinfo;
+            }
         }
 
         public int getColumnCount() {
