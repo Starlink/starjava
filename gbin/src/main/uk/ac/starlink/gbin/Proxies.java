@@ -14,6 +14,12 @@ import java.lang.reflect.Proxy;
 class Proxies {
 
     private static final ClassLoader loader_ = Proxies.class.getClassLoader();
+    private static final InvocationHandler NULLS_INVOKER =
+        new InvocationHandler() {
+            public Object invoke( Object proxy, Method method, Object[] args ) {
+                return null;
+            }
+        };
 
     /**
      * Attempts to create a proxy that can invoke methods from a given
@@ -35,6 +41,18 @@ class Proxies {
             throws Exception {
         InvocationHandler invoker = new ReflectionInvocationHandler( target );
         Class<?>[] ifaces = new Class<?>[] { clazz };
+        return clazz.cast( Proxy.newProxyInstance( loader_, ifaces, invoker ) );
+    }
+
+    /**
+     * Creates a proxy for which all method invocations simply return null.
+     *
+     * @param   clazz  interface defining desired API
+     * @return   proxy
+     */
+    public static <T> T createNullsProxy( Class<T> clazz ) {
+        Class<?>[] ifaces = new Class<?>[] { clazz };
+        InvocationHandler invoker = NULLS_INVOKER;
         return clazz.cast( Proxy.newProxyInstance( loader_, ifaces, invoker ) );
     }
 
