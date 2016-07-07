@@ -137,7 +137,6 @@ public class SkyPlotWindow
         public void autoPopulate() {
             ColumnDataComboBoxModel lonModel = getColumnSelector( 0, 0 );
             ColumnDataComboBoxModel latModel = getColumnSelector( 0, 1 );
-            ColPopulator cp = new ColPopulator( lonModel, latModel );
             SkySys currentSys = dataSysSpecifier_.getSpecifiedValue();
             SkySys sys = new ColPopulator( lonModel, latModel )
                         .attemptPopulate( currentSys );

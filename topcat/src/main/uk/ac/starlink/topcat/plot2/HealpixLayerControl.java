@@ -24,14 +24,8 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
      */
     public HealpixLayerControl( HealpixPlotter plotter, Specifier<ZoneId> zsel,
                                 Configger baseConfigger ) {
-        super( plotter, zsel,
-               new SimplePositionCoordPanel( plotter.getCoordGroup()
-                                                    .getExtraCoords(),
-                                             new ConfigKey[] {
-                                                 HealpixPlotter.DATASYS_KEY,
-                                                 HealpixPlotter.DATALEVEL_KEY,
-                                             }, null ),
-               baseConfigger );
+        super( plotter, zsel, new HealpixCoordPanel( plotter ),
+               baseConfigger, true );
         assert plotter.getCoordGroup().getPositionCount() == 0;
     }
 
@@ -73,5 +67,24 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
             }
         }
         return null;
+    }
+
+    /**
+     * CoordPanel implementation for HealpixLayerControl.
+     */
+    private static class HealpixCoordPanel extends SimplePositionCoordPanel {
+        HealpixCoordPanel( HealpixPlotter plotter ) {
+            super( plotter.getCoordGroup().getExtraCoords(),
+                   new ConfigKey[] {
+                        HealpixPlotter.DATASYS_KEY,
+                        HealpixPlotter.DATALEVEL_KEY,
+                   }, null );
+        }
+        public void autoPopulate() {
+            // cf. SkyPlotWindow.SkyPositionCoordPanel
+            // I need to get the table, look at the parameters,
+            // identify the right column for healpix index,
+            // try to work out level, etc.
+        }
     }
 }

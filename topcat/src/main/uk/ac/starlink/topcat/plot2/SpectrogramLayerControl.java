@@ -31,7 +31,7 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
                new SimplePositionCoordPanel( plotter.getCoordGroup()
                                                     .getExtraCoords(),
                                              null ),
-               baseConfigger );
+               baseConfigger, false );
         plotter_ = plotter;
         assert plotter.getCoordGroup().getPositionCount() == 0;
     }

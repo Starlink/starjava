@@ -40,6 +40,7 @@ public class BasicCoordLayerControl extends ConfigControl
     private final TablesListComboBox tableSelector_;
     private final PositionCoordPanel coordPanel_;
     private final Configger baseConfigger_;
+    private final boolean autoPopulate_;
     private final JComboBox subsetSelector_;
     private final ComboBoxModel dummyComboBoxModel_;
     private final ConfigStyler styler_;
@@ -54,15 +55,20 @@ public class BasicCoordLayerControl extends ConfigControl
      * @param   coordPanel   panel which displays the plotter's coordinates,
      *                       and supplies a DataGeom
      * @param   baseConfigger   provides global configuration info
+     * @param  autoPopulate  if true, when the table is changed an attempt
+     *                       will be made to initialise the coordinate fields
+     *                       with some suitable values
      */
     public BasicCoordLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                    PositionCoordPanel coordPanel,
-                                   Configger baseConfigger ) {
+                                   Configger baseConfigger,
+                                   boolean autoPopulate ) {
         super( null, plotter.getPlotterIcon() );
         plotter_ = plotter;
         zsel_ = zsel;
         coordPanel_ = coordPanel;
         baseConfigger_ = baseConfigger;
+        autoPopulate_ = true;
         styler_ = new ConfigStyler( coordPanel_.getComponent() );
 
         /* Create data selection components. */
@@ -90,7 +96,7 @@ public class BasicCoordLayerControl extends ConfigControl
                                     true ) );
         dataPanel.add( coordPanel_.getComponent() );
         dataPanel.add( Box.createVerticalStrut( 5 ) );
-        dataPanel.add( new LineBox( "Row Subset: ",
+        dataPanel.add( new LineBox( "Row Subset",
                                     new ShrinkWrapper( subsetSelector_ ),
                                     true ) );
 
@@ -195,7 +201,7 @@ public class BasicCoordLayerControl extends ConfigControl
      * @param   tcModel   new topcat model, may be null
      */
     protected void tableChanged( TopcatModel tcModel ) {
-        coordPanel_.setTable( tcModel, false );
+        coordPanel_.setTable( tcModel, autoPopulate_ );
 
         /* Set up subset selector. */
         final ComboBoxModel subselModel;

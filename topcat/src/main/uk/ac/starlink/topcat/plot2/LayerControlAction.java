@@ -162,7 +162,8 @@ public abstract class LayerControlAction extends BasicAction {
                     Configger configger = baseConfigger.layerConfigger( zs0 );
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
                     return new BasicCoordLayerControl( plotter, zsel,
-                                                       coordPanel, configger );
+                                                       coordPanel, configger,
+                                                       false );
                 }
             };
         }
