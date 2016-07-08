@@ -2066,7 +2066,8 @@ columns mean the same thing).
 
 <p>You can perform a concatenation using the 
 <ref id="ConcatWindow">Concatenation Window</ref>;
-obtain this using the <label>Concatenate Tables</label> (&IMG.CONCAT;) button
+obtain this using the <label>Joins|Concatenate Tables</label> (&IMG.CONCAT;)
+menu option
 in the <ref id="ControlWindow">Control Window</ref>.
 </p>
 
@@ -18448,7 +18449,7 @@ the following acknowledgement:
 
 <p>The Concatenation Window allows you to join two tables together
 top-to-bottom.  It can be obtained using the 
-<label>Concatenate Tables</label> button (&IMG.CONCAT;) in the
+<label>Concatenate Tables</label> item (&IMG.CONCAT;) in the
 <ref id="ControlWindow">Control Window</ref> <label>Joins</label> menu.
 </p>
 
@@ -18466,15 +18467,23 @@ This process is discussed in more detail in <ref id="concat"/>.
 </p>
 
 <p>The concatenation window allows you to select the base and appended
-tables, and for each column in the base table to specify which column
-in the appended table corresponds to it.  You may select a blank for
-this, in which case the column in question will have all null entries
-in the resulting table.
-In some cases these column selectors may have a value filled in
+tables, and for each column in the base table to specify what quantity
+in the appended table corresponds to it.
+You can either select a column from the appended table from the
+selection box, or type in an expression in the
+<ref id="jel">expression language</ref> referring to columns
+from the appended table.
+If you leave the field blank, the column in question will have
+all null entries in the resulting table.
+Only suitable columns are available for choosing from these column
+selectors, that is ones matching the data type of the base column.
+</p>
+
+<p>In some cases these column selectors may have a value filled in
 automatically if the program thinks it can guess appropriate ones,
 but you should ensure that it has guessed correctly in this case.
-Only suitable columns are available for choosing from these column
-selectors; in most cases this means numeric ones.
+If the two tables have essentially the same structure,
+the corresponding columns should all get filled in automatically.
 </p>
 
 <p>When you have filled in the fields to your satisfaction, hit
@@ -23195,6 +23204,10 @@ introduced since the last version:
     <ul>
     <li>Fix minor border-painting bug in sky plot window
         (sky outline painted on GUI components).</li>
+    <li>Improve the <ref id="ConcatWindow">Concatenation Window</ref>.
+        You can now use algebraic expressions for the appended table columns,
+        and changes to the appended table no longer reset the window
+        state.</li>
     </ul>
     </p></dd>
 
