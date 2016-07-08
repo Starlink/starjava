@@ -1,6 +1,9 @@
 <p>The GBIN format doesn't really store tables, it stores arrays of
 java objects, so the input handler has to make some decisions about how to
-flatten these into table rows.  It basically looks for public instance
+flatten these into table rows.
+</p>
+
+<p>In its simplest form, the handler basically looks for public instance
 methods of the form <code>getXxx()</code>
 and uses the <code>Xxx</code> as column names.
 If the corresponding values are themselves objects with suitable getter
@@ -12,6 +15,27 @@ Arrays of complex objects are not handled well,
 and various other things may trip it up.
 See the source code (e.g. <code>uk.ac.starlink.gbin.GbinTableProfile</code>)
 for more details.
+</p>
+
+<p>If the object types stored in the GBIN file are known to the
+special metadata-bearing class
+<code>gaia.cu9.tools.documentationexport.MetadataReader</code>
+and its dependencies, and if that class is on the runtime classpath,
+then the handler will be able to extract additional metadata as available,
+including standardised column names,
+table and column descriptions, and UCDs.
+An example of a jar file containing this metadata class alongside
+data model classes is <code>GaiaDataLibs-18.3.1-r515078.jar</code>.
+Note however at time of writing there are some deficiencies with this
+metadata extraction functionality related to unresolved issues
+in the upstream gaia class libraries and the relevant
+interface control document
+(GAIA-C9-SP-UB-XL-034-01, "External Data Centres ICD").
+Currently columns appear in the output table in a more or less
+random order, units and Utypes are not extracted,
+and using the GBIN reader tends to cause a 700kbyte file "temp.xml"
+to be written in the current directory.
+If the upstream issues are fixed, this behaviour may improve.
 </p>
 
 <p>Note that support for GBIN files is somewhat experimental.

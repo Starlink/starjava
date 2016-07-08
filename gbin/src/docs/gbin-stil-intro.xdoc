@@ -19,8 +19,8 @@ so some additional setup is required to read GBIN files.
 <p>As well as the data model classes, you must provide on the runtime
 classpath the GaiaTools classes required for GBIN reading.
 The table input handler accesses these by reflection,
-partly because GaiaTools is targeted at java 7 while STIL is at
-time of writing java 1.5 compatible, and partly to avoid an
+partly because GaiaTools is targeted at java 8 while STIL is at
+time of writing java 6 compatible, and partly to avoid an
 additional large library dependency for a rather niche requirement.
 It is likely that since you have to supply the required data model classes
 you will also have the required GaiaTools classes to hand as well,

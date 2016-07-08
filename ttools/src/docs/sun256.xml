@@ -10837,6 +10837,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         conversions between ring and nested schemes.</li>
     <li>New task <ref id="tskymap">tskymap</ref> lets you generate all-sky
         density maps (e.g. HEALPix) from an input table.</li>
+    <li>The GBIN input handler
+        can now pick up more metadata from the classpath.
+        For suitable tables, metadata included in datamodel classes 
+        if present can be interrogated to provide table
+        and column descriptions and UCDs.
+        There are still some deficiencies of this functionality
+        (no column order, utypes and units missing,
+        large file "temp.xml" written to current directory)
+        dependent on issues in the upstream Gaia libraries and ICD.</li>
     </ul>
     </p></dd>
 

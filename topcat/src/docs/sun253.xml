@@ -23423,6 +23423,15 @@ introduced since the last version:
         either save it to disk or import it as a new table.</li>
     <li>New <ref id="HealpixLayerControl">Healpix layer control</ref>
         in the sky plot lets you plot tables that represent healpix maps.</li>
+    <li>The <ref id="inGbin">GBIN</ref> input handler
+        can now pick up more metadata from the classpath.
+        For suitable tables, metadata included in datamodel classes
+        if present can be interrogated to provide table 
+        and column descriptions and UCDs.
+        There are still some deficiencies of this functionality 
+        (no column order, utypes and units missing, 
+        large file "temp.xml" written to current directory)
+        dependent on issues in the upstream Gaia libraries and ICD.</li>
     </ul>
     </p></dd>
 

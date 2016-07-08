@@ -15,10 +15,10 @@ or like this:
    java -classpath &gbin-package-classpath;:MDBExplorerStandalone.jar &gbin-package-mainclass;
 </verbatim>
 Note you will need to be using whatever version of java is required
-by GaiaTools, probably java 7.
+by GaiaTools, probably java 8.
 </p>
 
 <p>The GBIN format is recognised automatically, so you do not need to
-explicitly set the file type when loading GBIN files.
+set the file type explicitly when loading GBIN files.
 </p>
 
