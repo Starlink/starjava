@@ -44,11 +44,14 @@ public abstract class TapMetaPolicy {
     /** Uses the non-standard proposed VOSI 1.1 two-level tables endpoint. */
     public static final TapMetaPolicy CADC;
 
-    /** Uses the proposed VOSI 1.1 one-stage /tables endpoint. */
-    public static final TapMetaPolicy VOSI11_1;
+    /** Uses the proposed VOSI 1.1 one-stage (detail=max) /tables endpoint. */
+    public static final TapMetaPolicy VOSI11_MAX;
 
     /** Uses the proposed VOSI 1.1 two-stage (detail=min) /tables endpoint. */
-    public static final TapMetaPolicy VOSI11_2;
+    public static final TapMetaPolicy VOSI11_MIN;
+
+    /** Uses the proposed VOSI 1.1 /tables endpoint (backward compatible). */
+    public static final TapMetaPolicy VOSI11_NULL;
 
     private static final TapMetaPolicy[] KNOWN_VALUES = {
         AUTO = new TapMetaPolicy( "Auto",
@@ -100,8 +103,12 @@ public abstract class TapMetaPolicy {
                 return new CadcTapMetaReader( tablesetUrl, config, coding );
             }
         },
-        VOSI11_1 = createVosiPolicy( "VOSI11-1step", true ),
-        VOSI11_2 = createVosiPolicy( "VOSI11-2step", false ),
+        VOSI11_MAX = createVosi11Policy( "VOSI11-1step",
+                                         Vosi11TapMetaReader.DetailMode.MAX ),
+        VOSI11_MIN = createVosi11Policy( "VOSI11-2step",
+                                         Vosi11TapMetaReader.DetailMode.MIN ),
+        VOSI11_NULL = createVosi11Policy( "VOSI11",
+                                          Vosi11TapMetaReader.DetailMode.NULL ),
     };
 
     /**
@@ -206,26 +213,23 @@ public abstract class TapMetaPolicy {
      * proposal.
      *
      * @param  name  policy name
-     * @param  popTables   true if full table metadata is requested
-     *                     (will not necessarily be honoured) in initial query
+     * @param  dmode   requested detail mode for metadata queries
      */
-    private static TapMetaPolicy createVosiPolicy( String name,
-                                                   final boolean popTables ) {
-        StringBuffer sbuf = new StringBuffer()
-            .append( "Reads metadata from the VOSI-1.1 WD20160129" )
-            .append( "/tables endpoint\n" );
-        if ( popTables ) {
-            sbuf.append( ", if possible all metadata is read at once" );
-        }
-        else {
-            sbuf.append( ", column and foreign-key metadata is only read" )
-                .append( " as required (detail=min)" );
-        }
-        return new TapMetaPolicy( name, sbuf.toString() ) {
+    private static TapMetaPolicy
+            createVosi11Policy( String name,
+                              final Vosi11TapMetaReader.DetailMode dmode ) {
+        String descrip =
+             new StringBuffer()
+            .append( "Reads metadata from the VOSI-1.1 /tables endpoint;\n" )
+            .append( dmode.getDescription() )
+            .toString();
+        return new TapMetaPolicy( name, descrip ) {
             public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
                 URL tablesUrl = endpointSet.getTablesEndpoint();
-                return new Vosi11TapMetaReader( tablesUrl, coding, popTables );
+                MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
+                return new Vosi11TapMetaReader( tablesUrl, fixer, coding,
+                                                dmode );
             }
         };
     }
@@ -284,6 +288,14 @@ public abstract class TapMetaPolicy {
                                                        ContentCoding coding,
                                                        int maxrow ) {
         MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
+
+        /* This implementation looks a bit more complicated than it has to be.
+         * VOSI 1.1 allows services to describe how much detail they
+         * return from the /tables endpoint - whether to include column/fkey
+         * metadata or not.  So we could just leave it to the service here.
+         * However, not all services are VOSI 1.1, so this hybrid approach
+         * ensures that we get sensible behaviour for small or large TAP
+         * services for any VOSI version implementation. */
  
         /* Find out how many columns there are in total.
          * The columns table is almost certainly the longest one we would
@@ -336,8 +348,9 @@ public abstract class TapMetaPolicy {
          * count failed, use the VOSI tables endpoint instead. */
         logger_.info( "Use VOSI tables endpoint for "
                     + endpointSet.getIdentity() );
-        return new TableSetTapMetaReader( endpointSet.getTablesEndpoint(),
-                                          fixer, coding );
+        return new Vosi11TapMetaReader( endpointSet.getTablesEndpoint(),
+                                        fixer, coding,
+                                        Vosi11TapMetaReader.DetailMode.MAX );
     }
 
     /**

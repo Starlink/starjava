@@ -11,10 +11,20 @@ import uk.ac.starlink.util.ContentCoding;
 
 /**
  * TapMetaReader that works with the proposed VOSI-1.1 scalable /tables
- * endpoint.  This is currently as defined in VOSI-1.1-WD20160129.
- * The tables endpoint may be accessed with an optional query part
- * <code>?detail=min</code>; if it is, the column and foreign key
- * metadata is omitted, and if not, that metadata might be omitted.
+ * endpoint.  This is currently as defined in updates to VOSI-1.1-PR20160413.
+ * It should work correctly with VOSI 1.1 services and also with VOSI 1.0
+ * services and services (like, at time of writing, TAPVizieR)
+ * that declare themselves as VOSI 1.0 but refuse to emit table details
+ * for the full tables list.
+ *
+ * <p>Services may return tables without column and foreign key metadata
+ * (table elements have no column children).  If such a table is retrieved,
+ * the detailed metadata may be obtained from a child URL /tables/(table-name).
+ * The service may accept a <code>detail</code> parameter for the /tables URL,
+ * with possible values <code>min</code> or <code>max</code>
+ * (that is <code>/tables?detail=min</code> or </code>/tables?detail=max</code>)
+ * to give it a non-binding hint about whether detail is returned
+ * in child tables.
  *
  * @author   Mark Taylor
  * @since    16 Feb 2016
@@ -22,8 +32,9 @@ import uk.ac.starlink.util.ContentCoding;
 public class Vosi11TapMetaReader implements TapMetaReader {
 
     private final URL url_;
+    private final MetaNameFixer fixer_;
     private final ContentCoding coding_;
-    private final boolean preferPopulateTables_;
+    private final DetailMode detailMode_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -32,22 +43,23 @@ public class Vosi11TapMetaReader implements TapMetaReader {
      * Constructor.
      *
      * @param   tablesetUrl   URL of VOSI1.1-like TAP tableset service
-     * @param    coding   configures HTTP content-coding
-     * @param   preferPopulateTables  if true, column/fkey metadata will
-     *                                not be solicited in initial query
-     *                                (<code>detail=min</code> will be used)
+     * @param   fixer  object that fixes up syntactically incorrect
+     *                 table/column names; if null no fixing is done;
+     *                 has no effect for compliant VODataService documents
+     * @param   coding   configures HTTP content-coding
+     * @param   detailMode  detail mode
      */
-    public Vosi11TapMetaReader( URL tablesetUrl, ContentCoding coding,
-                                boolean preferPopulateTables ) {
+    public Vosi11TapMetaReader( URL tablesetUrl, MetaNameFixer fixer,
+                                ContentCoding coding, DetailMode detailMode ) {
         url_ = tablesetUrl;
+        fixer_ = fixer = fixer == null ? MetaNameFixer.NONE : fixer;
         coding_ = coding;
-        preferPopulateTables_ = preferPopulateTables;
+        detailMode_ = detailMode;
     }
 
     public String getMeans() {
-        return "VOSI-1.1-WD20160129"
-             + ( preferPopulateTables_ ? ", full detail requested"
-                                       : ", minimal detail requested" );
+        String note = detailMode_.note_;
+        return "VOSI-1.1-PR" + ( note == null ? "" : ( ", " + note ) );
     }
 
     public String getSource() {
@@ -59,14 +71,13 @@ public class Vosi11TapMetaReader implements TapMetaReader {
         /* Read the tableset document.  Either do or don't ask for restricted
          * metadata.  We treat the result in almost exactly the same way
          * in both cases. */
-        SchemaMeta[] schemas =
-            populateHandler( null, preferPopulateTables_ ? null : "min" )
-           .getSchemas( true );
+        SchemaMeta[] schemas = populateHandler( null, detailMode_ )
+                              .getSchemas( true );
+        if ( fixer_ != null ) {
+            fixer_.fixSchemas( schemas );
+        }
 
-        /* In principle, it is possible to work out whether the request for
-         * complete metadata has been rejected.  But it's fiddly (involves
-         * grubbing through HTTP response codes).  So be lazy; just conclude
-         * that if there are no columns for a given table, it's because
+        /* If there are no columns for a given table, assume it's because
          * the service decided not to give detailed table metadata to us,
          * rather than because the table has zero columns.
          * This will nearly always be a sound conclusion
@@ -100,11 +111,18 @@ public class Vosi11TapMetaReader implements TapMetaReader {
             }
         }
 
-        /* Log the service's (perfectly legal) refusal for full metadata
-         * if it looks like that's what happened. */
-        if ( preferPopulateTables_ && nDetail == 0 ) {
-            logger_.info( "Requested column/fkey metadata was absent"
+        /* If the service apparently rejected our request for max or min
+         * detail, log it.  The service is perfectly within its rights
+         * to do that. */
+        if ( detailMode_ == DetailMode.MAX && nDetail == 0 ) {
+            logger_.info( "Table column/fkey metadata absent"
+                        + " despite " + detailMode_.query_
                         + " - will acquire per-table as required" );
+        }
+        else if ( detailMode_ == DetailMode.MIN && nDetail > 0 ) { 
+            logger_.info( "Table column/fkey metadata present"
+                        + " despite " + detailMode_.query_
+                        + " - no further metadata requests required" );
         }
         return schemas;
     }
@@ -135,9 +153,9 @@ public class Vosi11TapMetaReader implements TapMetaReader {
      * @return   table metadata object populated with columns and keys
      */
     private TableMeta readSingleTable( TableMeta table ) throws IOException {
-        String tname = table.getName();
+        String tname = fixer_.getOriginalTableName( table );
         String subPath = "/" + tname;
-        TableSetSaxHandler tsHandler = populateHandler( subPath, "" );
+        TableSetSaxHandler tsHandler = populateHandler( subPath, null );
         List<TableMeta> tlist = new ArrayList<TableMeta>();
         tlist.addAll( Arrays.asList( tsHandler.getNakedTables() ) );
         for ( SchemaMeta schema : tsHandler.getSchemas( false ) ) {
@@ -160,21 +178,23 @@ public class Vosi11TapMetaReader implements TapMetaReader {
 
     /**
      * Reads a tableset document from the base URL of this reader,
-     * as modified by a given subpath and detail query string.
+     * as modified by a given subpath and detail mode.
      *
      * @param  subPath  url subpath
-     * @param  detail   value of "detail" query parameter
+     * @param  detailMode  detail mode, or null if not applicable
      * @return   handler that has performed a parse on the URL corresponding
      *           to the given arguments
      */
-    private TableSetSaxHandler populateHandler( String subPath, String detail )
+    private TableSetSaxHandler populateHandler( String subPath,
+                                                DetailMode detailMode )
             throws IOException {
         String surl = url_.toString();
         if ( subPath != null && subPath.length() > 0 ) {
             surl += "/" + subPath;
         }
-        if ( detail != null && detail.length() > 0 ) {
-            surl += "?detail=" + detail;
+        String query = detailMode == null ? null : detailMode.query_;
+        if ( query != null ) {
+            surl += "?" + query;
         }
         URL url = new URL( surl );
         logger_.info( "Reading table metadata from " + url );
@@ -185,6 +205,62 @@ public class Vosi11TapMetaReader implements TapMetaReader {
             throw (IOException)
                   new IOException( "Invalid TableSet XML document" )
                  .initCause( e );
+        }
+    }
+
+    /**
+     * Enumeration for detail-preference mode of table metadata queries.
+     */
+    public enum DetailMode {
+
+        /**
+         * Detail=min.  Hints that a full tableset query should return
+         * only tables no columns or fkeys.
+         */
+        MIN( "detail=min", "minimal detail requested",
+             "if supported, all metadata is read at once" ),
+
+        /**
+         * Detail=max.  Hints that a full tableset query should return
+         * columns and fkeys along with tables.
+         */
+        MAX( "detail=max", "full detail requested",
+             "if supported, " +
+             "column and foreign-key metadata is only read as required" ),
+
+        /**
+         * No detail preference.  No hint to service whether column and fkey
+         * metadata is supplied along with tables.
+         */
+        NULL( null, null,
+              "service decides whether column and foreign key metadata " +
+              "is read all at once or on demand" );
+
+        private final String query_;
+        private final String note_;
+        private final String descrip_;
+
+        /**
+         * Constructor.
+         *
+         * @query   param=value part of URL query string
+         * @param   note   short note of function
+         * @param   descrip   longer description of function
+         */
+        private DetailMode( String query, String note, String descrip ) {
+            query_ = query;
+            note_ = note;
+            descrip_ = descrip;
+        }
+
+        /**
+         * Returns a description of the function described by this mode
+         * (one sentence, not capitalised).
+         *
+         * @return  description
+         */
+        public String getDescription() {
+            return descrip_;
         }
     }
 }
