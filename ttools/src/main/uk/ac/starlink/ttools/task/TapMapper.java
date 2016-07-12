@@ -76,6 +76,7 @@ public class TapMapper implements TableMapper {
             "\"SELECT\".",
             "</p>",
         } );
+        adqlParam_.setUsage( "<query-text>" );
         paramList.add( adqlParam_ );
 
         parseParam_ = new BooleanParameter( "parse" );
@@ -125,6 +126,7 @@ public class TapMapper implements TableMapper {
             "If no value is set, the service's default policy will be used.",
             "</p>",
         } );
+        maxrecParam_.setUsage( "<nrow>" );
         maxrecParam_.setMinimum( 0L );
         maxrecParam_.setNullPermitted( true );
         paramList.add( maxrecParam_ );
@@ -144,6 +146,7 @@ public class TapMapper implements TableMapper {
             ">UWS v1.0</webref>, sec 2.2.3.3.",
             "</p>",
         } );
+        destructionParam_.setUsage( "<iso8601>" );
         destructionParam_.setNullPermitted( true );
         paramList.add( destructionParam_ );
 
@@ -164,6 +167,7 @@ public class TapMapper implements TableMapper {
             ">UWS v1.0</webref>, sec 2.2.3.4.",
             "</p>",
         } );
+        durationParam_.setUsage( "<seconds>" );
         durationParam_.setMinimum( 0 );
         durationParam_.setNullPermitted( true );
         paramList.add( durationParam_ );
@@ -209,6 +213,7 @@ public class TapMapper implements TableMapper {
             "to submit a PQL query.",
             "</p>",
         } );
+        langParam_.setUsage( "<lang-name>" );
         langParam_.setStringDefault( "ADQL" );
         paramList.add( langParam_ );
 

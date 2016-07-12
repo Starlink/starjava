@@ -59,7 +59,7 @@ public class TapResultReader {
             "seconds.",
             "</p>",
         } );
-        pollParam_.setMinimum( 50 );
+        pollParam_.setUsage( "<millisec>" );
         pollParam_.setIntDefault( 5000 );
         paramList.add( pollParam_ );
 
