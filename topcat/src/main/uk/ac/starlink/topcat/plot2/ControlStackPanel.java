@@ -161,12 +161,15 @@ public class ControlStackPanel extends JPanel {
 
         public void valueChanged( ListSelectionEvent evt ) {
             if ( ! evt.getValueIsAdjusting() ) {
-                controlHolder_.removeAll();
                 Control control = (Control) list1_.getSelectedValue();
                 if ( control != null ) {
                     list2_.clearSelection();
                     adjustControl( control );
+                    controlHolder_.removeAll();
                     controlHolder_.add( control.getPanel() );
+                }
+                else if ( list2_.getSelectedValue() == null ) {
+                    controlHolder_.removeAll();
                 }
                 controlHolder_.revalidate();
                 controlHolder_.repaint();
