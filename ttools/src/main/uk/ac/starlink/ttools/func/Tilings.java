@@ -34,14 +34,14 @@ public class Tilings {
      * sky position.
      *
      * @param   level   HTM level
-     * @param   ra      right ascension in degrees
-     * @param   dec     declination in degrees
+     * @param   lon     longitude in degrees
+     * @param   lat     latitude in degrees
      * @return   pixel index
      * @see      <a href="http://www.sdss.jhu.edu/htm/">HTM web site</a>
      */
-    public static long htmIndex( int level, double ra, double dec ) {
+    public static long htmIndex( int level, double lon, double lat ) {
         try {
-            return HTMfunc.lookupId( ra, dec, level );
+            return HTMfunc.lookupId( lon, lat, level );
         }
         catch ( HTMException e ) {
             throw new IllegalArgumentException( e.getMessage() );
@@ -53,17 +53,17 @@ public class Tilings {
      * NEST scheme.
      *
      * @param   k      resolution parameter - log to base 2 of nside
-     * @param   ra     right ascension in degrees
-     * @param   dec    declination in degrees
+     * @param   lon    longitude in degrees
+     * @param   lat    latitude in degrees
      * @return  pixel index
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static long healpixNestIndex( int k, double ra, double dec ) {
+    public static long healpixNestIndex( int k, double lon, double lat ) {
         if ( k > 63 ) {
             throw new IllegalArgumentException( "k " + k + " too large" );
         }
         long nside = 1L << k;
-        return pixTools_.vect2pix_nest( nside, toVector( ra, dec ) );
+        return pixTools_.vect2pix_nest( nside, toVector( lon, lat ) );
     }
 
     /**
@@ -71,17 +71,17 @@ public class Tilings {
      * RING scheme.
      *
      * @param   k      resolution parameter - log to base 2 of nside
-     * @param   ra     right ascension in degrees
-     * @param   dec    declination in degrees
+     * @param   lon    longitude in degrees
+     * @param   lat    latitude in degrees
      * @return  pixel index
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
-    public static long healpixRingIndex( int k, double ra, double dec ) {
+    public static long healpixRingIndex( int k, double lon, double lat ) {
         if ( k > 63 ) {
             throw new IllegalArgumentException( "k " + k + " too large" );
         }
         long nside = 1L << k;
-        return pixTools_.vect2pix_ring( nside, toVector( ra, dec ) );
+        return pixTools_.vect2pix_ring( nside, toVector( lon, lat ) );
     }
 
     /**
@@ -203,13 +203,13 @@ public class Tilings {
      * Turns an RA, Dec sky position into a Vector3d as used by HEALPix
      * routines.
      *
-     * @param   ra   right ascension in degrees
-     * @param   dec  declincation in degrees
+     * @param   lon  longitude in degrees
+     * @param   lat  latitude in degrees
      * @return  vector representation of sky position
      * @see      <a href="http://www.sdss.jhu.edu/htm/">HTM web site</a>
      */
-    private static Vector3d toVector( double ra, double dec ) {
-        double theta = Math.PI * 0.5 - Math.toRadians( dec );
-        return pixTools_.Ang2Vec( theta, Math.toRadians( ra ) );
+    private static Vector3d toVector( double lon, double lat ) {
+        double theta = Math.PI * 0.5 - Math.toRadians( lat );
+        return pixTools_.Ang2Vec( theta, Math.toRadians( lon ) );
     }
 }

@@ -635,6 +635,7 @@ public class FuncTest extends TestCase {
         assertEquals( pi4, Tilings.sqdegToSteradians( 129600 / Math.PI ),
                       1e-6 );
         assertEquals( 41253, Tilings.steradiansToSqdeg( pi4 ), 1. );
+        assertEquals( 279401, Tilings.healpixNestIndex( 8, 23, -12 ) );
     }
 
     public void testJELClasses() {
