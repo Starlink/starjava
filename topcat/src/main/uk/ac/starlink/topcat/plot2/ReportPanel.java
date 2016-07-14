@@ -7,7 +7,6 @@ import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.AbstractAction; 
 import javax.swing.Box;
@@ -18,11 +17,11 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
@@ -46,8 +45,6 @@ public class ReportPanel extends JPanel {
     private final DefaultComboBoxModel subsetSelModel_;
     private final JPanel reportHolder_;
     private Map<RowSubset,ReportMap> reports_;
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
 
     /**
      * Constructor.
@@ -168,44 +165,34 @@ public class ReportPanel extends JPanel {
 
         /* If it's a table, provide buttons for exporting the content. */
         if ( StarTable.class.isAssignableFrom( key.getValueClass() ) ) {
-            AuxWindow auxWin =
-                (AuxWindow)
-                SwingUtilities.getAncestorOfClass( AuxWindow.class, this );
+            AuxWindow auxWin = ControlWindow.getInstance();
             ReportMeta meta = key.getMeta();
-            if ( auxWin != null ) {
-                final StarTable table = (StarTable) map.get( key );
-                TableSource tsrc = new TableSource() {
-                    public StarTable getStarTable() {
-                        return table;
-                    }
-                };
-                String dataType = meta.getLongName();
-                String tcLabel = meta.getShortName();
-                Action importAct =
-                    auxWin.createImportTableAction( dataType, tsrc, tcLabel );
-                Action saveAct =
-                    auxWin.createSaveTableAction( dataType, tsrc );
-                importAct.putValue( Action.NAME, "Import" );
-                saveAct.putValue( Action.NAME, "Save" );
-                Icon picon = plotterFact_.getItem().getPlotterIcon();
-                if ( picon != null ) {
-                    importAct.putValue( Action.SMALL_ICON,
-                                        ResourceIcon.toImportIcon( picon ) );
-                    saveAct.putValue( Action.SMALL_ICON,
-                                      ResourceIcon.toSaveIcon( picon ) );
+            final StarTable table = (StarTable) map.get( key );
+            TableSource tsrc = new TableSource() {
+                public StarTable getStarTable() {
+                    return table;
                 }
-                Box buttBox = Box.createHorizontalBox();
-                buttBox.add( new JButton( importAct ) );
-                buttBox.add( Box.createHorizontalStrut( 5 ) );
-                buttBox.add( new JButton( saveAct ) );
-                buttBox.add( Box.createHorizontalGlue() );
-                return buttBox;
+            };
+            String dataType = meta.getLongName();
+            String tcLabel = meta.getShortName();
+            Action importAct =
+                auxWin.createImportTableAction( dataType, tsrc, tcLabel );
+            Action saveAct = auxWin.createSaveTableAction( dataType, tsrc );
+            importAct.putValue( Action.NAME, "Import" );
+            saveAct.putValue( Action.NAME, "Save" );
+            Icon picon = plotterFact_.getItem().getPlotterIcon();
+            if ( picon != null ) {
+                importAct.putValue( Action.SMALL_ICON,
+                                    ResourceIcon.toImportIcon( picon ) );
+                saveAct.putValue( Action.SMALL_ICON,
+                                  ResourceIcon.toSaveIcon( picon ) );
             }
-            else {
-                logger_.warning( "No AuxWindow ancestor of "
-                               + getClass().getName() + "??" );
-                return null;
-            }
+            Box buttBox = Box.createHorizontalBox();
+            buttBox.add( new JButton( importAct ) );
+            buttBox.add( Box.createHorizontalStrut( 5 ) );
+            buttBox.add( new JButton( saveAct ) );
+            buttBox.add( Box.createHorizontalGlue() );
+            return buttBox;
         }
 
         /* Otherwise, stringify it. */
