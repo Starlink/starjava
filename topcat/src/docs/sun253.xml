@@ -23239,6 +23239,10 @@ introduced since the last version:
         over the whole range.
         Previously, the double-slider range was pre-clipped, so very light
         colours were not available.</li>
+    <li>Add some HEALPix-related functions to the             
+        <ref id="Tilings">Tilings</ref> class:
+        conversions from pixel index to sky position and
+        conversions between ring and nested schemes.</li>
     </ul>
     </p></dd>
 

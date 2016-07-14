@@ -10735,6 +10735,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Explicitly supplying a subrange value (e.g. "<code>0,1</code>")
         can now use the whole range; previously the very light colours
         were inaccessible.</li>
+    <li>Add some HEALPix-related functions to the 
+        <ref id="uk.ac.starlink.ttools.func.Tilings">Tilings</ref> class:
+        conversions from pixel index to sky position and
+        conversions between ring and nested schemes.</li>
     </ul>
     </p></dd>
 

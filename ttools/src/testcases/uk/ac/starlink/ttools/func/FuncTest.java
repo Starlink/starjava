@@ -636,6 +636,27 @@ public class FuncTest extends TestCase {
                       1e-6 );
         assertEquals( 41253, Tilings.steradiansToSqdeg( pi4 ), 1. );
         assertEquals( 279401, Tilings.healpixNestIndex( 8, 23, -12 ) );
+        assertEquals( -12.0247, Tilings.healpixNestLat( 8, 279401 ), 1e-4 );
+        assertEquals( 23.0273, Tilings.healpixNestLon( 8, 279401 ), 1e-4 );
+        assertEquals( 111, Tilings.healpixRingToNest( 2, 48 ) );
+        assertEquals( 48, Tilings.healpixNestToRing( 2, 111 ) );
+        for ( int ik = 0; ik < 4; ik++ ) {
+            long npix = 12L << 2*ik;
+            for ( long ip = 0; ip < npix; ip++ ) {
+                assertEquals( ip, Tilings.healpixRingToNest( ik,
+                                  Tilings.healpixNestToRing( ik, ip ) ) );
+                assertEquals( ip, Tilings.healpixNestToRing( ik,
+                                  Tilings.healpixRingToNest( ik, ip ) ) );
+                assertEquals( Tilings.healpixNestLat( ik, ip ),
+                              Tilings.healpixRingLat( ik,
+                                   Tilings.healpixNestToRing( ik, ip ) ),
+                              1e-6 );
+                assertEquals( Tilings.healpixNestLon( ik, ip ),
+                              Tilings.healpixRingLon( ik,
+                                   Tilings.healpixNestToRing( ik, ip ) ),
+                              1e-6 );
+            }
+        }
     }
 
     public void testJELClasses() {
