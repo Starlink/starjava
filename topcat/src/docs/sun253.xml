@@ -7092,6 +7092,36 @@ contains the following actions (repeated in the menus):
 </dl>
 </p>
 
+<p>The window <label>menus</label> offer an alternative way to perform
+the actions available from the toolbar described above.
+They also provide some additional options:
+<dl>
+<dt>Layers menu</dt>
+<dd><p>This menu repeats the options available in the toolbar
+    from the Control Panel at the bottom of the window;
+    each one adds a new Layer Control of one of the available
+    types to the stack, or <label>Remove</label>s (&IMG.DELETE;)
+    the currently selected control.
+    </p></dd>
+<dt>Export menu</dt>
+<dd><p>This menu provides the
+    <label>Export plot</label> (&IMG.IMAGE;) option which saves the
+    visible plot in an image format.
+    It also contains two sub-menus that may or may not contain options:
+    <label>Layer Data Import</label> (&IMG.IMPORT;) and
+    <label>Layer Data Save</label> (&IMG.SAVE;).
+    Some plotted layer types generate table data as part of their
+    calculations that can be exported separately.
+    If one of these layers is currently plotted, then options may
+    appear in these menus.
+    The <label>Import</label> options retrieve the table and add it
+    to the list of tables currently loaded in TOPCAT;
+    the <label>Save</label> options can write the data directly to disk
+    using some table format.
+    </p></dd>
+</dl>
+</p>
+
 <p>The following subsections explain some other features common to
 all the plotting windows.
 </p>
@@ -9129,6 +9159,29 @@ range, ramp display etc.
 <dd><p>Determines transparency of the points.
     By default, they are fully opaque, but if you slide the slider to
     the right, they will become progressively more transparent.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Report</label> panel provides information calculated
+by the plot:
+<dl>
+<dt>Tile size/sq.deg</dt>
+<dd><p>Reports the size of each pixel in square degrees.
+    This is simply a function of the actual HEALPix level used for the plot
+    (which is reported at the right of the <label>HEALPix Level</label>
+    control).
+    </p></dd>
+<dt>HEALPix Map</dt>
+<dd><p>This allows you to export the healpix map that you can see in the plot
+    in the form of a table.
+    The table has a row for each plotted healpix pixel, with two columns:
+    one giving the healpix pixel index, and the other giving the pixel value
+    (corresponding to the colour in the plot).
+    The <label>Import</label> (&IMG.IMPORT_FORM_SKYDENSITY;) option
+    loads the data as a new table in the TOPCAT application, and
+    the <label>Save</label> (&IMG.SAVE_FORM_SKYDENSITY;) option
+    lets you save it directly to disk in one of the available table formats.
     </p></dd>
 </dl>
 </p>
@@ -23245,6 +23298,11 @@ introduced since the last version:
         conversions between ring and nested schemes.</li>
     <li>Combiner option <code>stdev</code> replaces <code>variance</code>
         in density, sky density and weighted plot layers.</li>
+    <li>Add options
+        (from layer control Report panel or plot window Export menu)
+        to export the HEALPix density map calculated by a
+        <ref id="form-skydensity">SkyDensity</ref> plot;
+        either save it to disk or import it as a new table.</li>
     </ul>
     </p></dd>
 

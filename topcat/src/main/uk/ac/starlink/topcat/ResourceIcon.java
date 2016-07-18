@@ -713,6 +713,13 @@ public class ResourceIcon implements Icon {
         putMap( nameMap, "ADD_FORM_MARKS2", toAddIcon( TTRI.FORM_MARKS2 ) );
         putMap( nameMap, "ADD_FORM_LINK2", toAddIcon( TTRI.FORM_LINK2 ) );
 
+        /* Icons which are the result of calling toSaveIcon/toImportIcon
+         * on existing ones. */
+        putMap( nameMap, "SAVE_FORM_SKYDENSITY",
+                         toSaveIcon( TTRI.FORM_SKYDENSITY ) );
+        putMap( nameMap, "IMPORT_FORM_SKYDENSITY",
+                         toImportIcon( TTRI.FORM_SKYDENSITY ) );
+
         return nameMap;
     }
 
