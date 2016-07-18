@@ -6716,8 +6716,8 @@ stilts tapresume joburl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap/
 </subsect>
 
 <subsect id="tapskymatch" tocleaf="yes">
-<subhead><title><code>tapskymatch:
-                      &tapskymatch-purpose;</code></title></subhead>
+<subhead><title><code>tapskymatch</code>:
+                &tapskymatch-purpose;</title></subhead>
 
 <p><code>tapskymatch</code> allows you to perform a positional crossmatch
 of a local table with one held in a remote TAP service, as long as
