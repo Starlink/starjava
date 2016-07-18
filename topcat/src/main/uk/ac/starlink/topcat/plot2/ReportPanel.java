@@ -193,11 +193,11 @@ public class ReportPanel extends JPanel {
             }
         }
 
-        /* Otherwise, assume it can be stringified. */
+        /* Otherwise, stringify it. */
         else {
             T value = map.get( key );
             JTextField field = new JTextField();
-            field.setText( value == null ? null : value.toString() );
+            field.setText( value == null ? null : key.toText( value ) );
             field.setEditable( false );
             return field;
         }
