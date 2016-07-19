@@ -25,23 +25,20 @@ public class TilingParameter extends Parameter<SkyTiling> {
     public TilingParameter( String name ) {
         super( name, SkyTiling.class, true );
         setPrompt( "Sky tiling scheme" );
-        setUsage( HTM_PREFIX + "<level>" + "|"
-                + HEALPIX_NEST_PREFIX + "<nside>" + "|"
-                + HEALPIX_RING_PREFIX + "<nside>" );
+        setUsage( HTM_PREFIX + "<l>" + "|"
+                + HEALPIX_NEST_PREFIX + "<k>" + "|"
+                + HEALPIX_RING_PREFIX + "<k>" );
         setNullPermitted( true );
         setDescription( new String[] {
             "<p>Describes the sky tiling scheme that is in use.",
             "One of the following values may be used:",
             "<ul>",
-            "<li><code>" + HTM_PREFIX + "&lt;level&gt;</code>:",
-                "Hierarchical Triangular Mesh with a level value of",
-                "<code>level</code>.</li>",
-            "<li><code>" + HEALPIX_NEST_PREFIX + "&lt;nside&gt;</code>:",
-                "HEALPix using the Nest scheme with an nside value of",
-                "<code>nside</code>.</li>",
-            "<li><code>" + HEALPIX_RING_PREFIX + "&lt;nside&gt;</code>:",
-                "HEALPix using the Ring scheme with an nside value of",
-                "<code>nside</code>.</li>",
+            "<li><code>" + HTM_PREFIX + "&lt;l&gt;</code>:",
+                "Hierarchical Triangular Mesh at level <code>l</code>.</li>",
+            "<li><code>" + HEALPIX_NEST_PREFIX + "&lt;k&gt;</code>:",
+                "HEALPix using the Nest scheme at order <code>k</code>.</li>",
+            "<li><code>" + HEALPIX_RING_PREFIX + "&lt;k&gt;</code>:",
+                "HEALPix using the Ring scheme at order <code>k</code>.</li>",
             "</ul>",
             "</p>",
         } );
@@ -55,12 +52,12 @@ public class TilingParameter extends Parameter<SkyTiling> {
             return new HtmTiling( level );
         }
         else if ( lvalue.startsWith( HEALPIX_NEST_PREFIX ) ) {
-            int nside = getNumberSuffix( svalue, HEALPIX_NEST_PREFIX );
-            return new HealpixTiling( nside, true );
+            int k = getNumberSuffix( svalue, HEALPIX_NEST_PREFIX );
+            return new HealpixTiling( k, true );
         }
         else if ( lvalue.startsWith( HEALPIX_RING_PREFIX ) ) {
-            int nside = getNumberSuffix( svalue, HEALPIX_RING_PREFIX );
-            return new HealpixTiling( nside, false );
+            int k = getNumberSuffix( svalue, HEALPIX_RING_PREFIX );
+            return new HealpixTiling( k, false );
         }
         else {
             throw new ParameterValueException( this, "Unknown tiling scheme \""
