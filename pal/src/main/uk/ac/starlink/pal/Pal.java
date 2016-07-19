@@ -906,7 +906,7 @@ public class Pal {
  *     is attempted, the TAI-UTC expression for the year 1960 is used.
  *  </li> </ol>
  *  <pre>
- *  <dd><strong>Latest leap second:  2015 July 1</strong></dd>
+ *  <dd><strong>Latest leap second:  2017 January 1</strong></dd>
  *  </dd> </dl>
  *  </p>
  *  @param utc UTC date as a modified JD (JD-2400000.5)
@@ -916,6 +916,7 @@ public class Pal {
 /*  Latest Revision: 21 November 2001 (RTP)
  *                   15 January 2009 (PWD)
  *                   23 April 2015 (MBT)
+ *                   19 July 2016 (MBT)
  *
  *  Given:
  *     utc      double      UTC date as a modified JD (JD-2400000.5)
@@ -930,7 +931,7 @@ public class Pal {
  *     :     occasion that a leap second is      :
  *     :                announced                :
  *     :                                         :
- *     :  Latest leap second:  1999 January 1    :
+ *     :  Latest leap second:  2017 January 1    :
  *     :                                         :
  *     :-----------------------------------------:
  *
@@ -945,6 +946,9 @@ public class Pal {
 /* leap second is announced, and also update */
 /* the preamble comments appropriately.      */
 /* - - - - - - - - - - - - - - - - - - - - - */
+
+/* 2017 January 1. */
+        if ( utc >= 57754.0 ) return 37.0;
 
 /* 2015 July 1. */
         if ( utc >= 57204.0 ) return 36.0;
