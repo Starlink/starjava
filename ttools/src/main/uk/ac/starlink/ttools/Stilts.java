@@ -120,6 +120,7 @@ public class Stilts {
         taskFactory_.register( "tmulti", taskPkg + "MultiCopy" );
         taskFactory_.register( "tmultin", taskPkg + "MultiCopyN" );
         taskFactory_.register( "tpipe", taskPkg + "TablePipe" );
+        taskFactory_.register( "tskymap", taskPkg + "SkyDensityMap"  );
         taskFactory_.register( "tskymatch2", taskPkg + "SkyMatch2" );
         taskFactory_.register( "votcopy", taskPkg + "VotCopy" );
         taskFactory_.register( "votlint", taskPkg + "VotLint" );
