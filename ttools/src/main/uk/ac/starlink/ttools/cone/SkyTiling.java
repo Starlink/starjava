@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.cone;
 
+import uk.ac.starlink.table.ValueInfo;
+
 /**
  * Defines a pixellation scheme which maps sky positions to long integers.
  *
@@ -35,4 +37,22 @@ public interface SkyTiling {
      *          tile range covering the cone
      */
     long[] getTileRange( double ra, double dec, double radius );
+
+    /**
+     * Returns the total number of tiles in this tiling.
+     * Tile indices are assumed to be in the range from zero (inclusive)
+     * to this value (exclusive), so the returned value is one greater
+     * than the maximum tile index.
+     *
+     * @return   pixel count
+     */
+    long getPixelCount();
+
+    /**
+     * Returns a metadata item suitable for describing the pixel index
+     * used by this tiling.
+     *
+     * @return  tile index metadata
+     */
+    ValueInfo getIndexInfo();
 }

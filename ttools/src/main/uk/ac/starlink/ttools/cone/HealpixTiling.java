@@ -4,6 +4,8 @@ import gov.fnal.eag.healpix.PixTools;
 import java.util.Iterator;
 import java.util.List;
 import javax.vecmath.Vector3d;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Tiling implementation based on the HEALPix scheme.
@@ -13,6 +15,7 @@ import javax.vecmath.Vector3d;
  */
 public class HealpixTiling implements SkyTiling {
 
+    private final int k_;
     private final long nside_;
     private final boolean nest_;
     private final PixTools pixTools_;
@@ -25,13 +28,27 @@ public class HealpixTiling implements SkyTiling {
      * @param  nest  true for nesting scheme, false for ring scheme
      */
     public HealpixTiling( int k, boolean nest ) {
-        if ( k > 63 ) {
+        if ( k > 29 ) {
             throw new IllegalArgumentException( "k " + k + " too large" );
         }
+        k_ = k;
         nside_ = 1L << k;
         nest_ = nest;
         pixTools_ = PixTools.getInstance();
         resolution_ = pixTools_.PixRes( nside_ ) / 3600;
+    }
+
+    public long getPixelCount() {
+        return 12 * nside_ * nside_;
+    }
+
+    public ValueInfo getIndexInfo() {
+        String name = "hpx" + k_;
+        Class clazz = k_ <= 13 ? Integer.class : Long.class;
+        String descrip = "HEALPix index at order " + k_;
+        DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
+        info.setUCD( "pos.healpix" );
+        return info;
     }
 
     public long getPositionTile( double ra, double dec ) {

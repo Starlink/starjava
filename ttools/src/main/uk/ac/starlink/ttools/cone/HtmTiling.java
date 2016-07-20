@@ -5,6 +5,8 @@ import edu.jhu.htm.core.HTMException;
 import edu.jhu.htm.core.HTMindexImp;
 import edu.jhu.htm.core.HTMrange;
 import edu.jhu.htm.geometry.Circle;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Tilings;
 
 /**
@@ -38,6 +40,19 @@ public class HtmTiling implements SkyTiling {
     public HtmTiling( int level ) {
         this( new HTMindexImp( level ) );
         assert level_ == level;
+    }
+
+    public long getPixelCount() {
+        return 8L << 2 * level_;
+    }
+
+    public ValueInfo getIndexInfo() {
+        String name = "htm" + level_;
+        Class clazz = level_ <= 14 ? Integer.class : Long.class;
+        String descrip = "HTM index at level " + level_;
+        DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
+        info.setUCD( "pos.HTM" );
+        return info;
     }
 
     public long getPositionTile( double ra, double dec ) {
