@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -23,10 +24,15 @@ public class JELTest extends TableTestCase {
     }
 
     public void testJELTable() throws Exception {
+        ColumnInfo multInfo =
+            new ColumnInfo( "*Count*", Integer.class, "Number of persons" );
+        multInfo.setUnitString( "persons" );
+        multInfo.setUCD( "meta.number" );
         StarTable t1 = new QuickTable( 3, new ColumnData[] {
             col( "Name", new String[] { "Lupin", "Novena", "Delios", } ),
             col( "Level", new int[] { 6, 7, 8 } ),
             col( "Gold", new double[] { 17, 9.5, 15.25, } ),
+            new ConstantColumn( multInfo, new Integer( 1 ) ),
         } );
         Tables.checkTable( t1 );
 
@@ -53,6 +59,25 @@ public class JELTest extends TableTestCase {
         assertEquals( String.class, jt.getColumnInfo( 0 ).getContentClass() );
         assertEquals( Double.class, jt.getColumnInfo( 1 ).getContentClass() );
         assertEquals( Double.class, jt.getColumnInfo( 2 ).getContentClass() );
+
+        /* Test metadata propagation. */
+        StarTable ct = JELTable.createJELTable( t1, new String[] {
+            "*COUNT*",
+            "$4",
+            "ucd$meta_number",
+            "100 - $4",
+        } );
+        assertEquals( 4, ct.getColumnCount() );
+        assertArrayEquals( box( new int[] { 1, 1, 1, 99 } ), ct.getRow( 0 ) );
+        for ( int ic = 0; ic < 3; ic++ ) {
+            ColumnInfo info = ct.getColumnInfo( ic );
+            assertEquals( multInfo.getName(), info.getName() );
+            assertEquals( multInfo.getDescription(), info.getDescription() );
+            assertEquals( multInfo.getUnitString(), info.getUnitString() );
+            assertEquals( multInfo.getUCD(), info.getUCD() );
+            assertEquals( Integer.class, info.getContentClass() );
+        }
+        assertEquals( Integer.class, ct.getColumnInfo( 3 ).getContentClass() );
 
         /* Now try one with mismatched colinfos. */
         try {

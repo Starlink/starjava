@@ -193,7 +193,8 @@ public class JELTable extends WrapperStarTable {
      *         context for the JEL calculations
      * @param  infos  metadata used to construct column metadata
      * @param  exprs   JEL expressions, evaluated in a context determined
-     *         by <code>baseTable</code>, which give the data for this table.
+     *         by <code>baseTable</code>, which give the data for this table
+     * @return  new table
      */
     public static StarTable createJELTable( StarTable baseTable,
                                             ValueInfo[] infos, String[] exprs )
@@ -212,5 +213,34 @@ public class JELTable extends WrapperStarTable {
         catch ( CompilationException e ) {
             throw new ExecutionException( e.getMessage(), e );
         }
+    }
+
+    /**
+     * Creates a JELTable from a base table and a list of column expressions.
+     * If the expressions can be determined to correspond to columns from
+     * the base table, the metadata is propagated.  Otherwise, column names
+     * are constructed from the expression strings.
+     *
+     * @param  baseTable  table which provides both behaviour determining
+     *         whether random access is available etc, and an evaluation
+     *         context for the JEL calculations
+     * @param  exprs   JEL expressions, evaluated in a context determined
+     *         by <code>baseTable</code>, which give the data for this table
+     * @return  new table
+     */
+    public static StarTable createJELTable( StarTable baseTable,
+                                            String[] exprs )
+            throws CompilationException {
+        int ncol = exprs.length;
+        StarTableJELRowReader jelRdr = new DummyJELRowReader( baseTable );
+        Library lib = JELUtils.getLibrary( jelRdr );
+        ColumnInfo[] infos = new ColumnInfo[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            String expr = exprs[ icol ];
+            JELQuantity jq =
+                JELUtils.compileQuantity( lib, jelRdr, expr, (Class) null );
+            infos[ icol ] = new ColumnInfo( jq.getValueInfo() );
+        }
+        return new JELTable( baseTable, infos, exprs );
     }
 }

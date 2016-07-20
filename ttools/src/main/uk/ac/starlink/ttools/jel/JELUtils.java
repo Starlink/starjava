@@ -13,7 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.ttools.func.Arithmetic;
@@ -255,6 +257,52 @@ public class JELUtils {
                                               String expr )
             throws CompilationException {
         return Evaluator.compile( tweakExpression( table, expr ), lib );
+    }
+
+    /**
+     * Compiles an expression in the context of a table reader to give
+     * a JELQuantity.  This does the same job as the <code>compile</code>
+     * methods, but it provides additional metadata if it can be retrieved
+     * from the table context.
+     *
+     * @param  lib   JEL library
+     * @param  jelRdr   context table reader
+     * @param  expr  expression string
+     * @param  clazz   required return type of compiled expression,
+     *                 or null if no requirement
+     * @return  compiled quantity
+     */
+    public static JELQuantity compileQuantity( Library lib,
+                                               StarTableJELRowReader jelRdr,
+                                               final String expr, Class clazz )
+            throws CompilationException {
+        StarTable table = jelRdr.getTable();
+        final String calcExpr = tweakExpression( table, expr );
+        final CompiledExpression compEx =
+            clazz == null ? compile( lib, table, calcExpr )
+                          : compile( lib, table, calcExpr, clazz );
+        int icol = jelRdr.getColumnIndex( calcExpr );
+        final ValueInfo info;
+        if ( icol >= 0 ) {
+            info = table.getColumnInfo( icol );
+        }
+        else {
+            String name = expr.replaceAll( "\\s", "" )
+                              .replaceAll( "[^A-Za-z0-9]+", "_" );
+            Class<?> exprClazz = getWrapperType( compEx.getTypeC() );
+            info = new DefaultValueInfo( name, exprClazz );
+        }
+        return new JELQuantity() {
+            public String getExpression() {
+                return expr;
+            }
+            public CompiledExpression getCompiledExpression() {
+                return compEx;
+            }
+            public ValueInfo getValueInfo() {
+                return info;
+            }
+        };
     }
 
     /**
