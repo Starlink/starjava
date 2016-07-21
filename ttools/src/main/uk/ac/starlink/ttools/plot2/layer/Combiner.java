@@ -163,6 +163,34 @@ public abstract class Combiner {
     }
 
     /**
+     * Modifies a UCD by appending a given modifier word, if possible.
+     *
+     * @param   ucd   base UCD
+     * @param   word  modifier UCD word
+     * @param   isPrimary   true if word is marked P[rimary] in the UCD list,
+     *                      false if word is marked S[econdary] in the UCD list
+     *                      (note other options exist in the UCD list,
+     *                      but are not currently catered for here)
+     * @return  modified UCD
+     * @see   <a href="http://www.ivoa.net/documents/latest/UCDlist.html"
+     *           >UCDlist</a>
+     */
+    private static String modifyUcd( String ucd, String word,
+                                     boolean isPrimary ) {
+        if ( isPrimary ) {
+            return word;
+        }
+        else {
+            if ( ucd == null || ucd.trim().length() == 0 ) {
+                return ucd;
+            }
+            else {
+                return ucd + ";" + word;
+            }
+        }
+    }
+
+    /**
      * Defines an object that can be used to accumulate values and
      * retrieve a result.
      */
@@ -250,6 +278,7 @@ public abstract class Combiner {
             info.setContentClass( Double.class );
             info.setDescription( getInfoDescription( dataInfo )
                                + ", mean value in bin" );
+            info.setUCD( modifyUcd( dataInfo.getUCD(), "stat.mean", false ) );
             return info;
         }
 
@@ -295,11 +324,13 @@ public abstract class Combiner {
                        }
                    } );
         }
+
         public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
             DefaultValueInfo info = new DefaultValueInfo( dataInfo );
             info.setContentClass( Double.class );
             info.setDescription( getInfoDescription( dataInfo )
                                + ", median value in bin" );
+            info.setUCD( modifyUcd( dataInfo.getUCD(), "stat.median", false ) );
             return info;
         }
     }
@@ -355,6 +386,7 @@ public abstract class Combiner {
                                     + "standard deviation of "
                                     + getInfoDescription( dataInfo ) );
             info.setUnitString( dataInfo.getUnitString() );
+            info.setUCD( modifyUcd( dataInfo.getUCD(), "stat.stdev", true ) );
             return info;
         }
 
@@ -451,9 +483,12 @@ public abstract class Combiner {
             return new CountContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo info ) {
-            return new DefaultValueInfo( "count", Integer.class,
-                                         "Number of items counted per bin" );
+        public ValueInfo createCombinedInfo( ValueInfo inInfo ) {
+            DefaultValueInfo outInfo = 
+                new DefaultValueInfo( "count", Integer.class,
+                                      "Number of items counted per bin" );
+            outInfo.setUCD( "meta.number" );
+            return outInfo;
         }
 
         /**
@@ -588,6 +623,7 @@ public abstract class Combiner {
                                       getInfoDescription( dataInfo )
                                     + ", minimum value in bin" );
             info.setUnitString( dataInfo.getUnitString() );
+            info.setUCD( modifyUcd( dataInfo.getUCD(), "stat.min", false ) );
             return info;
         }
 
@@ -656,6 +692,7 @@ public abstract class Combiner {
                                       getInfoDescription( dataInfo )
                                     + ", maximum value in bin" );
             info.setUnitString( dataInfo.getUnitString() );
+            info.setUCD( modifyUcd( dataInfo.getUCD(), "stat.max", false ) );
             return info;
         }
 
