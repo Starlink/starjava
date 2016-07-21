@@ -81,6 +81,7 @@
   <!ENTITY tmulti-summary SYSTEM 'tmulti-summary.xml'>
   <!ENTITY tmultin-summary SYSTEM 'tmultin-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
+  <!ENTITY tskymap-summary SYSTEM 'tskymap-summary.xml'>
   <!ENTITY tskymatch2-summary SYSTEM 'tskymatch2-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
   <!ENTITY votlint-summary SYSTEM 'votlint-summary.xml'>
@@ -244,6 +245,7 @@ same ground as the STIL and TOPCAT user documents
     </p></dd>
 <dt>Sky Pixel Operations</dt>
 <dd><p>
+    <ref id="tskymap"><code>tskymap</code></ref>,
     <ref id="pixfoot"><code>pixfoot</code></ref> and
     <ref id="pixsample"><code>pixsample</code></ref>.
     </p></dd>
@@ -521,6 +523,7 @@ the available tasks are:
 <li><code>tmulti</code></li>
 <li><code>tmultin</code></li>
 <li><code>tpipe</code></li>
+<li><code>tskymap</code></li>
 <li><code>tskymatch2</code></li>
 <li><code>votcopy</code></li>
 <li><code>votlint</code></li>
@@ -1924,6 +1927,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmatch1"><code>tmatch1</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tmatchn"><code>tmatchn</code></ref>,
+           <ref id="tskymap"><code>tskymap</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
            <ref id="pixfoot"><code>pixfoot</code></ref>,
            <ref id="pixsample"><code>pixsample</code></ref>,
@@ -4751,6 +4755,9 @@ Detailed descriptions and examples for each command can be found in
 <dt>Sky Pixel Operations:</dt>
 <dd><p>
     <ul>
+    <li><ref id="tskymap" plaintextref="yes"><code>tskymap</code></ref>:
+        &tskymap-purpose;
+        </li>
     <li><ref id="pixfoot" plaintextref="yes"><code>pixfoot</code></ref>:
         &pixfoot-purpose;
         </li>
@@ -8066,6 +8073,95 @@ stilts tpipe USNOB.FITS cmd='every 1000000' omode=stats
 </subsect>
 
 
+<subsect id="tskymap" tocleaf="yes">
+<subhead><title><code>tskymap</code>: &tskymap-purpose;</title></subhead>
+
+<p><code>tskymap</code> calculates a weighted density map
+(or, to put it another way, a histogram) on the sky
+from columns of an input table.
+The sky is divided up into some discrete set of tiles according to
+a specified tessellation scheme (currently HEALPix or HTM are supported),
+and the required quantities are aggregated into bins corresponding to
+these tiles.
+The output table has a column giving the pixel index identifying each tile,
+plus one or more columns each representing an aggregation of a quantity
+from the input table.
+</p>
+
+<p>By default the number of rows from the input table falling within
+each tile is included as the first column in the output table.
+But by specifying the <code>cols</code> and <code>combine</code> parameters
+you can add more columns giving the sum, mean, median or other statistics
+of input table columns or expressions as well.
+</p>
+
+<p>The output table can then, for instance, be plotted using
+<ref id="plot2sky"><code>plot2sky</code></ref>'s
+<ref id="layer-healpix"><code>healpix</code></ref> layer type
+(though an alternative is to do that plot directly using a
+<ref id="layer-skydensity"><code>skydensity</code></ref> layer).
+</p>
+
+&tskymap-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tskymap</code>:
+
+<dl>
+
+<dt><verbatim>
+stilts tskymap in=iras_psc.fits lon=RA lat=DEC out=iras_map.csv
+</verbatim></dt>
+<dd><p>Writes a table representing a density map of IRAS point sources
+    on the sky.  The output is a 2-column CSV file: the first column is
+    pixel index, and the second column is the number of rows in the
+    input table whose (RA,DEC) positions fall within that pixel.
+    The default tiling is used (currently level 5 HEALPix, which has
+    12288 pixels).
+    </p></dd>
+
+<dt><verbatim>
+stilts tskymap in=2mpz.fits icmd='addskycoords fk5 galactic ra dec glon glat'
+               lon=glon lat=glat tiling=hpx6
+               cols='jCorr-hCorr hCorr-kCorr jCorr-kCorr' combine=median
+               count=false
+               complete=true
+               out=2mpzColors.fits
+</verbatim></dt>
+<dd><p>Writes a table with columns giving median J-H, H-K and J-K colours,
+    but no source count column, from the sources in the file 2mpz.fits,
+    aggregated over each tile of a level 6 HEALPix grid.
+    The input table has equatorial coordinates,
+    but the <code>addskycoords</code> filter has been used so that the grid
+    is laid on the sky with galactic coordinates.
+    Setting <code>complete=true</code> guarantees that a row is written
+    to the output file for every sky pixel, including empty ones.
+    </p></dd>
+
+<dt><verbatim>
+stilts tskymap in=gums_lmc.fits lon=alpha lat=delta
+               tiling=hpx14 complete=false omode=count
+</verbatim></dt>
+<dd><p>This prepares a source count map at healpix level 14
+    (3 billion pixels) from the given input table.
+    Since <code>complete=false</code>, only rows for non-empty pixels
+    are included in the output table.  Then, since the output mode is
+    <code>count</code>, these rows are just counted, discarding the
+    pixels themselves, giving the number of level-14 healpix pixels
+    touched by the sources in this input file.
+    Note this is not necessarily the most efficient way to caluclate
+    coverage information.
+    </p></dd>
+
+</dl>
+</p>
+</subsubsect>
+
+</subsect>
+
+
 <subsect id="tskymatch2" tocleaf="yes">
 <subhead><title><code>tskymatch2</code>: &tskymatch2-purpose;</title></subhead>
 
@@ -10739,6 +10835,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Tilings">Tilings</ref> class:
         conversions from pixel index to sky position and
         conversions between ring and nested schemes.</li>
+    <li>New task <ref id="tskymap">tskymap</ref> lets you generate all-sky
+        density maps (e.g. HEALPix) from an input table.</li>
     </ul>
     </p></dd>
 
