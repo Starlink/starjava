@@ -119,11 +119,11 @@ public class HealpixPlotter
         , false );
 
     private static final AuxScale SCALE = AuxScale.COLOR;
-    private static final String BLUR_NAME = "blur";
+    private static final String DEGRADE_NAME = "degrade";
     private static final String COMBINER_NAME = "combiner";
-    private static final ConfigKey<Integer> BLUR_KEY =
+    private static final ConfigKey<Integer> DEGRADE_KEY =
         IntegerConfigKey.createSpinnerKey(
-            new ConfigMeta( "blur", "Pixel Blur" )
+            new ConfigMeta( "degrade", "Degrade" )
            .setShortDescription( "HEALPix level degradation" )
            .setXmlDescription( new String[] {
                 "<p>Allows the HEALPix grid to be drawn at a less detailed",
@@ -132,7 +132,7 @@ public class HealpixPlotter
                 "are painted with the same resolution as the input data,",
                 "but a higher value will degrade resolution of the plot tiles;",
                 "each plotted tile will correspond to",
-                "4^<code>" + BLUR_NAME + "</code> input tiles.",
+                "4^<code>" + DEGRADE_NAME + "</code> input tiles.",
                 "The way that values are combined within each painted tile",
                 "is controlled by the",
                 "<code>" + COMBINER_NAME + "</code> value.",
@@ -147,7 +147,7 @@ public class HealpixPlotter
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
 
-    /** ConfigKey for blurring combiner. */
+    /** ConfigKey for degrading combiner. */
     public static final ConfigKey<Combiner> COMBINER_KEY = createCombinerKey();
 
     /**
@@ -198,7 +198,7 @@ public class HealpixPlotter
         keyList.add( DATALEVEL_KEY );
         keyList.add( DATASYS_KEY );
         keyList.add( VIEWSYS_KEY );
-        keyList.add( BLUR_KEY );
+        keyList.add( DEGRADE_KEY );
         keyList.add( COMBINER_KEY );
         if ( transparent_ ) {
             keyList.add( TRANSPARENCY_KEY );
@@ -214,13 +214,13 @@ public class HealpixPlotter
         int dataLevel = config.get( DATALEVEL_KEY );
         SkySys dataSys = config.get( DATASYS_KEY );
         SkySys viewSys = config.get( VIEWSYS_KEY );
-        int blur = config.get( BLUR_KEY );
+        int degrade = config.get( DEGRADE_KEY );
         Combiner combiner = config.get( COMBINER_KEY );
         Rotation rotation = Rotation.createRotation( dataSys, viewSys );
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        return new HealpixStyle( dataLevel, blur, rotation, scaling, shader,
+        return new HealpixStyle( dataLevel, degrade, rotation, scaling, shader,
                                  combiner );
     }
 
@@ -315,18 +315,18 @@ public class HealpixPlotter
 
     /**
      * Constructs the config key for configuring the Combiner object
-     * used when blurring pixels.
+     * used when degrading pixels.
      *
      * @return   combiner key
      */
     private static ConfigKey<Combiner> createCombinerKey() {
         ConfigMeta meta = new ConfigMeta( COMBINER_NAME, "Combine");
-        meta.setShortDescription( "Pixel blur combination mode" );
+        meta.setShortDescription( "Pixel degrade combination mode" );
         meta.setXmlDescription( new String[] {
             "<p>Defines how pixel values will be combined if they are",
-            "blurred to a lower resolution than the data HEALPix level.",
+            "degraded to a lower resolution than the data HEALPix level.",
             "This only has any effect if",
-            "<code>" + BLUR_KEY + "</code>&gt;0.",
+            "<code>" + DEGRADE_KEY.getMeta().getShortName() + "</code>&gt;0.",
             "</p>",
         } );
         Combiner[] options = new Combiner[] {
@@ -345,12 +345,12 @@ public class HealpixPlotter
 
     /**
      * Constructs a bin list for a given combiner, given also the data
-     * HEALPix level and the blurring factor.
+     * HEALPix level and the degrading factor.
      * Note that the combination semantics of some of the combiners
      * (those representing intensive, rather than extensive, quantities)
      * is somewhat changed by the context in which they are used here;
      * the submission count is implicitly that of the number of HEALPix
-     * subpixels corresponding to the blur, rather than just the number
+     * subpixels corresponding to the degrade, rather than just the number
      * of data values actually submitted.
      *
      * @param  combiner  basic combiner
@@ -360,11 +360,11 @@ public class HealpixPlotter
      */
     private static BinList createBinList( final Combiner combiner,
                                           int dataLevel, int viewLevel ) {
-        int blur = dataLevel - viewLevel;
+        int degrade = dataLevel - viewLevel;
         long nbin = 12 * ( 1 << ( 2 * viewLevel ) );
         boolean isFew = nbin < 1e6;
         if ( Combiner.MEAN.equals( combiner ) ) {
-            final double factor = 1.0 / ( 1 << ( 2 * blur ) );
+            final double factor = 1.0 / ( 1 << ( 2 * degrade ) );
             final BinList baseList =
                 isFew ? Combiner.SUM.createArrayBinList( (int) nbin )
                       : Combiner.SUM.createHashBinList( nbin );
@@ -411,7 +411,7 @@ public class HealpixPlotter
      */
     public static class HealpixStyle implements Style {
         private final int dataLevel_;
-        private final int blur_;
+        private final int degrade_;
         private final Rotation rotation_;
         private final Scaling scaling_;
         private final Shader shader_;
@@ -423,18 +423,18 @@ public class HealpixPlotter
          * @param   dataLevel HEALPix level at which the pixel index coordinates
          *                    must be interpreted; if negative, automatic
          *                    detection will be used
-         * @param   blur      HEALPix levels by which to degrade view grid
+         * @param   degrade   HEALPix levels by which to degrade view grid
          * @param   rotation  sky rotation to be applied before plotting
          * @param   scaling   scaling function for mapping densities to
          *                    colour map entries
          * @param   shader   colour map
-         * @param   combiner  combiner, only relevant if blur is non-zero
+         * @param   combiner  combiner, only relevant if degrade is non-zero
          */
-        public HealpixStyle( int dataLevel, int blur, Rotation rotation,
+        public HealpixStyle( int dataLevel, int degrade, Rotation rotation,
                              Scaling scaling, Shader shader,
                              Combiner combiner ) {
             dataLevel_ = dataLevel;
-            blur_ = blur;
+            degrade_ = degrade;
             rotation_ = rotation;
             scaling_ = scaling;
             shader_ = shader;
@@ -461,11 +461,11 @@ public class HealpixPlotter
         public int hashCode() {
             int code = 553227;
             code = 23 * code + dataLevel_;
-            code = 23 * code + blur_;
+            code = 23 * code + degrade_;
             code = 23 * code + rotation_.hashCode();
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + shader_.hashCode();
-            code = 23 * code + ( blur_ == 0 ? 0 : combiner_.hashCode() );
+            code = 23 * code + ( degrade_ == 0 ? 0 : combiner_.hashCode() );
             return code;
         }
 
@@ -474,11 +474,11 @@ public class HealpixPlotter
             if ( o instanceof HealpixStyle ) {
                 HealpixStyle other = (HealpixStyle) o;
                 return this.dataLevel_ == other.dataLevel_
-                    && this.blur_ == other.blur_
+                    && this.degrade_ == other.degrade_
                     && this.rotation_.equals( other.rotation_ )
                     && this.scaling_.equals( other.scaling_ )
                     && this.shader_.equals( other.shader_ )
-                    && ( blur_ == 0 ||
+                    && ( degrade_ == 0 ||
                          this.combiner_.equals( other.combiner_ ) );
             }
             else {
@@ -514,8 +514,8 @@ public class HealpixPlotter
             hstyle_ = hstyle;
             dataLevel_ = dataLevel;
             indexReader_ = indexReader;
-            viewLevel_ = Math.max( 0, dataLevel_ - hstyle.blur_ );
-            assert hstyle.blur_ >= 0;
+            viewLevel_ = Math.max( 0, dataLevel_ - hstyle.degrade_ );
+            assert hstyle.degrade_ >= 0;
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -593,9 +593,9 @@ public class HealpixPlotter
          * @return   value map
          */
         private BinList.Result readBins( TupleSequence tseq ) {
-            int blur = dataLevel_ - viewLevel_;
-            assert blur >= 0;
-            int shift = blur * 2;
+            int degrade = dataLevel_ - viewLevel_;
+            assert degrade >= 0;
+            int shift = degrade * 2;
             BinList binList =
                 createBinList( hstyle_.combiner_, dataLevel_, viewLevel_ );
             while ( tseq.next() ) {
