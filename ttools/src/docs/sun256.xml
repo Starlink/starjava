@@ -7293,7 +7293,7 @@ joined are not already in the right order, use one of the
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of using <code>tjoin</code>
+<p>Here are some examples of using <code>tjoin</code>:
 <dl>
 
 <dt><verbatim>
@@ -7356,7 +7356,7 @@ and eliminating some or all rows which form part of a match group.
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of using <code>tmatch1</code>
+<p>Here are some examples of using <code>tmatch1</code>:
 <dl>
 
 <dt><verbatim>
@@ -7449,7 +7449,7 @@ for consistency with other table join tasks.
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of using <code>tmatch2</code>
+<p>Here are some examples of using <code>tmatch2</code>:
 <dl>
 
 <dt><verbatim>
@@ -7585,7 +7585,7 @@ for 1- and 2-table crossmatching respectively.
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of using <code>tmatchn</code>
+<p>Here are some examples of using <code>tmatchn</code>:
 <dl>
 
 <dt><verbatim>
@@ -8108,7 +8108,7 @@ you can probably find it by using <code>tmatch2</code>.
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of using <code>tskymatch2</code>
+<p>Here are some examples of using <code>tskymatch2</code>:
 
 <dl>
 
