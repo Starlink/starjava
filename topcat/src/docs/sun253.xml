@@ -150,6 +150,9 @@
            '&figs;HistogramLayerControl_subsets.gif'>
   <!ENTITY FIG.HistogramLayerControl_form
            '&figs;HistogramLayerControl_form.gif'>
+  <!ENTITY FIG.HealpixLayerControl '&figs;HealpixLayerControl.gif'>
+  <!ENTITY FIG.HealpixLayerControl_data '&figs;HealpixLayerControl_data.gif'>
+  <!ENTITY FIG.HealpixLayerControl_style '&figs;HealpixLayerControl_style.gif'>
   <!ENTITY FIG.mode_flat '&figs;mode_flat.gif'>
   <!ENTITY FIG.mode_translucent '&figs;mode_translucent.gif'>
   <!ENTITY FIG.mode_transparent '&figs;mode_transparent.gif'>
@@ -244,6 +247,9 @@
   <!ENTITY CONTROL.spectrogram
            '&IMG.PLOT_SPECTRO;
             <ref id="SpectrogramLayerControl">Spectrogram Layer Control</ref>'>
+  <!ENTITY CONTROL.healpix
+           '&IMG.PLOT_HEALPIX;
+            <ref id="HealpixLayerControl">Healpix Layer Control</ref>'>
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
   <!ENTITY FORM.sizexy '&IMG.FORM_SIZEXY; <ref id="form-sizexy">SizeXY</ref>'>
@@ -8030,6 +8036,117 @@ but the detail panels are divided into these parts:
 </dl>
 </p>
 
+</subsubsubsect>
+
+<subsubsubsect id="HealpixLayerControl">
+<subhead><title>Healpix Layer Control</title></subhead>
+
+<p>The <label>Healpix</label> layer control (&IMG.PLOT_HEALPIX;)
+is available from the <ref id="SkyPlotWindow">Sky Plot Window</ref>
+for plotting tables that represent HEALPix maps on the celestial sphere.
+Each row in the table must represent a single healpix tile,
+and a value from that row is used to colour
+the corresponding region of the sky plot.
+The resolution (healpix order) of the input table is supplied
+or may be guessed in order to do the plot,
+but the plot may be drawn at a degraded order (bigger pixels)
+if required.
+</p>
+
+<p>Note this is different from the <ref id="form-skydensity">SkyDensity</ref>
+form, which takes a table containing sky positions,
+and represents that as a density map on the healpix grid by gathering
+the rows up into bins.  The control described here works on a table
+for which that binning has already been done,
+for instance as a prepared sky map data product,
+or by executing a suitable (GROUP BY healpix_index) database query.
+</p>
+
+<figure>
+<caption><px>Sky Plot Window with a Healpix layer</px></caption>
+<figureimage src="&FIG.HealpixLayerControl;"/>
+</figure>
+
+<p>This control has two tabs, <label>Data</label> and <label>Style</label>.
+</p>
+
+<figure>
+<caption><px>Healpix control Data tab</px></caption>
+<figureimage src="&FIG.HealpixLayerControl_data;"/>
+</figure>
+
+<p>The <label>Data</label> tab lets you specify the table and columns
+containing the healpix tile data.  It has the following fields:
+<dl>
+<dt>Table</dt>
+<dd><p>The table supplying the data.
+    </p></dd>
+<dt>Data Sky System</dt>
+<dd><p>The sky coordinate system of the grid
+    on which the pixels in the input table are laid out.
+    </p></dd>
+<dt>HEALPix Data Level</dt>
+<dd><p>HEALPix level of the (implicit or explicit) tile indices.
+    Only values up to 13 are currently supported.
+    This must be the value assumed by the data in the input table.
+    If <label>-1</label> is selected, an attempt is made to determine
+    the correct level from the data; this may or may not be successful.
+    Using the wrong value here will result in a nonsensical plot,
+    or no plot at all.
+    </p></dd>
+<dt>HEALPix index</dt>
+<dd><p>Column in the input table giving HEALPix index value.
+    If this is left blank, then the row index is used,
+    i.e. pixel #0 is assumed to be in the first row etc.
+    This only works if the input table has full sky coverage and the
+    rows are in the correct sequence.
+    </p></dd>
+<dt>Value</dt>
+<dd><p>The column, or other expression, giving the colour to plot
+    for the pixel at each row.
+    </p></dd>
+<dt>Row Subset</dt>
+<dd><p>May be used to restrict the plot to one of the defined
+    <ref id="subsets">row subsets</ref>.
+    </p></dd>
+</dl>
+</p>
+
+<p>To control the colour map used to colour the sky tiles,
+use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
+</p>
+
+<figure>
+<caption><px>Healpix control Style tab</px></caption>
+<figureimage src="&FIG.HealpixLayerControl_style;"/>
+</figure>
+
+<p>The <label>Style</label> tab lets you configure additional details
+of the plot's appearance.  It has the following fields:
+<dl>
+<dt>Degrade</dt>
+<dd><p>Controls the resolution at which the pixel grid is actually plotted.
+    If the value is zero, then the grid plotted is the same as that of
+    the input data, but if a positive value is supplied then the
+    healpix order will be reduced by that many.  Each increment means
+    that 4 pixels from the previous order will be combined into one.
+    The way that combination is done is controlled by the
+    <label>Combine</label> option.
+    </p></dd>
+<dt>Combine</dt>
+<dd><p>Determines how pixels are combined together when the resolution
+    is <label>Degrade</label>d.
+    Options are currently
+    <label>sum</label>,
+    <label>mean</label>,
+    <label>min</label>,
+    <label>max</label>.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the filled area.
+    </p></dd>
+</dl>
+</p>
 
 </subsubsubsect>
 
@@ -10863,6 +10980,7 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.marks2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
+<li>&CONTROL.healpix;</li>
 </ul>
 </p>
 
@@ -23303,6 +23421,8 @@ introduced since the last version:
         to export the HEALPix density map calculated by a
         <ref id="form-skydensity">SkyDensity</ref> plot;
         either save it to disk or import it as a new table.</li>
+    <li>New <ref id="HealpixLayerControl">Healpix layer control</ref>
+        in the sky plot lets you plot tables that represent healpix maps.</li>
     </ul>
     </p></dd>
 
