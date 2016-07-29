@@ -150,7 +150,7 @@ public abstract class InputFactory {
             return new AbstractInputFactory( true ) {
                 public BasicInput createInput( boolean isSeq )
                         throws IOException {
-                    BufferedFile bf = new BufferedFile( file.getName(), "r" );
+                    BufferedFile bf = new BufferedFile( file.getPath(), "r" );
                     return new RandomAccessInput( bf, offset );
                 }
             };

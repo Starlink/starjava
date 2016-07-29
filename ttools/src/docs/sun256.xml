@@ -10846,6 +10846,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (no column order, utypes and units missing,
         large file "temp.xml" written to current directory)
         dependent on issues in the upstream Gaia libraries and ICD.</li>
+    <li>Fix bug that caused read failures for large (&gt;0.5Gb) FITS files
+        outside of the current directory on 32-bit JVMs.
+        This was a regression bug since v3.0-2.</li>
     </ul>
     </p></dd>
 
