@@ -1,8 +1,8 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -17,14 +17,12 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.ttools.taplint.ReportType;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TextOutputReporter;
 import uk.ac.starlink.ttools.taplint.TapLinter;
 import uk.ac.starlink.vo.EndpointSet;
-import uk.ac.starlink.vo.Endpoints;
 
 /**
  * TAP Validator task.
@@ -35,7 +33,7 @@ import uk.ac.starlink.vo.Endpoints;
 public class TapLint implements Task {
 
     private final TapLinter tapLinter_;
-    private final URLParameter urlParam_;
+    private final TapEndpointParams endpointParams_;
     private final StringMultiParameter stagesParam_;
     private final IntegerParameter repeatParam_;
     private final IntegerParameter truncParam_;
@@ -50,15 +48,10 @@ public class TapLint implements Task {
     public TapLint() {
         List<Parameter> paramList = new ArrayList<Parameter>();
 
-        urlParam_ = new URLParameter( "tapurl" );
-        urlParam_.setPosition( 1 );
-        urlParam_.setPrompt( "Base URL of TAP service" );
-        urlParam_.setDescription( new String[] {
-            "<p>The base URL of a Table Access Protocol service.",
-            "This is the bare URL without a trailing \"/[a]sync\".",
-            "</p>",
-        } );
-        paramList.add( urlParam_ );
+        endpointParams_ = new TapEndpointParams( "tapurl" );
+        Parameter urlParam = endpointParams_.getBaseParameter();
+        urlParam.setPosition( 1 );
+        paramList.add( urlParam );
 
         stagesParam_ = new StringMultiParameter( "stages", ' ' );
         stagesParam_.setPrompt( "Codes for validation stages to run" );
@@ -192,6 +185,8 @@ public class TapLint implements Task {
             "</p>",
         } );
         debugParam_.setBooleanDefault( false );
+        paramList.addAll( Arrays.asList( endpointParams_
+                                        .getOtherParameters() ) );
         paramList.add( debugParam_ );
 
         params_ = paramList.toArray( new Parameter[ 0 ] );
@@ -206,9 +201,7 @@ public class TapLint implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        URL serviceUrl = urlParam_.objectValue( env );
-        EndpointSet endpointSet =
-            Endpoints.createDefaultTapEndpointSet( serviceUrl );
+        EndpointSet endpointSet = endpointParams_.getEndpointSet( env );
         PrintStream out = env.getOutputStream();
         String typeStr = reportParam_.stringValue( env );
         List<ReportType> typeList = new ArrayList<ReportType>();

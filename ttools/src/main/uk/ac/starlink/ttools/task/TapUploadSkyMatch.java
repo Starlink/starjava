@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +16,6 @@ import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
@@ -26,7 +24,6 @@ import uk.ac.starlink.ttools.cone.TapUploadMatcher;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.EndpointSet;
-import uk.ac.starlink.vo.Endpoints;
 
 /**
  * Upload matcher that uses an external TAP service.
@@ -39,7 +36,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
     private final StringParameter inlonParam_;
     private final StringParameter inlatParam_;
     private final StringParameter srParam_;
-    private final URLParameter urlParam_;
+    private final TapEndpointParams endpointParams_;
     private final StringParameter taptableParam_;
     private final StringParameter taplonParam_;
     private final StringParameter taplatParam_;
@@ -91,14 +88,17 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         } );
         paramList.add( inlatParam_ );
 
-        urlParam_ = new URLParameter( "tapurl" );
-        urlParam_.setPrompt( "Base URL of TAP service" );
-        urlParam_.setDescription( new String[] {
-            "<p>The base URL of a Table Access Protocol service.",
-            "This is the bare URL without a trailing \"/[a]sync\".",
-            "</p>",
-        } );
-        paramList.add( urlParam_ );
+        endpointParams_ = new TapEndpointParams( "tapurl" );
+        paramList.add( endpointParams_.getBaseParameter() );
+
+        /* For now don't report the other endpoint parameters,
+         * since most of them will have no effect in practice,
+         * and they would confuse the documentation.
+         * But they are present undocumented if necessary. */
+        if ( false ) {
+            paramList.addAll( Arrays.asList( endpointParams_
+                                            .getOtherParameters() ) );
+        }
 
         taptableParam_ = new StringParameter( "taptable" );
         taptableParam_.setUsage( "<name>" );
@@ -267,9 +267,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         /* Interrogate environment for parameter values. */
         final String inlonString = inlonParam_.stringValue( env );
         final String inlatString = inlatParam_.stringValue( env );
-        URL tapurl = urlParam_.objectValue( env );
-        EndpointSet endpointSet =
-            Endpoints.createDefaultTapEndpointSet( tapurl );
+        EndpointSet endpointSet = endpointParams_.getEndpointSet( env );
         String taptable = taptableParam_.stringValue( env );
         String taplonString = taplonParam_.stringValue( env );
         String taplatString = taplatParam_.stringValue( env );

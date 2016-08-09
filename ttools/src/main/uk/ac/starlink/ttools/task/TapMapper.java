@@ -2,10 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import adql.parser.ParseException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.URLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -22,11 +19,9 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.EndpointSet;
-import uk.ac.starlink.vo.Endpoints;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.DataFormat;
@@ -41,7 +36,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class TapMapper implements TableMapper {
 
-    private final URLParameter urlParam_;
+    private final TapEndpointParams endpointParams_;
     private final StringParameter adqlParam_;
     private final BooleanParameter parseParam_;
     private final BooleanParameter syncParam_;
@@ -60,14 +55,17 @@ public class TapMapper implements TableMapper {
         paramList.add( createUploadNameParameter( VariableTablesInput
                                                  .NUM_SUFFIX ) );
 
-        urlParam_ = new URLParameter( "tapurl" );
-        urlParam_.setPrompt( "Base URL of TAP service" );
-        urlParam_.setDescription( new String[] {
-            "<p>The base URL of a Table Access Protocol service.",
-            "This is the bare URL without a trailing \"/[a]sync\".",
-            "</p>",
-        } );
-        paramList.add( urlParam_ );
+        endpointParams_ = new TapEndpointParams( "tapurl" );
+        paramList.add( endpointParams_.getBaseParameter() );
+
+        /* For now don't report the other endpoint parameters,
+         * since most of them will have no effect in practice,
+         * and they would confuse the documentation.
+         * But they are present undocumented if necessary. */
+        if ( false ) {
+            paramList.addAll( Arrays.asList( endpointParams_
+                                            .getOtherParameters() ) );
+        }
 
         adqlParam_ = new StringParameter( "adql" );
         adqlParam_.setPrompt( "ADQL query text" );
@@ -231,9 +229,7 @@ public class TapMapper implements TableMapper {
 
     public TableMapping createMapping( Environment env, final int nup )
             throws TaskException {
-        URL serviceUrl = urlParam_.objectValue( env );
-        final EndpointSet endpointSet =
-            Endpoints.createDefaultTapEndpointSet( serviceUrl );
+        final EndpointSet endpointSet = endpointParams_.getEndpointSet( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
             AdqlValidator validator = new AdqlValidator( null, null, null );

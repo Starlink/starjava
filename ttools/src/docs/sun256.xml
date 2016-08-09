@@ -6547,10 +6547,41 @@ and service registration.
 <dl>
 
 <dt><verbatim><![CDATA[
-stilts taplint http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap
+stilts taplint http://dc.g-vo.org/tap
 ]]></verbatim></dt>
 <dd><p>Performs a default validation run against the TAP service based
     at the given URL.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+stilts taplint tapurl=http://gaia.esac.esa.int/tap-server/tap
+               examplesurl=file://localhost/tmp/examples.xml
+               stages='TME CAP EXA'
+]]></verbatim></dt>
+<dd><p>Executes the <code>EXA</code>mples stage against
+    the GACS TAP service at ESAC.
+    Most of the service endpoints (tables, capabilities, availability etc)
+    are found at their default locations
+    relative to the given <code>tapurl</code>.
+    However, the Examples document is loaded instead
+    from the local file at the URL that has been specified by the
+    <code>examplesurl</code> parameter.
+    This makes is possible to test a non-deployed examples document against
+    a deployed TAP service.  It may also be used if certain capabilities
+    have been deployed at non-default locations to satisfy multiple security
+    models or for other reasons.
+    You can play similar tricks with the other <code>*url</code> parameters
+    like <code>capabilitiesurl</code> and <code>tablesurl</code>,
+    as listed in the <ref id="taplint-usage">documentation</ref>.
+    </p>
+    <p>The <code>TME</code> (table metadata)
+    and <code>CAP</code> (service capabilities)
+    stages have been executed along with <code>EXA</code>,
+    since taplint needs to pick up the metadata and capabilities in order
+    to be able to do some of the checks on the examples it finds.
+    If those stage names are not included in the <code>stages</code>
+    parameter, the output will include some messages noting that fact,
+    and the tests will be less rigorous.
     </p></dd>
 
 <dt><verbatim><![CDATA[
@@ -10849,6 +10880,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug that caused read failures for large (&gt;0.5Gb) FITS files
         outside of the current directory on 32-bit JVMs.
         This was a regression bug since v3.0-2.</li>
+    <li>Add parameters <code>tablesurl</code>, <code>examplesurl</code> etc
+        to task <ref id="taplint"><code>taplint</code></ref>,
+        so you can specify custom locations for different TAP endpoints
+        rather than have them fixed at their default locations
+        hanging off the base service URL.
+        Ditto for the tasks <code>tapquery</code> and <code>tapskymatch</code>,
+        though in these cases the extra parameters are
+        (since currently rather special interest) largely undocumented.</li>
     </ul>
     </p></dd>
 
