@@ -1,7 +1,8 @@
 package uk.ac.starlink.ttools.plot2;
 
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
+import uk.ac.starlink.ttools.plot2.data.DataStore;
 
 /**
  * Extracts range information from plot data.
@@ -12,13 +13,16 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 public interface AuxReader {
 
     /**
-     * Called for a tuple sequence, may update (usually extend) the given range.
+     * May use the supplied data specification to update (usually extend)
+     * the given range.
      *
      * @param  surface  plot data destination surface
-     * @param  tseq    plot data supplier
+     * @param  dataSpec    specification for data
+     * @param  dataStore   data storage object
      * @param  range   range object to be updated with range information
      */
-    void adjustAuxRange( Surface surface, TupleSequence tseq, Range range );
+    void adjustAuxRange( Surface surface, DataSpec dataSpec,
+                         DataStore dataStore, Range range );
 
     /**
      * Returns the DataSpec index for the coordinate whose value is used

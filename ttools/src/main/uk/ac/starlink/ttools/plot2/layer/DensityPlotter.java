@@ -292,9 +292,9 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
                 public int getCoordIndex() {
                     return icWeight_;
                 }
-                public void adjustAuxRange( Surface surface, TupleSequence tseq,
-                                            Range range ) {
-                    double[] bounds = readBins( surface, tseq )
+                public void adjustAuxRange( Surface surface, DataSpec dataSpec,
+                                            DataStore dataStore, Range range ) {
+                    double[] bounds = readBins( surface, dataSpec, dataStore )
                                      .getResult()
                                      .getValueBounds();
                     range.submit( bounds[ 0 ] );
@@ -319,15 +319,17 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
          * plot surface.
          *
          * @param  surface   plot surface
-         * @param  tseq  row iterator
+         * @param  dataSpec   data specification
+         * @param  dataStore  data storage
          * @return   populated bin list
          */
-        private BinList readBins( Surface surface, TupleSequence tseq ) {
+        private BinList readBins( Surface surface, DataSpec dataSpec,
+                                  DataStore dataStore ) {
             GridPixer pixer = createGridPixer( surface );
             int nbin = pixer.getBinCount();
             Combiner combiner = dstyle_.combiner_;
             BinList binList = combiner.createArrayBinList( nbin );
-            DataSpec dataSpec = getDataSpec();
+            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             DataGeom geom = getDataGeom();
             int icPos = coordGrp_.getPosCoordIndex( 0, geom );
             int icWeight = weightCoord_ == null
@@ -405,8 +407,7 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
                     }
                 }
                 BinList.Result binResult =
-                    readBins( surface_, dataStore.getTupleSequence( dataSpec ) )
-                   .getResult();
+                    readBins( surface_, dataSpec, dataStore ).getResult();
                 return new DensityPlan( binpix, combiner, surface_, dataSpec,
                                         geom, binResult );
             }

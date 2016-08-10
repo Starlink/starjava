@@ -256,8 +256,11 @@ public class SpectrogramPlotter
                             return icSpectrum_;
                         }
                         public void adjustAuxRange( Surface surface,
-                                                    TupleSequence tseq,
+                                                    DataSpec dataSpec,
+                                                    DataStore dataStore,
                                                     Range range ) {
+                            TupleSequence tseq =
+                                dataStore.getTupleSequence( dataSpec );
                             while ( tseq.next() ) {
                                 double[] spectrum =
                                     spectrumCoord_

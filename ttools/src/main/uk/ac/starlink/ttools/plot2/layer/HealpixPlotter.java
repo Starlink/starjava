@@ -524,15 +524,16 @@ public class HealpixPlotter
                 public int getCoordIndex() {
                     return icValue_;
                 }
-                public void adjustAuxRange( Surface surface, TupleSequence tseq,
-                                            Range range ) {
+                public void adjustAuxRange( Surface surface, DataSpec dataSpec,
+                                            DataStore dataStore, Range range ) {
                     // this is nasty because I need to iterate over the data
                     // to get the aux range; the plan has that information,
                     // (which means the actual painting doesn't need the data),
                     // but I can't see it here.
-                    double[] bounds = createTileRenderer( surface )
-                                     .calculateAuxRange( readBins( tseq ) )
-                                     .getBounds();
+                    double[] bounds =
+                        createTileRenderer( surface )
+                       .calculateAuxRange( readBins( dataSpec, dataStore ) )
+                       .getBounds();
                     range.submit( bounds[ 0 ] );
                     range.submit( bounds[ 1 ] );
                 }
@@ -561,8 +562,7 @@ public class HealpixPlotter
                             }
                         }
                     }
-                    BinList.Result binResult =
-                        readBins( dataStore.getTupleSequence( dataSpec ) );
+                    BinList.Result binResult = readBins( dataSpec, dataStore );
                     return new TilePlan( dataLevel_, viewLevel_, dataSpec,
                                          binResult );
                 }
@@ -589,15 +589,18 @@ public class HealpixPlotter
          * Constructs and populates a bin list (tile index -&gt; value map)
          * suitable for plotting this layer.
          *
-         * @param  tseq   row iterator
+         * @param   dataSpec   data specification
+         * @param   dataStore  data storage
          * @return   value map
          */
-        private BinList.Result readBins( TupleSequence tseq ) {
+        private BinList.Result readBins( DataSpec dataSpec,
+                                         DataStore dataStore ) {
             int degrade = dataLevel_ - viewLevel_;
             assert degrade >= 0;
             int shift = degrade * 2;
             BinList binList =
                 createBinList( hstyle_.combiner_, dataLevel_, viewLevel_ );
+            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             while ( tseq.next() ) {
                 double value = tseq.getDoubleValue( icValue_ );
                 if ( ! Double.isNaN( value ) ) {

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
  * Represents a ranged value that can differ according to the content
@@ -114,9 +113,8 @@ public class AuxScale {
             PlotLayer layer = layers[ il ];
             AuxReader rdr = layer.getAuxRangers().get( scale );
             if ( rdr != null ) {
-                TupleSequence tseq =
-                    dataStore.getTupleSequence( layer.getDataSpec() );
-                rdr.adjustAuxRange( surface, tseq, range );
+                rdr.adjustAuxRange( surface, layer.getDataSpec(), dataStore,
+                                    range );
             }
         }
         return range;

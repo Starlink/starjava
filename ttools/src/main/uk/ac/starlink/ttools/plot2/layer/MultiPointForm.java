@@ -27,6 +27,8 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.MultiPointConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
+import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -532,12 +534,13 @@ public class MultiPointForm implements ShapeForm {
                 public int getCoordIndex() {
                     return -1;
                 }
-                public void adjustAuxRange( Surface surface,
-                                            TupleSequence tseq, Range range ) {
+                public void adjustAuxRange( Surface surface, DataSpec dataSpec,
+                                            DataStore dataStore, Range range ) {
                     double[] dpos0 = new double[ ndim ];
                     double[][] dposExtras = new double[ nextra ][ ndim ];
                     Point2D.Double gpos0 = new Point2D.Double();
                     Point2D.Double gpos1 = new Point2D.Double();
+                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                     while ( tseq.next() ) {
                         if ( geom.readDataPos( tseq, 0, dpos0 ) &&
                              surface.dataToGraphics( dpos0, scaleFromVisible_,

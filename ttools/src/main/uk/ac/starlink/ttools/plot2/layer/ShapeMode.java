@@ -1396,13 +1396,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         return icWeight_;
                     }
                     public void adjustAuxRange( Surface surface,
-                                                TupleSequence tseq,
+                                                DataSpec dataSpec,
+                                                DataStore dataStore,
                                                 Range range ) {
                         /* We don't have one - have to fake it. */
                         Map<AuxScale,Range> auxRanges =
                             new HashMap<AuxScale,Range>();
                         double[] bounds =
-                            readBinList( surface, tseq, auxRanges )
+                            readBinList( surface, dataSpec, dataStore,
+                                         auxRanges )
                            .getResult()
                            .getValueBounds();
                         range.submit( bounds[ 0 ] );
@@ -1423,10 +1425,13 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * about how to do the plot.
              *
              * @param  surface  plot surface
+             * @param  dataSpec  data specification
+             * @param  dataStore  data storage
              * @param  tseq    point sequence
              * @param  auxRanges   aux data range map
              */
-            private BinList readBinList( Surface surface, TupleSequence tseq,
+            private BinList readBinList( Surface surface, DataSpec dataSpec,
+                                         DataStore dataStore,
                                          Map<AuxScale,Range> auxRanges ) {
                 DataGeom geom = getDataGeom();
                 WeightPaper wpaper =
@@ -1435,10 +1440,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 ShapePainter painter =
                     outliner_.create2DPainter( surface, geom, auxRanges,
                                                wpaper.getPaperType() );
+                TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
 
                 /* Under normal circumstances, use the submitted combiner
                  * to construct a bin list to order. */
-                boolean hasWeight = ! getDataSpec().isCoordBlank( icWeight_ );
+                boolean hasWeight = ! dataSpec.isCoordBlank( icWeight_ );
                 if ( hasWeight ) {
                     while ( tseq.next() ) {
                         double w =
@@ -1506,8 +1512,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                             }
                         }
                     }
-                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-                    BinList binList = readBinList( surface_, tseq, auxRanges_ );
+                    BinList binList = readBinList( surface_, dataSpec,
+                                                   dataStore, auxRanges_ );
                     int nbin = (int) binList.getSize();  // pixel count
                     Combiner combiner = binList.getCombiner();
                     BinList.Result binResult = binList.getResult();

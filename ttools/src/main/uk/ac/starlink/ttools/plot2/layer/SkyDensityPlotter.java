@@ -436,12 +436,12 @@ public class SkyDensityPlotter
                 public int getCoordIndex() {
                     return icWeight_;
                 }
-                public void adjustAuxRange( Surface surface, TupleSequence tseq,
-                                            Range range ) {
-                    double[] bounds =
-                        readBins( (SkySurface) surface, true, tseq )
-                       .getResult()
-                       .getValueBounds();
+                public void adjustAuxRange( Surface surface, DataSpec dataSpec,
+                                            DataStore dataStore, Range range ) {
+                    double[] bounds = readBins( (SkySurface) surface, true,
+                                                dataSpec, dataStore )
+                                     .getResult()
+                                     .getValueBounds();
                     range.submit( bounds[ 0 ] );
                     range.submit( bounds[ 1 ] );
                 }
@@ -481,12 +481,13 @@ public class SkyDensityPlotter
          * @param   surface   target plot surface
          * @param   visibleOnly   true to use only points in the plot bounds,
          *                        false to use them all
-         * @param   tseq   row iterator
+         * @param   dataSpec   data specification
+         * @param   dataStore  data storage
          * @return   populated bin list
          * @slow
          */
         private BinList readBins( SkySurface surface, boolean visibleOnly,
-                                  TupleSequence tseq ) {
+                                  DataSpec dataSpec, DataStore dataStore ) {
             SkyPixer skyPixer = createSkyPixer( surface );
             BinList binList = null;
             long npix = skyPixer.getPixelCount();
@@ -498,7 +499,7 @@ public class SkyDensityPlotter
                 binList = combiner.createHashBinList( npix );
             }
             assert binList != null;
-            DataSpec dataSpec = getDataSpec();
+            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
             double[] v3 = new double[ 3 ];
             Point2D.Double gp = new Point2D.Double();
@@ -580,8 +581,7 @@ public class SkyDensityPlotter
                     }
                 }
                 BinList.Result binResult =
-                    readBins( surface_, false,
-                              dataStore.getTupleSequence( dataSpec ) )
+                    readBins( surface_, false, dataSpec, dataStore )
                    .getResult();
                 return new SkyDensityPlan( level_, combiner, binResult,
                                            dataSpec, geom_ );

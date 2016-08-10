@@ -6,6 +6,8 @@ import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
+import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
@@ -49,11 +51,12 @@ public class FloatingCoordAuxReader implements AuxReader {
         return icol_;
     }
 
-    public void adjustAuxRange( Surface surface, TupleSequence tseq,
-                                Range range ) {
+    public void adjustAuxRange( Surface surface, DataSpec dataSpec,
+                                DataStore dataStore, Range range ) {
 
         /* Convert data to graphics coordinates.  The resulting values are
          * not used, but this determines whether the points are plottable. */
+        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
             if ( geom_.readDataPos( tseq, 0, dpos_ ) &&
                  surface.dataToGraphics( dpos_, visibleOnly_, gpos_ ) &&
