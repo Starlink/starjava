@@ -437,7 +437,8 @@ public class SkyDensityPlotter
                     return icWeight_;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
-                                            DataStore dataStore, Range range ) {
+                                            DataStore dataStore, Object[] plans,
+                                            Range range ) {
                     double[] bounds = readBins( (SkySurface) surface, true,
                                                 dataSpec, dataStore )
                                      .getResult()

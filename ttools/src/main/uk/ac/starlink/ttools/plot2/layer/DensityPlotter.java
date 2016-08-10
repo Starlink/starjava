@@ -293,7 +293,8 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
                     return icWeight_;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
-                                            DataStore dataStore, Range range ) {
+                                            DataStore dataStore, Object[] plans,
+                                            Range range ) {
                     double[] bounds = readBins( surface, dataSpec, dataStore )
                                      .getResult()
                                      .getValueBounds();

@@ -258,6 +258,7 @@ public class SpectrogramPlotter
                         public void adjustAuxRange( Surface surface,
                                                     DataSpec dataSpec,
                                                     DataStore dataStore,
+                                                    Object[] plans,
                                                     Range range ) {
                             TupleSequence tseq =
                                 dataStore.getTupleSequence( dataSpec );

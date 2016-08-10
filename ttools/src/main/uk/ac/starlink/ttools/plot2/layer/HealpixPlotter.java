@@ -525,7 +525,8 @@ public class HealpixPlotter
                     return icValue_;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
-                                            DataStore dataStore, Range range ) {
+                                            DataStore dataStore, Object[] plans,
+                                            Range range ) {
                     // this is nasty because I need to iterate over the data
                     // to get the aux range; the plan has that information,
                     // (which means the actual painting doesn't need the data),

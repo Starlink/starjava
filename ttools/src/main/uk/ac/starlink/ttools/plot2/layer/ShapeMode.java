@@ -1398,7 +1398,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     public void adjustAuxRange( Surface surface,
                                                 DataSpec dataSpec,
                                                 DataStore dataStore,
-                                                Range range ) {
+                                                Object[] plans, Range range ) {
                         /* We don't have one - have to fake it. */
                         Map<AuxScale,Range> auxRanges =
                             new HashMap<AuxScale,Range>();

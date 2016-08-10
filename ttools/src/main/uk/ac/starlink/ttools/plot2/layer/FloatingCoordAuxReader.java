@@ -52,7 +52,8 @@ public class FloatingCoordAuxReader implements AuxReader {
     }
 
     public void adjustAuxRange( Surface surface, DataSpec dataSpec,
-                                DataStore dataStore, Range range ) {
+                                DataStore dataStore, Object[] plans,
+                                Range range ) {
 
         /* Convert data to graphics coordinates.  The resulting values are
          * not used, but this determines whether the points are plottable. */

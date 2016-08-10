@@ -535,7 +535,8 @@ public class MultiPointForm implements ShapeForm {
                     return -1;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
-                                            DataStore dataStore, Range range ) {
+                                            DataStore dataStore, Object[] plans,
+                                            Range range ) {
                     double[] dpos0 = new double[ ndim ];
                     double[][] dposExtras = new double[ nextra ][ ndim ];
                     Point2D.Double gpos0 = new Point2D.Double();

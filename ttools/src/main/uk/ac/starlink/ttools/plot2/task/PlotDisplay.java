@@ -817,9 +817,10 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Calculate the ranges from the data. */
         long start = System.currentTimeMillis();
+        Object[] plans = new Object[ 0 ];
         Map<AuxScale,Range> auxDataRanges =
-            AuxScale.calculateAuxRanges( calcScales, layers,
-                                         surface, dataStore );
+            AuxScale.calculateAuxRanges( calcScales, layers, surface, plans,
+                                         dataStore );
         PlotUtil.logTime( logger_, "AuxRange", start );
 
         /* Combine all the gathered information to acquire actual

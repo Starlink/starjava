@@ -1319,6 +1319,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             PlotUtil.logTime( logger_, "Range", startRange );
             aspects = ganger_.adjustAspects( aspects, -1 );
 
+            /* Collect previously calculated plans, which may be able to
+             * supply results required this time round and thus avoid
+             * some recalculations. */
+            Set oldPlans = new HashSet();
+            for ( Workings.ZoneWork<A> zone : oldWorkings_.zones_ ) {
+                oldPlans.addAll( Arrays.asList( zone.plans_ ) );
+            }
+
             /* Work out gang geometry if we can (probably not). */
             Gang gang;
             if ( isFixedInsets( insets_ ) && nz == 1 ) {
@@ -1383,7 +1391,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 if ( calcScales.length > 0 ) {
                     Map<AuxScale,Range> calcRangeMap =
                         AuxScale.calculateAuxRanges( calcScales, zone.layers_,
-                                                     approxSurf, dataStore1 );
+                                                     approxSurf,
+                                                     oldPlans.toArray(),
+                                                     dataStore1 );
                     if ( Thread.currentThread().isInterrupted() ) {
                         return null;
                     }
@@ -1419,10 +1429,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Now we have enough information to create the actual surfaces,
              * plan and plot the layers onto them, and save the result into
              * per-zone ZoneWork objects. */
-            Set oldPlans = new HashSet();
-            for ( Workings.ZoneWork<A> zone : oldWorkings_.zones_ ) {
-                oldPlans.addAll( Arrays.asList( zone.plans_ ) );
-            }
             long planMillis = 0;
             long paintMillis = 0;
             Workings.ZoneWork<A>[] zoneWorks =
