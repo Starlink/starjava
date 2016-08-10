@@ -437,12 +437,28 @@ public class SkyDensityPlotter
                     return icWeight_;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
-                                            DataStore dataStore, Object[] plans,
+                                            DataStore dataStore,
+                                            Object[] knownPlans,
                                             Range range ) {
-                    double[] bounds = readBins( (SkySurface) surface, true,
-                                                dataSpec, dataStore )
-                                     .getResult()
-                                     .getValueBounds();
+                    SkySurface ssurf = (SkySurface) surface;
+                    final double[] bounds;
+
+                    /* If we have a cached plan, use that for the ranging.
+                     * This will be faster than rebinning the data for
+                     * large datasets (no data scan required), but it's
+                     * not all that efficient, so will probably be slower
+                     * for small datasets.
+                     * This is a possible target for future optimisation. */
+                    SkyDensityPlan splan =
+                        getSkyPlan( knownPlans, dstyle_.level_, dataSpec );
+                    if ( splan != null ) {
+                        bounds = splan.getVisibleRange( ssurf );
+                    }
+                    else {
+                        bounds = readBins( ssurf, true, dataSpec, dataStore )
+                                .getResult()
+                                .getValueBounds();
+                    }
                     range.submit( bounds[ 0 ] );
                     range.submit( bounds[ 1 ] );
                 }
@@ -534,6 +550,30 @@ public class SkyDensityPlotter
         }
 
         /**
+         * Identifies and returns a plan object that can be used for
+         * this layer from a list of precalculated plans.
+         * If none of the supplied plans is suitable, null is returned.
+         *
+         * @param  knownPlans  available pre-calculated plans
+         * @param  level   HEALPix level giving desired sky pixel resolution
+         * @param  dataSpec  specification for plotted weith data
+         * @return   suitable SkyDensityPlan from supplied list, or null
+         */
+        private SkyDensityPlan getSkyPlan( Object[] knownPlans, int level,
+                                           DataSpec dataSpec ) {
+            Combiner combiner = dstyle_.combiner_;
+            for ( Object plan : knownPlans ) {
+                if ( plan instanceof SkyDensityPlan ) {
+                    SkyDensityPlan skyPlan = (SkyDensityPlan) plan;
+                    if ( skyPlan.matches( level, combiner, dataSpec, geom_ ) ) {
+                        return skyPlan;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /**
          * Drawing implementation for the sky density map.
          */
         private class SkyDensityDrawing implements Drawing {
@@ -572,20 +612,18 @@ public class SkyDensityPlotter
                                                        DataStore dataStore ) {
                 DataSpec dataSpec = getDataSpec();
                 Combiner combiner = dstyle_.combiner_;
-                for ( Object plan : knownPlans ) {
-                    if ( plan instanceof SkyDensityPlan ) {
-                        SkyDensityPlan skyPlan = (SkyDensityPlan) plan;
-                        if ( skyPlan.matches( level_, combiner,
-                                              dataSpec, geom_ ) ) {
-                            return skyPlan;
-                        }
-                    }
+                SkyDensityPlan knownPlan =
+                    getSkyPlan( knownPlans, level_, dataSpec );
+                if ( knownPlan != null ) {
+                    return knownPlan;
                 }
-                BinList.Result binResult =
-                    readBins( surface_, false, dataSpec, dataStore )
-                   .getResult();
-                return new SkyDensityPlan( level_, combiner, binResult,
-                                           dataSpec, geom_ );
+                else {
+                    BinList.Result binResult =
+                        readBins( surface_, false, dataSpec, dataStore )
+                       .getResult();
+                    return new SkyDensityPlan( level_, combiner, binResult,
+                                               dataSpec, geom_ );
+                }
             }
 
             public void paintData( Object plan, Paper paper,
@@ -732,6 +770,43 @@ public class SkyDensityPlotter
                  && combiner_.equals( combiner )
                  && dataSpec_.equals( dataSpec )
                  && geom_.equals( geom );
+        }
+
+        /**
+         * Returns the pixel value range represented by this plan over
+         * only that part of the sky visible in a given sky surface.
+         * This may not be very fast, but it scales with the number of
+         * pixels on the surface rather than the number of data rows,
+         * so it's not too slow either.
+         * However in some cases (bin-count&lt;&lt;pixel-count)
+         * it could definitely be done more efficiently.
+         *
+         * @param  surface   viewing surface
+         * @return  2-element [lo,hi] array giving pixel value range in
+         *                    visible region
+         */
+        public double[] getVisibleRange( SkySurface surface ) {
+            Rectangle bounds = surface.getPlotBounds();
+            int nx = bounds.width;
+            int ny = bounds.height;
+            Gridder gridder = new Gridder( nx, ny );
+            int npix = gridder.getLength();
+            Point2D.Double point = new Point2D.Double();
+            double x0 = bounds.x + 0.5;
+            double y0 = bounds.y + 0.5;
+            SkyPixer skyPixer = new SkyPixer( level_ );
+            Range range = new Range();
+            for ( int ip = 0; ip < npix; ip++ ) {
+                point.x = x0 + gridder.getX( ip );
+                point.y = y0 + gridder.getY( ip );
+                double[] dpos = surface.graphicsToData( point, null );
+                if ( dpos != null ) {
+                    double dval =
+                        binResult_.getBinValue( skyPixer.getIndex( dpos ) );
+                    range.submit( dval );
+                }
+            }
+            return range.getBounds();
         }
     }
 }

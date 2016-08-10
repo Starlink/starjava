@@ -23436,7 +23436,8 @@ introduced since the last version:
         outside of the current directory on 32-bit JVMs.
         This was a regression bug since v4.2-2.</li>
     <li>Improve performance of some plot types.  In weighted shading mode
-        you can now adjust the colour map without appreciable delay.</li>
+        you can now adjust the colour map without appreciable delay.
+        SkyDensity plots are somewhat improved.</li>
     </ul>
     </p></dd>
 
