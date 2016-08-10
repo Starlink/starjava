@@ -1370,16 +1370,23 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                  * First find out which ones we need. */
                 AuxScale[] scales = AuxScale.getAuxScales( zone.layers_ );
 
-                /* See if we can re-use the aux ranges from the oldWorkings.
-                 * This test isn't perfect, the layers may have changed
-                 * without requiring a recalculation of the Aux scales
-                 * (e.g. only colour map may have changed).  Oh well. */
+                /* The approxSurf records the basic requirements for
+                 * the surface as known at range time: profile, aspect and
+                 * bounding box.  The actual surface may be a bit different
+                 * because insets are dependent on actual tick placement,
+                 * aux colour ramp etc, not known yet. */
                 Surface approxSurf =
                     surfFact_.createSurface( approxGang.getZonePlotBounds( iz ),
                                              zone.profile_, aspects[ iz ] );
+
+                /* See if we can re-use the aux ranges from the oldWorkings.
+                 * We can if both the approxSurf and the layers are the same
+                 * as last time. */
+                boolean hasSameSurface =
+                    approxSurf.equals( oldZoneWork.approxSurf_ );
                 Map<AuxScale,Range> auxDataRangeMap =
+                      hasSameSurface &&
                       layerListEquals( zone.layers_, oldZoneWork.layers_ )
-                   && PlotUtil.equals( approxSurf, oldZoneWork.approxSurf_ )
                     ? oldZoneWork.auxDataRangeMap_
                     : new HashMap<AuxScale,Range>();
 
@@ -1389,9 +1396,25 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     AuxScale.getMissingScales( scales, auxDataRangeMap,
                                                zone.auxFixRanges_ );
                 if ( calcScales.length > 0 ) {
+
+                    /* If we have to do some ranging work, we need to supply
+                     * a surface to do it with.  If possible, use the actual
+                     * surface that was used for the previous plot.
+                     * In some cases, layers may be able to use the cached
+                     * plotting plans (also passed on) to avoid re-calculating
+                     * ranges.  If we passed on approxSurf which is similar to,
+                     * but not quite the same as, the last plotted surface,
+                     * it would be hard for layers to match it with
+                     * a cached plan.
+                     * However, if we don't have a previous surface that's
+                     * basically similar to the current one, we have to use
+                     * the approxSurf anyway. */
+                    Surface rangeSurf = hasSameSurface
+                                      ? oldZoneWork.placer_.getSurface()
+                                      : approxSurf;
                     Map<AuxScale,Range> calcRangeMap =
                         AuxScale.calculateAuxRanges( calcScales, zone.layers_,
-                                                     approxSurf,
+                                                     rangeSurf,
                                                      oldPlans.toArray(),
                                                      dataStore1 );
                     if ( Thread.currentThread().isInterrupted() ) {
