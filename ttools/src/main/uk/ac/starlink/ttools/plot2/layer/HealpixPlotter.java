@@ -525,16 +525,15 @@ public class HealpixPlotter
                     return icValue_;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
-                                            DataStore dataStore, Object[] plans,
-                                            Range range ) {
-                    // this is nasty because I need to iterate over the data
-                    // to get the aux range; the plan has that information,
-                    // (which means the actual painting doesn't need the data),
-                    // but I can't see it here.
-                    double[] bounds =
-                        createTileRenderer( surface )
-                       .calculateAuxRange( readBins( dataSpec, dataStore ) )
-                       .getBounds();
+                                            DataStore dataStore,
+                                            Object[] knownPlans, Range range ) {
+                    TilePlan tplan = getTilePlan( knownPlans );
+                    BinList.Result binResult =
+                        tplan == null ? readBins( dataSpec, dataStore )
+                                      : tplan.binResult_;
+                    double[] bounds = createTileRenderer( surface )
+                                     .calculateAuxRange( binResult )
+                                     .getBounds();
                     range.submit( bounds[ 0 ] );
                     range.submit( bounds[ 1 ] );
                 }
@@ -554,18 +553,16 @@ public class HealpixPlotter
             return new Drawing() {
                 public Object calculatePlan( Object[] knownPlans,
                                              DataStore dataStore ) {
-                    for ( Object plan : knownPlans ) {
-                        if ( plan instanceof TilePlan ) {
-                            TilePlan tplan = (TilePlan) plan;
-                            if ( tplan.matches( dataLevel_, viewLevel_,
-                                                dataSpec ) ) {
-                                return tplan;
-                            }
-                        }
+                    TilePlan knownPlan = getTilePlan( knownPlans );
+                    if ( knownPlan != null ) {
+                        return knownPlan;
                     }
-                    BinList.Result binResult = readBins( dataSpec, dataStore );
-                    return new TilePlan( dataLevel_, viewLevel_, dataSpec,
-                                         binResult );
+                    else {
+                        BinList.Result binResult =
+                            readBins( dataSpec, dataStore );
+                        return new TilePlan( dataLevel_, viewLevel_, dataSpec,
+                                             binResult );
+                    }
                 }
                 public void paintData( Object plan, Paper paper,
                                        DataStore dataStore ) {
@@ -584,6 +581,27 @@ public class HealpixPlotter
                     return null;
                 }
             };
+        }
+
+        /** 
+         * Identifies and retrieves a tile plan that can be used for
+         * this layer from a list of precalculated plans.
+         * If none of the supplied plans is suitable, null is returned.
+         *
+         * @param  knownPlans  available pre-calculated plans
+         * @return   suitable tile plan from supplied list, or null
+         */
+        private TilePlan getTilePlan( Object[] knownPlans ) {
+            DataSpec dataSpec = getDataSpec();
+            for ( Object plan : knownPlans ) {
+                if ( plan instanceof TilePlan ) {
+                    TilePlan tplan = (TilePlan) plan;
+                    if ( tplan.matches( dataLevel_, viewLevel_, dataSpec ) ) {
+                        return tplan;
+                    }
+                }
+            }
+            return null;
         }
 
         /**
