@@ -65,7 +65,7 @@ public class TapEndpointParams {
     /**
      * Returns the parameter that supplies the base TAP service URL.
      *
-     * @param   service URL parameter
+     * @return   service URL parameter
      */
     public URLParameter getBaseParameter() {
         return baseParam_;
