@@ -17,10 +17,6 @@ import java.text.*;
  */
 public class Pal {
 
-/*  Debug and Trace flags */
-    private static boolean Debug = false;   /* Print debug messages */
-    private static boolean Trace = false;  /* Trace function calls */
-
 /* Various Constants based on PI
 /* pi = 3.1415926535897932384626433832795028841971693993751 */
     private static final double DPI    = Math.PI;
@@ -181,22 +177,6 @@ public class Pal {
         return ( a < 0.0 ? Math.ceil(a-0.5) : Math.floor(a+0.5) );
     }
 
-/*
- * Internal methods used for debugging
- */
-    private static void DEBUG( String s ) {
-       if ( Debug ) System.out.println( "Debug Message: " + s );
-    }
-    private static String space = ""; /* Used for indenting Trace calls */
-    private static void TRACE( String s ) {
-       space = space.concat("-");
-       if ( Trace ) System.out.println( space+"Entering Routine: " + s );
-    }
-    private static void ENDTRACE( String s ) {
-       if ( Trace ) System.out.println( space+"Exiting Routine: " + s );
-       space = space.substring(0,space.length()-1);
-    }
-
 /*****************************************************************************/
 
 /**
@@ -241,7 +221,6 @@ public class Pal {
         AngleDR c;
         int i;
 
-        TRACE("Addet");
         /* E-terms vector */
         a = Etrms ( eq );
 
@@ -258,7 +237,6 @@ public class Pal {
 
         /* Bring RA into conventional range */
         c.setAlpha( Dranrm ( c.getAlpha() ) );
-        ENDTRACE("Addet");
 
         return c;
     }
@@ -321,10 +299,8 @@ public class Pal {
     {
         AMParams amprms;    /* Mean-to-apparent parameters */
 
-        TRACE("Amp");
         amprms = Mappa ( eq, date );
 
-        ENDTRACE("Amp");
         return ( Ampqk ( ap, amprms ) );
     }
 
@@ -397,7 +373,6 @@ public class Pal {
         double ab1p1, p1dv= 0.0, p1dvp1, w, pde=0.0, pdep1;
         int i, j;
 
-        TRACE("Ampqk");
 /* Unpack some of the parameters */
         gr2e = amprms.getGrad();
         ab1  = amprms.getRoot();
@@ -448,7 +423,6 @@ public class Pal {
 /* Mean RA,Dec */
         ap = Dcc2s ( p );
         ap.setAlpha ( Dranrm ( ap.getAlpha() ) );
-        ENDTRACE("Ampqk");
         return ap;
     }
 
@@ -576,7 +550,6 @@ public class Pal {
                 Cartesian pm, double tdk, double pmb, double rh,
                 double wl, double tlr )
     {
-        TRACE("Aoppa");
         double cphim, xt, yt, zt, xc, yc, zc, elong, phi, uau, vau;
         double dut = date.getDeriv();
         double elongm = obs.getLongitude();
@@ -622,7 +595,6 @@ public class Pal {
 
 /* Sidereal time */
         Aoppat ( date.getDate(), aoprms );
-        ENDTRACE("Aoppa");
         return aoprms;
     }
 
@@ -664,9 +636,7 @@ public class Pal {
  */
     public void Aoppat ( double date, AOParams aoprms )
     {
-        TRACE("Aoppat");
         aoprms.setLocalTime ( Gmst ( date ) + aoprms.getLongplus() );
-        ENDTRACE("Aoppat");
         return;
     }
 
@@ -712,7 +682,6 @@ public class Pal {
         int ny;
         double d = 0.0;
 
-        TRACE("Caldj");
 /* Default century if appropriate */
         if ( ( iy >= 0 ) && ( iy <= 49 ) )
             ny = iy + 2000;
@@ -721,7 +690,6 @@ public class Pal {
         else
             ny = iy;
 
-        ENDTRACE("Caldj");
 /* Modified Julian Date */
         try {
            return Cldj ( ny, im, id );
@@ -773,8 +741,6 @@ public class Pal {
 /* Month lengths in days */
         final int mtab[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-        TRACE("Cldj");
-
 /* Validate year */
         if ( iy < -4699 ) {
             Status = 1;
@@ -802,7 +768,6 @@ public class Pal {
         iyL = (long) iy;
         imL = (long) im;
 
-        ENDTRACE("Cldj");
 /* Perform the conversion */
         return ( ( 1461L * ( iyL - ( 12L - imL ) / 10L + 4712L ) ) / 4L
            + ( 306L * ( ( imL + 9L ) % 12L ) + 5L ) / 10L
@@ -858,7 +823,6 @@ public class Pal {
          Status = 0;
          double rad = 0.0;
 
-         TRACE("Daf2r");
 /* Validate arcsec, arcmin, deg */
          if ( ( asec < 0.0 ) || ( asec >= 60.0 ) ) {
              Status = 3;
@@ -877,7 +841,6 @@ public class Pal {
          rad = DAS2R * ( 60.0 * ( 60.0 * (double) ideg
                                   + (double) iamin )
                                            + asec );
-         ENDTRACE("Daf2r");
          return rad;
     }
 
@@ -939,7 +902,6 @@ public class Pal {
  */
     public double Dat ( double utc )
     {
-        TRACE("Dat");
 
 /* - - - - - - - - - - - - - - - - - - - - - */
 /* Add new code here on each occasion that a */
@@ -1070,7 +1032,6 @@ public class Pal {
 /* 1961 January 1 */
         if ( utc >= 37300.0 ) return 1.4228180 + ( utc - 37300.0 ) * 0.001296;
 
-        ENDTRACE("Dat");
 /* Before that. */
         return 1.4178180 + ( utc - 37300.0 ) * 0.001296;
 
@@ -1110,7 +1071,6 @@ public class Pal {
         double x, y, z, phi, s, c, w;
         double rmat[][] = new double[3][3];
 
-        TRACE("Dav2m");
 /* Euler angle - magnitude of axial vector - and functions */
         x   = axvec[0];
         y   = axvec[1];
@@ -1137,7 +1097,6 @@ public class Pal {
         rmat[2][0] = x * z * w + y * s;
         rmat[2][1] = y * z * w - x * s;
         rmat[2][2] = z * z * w + c;
-        ENDTRACE("Dav2m");
         return rmat;
     }
 
@@ -1212,7 +1171,6 @@ public class Pal {
         char c;
         double reslt = dreslt;
 
-        TRACE("Dbjin");
 /* Preset syntax flag */
         Status = 0;
         Flag = 0;
@@ -1265,7 +1223,6 @@ public class Pal {
 
 /* Return argument values and exit */
         Status = j1a;
-        ENDTRACE("Dbjin");
         return dreslt;
     }
 
@@ -1298,7 +1255,6 @@ public class Pal {
        double x, y, z, xd, yd, zd, rxy2, rxy, r2, xyp;
        double a, b, r, ad, bd, rd;
 
-        TRACE("Dc62s");
 /* Components of position/velocity vector. */
         x = v.getX();
         y = v.getY();
@@ -1334,7 +1290,6 @@ public class Pal {
            bd = 0.0;
         }
         rd = ( ( r = Math.sqrt ( r2 ) ) != 0.0 ) ? ( xyp + z * zd ) / ( r ) : 0.0;
-        ENDTRACE("Dc62s");
         return new Spherical( a, b, r, ad, bd, rd );
     }
 
@@ -1367,9 +1322,6 @@ public class Pal {
  */
     public AngleDR Dcc2s ( double v[] )
     {
-
-        TRACE("Dcc2s");
-
         double x, y, z, r;
         double a, b;
 
@@ -1381,7 +1333,6 @@ public class Pal {
         a = ( r != 0.0 ) ? Math.atan2 ( y, x ) : 0.0;
         b = ( z != 0.0 ) ? Math.atan2 ( z, r ) : 0.0;
 
-        ENDTRACE("Dcc2s");
         return new AngleDR( a, b );
     }
 
@@ -1414,7 +1365,6 @@ public class Pal {
     public double[] Dcs2c ( AngleDR a )
     {
     
-        TRACE("Dcs2c");
         double cosb;
         double v[] = new double[3];
         double a0 = a.getAlpha();
@@ -1424,7 +1374,6 @@ public class Pal {
         v[0] = Math.cos ( a0 ) * cosb;
         v[1] = Math.sin ( a0 ) * cosb;
         v[2] = Math.sin ( a1 );
-        ENDTRACE("Dcs2c");
  
         return v;
     }
@@ -1453,25 +1402,20 @@ public class Pal {
         double a, af;
         int ih, im, is;
 
-        TRACE("Dd2tf");
 /* Handle sign */
         char sign = (char) ( ( days < 0.0 ) ?  '-' : '+' );
 
 /* Separate into fields */
-        DEBUG( "Dd2tf: days = " + days );
         a = D2S * Math.abs ( days );
-        DEBUG( "Dd2tf: a = " + a );
         ih = dint ( a / 3600.0 );
         a  = a - ih * 3600.0;
         im = dint ( a / 60.0 );
         a  = a - im * 60.0;
         is = dint ( a );
-        DEBUG( "Dd2tf: secs = " + a );
         af = (a - is);
 
 /* Return results */
         palTime ihmsf = new palTime( ih, im, is, af, sign);
-        ENDTRACE("Dd2tf");
         return ihmsf;
     }
 
@@ -1532,7 +1476,6 @@ public class Pal {
         double wm[][] = new double[3][3];
         char axis;
 
-        TRACE("Deuler");
 /* Initialize result matrix */
         for ( j = 0; j < 3; j++ ) {
            for ( i = 0; i < 3; i++ ) {
@@ -1624,7 +1567,6 @@ public class Pal {
 //               rmat[i][j] = result[i][j];
 //           }
 //       }
-       ENDTRACE("Deuler");
        return result;
     }
 
@@ -1774,7 +1716,6 @@ public class Pal {
         double dmant;
         String Errmsg = null;
 
-        TRACE("Dfltin");
 /* Find string length */
         l_string = string.length( );
 
@@ -2173,7 +2114,6 @@ public class Pal {
 //        if ( Status > 0 ) throw new palError( Status, Errmsg );
 
 /* Finished: return updated pointer and the status */
-        ENDTRACE("Dfltin");
         return reslt;
     }
 
@@ -2221,7 +2161,6 @@ public class Pal {
 
 /* Character/vector tables */
 
-        TRACE("idchf");
         final int NCREC = 20;
         final char kctab[] = { '0','1','2','3','4','5','6','7','8','9',
                                 ' ','\t',
@@ -2267,7 +2206,6 @@ public class Pal {
         }
         string.setDigit( digit );
 
-        ENDTRACE("idchf");
 /* Return the value identifying the character */
         return ivec;
     }
@@ -2308,7 +2246,6 @@ public class Pal {
         double w;
         double vw[] = new double[3];
 
-        TRACE("Dimxv");
 /* Inverse of matrix dm * vector va -> vector vw */
         for ( int j = 0; j < 3; j++ ) {
             w = 0.0;
@@ -2317,7 +2254,6 @@ public class Pal {
             }
             vw[j] = w;
         }
-        ENDTRACE("Dimxv");
         return vw;
     }
 
@@ -2359,7 +2295,6 @@ public class Pal {
         int yr, mn, dy;
         Status = 0;
 
-        TRACE("Djcal");
 /* Validate */
         if ( ( djm <= -2395520.0 ) || ( djm >= 1.0e9 ) ) {
             Status = - 1;
@@ -2380,7 +2315,6 @@ public class Pal {
             mn = (int) ( ( ( nd10 / 306L + 2L ) % 12L ) + 1L );
             dy = (int) ( ( nd10 % 306L ) / 10L + 1L );
         }
-        ENDTRACE("Djcal");
         try {
             mjDate date = new mjDate(yr, mn, dy, f);
             return date;
@@ -2425,7 +2359,6 @@ public class Pal {
         long jd, n4, nd10;
         Status = 0;
 
-        TRACE("Djcl");
 /* Check if date is acceptable */
         if ( ( djm <= -2395520.0 ) || ( djm >= 1e9 ) ) {
             Status = -1;
@@ -2443,7 +2376,6 @@ public class Pal {
             jd = (long) dnint ( d ) + 2400001;
             n4 = 4L*(jd+((6L*((4L*jd-17918L)/146097L))/4L+1L)/2L-37L);
             nd10 = 10L*(((n4-237L)%1461L)/4L)+5L;
-            ENDTRACE("Djcl");
             try {
                 mjDate date = new mjDate ( (int) (n4/1461L-4712L),
                    (int) (((nd10/306L+2L)%12L)+1L),
@@ -2493,7 +2425,6 @@ public class Pal {
         double x, y, z, s2, c2, phi, f;
         double axvec[] = new double[3];
 
-        TRACE("Dm2av");
         x = rmat[1][2] - rmat[2][1];
         y = rmat[2][0] - rmat[0][2];
         z = rmat[0][1] - rmat[1][0];
@@ -2511,7 +2442,6 @@ public class Pal {
             axvec[1] = 0.0;
             axvec[2] = 0.0;
         }
-        ENDTRACE("Dm2av");
         return axvec;
     }
 
@@ -2589,7 +2519,6 @@ public class Pal {
        int n = y.length;
        int iw[] = new int[n];
 
-       TRACE("Dmat");
 /* Pointers to beginnings of rows in matrix a[n][n] */
 
         double ak[],    /* row k    */
@@ -2681,7 +2610,6 @@ public class Pal {
                 }
             }
         }
-        ENDTRACE("Dmat");
         return d;
     }
 
@@ -2714,7 +2642,6 @@ public class Pal {
         double w;
         double c[][] = new double[3][3];
 
-        TRACE("Dmxm");
 /* Multiply into scratch matrix */
         for ( int i = 0; i < 3; i++ ) {
            for ( int j = 0; j < 3; j++ ) {
@@ -2725,7 +2652,6 @@ public class Pal {
               c[i][j] = w;
            }
         }
-        ENDTRACE("Dmxm");
         return c;
 
     }
@@ -2760,7 +2686,6 @@ public class Pal {
        int i, j;
        double w, vb[] = new double[3];
 
-       TRACE("Dmxv");
 /* Matrix dm * vector va -> vector vw */
        for ( j = 0; j < 3; j++ ) {
            w = 0.0;
@@ -2769,7 +2694,6 @@ public class Pal {
            }
            vb[j] = w;
        }
-       ENDTRACE("Dmxv");
        return vb;
     }
 
@@ -2800,8 +2724,6 @@ public class Pal {
  */
     public palTime Dr2af ( double angle )
     {
-        TRACE("Dr2af");
-        ENDTRACE("Dr2af");
 /* Scale then use days to h,m,s routine */
         return Dd2tf ( (double) angle * D15B2P );
     }
@@ -2832,8 +2754,6 @@ public class Pal {
  */
     public palTime Dr2tf ( double angle )
     {
-        TRACE("Dr2tf");
-        ENDTRACE("Dr2tf");
 /* Scale then use days to h,m,s routine */
         return Dd2tf ( angle / D2PI );
     }
@@ -2860,11 +2780,9 @@ public class Pal {
     {
         double w, w1;
 
-        TRACE("Drange");
         w = dmod ( angle, D2PI );
 //        return ( Math.abs ( w ) < DPI ) ? w : w - dsign ( D2PI, angle );
         w1 = ( angle < 0.0 ? -D2PI : D2PI);
-        ENDTRACE("Drange");
         return ( Math.abs ( w ) < DPI  ? w : w - w1 );
     }
 
@@ -2888,11 +2806,9 @@ public class Pal {
  */
     public double Dranrm ( double angle ){
 
-        TRACE("Dranrm");
         double w;
 
         w = dmod ( angle, D2PI );
-        ENDTRACE("Dranrm");
         return ( w >= 0.0 ? w : w + D2PI );
     }
 
@@ -2935,8 +2851,6 @@ public class Pal {
 
     public double Drverot ( double phi, AngleDR r, double st )
     {
-        TRACE("Drverot");
-        ENDTRACE("Drverot");
         return ESPEED * Math.cos ( phi ) * Math.sin ( st - r.getAlpha() ) *
                         Math.cos ( r.getDelta() );
     }
@@ -3001,11 +2915,9 @@ public class Pal {
         final double va[] = { -108.70408, 97.86251, -164.33610 };
         double vb[];
 
-        TRACE("Drvgalc");
 /* Convert given J2000 RA,dec to x,y,z */
         vb = Dcs2c ( r2000 );
 
-        ENDTRACE("Drvgalc");
 /* Compute dot product with LSR motion vector */
         return Dvdv ( va, vb );
     }
@@ -3059,11 +2971,9 @@ public class Pal {
         final double va[] = { -148.23284, 133.44888, -224.09467 };
         double vb[];
 
-        TRACE("Drvlg");
 /* Convert given J2000 RA,dec to x,y,z */
         vb = Dcs2c ( r2000 );
 
-        ENDTRACE("Drvlg");
 /* Compute dot product with solar motion vector */
         return Dvdv ( va, vb );
     }
@@ -3128,11 +3038,9 @@ public class Pal {
         final double va[] = { 0.63823, 14.58542, -7.80116 };
         double vb[];
 
-        TRACE("Drvlsrd");
 /* Convert given J2000 RA,dec to x,y,z */
         vb = Dcs2c ( r2000 );
 
-        ENDTRACE("Drvlsrd");
 /* Compute dot product with solar motion vector */
         return Dvdv ( va, vb );
     }
@@ -3198,12 +3106,10 @@ public class Pal {
         final double va[] = { -0.29000, 17.31726, -10.00141 };
         double vb[];
 
-        TRACE("Drvlsrk");
 /* Convert given J2000 RA,dec to x,y,z */
         vb = Dcs2c ( r2000 );
 
 /* Compute dot product with solar motion vector */
-        ENDTRACE("Drvlsrk");
         return Dvdv ( va, vb );
     }
 
@@ -3238,7 +3144,6 @@ public class Pal {
         double ad = s.getLongDeriv(), bd = s.getLatDeriv(),
                rd = s.getRadialDeriv();
 
-        TRACE("Ds2c6");
 /* Useful functions */
         sa = Math.sin ( a );
         ca = Math.cos ( a );
@@ -3259,7 +3164,6 @@ public class Pal {
 //        v[3] = -y * ad - w * ca;
 //        v[4] = x * ad - w * sa;
 //        v[5] = rbd * cb + sb * rd;
-        ENDTRACE("Ds2c6");
         return new Cartesian( x, y, r*sb,
                                 -y * ad - w * ca,
                                  x * ad - w * sa,
@@ -3297,7 +3201,6 @@ public class Pal {
         double raz = rz.getAlpha(), decz = rz.getDelta();
         String Errmsg = null;
 
-        TRACE("Ds2tp");
 /* Trig functions */
         sdecz = Math.sin ( decz );
         sdec = Math.sin ( dec );
@@ -3326,7 +3229,6 @@ public class Pal {
 /* Compute tangent plane coordinates (even in dubious cases) */
         xi = cdec * sradif / denom;
         eta = ( sdec * cdecz - cdec * sdecz * cradif ) / denom;
-        ENDTRACE("Ds2tp");
         return new AngleDR ( xi, eta );
     }
 
@@ -3389,7 +3291,6 @@ public class Pal {
     {
         double t, w, s;
 
-        TRACE("Dt");
 /* Centuries since 1800 */
         t = ( epoch - 1800.0 ) / 100.0;
 
@@ -3410,7 +3311,6 @@ public class Pal {
                 s = 1360.0 + ( 320.0 + 44.3 * t ) * t;
             }
         }
-        ENDTRACE("Dt");
 
 /* Result */
         return s;
@@ -3455,9 +3355,7 @@ public class Pal {
 /* Preset status */
         Status = 0;
 
-        TRACE("Dtf2d");
 /* Validate sec, min, hour */
-        ENDTRACE("Dtf2d");
         if ( ( sec < 0.0 ) || ( sec >= 60.0 ) ) {
             Status = 1;
             throw new palError( 1, "Dtf2d: sec outside range 0-59.999..." );
@@ -3517,7 +3415,6 @@ public class Pal {
     {
         double turns;
 
-        TRACE("Dtf2r");
 /* Convert to turns */
         try {
             turns = Dtf2d ( ihour, imin, sec );
@@ -3527,7 +3424,6 @@ public class Pal {
         }
 
 /* To radians */
-        ENDTRACE("Dtf2r");
         return D2PI * turns;
     }
 
@@ -3558,14 +3454,12 @@ public class Pal {
         double xi = x.getAlpha(), eta = x.getDelta();
         double raz = rz.getAlpha(), decz = rz.getDelta();
 
-        TRACE("Dtp2s");
         sdecz = Math.sin ( decz );
         cdecz = Math.cos ( decz );
         denom = cdecz - eta * sdecz;
         a1 = Dranrm ( Math.atan2 ( xi, denom ) + raz );
         d1 = Math.atan2 ( sdecz + eta * cdecz,
                         Math.sqrt ( xi * xi + denom * denom ) );
-        ENDTRACE("Dtp2s");
         return new AngleDR ( a1, d1 );
     }
 
@@ -3604,8 +3498,6 @@ public class Pal {
  */
     public double Dtt ( double utc )
     {
-        TRACE("Dtt");
-        ENDTRACE("Dtt");
         return 32.184 + Dat ( utc );
     }
 
@@ -3630,8 +3522,6 @@ public class Pal {
  */
     public double Dvdv ( double va[], double vb[] )
     {
-        TRACE("Dvdv");
-        ENDTRACE("Dvdv");
         return va[0] * vb[0] + va[1] * vb[1] + va[2] * vb[2];
     }
 
@@ -3665,7 +3555,6 @@ public class Pal {
     {
         double w1, w2, vm;
 
-        TRACE("Dvn");
 /* Modulus */
         w1 = 0.0;
         for ( int i = 0; i < 3; i++ ) {
@@ -3681,7 +3570,6 @@ public class Pal {
         for ( int i = 0; i < 3; i++ ) {
            uv[i] = v[i] / w1;
         }
-        ENDTRACE("Dvn");
         return vm;
     }
 
@@ -3713,12 +3601,10 @@ public class Pal {
         double vw[] = new double[3];
         int i;
 
-        TRACE("Dvxv");
 /* Form the vector product va cross vb */
         vw[0] = va[1] * vb[2] - va[2] * vb[1];
         vw[1] = va[2] * vb[0] - va[0] * vb[2];
         vw[2] = va[0] * vb[1] - va[1] * vb[0];
-        ENDTRACE("Dvxv");
 
 /* Return the result */
         return vw;
@@ -3753,7 +3639,6 @@ public class Pal {
     public AngleDR Ecleq ( AngleDR dl, double date )
     {
         double rmat[][], v1[], v2[];
-        TRACE("Ecleq");
 
 /* Spherical to Cartesian */
         v1 = Dcs2c ( dl );
@@ -3772,7 +3657,6 @@ public class Pal {
 /* Express in conventional ranges */
         dd.setAlpha( Dranrm ( dd.getAlpha() ) );
         dd.setDelta( Drange ( dd.getDelta() ) );
-        ENDTRACE("Ecleq");
         return dd;
     }
 
@@ -3808,7 +3692,6 @@ public class Pal {
     public double[][] Ecmat ( double date )
     {
         double t, eps0;
-        TRACE("Ecmat");
 
 /* Interval between basic epoch J2000.0 and current epoch (JC) */
         t = ( date - 51544.5 ) / 36525.0;
@@ -3818,7 +3701,6 @@ public class Pal {
             ( 84381.448 + ( -46.8150 + ( -0.00059 + 0.001813 * t ) * t ) * t );
 
 /* Matrix */
-        ENDTRACE("Ecmat");
         return Deuler ( "X", eps0, 0.0, 0.0 );
     }
 
@@ -3844,8 +3726,6 @@ public class Pal {
  */
     public double Epb ( double date )
     {
-        TRACE("Epb");
-        ENDTRACE("Epb");
         return 1900.0 + ( date - 15019.81352 ) / 365.242198781;
     }
 
@@ -3950,8 +3830,6 @@ public class Pal {
  */
     public double Epj ( double date )
     {
-        TRACE("Epj");
-        ENDTRACE("Epj");
         return 2000.0 + ( date - 51544.5 ) / 365.25;
     }
 
@@ -3977,8 +3855,6 @@ public class Pal {
  */
     public double Epj2d ( double epj )
     {
-        TRACE("Epj2d");
-        ENDTRACE("Epj2d");
         return 51544.5 + ( epj - 2000.0 ) * 365.25;
     }
 
@@ -4012,7 +3888,6 @@ public class Pal {
     {
         double rmat[][], v1[], v2[];
 
-        TRACE("Eqecl");
 /* Spherical to Cartesian */
         v1 = Dcs2c ( d );
 
@@ -4030,7 +3905,6 @@ public class Pal {
 /* Express in conventional ranges */
         db.setAlpha ( Dranrm ( db.getAlpha() ) );
         db.setDelta ( Drange ( db.getDelta() ) );
-        ENDTRACE("Eqecl");
         return db;
     }
 
@@ -4072,7 +3946,6 @@ public class Pal {
     {
         double t, om;
 
-        TRACE("Eqeqx");
 /* Interval between basic epoch J2000.0 and current epoch (JC) */
         t = ( date - 51544.5 ) / 36525.0;
 
@@ -4084,7 +3957,6 @@ public class Pal {
 /* Nutation */
         double ps[] = Nutc ( date );
 
-        ENDTRACE("Eqeqx");
 /* Equation of the equinoxes */
         return ps[0] * Math.cos ( ps[2] ) + DAS2R * ( 0.00264 *  Math.sin ( om ) +
                                          0.000063 *  Math.sin ( om + om ) );
@@ -4200,7 +4072,6 @@ public class Pal {
     public double[] Etrms ( double ep )
     {
 
-        TRACE("Etrms");
         double t, e, e0, p, ek, cp;
         double ev[] = new double[3];
 
@@ -4224,7 +4095,6 @@ public class Pal {
         ev[0] = ek * Math.sin ( p );
         ev[1] = -ek * cp * Math.cos ( e0 );
         ev[2] = -ek * cp * Math.sin ( e0 );
-        ENDTRACE("Etrms");
 
         return ev;
     }
@@ -4301,7 +4171,6 @@ public class Pal {
     public void Evp ( double date, double deqx, double dvb[],
               double dpb[], double dvh[], double dph[] )
     {
-        TRACE("Evp");
         int ideq, i, j, k;
 
         double a, pertl,
@@ -4853,7 +4722,6 @@ public class Pal {
               dpb[j] = vw[j];
            }
        }
-       ENDTRACE("Evp");
     }
 
 /**
@@ -5015,7 +4883,6 @@ public class Pal {
              1.00000956 }               /* em[5][5] */
         };
 
-        TRACE("Fk425");
 /* Pick up B1950 data (units radians and arcsec/tc) */
         AngleDR rd = s1950.getAngle();
         r = rd.getAlpha();
@@ -5093,7 +4960,6 @@ public class Pal {
 /* Return results */
         AngleDR ang = new AngleDR( r, d );
         double pm1[] = { ur / pmf, ud / pmf };
-        ENDTRACE("Fk425");
         return new Stardata( ang, pm1, px, rv );
      }
 
@@ -5621,7 +5487,6 @@ public class Pal {
            { -0.867666135858, -0.198076386122,  0.455983795705 }
         };
 
-        TRACE("Galeq");
 /* Spherical to Cartesian */
         v1 = Dcs2c ( d );
 
@@ -5634,7 +5499,6 @@ public class Pal {
         d.setDelta( Drange ( d.getDelta() ) );
 
 /* Express in conventional ranges */
-        ENDTRACE("Galeq");
         return d;
 }
 
@@ -5696,7 +5560,6 @@ public class Pal {
            {  0.673145302109,  0.731271165817,  0.110081262225 }
         };
 
-        TRACE("Galsup");
 /* Spherical to Cartesian */
         v1 = Dcs2c ( d );
 
@@ -5706,7 +5569,6 @@ public class Pal {
 /* Cartesian to spherical */
         d = Dcc2s ( v2 );
 
-        ENDTRACE("Galsup");
 /* Express in conventional ranges */
         return new Galactic ( Dranrm ( d.getAlpha() ),
                                  Drange ( d.getDelta() ) );
@@ -5745,7 +5607,6 @@ public class Pal {
  */
     public double[] Geoc ( double p, double h )
     {
-        TRACE("Geoc");
         double sp, cp, c, s;
         double r[] = new double[2];
 
@@ -5766,7 +5627,6 @@ public class Pal {
         s = b * c;
         r[0] = ( a0 * c + h ) * cp / au;
         r[1] = ( a0 * s + h ) * sp / au;
-        ENDTRACE("Geoc");
         return r;
      }
 
@@ -5952,13 +5812,11 @@ public class Pal {
     {
         AMParams amprms;
 
-        TRACE("Map");
 /* Star-independent parameters */
         amprms = Mappa ( epq, date );
 
 /* Mean to apparent */
         AngleDR ra = Mapqk ( sd, amprms );
-        ENDTRACE("Map");
         return ra;
     }
 
@@ -6036,7 +5894,6 @@ public class Pal {
        double ebd[] = new double[3], ehd[] = new double[3],
               eh[] = new double[3], e=1.0, vn[] = new double[3], vm = 0.0;
 
-       TRACE("Mappa");
 /* Time interval for proper motion correction */
        amprms.setTimeint( Epj ( date ) - eq );
 
@@ -6059,7 +5916,6 @@ public class Pal {
 
 /* Precession/nutation matrix */
        amprms.setPrecess( Prenut ( eq, date ) );
-       ENDTRACE("Mappa");
 
        return amprms;
     }
@@ -6151,7 +6007,6 @@ public class Pal {
           pn[] = new double[3], pde, pdep1,
           p1[] = new double[3], p1dv, p2[] = new double[3], p3[] = new double[3];
 
-        TRACE("Mapqk");
 /* Unpack scalar and vector parameters */
         pmt = amprms.getTimeint();
         gr2e = amprms.getGrad();
@@ -6207,7 +6062,6 @@ public class Pal {
         AngleDR ra = Dcc2s ( p3 );
 
         ra.setAlpha( Dranrm ( ra.getAlpha()) );
-        ENDTRACE("Mapqk");
         return ra;
     }
 
@@ -6284,7 +6138,6 @@ public class Pal {
         double gr2e, ab1, p[], pde, pdep1, w, p1dv, p1dvp1,
           p1[] = new double[3], p2[] = new double[3];
 
-        TRACE("Mapqkz");
 /* Unpack scalar and vector parameters */
         gr2e = amprms.getGrad();
         ab1 = amprms.getRoot();
@@ -6316,7 +6169,6 @@ public class Pal {
 /* Geocentric apparent RA,dec */
         AngleDR a = Dcc2s ( p3 );
         a.setAlpha( Dranrm ( a.getAlpha() ) );
-        ENDTRACE("Mapqkz");
         return a;
 }
 
@@ -6351,14 +6203,12 @@ public class Pal {
         double nc[];
         double rmatn[][];
 
-        TRACE("Nut");
 /* Nutation components and mean obliquity */
         nc = Nutc ( date );
         double dpsi = nc[0], deps = nc[1], eps0 = nc[2];
 
 /* Rotation matrix */
         rmatn = Deuler ( "xzx", eps0, -dpsi, - ( eps0 + deps ) );
-        ENDTRACE("Nut");
         return rmatn;
     }
 
@@ -7112,7 +6962,6 @@ public class Pal {
                dp, de, a;
         double result[] = new double[3];
 
-        TRACE("Nutc");
 /* Interval between basic epoch J2000.0 and current epoch (JC) */
         t = ( date - 51544.5 ) / 36525.0;
 
@@ -7499,7 +7348,6 @@ public class Pal {
         result[2] = DAS2R * ( 84381.448 +
                    ( - 46.8150 +
                    ( - 0.00059 + 0.001813 * t ) * t ) * t );
-        ENDTRACE("Nutc");
         return result;
     }
 
@@ -7593,7 +7441,6 @@ public class Pal {
        int i;
        double w, em[] = new double[3], t, p[] = new double[3];
 
-       TRACE("Pm");
 /* Spherical to Cartesian */
        p = Dcs2c ( r0 );
        double r = r0.getAlpha();
@@ -7613,7 +7460,6 @@ public class Pal {
 /* Cartesian to spherical */
        AngleDR r1 = Dcc2s ( p );
        r1.setAlpha( Dranrm ( r1.getAlpha() ) );
-       ENDTRACE("Pm");
        return r1;
     }
 
@@ -7654,7 +7500,6 @@ public class Pal {
     {
         double bigt, t, tas2r, w, zeta, z, theta;
 
-        TRACE("Prebn");
 /* Interval between basic epoch B1850.0 and beginning epoch in TC */
         bigt  = ( bep0 - 1850.0 ) / 100.0;
 
@@ -7669,7 +7514,6 @@ public class Pal {
         theta = ( 2005.1125 + ( - 0.85294 - 0.000365* bigt ) * bigt +
                 ( - 0.42647 - 0.000365 * bigt - 0.041802 * t ) * t ) * tas2r;
 
-        ENDTRACE("Prebn");
 /* Rotation matrix */
         return Deuler ( "ZYZ", -zeta, theta, -z );
     }
@@ -7728,7 +7572,6 @@ public class Pal {
     {
         double t0, t, tas2r, w, zeta, z, theta;
 
-        TRACE("Prec");
 /* Interval between basic epoch J2000.0 and beginning epoch (JC) */
         t0 = ( ep0 - 2000.0 ) / 100.0;
 
@@ -7743,7 +7586,6 @@ public class Pal {
         theta = ( ( 2004.3109 + ( - 0.85330 - 0.000217 * t0 ) * t0 )
           + ( ( -0.42665 - 0.000217 * t0 ) - 0.041833 * t ) * t ) * tas2r;
 
-        ENDTRACE("Prec");
 /* Rotation matrix */   
         return Deuler ( "ZYZ", -zeta, theta, -z );
     }
@@ -7794,7 +7636,6 @@ public class Pal {
     {
         double pm[][], v1[], v2[];
 
-        TRACE("Preces");
 /* Validate sys */
         boolean fk4 = sys.toUpperCase().equals("FK4");
         boolean fk5 = sys.toUpperCase().equals("FK5");
@@ -7818,7 +7659,6 @@ public class Pal {
         } else {
             d = new AngleDR( -99.0, -99.0 );
         }
-        ENDTRACE("Preces");
         return d;
     }
 
@@ -7868,7 +7708,6 @@ public class Pal {
     {
         double t0, t, tas2r, w, zeta, z, theta;
 
-        TRACE("Precl");
 /* Interval between basic epoch J2000.0 and beginning epoch (1000JY) */
         t0 = ( ep0 - 2000.0 ) / 1000.0;
 
@@ -7940,7 +7779,6 @@ public class Pal {
 
 /* Rotation matrix */
         double rmatp[][] = Deuler ( "ZYZ", -zeta, theta, -z );
-        ENDTRACE("Precl");
         return rmatp;
     }
 
@@ -7978,7 +7816,6 @@ public class Pal {
     {
         double rmatp[][], rmatn[][];
 
-        TRACE("Prenut");
 /* Precession */
         rmatp = Prec ( epoch, Epj ( date ) );
 
@@ -7987,7 +7824,6 @@ public class Pal {
 
 /* Combine the matrices:  pn = n x p */
         rmatn = Dmxm ( rmatn, rmatp );
-        ENDTRACE("Prenut");
         return rmatn;
     }
 
@@ -8051,7 +7887,6 @@ public class Pal {
     public double[] Refco ( double hm, double tdk, double pmb, double rh,
                 double wl, double phi, double tlr, double eps )
     {
-        TRACE("Refco");
         double r1,r2;
         double ref[] = new double[2];
 
@@ -8066,7 +7901,6 @@ public class Pal {
 /* Solve for refraction constants. */
         ref[0] = ( 64.0 * r1 - r2 ) / 60.0;
         ref[1] = ( r2 - 4.0 * r1 ) / 60.0;
-        ENDTRACE("Refco");
         return ref;
     }
  
@@ -8203,7 +8037,6 @@ public class Pal {
     {
 /* Fixed parameters */
 
-        TRACE("Refro");
         final double d93 = 1.623156204; /* 93 degrees in radians        */
         final double gcr = 8314.32;     /* Universal gas constant       */
         final double dmd = 28.9644;     /* Molecular weight of dry air  */
@@ -8428,7 +8261,6 @@ public class Pal {
 /* Result. */
         ref = reft + refp;
         if ( zobs1 < 0.0 ) ref = - ( ref );
-        ENDTRACE("Refro");
         return ref;
     }
 
@@ -8472,7 +8304,6 @@ public class Pal {
         double w, tt0, tt0gm2, tt0dm2;
         double t[] = new double[3];
 
-        TRACE("atmt");
         w = tdkok - alpha * ( r - robs );
         w = gmin ( w, 320.0 );
         w = gmax ( w, 100.0 );
@@ -8482,7 +8313,6 @@ public class Pal {
         t[0] = w;
         t[1] = 1.0 + ( c1 * tt0gm2 - ( c2 - c5 / w ) * tt0dm2 ) * tt0;
         t[2] = r * ( - c3 * tt0gm2 + ( c4 - c6 / tt0 ) * tt0dm2 );
-        ENDTRACE("atmt");
         return t;
     }
 
@@ -8511,12 +8341,10 @@ public class Pal {
         double b, w;
         double dn[] = new double[2];
 
-        TRACE("atms");
         b = gamal / tt;
         w = ( dnt - 1.0 ) * Math.exp ( - b * ( r - rt ) );
         dn[0] = 1.0 + w;
         dn[1] = - r * b * w;
-        ENDTRACE("atms");
         return dn;
      }
 /*--------------------------------------------------------------------------*/
@@ -8561,7 +8389,6 @@ public class Pal {
         double a[], v[], f;
         AngleDR m;
 
-        TRACE("Subet");
 /* E-terms */
         a = Etrms ( eq );
 
@@ -8580,7 +8407,6 @@ public class Pal {
 /* Bring RA into conventional range */
         m.setAlpha( Dranrm ( m.getAlpha() ) );
 
-        ENDTRACE("Subet");
         return m;
     }
 
@@ -8641,7 +8467,6 @@ public class Pal {
            {  0.673145302109,  0.731271165817,  0.110081262225 }
         };
 
-        TRACE("Supgal");
 /* Spherical to Cartesian */
         AngleDR d = new AngleDR( ds.getLongitude(), ds.getLatitude() );
         v1 = Dcs2c ( d );
@@ -8652,7 +8477,6 @@ public class Pal {
 /* Cartesian to spherical */
         d = Dcc2s ( v2 );
 
-        ENDTRACE("Supgal");
 /* Express in conventional ranges */
         return new Galactic ( Dranrm ( d.getAlpha() ),
                                  Drange ( d.getDelta() ) );
@@ -8707,7 +8531,6 @@ public class Pal {
     {
         double sh, ch, sd, cd, sp, cp, x, y, z;
 
-        TRACE("Zd");
         sh = Math.sin ( ha );
         ch = Math.cos ( ha );
         sd = Math.sin ( dec );
@@ -8718,7 +8541,6 @@ public class Pal {
         x = ch * cd * sp - sd * cp;
         y = sh * cd;
         z = ch * cd * cp + sd * sp;
-        ENDTRACE("Zd");
 
         return Math.atan2 ( Math.sqrt ( x * x + y * y ), z );
     }
