@@ -10,6 +10,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -466,12 +468,59 @@ public class SkySurface implements Surface {
     }
 
     /**
-     * Returns the approximate size of a screen pixel in radians.
+     * Returns the approximate solid angle covered by a screen pixel
+     * in steradians.
+     * It tries to return a representative value for the visible area.
      *
-     * @return   approximate (mean?) linear size of a screen pixel in radians
+     * @return   approximate linear size of a screen pixel in radians
      */
-    public double getPixelSize() {
-        return 2.0 * Math.PI / gZoom_;
+    public double pixelAreaSteradians() {
+        Point2D screenCenter = new Point2D.Double( ( gxlo_ + gxhi_ ) * 0.5,
+                                                   ( gylo_ + gyhi_ ) * 0.5 );
+        double size = pixelAreaSteradians( screenCenter );
+        return Double.isNaN( size ) ? pixelAreaSteradians( getSkyCenter() )
+                                    : size;
+    }
+
+    /**
+     * Returns the solid angle covered by a given graphics pixel
+     * in steradians.
+     *
+     * @param   gpos  position of graphics pixel center
+     * @return  approximate linear size of pixel in radians,
+     *          or NaN if pixel is not (all) on the sky
+     */
+    public double pixelAreaSteradians( Point2D gpos ) {
+        double gx = gpos.getX();
+        double gy = gpos.getY();
+        double delta = 1;
+        double d2 = delta * 0.5;
+        return 0.5
+             * screenDistanceRadians( new Point2D.Double( gx - d2, gy - d2 ),
+                                      new Point2D.Double( gx + d2, gy + d2 ) )
+             * screenDistanceRadians( new Point2D.Double( gx - d2, gy + d2 ),
+                                      new Point2D.Double( gx + d2, gy - d2 ) );
+    }
+
+    /**
+     * Returns the distance along a great circle in radians between two
+     * graphics positions.  The evaluation should be well-conditioned
+     * for small or large angles.  The given coordinates do not need
+     * to be within the graphics bounds, but if they are outside the
+     * celestial sphere, NaN will be returned.
+     *
+     * @param   gp1  first position
+     * @param   gp2  second position
+     * @return  separation between positions in radians,
+     *          or NaN if one of the positions is not on the sky
+     */
+    public double screenDistanceRadians( Point2D gp1, Point2D gp2 ) {
+        double[] dp1 = graphicsToData( gp1, null );
+        double[] dp2 = graphicsToData( gp2, null );
+        return dp1 == null || dp2 == null
+             ? Double.NaN
+             : Math.atan2( Matrices.mod( Matrices.cross( dp1, dp2 ) ),
+                           Matrices.dot( dp1, dp2 ) );
     }
 
     /**
@@ -709,6 +758,19 @@ public class SkySurface implements Surface {
      */
     public Point getSkyCenter() {
         return new Point( gXoff_, gYoff_ );
+    }
+
+    /**
+     * Returns a shape that gives the boundary of the sky projection
+     * in graphics coordinates.
+     *
+     * @return   sky boundary shape
+     */
+    public Shape getSkyShape() {
+        Area shape = new Area( projection_.getProjectionShape() );
+        shape.transform( new AffineTransform( gZoom_, 0, 0, -gZoom_,
+                                               gXoff_, gYoff_ ) );
+        return shape;
     }
 
     @Override
