@@ -69,8 +69,6 @@ public class HealpixPlotter
     private final boolean reportAuxKeys_;
     private final int icHealpix_;
     private final int icValue_;
-    private final int minPaintLevel_;
-    private final int maxPaintLevel_;
     private final int minPaintPixels_;
 
     /** Maximum HEALPix level supported by this plotter. */
@@ -165,9 +163,7 @@ public class HealpixPlotter
         icValue_ = 1;
         transparent_ = transparent;
         reportAuxKeys_ = false;
-        minPaintLevel_ = 5;
-        maxPaintLevel_ = 7;
-        minPaintPixels_ = 20;
+        minPaintPixels_ = 24;
     }
 
     public String getPlotterDescription() {
@@ -641,21 +637,19 @@ public class HealpixPlotter
             Rotation rotation = hstyle_.rotation_;
             SkySurface ssurf = (SkySurface) surface;
 
-            /* The best strategy depends on how many tiles will be displayed;
-             * if there are few tiles, each covering many screen pixels,
-             * it's faster to paint them using graphics primitives,
-             * but if there are many, of comparable size to screen pixels,
-             * it's better to resample them.
-             * If there's a small number of tiles on the whole sky,
-             * paint it anyway because it will be fast enough. */
-            double tileWidthRadians =
-                Math.sqrt( Math.PI / 3.0 ) / ( 1 << viewLevel_ );
-            double pixelWidthRadians = ssurf.getPixelSize();
-            double pixelsPerTile =
-                Math.pow( tileWidthRadians / pixelWidthRadians, 2 );
-            return ( viewLevel_ >= minPaintLevel_
-                     && ( viewLevel_ <= maxPaintLevel_ ||
-                          pixelsPerTile >= minPaintPixels_ ) )
+            /* We have two strategies for colouring in the tiles:
+             * either paint each one as a polygon or resample the plot
+             * area pixel by pixel.  Painting is generally faster if
+             * the tiles are not too small.  However, getting the edges
+             * right is very difficult with painting, so use resampling
+             * if the boundary of the celestial sphere will be visible. */
+            double srPerTile = 4 * Math.PI / ( 12 << 2 * viewLevel_ );
+            double srPerPixel = ssurf.pixelAreaSteradians();
+            double pixelsPerTile = srPerTile / srPerPixel;
+            boolean isPaint =
+                  pixelsPerTile >= minPaintPixels_
+               && ssurf.getSkyShape().contains( ssurf.getPlotBounds() );
+            return isPaint
                  ? new PaintTileRenderer( ssurf, viewLevel_, rotation )
                  : new ResampleTileRenderer( ssurf, viewLevel_, rotation );
         }
