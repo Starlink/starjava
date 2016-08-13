@@ -567,7 +567,7 @@ public class TableSpecDataImpl
     	for (Object oParam : starTable.getParameters()) {
     		if (oParam instanceof DescribedValue) {
     			DescribedValue param = (DescribedValue) oParam;
-    			if (param.getInfo().getName().equals("cube_dataset_producttype")) {
+    			if (param.getInfo().getName().equals("data_product_type")) {
     				if (param.getValue() != null && param.getValue().equals("timeseries")) {
     					setObjectType(ObjectTypeEnum.TIMESERIES);
     				}
