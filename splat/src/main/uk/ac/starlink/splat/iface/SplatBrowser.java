@@ -2167,9 +2167,9 @@ public class SplatBrowser
             String shortname=props.getShortName();
             for ( int i = 0; i < spectra.length; i++ ) {
                 String str = spectra[i].getShortName();
-                if (spectra[i].getObjectType() == null) {
-                	spectra[i].setObjectType(props.getObjectType());
-                }
+//                if (spectra[i].getObjectType() == null) {
+//                	spectra[i].setObjectType(props.getObjectType());
+//                }
                 addSpectrum( spectra[i] );
                 if (str != null && str.startsWith("order"))
                     props.setShortName(shortname+" ["+str+"]");
@@ -2208,7 +2208,7 @@ public class SplatBrowser
                         String sname = spectrum.getShortName();
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
-                        spectrum.setObjectType(props.getObjectType());
+//                        spectrum.setObjectType(props.getObjectType());
                         addSpectrum( spectrum );
                         props.apply( spectrum );
                         

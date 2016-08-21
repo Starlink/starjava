@@ -590,7 +590,7 @@ public class SpectrumIO
 		}
         
         public void setObjectType(ObjectTypeEnum objectType) {
-			this.objectType = objectType;
+        	this.objectType = objectType;
 		}
         
         //  Create a copy of this object.

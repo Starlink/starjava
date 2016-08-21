@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import nom.tam.fits.Header;
-
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -1793,7 +1792,7 @@ public class SpecData
      * @return
      */
     public ObjectTypeEnum getObjectType() {
-		return impl.getObjectType();
+    	return impl.getObjectType();
 	}
     
     /**
@@ -1804,7 +1803,7 @@ public class SpecData
      * @param objectType
      */
     public void setObjectType(ObjectTypeEnum objectType) {
-		impl.setObjectType(objectType);
+    	impl.setObjectType(objectType);
 	}
     
     /**
