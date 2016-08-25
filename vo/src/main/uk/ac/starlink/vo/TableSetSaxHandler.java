@@ -313,8 +313,8 @@ public class TableSetSaxHandler extends DefaultHandler {
         if ( nNaked > 0 ) {
             logger_.warning( "Using " + nNaked
                            + " tables declared outside of any schema" );
-            SchemaMeta dummySchema = new SchemaMeta();
-            dummySchema.name_ = "<no_schema>";
+            SchemaMeta dummySchema =
+                SchemaMeta.createDummySchema( "<no_schema>" );
             dummySchema.setTables( nakedTables );
             schemaList.add( dummySchema );
         }

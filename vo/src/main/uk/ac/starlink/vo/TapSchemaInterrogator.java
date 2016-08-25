@@ -167,8 +167,7 @@ public class TapSchemaInterrogator {
                     String sname = entry.getKey();
                     List<TableMeta> tlist = entry.getValue();
                     assert tlist != null;
-                    SchemaMeta smeta = new SchemaMeta();
-                    smeta.name_ = sname;
+                    SchemaMeta smeta = SchemaMeta.createDummySchema( sname );
                     smeta.setTables( tlist.toArray( new TableMeta[ 0 ] ) );
                     sList.add( smeta );
                 }

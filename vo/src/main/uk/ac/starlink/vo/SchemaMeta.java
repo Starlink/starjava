@@ -93,4 +93,16 @@ public class SchemaMeta {
     public String toString() {
         return getName();
     }
+
+    /**
+     * Returns a new schema with no tables and the given name.
+     *
+     * @param  name   name of new schema
+     * @return  new empty schema
+     */
+    public static SchemaMeta createDummySchema( String name ) {
+        SchemaMeta schema = new SchemaMeta();
+        schema.name_ = name;
+        return schema;
+    }
 }
