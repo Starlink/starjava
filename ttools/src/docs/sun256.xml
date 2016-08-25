@@ -10888,6 +10888,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Ditto for the tasks <code>tapquery</code> and <code>tapskymatch</code>,
         though in these cases the extra parameters are
         (since currently rather special interest) largely undocumented.</li>
+    <li>Fix <code>taplint</code> behaviour in absense of a /tables endpoint
+        (404 now gives a Warning not an Error).</li>
     </ul>
     </p></dd>
 
