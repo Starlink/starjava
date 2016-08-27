@@ -16,15 +16,12 @@
  */
 package uk.ac.starlink.splat.plot;
 
-import diva.canvas.JCanvas;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -32,19 +29,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.EventListenerList;
 
-import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
@@ -68,7 +64,10 @@ import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.plot.behavior.MagnitudeAxisInvertingBehavior;
+import uk.ac.starlink.splat.plot.behavior.PlotBehavior;
 import uk.ac.starlink.splat.util.SplatException;
+import diva.canvas.JCanvas;
 
 /**
  * Plots an astronomical spectra using a Swing component with Diva graphics
@@ -288,6 +287,8 @@ public class DivaPlot
      * The legend figure.
      */
     protected SpecLegendFigure legendFigure = null;
+    
+    protected List<PlotBehavior> behaviors = new LinkedList<PlotBehavior>();
 
     /**
      * Plot a series of spectra.
@@ -346,6 +347,9 @@ public class DivaPlot
         //  The AstAxes object is used for testing if logarithmic drawing is
         //  enabled.
         astAxes = (AstAxes) plotConfig.getControlsModel( AstAxes.class );
+        
+        // add some extra behaviors
+        addBehaviors();
     }
 
     /**
@@ -738,17 +742,11 @@ public class DivaPlot
                 yMax = dataLimits.getYUpper();
             }
             
-            // inverse Y axis for timeseries
-            if (getSpecDataComp() != null) {
-            	if (getSpecDataComp().get() != null) {
-            		for (SpecData specData : getSpecDataComp().get()) {
-            			if (ObjectTypeEnum.TIMESERIES.equals(specData.getObjectType())) {
-            				dataLimits.setYFlipped(true);
-            				break;
-            			}
-            		}
-            	}
+            // apply extra behaviors
+            for (PlotBehavior behavior : behaviors) {
+            	behavior.setDataLimits(this);
             }
+            
         }
     }
 
@@ -2023,5 +2021,9 @@ public class DivaPlot
     public Plot getPlot()
     {
         return mainPlot;
+    }
+    
+    protected void addBehaviors() {
+    	behaviors.add(new MagnitudeAxisInvertingBehavior());
     }
 }
