@@ -63,6 +63,14 @@ public class JdbcMode implements ProcessingMode {
             "<p>The name of the database on the server into which the",
             "new table will be written.",
             "</p>",
+            "<p>The value of this parameter forms the last part",
+            "of the JDBC connection URL.",
+            "That means that for some JDBC drivers,",
+            "you can append parameter specifications to it",
+            "to affect the way the connection is made to the database, e.g.",
+            "\"<code>" + dbParam_.getName() + "=some_db?useSSL=false</code>\"",
+            "for MySQL's Connector/J.",
+            "</p>",
         } );
 
         tableParam_ = new StringParameter( "dbtable" );
