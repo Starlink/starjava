@@ -53,9 +53,9 @@ public class VizierTapMetaReader implements TapMetaReader {
             }
         }
         fixer_.fixSchemas( schemas );
-        TapSchemaTapMetaReader.sortSchemas( schemas );
+        TapMetaPolicy.sortSchemas( schemas );
         for ( SchemaMeta schema : schemas ) {
-            TapSchemaTapMetaReader.sortTables( schema.getTables() );
+            TapMetaPolicy.sortTables( schema.getTables() );
         }
         return schemas;
     }

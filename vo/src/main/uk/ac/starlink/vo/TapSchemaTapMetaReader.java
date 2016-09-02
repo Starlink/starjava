@@ -2,8 +2,6 @@ package uk.ac.starlink.vo;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -100,11 +98,11 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
             tsi_.readSchemas( populateSchemas_, populateTables_,
                               addOrphanTables_ );
         fixer_.fixSchemas( schemas );
-        sortSchemas( schemas );
+        TapMetaPolicy.sortSchemas( schemas );
         for ( SchemaMeta smeta : schemas ) {
             TableMeta[] tmetas = smeta.getTables();
             if ( tmetas != null ) {
-                sortTables( tmetas );
+                TapMetaPolicy.sortTables( tmetas );
             }
         }
         return schemas;
@@ -143,7 +141,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
         }
         TableMeta[] tables = tableList.toArray( new TableMeta[ 0 ] );
         fixer_.fixTables( tables, schema );
-        sortTables( tables );
+        TapMetaPolicy.sortTables( tables );
         return tables;
     }
 
@@ -222,39 +220,5 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
                            + objType + " entries" );
             logger_.info( "Orphaned " + objType + "s: " + map.keySet() );
         }
-    }
-
-    /**
-     * Sorts an array of schemas in place by schema name.
-     *
-     * @param  smetas  schema array
-     */
-    static void sortSchemas( SchemaMeta[] smetas ) {
-        Arrays.sort( smetas, new Comparator<SchemaMeta>() {
-            public int compare( SchemaMeta s1, SchemaMeta s2 ) {
-                return getSchemaName( s1 ).compareTo( getSchemaName( s2 ) );
-            }
-            private String getSchemaName( SchemaMeta smeta ) {
-                String name = smeta.getName();
-                return name == null ? "" : name;
-            }
-        } );
-    }
-
-    /**
-     * Sorts an array of tables in place by table name.
-     *
-     * @param  tmetas  table array
-     */
-    static void sortTables( TableMeta[] tmetas ) {
-        Arrays.sort( tmetas, new Comparator<TableMeta>() {
-            public int compare( TableMeta t1, TableMeta t2 ) {
-                return getTableName( t1 ).compareTo( getTableName( t2 ) );
-            }
-            private String getTableName( TableMeta tmeta ) {
-                String name = tmeta.getName();
-                return name == null ? "" : name;
-            }
-        } );
     }
 }

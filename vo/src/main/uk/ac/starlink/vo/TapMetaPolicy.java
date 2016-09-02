@@ -2,6 +2,8 @@ package uk.ac.starlink.vo;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.util.ContentCoding;
@@ -154,6 +156,42 @@ public abstract class TapMetaPolicy {
     public static TapMetaPolicy getDefaultInstance() {
         return AUTO;
     }
+
+
+    /**
+     * Sorts an array of schemas in place by schema name.
+     *
+     * @param  smetas  schema array
+     */
+    static void sortSchemas( SchemaMeta[] smetas ) {
+        Arrays.sort( smetas, new Comparator<SchemaMeta>() {
+            public int compare( SchemaMeta s1, SchemaMeta s2 ) {
+                return getSchemaName( s1 ).compareTo( getSchemaName( s2 ) );
+            }
+            private String getSchemaName( SchemaMeta smeta ) {
+                String name = smeta.getName();
+                return name == null ? "" : name;
+            }
+        } );
+    }
+
+    /**
+     * Sorts an array of tables in place by table name.
+     *
+     * @param  tmetas  table array
+     */
+    static void sortTables( TableMeta[] tmetas ) {
+        Arrays.sort( tmetas, new Comparator<TableMeta>() {
+            public int compare( TableMeta t1, TableMeta t2 ) {
+                return getTableName( t1 ).compareTo( getTableName( t2 ) );
+            }
+            private String getTableName( TableMeta tmeta ) {
+                String name = tmeta.getName();
+                return name == null ? "" : name;
+            }
+        } );
+    }
+
 
     /**
      * Returns a policy instance that uses TAP_SCHEMA metadata.
