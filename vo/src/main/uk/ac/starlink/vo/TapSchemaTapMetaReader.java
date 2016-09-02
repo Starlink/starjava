@@ -98,13 +98,6 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
             tsi_.readSchemas( populateSchemas_, populateTables_,
                               addOrphanTables_ );
         fixer_.fixSchemas( schemas );
-        TapMetaPolicy.sortSchemas( schemas );
-        for ( SchemaMeta smeta : schemas ) {
-            TableMeta[] tmetas = smeta.getTables();
-            if ( tmetas != null ) {
-                TapMetaPolicy.sortTables( tmetas );
-            }
-        }
         return schemas;
     }
 
@@ -141,7 +134,6 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
         }
         TableMeta[] tables = tableList.toArray( new TableMeta[ 0 ] );
         fixer_.fixTables( tables, schema );
-        TapMetaPolicy.sortTables( tables );
         return tables;
     }
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -370,7 +371,7 @@ public class TapSchemaInterrogator {
             cTargetColumn = "target_column",
         };
         return new MetaQuerier<ForeignMeta.Link>( "TAP_SCHEMA.key_columns",
-                                                  atts, "key_id" ) {
+                                                  atts, "key_id", null, null ) {
             public ForeignMeta.Link createMeta( ColSet colset, Object[] row ) {
                 ForeignMeta.Link link = new ForeignMeta.Link();
                 link.from_ = colset.getCellString( cFromColumn, row );
@@ -397,7 +398,7 @@ public class TapSchemaInterrogator {
             cUtype = "utype",
         };
         return new MetaQuerier<ForeignMeta>( "TAP_SCHEMA.keys", atts,
-                                             "from_table" ) {
+                                             "from_table", null, null ) {
             public ForeignMeta createMeta( ColSet colset, Object[] row ) {
                 ForeignMeta fmeta = new ForeignMeta();
                 fmeta.keyId_ = colset.getCellString( cKeyId, row );
@@ -437,7 +438,8 @@ public class TapSchemaInterrogator {
         };
         final String[] flagAtts = { cIndexed, cPrincipal, cStd };
         return new MetaQuerier<ColumnMeta>( "TAP_SCHEMA.columns", atts,
-                                            "table_name" ) {
+                                            "table_name", "column_index",
+                                            null ) {
             public ColumnMeta createMeta( ColSet colset, Object[] row ) {
                 ColumnMeta cmeta = new ColumnMeta();
                 cmeta.name_ = colset.getCellString( cColumnName, row );
@@ -474,8 +476,16 @@ public class TapSchemaInterrogator {
             cDescription = "description",
             cUtype = "utype",
         };
+
+        /* TAP 1.1 defines "table_index" as an optional display ordering
+         * column, so maybe should use that.  But I'm inclined to stick
+         * with alphabetic ordering here, since that's what you'll see
+         * for other metadata read policies, and it's probably what
+         * users expect. */
+        String rankColName = null;
         return new MetaQuerier<TableMeta>( "TAP_SCHEMA.tables", atts,
-                                           "schema_name" ) {
+                                           "schema_name", rankColName,
+                                           cTableName ) {
             public TableMeta createMeta( ColSet colset, Object[] row ) {
                 TableMeta tmeta = new TableMeta();
                 tmeta.name_ = colset.getCellString( cTableName, row );
@@ -501,7 +511,8 @@ public class TapSchemaInterrogator {
             cDescription = "description",
             cUtype = "utype",
         };
-        return new MetaQuerier<SchemaMeta>( "TAP_SCHEMA.schemas", atts, null ) {
+        return new MetaQuerier<SchemaMeta>( "TAP_SCHEMA.schemas", atts, null,
+                                            null, cSchemaName ) {
             public SchemaMeta createMeta( ColSet colset, Object[] row ) {
                 SchemaMeta smeta = new SchemaMeta();
                 smeta.name_ = colset.getCellString( cSchemaName, row );
@@ -525,6 +536,8 @@ public class TapSchemaInterrogator {
         final String tableName_;
         final String[] atts_;
         final String parentColName_;
+        final String rankColName_;
+        final String alphaColName_;
 
         /**
          * Constructor.
@@ -538,12 +551,22 @@ public class TapSchemaInterrogator {
          *                        that refers to the 'parent' object
          *                        of the constructed metadata items;
          *                        may be null
+         * @param  rankColName  name of a column that, if it exists and is
+         *                      numeric, gives a preferred display ordering
+         *                      for this querier's metadata items; may be null
+         * @param  alphaColName  name of a column that, if it exists and is
+         *                       string-valued, provides an alphabetic display
+         *                       ordering for this querier's metadata items
+         *                       when rank is not available; may be null
          */
         private MetaQuerier( String tableName, String[] atts,
-                             String parentColName ) {
+                             String parentColName, String rankColName,
+                             String alphaColName ) {
             tableName_ = tableName;
             atts_ = atts;
             parentColName_ = parentColName;
+            rankColName_ = rankColName;
+            alphaColName_ = alphaColName;
         }
 
         /**
@@ -580,21 +603,26 @@ public class TapSchemaInterrogator {
             reqList.addAll( Arrays.asList( atts_ ) );
             ColSet colset = new ColSet( tsi.getAvailableColumns( tableName_ ) );
             StarTable table = query( tsi, colset, moreAdql );
-            Map<String,List<T>> map = new LinkedHashMap<String,List<T>>();
+            Map<String,List<RankedMeta>> rmap =
+                new LinkedHashMap<String,List<RankedMeta>>();
             RowSequence rseq = table.getRowSequence();
             try {
                 while ( rseq.next() ) {
                     Object[] row = rseq.getRow();
                     String key = colset.getCellString( parentColName_, row );
-                    T value = createMeta( colset, row );
-                    if ( ! map.containsKey( key ) ) {
-                        map.put( key, new ArrayList<T>() );
+                    RankedMeta value = createRankedMeta( colset, row );
+                    if ( ! rmap.containsKey( key ) ) {
+                        rmap.put( key, new ArrayList<RankedMeta>() );
                     }
-                    map.get( key ).add( value );
+                    rmap.get( key ).add( value );
                 }
             }
             finally {
                 rseq.close();
+            }
+            Map<String,List<T>> map = new LinkedHashMap<String,List<T>>();
+            for ( Map.Entry<String,List<RankedMeta>> entry : rmap.entrySet() ) {
+                map.put( entry.getKey(), extractMetas( entry.getValue() ) );
             }
             return map;
         }
@@ -614,17 +642,17 @@ public class TapSchemaInterrogator {
                 throws IOException {
             ColSet colset = new ColSet( tsi.getAvailableColumns( tableName_ ) );
             StarTable table = query( tsi, colset, moreAdql );
-            List<T> list = new ArrayList<T>();
+            List<RankedMeta> rlist = new ArrayList<RankedMeta>();
             RowSequence rseq = table.getRowSequence();
             try {
                 while ( rseq.next() ) {
-                    list.add( createMeta( colset, rseq.getRow() ) );
+                    rlist.add( createRankedMeta( colset, rseq.getRow() ) );
                 }
             }
             finally {
                 rseq.close();
             }
-            return list;
+            return extractMetas( rlist );
         }
 
         /**
@@ -676,6 +704,112 @@ public class TapSchemaInterrogator {
             if ( ncol != cols.length ) {
                 throw new IOException( "Schema query column count mismatch ("
                                      + ncol + " != " + cols.length + " )" );
+            }
+        }
+
+        /**
+         * Constructs a RankedMeta object from a database row.
+         *
+         * @param  colset  describes the columns in the query
+         * @param  row  database query response row
+         * @return  metadata item constructed from <code>row</code> elements
+         */
+        private RankedMeta createRankedMeta( ColSet colset, Object[] row ) {
+            double rank = rankColName_ == null
+                        ? Double.NaN
+                        : colset.getCellDouble( rankColName_, row );
+            String alpha = alphaColName_ == null
+                         ? null
+                         : colset.getCellString( alphaColName_, row );
+            return new RankedMeta( createMeta( colset, row ), rank, alpha );
+        }
+
+        /**
+         * Returns an (if possible sorted) list of metadata objects
+         * from an unsorted collection of RankedMeta objects.
+         *
+         * @param  rlist  unsorted collection of ranked metadata objects
+         * @return  sorted list of metadata objects
+         */
+        private List<T> extractMetas( List<RankedMeta> rlist ) {
+
+            /* Sort the list as far as possible. */
+            if ( rankColName_ != null || alphaColName_ != null ) {
+                boolean hasRanks = false;
+                boolean hasAlphas = false;
+                for ( RankedMeta m : rlist ) {
+                    hasRanks = hasRanks || ! Double.isNaN( m.rank_ );
+                    hasAlphas = hasAlphas || m.alpha_ != null;
+                }
+                if ( hasRanks || hasAlphas ) {
+                    Collections.sort( rlist );
+                }
+            }
+
+            /* Extract the contents to an unranked list and return. */
+            List<T> mlist = new ArrayList<T>( rlist.size() );
+            for ( RankedMeta r : rlist ) {
+                mlist.add( r.meta_ );
+            }
+            return mlist;
+        }
+
+        /**
+         * Packages instances of this querier's metadata items along with
+         * ordering information; a possible rank value and a possible
+         * alphanumeric label.  Either or both may be blank.
+         */
+        private class RankedMeta implements Comparable<RankedMeta> {
+            final T meta_;
+            final double rank_;
+            final String alpha_;
+
+            /**
+             * Constructor.
+             *
+             * @param  meta  metadata item
+             * @param  rank  numeric indication of ordering; NaN if unknown
+             * @param  alpha  alphabetic indication of ordering; null if unknown
+             */
+            RankedMeta( T meta, double rank, String alpha ) {
+                meta_ = meta;
+                rank_ = rank;
+                alpha_ = alpha;
+            }
+
+            /**
+             * Implements Comparable interface.
+             * Rank is considered before alpha.
+             */
+            public int compareTo( RankedMeta other ) {
+                int rc = (int) Math.signum( toComparable( this.rank_ )
+                                          - toComparable( other.rank_ ) );
+                if ( rc != 0 ) {
+                    return rc;
+                }
+                if ( this.alpha_ != null || other.alpha_ != null ) {
+                    if ( this.alpha_ == null ) {
+                        return +1;
+                    }
+                    else if ( other.alpha_ == null ) {
+                        return -1;
+                    }
+                    else {
+                        return this.alpha_.compareTo( other.alpha_ );
+                    }
+                }
+                return (int) Math.signum( this.hashCode() - other.hashCode() );
+            }
+
+            /**
+             * Makes sure a numeric value is usable for numeric comparison.
+             * Maps NaN to +infinity.
+             *
+             * @param  rank  raw value
+             * @return   sanitised value
+             */
+            private double toComparable( double rank ) {
+                return Double.isNaN( rank ) ? Double.POSITIVE_INFINITY : rank;
             }
         }
     }
@@ -743,6 +877,21 @@ public class TapSchemaInterrogator {
             Object obj = getCellObject( colname, row );
             return obj instanceof Number
                 && ((Number) obj).intValue() != 0;
+        }
+
+        /**
+         * Returns the value of the cell in a given row of a named column
+         * interpreted as a double.  If the column is not numeric or
+         * doesn't exist, NaN is returned.
+         *
+         * @param  colname   column name (not case sensitive)
+         * @param  row   row from query result
+         * @return   numeric value of named column in row, NaN if can't do it
+         */
+        double getCellDouble( String colname, Object[] row ) {
+            Object obj = getCellObject( colname, row );
+            return obj instanceof Number
+                 ? ((Number) obj).doubleValue() : Double.NaN;
         }
     }
 
