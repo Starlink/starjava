@@ -1,5 +1,8 @@
 package uk.ac.starlink.vo;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Represents table metadata from a TableSet document.
  * The scalar members are intended to be set by classes in this package
@@ -20,6 +23,7 @@ public class TableMeta {
     String title_;
     String description_;
     String utype_;
+    Map<String,Object> extras_;
     private ColumnMeta[] columns_;
     private ForeignMeta[] foreignKeys_;
 
@@ -27,6 +31,7 @@ public class TableMeta {
      * Constructor.
      */
     protected TableMeta() {
+        extras_ = new LinkedHashMap<String,Object>();
     }
 
     /**
@@ -80,6 +85,15 @@ public class TableMeta {
      */
     public String getUtype() {
         return utype_;
+    }
+
+    /**
+     * Returns a map of additional non-standard metadata items for this table.
+     *
+     * @return  extras map
+     */
+    public Map<String,Object> getExtras() {
+        return extras_;
     }
 
     /**

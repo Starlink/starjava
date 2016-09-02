@@ -1,6 +1,8 @@
 package uk.ac.starlink.vo;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Represents column metadata from a TableSet document.
@@ -19,11 +21,13 @@ public class ColumnMeta {
     String utype_;
     String dataType_;  // has attributes, but content is a token
     String[] flags_;
+    Map<String,Object> extras_;
 
     /**
      * Constructor.
      */
     protected ColumnMeta() {
+        extras_ = new LinkedHashMap<String,Object>();
     }
 
     /**
@@ -126,6 +130,15 @@ public class ColumnMeta {
      */
     public boolean isNullable() {
         return hasFlag( "nullable" );
+    }
+
+    /**
+     * Returns a map of additional non-standard metadata items for this column.
+     *
+     * @return  extras map
+     */
+    public Map<String,Object> getExtras() {
+        return extras_;
     }
 
     /**
