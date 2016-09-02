@@ -374,7 +374,8 @@ public class TapSchemaInterrogator {
             cTargetColumn = "target_column",
         };
         return new MetaQuerier<ForeignMeta.Link>( "TAP_SCHEMA.key_columns",
-                                                  atts, "key_id", null, null ) {
+                                                  atts, true, "key_id",
+                                                  null, null ) {
             public ForeignMeta.Link createMeta( ColSet colset, Object[] row ) {
                 ForeignMeta.Link link = new ForeignMeta.Link();
                 link.from_ = colset.getCellString( cFromColumn, row );
@@ -400,7 +401,7 @@ public class TapSchemaInterrogator {
             cDescription = "description",
             cUtype = "utype",
         };
-        return new MetaQuerier<ForeignMeta>( "TAP_SCHEMA.keys", atts,
+        return new MetaQuerier<ForeignMeta>( "TAP_SCHEMA.keys", atts, true,
                                              "from_table", null, null ) {
             public ForeignMeta createMeta( ColSet colset, Object[] row ) {
                 ForeignMeta fmeta = new ForeignMeta();
@@ -428,7 +429,7 @@ public class TapSchemaInterrogator {
         final String cIndexed;
         final String cPrincipal;
         final String cStd;
-        String[] stdCols = {
+        String[] attCols = {
             cColumnName = "column_name",
             cDescription = "description",
             cUnit = "unit",
@@ -440,9 +441,9 @@ public class TapSchemaInterrogator {
             cStd = "std",
         };
         final String[] flagAtts = { cIndexed, cPrincipal, cStd };
-        return new MetaQuerier<ColumnMeta>( "TAP_SCHEMA.columns", stdCols,
-                                            "table_name", "column_index",
-                                            null ) {
+        return new MetaQuerier<ColumnMeta>( "TAP_SCHEMA.columns", attCols,
+                                            false, "table_name",
+                                            "column_index", null ) {
             public ColumnMeta createMeta( ColSet colset, Object[] row ) {
                 ColumnMeta cmeta = new ColumnMeta();
                 cmeta.name_ = colset.getCellString( cColumnName, row );
@@ -474,7 +475,7 @@ public class TapSchemaInterrogator {
         final String cTableType;
         final String cDescription;
         final String cUtype;
-        String[] stdCols = {
+        String[] attCols = {
             cTableName = "table_name",
             cTableType = "table_type",
             cDescription = "description",
@@ -487,9 +488,9 @@ public class TapSchemaInterrogator {
          * for other metadata read policies, and it's probably what
          * users expect. */
         String rankColName = null;
-        return new MetaQuerier<TableMeta>( "TAP_SCHEMA.tables", stdCols,
-                                           "schema_name", rankColName,
-                                           cTableName ) {
+        return new MetaQuerier<TableMeta>( "TAP_SCHEMA.tables", attCols,
+                                           false, "schema_name",
+                                           rankColName, cTableName ) {
             public TableMeta createMeta( ColSet colset, Object[] row ) {
                 TableMeta tmeta = new TableMeta();
                 tmeta.name_ = colset.getCellString( cTableName, row );
@@ -511,13 +512,13 @@ public class TapSchemaInterrogator {
         final String cSchemaName;
         final String cDescription;
         final String cUtype;
-        String[] atts = {
+        String[] attCols = {
             cSchemaName = "schema_name",
             cDescription = "description",
             cUtype = "utype",
         };
-        return new MetaQuerier<SchemaMeta>( "TAP_SCHEMA.schemas", atts, null,
-                                            null, cSchemaName ) {
+        return new MetaQuerier<SchemaMeta>( "TAP_SCHEMA.schemas", attCols,
+                                            true, null, null, cSchemaName ) {
             public SchemaMeta createMeta( ColSet colset, Object[] row ) {
                 SchemaMeta smeta = new SchemaMeta();
                 smeta.name_ = colset.getCellString( cSchemaName, row );
@@ -539,7 +540,8 @@ public class TapSchemaInterrogator {
     public static abstract class MetaQuerier<T> {
 
         final String tableName_;
-        final String[] stdCols_;
+        final String[] attCols_;
+        final boolean queryStdOnly_;
         final String parentColName_;
         final String rankColName_;
         final String alphaColName_;
@@ -549,10 +551,16 @@ public class TapSchemaInterrogator {
          *
          * @param  tableName  name of the TAP database table from the rows
          *                    of which each metadata item can be read
-         * @param  stdCols   standard columns with known semantics in the
+         * @param  attCols   standard columns representing metadata item
+         *                   attributes with known semantics in the
          *                   TAP_SCHEMA table representing this object type;
-         *                   ones not in this list count as "extra" metadata
-         *                   items
+         *                   ones not in this list and not the parentColName
+         *                   count as "extra" metadata items
+         * @param  queryStdOnly  if true, only the stdCols are queried,
+         *                       and all must be present otherwise an error
+         *                       will result (so they better be mandatory);
+         *                       if false, all available columns in the
+         *                       table are queried
          * @param  parentColName  name of the string-typed database column
          *                        that refers to the 'parent' object
          *                        of the constructed metadata items;
@@ -565,11 +573,12 @@ public class TapSchemaInterrogator {
          *                       ordering for this querier's metadata items
          *                       when rank is not available; may be null
          */
-        private MetaQuerier( String tableName, String[] stdCols,
-                             String parentColName, String rankColName,
-                             String alphaColName ) {
+        private MetaQuerier( String tableName, String[] attCols,
+                             boolean queryStdOnly, String parentColName,
+                             String rankColName, String alphaColName ) {
             tableName_ = tableName;
-            stdCols_ = stdCols;
+            attCols_ = attCols;
+            queryStdOnly_ = queryStdOnly;
             parentColName_ = parentColName;
             rankColName_ = rankColName;
             alphaColName_ = alphaColName;
@@ -605,11 +614,13 @@ public class TapSchemaInterrogator {
                                      String moreAdql )
                 throws IOException {
             List<String> stdList = new ArrayList<String>();
-            stdList.addAll( Arrays.asList( stdCols_ ) );
+            stdList.addAll( Arrays.asList( attCols_ ) );
             stdList.add( parentColName_ );
-            ColSet colset =
-                new ColSet( tsi.getAvailableColumns( tableName_ ),
-                            stdList.toArray( new String[ 0 ] ) );
+            String[] stdCols = stdList.toArray( new String[ 0 ] );
+            String[] queryCols = queryStdOnly_
+                               ? stdCols
+                               : tsi.getAvailableColumns( tableName_ );
+            ColSet colset = new ColSet( queryCols, stdCols );
             StarTable table = query( tsi, colset, moreAdql );
             Map<String,List<RankedMeta>> rmap =
                 new LinkedHashMap<String,List<RankedMeta>>();
@@ -648,8 +659,10 @@ public class TapSchemaInterrogator {
          */
         List<T> readList( TapSchemaInterrogator tsi, String moreAdql )
                 throws IOException {
-            ColSet colset =
-                new ColSet( tsi.getAvailableColumns( tableName_ ), stdCols_ );
+            String[] queryCols = queryStdOnly_
+                               ? attCols_
+                               : tsi.getAvailableColumns( tableName_ );
+            ColSet colset = new ColSet( queryCols, attCols_ );
             StarTable table = query( tsi, colset, moreAdql );
             List<RankedMeta> rlist = new ArrayList<RankedMeta>();
             RowSequence rseq = table.getRowSequence();
