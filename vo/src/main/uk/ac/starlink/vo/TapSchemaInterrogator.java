@@ -440,10 +440,11 @@ public class TapSchemaInterrogator {
             cPrincipal = "principal",
             cStd = "std",
         };
+        final String cColumnIndex = "column_index";
         final String[] flagAtts = { cIndexed, cPrincipal, cStd };
         return new MetaQuerier<ColumnMeta>( "TAP_SCHEMA.columns", attCols,
                                             false, "table_name",
-                                            "column_index", null ) {
+                                            cColumnIndex, null ) {
             public ColumnMeta createMeta( ColSet colset, Object[] row ) {
                 ColumnMeta cmeta = new ColumnMeta();
                 cmeta.name_ = colset.getCellString( cColumnName, row );
@@ -460,6 +461,12 @@ public class TapSchemaInterrogator {
                 }
                 cmeta.flags_ = flagList.toArray( new String[ 0 ] );
                 cmeta.extras_ = colset.getExtras( row );
+                for ( Iterator<String> it = cmeta.extras_.keySet().iterator();
+                      it.hasNext(); ) {
+                    if ( cColumnIndex.equalsIgnoreCase( it.next() ) ) {
+                        it.remove();
+                    }
+                }
                 return cmeta;
             }
         };
@@ -487,6 +494,7 @@ public class TapSchemaInterrogator {
          * with alphabetic ordering here, since that's what you'll see
          * for other metadata read policies, and it's probably what
          * users expect. */
+        final String cTableIndex = "table_index";
         String rankColName = null;
         return new MetaQuerier<TableMeta>( "TAP_SCHEMA.tables", attCols,
                                            false, "schema_name",
@@ -498,6 +506,12 @@ public class TapSchemaInterrogator {
                 tmeta.description_ = colset.getCellString( cDescription, row );
                 tmeta.utype_ = colset.getCellString( cUtype, row );
                 tmeta.extras_ = colset.getExtras( row );
+                for ( Iterator<String> it = tmeta.extras_.keySet().iterator();
+                      it.hasNext(); ) {
+                    if ( cTableIndex.equalsIgnoreCase( it.next() ) ) {
+                        it.remove();
+                    }
+                }
                 return tmeta;
             }
         };
@@ -545,6 +559,7 @@ public class TapSchemaInterrogator {
         final String parentColName_;
         final String rankColName_;
         final String alphaColName_;
+        final String[] attPlusParentCols_;
 
         /**
          * Constructor.
@@ -582,6 +597,13 @@ public class TapSchemaInterrogator {
             parentColName_ = parentColName;
             rankColName_ = rankColName;
             alphaColName_ = alphaColName;
+            int natt = attCols_.length;
+            List<String> appList = new ArrayList<String>();
+            appList.addAll( Arrays.asList( attCols ) );
+            if ( parentColName != null ) {
+                appList.add( parentColName );
+            }
+            attPlusParentCols_ = appList.toArray( new String[ 0 ] );
         }
 
         /**
@@ -613,14 +635,10 @@ public class TapSchemaInterrogator {
         Map<String,List<T>> readMap( TapSchemaInterrogator tsi,
                                      String moreAdql )
                 throws IOException {
-            List<String> stdList = new ArrayList<String>();
-            stdList.addAll( Arrays.asList( attCols_ ) );
-            stdList.add( parentColName_ );
-            String[] stdCols = stdList.toArray( new String[ 0 ] );
             String[] queryCols = queryStdOnly_
-                               ? stdCols
+                               ? attPlusParentCols_
                                : tsi.getAvailableColumns( tableName_ );
-            ColSet colset = new ColSet( queryCols, stdCols );
+            ColSet colset = new ColSet( queryCols, attPlusParentCols_ );
             StarTable table = query( tsi, colset, moreAdql );
             Map<String,List<RankedMeta>> rmap =
                 new LinkedHashMap<String,List<RankedMeta>>();
@@ -662,7 +680,7 @@ public class TapSchemaInterrogator {
             String[] queryCols = queryStdOnly_
                                ? attCols_
                                : tsi.getAvailableColumns( tableName_ );
-            ColSet colset = new ColSet( queryCols, attCols_ );
+            ColSet colset = new ColSet( queryCols, attPlusParentCols_ );
             StarTable table = query( tsi, colset, moreAdql );
             List<RankedMeta> rlist = new ArrayList<RankedMeta>();
             RowSequence rseq = table.getRowSequence();
