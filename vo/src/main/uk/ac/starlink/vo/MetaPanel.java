@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -281,5 +282,29 @@ public class MetaPanel extends JPanel implements Scrollable {
         add( headLine );
         comp.setBorder( BorderFactory.createEmptyBorder( 0, 20, 0, 0 ) );
         add( comp );
+    }
+
+    /**
+     * Converts a string-keyed map to an HTML string suitable for display
+     * in an HTML text field of a metapanel.
+     *
+     * @param  map  map containing display items
+     * @return   renderable HTML representation of <code>map</code>
+     */
+    public static String mapToHtml( Map<String,?> map ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( Map.Entry<String,?> entry : map.entrySet() ) {
+            Object valObj = entry.getValue();
+            sbuf.append( "<strong>" )
+                .append( entry.getKey() )
+                .append( ":" )
+                .append( "</strong>" );
+            if ( valObj != null ) {
+                sbuf.append( " " )
+                    .append( valObj.toString() );
+            }
+            sbuf.append( "<br />\n" );
+        }
+        return sbuf.toString();
     }
 }

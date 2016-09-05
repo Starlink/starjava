@@ -1402,6 +1402,7 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent ncolField_;
         private final JTextComponent nfkField_;
         private final JTextComponent descripField_;
+        private final JTextComponent extrasField_;
         private TableMeta table_;
 
         /**
@@ -1412,6 +1413,7 @@ public class TableSetPanel extends JPanel {
             ncolField_ = addLineField( "Columns" );
             nfkField_ = addLineField( "Foreign Keys" );
             descripField_ = addMultiLineField( "Description" );
+            extrasField_ = addHtmlField( "Extras" );
         }
 
         /**
@@ -1426,6 +1428,9 @@ public class TableSetPanel extends JPanel {
                               table == null ? null : table.getName() );
                 setFieldText( descripField_,
                               table == null ? null : table.getDescription() );
+                setFieldText( extrasField_,
+                              table == null ? null
+                                            : mapToHtml( table.getExtras() ) );
                 setColumns( table == null ? null : table.getColumns() );
                 setForeignKeys( table == null ? null : table.getForeignKeys() );
             }
