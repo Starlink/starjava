@@ -8,7 +8,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -109,11 +113,13 @@ public class TableSetSaxHandler extends DefaultHandler {
             if ( type != null ) {
                 table_.type_ = type;
             }
+            table_.extras_.putAll( getAttMap( atts, new String[] { "type" } ) );
             columnList_ = new ArrayList<ColumnMeta>();
             foreignList_ = new ArrayList<ForeignMeta>();
         }
         else if ( "column".equals( tname ) ) {
             column_ = new ColumnMeta();
+            column_.extras_.putAll( getAttMap( atts, new String[] { "std" } ) );
             flagList_ = new ArrayList<String>();
         }
         else if ( "foreignKey".equals( tname ) ) {
@@ -386,6 +392,31 @@ public class TableSetSaxHandler extends DefaultHandler {
         finally {
             in.close();
         }
+    }
+
+    /**
+     * Returns a map containing attribute name/value pairs.
+     * Any attribute whose name is present in a supplied list is excluded
+     * from the result.
+     * Output map keys strip any namespace prefix (up to a colon).
+     *
+     * @param  atts  attributes object
+     * @param  ignoreNames  list of attribute names to ignore
+     * @return   name/value map
+     */
+    private static Map<String,String> getAttMap( Attributes atts,
+                                                 String[] ignoreNames ) {
+        Collection<String> ignores =
+            new HashSet( Arrays.asList( ignoreNames ) );
+        Map<String,String> map = new LinkedHashMap<String,String>();
+        int n = atts.getLength();
+        for ( int i = 0; i < n; i++ ) {
+            String name = atts.getQName( i ).replaceFirst( ".*:", "" );
+            if ( ! ignores.contains( name ) ) {
+                map.put( name, atts.getValue( i ) );
+            }
+        }
+        return map;
     }
 
     /**
