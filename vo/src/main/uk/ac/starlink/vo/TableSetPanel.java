@@ -712,6 +712,7 @@ public class TableSetPanel extends JPanel {
      */
     private void displayColumns( TableMeta table, ColumnMeta[] cols ) {
         assert table == getSelectedTable();
+        final String[] extras;
         if ( cols != null && cols.length > 0 ) {
 
             /* Determine what non-standard columns should appear in the
@@ -730,6 +731,7 @@ public class TableSetPanel extends JPanel {
                     extrasMap.get( key ).add( value );
                 }
             }
+            extras = extrasMap.keySet().toArray( new String[ 0 ] );
             List<ArrayTableColumn> colList = new ArrayList<ArrayTableColumn>();
             colList.addAll( Arrays.asList( colMetaColumns_ ) );
             for ( Map.Entry<String,List<Object>> entry :
@@ -749,6 +751,10 @@ public class TableSetPanel extends JPanel {
                    .setColumns( colList.toArray( new ArrayTableColumn[ 0 ] ) );
             }
         }
+        else {
+            extras = new String[ 0 ];
+        }
+        tablePanel_.setColumnExtras( extras );
 
         /* Update the data for the columns table. */
         colTableModel_.setItems( cols );
@@ -1510,7 +1516,8 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent ncolField_;
         private final JTextComponent nfkField_;
         private final JTextComponent descripField_;
-        private final JTextComponent extrasField_;
+        private final JTextComponent tableExtrasField_;
+        private final JTextComponent colExtrasField_;
         private TableMeta table_;
 
         /**
@@ -1521,7 +1528,8 @@ public class TableSetPanel extends JPanel {
             ncolField_ = addLineField( "Columns" );
             nfkField_ = addLineField( "Foreign Keys" );
             descripField_ = addMultiLineField( "Description" );
-            extrasField_ = addHtmlField( "Extras" );
+            tableExtrasField_ = addHtmlField( "Non-Standard Table Metadata" );
+            colExtrasField_ = addHtmlField( "Non-Standard Column Metadata" );
         }
 
         /**
@@ -1536,7 +1544,7 @@ public class TableSetPanel extends JPanel {
                               table == null ? null : table.getName() );
                 setFieldText( descripField_,
                               table == null ? null : table.getDescription() );
-                setFieldText( extrasField_,
+                setFieldText( tableExtrasField_,
                               table == null ? null
                                             : mapToHtml( table.getExtras() ) );
                 setColumns( table == null ? null : table.getColumns() );
@@ -1552,6 +1560,23 @@ public class TableSetPanel extends JPanel {
          */
         public void setColumns( ColumnMeta[] cols ) {
             setFieldText( ncolField_, arrayLength( cols ) );
+        }
+
+        /**
+         * Informs this panel of non-standard items of column metadata
+         * available for the currently displayed table.
+         *
+         * @param  names of non-standard per-column metadata items
+         */
+        public void setColumnExtras( String[] extras ) {
+            StringBuffer sbuf = new StringBuffer();
+            if ( extras != null ) {
+                for ( String extra : extras ) {
+                    sbuf.append( extra )
+                        .append( "<br />\n" );
+                }
+            }
+            setFieldText( colExtrasField_, sbuf.toString() );
         }
 
         /**
