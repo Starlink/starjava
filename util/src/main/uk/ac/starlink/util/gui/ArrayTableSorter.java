@@ -100,7 +100,7 @@ public class ArrayTableSorter {
     public void setSorting( int icol, boolean descending ) {
         iSortcol_ = icol;
         descending_ = descending;
-        if ( icol >= 0 ) {
+        if ( icol >= 0 && icol < model_.getColumnCount() ) {
             model_.sortByColumn( icol, descending );
         }
         else {
