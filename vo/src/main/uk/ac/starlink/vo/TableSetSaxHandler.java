@@ -67,10 +67,31 @@ public class TableSetSaxHandler extends DefaultHandler {
      * Returns the array of schema metadata objects which have been
      * read by this parser.  Only non-empty following a parse.
      *
+     * @param    includeNaked  if false, only the schemas actually encountered
+     *                         are returned; if true, then any naked tables
+     *                         will be included in a dummy schema in the result
      * @return   fully populated table metadata
      */
-    public SchemaMeta[] getSchemas() {
-        return schemas_;
+    public SchemaMeta[] getSchemas( boolean includeNaked ) {
+        if ( schemas_ == null ||
+             ! includeNaked ||
+             nakedTables_ == null ||
+             nakedTables_.length == 0 ) {
+            return schemas_;
+        }
+        else {
+            List<SchemaMeta> list =
+                new ArrayList<SchemaMeta>( schemas_.length + 1 );
+            list.addAll( Arrays.asList( schemas_ ) );
+            int nNaked = nakedTables_.length;
+            logger_.warning( "Using " + nNaked
+                           + " tables declared outside of any schema" );
+            SchemaMeta dummySchema =
+                SchemaMeta.createDummySchema( "<no_schema>" );
+            dummySchema.setTables( nakedTables_ );
+            list.add( dummySchema );
+            return list.toArray( new SchemaMeta[ 0 ] );
+        }
     }
 
     /**
@@ -312,19 +333,7 @@ public class TableSetSaxHandler extends DefaultHandler {
     public static SchemaMeta[] readTableSet( URL url, ContentCoding coding )
             throws IOException, SAXException {
         TableSetSaxHandler handler = populateHandler( url, coding );
-        List<SchemaMeta> schemaList = new ArrayList<SchemaMeta>();
-        schemaList.addAll( Arrays.asList( handler.getSchemas() ) );
-        TableMeta[] nakedTables = handler.getNakedTables();
-        int nNaked = nakedTables.length;
-        if ( nNaked > 0 ) {
-            logger_.warning( "Using " + nNaked
-                           + " tables declared outside of any schema" );
-            SchemaMeta dummySchema =
-                SchemaMeta.createDummySchema( "<no_schema>" );
-            dummySchema.setTables( nakedTables );
-            schemaList.add( dummySchema );
-        }
-        return schemaList.toArray( new SchemaMeta[ 0 ] );
+        return handler.getSchemas( true );
     }
 
     /**
@@ -342,7 +351,7 @@ public class TableSetSaxHandler extends DefaultHandler {
             throws IOException, SAXException {
         TableSetSaxHandler handler = populateHandler( url, coding );
         List<TableMeta> tlist = new ArrayList<TableMeta>();
-        for ( SchemaMeta schema : handler.getSchemas() ) {
+        for ( SchemaMeta schema : handler.getSchemas( false ) ) {
             tlist.addAll( Arrays.asList( schema.getTables() ) );
         }
         tlist.addAll( Arrays.asList( handler.getNakedTables() ) );
@@ -428,7 +437,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         java.io.PrintStream out = System.out;
         TableSetSaxHandler tsHandler =
             populateHandler( new URL( args[ 0 ] ), ContentCoding.GZIP );
-        for ( SchemaMeta schema : tsHandler.getSchemas() ) {
+        for ( SchemaMeta schema : tsHandler.getSchemas( false ) ) {
             out.println( schema.getName() );
             for ( TableMeta table : schema.getTables() ) {
                 out.println( "    " + table.getName() );

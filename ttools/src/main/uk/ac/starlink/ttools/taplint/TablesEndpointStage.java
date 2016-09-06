@@ -141,7 +141,8 @@ public class TablesEndpointStage extends TableMetadataStage {
 
         /* Extract metadata items from populated handler. */
         List<SchemaMeta> schemaList = new ArrayList<SchemaMeta>();
-        schemaList.addAll( Arrays.asList( populatedHandler.getSchemas() ) );
+        schemaList.addAll( Arrays.asList( populatedHandler
+                                         .getSchemas( false ) ) );
         TableMeta[] nakedTables = populatedHandler.getNakedTables();
         int nNaked = nakedTables.length;
         if ( nNaked > 0 ) {
