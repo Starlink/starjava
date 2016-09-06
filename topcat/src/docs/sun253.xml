@@ -23438,6 +23438,22 @@ introduced since the last version:
     <li>Improve performance of some plot types.  In weighted shading mode
         you can now adjust the colour map without appreciable delay.
         SkyDensity plots are somewhat improved.</li>
+    <li>The <ref id="TapTableLoadDialog">TAP window</ref> now honours the
+        (TAP 1.1) <code>column_index</code> column if it is present
+        in the <code>TAP_SCHEMA.columns</code> table.
+        This means that columns can be displayed in a predefined,
+        rather than random, order in the column metadata display tab
+        if the service supports that.</li>
+    <li>The TAP window also now acquires and displays
+        non-standard, as well as standard, table and column metadata
+        items if provided by the TAP service.
+        These come from non-standard columns in the
+        <code>TAP_SCHEMA</code><code>.tables</code>
+        and <code>.columns</code> tables,
+        or from attributes in custom namespaces in the TableSet document,
+        depending on metadata acquisition policy.
+        Services can use this if they wish to report things like
+        table row counts or column data limits.</li>
     </ul>
     </p></dd>
 
