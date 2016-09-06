@@ -644,10 +644,11 @@ public class TapSchemaInterrogator {
                 new LinkedHashMap<String,List<RankedMeta>>();
             RowSequence rseq = table.getRowSequence();
             try {
+                int iseq = 0;
                 while ( rseq.next() ) {
                     Object[] row = rseq.getRow();
                     String key = colset.getCellString( parentColName_, row );
-                    RankedMeta value = createRankedMeta( colset, row );
+                    RankedMeta value = createRankedMeta( colset, row, iseq++ );
                     if ( ! rmap.containsKey( key ) ) {
                         rmap.put( key, new ArrayList<RankedMeta>() );
                     }
@@ -685,8 +686,10 @@ public class TapSchemaInterrogator {
             List<RankedMeta> rlist = new ArrayList<RankedMeta>();
             RowSequence rseq = table.getRowSequence();
             try {
+                int iseq = 0;
                 while ( rseq.next() ) {
-                    rlist.add( createRankedMeta( colset, rseq.getRow() ) );
+                    rlist.add( createRankedMeta( colset, rseq.getRow(),
+                                                 iseq++ ) );
                 }
             }
             finally {
@@ -752,16 +755,19 @@ public class TapSchemaInterrogator {
          *
          * @param  colset  describes the columns in the query
          * @param  row  database query response row
+         * @param  iseq   running index of object in this set
          * @return  metadata item constructed from <code>row</code> elements
          */
-        private RankedMeta createRankedMeta( ColSet colset, Object[] row ) {
+        private RankedMeta createRankedMeta( ColSet colset, Object[] row,
+                                             int iseq ) {
             double rank = rankColName_ == null
                         ? Double.NaN
                         : colset.getCellDouble( rankColName_, row );
             String alpha = alphaColName_ == null
                          ? null
                          : colset.getCellString( alphaColName_, row );
-            return new RankedMeta( createMeta( colset, row ), rank, alpha );
+            return new RankedMeta( createMeta( colset, row ),
+                                   rank, alpha, iseq );
         }
 
         /**
@@ -803,6 +809,7 @@ public class TapSchemaInterrogator {
             final T meta_;
             final double rank_;
             final String alpha_;
+            final int iseq_;
 
             /**
              * Constructor.
@@ -810,11 +817,14 @@ public class TapSchemaInterrogator {
              * @param  meta  metadata item
              * @param  rank  numeric indication of ordering; NaN if unknown
              * @param  alpha  alphabetic indication of ordering; null if unknown
+             * @param  iseq  running sequence number; used to resolve conflicts
+             *               if rank and alpha are tied
              */
-            RankedMeta( T meta, double rank, String alpha ) {
+            RankedMeta( T meta, double rank, String alpha, int iseq ) {
                 meta_ = meta;
                 rank_ = rank;
                 alpha_ = alpha;
+                iseq_ = iseq;
             }
 
             /**
@@ -838,18 +848,22 @@ public class TapSchemaInterrogator {
                         return this.alpha_.compareTo( other.alpha_ );
                     }
                 }
+                int sc = (int) Math.signum( this.iseq_ - other.iseq_ );
+                if ( sc != 0 ) {
+                    return sc;
+                }
                 return (int) Math.signum( this.hashCode() - other.hashCode() );
             }
 
             /**
              * Makes sure a numeric value is usable for numeric comparison.
-             * Maps NaN to +infinity.
+             * Maps NaN to a large number.
              *
              * @param  rank  raw value
              * @return   sanitised value
              */
             private double toComparable( double rank ) {
-                return Double.isNaN( rank ) ? Double.POSITIVE_INFINITY : rank;
+                return Double.isNaN( rank ) ? 0.25 * Double.MAX_VALUE : rank;
             }
         }
     }
