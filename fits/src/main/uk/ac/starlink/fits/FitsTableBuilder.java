@@ -179,7 +179,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                   new TableFormatException( e.getMessage() ).initCause( e );
         }
         finally {
-            if ( strm != null && table == null ) {
+            if ( strm != null ) {
                 strm.close();
             }
         }

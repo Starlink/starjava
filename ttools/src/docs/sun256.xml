@@ -10892,6 +10892,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (404 now gives a Warning not an Error).</li>
     <li><code>taplint</code> ObsTAP validation updated to
         PR-ObsCore-v1.1-20160709.</li>
+    <li>Fix long-standing bug that failed to release file descriptors
+        when opening FITS tables (could cause an error if very many
+        FITS files were opened).</li>
     </ul>
     </p></dd>
 

@@ -23454,6 +23454,9 @@ introduced since the last version:
         depending on metadata acquisition policy.
         Services can use this if they wish to report things like
         table row counts or column data limits.</li>
+    <li>Fix long-standing bug that failed to release file descriptors 
+        when opening FITS tables (could cause an error if very many
+        FITS files were opened).</li>
     </ul>
     </p></dd>
 
