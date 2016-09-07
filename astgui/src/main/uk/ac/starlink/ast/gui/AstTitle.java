@@ -111,8 +111,8 @@ public class AstTitle
      */
     public void setDefaults()
     {
-        isSet = false;
-        show = true;
+        isSet = true;
+        show = false;
         title = NULL_TITLE;
         colour = Color.black;
         font = null;
