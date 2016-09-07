@@ -9,6 +9,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.HashSet;
@@ -188,7 +190,9 @@ public class TableSetSaxHandler extends DefaultHandler {
         }
         else if ( "table".equals( tname ) ) {
             assert table_ != null;
-            table_.setColumns( columnList_.toArray( new ColumnMeta[ 0 ] ) );
+            ColumnMeta[] cols = columnList_.toArray( new ColumnMeta[ 0 ] );
+            retypeExtras( cols );
+            table_.setColumns( cols );
             columnList_ = null;
             table_.setForeignKeys( foreignList_
                                   .toArray( new ForeignMeta[ 0 ] ) );
@@ -426,6 +430,133 @@ public class TableSetSaxHandler extends DefaultHandler {
             }
         }
         return map;
+    }
+
+    /**
+     * Takes a group of ColumnMeta objects and tries to convert the
+     * members of the columns' Extras maps so that they have values
+     * which are of a consistent numeric type, rather than just being
+     * strings.  It just looks at all the entries under a particular
+     * extras key, and sees if it can come up with a numeric type
+     * that they can all be converted to.  This isn't essential,
+     * but it means that downstream use of the extras items can
+     * present them in a way which is more sensitive to their content,
+     * for instance allowing them to be sorted numerically in JTables.
+     * We have to do it like this, since the extras information is just
+     * gathered from attribute information as strings,
+     * and there isn't really any other way to work out what type they are
+     * supposed to be.
+     *
+     * @param  cols  list of column metadata objects whose Extras maps
+     *               should be made consistent;
+     *               extras map values (but not keys) may be rewritten
+     *               by this method
+     */
+    private static void retypeExtras( ColumnMeta[] cols ) {
+
+        /* Assemble a list of possible conversions for each distinct
+         * extras map key that appears in any of the columns. */
+        Map<String,List<Converter>> convMap =
+            new HashMap<String,List<Converter>>();
+        List<Converter> allConvs = Arrays.asList( Converter.values() );
+        for ( ColumnMeta col : cols ) {
+            for ( Map.Entry<String,Object> extra :
+                  col.getExtras().entrySet() ) {
+                String key = extra.getKey();
+                Object value = extra.getValue();
+                if ( value instanceof String && ! "".equals( value ) ) {
+                    String sval = (String) value;
+                    if ( ! convMap.containsKey( key ) ) {
+                        convMap.put( key,
+                                     new ArrayList<Converter>( allConvs ) );
+                    }
+                    for ( Iterator<Converter> it =
+                              convMap.get( key ).iterator();
+                          it.hasNext(); ) {
+                        Converter conv = it.next();
+                        try {
+                            conv.convert( sval );
+                        }
+                        catch ( NumberFormatException e ) {
+                            it.remove();
+                        }
+                    }
+                }
+            }
+        }
+
+        /* For each extras entry in each column, use the preferred
+         * conversion determined in the previous step to rewrite it
+         * as a typed value where applicable. */
+        for ( ColumnMeta col : cols ) {
+            for ( Map.Entry<String,Object> entry :
+                  col.getExtras().entrySet() ) {
+                Object value = entry.getValue();
+                if ( value instanceof String ) {
+                    final Object newValue;
+                    String sval = (String) value;
+                    if ( sval.length() == 0 ) {
+                        newValue = null;
+                    }
+                    else {
+                        List<Converter> convs = convMap.get( entry.getKey() );
+                        if ( convs != null && convs.size() > 0 ) {
+                            newValue = convs.get( 0 ).convert( sval );
+                        }
+                        else {
+                            newValue = value;
+                        }
+                    }
+                    entry.setValue( newValue );
+                }
+            }
+        }
+    }
+
+    /**
+     * Provides options for converting a string to a typed value.
+     * More specific (more desirable) conversions appear earlier in
+     * the list.
+     */
+    private enum Converter {
+        LONG() {
+            public Object convert( String txt ) {
+                return Long.valueOf( txt );
+            }
+        },
+        INTEGER() {
+            public Object convert( String txt ) {
+                return Integer.valueOf( txt );
+            }
+        },
+        DOUBLE() {
+            public Object convert( String txt ) {
+                return Double.valueOf( txt );
+            }
+        },
+        STRING() {
+            public Object convert( String txt ) {
+                return txt;
+            }
+        };
+
+        /**
+         * Converts a text item to a typed value.  The return class is
+         * always the same for a given instance of this enum.
+         *
+         * If the conversion can't be performed, a NumberFormatException
+         * is thrown.  That's not very good practice, since throwing an
+         * exception is much more expensive than a normal return,
+         * but it's somewhat hard work to determine whether one of these
+         * conversions will work without actually trying it, and
+         * this method will not get called sufficiently often to be
+         * a bottleneck.
+         *
+         * @param   txt   input string
+         * @return   converted value
+         * @throws NumberFormatException  if the conversion can't be performed
+         */
+        abstract Object convert( String txt );
     }
 
     /**
