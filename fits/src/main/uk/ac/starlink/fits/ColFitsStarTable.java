@@ -1,5 +1,6 @@
 package uk.ac.starlink.fits;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -22,16 +23,23 @@ import uk.ac.starlink.util.Loader;
  * data for an entire column in each cell of the table.
  * The BINTABLE must be the first extension of a FITS file.
  *
+ * <p>Some instances of this class hang on to file descriptors.
+ * If you are in danger of running out of that resource before
+ * insstances are garbage collected, you can call the {@link #close}
+ * method to release them.  Attempting to read data following
+ * such a call may result in an exception.
+ *
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
-public class ColFitsStarTable extends AbstractStarTable {
+public class ColFitsStarTable extends AbstractStarTable implements Closeable {
 
     private final int ncol_;
     private final long nrow_;
     private final ValueReader[] valReaders_;
     private final InputFactory[] inputFacts_;
     private final ColumnReader[] randomColReaders_;
+    private final Closeable closer_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
@@ -188,6 +196,11 @@ public class ColFitsStarTable extends AbstractStarTable {
             File file = ((FileDataSource) datsrc).getFile();
             RandomAccessFile raf = new RandomAccessFile( file, "r" );
             final FileChannel chan = raf.getChannel();
+            closer_ = new Closeable() {
+                public void close() throws IOException {
+                    chan.close();
+                }
+            };
             long pos = dataPos;
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 final long offset = pos;
@@ -207,6 +220,8 @@ public class ColFitsStarTable extends AbstractStarTable {
                              : BlockMappedInput
                               .createInput( chan, offset, leng, logName,
                                             ! isSeq );
+                    }
+                    public void close() {
                     }
                 };
             }
@@ -228,6 +243,10 @@ public class ColFitsStarTable extends AbstractStarTable {
                     InputFactory
                    .createSequentialFactory( datsrc, offset, leng );
             }
+            closer_ = new Closeable() {
+                public void close() {
+                }
+            };
         }
 
         /* Get table name. */
@@ -305,6 +324,10 @@ public class ColFitsStarTable extends AbstractStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         return new ColFitsRowSequence();
+    }
+
+    public void close() throws IOException {
+        closer_.close();
     }
 
     /**

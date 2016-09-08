@@ -1,6 +1,7 @@
 package uk.ac.starlink.fits;
 
 import java.io.BufferedInputStream;
+import java.io.Closeable;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.File;
@@ -24,7 +25,7 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor
  * @since    2 Dec 2014
  */
-public abstract class InputFactory {
+public abstract class InputFactory implements Closeable {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
@@ -100,6 +101,9 @@ public abstract class InputFactory {
                         new BufferedInputStream( baseIn ) );
                 return createSequentialInput( dataIn );
             }
+            public void close() {
+                datsrc.close();
+            }
         };
     }
 
@@ -130,6 +134,9 @@ public abstract class InputFactory {
                     return new SimpleMappedInput( chan, offset, ileng,
                                                   logName );
                 }
+                public void close() throws IOException {
+                    chan.close();
+                }
             };
         }
         else if ( Loader.is64Bit() ) {
@@ -142,6 +149,9 @@ public abstract class InputFactory {
                     return BlockMappedInput
                           .createInput( chan, offset, leng, logName, ! isSeq );
                 }
+                public void close() throws IOException {
+                    chan.close();
+                }
             };
         }
         else {
@@ -152,6 +162,8 @@ public abstract class InputFactory {
                         throws IOException {
                     BufferedFile bf = new BufferedFile( file.getPath(), "r" );
                     return new RandomAccessInput( bf, offset );
+                }
+                public void close() {
                 }
             };
         }
