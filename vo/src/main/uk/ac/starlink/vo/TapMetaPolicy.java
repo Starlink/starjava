@@ -289,14 +289,6 @@ public abstract class TapMetaPolicy {
                                                        int maxrow ) {
         MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
 
-        /* This implementation looks a bit more complicated than it has to be.
-         * VOSI 1.1 allows services to describe how much detail they
-         * return from the /tables endpoint - whether to include column/fkey
-         * metadata or not.  So we could just leave it to the service here.
-         * However, not all services are VOSI 1.1, so this hybrid approach
-         * ensures that we get sensible behaviour for small or large TAP
-         * services for any VOSI version implementation. */
- 
         /* Find out how many columns there are in total.
          * The columns table is almost certainly the longest one we would
          * have to cope with.  In principle it could be the foreign key table,
@@ -345,12 +337,20 @@ public abstract class TapMetaPolicy {
         }
 
         /* If there are fewer columns than the threshold, or the column
-         * count failed, use the VOSI tables endpoint instead. */
+         * count failed, use the VOSI tables endpoint instead.
+         * It would be nice to use the VOSI 1.1 endpoint here
+         * (Vosi11TapMetaReader with DetailMode.MAX) since it should
+         * allow services to regulate how their metadata is dispensed.
+         * The backwardly compatible way that VOSI1.1 TableSet detail
+         * negotiation is defined means that in principle it ought to
+         * do something sensible for VOSI 1.0 compliant services too.
+         * But at time of writing, at least a couple of existing services
+         * with cranky/broken VOSI1.0 implementations fail if you try that
+         * (CADC, TAPVizieR). */
         logger_.info( "Use VOSI tables endpoint for "
                     + endpointSet.getIdentity() );
-        return new Vosi11TapMetaReader( endpointSet.getTablesEndpoint(),
-                                        fixer, coding,
-                                        Vosi11TapMetaReader.DetailMode.MAX );
+        return new TableSetTapMetaReader( endpointSet.getTablesEndpoint(),
+                                          fixer, coding );
     }
 
     /**
