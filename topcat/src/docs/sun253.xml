@@ -17716,6 +17716,24 @@ by clicking on the appropriate tab at the top.
             columns are read only when required
             (experimental, may be withdrawn).
             </li>
+        <li><label>VOSI11-1step</label>
+            Uses VOSI 1.1-style <code>detail</code>-sensitive requests
+            to the <code>/tables</code> endpoint.
+            <code>detail=max</code> is specified initially to indicate that
+            full metadata up-front metadata load is preferred.
+            </li>
+        <li><label>VOSI11-2step</label>
+            Uses VOSI 1.1-style <code>detail</code>-sensitive requests
+            to the <code>/tables</code> endpoint.
+            <code>detail=min</code> is specified initially to indicate that
+            on-demand column load is preferred.
+            </li>
+        <li><label>VOSI11</label>
+            Uses VOSI 1.1-style <code>detail</code>-sensitive requests
+            to the <code>/tables</code> endpoint.
+            No <code>detail</code> specification is made initially,
+            so the service decides whether up-front loading is done.
+            </li>
         </ul>
         You will usually want to stick with the default
         value of <label>Auto</label>.
@@ -23457,6 +23475,9 @@ introduced since the last version:
     <li>Fix long-standing bug that failed to release file descriptors 
         when opening FITS tables (could cause an error if very many
         FITS files were opened).</li>
+    <li>Add VOSI 1.1-style <code>detail</code>-sensitive <code>/tables</code>
+        endpoint query options to the <label>TAP|Metadata Acquisition</label>
+        menu in the TAP window.</li>
     </ul>
     </p></dd>
 
