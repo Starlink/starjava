@@ -745,15 +745,21 @@ public class ObsTapStage implements Stage {
 
         /* Note some additional constraints. */
 
-        /* ObsTAP 1.0 Sec 4.1. */
-        map.get( "dataproduct_type" ).hardOptions_ = new String[] {
+        /* ObsTAP 1.0 Sec 4.1, ObsTAP 1.1 Sec 3.3.1. */
+        List<String> dpopts =
+                new ArrayList<String>( Arrays.asList( new String[] {
             "image", "cube", "spectrum", "sed", "timeseries", "visibility",
             "event",
-        };
+        } ) );
+        if ( is11 ) {
+            dpopts.add( "measurements" );
+        }
+        map.get( "dataproduct_type" ).hardOptions_ =
+            dpopts.toArray( new String[ 0 ] );
 
-        /* ObsTAP 1.0 Sec 4.2. */
+        /* ObsTAP 1.0 Sec 4.2, ObsTAP 1.1 sec 3.3.2. */
         map.get( "calib_level" ).range_ =
-            new Integer[] { new Integer( 0 ), new Integer( 3 ) };
+            new Integer[] { new Integer( 0 ), new Integer( is11 ? 4 : 3 ) };
 
         /* ObsTAP 1.0 Table 4. */
         map.get( "calib_level" ).nullForbidden_ = true;
