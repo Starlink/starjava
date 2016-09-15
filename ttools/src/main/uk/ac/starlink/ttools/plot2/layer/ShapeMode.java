@@ -1414,9 +1414,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         else {
                             binResult = wplan.binResult_;
                         }
-                        double[] bounds = binResult.getValueBounds();
-                        range.submit( bounds[ 0 ] );
-                        range.submit( bounds[ 1 ] );
+                        PlotUtil.extendRange( range, binResult );
                     }
                 } );
                 return map;

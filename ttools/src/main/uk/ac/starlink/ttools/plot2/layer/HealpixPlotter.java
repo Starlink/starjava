@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -380,12 +381,11 @@ public class HealpixPlotter
                         public double getBinValue( long index ) {
                             return factor * baseResult.getBinValue( index );
                         }
-                        public double[] getValueBounds() {
-                            double[] bounds =
-                                baseResult.getValueBounds().clone();
-                            bounds[ 0 ] *= factor;
-                            bounds[ 1 ] *= factor;
-                            return bounds;
+                        public long getBinCount() {
+                            return baseResult.getBinCount();
+                        }
+                        public Iterator<Long> indexIterator() {
+                            return baseResult.indexIterator();
                         }
                     };
                 }
@@ -527,11 +527,8 @@ public class HealpixPlotter
                     BinList.Result binResult =
                         tplan == null ? readBins( dataSpec, dataStore )
                                       : tplan.binResult_;
-                    double[] bounds = createTileRenderer( surface )
-                                     .calculateAuxRange( binResult )
-                                     .getBounds();
-                    range.submit( bounds[ 0 ] );
-                    range.submit( bounds[ 1 ] );
+                    createTileRenderer( surface )
+                   .extendAuxRange( range, binResult );
                 }
             } );
             return map;
@@ -686,7 +683,7 @@ public class HealpixPlotter
             };
         }
 
-        public Range calculateAuxRange( BinList.Result binResult ) {
+        public void extendAuxRange( Range range, BinList.Result binResult ) {
             Rectangle bounds = surface_.getPlotBounds();
             Gridder gridder = new Gridder( bounds.width, bounds.height );
             int npix = gridder.getLength();
@@ -694,7 +691,6 @@ public class HealpixPlotter
             double x0 = bounds.x + 0.5;
             double y0 = bounds.y + 0.5;
             long hpix0 = -1;
-            Range range = new Range();
             for ( int ip = 0; ip < npix; ip++ ) {
                 point.x = x0 + gridder.getX( ip );
                 point.y = y0 + gridder.getY( ip );
@@ -707,7 +703,6 @@ public class HealpixPlotter
                     }
                 }
             }
-            return range;
         }
 
         public void renderBins( Graphics g, BinList.Result binResult,
@@ -737,8 +732,7 @@ public class HealpixPlotter
             tiler_ = new SkySurfaceTiler( surface, rotation, viewLevel );
         }
 
-        public Range calculateAuxRange( BinList.Result binResult ) {
-            Range range = new Range();
+        public void extendAuxRange( Range range, BinList.Result binResult ) {
             for ( Long hpxObj : tiler_.visiblePixels() ) {
                 long hpx = hpxObj.longValue();
                 double value = binResult.getBinValue( hpx );
@@ -746,7 +740,6 @@ public class HealpixPlotter
                     range.submit( value );
                 }
             }
-            return range;
         }
 
         public void renderBins( Graphics g, BinList.Result binResult,
@@ -781,12 +774,12 @@ public class HealpixPlotter
     private interface TileRenderer {
 
         /**
-         * Returns the range of aux values found within a given surface.
+         * Modifies the range of aux values found within a given surface.
          *
+         * @param  range   range object to be modified
          * @param  binResult   tile bin contents
-         * @return  range of pixel values
          */
-        Range calculateAuxRange( BinList.Result binResult );
+        void extendAuxRange( Range range, BinList.Result binResult );
 
         /**
          * Performs the rendering of a prepared bin list on a graphics surface.

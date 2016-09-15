@@ -10904,6 +10904,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix aux ranging bug in some plot types
+        (SkyDensity, Healpix, Density, Weighted)
+        that used an aux data range too small to show colour variations
+        when <code>auxfunc=log</code>
+        and negative data values were present.</li>
     </ul>
     </p></dd>
 

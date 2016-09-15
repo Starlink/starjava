@@ -23502,6 +23502,11 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix aux ranging bug in some plot types
+        (SkyDensity, Healpix, Density, Weighted)
+        that used an aux data range too small to show colour variations
+        when Aux scaling was logarithmic
+        and negative data values were present.</li>
     </ul>
     </p></dd>
 

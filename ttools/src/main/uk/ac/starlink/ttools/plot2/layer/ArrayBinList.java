@@ -1,5 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  * Abstract subclass of BinList suitable for implementations based
  * on arrays.  The defining feature is that the the maximum bin count
@@ -13,6 +17,7 @@ public abstract class ArrayBinList implements BinList {
     private final int size_;
     private final Combiner combiner_;
     private final boolean isCopyResult_;
+    private final BitSet mask_;
 
     /**
      * Constructor.
@@ -32,6 +37,7 @@ public abstract class ArrayBinList implements BinList {
         size_ = size;
         combiner_ = combiner;
         isCopyResult_ = isCopyResult;
+        mask_ = new BitSet( size );
     }
 
     /**
@@ -52,8 +58,10 @@ public abstract class ArrayBinList implements BinList {
      */
     protected abstract double getBinResultInt( int index );
 
-    public void submitToBin( long index, double datum ) {
-        submitToBinInt( (int) index, datum );
+    public void submitToBin( long lndex, double datum ) {
+        int index = (int) lndex;
+        mask_.set( index );
+        submitToBinInt( index, datum );
     }
 
     public long getSize() {
@@ -75,24 +83,9 @@ public abstract class ArrayBinList implements BinList {
      * @return   bin result structure
      */
     private Result createAdapterResult() {
-        return new Result() {
-            public double getBinValue( long index ) {
-                return getBinResultInt( (int) index );
-            }
-            public double[] getValueBounds() {
-                double lo = Double.POSITIVE_INFINITY;
-                double hi = Double.NEGATIVE_INFINITY;
-                for ( int i = 0; i < size_; i++ ) {
-                    double v = getBinResultInt( i );
-                    if ( v < lo ) {
-                        lo = v;
-                    }
-                    if ( v > hi ) {
-                        hi = v;
-                    }
-                }
-                return lo <= hi ? new double[] { lo, hi }
-                                : new double[] { 0, 1 };
+        return new MaskResult( mask_ ) {
+            public double getPopulatedBinValue( int index ) {
+                return getBinResultInt( index );
             }
         };
     }
@@ -104,28 +97,100 @@ public abstract class ArrayBinList implements BinList {
      * @return   bin result structure
      */
     private Result createCopyResult() {
-        final double[] values = new double[ size_ ];
-        double lo = Double.POSITIVE_INFINITY;
-        double hi = Double.NEGATIVE_INFINITY;
-        for ( int i = 0; i < size_; i++ ) {
-            double v = getBinResultInt( i );
-            if ( v < lo ) {
-                lo = v;
-            }
-            if ( v > hi ) {
-                hi = v;
-            }
-            values[ i ] = v;
+        double[] values = new double[ mask_.length() ];
+        for ( Iterator<Long> it = createMaskIterator( mask_ ); it.hasNext(); ) {
+            int ix = it.next().intValue();
+            values[ ix ] = getBinResultInt( ix );
         }
-        final double[] bounds = lo <= hi ? new double[] { lo, hi }
-                                         : new double[] { 0, 1 };
-        return new Result() {
-            public double getBinValue( long index ) {
-                return values[ (int) index ];
+        return new CopyResult( mask_, values );
+    }
+
+    /**
+     * Returns an iterator over the indices of the set bits in a BitSet.
+     *
+     * @param  mask  bit mask
+     * @return  iterator over set bit indices in mask
+     */
+    private static Iterator<Long> createMaskIterator( final BitSet mask ) {
+        return new Iterator<Long>() {
+            int ibit = mask.nextSetBit( 0 );
+            public Long next() {
+                if ( ibit >= 0 ) {
+                    Long result = new Long( ibit );
+                    ibit = mask.nextSetBit( ibit + 1 );
+                    return result;
+                }
+                else {
+                    throw new NoSuchElementException();
+                }
             }
-            public double[] getValueBounds() {
-                return bounds.clone();
+            public boolean hasNext() {
+                return ibit >= 0;
+            }
+            public void remove() {
+                throw new UnsupportedOperationException();
             }
         };
+    }
+
+    /**
+     * Partial result implementation implementation in which non-empty
+     * bins are identified using a bit mask.
+     */
+    private static abstract class MaskResult implements Result {
+        private final BitSet mask_;
+
+        /**
+         * Constructor.
+         *
+         * @param  mask  bit mask identifying populated bins
+         */
+        MaskResult( BitSet mask ) {
+            mask_ = mask;
+        }
+
+        public long getBinCount() {
+            return mask_.cardinality();
+        }
+
+        public Iterator<Long> indexIterator() {
+            return createMaskIterator( mask_ );
+        }
+
+        public double getBinValue( long lndex ) {
+            int index = (int) lndex;
+            return mask_.get( index ) ? getPopulatedBinValue( index )
+                                      : Double.NaN;
+        }
+
+        /**
+         * Returns the numeric value of a bin that is known to have been
+         * populated.
+         *
+         * @param   index   bin index
+         * @return   bin value
+         */
+        abstract double getPopulatedBinValue( int index );
+    }
+
+    /**
+     * Result implementation based on a fixed double array.
+     */
+    private static class CopyResult extends MaskResult {
+        private final double[] values_;
+
+        /**
+         * Constructor.
+         *
+         * @param  mask  bit mask identifying populated bins
+         * @param  values   value array
+         */
+        CopyResult( BitSet mask, double[] values ) {
+            super( mask );
+            values_ = values;
+        }
+        public double getPopulatedBinValue( int index ) {
+            return values_[ index ];
+        }
     }
 }

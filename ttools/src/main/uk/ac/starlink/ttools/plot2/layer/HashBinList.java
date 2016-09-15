@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -71,21 +72,11 @@ public class HashBinList implements BinList {
                 Combiner.Container container = map_.get( new Long( index ) );
                 return container == null ? Double.NaN : container.getResult();
             }
-            public double[] getValueBounds() {
-                double lo = Double.POSITIVE_INFINITY;
-                double hi = Double.NEGATIVE_INFINITY;
-                for ( Combiner.Container container : map_.values() ) {
-                    double v = container.getResult();
-                    assert ! Double.isNaN( v );
-                    if ( v < lo ) {
-                        lo = v;
-                    }
-                    if ( v > hi ) {
-                        hi = v;
-                    }
-                }
-                return lo <= hi ? new double[] { lo, hi }
-                                : new double[] { 0, 1 };
+            public long getBinCount() {
+                return map_.size();
+            }
+            public Iterator<Long> indexIterator() {
+                return map_.keySet().iterator();
             }
         };
     }
@@ -98,31 +89,39 @@ public class HashBinList implements BinList {
      */
     private Result createCopyResult() {
         final Map<Long,Double> resultMap = new HashMap<Long,Double>();
-        double lo = Double.POSITIVE_INFINITY;
-        double hi = Double.NEGATIVE_INFINITY;
         for ( Map.Entry<Long,Combiner.Container> entry : map_.entrySet() ) {
             Long key = entry.getKey();
             double value = entry.getValue().getResult();
             if ( ! Double.isNaN( value ) ) {
-                if ( value < lo ) {
-                    lo = value;
-                }
-                if ( value > hi ) {
-                    hi = value;
-                }
                 resultMap.put( key, new Double( value ) );
             }
         }
-        final double[] bounds = lo <= hi ? new double[] { lo, hi }
-                                         : new double[] { 0, 1 };
-        return new Result() {
-            public double getBinValue( long index ) {
-                Double value = resultMap.get( new Long( index ) );
-                return value == null ? Double.NaN : value.doubleValue();
-            }
-            public double[] getValueBounds() {
-                return bounds.clone();
-            }
-        };
+        return new CopyResult( resultMap );
+    }
+
+    /**
+     * Result implementation based on a Long-&gt;Double map.
+     */
+    private static class CopyResult implements Result {
+        private final Map<Long,Double> map_;
+
+        /**
+         * Constructor.
+         *
+         * @param   map  giving bin values
+         */
+        CopyResult( Map<Long,Double> map ) {
+            map_ = map;
+        }
+        public double getBinValue( long index ) {
+            Double value = map_.get( new Long( index ) );
+            return value == null ? Double.NaN : value.doubleValue();
+        }
+        public long getBinCount() {
+            return map_.size();
+        }
+        public Iterator<Long> indexIterator() {
+            return map_.keySet().iterator();
+        }
     }
 }

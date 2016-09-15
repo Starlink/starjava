@@ -441,7 +441,6 @@ public class SkyDensityPlotter
                                             Object[] knownPlans,
                                             Range range ) {
                     SkySurface ssurf = (SkySurface) surface;
-                    final double[] bounds;
 
                     /* If we have a cached plan, use that for the ranging.
                      * This will be faster than rebinning the data for
@@ -452,15 +451,14 @@ public class SkyDensityPlotter
                     SkyDensityPlan splan =
                         getSkyPlan( knownPlans, dstyle_.level_, dataSpec );
                     if ( splan != null ) {
-                        bounds = splan.getVisibleRange( ssurf );
+                        splan.extendVisibleRange( range, ssurf );
                     }
                     else {
-                        bounds = readBins( ssurf, true, dataSpec, dataStore )
-                                .getResult()
-                                .getValueBounds();
+                        BinList.Result binResult =
+                            readBins( ssurf, true, dataSpec, dataStore )
+                           .getResult();
+                        PlotUtil.extendRange( range, binResult );
                     }
-                    range.submit( bounds[ 0 ] );
-                    range.submit( bounds[ 1 ] );
                 }
             } );
             return map;
@@ -773,7 +771,8 @@ public class SkyDensityPlotter
         }
 
         /**
-         * Returns the pixel value range represented by this plan over
+         * Adjusts a supplied Range object to reflect the pixel value range
+         * represented by this plan over
          * only that part of the sky visible in a given sky surface.
          * This may not be very fast, but it scales with the number of
          * pixels on the surface rather than the number of data rows,
@@ -781,11 +780,10 @@ public class SkyDensityPlotter
          * However in some cases (bin-count&lt;&lt;pixel-count)
          * it could definitely be done more efficiently.
          *
+         * @param  range     range to submit values to
          * @param  surface   viewing surface
-         * @return  2-element [lo,hi] array giving pixel value range in
-         *                    visible region
          */
-        public double[] getVisibleRange( SkySurface surface ) {
+        public void extendVisibleRange( Range range, SkySurface surface ) {
             Rectangle bounds = surface.getPlotBounds();
             int nx = bounds.width;
             int ny = bounds.height;
@@ -795,7 +793,6 @@ public class SkyDensityPlotter
             double x0 = bounds.x + 0.5;
             double y0 = bounds.y + 0.5;
             SkyPixer skyPixer = new SkyPixer( level_ );
-            Range range = new Range();
             for ( int ip = 0; ip < npix; ip++ ) {
                 point.x = x0 + gridder.getX( ip );
                 point.y = y0 + gridder.getY( ip );
@@ -806,7 +803,6 @@ public class SkyDensityPlotter
                     range.submit( dval );
                 }
             }
-            return range.getBounds();
         }
     }
 }

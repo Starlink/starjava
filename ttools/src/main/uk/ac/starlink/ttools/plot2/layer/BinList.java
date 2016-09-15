@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.util.Iterator;
+
 /**
  * Represents a bounded list of bins.
  * Each bin is given a fixed integer label, from zero to a specified maximum.
@@ -77,11 +79,21 @@ public interface BinList {
         double getBinValue( long index );
 
         /**
-         * Returns the range of bin values currently present in all the
-         * occupied bins.
+         * Returns the number of bins actually populated.
+         * This is the number of values that will be returned by
+         * {@link #indexIterator}.
          *
-         * @return   2-element array giving (min,max) of all bin values
+         * @return  number of non-empty bins
          */
-        double[] getValueBounds();
+        long getBinCount();
+
+        /**
+         * Returns an iterator over the indices of the
+         * populated bins int this result.
+         *
+         * @return  iterator over distinct indices of all the non-empty bins;
+         *          none of the values will be larger than the BinList's size
+         */
+        Iterator<Long> indexIterator();
     }
 }

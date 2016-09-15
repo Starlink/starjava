@@ -24,6 +24,7 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
@@ -295,11 +296,9 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,
                                             Range range ) {
-                    double[] bounds = readBins( surface, dataSpec, dataStore )
-                                     .getResult()
-                                     .getValueBounds();
-                    range.submit( bounds[ 0 ] );
-                    range.submit( bounds[ 1 ] );
+                    BinList.Result binResult =
+                        readBins( surface, dataSpec, dataStore ).getResult();
+                    PlotUtil.extendRange( range, binResult );
                 }
             } );
             return map;

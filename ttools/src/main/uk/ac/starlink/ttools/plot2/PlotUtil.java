@@ -12,6 +12,7 @@ import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -23,6 +24,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.layer.BinList;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
 /**
@@ -507,6 +509,19 @@ public class PlotUtil {
             range.submit( hiNearZero
                           ? 0
                           : scaleValue( lo, hi, 1 + padFrac, logFlag ) );
+        }
+    }
+
+    /**
+     * Modifies a supplied range object by submitting the values in the
+     * bins of a given BinList.Result.
+     * 
+     * @param  range  range to extend
+     * @param  binResult  bin data
+     */
+    public static void extendRange( Range range, BinList.Result binResult ) {
+        for ( Iterator<Long> it = binResult.indexIterator(); it.hasNext(); ) {
+            range.submit( binResult.getBinValue( it.next().longValue() ) );
         }
     }
 
