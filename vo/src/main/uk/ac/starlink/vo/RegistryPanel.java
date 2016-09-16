@@ -514,6 +514,16 @@ public class RegistryPanel extends JPanel {
     }
 
     /**
+     * Returns an action which will update the list of registries by making
+     * a search in the registry for suitable registry entries.
+     *
+     * @return   registry update action
+     */
+    public Action getRegistryUpdateAction() {
+         return queryFactory_.getRegistrySelector().getRegistryUpdateAction();
+    }
+
+    /**
      * Returns a container into which (small) additional controls can be added.
      *
      * @return  control box
