@@ -566,6 +566,7 @@ public class HealpixPlotter
                                       Map<AuxScale,Range> auxRanges,
                                       final PaperType paperType ) {
             final DataSpec dataSpec = getDataSpec();
+            final Combiner combiner = hstyle_.combiner_;
             final Shader shader = hstyle_.shader_;
             final Scaler scaler =
                 Scaling.createRangeScaler( hstyle_.scaling_,
@@ -581,8 +582,8 @@ public class HealpixPlotter
                     else {
                         BinList.Result binResult =
                             readBins( dataSpec, dataStore ).compact();
-                        return new TilePlan( dataLevel_, viewLevel_, dataSpec,
-                                             binResult );
+                        return new TilePlan( dataLevel_, viewLevel_, combiner,
+                                             dataSpec, binResult );
                     }
                 }
                 public void paintData( Object plan, Paper paper,
@@ -617,7 +618,8 @@ public class HealpixPlotter
             for ( Object plan : knownPlans ) {
                 if ( plan instanceof TilePlan ) {
                     TilePlan tplan = (TilePlan) plan;
-                    if ( tplan.matches( dataLevel_, viewLevel_, dataSpec ) ) {
+                    if ( tplan.matches( dataLevel_, viewLevel_,
+                                        hstyle_.combiner_, dataSpec ) ) {
                         return tplan;
                     }
                 }
@@ -827,6 +829,7 @@ public class HealpixPlotter
     private static class TilePlan {
         final int dataLevel_;
         final int viewLevel_;
+        final Combiner combiner_;
         final DataSpec dataSpec_;
         final BinList.Result binResult_;
 
@@ -835,13 +838,15 @@ public class HealpixPlotter
          *
          * @param  dataLevel  HEALPix level at which data was supplied
          * @param  viewLevel  HEALPix level at which pixels were calculated
+         * @param  combiner   combination method
          * @param  dataSpec   data spec
          * @param  binResult   tile map
          */
-        TilePlan( int dataLevel, int viewLevel, DataSpec dataSpec,
-                  BinList.Result binResult ) {
+        TilePlan( int dataLevel, int viewLevel, Combiner combiner,
+                  DataSpec dataSpec, BinList.Result binResult ) {
             dataLevel_ = dataLevel;
             viewLevel_ = viewLevel;
+            combiner_ = combiner;
             dataSpec_ = dataSpec;
             binResult_ = binResult;
         }
@@ -852,13 +857,15 @@ public class HealpixPlotter
          *
          * @param  dataLevel  HEALPix level at which data is supplied
          * @param  viewLevel  HEALPix level at which pixels is calculated
+         * @param  combiner   combination method for degraded pixels
          * @param  dataSpec   data spec
          * @return  true iff this plan can be used for the given parameters
          */
-        public boolean matches( int dataLevel, int viewLevel,
+        public boolean matches( int dataLevel, int viewLevel, Combiner combiner,
                                 DataSpec dataSpec ) {
             return dataLevel_ == dataLevel
                 && viewLevel_ == viewLevel
+                && combiner_ == combiner
                 && dataSpec_.equals( dataSpec );
         }
     }
