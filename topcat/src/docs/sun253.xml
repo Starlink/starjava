@@ -23507,6 +23507,8 @@ introduced since the last version:
         that used an aux data range too small to show colour variations
         when Aux scaling was logarithmic
         and negative data values were present.</li>
+    <li>Improved performance (better memory use, faster) of some plot types
+        (SkyDensity, Healpix, Density, Weighted).</li>
     </ul>
     </p></dd>
 

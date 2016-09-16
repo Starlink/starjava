@@ -95,5 +95,20 @@ public interface BinList {
          *          none of the values will be larger than the BinList's size
          */
         Iterator<Long> indexIterator();
+
+        /**
+         * Returns a Result instance with behaviour the same as this one,
+         * but with implementation optimised for long-term storage.
+         * If you're only going to iterate over this object's values once,
+         * don't call this method, since it will probably iterate over
+         * the values anyway if it does anything at all.
+         * But if you're going to keep the result around for potentially
+         * multiple uses, retaining the output of this method, rather than
+         * the original object, may be more efficient on memory.
+         *
+         * @return  compacted result with the same content as this;
+         *          may return this object
+         */
+        Result compact();
     }
 }

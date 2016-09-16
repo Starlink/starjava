@@ -1,8 +1,10 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Random;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import junit.framework.TestCase;
 
@@ -77,43 +79,67 @@ public class CombinerTest extends TestCase {
             assertEquals( result_, container.getResult() );
             BinList.Result binResult = bl.getResult();
             assertEquals( result_, binResult.getBinValue( 1 ) );
-            assertTrue( Double.isNaN( binResult.getBinValue( 0 ) ) );
+            assertEquals( result_, binResult.compact().getBinValue( 1 ) );
+            assertTrue( Double.isNaN( binResult.compact().getBinValue( 0 ) ) );
         }
     }
 
     private void exerciseCombiner( Combiner combiner ) {
         int nbin = 200;
         int nsamp = 1000;
+        BitSet mask = new BitSet( nbin );
         BinList abins = combiner.createArrayBinList( nbin );
-        BinList hbins1 = new HashBinList( nbin, combiner, false );
-        BinList hbins2 = new HashBinList( nbin, combiner, true );
+        BinList hbins = new HashBinList( nbin, combiner );
         for ( int is = 0; is < nsamp; is++ ) {
             int ibin = random_.nextInt( nbin );
             if ( ! skipBin( nbin, ibin ) ) {
                 double datum = Math.max( 0, ( random_.nextDouble() * 10 - 1 ) );
                 abins.submitToBin( ibin, datum );
-                hbins1.submitToBin( ibin, datum );
-                hbins2.submitToBin( ibin, datum );
+                hbins.submitToBin( ibin, datum );
+                mask.set( ibin );
             }
         }
+        int nOc = mask.cardinality();
         int nskip = 0;
         BinList.Result aResult = abins.getResult();
-        BinList.Result h1Result = hbins1.getResult();
-        BinList.Result h2Result = hbins2.getResult();
+        BinList.Result acResult = aResult.compact();
+        BinList.Result hResult = hbins.getResult();
+        BinList.Result hcResult = hResult.compact();
         for ( int ib = 0; ib < nbin; ib++ ) {
-            assertEquals( h1Result.getBinValue( ib ),
-                          h2Result.getBinValue( ib ) );
-            assertEquals( aResult.getBinValue( ib ),
-                          h1Result.getBinValue( ib ) );
+            double value = aResult.getBinValue( ib );
+            assertEquals( value, hResult.getBinValue( ib ) );
+            assertEquals( value, acResult.getBinValue( ib ) );
+            assertEquals( value, hcResult.getBinValue( ib ) );
             if ( skipBin( nbin, ib ) ) {
                 nskip++;
-                assertTrue( Double.isNaN( aResult.getBinValue( ib ) ) );
+                assertTrue( Double.isNaN( value ) );
             }
         }
         assertTrue( nskip > 1 );
+        assertEquals( nOc, countOccupiedBins( aResult, nbin ) );
+        assertEquals( nOc, countOccupiedBins( acResult, nbin ) );
+        assertEquals( nOc, countOccupiedBins( hResult, nbin ) );
+        assertEquals( nOc, countOccupiedBins( hcResult, nbin ) );
     }
 
     private static boolean skipBin( int nbin, int ibin ) {
-        return ibin > 0.5 * nbin && ibin < 0.6 * nbin;
+        return ibin > 0.5 * nbin && ibin < 0.625 * nbin;
+    }
+
+    private static int countOccupiedBins( BinList.Result result, int size ) {
+        int nOc = 0;
+        BitSet mask = new BitSet();
+        for ( Iterator<Long> it = result.indexIterator(); it.hasNext(); ) {
+            long lndex = it.next().longValue();
+            int index = (int) lndex;
+            assertTrue( index == lndex );  // not absolutely required,
+                                           // but better be for testing
+            assertTrue( index >= 0 && index < size );
+            assertTrue( ! mask.get( index ) );
+            mask.set( index );
+            assertTrue( mask.get( index ) );
+            nOc++;
+        }
+        return nOc;
     }
 }

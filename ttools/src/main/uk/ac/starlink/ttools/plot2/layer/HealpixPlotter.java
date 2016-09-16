@@ -376,18 +376,8 @@ public class HealpixPlotter
                     baseList.submitToBin( index, datum );
                 }
                 public BinList.Result getResult() {
-                    final BinList.Result baseResult = baseList.getResult();
-                    return new BinList.Result() {
-                        public double getBinValue( long index ) {
-                            return factor * baseResult.getBinValue( index );
-                        }
-                        public long getBinCount() {
-                            return baseResult.getBinCount();
-                        }
-                        public Iterator<Long> indexIterator() {
-                            return baseResult.indexIterator();
-                        }
-                    };
+                    return new FactorResult( baseList.getResult(), factor,
+                                             false );
                 }
             };
         }
@@ -399,6 +389,44 @@ public class HealpixPlotter
             }
             return isFew ? combiner.createArrayBinList( (int) nbin )
                          : combiner.createHashBinList( nbin );
+        }
+    }
+
+    /**
+     * Wrapper implementation of BinList.Result that multiplies
+     * bin values by a fixed factor.
+     */
+    private static class FactorResult implements BinList.Result {
+        private final BinList.Result baseResult_;
+        private final double factor_;
+        private final boolean isCompacted_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseResult   base result instance
+         * @param  factor   factor by which bin values are multiplied
+         * @param  isCompacted  if true, compact operation is a no-op
+         */
+        FactorResult( BinList.Result baseResult, double factor,
+                      boolean isCompacted ) {
+            baseResult_ = baseResult;
+            factor_ = factor;
+            isCompacted_ = isCompacted;
+        }
+        public double getBinValue( long index ) {
+            return factor_ * baseResult_.getBinValue( index );
+        }
+        public long getBinCount() {
+            return baseResult_.getBinCount();
+        }
+        public Iterator<Long> indexIterator() {
+            return baseResult_.indexIterator();
+        }
+        public BinList.Result compact() {
+            return isCompacted_
+                 ? this
+                 : new FactorResult( baseResult_.compact(), factor_, true );
         }
     }
 
@@ -552,7 +580,7 @@ public class HealpixPlotter
                     }
                     else {
                         BinList.Result binResult =
-                            readBins( dataSpec, dataStore );
+                            readBins( dataSpec, dataStore ).compact();
                         return new TilePlan( dataLevel_, viewLevel_, dataSpec,
                                              binResult );
                     }

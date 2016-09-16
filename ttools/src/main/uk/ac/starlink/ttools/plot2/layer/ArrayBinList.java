@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -16,27 +18,17 @@ public abstract class ArrayBinList implements BinList {
 
     private final int size_;
     private final Combiner combiner_;
-    private final boolean isCopyResult_;
     private final BitSet mask_;
 
     /**
      * Constructor.
-     * The <code>isCopyResult</code> flag determines how the
-     * {@link #getResult} method is implemented.
-     * As a rule it should be true if an accumulating bin requires
-     * more than a <code>double</code>'s worth of storage,
-     * and false otherwise.
      *
      * @param  size   bin count
      * @param  combiner   combiner
-     * @param  isCopyResult  true if getResult copies data to a new array,
-     *                       false if it acts as an adapter on existing data
      */
-    protected ArrayBinList( int size, Combiner combiner,
-                            boolean isCopyResult ) {
+    protected ArrayBinList( int size, Combiner combiner ) {
         size_ = size;
         combiner_ = combiner;
-        isCopyResult_ = isCopyResult;
         mask_ = new BitSet( size );
     }
 
@@ -73,36 +65,11 @@ public abstract class ArrayBinList implements BinList {
     }
 
     public Result getResult() {
-        return isCopyResult_ ? createCopyResult() : createAdapterResult();
-    }
-
-    /**
-     * Returns a Result object that extracts values as required from
-     * the data structure into which bin values are accumulated.
-     *
-     * @return   bin result structure
-     */
-    private Result createAdapterResult() {
-        return new MaskResult( mask_ ) {
+        return new MaskResult( mask_, size_, combiner_.hasBigBin() ) {
             public double getPopulatedBinValue( int index ) {
                 return getBinResultInt( index );
             }
         };
-    }
-
-    /**
-     * Constructs and returns a Result object by reading the current state
-     * of the bins and storing the values into a new array.
-     *
-     * @return   bin result structure
-     */
-    private Result createCopyResult() {
-        double[] values = new double[ mask_.length() ];
-        for ( Iterator<Long> it = createMaskIterator( mask_ ); it.hasNext(); ) {
-            int ix = it.next().intValue();
-            values[ ix ] = getBinResultInt( ix );
-        }
-        return new CopyResult( mask_, values );
     }
 
     /**
@@ -134,19 +101,26 @@ public abstract class ArrayBinList implements BinList {
     }
 
     /**
-     * Partial result implementation implementation in which non-empty
+     * Partial result implementation implementation in which occupied
      * bins are identified using a bit mask.
      */
     private static abstract class MaskResult implements Result {
         private final BitSet mask_;
+        private final int arraysize_;
+        private final boolean hasBigBin_;
 
         /**
          * Constructor.
          *
          * @param  mask  bit mask identifying populated bins
+         * @param  arraysize  size of original array (max possible bin index+1)
+         * @param  hasBigBin  whether the combiner bins are large objects
+         *                    (larger than a double)
          */
-        MaskResult( BitSet mask ) {
+        MaskResult( BitSet mask, int arraysize, boolean hasBigBin ) {
             mask_ = mask;
+            arraysize_ = arraysize;
+            hasBigBin_ = hasBigBin;
         }
 
         public long getBinCount() {
@@ -163,6 +137,35 @@ public abstract class ArrayBinList implements BinList {
                                       : Double.NaN;
         }
 
+        public Result compact() {
+
+            /* If the array is sparse, use a hash-based implementation. */
+            double frac = mask_.cardinality() * 1.0 / arraysize_;
+            if ( frac < 0.25 ) {
+                Map<Long,Double> map = new HashMap<Long,Double>();
+                for ( Iterator<Long> it = indexIterator(); it.hasNext(); ) {
+                    Long key = it.next();
+                    map.put( key, getPopulatedBinValue( key.intValue() ) );
+                }
+                return HashBinList.createHashResult( map );
+            }
+
+            /* If the value container array elements are large, copy the
+             * results into a primitive array instead. /
+            else if ( hasBigBin_ ) {
+                double[] darray = new double[ arraysize_ ];
+                for ( int i = 0; i < arraysize_; i++ ) {
+                    darray[ i ] = getBinValue( i );
+                }
+                return createDoubleMaskResult( mask_, darray );
+            }
+
+            /* Otherwise, it's compact enough already. */
+            else {
+                return this;
+            }
+        }
+
         /**
          * Returns the numeric value of a bin that is known to have been
          * populated.
@@ -174,23 +177,28 @@ public abstract class ArrayBinList implements BinList {
     }
 
     /**
-     * Result implementation based on a fixed double array.
+     * Returns a Result implementation based on a bin occupation mask
+     * and an array of bin content values.
+     *
+     * @param   mask  bin occupation mask
+     * @param   values   data values per bin
      */
-    private static class CopyResult extends MaskResult {
-        private final double[] values_;
-
-        /**
-         * Constructor.
-         *
-         * @param  mask  bit mask identifying populated bins
-         * @param  values   value array
-         */
-        CopyResult( BitSet mask, double[] values ) {
-            super( mask );
-            values_ = values;
-        }
-        public double getPopulatedBinValue( int index ) {
-            return values_[ index ];
-        }
+    public static Result createDoubleMaskResult( final BitSet mask,
+                                                 final double[] values ) {
+        return new Result() {
+            public double getBinValue( long lndex ) {
+                int index = (int) lndex;
+                return mask.get( index ) ? values[ index ] : Double.NaN;
+            }
+            public long getBinCount() {
+                return mask.cardinality();
+            }
+            public Iterator<Long> indexIterator() {
+                return createMaskIterator( mask );
+            }
+            public Result compact() {
+                return this;
+            }
+        };
     }
 }

@@ -618,7 +618,7 @@ public class SkyDensityPlotter
                 else {
                     BinList.Result binResult =
                         readBins( surface_, false, dataSpec, dataStore )
-                       .getResult();
+                       .getResult().compact();
                     return new SkyDensityPlan( level_, combiner, binResult,
                                                dataSpec, geom_ );
                 }

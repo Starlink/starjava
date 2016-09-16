@@ -28,13 +28,13 @@ public abstract class QuantileCombiner extends Combiner {
      */
     public QuantileCombiner( String name, String description,
                              Quantiler quantiler ) {
-        super( name, description );
+        super( name, description, true );
         quantiler_ = quantiler;
     }
 
     public BinList createArrayBinList( int size ) {
         final DoubleList[] dlists = new DoubleList[ size ];
-        return new ArrayBinList( size, this, true ) {
+        return new ArrayBinList( size, this ) {
             public void submitToBinInt( int index, double value ) {
                 DoubleList dlist = dlists[ index ];
                 if ( dlist == null ) {
@@ -53,7 +53,7 @@ public abstract class QuantileCombiner extends Combiner {
     }
 
     public BinList createHashBinList( long size ) {
-        return new HashBinList( size, this, true );
+        return new HashBinList( size, this );
     }
 
     public Container createContainer() {

@@ -407,7 +407,8 @@ public class DensityPlotter implements Plotter<DensityPlotter.DenseStyle> {
                     }
                 }
                 BinList.Result binResult =
-                    readBins( surface_, dataSpec, dataStore ).getResult();
+                    readBins( surface_, dataSpec, dataStore ).getResult()
+                                                             .compact();
                 return new DensityPlan( binpix, combiner, surface_, dataSpec,
                                         geom, binResult );
             }

@@ -21,6 +21,7 @@ public abstract class Combiner {
 
     private final String name_;
     private final String description_;
+    private final boolean hasBigBin_;
 
     /** Report the number of submitted values. */
     public static final Combiner COUNT;
@@ -62,10 +63,14 @@ public abstract class Combiner {
      *
      * @param   name  name
      * @param   description  short textual description
+     * @param   hasBigBin  indicates whether the bins used by this combiner
+     *                     are large
+     *                     (take more memory than a <code>double</code>)
      */
-    protected Combiner( String name, String description ) {
+    protected Combiner( String name, String description, boolean hasBigBin ) {
         name_ = name;
         description_ = description;
+        hasBigBin_ = hasBigBin;
     }
 
     /**
@@ -121,6 +126,17 @@ public abstract class Combiner {
      */
     public String getDescription() {
         return description_;
+    }
+
+    /**
+     * Indicates whether the bin objects used by this combiner are large.
+     * Large means, roughly, take more memory than a <code>double</code>.
+     * This flag may be used to decide whether to compact bin list results.
+     *
+     * @return   true if this combiner uses big bins
+     */
+    public boolean hasBigBin() {
+        return hasBigBin_;
     }
 
     /**
@@ -219,25 +235,21 @@ public abstract class Combiner {
      * This just handles the isCopyResult flag.
      */
     private static abstract class AbstractCombiner extends Combiner {
-        final boolean isCopyResult_;
 
         /**
          * Constructor.
          *
          * @param   name  name
          * @param   description  short textual description
-         * @param   isCopyResult  whether to use a copy for Result creation;
-         *                        set true for bins using more than 8 bytes,
-         *                        false otherwise
+         * @param   hasBigBin  true if combiner has big bins
          */
         AbstractCombiner( String name, String description,
-                          boolean isCopyResult ) {
-            super( name, description );
-            isCopyResult_ = isCopyResult;
+                          boolean hasBigBin ) {
+            super( name, description, hasBigBin );
         }
 
         public BinList createHashBinList( long size ) {
-            return new HashBinList( size, this, isCopyResult_ );
+            return new HashBinList( size, this );
         }
     }
 
@@ -256,7 +268,7 @@ public abstract class Combiner {
         public BinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
             final double[] sums = new double[ size ];
-            return new ArrayBinList( size, this, isCopyResult_ ) {
+            return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                     sums[ index ] += value;
@@ -359,7 +371,7 @@ public abstract class Combiner {
             final int[] counts = new int[ size ];
             final double[] sum1s = new double[ size ];
             final double[] sum2s = new double[ size ];
-            return new ArrayBinList( size, this, isCopyResult_ ) {
+            return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                     sum1s[ index ] += value;
@@ -468,7 +480,7 @@ public abstract class Combiner {
 
         public BinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
-            return new ArrayBinList( size, this, isCopyResult_ ) {
+            return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                 }
@@ -534,7 +546,7 @@ public abstract class Combiner {
         public BinList createArrayBinList( int size ) {
             final double[] sums = new double[ size ];
             Arrays.fill( sums, Double.NaN );
-            return new ArrayBinList( size, this, isCopyResult_ ) {
+            return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double datum ) {
                     sums[ index ] = combineSum( sums[ index ], datum );
                 }
@@ -602,7 +614,7 @@ public abstract class Combiner {
         public BinList createArrayBinList( int size ) {
             final double[] mins = new double[ size ];
             Arrays.fill( mins, Double.NaN );
-            return new ArrayBinList( size, this, isCopyResult_ ) {
+            return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double datum ) {
                     mins[ index ] = combineMin( mins[ index ], datum );
                 }
@@ -671,7 +683,7 @@ public abstract class Combiner {
         public BinList createArrayBinList( int size ) {
             final double[] maxs = new double[ size ];
             Arrays.fill( maxs, Double.NaN );
-            return new ArrayBinList( size, this, isCopyResult_ ) {
+            return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double datum ) {
                     maxs[ index ] = combineMax( maxs[ index ], datum );
                 }
@@ -728,7 +740,7 @@ public abstract class Combiner {
 
         public BinList createArrayBinList( int size ) {
             final BitSet mask = new BitSet();
-            return new ArrayBinList( size, this, false ) {
+            return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double datum ) {
                     mask.set( index );
                 }

@@ -1518,7 +1518,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                                        dataStore, auxRanges_ );
                         int nbin = (int) binList.getSize();  // pixel count
                         Combiner combiner = binList.getCombiner();
-                        BinList.Result binResult = binList.getResult();
+                        BinList.Result binResult =
+                            binList.getResult().compact();
                         DataGeom geom = getDataGeom();
                         return new WeightPlan( nbin, combiner, binResult,
                                                surface_, geom, dataSpec,
