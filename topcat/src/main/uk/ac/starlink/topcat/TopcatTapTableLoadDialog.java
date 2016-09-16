@@ -37,6 +37,7 @@ import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.AuxServiceFinder;
 import uk.ac.starlink.vo.GlotsServiceFinder;
+import uk.ac.starlink.vo.RegistryPanel;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapMetaPolicy;
 import uk.ac.starlink.vo.TapQuery;
@@ -82,6 +83,8 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         JMenu tapMenu = new JMenu( "TAP" );
         tapMenu.setMnemonic( KeyEvent.VK_T );
         menuList.add( 0, tapMenu );
+        JMenu regMenu = new JMenu( "Registry" );
+        menuList.add( 1, regMenu );
         setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
         /* Add reload action. */
@@ -232,6 +235,12 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                                    + " queries" );
         codingButton.setSelected( true );
         tapMenu.add( codingButton );
+
+        /* Add items to registry menu. */
+        RegistryPanel regPanel = getRegistryPanel();
+        if ( regPanel != null ) {
+            regMenu.add( regPanel.getRegistryUpdateAction() );
+        }
 
         /* Prepare a handler for clickable URLs. */
         urlHandler_ = createUrlHandler();

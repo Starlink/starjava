@@ -23509,6 +23509,8 @@ introduced since the last version:
         and negative data values were present.</li>
     <li>Improved performance (better memory use, faster) of some plot types
         (SkyDensity, Healpix, Density, Weighted).</li>
+    <li>Add Registry menu to TAP load window, allowing list of RegTAP
+        registries to be updated (as for other VO windows).</li>
     </ul>
     </p></dd>
 
