@@ -4,7 +4,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
-import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,7 +30,6 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
@@ -51,6 +49,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -259,69 +258,6 @@ public class SkyDensityPlotter
     }
 
     /**
-     * Given a prepared data structure, paints the results it
-     * represents onto a graphics context appropriate for this drawing.
-     *
-     * @param  g  graphics context
-     * @param  binResult   histogram containing sky pixel values
-     * @param  surface   plot surface
-     * @param  skyPixer  maps sky positions to HEALPix indices
-     * @param  shader   colour shading
-     * @param  scaler   value scaling
-     */
-    public static void paintBins( Graphics g, BinList.Result binResult,
-                                  SkySurface surface, SkyPixer skyPixer,
-                                  Shader shader, Scaler scaler ) {
-        Rectangle bounds = surface.getPlotBounds();
-
-        /* Work out how to scale binlist values to turn into
-         * entries in a colour map.  The first entry in the colour map
-         * (index zero) corresponds to transparency. */
-        IndexColorModel colorModel =
-            PixelImage.createColorModel( shader, true );
-        int ncolor = colorModel.getMapSize() - 1;
-
-        /* Prepare a screen pixel grid. */
-        int nx = bounds.width;
-        int ny = bounds.height;
-        Gridder gridder = new Gridder( nx, ny );
-        int npix = gridder.getLength();
-        int[] pixels = new int[ npix ];
-
-        /* Iterate over screen pixel grid pulling samples from the
-         * sky pixel grid for each screen pixel.  Note this is only
-         * a good strategy if the screen oversamples the sky grid
-         * (i.e. if screen pixels are smaller than the sky pixels). */
-        Point2D.Double point = new Point2D.Double();
-        double x0 = bounds.x + 0.5;
-        double y0 = bounds.y + 0.5;
-        for ( int ip = 0; ip < npix; ip++ ) {
-            point.x = x0 + gridder.getX( ip );
-            point.y = y0 + gridder.getY( ip );
-            double[] dpos = surface.graphicsToData( point, null );
-
-            /* Positions on the sky always have a value >= 1.
-             * Positions outside the sky coord range are untouched,
-             * so have a value of 0 (transparent). */
-            if ( dpos != null ) {
-                double dval =
-                    binResult.getBinValue( skyPixer.getIndex( dpos ) );
-                if ( ! Double.isNaN( dval ) ) {
-                    pixels[ ip ] =
-                        Math.min( 1 + (int) ( scaler.scaleValue( dval )
-                                              * ncolor ),
-                                  ncolor - 1 );
-                }
-            }
-        }
-
-        /* Copy the pixel grid to the graphics context using the
-         * requested colour map. */
-        new PixelImage( bounds.getSize(), pixels, colorModel )
-           .paintPixels( g, bounds.getLocation() );
-    }
-
-    /**
      * Style for configuring with the sky density plot.
      */
     public static class SkyDenseStyle implements Style {
@@ -425,9 +361,9 @@ public class SkyDensityPlotter
         public Drawing createDrawing( Surface surface,
                                       Map<AuxScale,Range> auxRanges,
                                       PaperType paperType ) {
-            return new SkyDensityDrawing( (SkySurface) surface,
-                                          auxRanges.get( SCALE ),
-                                          paperType );
+            SkySurface ssurf = (SkySurface) surface;
+            return new SkyDensityDrawing( ssurf, createTileRenderer( ssurf ),
+                                          auxRanges.get( SCALE ), paperType );
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -457,11 +393,25 @@ public class SkyDensityPlotter
                         BinList.Result binResult =
                             readBins( ssurf, true, dataSpec, dataStore )
                            .getResult();
-                        PlotUtil.extendRange( range, binResult );
+                        createTileRenderer( ssurf )
+                       .extendAuxRange( range, binResult );
                     }
                 }
             } );
             return map;
+        }
+
+        /**
+         * Returns a tile renderer that can plot healpix tiles on a given
+         * sky surface for this layer.
+         *
+         * @param  surface  sky surface
+         * @return  tile renderer
+         */
+        private SkyTileRenderer createTileRenderer( SkySurface surface ) {
+            return SkyTileRenderer
+                  .createRenderer( surface, Rotation.IDENTITY,
+                                   getLevel( surface ) );
         }
 
         /**
@@ -577,6 +527,7 @@ public class SkyDensityPlotter
         private class SkyDensityDrawing implements Drawing {
 
             private final SkySurface surface_;
+            private final SkyTileRenderer renderer_;
             private final Range auxRange_;
             private final PaperType paperType_;
             private final int level_;
@@ -586,12 +537,14 @@ public class SkyDensityPlotter
              * Constructor.
              *
              * @param   surface  plot surface
+             * @param   renderer  can plot healpix tiles
              * @param   auxRange  range defining colour scaling
              * @param   paperType  paper type
              */
-            SkyDensityDrawing( SkySurface surface, Range auxRange,
-                               PaperType paperType ) {
+            SkyDensityDrawing( SkySurface surface, SkyTileRenderer renderer,
+                               Range auxRange, PaperType paperType ) {
                 surface_ = surface;
+                renderer_ = renderer;
                 auxRange_ = auxRange;
                 paperType_ = paperType;
                 level_ = getLevel( surface );
@@ -630,11 +583,10 @@ public class SkyDensityPlotter
                     ((SkyDensityPlan) plan).binResult_;
                 final Scaler scaler =
                     Scaling.createRangeScaler( dstyle_.scaling_, auxRange_ );
-                final SkyPixer skyPixer = createSkyPixer( surface_ );
+                final Shader shader = dstyle_.shader_;
                 paperType_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
-                        paintBins( g, binResult, surface_, skyPixer,
-                                   dstyle_.shader_, scaler );
+                        renderer_.renderBins( g, binResult, shader, scaler );
                     }
                     public boolean isOpaque() {
                         return dstyle_.isOpaque();

@@ -3,9 +3,6 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,7 +67,6 @@ public class HealpixPlotter
     private final boolean reportAuxKeys_;
     private final int icHealpix_;
     private final int icValue_;
-    private final int minPaintPixels_;
 
     /** Maximum HEALPix level supported by this plotter. */
     public static final int MAX_LEVEL = 13;
@@ -164,7 +160,6 @@ public class HealpixPlotter
         icValue_ = 1;
         transparent_ = transparent;
         reportAuxKeys_ = false;
-        minPaintPixels_ = 24;
     }
 
     public String getPlotterDescription() {
@@ -571,7 +566,7 @@ public class HealpixPlotter
             final Scaler scaler =
                 Scaling.createRangeScaler( hstyle_.scaling_,
                                            auxRanges.get( SCALE ) );
-            final TileRenderer renderer = createTileRenderer( surf );
+            final SkyTileRenderer renderer = createTileRenderer( surf );
             return new Drawing() {
                 public Object calculatePlan( Object[] knownPlans,
                                              DataStore dataStore ) {
@@ -603,6 +598,19 @@ public class HealpixPlotter
                     return null;
                 }
             };
+        }
+
+        /**
+         * Returns a SkyTileRenderer instance suitable for use with
+         * this layer and a given surface.
+         *
+         * @param  surf  sky surface
+         * @return  tile renderer
+         */
+        private SkyTileRenderer createTileRenderer( Surface surf ) {
+            return SkyTileRenderer
+                  .createRenderer( (SkySurface) surf, hstyle_.rotation_,
+                                   viewLevel_ );
         }
 
         /** 
@@ -653,174 +661,6 @@ public class HealpixPlotter
             }
             return binList.getResult();
         }
-
-        /**
-         * Returns a TileRenderer suitable for use on a given sky surface.
-         *
-         * @param  surface  sky surface
-         * @return   tile renderer
-         */
-        private TileRenderer createTileRenderer( Surface surface ) {
-            Rotation rotation = hstyle_.rotation_;
-            SkySurface ssurf = (SkySurface) surface;
-
-            /* We have two strategies for colouring in the tiles:
-             * either paint each one as a polygon or resample the plot
-             * area pixel by pixel.  Painting is generally faster if
-             * the tiles are not too small.  However, getting the edges
-             * right is very difficult with painting, so use resampling
-             * if the boundary of the celestial sphere will be visible. */
-            double srPerTile = 4 * Math.PI / ( 12 << 2 * viewLevel_ );
-            double srPerPixel = ssurf.pixelAreaSteradians();
-            double pixelsPerTile = srPerTile / srPerPixel;
-            boolean isPaint =
-                  pixelsPerTile >= minPaintPixels_
-               && ssurf.getSkyShape().contains( ssurf.getPlotBounds() );
-            return isPaint
-                 ? new PaintTileRenderer( ssurf, viewLevel_, rotation )
-                 : new ResampleTileRenderer( ssurf, viewLevel_, rotation );
-        }
-    }
-
-    /**
-     * TileRenderer that resamples values, interrogating the bin list
-     * for each screen pixel.
-     * This is correct if healpix tiles are bigger than screen pixels
-     * (otherwise averaging is not done correctly - should be drizzled
-     * in that case really), and it is efficient if tiles are not too much
-     * bigger than screen pixels (in that case painting would be faster).
-     */
-    private static class ResampleTileRenderer implements TileRenderer {
-        private final SkySurface surface_;
-        private final SkyPixer skyPixer_;
-
-        /**
-         * Constructor.
-         *
-         * @param  surface  plot surface
-         * @param  viewLevel   healpix level of painted tiles
-         * @param  rotation  sky rotation to be applied before plotting
-         */
-        ResampleTileRenderer( SkySurface surface, int viewLevel,
-                              Rotation rotation ) {
-            surface_ = surface;
-            final Rotation unrotation = rotation.invert();
-            skyPixer_ = new SkyPixer( viewLevel ) {
-                public long getIndex( double[] v3 ) {
-                    unrotation.rotate( v3 );
-                    return super.getIndex( v3 );
-                }
-            };
-        }
-
-        public void extendAuxRange( Range range, BinList.Result binResult ) {
-            Rectangle bounds = surface_.getPlotBounds();
-            Gridder gridder = new Gridder( bounds.width, bounds.height );
-            int npix = gridder.getLength();
-            Point2D.Double point = new Point2D.Double();
-            double x0 = bounds.x + 0.5;
-            double y0 = bounds.y + 0.5;
-            long hpix0 = -1;
-            for ( int ip = 0; ip < npix; ip++ ) {
-                point.x = x0 + gridder.getX( ip );
-                point.y = y0 + gridder.getY( ip );
-                double[] dpos = surface_.graphicsToData( point, null );
-                if ( dpos != null ) {
-                    long hpix = skyPixer_.getIndex( dpos );
-                    if ( hpix != hpix0 ) {
-                         hpix0 = hpix;
-                        range.submit( binResult.getBinValue( hpix ) );
-                    }
-                }
-            }
-        }
-
-        public void renderBins( Graphics g, BinList.Result binResult,
-                                Shader shader, Scaler scaler ) {
-            SkyDensityPlotter.paintBins( g, binResult, surface_, skyPixer_,
-                                         shader, scaler );
-        }
-    }
-
-    /**
-     * TileRenderer that paints tiles one at a time using graphics context
-     * primitives.  This is correct and efficient if healpix tiles are
-     * larger (maybe significantly larger) than screen pixels.
-     */
-    private static class PaintTileRenderer implements TileRenderer {
-        private final SkySurfaceTiler tiler_;
-
-        /**
-         * Constructor.
-         *
-         * @param  surface  plot surface
-         * @param  viewLevel   healpix level of painted tiles
-         * @param  rotation  sky rotation to be applied before plotting
-         */
-        PaintTileRenderer( SkySurface surface, int viewLevel,
-                           Rotation rotation ) {
-            tiler_ = new SkySurfaceTiler( surface, rotation, viewLevel );
-        }
-
-        public void extendAuxRange( Range range, BinList.Result binResult ) {
-            for ( Long hpxObj : tiler_.visiblePixels() ) {
-                long hpx = hpxObj.longValue();
-                double value = binResult.getBinValue( hpx );
-                if ( ! Double.isNaN( value ) ) {
-                    range.submit( value );
-                }
-            }
-        }
-
-        public void renderBins( Graphics g, BinList.Result binResult,
-                                Shader shader, Scaler scaler ) {
-            Color color0 = g.getColor();
-            float[] rgba = new float[ 4 ];
-            for ( Long hpxObj : tiler_.visiblePixels() ) {
-                long hpx = hpxObj.longValue();
-                double value = binResult.getBinValue( hpx );
-                if ( ! Double.isNaN( value ) ) {
-                    Polygon shape = tiler_.getTileShape( hpx );
-                    if ( shape != null ) {
-                        rgba[ 0 ] = 0.5f;
-                        rgba[ 1 ] = 0.5f;
-                        rgba[ 2 ] = 0.5f;
-                        rgba[ 3 ] = 1.0f;
-                        float sval = (float) scaler.scaleValue( value );
-                        shader.adjustRgba( rgba, sval );
-                        g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
-                                               rgba[ 2 ], rgba[ 3 ] ) );
-                        g.fillPolygon( shape );
-                    }
-                }
-            }
-            g.setColor( color0 );
-        }
-    }
-
-    /**
-     * Defines the strategy for rendering tiles to the graphics context.
-     */
-    private interface TileRenderer {
-
-        /**
-         * Modifies the range of aux values found within a given surface.
-         *
-         * @param  range   range object to be modified
-         * @param  binResult   tile bin contents
-         */
-        void extendAuxRange( Range range, BinList.Result binResult );
-
-        /**
-         * Performs the rendering of a prepared bin list on a graphics surface.
-         *
-         * @param  g  graphics context
-         * @param  binResult   histogram containing sky pixel values
-         * @param  shader   colour shading
-         * @param  scaler   value scaling
-         */
-        void renderBins( Graphics g, BinList.Result binResult,
-                         Shader shader, Scaler scaler );
     }
 
     /**
