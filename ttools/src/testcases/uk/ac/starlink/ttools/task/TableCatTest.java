@@ -12,23 +12,21 @@ import uk.ac.starlink.ttools.TableTestCase;
 
 public class TableCatTest extends TableTestCase {
 
-    final StarTable t1_ = new QuickTable( 2, new ColumnData[] {
+    final QuickTable t1_ = new QuickTable( 2, new ColumnData[] {
         col( "index", new int[] { 1, 2 } ),
         col( "name", new String[] { "milo", "theo", } ),
-    } );
+    }, "table_1" );
 
-    final StarTable t2_ = new QuickTable( 3, new ColumnData[] {
+    final QuickTable t2_ = new QuickTable( 3, new ColumnData[] {
         col( "ix", new int[] { 1, 2, 3, } ),
         col( "atkname", new String[] { "charlotte", "jonathon", "gerald", } ),
-    } );
+    }, "table_2" );
 
     public TableCatTest( String name ) {
         super( name );
         Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.table.storage" )
               .setLevel( Level.WARNING );
-        t1_.setName( "table_1" );
-        t2_.setName( "table_2" );
     }
 
     public void test2() throws Exception {

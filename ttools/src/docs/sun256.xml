@@ -10911,6 +10911,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and negative data values were present.</li>
     <li>Improved performance (better memory use, faster) of some plot types
         (SkyDensity, Healpix, Density, Weighted).</li>
+    <li>Fix JyStilts bug that could cause the same data to be used for
+        different tables specified in a single plot.</li>
     </ul>
     </p></dd>
 
