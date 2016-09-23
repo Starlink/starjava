@@ -306,7 +306,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>13 September 2016</docdate>
+<docdate>23 September 2016</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -23532,18 +23532,9 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.3-5 (23 September 2016)</dt>
 <dd><p>
     <ul>
-    <li>Fix aux ranging bug in some plot types
-        (SkyDensity, Healpix, Density, Weighted)
-        that used an aux data range too small to show colour variations
-        when Aux scaling was logarithmic
-        and negative data values were present.</li>
-    <li>Improved performance (better memory use, faster) of some plot types
-        (SkyDensity, Healpix, Density, Weighted).</li>
-    <li>Add Registry menu to TAP load window, allowing list of RegTAP
-        registries to be updated (as for other VO windows).</li>
     <li>Add <label>Lock Aux Range</label> action to plot window toolbars
         and <ref id="ShaderControl">Aux Axis Control</ref>
         <label>Range</label> tab.
@@ -23551,6 +23542,15 @@ introduced since the last version:
         range during navigation.
         It also affects some dynamic Auto-Scale range calculations
         in a similar way.</li>
+    <li>Fix aux ranging bug in some plot types
+        (SkyDensity, Healpix, Density, Weighted)
+        that used an aux data range too small to show colour variations
+        when Aux scaling was logarithmic
+        and negative data values were present.</li>
+    <li>Add Registry menu to TAP load window, allowing list of RegTAP
+        registries to be updated (as for other VO windows).</li>
+    <li>Improved performance (better memory use, faster) of some plot types
+        (SkyDensity, Healpix, Density, Weighted).</li>
     </ul>
     </p></dd>
 

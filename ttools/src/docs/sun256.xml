@@ -133,7 +133,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>13 September 2016</docdate>
+<docdate>23 September 2016</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -10901,7 +10901,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.0-9 (23 September 2016)</dt>
 <dd><p>
     <ul>
     <li>Fix aux ranging bug in some plot types
