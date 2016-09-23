@@ -4,7 +4,10 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.SwingConstants;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
@@ -53,8 +56,12 @@ public class ShaderControl extends ConfigControl {
      *
      * @param   configger   config source containing some plot-wide config,
      *                      specifically captioner style
+     * @param   auxLockModel   toggle to control whether aux ranges are
+     *                         updated dynamically or held fixed;
+     *                         may be null
      */
-    public ShaderControl( MultiConfigger configger ) {
+    public ShaderControl( MultiConfigger configger,
+                          final ToggleButtonModel auxLockModel ) {
         super( SCALE.getName() + " Axis", ResourceIcon.COLORS );
         configger_ = configger;
         ActionListener forwarder = getActionForwarder();
@@ -77,6 +84,17 @@ public class ShaderControl extends ConfigControl {
                     throws ConfigException {
                 checkRangeSense( config, "Aux",
                                  StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH );
+            }
+            @Override
+            public JComponent createComponent() {
+                JComponent box = Box.createVerticalBox();
+                box.add( super.createComponent() );
+                if ( auxLockModel != null ) {
+                    JCheckBox lockBox = auxLockModel.createCheckBox();
+                    lockBox.setHorizontalTextPosition( SwingConstants.LEADING );
+                    box.add( new LineBox( lockBox ) );
+                }
+                return box;
             }
         };
         rangeSpecifier_.addActionListener( forwarder );

@@ -127,6 +127,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final BoundedRangeModel progModel_;
     private final ToggleButtonModel showProgressModel_;
     private final ToggleButtonModel axisLockModel_;
+    private final ToggleButtonModel auxLockModel_;
     private final List<ChangeListener> changeListenerList_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
@@ -178,8 +179,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  progModel  progress bar model for showing plot progress
      * @param  showProgressModel  model to decide whether data scan operations
      *                            are reported to the progress bar model
-     * @param  axisLockModel  model to determine whether auto-rescaling
+     * @param  axisLockModel  model to determine whether axis auto-rescaling
      *                        should be inhibited
+     * @param  auxLockModel  model to determine whether aux range auto-rescaling
+     *                       should be inhibited
      */
     public PlotPanel( DataStoreFactory storeFact, SurfaceFactory<P,A> surfFact,
                       Factory<Ganger<P,A>> gangerFact,
@@ -189,7 +192,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       ToggleButtonModel sketchModel,
                       BoundedRangeModel progModel,
                       ToggleButtonModel showProgressModel,
-                      ToggleButtonModel axisLockModel ) {
+                      ToggleButtonModel axisLockModel,
+                      ToggleButtonModel auxLockModel ) {
         storeFact_ = progModel == null
                    ? storeFact
                    : new ProgressDataStoreFactory( storeFact, progModel );
@@ -203,6 +207,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         progModel_ = progModel;
         showProgressModel_ = showProgressModel;
         axisLockModel_ = axisLockModel;
+        auxLockModel_ = auxLockModel;
         changeListenerList_ = new ArrayList<ChangeListener>();
         plotExec_ = Executors.newSingleThreadExecutor();
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
@@ -554,6 +559,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Color bgColor = getBackground();
         Ganger<P,A> ganger = gangerFact_.getItem();
         boolean axisLock = axisLockModel_.isSelected();
+        boolean auxLock = auxLockModel_.isSelected();
         ZoneDef<P,A>[] zoneDefs = zonesFact_.getItem();
         int nz = zoneDefs.length;
 
@@ -629,7 +635,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         /* Construct and return a plot job that defines what has to be done. */
         return new PlotJob<P,A>( workings_, surfFact_, ganger, zones,
                                  storeFact_, bounds, insets, graphicsConfig,
-                                 bgColor );
+                                 bgColor, auxLock );
     }
 
     /**
@@ -874,7 +880,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         return new Workings.ZoneWork<A>( new PlotLayer[ 0 ], new Object[ 0 ],
                                          surf, new Range[ 0 ], aspect,
                                          new HashMap<AuxScale,Range>(),
-                                         new HashMap<AuxScale,Range>(),
+                                         new HashMap<AuxScale,Range>(), false,
                                          placer, (Icon) null, (Icon) null,
                                          new ReportMap[ 0 ], null, null );
     }
@@ -960,6 +966,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final A aspect_;
             final Map<AuxScale,Range> auxDataRangeMap_;
             final Map<AuxScale,Range> auxClipRangeMap_;
+            final boolean auxLock_;
             final PlotPlacement placer_;
             final Icon dataIcon_;
             final Icon plotIcon_;
@@ -979,6 +986,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * @param  auxDataRangeMap  aux scale ranges derived from data
              * @param  auxClipRangeMap  aux scale ranges derived from
              *                          fixed constraints
+             * @param  auxLock  true if aux ranges were held over
+             *                  from the previous plot
              * @param  placer  plot placement
              * @param  dataIcon   icon which will paint data part of plot
              * @param  plotIcon   icon which will paint the whole plot
@@ -990,7 +999,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             ZoneWork( PlotLayer[] layers, Object[] plans,
                       Surface approxSurf, Range[] geomRanges, A aspect,
                       Map<AuxScale,Range> auxDataRangeMap,
-                      Map<AuxScale,Range> auxClipRangeMap,
+                      Map<AuxScale,Range> auxClipRangeMap, boolean auxLock,
                       PlotPlacement placer, Icon dataIcon, Icon plotIcon,
                       ReportMap[] reports,
                       AxisController<?,A> axisController, ZoneId zid ) {
@@ -1001,6 +1010,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 aspect_ = aspect;
                 auxDataRangeMap_ = auxDataRangeMap;
                 auxClipRangeMap_ = auxClipRangeMap;
+                auxLock_ = auxLock;
                 placer_ = placer;
                 dataIcon_ = dataIcon;
                 plotIcon_ = plotIcon;
@@ -1052,6 +1062,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private final Insets insets_;
         private final GraphicsConfiguration graphicsConfig_;
         private final Color bgColor_;
+        private final boolean auxLock_;
         private final Workings.ZoneWork<A> dummyZoneWork_;
 
         /**
@@ -1070,11 +1081,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                   (negative members are ignored)
          * @param   graphicsConfig  graphics configuration
          * @param   bgColor   background colour
+         * @param   auxLock  true if the aux ranges are to be held over
+         *                     from the previous plot; false if they may
+         *                     need to be recalculated
          */
         PlotJob( Workings<A> oldWorkings, SurfaceFactory<P,A> surfFact,
                  Ganger<P,A> ganger, Zone<P,A>[] zones,
                  DataStoreFactory storeFact, Rectangle extBounds, Insets insets,
-                 GraphicsConfiguration graphicsConfig, Color bgColor ) {
+                 GraphicsConfiguration graphicsConfig, Color bgColor,
+                 boolean auxLock ) {
             oldWorkings_ = oldWorkings;
             surfFact_ = surfFact;
             ganger_ = ganger;
@@ -1084,6 +1099,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             insets_ = insets;
             graphicsConfig_ = graphicsConfig;
             bgColor_ = bgColor;
+            auxLock_ = auxLock;
             dummyZoneWork_ = createDummyZoneWork( surfFact );
         }
 
@@ -1381,14 +1397,24 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
                 /* See if we can re-use the aux ranges from the oldWorkings.
                  * We can if both the approxSurf and the layers are the same
-                 * as last time. */
+                 * as last time, or if range-locking is in effect. */
                 boolean hasSameSurface =
                     approxSurf.equals( oldZoneWork.approxSurf_ );
+                final boolean reuseAuxRanges;
+                if ( auxLock_ ) {
+                    reuseAuxRanges = true;
+                }
+                else if ( oldZoneWork.auxLock_ ) {
+                    reuseAuxRanges = false;
+                }
+                else {
+                    reuseAuxRanges = hasSameSurface
+                                  && layerListEquals( zone.layers_,
+                                                      oldZoneWork.layers_ );
+                }
                 Map<AuxScale,Range> auxDataRangeMap =
-                      hasSameSurface &&
-                      layerListEquals( zone.layers_, oldZoneWork.layers_ )
-                    ? oldZoneWork.auxDataRangeMap_
-                    : new HashMap<AuxScale,Range>();
+                    reuseAuxRanges ? oldZoneWork.auxDataRangeMap_
+                                   : new HashMap<AuxScale,Range>();
 
                 /* Work out which scales we are going to have to calculate,
                  * if any, and calculate them. */
@@ -1463,6 +1489,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       iz < oldWorkings_.zones_.length
                     ? oldWorkings_.zones_[ iz ]
                     : dummyZoneWork_;
+
+                /* Aux range locking is in principle handled on a per-zone
+                 * basis, but for now the GUI doesn't support that. */
+                boolean auxLock = auxLock_;
 
                 /* Calculate the plot surface. */
                 Rectangle dataBounds = gang.getZonePlotBounds( iz );
@@ -1583,6 +1613,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                                   aspects[ iz ],
                                                   auxDataRangeMaps[ iz ],
                                                   auxClipRangeMaps[ iz ],
+                                                  auxLock,
                                                   placer, dataIcon, plotIcon,
                                                   reports, zone.axisController_,
                                                   zone.zid_ );

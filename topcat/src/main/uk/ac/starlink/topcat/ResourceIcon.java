@@ -193,6 +193,7 @@ public class ResourceIcon implements Icon {
         ROUGH = makeIcon( "bigpix2.gif" ),
         AXIS_EDIT = makeIcon( "axed3.gif" ),
         AXIS_LOCK = makeIcon( "axlock.gif" ),
+        AUX_LOCK = makeIcon( "auxlock.gif" ),
         BROADCAST = makeIcon( "tx3.gif" ),
         SEND = makeIcon( "phone2.gif" ),
         ADD_TAB = makeIcon( "atab3.gif" ),

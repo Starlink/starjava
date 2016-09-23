@@ -137,6 +137,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final JMenu layerDataSaveMenu_;
     private final ToggleButtonModel sketchModel_;
     private final ToggleButtonModel axisLockModel_;
+    private final ToggleButtonModel auxLockModel_;
     private final Ganger<P,A> dfltGanger_;
     private final ZoneId dfltZone_;
     private boolean hasShader_;
@@ -170,12 +171,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * so a bit of re-engineering would be required. */
         final Compositor compositor = new Compositor.BoostCompositor( 0.05f );
 
-        /* Set up fixed configuration controls. */
-        MultiConfigger configger = new MultiConfigger();
-        frameControl_ = new FrameControl();
-        multiShaderControl_ = new MultiShaderController( zoneFact_, configger );
-        legendControl_ = new LegendControl( configger );
-
         /* Set up various user interface components in the window that can
          * gather all the information required to perform (re-)plots. */
         Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
@@ -186,6 +181,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         axisLockModel_ =
             new ToggleButtonModel( "Lock Axes", ResourceIcon.AXIS_LOCK,
                                    "Do not auto-rescale axes" );
+        auxLockModel_ =
+            new ToggleButtonModel( "Lock Aux Range", ResourceIcon.AUX_LOCK,
+                                   "Do not auto-rescale aux scales" );
         surfFact_ = plotType_.getSurfaceFactory();
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
@@ -217,6 +215,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
 
+        /* Set up fixed configuration controls. */
+        MultiConfigger configger = new MultiConfigger();
+        frameControl_ = new FrameControl();
+        multiShaderControl_ =
+            new MultiShaderController( zoneFact_, configger, auxLockModel_ );
+        legendControl_ = new LegendControl( configger );
+
         /* Prepare the panel containing the user controls.  This may appear
          * either at the bottom of the plot window or floated into a
          * separate window. */
@@ -241,7 +246,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                 posFact, plotType.getPaperTypeSelector(),
                                 compositor, sketchModel_,
                                 placeProgressBar().getModel(),
-                                showProgressModel_, axisLockModel_ );
+                                showProgressModel_, axisLockModel_,
+                                auxLockModel_ );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
          * that might change the plot appearance.  Each of these controls
@@ -255,6 +261,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         frameControl_.addActionListener( plotPanel_ );
         legendControl_.addActionListener( plotPanel_ );
         navdecModel.addActionListener( plotPanel_ );
+        auxLockModel_.addActionListener( plotPanel_ );
         for ( Control c : multiShaderControl_.getStackControls() ) {
             c.addActionListener( plotPanel_ );
         }
@@ -487,6 +494,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         if ( axisLockModel_ != null ) {
             getToolBar().add( axisLockModel_.createToolbarButton() );
         }
+        getToolBar().add( auxLockModel_.createToolbarButton() );
         getToolBar().add( sketchModel_.createToolbarButton() );
         getToolBar().add( showProgressModel_.createToolbarButton() );
         getToolBar().add( exportAction );
@@ -522,6 +530,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         if ( axisLockModel_ != null ) {
             plotMenu.add( axisLockModel_.createMenuItem() );
         }
+        plotMenu.add( auxLockModel_.createMenuItem() );
         plotMenu.add( sketchModel_.createMenuItem() );
         plotMenu.add( showProgressModel_.createMenuItem() );
         plotMenu.add( navdecModel.createMenuItem() );

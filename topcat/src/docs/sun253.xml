@@ -7071,6 +7071,30 @@ contains the following actions (repeated in the menus):
     This is not available for the <label>Sky Plot</label>.
     </p></dd>
 
+<dt>&IMG.AUX_LOCK; Lock Aux Range</dt>
+<dd><p>This controls when the Aux data range,
+    sometimes used to colour data points
+    (see the <ref id="ShaderControl">Aux Axis Control</ref>),
+    is updated to match the currently visible data.
+    By default, the range is updated dynamically as the plot changes,
+    for instance when you pan or zoom it,
+    so that the data range covered by the aux colour ramp matches the
+    range of the currently visible data.
+    But if this checkbox is checked, then the range is frozen to the
+    current value.
+    Data-sensitive updates to the aux range will then not be performed
+    until it's unchecked again.
+    </p>
+    <p>It also affects some other dynamic ranging calculations such as
+    <label>Auto-Scale</label> sizes for plot forms
+    <ref id="form-size">Size</ref>,
+    <ref id="form-sizexy">SizeXY</ref>,
+    <ref id="form-vector">Vector</ref>,
+    <ref id="form-skyvector">SkyVector</ref>,
+    <ref id="form-xyellipse">Ellipse</ref> and
+    <ref id="form-skyellipse">SkyEllipse</ref>.
+    </p></dd>
+
 <dt>&IMG.SKETCH; Sketch Frames</dt>
 <dd><p>If selected causes intermediate "sketch" frames to be drawn when
     navigating around very large plots.
@@ -7809,6 +7833,15 @@ for the aux data range by hand,
 and provides a double slider to restrict the range within these limits.
 If either the lower or upper range is left blank,
 it will be determined from the data.
+</p>
+
+<p>The <label>Lock Aux Range</label> checkbox controls whether
+the aux range is automatically updated as the plot is adjusted
+(for instance as you navigate around it with the mouse).
+If locked, the range will stay the same, but otherwise (the default)
+it is dynamically updated for the current view of the plot.
+This checkbox is a duplicate of the &IMG.AUX_LOCK; toggle button on the plot
+window toolbar described in <ref id="StackPlotWindow"/>.
 </p>
 
 <p>Note the font used for labelling the aux axis is currently controlled by 
@@ -23511,6 +23544,13 @@ introduced since the last version:
         (SkyDensity, Healpix, Density, Weighted).</li>
     <li>Add Registry menu to TAP load window, allowing list of RegTAP
         registries to be updated (as for other VO windows).</li>
+    <li>Add <label>Lock Aux Range</label> action to plot window toolbars
+        and <ref id="ShaderControl">Aux Axis Control</ref>
+        <label>Range</label> tab.
+        This lets you prevent the display from updating the Aux colour ramp
+        range during navigation.
+        It also affects some dynamic Auto-Scale range calculations
+        in a similar way.</li>
     </ul>
     </p></dd>
 
