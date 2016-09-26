@@ -81,6 +81,7 @@ import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.NameParser;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -112,6 +113,7 @@ import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 import uk.ac.starlink.splat.vo.ObsCorePanel;
+import uk.ac.starlink.splat.vo.SLAPBrowser;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -168,6 +170,11 @@ public class SplatBrowser
      *  Factory methods for creating SpecData instances.
      */
     protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
+
+    /**
+     *  Line ID manager.
+     */
+    protected LocalLineIDManager lineIDManager = LocalLineIDManager.getInstance();
 
     /**
      * UI preferences.
@@ -272,6 +279,11 @@ public class SplatBrowser
      * OBSCore browser.
      */
     protected ObsCorePanel obscorePanel = null; 
+
+    /**
+     * SLAP browser.
+     */
+    protected SLAPBrowser spectralLinesBrowser  = null; 
 
     /**
      *  Stack open or save chooser.
@@ -771,7 +783,7 @@ public class SplatBrowser
         toolBar.add( ssapAction );
 
        
-        // Add acion to go to use OBSCORE
+     // Add acion to go to use OBSCORE
         ImageIcon obscoreImage =
                 new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
         LocalAction obsCoreAction = new LocalAction( LocalAction.OBSCORE,
@@ -780,6 +792,16 @@ public class SplatBrowser
                                                      "Query VO using ObsCore TAP" );
         fileMenu.add(obsCoreAction);
         toolBar.add( obsCoreAction );
+        
+     // Add acion to go to use the SLAP Browser
+       // ImageIcon obscoreImage =
+        //        new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
+        LocalAction slapAction = new LocalAction( LocalAction.SLAP,
+                                                    "Slap Browser", 
+                                                     null, 
+                                                     "Query VO for Spectral Lines" );
+        fileMenu.add(slapAction);
+       // toolBar.add( slapAction );
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
@@ -1042,7 +1064,7 @@ public class SplatBrowser
         menuBar.add( optionsMenu );
 
         //  Add any locally availabel line identifiers.
-        LocalLineIDManager.getInstance().populate( optionsMenu, this );
+        lineIDManager.populate( optionsMenu, this );
 
         //  Add the LookAndFeel selections.
         new SplatLookAndFeelManager( contentPane, optionsMenu );
@@ -1942,6 +1964,24 @@ public class SplatBrowser
 
     }
 
+    /**
+     * Open the SLAP Browser window
+     */
+    public void showSlapBrowser()
+    {
+        if ( spectralLinesBrowser == null ) {
+            try {
+                spectralLinesBrowser = new SLAPBrowser(this);
+            }
+            catch (Exception e) {
+                ErrorDialog.showError( this, e );
+                return;
+            }
+        }
+        spectralLinesBrowser.setVisible( true );
+
+    }
+
     
     /**
      * Open and display all the spectra listed in the newFiles array. Uses a
@@ -2296,6 +2336,14 @@ public class SplatBrowser
      * @param spectrum the SpecData object.
      */
     public void addSpectrum( SpecData spectrum ) {
+        if (spectrum.getClass() == (LineIDSpecData.class)) {
+            try {
+                lineIDManager.addSpectrum((LineIDSpecData) spectrum);
+            } catch (SplatException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
         addSpectrum(spectrum, SourceType.UNDEFINED);
     }
     /**
@@ -3349,6 +3397,7 @@ public class SplatBrowser
         public static final int FITS_VIEWER = 27;
         public static final int EXIT = 28;
         public static final int OBSCORE = 29;
+        public static final int SLAP = 30;
 
         private int type = 0;
 
@@ -3539,6 +3588,11 @@ public class SplatBrowser
                    showObscorePanel();
                    break;
                }
+               
+               case SLAP: {
+                   showSlapBrowser();
+                   break;
+               }
 
                case EXIT: {
                    exitApplicationEvent();
@@ -3682,5 +3736,15 @@ public class SplatBrowser
         }
         
         return fileFormat;
+    }
+
+
+    public void addLinesToCurrentPlot(LineIDSpecData data) {
+        int plotIndex=globalList.currentSpectrum;
+        this.displaySpectrum(data);
+        globalList.add( data, SourceType.UNDEFINED );
+        PlotControl current = globalList.getPlot(plotIndex);
+        current.loadLineIDs(false, false, lineIDManager);
+        
     }
 }

@@ -55,6 +55,7 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.GraphicFileUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.vo.SLAPBrowser;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 
 /**
@@ -179,6 +180,7 @@ public class PlotControlFrame
     protected JMenu optionsMenu = new JMenu();
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenuItem drawMenu = new JMenuItem();
+    protected JMenuItem openSlapBrowser = null;
     protected JMenuItem loadAllLineIDs = null;
     protected JMenuItem loadLoadedLineIDs = null;
     protected JMenuItem removeCurrent = null;
@@ -204,6 +206,8 @@ public class PlotControlFrame
      * Show deblend tools, removed once development is complete.
      */
     private boolean showDeblend = false;
+
+    private SLAPBrowser slapBrowser;
 
     /**
      *  Create an instance using an existing SpecDataComp.
@@ -741,6 +745,10 @@ public class PlotControlFrame
         lineOptionsMenu.setMnemonic( KeyEvent.VK_L );
         optionsMenu.add( lineOptionsMenu );
 
+        openSlapBrowser = new JMenuItem("SLAP Browser");
+        lineOptionsMenu.add(openSlapBrowser);
+        lineOptionsMenu.add( openSlapBrowser );
+        openSlapBrowser.addActionListener( this );
         //  Load line identifiers into the plot. This comes in two flavours
         //  load all line identifiers and only those that are already
         //  available in the global list.
@@ -2126,6 +2134,11 @@ public class PlotControlFrame
             return;
         }
 
+        if ( source.equals( openSlapBrowser ) ) {
+            slapBrowser = new SLAPBrowser();
+            return;
+        }
+        
         if ( source.equals( loadAllLineIDs ) ) {
             plot.loadLineIDs( true, doubleDSBLineIDs.isSelected(),
                               LocalLineIDManager.getInstance() );
@@ -2143,4 +2156,6 @@ public class PlotControlFrame
             return;
         }
     }
+    
+    //  add listener to slap browser -> load spectral line frames
 }

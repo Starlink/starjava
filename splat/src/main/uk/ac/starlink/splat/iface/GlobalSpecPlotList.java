@@ -631,6 +631,24 @@ public class GlobalSpecPlotList
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
     }
+    
+    /**
+     *  Add selected rows of a spectrum to a plot.
+     *  Used for displaying only some spectral lines to a spectrum
+     *
+     *  @param plot the plot to add spectrum to.
+     *  @param spectrum the spectrum to add.
+     *  @param selected the selected lines to add.
+     *
+    public void addSpectrumSelection( PlotControl plot, SpecData spectrum )
+        throws SplatException
+    {
+        plot.addSpectrum( spectrum );
+        noteLastPlotForSourceType(plot, spectrum);
+        int index = plotList.indexOf( plot );
+        firePlotChanged( index );
+    }
+*/
 
     /**
      *  Add a list of spectra to a plot.

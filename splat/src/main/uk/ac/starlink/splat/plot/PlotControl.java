@@ -1894,6 +1894,7 @@ public class PlotControl
     public void figureCreated( FigureChangedEvent e )
     {
         //  Do nothing.
+        System.out.println("created");
     }
 
     /**
@@ -2015,6 +2016,9 @@ public class PlotControl
     	// locate the closest spectrum    		
     	for (SpecData spectrum : spectraList) {
     		 
+    	    if (spectrum.getXGraphicsCoordinates() == null )
+    	        continue;
+    	    
     		if (nearestSpectrum == null && (
     				spectrum.getXGraphicsCoordinates()[0] <= xpos && 
     				spectrum.getXGraphicsCoordinates()[spectrum.getXGraphicsCoordinates().length - 1] >= xpos)) {
@@ -2027,7 +2031,7 @@ public class PlotControl
 
     			// if the X value fits in the current spectrum's range
     			if (spectrum.getXGraphicsCoordinates()[0] <= xpos && 
-    				spectrum.getXGraphicsCoordinates()[spectrum.getXGraphicsCoordinates().length - 1] >= xpos) {
+    				spectrum.getXGraphicsCoordinates()[spectrum.getXGraphicsCoordinates().length - 1] >= xpos)  {
     				
     				// now we can compare the Y values
     				int oldNearestXIndex = binarySearchForClosestCoordinate(nearestSpectrum.getXGraphicsCoordinates(), xpos);

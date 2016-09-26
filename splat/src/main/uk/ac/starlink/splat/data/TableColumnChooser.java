@@ -97,9 +97,10 @@ public class TableColumnChooser
         addLabelNamePattern( "identifiers.*" );
         addLabelNamePattern( "label.*" );
         addLabelNamePattern( "name.*" );
+       
 
         labelUtypePatterns = new ArrayList();
-        addLabelUtypePattern( "line.title" );             // SLAP
+        addLabelUtypePattern( ".*line\\.title" );             // SLAP
    }
 
     /**

@@ -7,6 +7,7 @@
  */
 package uk.ac.starlink.splat.data;
 
+import java.util.Arrays;
 import java.util.List;
 import java.io.IOException;
 
@@ -175,7 +176,9 @@ public class LineIDTableSpecDataImpl
 
     public String getDataColumnName()
     {
-        return columnNames[dataColumn];
+        if (dataColumn != -1)
+            return columnNames[dataColumn];
+        return "";
     }
 
     public void setDataColumnName( String name )
@@ -427,7 +430,7 @@ public class LineIDTableSpecDataImpl
         dataColumn =
             TableColumnChooser.getInstance().getDataMatch( columnInfos,
                                                            columnNames );
-        if ( dataColumn == -1 ) {
+     /*   if ( dataColumn == -1 ) {
             // No match for data, look for "second" numeric column.
             int count = 0;
             for ( int i = 0; i < columnInfos.length; i++ ) {
@@ -440,7 +443,7 @@ public class LineIDTableSpecDataImpl
                     count++;
                 }
             }
-        }
+        }*/
 
         if ( coordColumn == -1 ) {
             throw new SplatException( "Line identifier tables must "+
@@ -462,6 +465,9 @@ public class LineIDTableSpecDataImpl
         if ( dataColumn != -1 ) {
             data = new double[dims[0]];
             readColumn( data, dataColumn );
+        } else {
+            data = new double[dims[0]];
+            Arrays.fill(data, SpecData.BAD);
         }
 
         labels = new String[dims[0]];
@@ -535,12 +541,15 @@ public class LineIDTableSpecDataImpl
 
         //  Base frame. Indices of data values array.
         astref.setCurrent( base );
-        guessUnitsDescription( dataColumn );
+        
+        if (dataColumn != -1) {
+            guessUnitsDescription( dataColumn );
 
-        //  Set the units and label for data.
-        setDataUnits( astref.getUnit( 1 ) );
-        setDataLabel( astref.getLabel( 1 ) );
-
+            //  Set the units and label for data.
+            setDataUnits( astref.getUnit( 1 ) );
+            setDataLabel( astref.getLabel( 1 ) );
+        }
+        
         //  Coordinate units.
         astref.setCurrent( current );
         guessUnitsDescription( coordColumn );
