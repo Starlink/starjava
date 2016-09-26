@@ -70,6 +70,7 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
      */
     public DalResourceXMLFilter( XMLReader parent, Namespacing namespacing ) {
         super( parent );
+        
         namespacing_ = namespacing;
         path_ = new StringBuffer();
     }
@@ -92,11 +93,11 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         path_.append( '/' ).append( voTagName );
 
         if ( "RESOURCE".equals( voTagName ) &&
-             "results".equals( atts.getValue( "type" ) ) ) {
+             "results".equalsIgnoreCase( atts.getValue( "type" ) ) ) {
             resultsPath_ = path_.toString();
         } else 
  
-        if ( "RESOURCE".equals( voTagName ) && "service".equals( atts.getValue( "type" ) ) ) {
+        if ( "RESOURCE".equals( voTagName ) && "service".equalsIgnoreCase( atts.getValue( "type" ) ) ) {
             servicePath_ = path_.toString();
         } 
         
