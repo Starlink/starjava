@@ -1016,7 +1016,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         StarTable table = null;
         try {
                  
-            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog("SSA"), new StarTableFactory() );
+            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.SSAP), new StarTableFactory() );
          }
         catch ( IOException e ) {
             ErrorDialog.showError( this, "Registry query failed", e );

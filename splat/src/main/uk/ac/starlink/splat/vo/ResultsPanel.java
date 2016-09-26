@@ -94,13 +94,20 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         initComponents();
     }
     
-    public ResultsPanel( /*JTabbedPane resultsPane*/ ObsCorePanel browser ) {
+  /*  public ResultsPanel( /*JTabbedPane resultsPane* / ObsCorePanel browser ) {
         //this.resultsPane=resultsPane;
         this.obsQueryBrowser=browser;
         this.ssaQueryBrowser=null;
         initComponents();
-    }
+    }*/
     
+    public ResultsPanel(ObsCorePanel browser) {
+        this.obsQueryBrowser=browser;
+        this.ssaQueryBrowser=null;
+        initComponents();
+       
+    }
+
     private void initComponents() {
         this.setLayout(new GridBagLayout());
         this.setBorder ( BorderFactory.createTitledBorder( "Query results:" ) );

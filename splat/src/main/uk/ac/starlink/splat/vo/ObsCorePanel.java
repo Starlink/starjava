@@ -575,7 +575,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         StarTable table;
         try {
             
-            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog("ObsCore"), new StarTableFactory() );
+            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.OBSCORE), new StarTableFactory() );
          }
         catch ( IOException e ) {
             ErrorDialog.showError( this, "Registry query failed", e );
