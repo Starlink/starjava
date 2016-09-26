@@ -66,6 +66,7 @@ public class SpectrumIO
         UNDEFINED,
         SAMP,
         SSAP,
+        SLAP,
         LOCAL
     };
     
@@ -462,10 +463,8 @@ public class SpectrumIO
                         e1.printStackTrace();
                     }
                 else
-                    try {
-                     
-                        return (serverURL+ "?"+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
-            
+                    try {  
+                        return (serverURL+ "?"+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);            
                     } catch (UnsupportedEncodingException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
