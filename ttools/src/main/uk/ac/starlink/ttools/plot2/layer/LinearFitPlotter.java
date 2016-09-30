@@ -256,7 +256,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                     ((LinearFitPlan) plan).paintLine( g, surface_, style_ );
                 }
                 public boolean isOpaque() {
-                    return true;
+                    return ! style_.getAntialias();
                 }
             } );
         }
@@ -317,7 +317,6 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                 surface.graphicsToData( new Point( gx1, gy0 ), null )[ 0 ];
             double dx2 =
                 surface.graphicsToData( new Point( gx2, gy0 ), null )[ 0 ];
-            double[] coeffs = stats_.getLinearCoefficients();
             double dy1 = yFunction( dx1 );
             double dy2 = yFunction( dx2 );
             Point2D.Double gp1 = new Point2D.Double();
