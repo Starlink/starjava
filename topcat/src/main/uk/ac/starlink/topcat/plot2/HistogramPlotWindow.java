@@ -54,6 +54,7 @@ import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
+import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
 
 /**
  * Layer plot window for histograms.
@@ -466,6 +467,7 @@ public class HistogramPlotWindow
                 new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
                                              normKey ),
                 new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
+                new Stats1Plotter( PlaneDataGeom.X_COORD, true ),
                 FunctionPlotter.PLANE,
             };
         }

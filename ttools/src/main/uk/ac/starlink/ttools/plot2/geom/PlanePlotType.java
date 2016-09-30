@@ -34,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
+import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
 import uk.ac.starlink.ttools.plot2.layer.TracePlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
@@ -106,6 +107,7 @@ public class PlanePlotType implements PlotType {
                                            normKey ),
             new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true, normKey ),
             new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
+            new Stats1Plotter( PlaneDataGeom.X_COORD, true ),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );

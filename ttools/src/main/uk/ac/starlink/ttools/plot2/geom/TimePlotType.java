@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
 import uk.ac.starlink.ttools.plot2.layer.TracePlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
@@ -80,6 +81,7 @@ public class TimePlotType implements PlotType {
                                            normKey ),
             new KnnKernelDensityPlotter( TimeDataGeom.T_COORD, true, normKey ),
             new DensogramPlotter( TimeDataGeom.T_COORD, true ),
+            new Stats1Plotter( TimeDataGeom.T_COORD, true ),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),

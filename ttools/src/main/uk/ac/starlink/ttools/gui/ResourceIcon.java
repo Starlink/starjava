@@ -54,6 +54,7 @@ public class ResourceIcon {
         FORM_SKYDENSITY = readIcon( "form-skydensity.gif" ),
         FORM_QUANTILE = readIcon( "form-quantile.gif" ),
         FORM_LINEARFIT = readIcon( "form-linearfit.gif" ),
+        FORM_GAUSSIAN = readIcon( "form-gaussian.gif" ),
         FORM_LINK2 = readIcon( "form-link2.gif" ),
         FORM_LINK3 = readIcon( "form-link3.gif" ),
         FORM_MARKS2 = readIcon( "form-marks2.gif" ),
