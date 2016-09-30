@@ -152,9 +152,7 @@ public class UwsJobPanel extends JPanel {
             paramPanel_.add( pStack );
 
             UwsJobInfo.Error error = jobInfo.getError();
-            if ( error != null ) {
-                errorField_.setText( error.getMessage() );
-            }
+            errorField_.setText( error == null ? null : error.getMessage() );
         }
         revalidate();
     }
