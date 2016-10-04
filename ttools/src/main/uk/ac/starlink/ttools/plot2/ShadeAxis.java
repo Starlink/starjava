@@ -28,6 +28,7 @@ public class ShadeAxis {
     private final String label_;
     private final Captioner captioner_;
     private final double crowding_;
+    private final int rampWidth_;
     private static final Orientation ORIENTATION = Orientation.ANTI_Y;
 
     /**
@@ -41,10 +42,14 @@ public class ShadeAxis {
      * @param  captioner   text rendering object
      * @param  crowding   1 for normal tick density, lower for fewer labels,
      *                    higher for more
+     * @param  rampWidth  preferred number of pixels in the lateral
+     *                    for the direction of the ramp icon;
+     *                    this value is not used by this class, but this
+     *                    class serves as a useful place to keep it
      */
     public ShadeAxis( Shader shader, Scaling scaling,
                       double dlo, double dhi, String label,
-                      Captioner captioner, double crowding ) {
+                      Captioner captioner, double crowding, int rampWidth ) {
         shader_ = shader;
         scaling_ = scaling;
         dlo_ = dlo;
@@ -52,6 +57,7 @@ public class ShadeAxis {
         label_ = label;
         captioner_ = captioner;
         crowding_ = crowding;
+        rampWidth_ = rampWidth;
     }
 
     /**
@@ -90,6 +96,16 @@ public class ShadeAxis {
      */
     public int getEndPadding() {
         return ( captioner_.getCaptionBounds( "0" ).height + 1 ) / 2;
+    }
+
+    /**
+     * Preferred number of pixels in the lateral direction for the axis
+     * colour ramp.  Not enforced by any behaviour of this class.
+     *
+     * @return  preferred ramp width
+     */
+    public int getRampWidth() {
+        return rampWidth_;
     }
 
     /**

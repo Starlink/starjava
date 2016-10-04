@@ -10920,6 +10920,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dd><p>
     <ul>
     <li>Update taplint OBS stage for PR-ObsCore-v1.1-20160923.</li>
+    <li>Add new parameter <code>auxwidth</code> to plot2 commands,
+        to control colour ramp lateral dimension in pixels.</li>
     </ul>
     </p></dd>
 

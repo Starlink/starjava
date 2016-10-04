@@ -229,12 +229,13 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
      * @param  captioner  shader ramp captioner
      * @param  label   shader ramp label
      * @param  crowding   tick crowding factor (1 is normal)
+     * @param  rampWidth  width of colour map ramp in pixels
      * @return   new factory
      */
     public static ShadeAxisFactory
             createShadeAxisFactory( Ramp ramp, final Captioner captioner,
-                                    final String label,
-                                    final double crowding ) {
+                                    final String label, final double crowding,
+                                    final int rampWidth ) {
         final Shader shader = ramp.getShader();
         final Scaling scaling = ramp.getScaling();
         final boolean isLog = scaling.isLogLike();
@@ -250,7 +251,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                 double lo = bounds[ 0 ];
                 double hi = bounds[ 1 ];
                 return new ShadeAxis( shader, scaling, lo, hi,
-                                      label, captioner, crowding );
+                                      label, captioner, crowding, rampWidth );
             }
         };
     }

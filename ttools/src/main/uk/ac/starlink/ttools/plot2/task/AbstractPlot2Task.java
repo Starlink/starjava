@@ -330,6 +330,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         plist.add( createAuxLabelParameter( DOC_ZONE_SUFFIX ) );
         plist.add( createAuxCrowdParameter( DOC_ZONE_SUFFIX ) );
+        plist.add( createAuxWidthParameter( DOC_ZONE_SUFFIX ) );
         plist.add( createAuxVisibleParameter( DOC_ZONE_SUFFIX ) );
 
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
@@ -1605,14 +1606,22 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }.getParameter( env, zoneSuffix )
          .doubleValue( env );
 
+        /* Get axis colour ramp width in pixels. */
+        int rampWidth = new ParameterFinder<IntegerParameter>() {
+            public IntegerParameter createParameter( String sfix ) {
+                return createAuxWidthParameter( sfix );
+            }
+        }.getParameter( env, zoneSuffix )
+         .intValue( env );
+
         /* Configure and return a shade axis accordingly. */
         RampKeySet rampKeys = StyleKeys.AUX_RAMP;
         Captioner captioner = getCaptioner( env );
         ConfigMap auxConfig =
             createZoneSuffixedConfigMap( env, rampKeys.getKeys(), zoneSuffix );
         RampKeySet.Ramp ramp = rampKeys.createValue( auxConfig );
-        return RampKeySet
-              .createShadeAxisFactory( ramp, captioner, label, crowd );
+        return RampKeySet.createShadeAxisFactory( ramp, captioner, label,
+                                                  crowd, rampWidth );
     }
 
     /**
@@ -2126,6 +2135,33 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             getZoneDoc( baseName, suffix ),
         } );
         param.setDoubleDefault( 1 );
+        return param;
+    }
+
+    /**
+     * Returns a parameter for determining aux colour ramp lateral size
+     * in pixels.
+     *
+     * @param  suffix  zone suffix
+     * @return  parameter
+     */
+    private IntegerParameter createAuxWidthParameter( String suffix ) {
+        if ( "".equals( suffix ) ) {
+            suffix = null;
+        }
+        String baseName = "auxwidth";
+        IntegerParameter param =
+            new IntegerParameter( baseName + ( suffix == null ? "" : suffix ) );
+        param.setUsage( "<pixels>" );
+        param.setPrompt( "Width of aux axis ramp"
+                       + ( suffix == null ? "" : " for zone " + suffix ) );
+        param.setDescription( new String[] {
+            "<p>Determines the lateral size of the aux colour ramp,",
+            "if visible, in pixels.",
+            "</p>",
+            getZoneDoc( baseName, suffix ),
+        } );
+        param.setIntDefault( 15 );
         return param;
     }
 

@@ -44,6 +44,7 @@ public class ShaderControl extends ConfigControl {
     private final ConfigSpecifier rangeSpecifier_;
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
+    private static final int RAMP_WIDTH = 15;
     private static final ConfigKey<String> AUXLABEL_KEY =
         new StringConfigKey( new ConfigMeta( "auxlabel", "Aux Axis Label" ),
                              null );
@@ -166,8 +167,8 @@ public class ShaderControl extends ConfigControl {
         double crowd = config.get( StyleKeys.AUX_CROWD ).doubleValue();
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
-        return RampKeySet
-              .createShadeAxisFactory( ramp, captioner, label, crowd );
+        return RampKeySet.createShadeAxisFactory( ramp, captioner, label,
+                                                  crowd, RAMP_WIDTH );
     }
 
     public boolean isLog() {

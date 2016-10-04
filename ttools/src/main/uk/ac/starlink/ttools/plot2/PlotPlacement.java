@@ -33,7 +33,6 @@ public class PlotPlacement {
     private final Surface surface_;
     private final List<Decoration> decorations_;
     private static final int EXTERNAL_LEGEND_GAP = 10;
-    private static final int SHADE_RAMP_WIDTH = 15;
     private static final int MIN_DIM = 24;
 
     /**
@@ -227,7 +226,8 @@ public class PlotPlacement {
         }
         else {
             Rectangle rampBox =
-                new Rectangle( 0, 0, SHADE_RAMP_WIDTH, extBounds.height );
+                new Rectangle( 0, 0, shadeAxis.getRampWidth(),
+                               extBounds.height );
             shadeExtWidth = rampBox.width
                           + shadeAxis.getRampInsets( rampBox ).right
                           + EXTERNAL_LEGEND_GAP;
@@ -306,7 +306,8 @@ public class PlotPlacement {
             int sx = gxhi + EXTERNAL_LEGEND_GAP;
             int sy = ylo1 + topPad;
             Rectangle rampBox =
-                new Rectangle( sx, sy, SHADE_RAMP_WIDTH, gyhi - sy - botPad );
+                new Rectangle( sx, sy, shadeAxis.getRampWidth(),
+                               gyhi - sy - botPad );
             Icon shadeIcon = shadeAxis.createAxisIcon( rampBox );
             decList.add( new Decoration( shadeIcon, sx, sy ) );
         }
