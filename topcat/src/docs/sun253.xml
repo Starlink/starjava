@@ -23559,6 +23559,7 @@ introduced since the last version:
     <ul>
     <li>Fixed a bug that could show Error information for the wrong job
         in the TAP Running Jobs tab.</li>
+    <li>Remove spurious padding from EPS graphics output.</li>
     </ul>
     </p></dd>
 

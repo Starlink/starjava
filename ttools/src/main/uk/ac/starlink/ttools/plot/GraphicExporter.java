@@ -172,7 +172,7 @@ public abstract class GraphicExporter {
              * scale is 72dpi. */
             int width = picture.getPictureWidth();
             int height = picture.getPictureHeight();
-            double padfrac = 0.05;       
+            double padfrac = 0.0;
             double xdpi = width / 6.0;
             double ydpi = height / 9.0;
             double scale;
