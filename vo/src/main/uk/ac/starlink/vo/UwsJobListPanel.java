@@ -30,6 +30,8 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -263,6 +265,17 @@ public class UwsJobListPanel extends JPanel {
                 if ( detail_.getJob() == job ) {
                     detail_.setJobInfo( info );
                     updateActions();
+                }
+                int ijob = listModel_.indexOf( job );
+                if ( ijob >= 0 ) {
+                    ListDataEvent evt =
+                        new ListDataEvent( UwsJobListPanel.this,
+                                           ListDataEvent.CONTENTS_CHANGED,
+                                           ijob, ijob );
+                    for ( ListDataListener l :
+                          listModel_.getListDataListeners() ) {
+                        l.contentsChanged( evt );
+                    }
                 }
             }
         } );

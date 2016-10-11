@@ -23560,6 +23560,8 @@ introduced since the last version:
     <li>Fixed a bug that could show Error information for the wrong job
         in the TAP Running Jobs tab.</li>
     <li>Remove spurious padding from EPS graphics output.</li>
+    <li>Fix TAP window bug that prevented job status from being updated
+        in Running Jobs tab.</li> 
     </ul>
     </p></dd>
 
