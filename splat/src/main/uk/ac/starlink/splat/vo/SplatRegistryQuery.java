@@ -183,12 +183,8 @@ public class SplatRegistryQuery implements RegistryQuery {
                 "ivo_string_agg(role_name, '#') as rolenames, "+
                 "ivo_string_agg(email, '#') as emails "+
                 "FROM rr.res_role GROUP BY ivoid) as q "+
-                "WHERE standard_id='ivo://ivoa.net/std/tap' and detail_xpath='/capability/dataModel/@ivo-id' "+
-                "AND (1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore-1.0') OR "+
-                "1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore/v1.0') OR " +
-                "1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore/v1.1'))";
-                // TODO Add Obscore 1.1??
-
+                "WHERE standard_id='ivo://ivoa.net/std/tap' AND detail_xpath='/capability/dataModel/@ivo-id' "+                
+                "AND (1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore%'))";
     }
 
     public DescribedValue[] getMetadata() {
