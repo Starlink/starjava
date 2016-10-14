@@ -10,6 +10,7 @@ import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
@@ -19,6 +20,8 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.util.List;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 
 /**

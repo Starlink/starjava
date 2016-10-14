@@ -55,7 +55,7 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.GraphicFileUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.vo.SLAPBrowser;
+import uk.ac.starlink.splat.vo.LineBrowser;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 
 /**
@@ -207,7 +207,7 @@ public class PlotControlFrame
      */
     private boolean showDeblend = false;
 
-    private SLAPBrowser slapBrowser;
+    private LineBrowser slapBrowser;
 
     /**
      *  Create an instance using an existing SpecDataComp.
@@ -1502,7 +1502,7 @@ public class PlotControlFrame
     {
         coordinateMatching.setSelected( true );
         if ( slapBrowser == null ) {
-            slapBrowser = new SLAPBrowser( getPlot() );
+            slapBrowser = new LineBrowser( getPlot() );
             //  We'd like to know if the window is closed.
  /*           slapBrowser.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {

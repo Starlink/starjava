@@ -140,10 +140,9 @@ public class SplatRegistryQuery implements RegistryQuery {
                adql_ = getObsCoreAdql();
        else  if (protocol == SSAP)
                adql_ = getSSAPAdql();
-       // else if (protocol == SLAP)
-       //    adql_ = getSLAPAdql();
-
-  }
+       else if (protocol == SLAP)
+               adql_ = getSLAPAdql();
+    }
     
     private String getSSAPAdql() {
 
@@ -164,7 +163,27 @@ public class SplatRegistryQuery implements RegistryQuery {
                 "FROM rr.res_role GROUP BY ivoid) as q "+
                 "WHERE standard_id='ivo://ivoa.net/std/ssa' AND intf_type='vs:paramhttp' " ;
     }
-    
+
+    private String getSLAPAdql() {
+
+        return "SELECT short_name, res_title,  res_description, ivoid, access_url, reference_url, "+
+                "waveband, content_type, baseroles, rolenames,  emails, cappaths, capvals, " +
+                "standard_id, std_version, res_subjects " +
+                "FROM rr.resource AS res NATURAL JOIN rr.interface NATURAL JOIN rr.capability " +
+                "NATURAL LEFT OUTER JOIN   (SELECT ivoid, " +
+                "ivo_string_agg(detail_xpath, '#') AS cappaths, "+
+                "ivo_string_agg(detail_value, '#') AS capvals "+ 
+                "FROM rr.res_detail GROUP BY ivoid ) as qq " +
+                "NATURAL LEFT OUTER JOIN (SELECT ivoid,  ivo_string_agg(res_subject, ', ') AS res_subjects " +
+                "FROM rr.res_subject GROUP BY ivoid) AS sbj " +
+                "NATURAL LEFT OUTER JOIN (SELECT  ivoid, " +
+                "ivo_string_agg(base_role, '#') as baseroles, "+
+                "ivo_string_agg(role_name, '#') as rolenames, "+
+                "ivo_string_agg(email, '#') as emails "+
+                "FROM rr.res_role GROUP BY ivoid) as q "+
+                "WHERE standard_id='ivo://ivoa.net/std/slap'" ;
+    }
+
     private String getObsCoreAdql() {
 
         return "SELECT short_name, res_title,  res_description, ivoid, access_url, reference_url, "+
@@ -318,11 +337,11 @@ public class SplatRegistryQuery implements RegistryQuery {
             return resMap_.values().toArray( new SSAPRegResource[ 0 ] );
         }
 
-        public SSAPRegResource[] getSSAPRegResource() {
+       /* public SSAPRegResource[] getSSAPRegResource() {
             Collection col = resMap_.values();
             
             return null;
-        }
+        }*/
 
         public void acceptMetadata( StarTable meta ) {
 

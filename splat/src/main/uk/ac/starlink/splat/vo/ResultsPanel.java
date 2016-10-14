@@ -122,6 +122,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     public ResultsPanel(ObsCorePanel browser) {
         this.browser=browser;
         datatype=OBSCORE;
+ 
         initComponents();
         popupMenu = makeSpecPopup();       
     }
