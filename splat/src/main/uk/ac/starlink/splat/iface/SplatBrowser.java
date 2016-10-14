@@ -113,7 +113,7 @@ import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 import uk.ac.starlink.splat.vo.ObsCorePanel;
-import uk.ac.starlink.splat.vo.SLAPBrowser;
+//import uk.ac.starlink.splat.vo.SLAPBrowser;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -283,7 +283,7 @@ public class SplatBrowser
     /**
      * SLAP browser.
      */
-    protected SLAPBrowser spectralLinesBrowser  = null; 
+   // protected SLAPBrowser spectralLinesBrowser  = null; 
 
     /**
      *  Stack open or save chooser.
@@ -796,11 +796,11 @@ public class SplatBrowser
      // Add acion to go to use the SLAP Browser
        // ImageIcon obscoreImage =
         //        new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
-        LocalAction slapAction = new LocalAction( LocalAction.SLAP,
-                                                    "Slap Browser", 
-                                                     null, 
-                                                     "Query VO for Spectral Lines" );
-        fileMenu.add(slapAction);
+     //   LocalAction slapAction = new LocalAction( LocalAction.SLAP,
+    //                                                "Slap Browser", 
+    //                                                 null, 
+    //                                                 "Query VO for Spectral Lines" );
+    //    fileMenu.add(slapAction);
        // toolBar.add( slapAction );
 
         //  Add action to browse the local file system and look for tables
@@ -1967,6 +1967,7 @@ public class SplatBrowser
     /**
      * Open the SLAP Browser window
      */
+    /*
     public void showSlapBrowser()
     {
         if ( spectralLinesBrowser == null ) {
@@ -1981,7 +1982,7 @@ public class SplatBrowser
         spectralLinesBrowser.setVisible( true );
 
     }
-
+*/
     
     /**
      * Open and display all the spectra listed in the newFiles array. Uses a
@@ -3589,11 +3590,12 @@ public class SplatBrowser
                    break;
                }
                
-               case SLAP: {
+            /*
+               case SLAP: {           
                    showSlapBrowser();
                    break;
                }
-
+            */
                case EXIT: {
                    exitApplicationEvent();
                }

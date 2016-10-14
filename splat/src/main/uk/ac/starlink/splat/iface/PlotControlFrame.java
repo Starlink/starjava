@@ -746,9 +746,15 @@ public class PlotControlFrame
         optionsMenu.add( lineOptionsMenu );
 
         openSlapBrowser = new JMenuItem("SLAP Browser");
-        lineOptionsMenu.add(openSlapBrowser);
-        lineOptionsMenu.add( openSlapBrowser );
-        openSlapBrowser.addActionListener( this );
+        
+      
+        SLAPAction slapAction =
+                new SLAPAction( "SLAP Browser", 
+                        "Open Simple Line Access Protocol browser" );
+        lineOptionsMenu.add(slapAction);
+     
+        //openSlapBrowser.addActionListener( this );
+    
         //  Load line identifiers into the plot. This comes in two flavours
         //  load all line identifiers and only those that are already
         //  available in the global list.
@@ -1488,6 +1494,27 @@ public class PlotControlFrame
             stackerFrame = null;
         }
     }
+    
+    /**
+     *  Activate the SLAP Browser window.
+     */
+    public void showSlapBrowser()
+    {
+        coordinateMatching.setSelected( true );
+        if ( slapBrowser == null ) {
+            slapBrowser = new SLAPBrowser( getPlot() );
+            //  We'd like to know if the window is closed.
+ /*           slapBrowser.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        slapBrowserClosed();
+                    }
+                });
+ */
+        } else {
+            Utilities.raiseFrame( slapBrowser );
+        }
+    }
+
 
     /**
      * Set the main cursor to indicate waiting for some action to
@@ -1922,6 +1949,24 @@ public class PlotControlFrame
             lineFit();
         }
     }
+    
+    /**
+     *  Inner class defining Action for SLAP browsing and adding spectral lines.
+     */
+    protected class SLAPAction extends AbstractAction
+    {
+        public SLAPAction( String name, String help )
+        {
+            super( name);
+            putValue( SHORT_DESCRIPTION, help );
+
+            //putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control V" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            showSlapBrowser();
+        }
+    }
 
     //
     // Implement ItemListener interface. This is used for menus items
@@ -2134,10 +2179,10 @@ public class PlotControlFrame
             return;
         }
 
-        if ( source.equals( openSlapBrowser ) ) {
-            slapBrowser = new SLAPBrowser();
+      /*  if ( source.equals( openSlapBrowser ) ) {
+            slapBrowser = new SLAPBrowser( plot);
             return;
-        }
+        }*/
         
         if ( source.equals( loadAllLineIDs ) ) {
             plot.loadLineIDs( true, doubleDSBLineIDs.isSelected(),

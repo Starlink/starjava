@@ -353,6 +353,8 @@ public class LineIDSpecData
         fullRange[2] = -1.0;
         fullRange[3] = 1.0;
     }
+    
+    
 
     //
     // Draw the "spectrum". Override the default implementation to call the
