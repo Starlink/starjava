@@ -1,38 +1,19 @@
 package uk.ac.starlink.splat.vamdc;
 
-
-
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
-import org.apache.commons.io.IOUtils;
 import org.vamdc.registry.client.Registry;
 import org.vamdc.registry.client.RegistryFactory;
-import org.vamdc.xsams.io.JAXBContextFactory;
-import org.vamdc.xsams.schema.AtomType;
-import org.vamdc.xsams.schema.AtomicIonType;
-import org.vamdc.xsams.schema.AtomicStateType;
-import org.vamdc.xsams.schema.DataType;
-import org.vamdc.xsams.schema.IsotopeParametersType;
-import org.vamdc.xsams.schema.IsotopeType;
-import org.vamdc.xsams.schema.RadiativeTransitionProbabilityType;
-import org.vamdc.xsams.schema.RadiativeTransitionType;
-import org.vamdc.xsams.schema.WlType;
-import org.vamdc.xsams.schema.XSAMSData;
 
-import gavo.spectral.ssldm.Level;
+
+import gavo.spectral.lines.VoTableTranslator;
+import gavo.spectral.lines.XSAMSParser;
+
 import gavo.spectral.ssldm.PhysicalQuantity;
 import gavo.spectral.ssldm.SpectralLine;
 import net.ivoa.xml.voresource.v1.Contact;
@@ -123,15 +104,16 @@ public class VAMDCLib {
         
          
         ArrayList<SpectralLine> lines = new ArrayList<SpectralLine>();
-        XSAMSData d;
+        XSAMSParser  xsams;
         try {
-            d = (XSAMSData)JAXBContextFactory.getUnmarshaller().unmarshal(inps);
+            xsams = new XSAMSParser(inps); 
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             throw e;
+            //return null;
         }
-        lines = transformToLines(d);
+        lines = xsams.getSpectralLines();
         VoTableTranslator votable = new VoTableTranslator(lines, query);
         
         return makeStarTable(votable, lines);
@@ -154,7 +136,7 @@ public class VAMDCLib {
        
         RowListStarTable rlst = new RowListStarTable(columns);
         for (SpectralLine l :lines) {
-            Object[] line = new Object[cols.length];
+    //        Object[] line = new Object[cols.length];
            // Row
            rlst.addRow(getRow(l, columns));
           }
@@ -234,175 +216,5 @@ public class VAMDCLib {
         
         return row;
     }
-
-    
-    /*
-     * Reads the XSAMSData returned from a VAMDC Database, and transform it to
-     * SpectralLine objects
-     */
-    private ArrayList<SpectralLine> transformToLines(XSAMSData d) {
-        
-        ArrayList<SpectralLine> lines = new ArrayList<SpectralLine>();
-
-        HashMap <String,String> elements= new HashMap<String,String>();
-        
-        // get the atom/species symbol and put into a hashmap
-        for (AtomType atom : d.getSpecies().getAtoms().getAtoms()) {
-
-          //  System.out.println("Atom: "+ atom.getChemicalElement().getElementSymbol() + " - ");
-          //  System.out.println( "Charge: "+ atom.getChemicalElement().getNuclearCharge() + " - ");
-
-            for (IsotopeType iso : atom.getIsotopes()) {
-            //    IsotopeParametersType isop = iso.getIsotopeParameters();
-                for (AtomicIonType ion:iso.getIons()) {
-
-                    elements.put(ion.getSpeciesID(), atom.getChemicalElement().getElementSymbol().value());
-                    //ions.put(ion., ion);
-                 //   System.out.println("Ion: "+ ion.getIonCharge() + " - ");
-                }
-            }
-        }
-
-        for ( RadiativeTransitionType radtrans: d.getProcesses().getRadiative().getRadiativeTransitions() ) { 
-
-            //SpeciesType specref = (SpeciesType) radtrans.getSpeciesRef();
-            // SpeciesStateRefType spectype = (SpeciesStateRefType) radtrans.getSpeciesRef();
-            if (radtrans.getLowerStateRef() != null && radtrans.getLowerStateRef().getClass().equals(AtomicStateType.class)) {
-                AtomicStateType state1 = (AtomicStateType) radtrans.getLowerStateRef();                    
-                //state1.getAtomicNumericalData().getIonizationEnergy();
-                DataType energy1 = state1.getAtomicNumericalData().getStateEnergy();
-                AtomicStateType state2 = (AtomicStateType) radtrans.getUpperStateRef();
-                state2.getAtomicNumericalData().getIonizationEnergy();
-                DataType energy2 = state2.getAtomicNumericalData().getStateEnergy();
-
-                AtomicIonType ion1 =  (AtomicIonType) state1.getParent();                     
-                String id1;
-                if ( ion1.getIsoelectronicSequence() != null) {
-                   id1 = ion1.getIsoelectronicSequence().value();
-                }else id1 = elements.get(ion1.getSpeciesID())+" "+ion1.getIonCharge();
-
-                
-                AtomicIonType ion2 =  (AtomicIonType) state2.getParent();                   
-                String id2;
-                if ( ion2.getIsoelectronicSequence() != null) {
-                    id2=ion2.getIsoelectronicSequence().value();
-                } else id2 = elements.get(ion2.getSpeciesID());;
-
-                
-                String probabilities = null;
-
-                SpectralLine line = new SpectralLine();                    
-
-                if (id1 != null) {
-                    line.setInitialElement(id1);
-                    line.setTitle(elements.get(ion1.getSpeciesID()));
-                } 
-
-                if (id2 != null)
-                    line.setFinalElement(id2);
-
-                Level initial = new Level();
-
-                if (energy1 != null) {
-                    initial.setEnergy(energy1.getValue().getValue(), energy1.getValue().getUnits());                         
-                } 
-                try {
-                    initial.setTotalStatWeight(state1.getAtomicNumericalData().getStatisticalWeight().doubleValue(), null) ; // An integer representing the total number of terms pertaining to a given level
-                } catch( Exception e) {}
-                //PhysicalQuantity nuclearStatWeight ; // The same as Level.totalStatWeight for nuclear spin states only
-                try {
-                    initial.setLandeFactor(state1.getAtomicNumericalData().getLandeFactor().getValue().getValue(), (Double) null, null); // A dimensionless factor g that accounts for the splitting of normal energy levels into uniformly spaced sublevels in the presence of a magnetic field
-                }catch( Exception e) {}
-                
-                Level finalLevel = new Level();
-                
-                if (energy2 != null) {
-                    finalLevel.setEnergy(energy2.getValue().getValue(), energy2.getValue().getUnits());
-                } else {
-                    finalLevel.setEnergy(null);
-                }
-                try {
-                    finalLevel.setTotalStatWeight(state2.getAtomicNumericalData().getStatisticalWeight().doubleValue(), null) ; // An integer representing the total number of terms pertaining to a given level
-                }catch( Exception e) {}
-                //PhysicalQuantity nuclearStatWeight ; // The same as Level.totalStatWeight for nuclear spin states only
-                try {
-                    finalLevel.setLandeFactor(state2.getAtomicNumericalData().getLandeFactor().getValue().getValue(), (Double) null, state1.getAtomicNumericalData().getLandeFactor().getValue().getUnits()); ;// A dimensionless factor g that accounts for the splitting of normal energy levels into uniformly spaced sublevels in the presence of a magnetic field
-                }catch( Exception e) {}
-                //initial.setLifeTime(state1.getAtomicNumericalData().getLifeTimes());
-                //PhysicalQuantity lifeTime ; // Intrinsic lifetime of a level due to its radiative decay
-                //PhysicalQuantity energy  ; //The binding energy of an electron belonging to the level
-
-                //String energyOrigin ; // Human readable string indicating the nature of the energy origin, e.g., “Ionization energy limit”, “Ground state energy” of an atom, “Dissociation limit” for  a molecule, etc
-                //QuantumState quantumState ; // A representation of the level quantum state through its set of quantum numbers
-                //String nuclearSpinSymmetryType ;//  A string indicating the type of nuclear spin symmetry. Possible values are: “para”,“ortho”, “meta”
-                //PhysicalQuantity parity ;//  Eigenvalue of the parityoperator. Values (+1,-1)
-                //String configuration ;
-                line.setInitialLevel(initial);
-                line.setFinalLevel(finalLevel);
-                //  line.setIntensity(intensity);
-                //!!! is it possible to have more than one in our case?
-
-                try {
-                    RadiativeTransitionProbabilityType prob = radtrans.getProbabilities().get(0);
-                    DataType os = prob.getOscillatorStrength();;
-                    if (os != null) {
-                        line.setOscillatorStrength( os.getValue().getValue(), os.getValue().getUnits());
-                    }
-                    os = prob.getWeightedOscillatorStrength();
-                    if (os != null) {
-                        line.setWeightedOscillatorStrength( os.getValue().getValue(), os.getValue().getUnits());
-                    }
-                    os = prob.getTransitionProbabilityA();
-                    if (os != null) {
-                        line.setEinsteinA( os.getValue().getValue(), os.getValue().getUnits());
-                    }
-                } catch (Exception e) {
-
-                }
-
-
-
-
-                //   String elSymbol=null;
-                //   if (id != null)
-                //       elSymbol=elements.get(id);
-                try {
-                    WlType wl =  radtrans.getEnergyWavelength().getWavelengths().get(0);
-                    if (wl.isVacuum()) { // ?!!!!!! check if it's correct
-                        line.setWavelength(wl.getValue().getValue(), wl.getValue().getUnits());
-
-                    } else {
-                        line.setAirWavelength(wl.getValue().getValue(), wl.getValue().getUnits());                          
-                        line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), wl.getValue().getUnits());
-                    }
-                } catch (Exception e) {
-
-                }
-                try {
-                    String e1 = null;
-                    String e2 = null;
-                    
-                    
-                    if ( line.getInitialLevel().getEnergy() != null ) 
-                        e1 = line.getInitialLevel().getEnergy().getString();
-                    if ( line.getFinalLevel().getEnergy() != null ) 
-                            e2 = line.getFinalLevel().getEnergy().getString();
-                    
-  //              System.out.println(line.getTitle()+" wl "+ line.getWavelength().getString()+" "+
-  //                      " e1 "+ e1+" e2 "+e2+" "+
-   //                     " os "+line.getOscillatorStrength().getString()+" wos "+line.getWeightedOscillatorStrength().getString());                    
-                }catch(Exception e) {
-                    System.out.println(">>>>>>>>>>>>>>>>>"+line.getTitle()+" wl "+ line.getWavelength().getString());
-                }
-                
-                lines.add(line);
-            } // if radtrans ...
-            // System.out.println(elSymbol+" wl "+ wl.getValue().getValue() + " "+ wl.getValue().getUnits()+" os "+osValue+" "+osUnit);      
-        } // for radtrans ... 
-
-        
-        return lines;
-    }
-
 
 }
