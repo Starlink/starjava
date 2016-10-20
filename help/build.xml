@@ -429,8 +429,7 @@
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
-      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip" 
-               excludes="**/jhall.jar"/>
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
 
   </target>
