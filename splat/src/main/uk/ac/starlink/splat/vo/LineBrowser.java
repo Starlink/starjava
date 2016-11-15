@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -16,6 +18,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -28,7 +31,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
+import jsky.util.Logger;
 import jsky.util.SwingWorker;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.LineIDTableSpecDataImpl;
@@ -51,7 +56,7 @@ import uk.ac.starlink.table.gui.TableLoadPanel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.VOTableBuilder;
 
-public class LineBrowser extends JFrame implements ActionListener, MouseListener, PlotListener {
+public class LineBrowser extends JFrame implements ActionListener, MouseListener, PlotListener, PropertyChangeListener {
 
 //    private JPanel slapResultsPanel;
     private ServerPopupTable slapServices;
@@ -75,6 +80,13 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
     private int SLAP_INDEX=0;
     private int VAMDC_INDEX=1;
     private VAMDCLib vamdclib;
+    
+    /**
+     * Frame for adding a new server.
+     */
+    protected AddNewServerFrame addServerWindow = null;
+
+ 
   
   /*  public SLAPBrowser(SplatBrowser splatbrowser) {   
      
@@ -106,12 +118,9 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
                 ErrorDialog.showError( this, "Registry query failed", e );
                 return;
             }
-           // RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();
-            slapServices = new ServerPopupTable();
-            slapServices.updateServers(table); 
-            slapServices.setComponentPopupMenu(makeServerPopup());
-            
-            
+           // RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();         
+           slapServices = new ServerPopupTable(new SLAPServerList(table));
+           slapServices.setComponentPopupMenu(makeServerPopup());            
     }
     
     private void getVAMDCServices() {
@@ -195,7 +204,12 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
     
     private JPanel makeSlapPanel() {
         
-        getSLAPServices();
+        try {
+            slapServices = new ServerPopupTable(new SLAPServerList());
+            slapServices.setComponentPopupMenu(makeServerPopup());  
+        } catch (SplatException e) {
+           getSLAPServices();
+        }
         JPanel slapPanel = new JPanel();
         
         slapPanel.setLayout(new BorderLayout());
@@ -285,7 +299,7 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
            else
                queryString= makeVamdcQuery(ranges, lambda, element, row);
 
-
+           Logger.info(this, "query= "+queryString);
            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
            progressFrame.addProgressPanel( progressPanel );
 
@@ -335,8 +349,8 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
    private  String makeVamdcQuery( int [] ranges, double [] lambda, String element, int row) {
 
 
-       final String request = vamdcServices.getAccessURL(row)+"sync?LANG=VSS2&REQUEST=doQuery&FORMAT=XSAMS&QUERY=";
-       String query = "select * where ";
+       final String query = vamdcServices.getAccessURL(row)+"sync?LANG=VSS2&REQUEST=doQuery&FORMAT=XSAMS&QUERY=";
+       String request = "select * where ";
 
        String wlist="";
        
@@ -348,31 +362,32 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
        }
        String and="";
        if (!wlist.isEmpty()) {    
-           query+="("+wlist+")";
+           request+="("+wlist+")";
            and=" AND ";
        }
        if (! element.isEmpty()) {
-           query += and+"( AtomSymbol = \'"+element+  "\' )";
+           request += and+"( AtomSymbol = \'"+element+  "\' )";
        }
 
        try {
-           return request+URLEncoder.encode(query, "UTF-8");
+           return query+URLEncoder.encode(request, "UTF-8");
        } catch (UnsupportedEncodingException e) {
            e.printStackTrace();
        }
 
-       return request;
+       return query;
 
    }
 
    private String makeSlapQuery( int [] ranges, double [] lambda, String element, int row) {
 
-
-     //  final String slapquery;
-       String query = slapServices.getAccessURL(row);
+       final String query = slapServices.getAccessURL(row);
+       
+       String request="REQUEST=queryData&";
        if (!query.endsWith("?")) {
-           query+="?";
+           request="?"+request;
        }
+       
        String wlist="";
        for (int i=0;i<ranges.length;i+=2) {
            wlist+=lambda[ranges[i]]+"/"+lambda[ranges[i+1]];
@@ -381,14 +396,20 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
        }
        String and="";
        if (!wlist.isEmpty()) {    
-           query+="WAVELENGTH="+wlist;
+           request+="WAVELENGTH="+wlist;
            and="&";
        }
        if (! element.isEmpty()) {
-           query += and+ "CHEMICAL_ELEMENT="+element;
+           request += and+ "CHEMICAL_ELEMENT="+element;
        }
 
-       return query;
+   /*    try {
+           return query+URLEncoder.encode(request, "UTF-8");
+       } catch (UnsupportedEncodingException e) {
+           e.printStackTrace();
+       }*/
+       
+       return query+request;
 
    }
 
@@ -588,11 +609,47 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
    
     @Override
     public void actionPerformed(ActionEvent e) {
-        //Object source = e.getSource()
-  
+        //Object source = e.getSource();
+        Object command = e.getActionCommand();
+        if ( command.equals( "NEWSERVICE" ) ) // add new server
+        {
+            addNewServer();
+        }
+        if ( command.equals( "REFRESH" ) ) // query registry - refresh server table
+        {         
+            getServers();           
+        }
+
         // TODO Auto-generated method stub
         
     }
+    
+  
+    private void getServers() {
+     if (servTabPanel.getSelectedIndex()==SLAP_INDEX) {
+         getSLAPServices();
+     } else {
+         getVAMDCServices();
+     }
+        
+    }
+
+
+    /**
+     *  Add new server to the server list
+     */
+    protected void addNewServer()
+    {
+        if (servTabPanel.getSelectedIndex()==SLAP_INDEX) {
+    
+            if ( addServerWindow == null ) {
+                addServerWindow = new AddNewServerFrame();
+                addServerWindow.addPropertyChangeListener(this);
+            }
+            addServerWindow.setVisible( true );
+        }
+    }
+
 
     @Override
     public void plotCreated(PlotChangedEvent e) {
@@ -623,6 +680,21 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
         // TODO Auto-generated method stub
         return this.plot;
     }
+
+    
+    /**
+     * Event listener to trigger a list update when a new server is
+     * added to addServerWIndow
+     */
+    @Override   
+    public void propertyChange(PropertyChangeEvent pvt)
+    {
+       
+        SSAPRegResource reg = new SSAPRegResource(addServerWindow.getShortName(), addServerWindow.getServerTitle(), addServerWindow.getDescription(), addServerWindow.getAccessURL());
+        slapServices.addNewServer(reg);
+      
+    }
+    
 
 
 }
