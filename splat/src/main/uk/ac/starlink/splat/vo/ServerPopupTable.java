@@ -74,7 +74,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
         serverList=list;
         populate();
     }
-    
+/*    
     ServerPopupTable( JTable table) {
         super(); 
       //  DefaultTableModel model =  (DefaultTableModel) this.getModel();     
@@ -83,7 +83,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
         updateServerTable();
        
     }
-    
+*/    
     /* 
      * Populate 
      * fills the table with the values of serverList
