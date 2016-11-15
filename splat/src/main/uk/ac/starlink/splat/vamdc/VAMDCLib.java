@@ -203,9 +203,9 @@ public class VAMDCLib {
             if (cols[i].getName().equals("Einstein A"))
                 row[i]=line.getEinsteinA().getValue();
             if (cols[i].getName().equals("initial level"))
-                row[i]=line.getInitialElement();
+                row[i]=line.getInitialElement().getName();
             if (cols[i].getName().equals("initial level"))
-                row[i]=line.getFinalElement();
+                row[i]=line.getFinalElement().getName();
             if (cols[i].getName().equals("air wavelength"))
                 row[i]=line.getAirWavelength().getValue();
             if (cols[i].getName().equals("oscillator strength"))
