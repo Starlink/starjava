@@ -1025,7 +1025,7 @@ public class SSAServerTable extends JPanel  implements PropertyChangeListener {
         RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();
         
         serverTable.updateServers(table, tagsMap.get(MANUALLY_ADDED_STR)); 
-        serverList = serverTable.getServerList();
+        serverList = (SSAServerList) serverTable.getServerList();
         serverTable.setRowSorter(savedSorter);  
         this.firePropertyChange("changeServerlist", false, true);
 

@@ -28,7 +28,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
  class ServerPopupTable extends RowPopupTable {
 
     
-     private SSAServerList serverList;
+     private AbstractServerList serverList;
 
      static final int NRCOLS = 15;                    // the number of columns in the table
 
@@ -57,8 +57,10 @@ import uk.ac.starlink.table.gui.StarTableModel;
 
 
 
-    ServerPopupTable() {
+    ServerPopupTable(ObsCoreServerList list) {
         super();       
+        serverList=list;
+        populate();
     }
     
     ServerPopupTable( SSAServerList list) {
@@ -67,7 +69,21 @@ import uk.ac.starlink.table.gui.StarTableModel;
         populate();
     }
     
-
+    ServerPopupTable( SLAPServerList list) {
+        super(); 
+        serverList=list;
+        populate();
+    }
+    
+    ServerPopupTable( JTable table) {
+        super(); 
+      //  DefaultTableModel model =  (DefaultTableModel) this.getModel();     
+        DefaultTableModel tmod = (DefaultTableModel) table.getModel();
+        this.setModel(tmod);
+        updateServerTable();
+       
+    }
+    
     /* 
      * Populate 
      * fills the table with the values of serverList
@@ -170,6 +186,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
       //  this.setStarTable(table, false);
         populate();        
     }
+    
     public void updateServers(StarTable table, ArrayList<String> manuallyAddedServices ) {
         
         try {
@@ -185,13 +202,26 @@ import uk.ac.starlink.table.gui.StarTableModel;
       //  this.setStarTable(table, false);
         populate();        
     }
-
-    public void setServerList(SSAServerList list) {
+    
+  
+    /*
+     * updateServers(JTable table)
+     * fills the table with the values from a JTable
+     */
+/*
+    public void updateServers(JTable table ) {
+        DefaultTableModel tmod = (DefaultTableModel) table.getModel();
+        this.setModel(tmod);
+        updateServerTable();
+    }
+*/  
+   
+    public void setServerList(AbstractServerList list) {
         serverList = list;
    
     }
 
-    public SSAServerList getServerList() {
+    public AbstractServerList getServerList() {
         
         return serverList;
     }
@@ -258,5 +288,10 @@ import uk.ac.starlink.table.gui.StarTableModel;
        //this.removeRowSelectionInterval(0, this.getRowCount()-1);
        ((DefaultTableModel) this.getModel()).removeRow(row);
        //populate();
+    }
+
+    public void addNewServer(SSAPRegResource server) {
+       serverList.addServer(server, true);        
+       populate();
     }
 }
