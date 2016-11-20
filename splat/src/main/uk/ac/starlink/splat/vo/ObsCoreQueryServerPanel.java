@@ -55,10 +55,17 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     /* where to save the tags information */
     private static String tagsFile = "obsCoreTagsV2.xml";
     
+    /* Constants */
+    private static final String DATA_PRODUCT_DEFAULT_PARAM = "dataproduct_type=\'spectrum\'";
+    private static final String DATA_PRODUCT_TYPE_ACTION_LISTENER = "DATAPRODUCTTYPE";
+
+
+    //
     protected JTabbedPane queryTabPanel = null;
     
     private String[] parameters = {"", "target_name", "s_ra", "s_dec", "s_fov", "s_region", "s_resolution", 
             "t_min", "t_max", "t_exptime", "em_min", "em_max", "em_res_power", "pol_states", "calib_level"};
+    private String[] dataProductTypes = {"spectrum", "timeseries"};
     private String[] comparisons = {"", "=", "!=", "<>", "<", ">", "<=", ">="};
     private String[] conditions = {"", "AND", "OR"};
     private String queryPrefix = "SELECT TOP 10000 * from ivoa.Obscore WHERE dataproduct_type=\'spectrum\' ";
@@ -97,6 +104,8 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     /** The extended query text */
     protected String extendedQueryText = null;
     
+    /** Data product type */
+    protected JComboBox dataProductTypeBox = null;
 
     /** Object name */
     protected JTextField nameField = null;
@@ -137,8 +146,9 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     //    setFilters();
         
     }  
+
     private JPanel initOptionsPanel() {
-        // TODO Auto-generated method stub
+
         queryTabPanel = new JTabbedPane();
         queryTabPanel.add("Simple search", initSimpleQueryPanel());        
         queryTabPanel.add("ADQL search", initQueryADQLPanel());
@@ -396,6 +406,23 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         upperTimeField.setToolTipText( "Upper limit for time coverage, " +
                 "in ISO 8601 format " +
                 "(e.g 2008-10-15T20:48Z)" );
+
+	// Data product type dropdown
+        //TODO
+        JLabel dataProductTypeLabel = new JLabel( "Data\nproduct:" );
+        
+        dataProductTypeBox = new JComboBox(dataProductTypes) ;
+        dataProductTypeBox.addActionListener(this);
+        dataProductTypeBox.setActionCommand( DATA_PRODUCT_TYPE_ACTION_LISTENER );
+        
+        JPanel dataProductTypePanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc7 = new GridBagConstraints();
+        gbc7.weightx = 1.0;
+        gbc7.fill = GridBagConstraints.HORIZONTAL;
+        dataProductTypePanel.add( dataProductTypeBox, gbc7 );
+        
+        layouter.add(dataProductTypeLabel,false);
+        layouter.add(dataProductTypePanel, true);
         
         //
         
@@ -721,6 +748,8 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
             queryParams=str;
         }
         
+       queryParams=queryParams.replace(DATA_PRODUCT_DEFAULT_PARAM, "dataproduct_type=\'" + dataProductTypeBox.getSelectedItem().toString() + "\'");
+
        // logger.info( "QUERY= "+queryParams);
        this.firePropertyChange("NewQuery", false, true); // trigger query
        //makeQuery(serverTable.getSelectedRows(), queryParams);       
