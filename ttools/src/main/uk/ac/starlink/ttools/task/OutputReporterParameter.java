@@ -11,6 +11,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.taplint.JsonOutputReporter;
 import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.ttools.taplint.ReportType;
 import uk.ac.starlink.ttools.taplint.TextOutputReporter;
@@ -30,6 +31,7 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
     private final Parameter[] reporterParams_;
     private final OutputReporterFactory<?>[] orFactories_ = {
         new TextOutputReporterFactory( "text" ),
+        new JsonOutputReporterFactory( "json" ),
     };
 
     /**
@@ -246,6 +248,33 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
             boolean debug = debugParam_.booleanValue( env );
             int maxChar = truncParam_.intValue( env );
             return new TextOutputReporter( out, types, maxRepeat, debug,
+                                           maxChar );
+        }
+    }
+
+    /**
+     * OutputReporterFactory instance for JSON output.
+     */
+    private class JsonOutputReporterFactory
+            extends OutputReporterFactory<JsonOutputReporter> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  type name for user
+         */
+        public JsonOutputReporterFactory( String name ) {
+            super( name, JsonOutputReporter.class );
+        }
+
+        public JsonOutputReporter createReporter( Environment env )
+                throws TaskException {
+            PrintStream out = env.getOutputStream();
+            ReportType[] types = getReportTypes( env );
+            int maxRepeat = repeatParam_.intValue( env );
+            boolean debug = debugParam_.booleanValue( env );
+            int maxChar = truncParam_.intValue( env );
+            return new JsonOutputReporter( out, types, maxRepeat, debug,
                                            maxChar );
         }
     }

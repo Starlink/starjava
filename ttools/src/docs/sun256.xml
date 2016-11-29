@@ -6458,7 +6458,8 @@ to assess their services, perhaps with a view to improving compliance.
 
 <p>Testing takes place in a number of stages; it is possible to choose 
 which stages are run in by using the <code>stages</code> parameter.
-At present output is line-based text to standard output,
+The default output (<code>format=text</code>)
+is line-based text to standard output,
 and each report line is of the (fairly greppable) form:
 <verbatim>
    T-SSS-MMMMxN aaaaa...
@@ -6505,6 +6506,16 @@ where the parts have the following meanings:
     what is being reported.
     </li>
 </ul>
+</p>
+
+<p>If you don't like that format, others may be selected using the
+<code>format</code> parameter, which currently also supports JSON.
+For more flexible interaction with the output you can invoke
+<code>taplint</code> <ref id="taskApi">programmatically</ref>
+and supply your own 
+<javadoc docset="&stiltsjavadocs;"
+         class="uk.ac.starlink.ttools.taplint.OutputReporter"/>
+instance.
 </p>
 
 <p>TAP is a complicated beast, referencing many standards
@@ -10966,6 +10977,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         which has been withdrawn
         (<code>grid</code> can do all the same things and more,
         except specify bin size in screen pixels).</li>
+    <li><code>taplint</code> can now optionally write its output in JSON
+        format (see <code>format</code> parameter).</li>
     </ul>
     </p></dd>
 
