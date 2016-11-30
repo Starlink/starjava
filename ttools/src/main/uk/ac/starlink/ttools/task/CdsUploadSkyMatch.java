@@ -303,6 +303,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             new BlockUploader( umatcher, blocksize, maxrec, tableName,
                                inFixAct, cdsFixAct, serviceMode, oneToOne,
                                uploadEmpty );
+        blocker.setTruncationAdvice( "Reduce " + chunkParam_.getName() + "?" );
 
         /* Create and return an object which will produce the result. */
         return new TableProducer() {

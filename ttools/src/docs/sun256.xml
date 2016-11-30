@@ -10923,6 +10923,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add new parameter <code>auxwidth</code> to plot2 commands,
         to control colour ramp lateral dimension in pixels.</li>
     <li>Remove spurious padding from EPS graphics output.</li>
+    <li>Add <code>blockmaxrec</code> parameter to
+        <ref id="tapskymatch">tapskymatch</ref>,
+        and improve warning text in case of result truncations.</li>
     </ul>
     </p></dd>
 

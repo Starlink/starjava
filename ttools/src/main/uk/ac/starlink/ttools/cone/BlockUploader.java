@@ -32,6 +32,7 @@ public class BlockUploader {
     private final ServiceFindMode serviceMode_;
     private final boolean oneToOne_;
     private final boolean uploadEmpty_;
+    private String truncationAdvice_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -137,6 +138,10 @@ public class BlockUploader {
                 logger_.info( "Match block " + ( iblock + 1 ) + ": "
                             + nIn + " uploaded, " + nOut + " received"
                             + ( over ? " (truncated)" : "" ) );
+                if ( over ) {
+                    logger_.warning( "Block " + ( iblock + 1 )
+                                   + " truncated at " + nOut + " rows" );
+                }
                 totOut += nOut;
                 iblock++;
             }
@@ -146,8 +151,17 @@ public class BlockUploader {
         coneSeq.close();
         rawResultStore.endRows();
         if ( nOverflow > 0 ) {
-            logger_.warning( "Truncations in " + nOverflow + "/" + nblock
-                           + " blocks" );
+            StringBuffer sbuf = new StringBuffer()
+                .append( "Truncations in " )
+                .append( nOverflow )
+                .append( "/" )
+                .append( nblock )
+                .append( " blocks" );
+            if ( truncationAdvice_ != null ) {
+                sbuf.append( "; " )
+                    .append( truncationAdvice_ );
+            }
+            logger_.warning( sbuf.toString() );
         }
         StarTable rawResult = rawResultStore.getStarTable();
 
@@ -226,6 +240,16 @@ public class BlockUploader {
         /* Return the output table. */
         outTable.setName( outName_ );
         return outTable;
+    }
+
+    /**
+     * Sets a string that can be issued to the user as additional advice
+     * if there are truncations in block results.
+     *
+     * @param  truncationAdvice  user-readable advice string
+     */
+    public void setTruncationAdvice( String truncationAdvice ) {
+        truncationAdvice_ = truncationAdvice;
     }
 
     /**
