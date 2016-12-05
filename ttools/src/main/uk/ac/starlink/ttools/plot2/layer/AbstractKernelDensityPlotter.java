@@ -25,7 +25,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
-import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 
 /**
  * Abstract superclass for a plotter that plots something that looks like
@@ -121,13 +121,13 @@ public abstract class AbstractKernelDensityPlotter
         return new LayerOpt( color, isOpaque );
     }
 
-    protected int getPixelPadding( KDenseStyle style, PlaneSurface surf ) {
+    protected int getPixelPadding( KDenseStyle style, PlanarSurface surf ) {
         Kernel1d kernel =
             style.createKernel( surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ] );
         return getEffectiveExtent( kernel );
     }
 
-    protected void paintBins( PlaneSurface surface, BinArray binArray,
+    protected void paintBins( PlanarSurface surface, BinArray binArray,
                               KDenseStyle style, Graphics2D g ) {
 
         /* Store graphics context state. */

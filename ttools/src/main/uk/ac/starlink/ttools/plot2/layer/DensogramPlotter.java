@@ -28,7 +28,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
-import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 
 /**
  * Plots a histogram-like density map - a one-dimensional colour bar
@@ -129,7 +129,7 @@ public class DensogramPlotter
                                kernelShape, sizer, cumul, extent, position );
     }
 
-    protected void paintBins( PlaneSurface surface, BinArray binArray,
+    protected void paintBins( PlanarSurface surface, BinArray binArray,
                               DensoStyle style, Graphics2D g ) {
 
         /* Get the data values for each pixel position. */
@@ -191,7 +191,7 @@ public class DensogramPlotter
         return LayerOpt.OPAQUE;
     }
 
-    protected int getPixelPadding( DensoStyle style, PlaneSurface surf ) {
+    protected int getPixelPadding( DensoStyle style, PlanarSurface surf ) {
         Kernel1d kernel =
             createKernel( style.kernelShape_, style.sizer_,
                           surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ] );

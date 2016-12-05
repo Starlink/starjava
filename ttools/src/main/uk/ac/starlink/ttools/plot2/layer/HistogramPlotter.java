@@ -38,7 +38,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -225,11 +225,11 @@ public class HistogramPlotter
                 public Drawing createDrawing( Surface surface,
                                               Map<AuxScale,Range> auxRanges,
                                               final PaperType paperType ) {
-                    if ( ! ( surface instanceof PlaneSurface ) ) {
-                        throw new IllegalArgumentException( "Not plane surface "
-                                                          + surface );
+                    if ( ! ( surface instanceof PlanarSurface ) ) {
+                        throw new IllegalArgumentException( "Not planar surface"
+                                                          + " " + surface );
                     }
-                    final PlaneSurface pSurf = (PlaneSurface) surface;
+                    final PlanarSurface pSurf = (PlanarSurface) surface;
                     final boolean xlog = pSurf.getLogFlags()[ 0 ];
                     double[] xlimits = pSurf.getDataLimits()[ 0 ];
                     final double xlo = xlimits[ 0 ];
@@ -391,7 +391,7 @@ public class HistogramPlotter
      * @param  nseq     total number of histograms in the plot
      * @param  g        graphics context
      */
-    private void paintBins( PlaneSurface surface, BinBag binBag,
+    private void paintBins( PlanarSurface surface, BinBag binBag,
                             HistoStyle style, int iseq, int nseq, Graphics g ) {
         Color color0 = g.getColor();
         g.setColor( style.color_ );
