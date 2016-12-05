@@ -22,7 +22,7 @@ import uk.ac.starlink.ttools.plot2.Tick;
  * @author   Mark Taylor
  * @since    17 Jul 2013
  */
-public class TimeSurface implements Surface {
+public class TimeSurface implements Surface, PlanarSurface {
 
     private final int gxlo_;
     private final int gxhi_;
@@ -188,6 +188,22 @@ public class TimeSurface implements Surface {
 
     public Captioner getCaptioner() {
         return captioner_;
+    }
+
+    public boolean[] getLogFlags() {
+        return new boolean[] { false, ylog_ };
+    }
+
+    public boolean[] getFlipFlags() {
+        return new boolean[] { false, yflip_ };
+    }
+
+    public double[][] getDataLimits() {
+        return new double[][] { { dtlo_, dthi_ }, { dylo_, dyhi_ } };
+    }
+
+    public Axis[] getAxes() {
+        return new Axis[] { tAxis_, yAxis_ };
     }
 
     /**

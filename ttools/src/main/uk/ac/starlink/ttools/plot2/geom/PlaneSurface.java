@@ -23,7 +23,7 @@ import uk.ac.starlink.ttools.plot2.Ticker;
  * @author   Mark Taylor
  * @since    19 Feb 2013
  */
-public class PlaneSurface implements Surface {
+public class PlaneSurface implements Surface, PlanarSurface {
 
     private final double dxlo_;
     private final double dxhi_;
@@ -194,40 +194,18 @@ public class PlaneSurface implements Surface {
         }
     }
 
-    /**
-     * Returns the limits in data coordinates of the plot region.
-     *
-     * @return  2x2 array <code>{{xlo, xhi}, {ylo, yhi}}</code>
-     */
     public double[][] getDataLimits() {
         return new double[][] { { dxlo_, dxhi_ }, { dylo_, dyhi_ } };
     }
 
-    /**
-     * Indicates the scaling along the two axes.
-     *
-     * @return  2-element array giving X,Y scaling flags:
-     *          false for linear, true for logarithmic
-     */
     public boolean[] getLogFlags() {
         return new boolean[] { xlog_, ylog_ };
     }
 
-    /**
-     * Indicates which axes are reversed.
-     *
-     * @return  2-element array giving X,Y flip flags;
-     *          true to invert normal plot direction
-     */
     public boolean[] getFlipFlags() {
         return new boolean[] { xflip_, yflip_ };
     }
 
-    /**
-     * Returns the axis objects used by this surface.
-     *
-     * @return  2-element array giving X,Y axis implementations
-     */
     public Axis[] getAxes() {
         return new Axis[] { xAxis_, yAxis_ };
     }
