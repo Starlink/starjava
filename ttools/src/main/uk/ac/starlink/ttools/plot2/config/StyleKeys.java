@@ -318,7 +318,8 @@ public class StyleKeys {
                 "are normalised.",
                 "</p>",
             } )
-        , Normalisation.class, Normalisation.values(), Normalisation.NONE ) {
+        , Normalisation.class, Normalisation.getKnownValues(),
+          Normalisation.NONE ) {
             public String getXmlDescription( Normalisation norm ) {
                 return norm.getDescription();
             }

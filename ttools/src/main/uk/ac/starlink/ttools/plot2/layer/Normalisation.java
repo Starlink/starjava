@@ -10,50 +10,68 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
  * @since    19 Feb 2015
  */
 @Equality
-public enum Normalisation {
+public abstract class Normalisation {
+
+    private final String name_;
+    private final String description_;
 
     /** No normalisation is performed. */
-    NONE( "No normalisation is performed." ) {
-        public double getScaleFactor( double sum, double max, double binWidth,
-                                      boolean cumul ) {
-            return 1.0;
-        }
-    },
+    public static final Normalisation NONE;
 
     /** The total area of histogram bars is normalised to unity. */
-    AREA( "The total area of histogram bars is normalised to unity. "
-        + "For cumulative plots, this behaves like <code>height</code>." ) {
-        public double getScaleFactor( double sum, double max, double binWidth,
-                                      boolean cumul ) {
-            return 1.0 / ( cumul ? sum : ( sum * binWidth ) );
-        }
-    },
+    public static final Normalisation AREA;
 
     /** Height of the tallest histogram bar is normalised to unity. */
-    MAXIMUM( "The height of the tallest histogram bar is normalised to unity. "
-           + "For cumulative plots, this behaves like <code>height</code>." ) {
-        public double getScaleFactor( double sum, double max, double binWidth,
-                                      boolean cumul ) {
-            return 1.0 / ( cumul ? sum : max );
-        }
-    },
+    public static final Normalisation MAXIMUM;
 
     /** The total height of histogram bars is normalised to unity. */
-    HEIGHT( "The total height of histogram bars is normalised to unity." ) {
-        public double getScaleFactor( double sum, double max, double binWidth,
-                                      boolean cumul ) {
-            return 1.0 / sum;
-        }
-    };
+    public static final Normalisation HEIGHT;
 
-    private final String description_;
+    /** Pre-defined instances. */
+    private static final Normalisation[] KNOWN_VALUES = {
+        NONE = new Normalisation( "None", "No normalisation is performed." ) {
+            public double getScaleFactor( double sum, double max,
+                                          double binWidth, boolean cumul ) {
+                return 1.0;
+            }
+        },
+        AREA = new Normalisation( "Area",
+                                  "The total area of histogram bars "
+                                + "is normalised to unity. " 
+                                + "For cumulative plots, this behaves like "
+                                + "<code>height</code>." ) {
+            public double getScaleFactor( double sum, double max,
+                                          double binWidth, boolean cumul ) {
+                return 1.0 / ( cumul ? sum : ( sum * binWidth ) );
+            }
+        },
+        MAXIMUM = new Normalisation( "Maximum",
+                                     "The height of the tallest histogram bar "
+                                   + "is normalised to unity. "
+                                   + "For cumulative plots, this behaves like "
+                                   + "<code>height</code>." ) {
+            public double getScaleFactor( double sum, double max,
+                                          double binWidth, boolean cumul ) {
+                return 1.0 / ( cumul ? sum : max );
+            }
+        },
+        HEIGHT = new Normalisation( "Height",
+                                    "The total height of histogram bars "
+                                  + "is normalised to unity." ) {
+            public double getScaleFactor( double sum, double max,
+                                          double binWidth, boolean cumul ) {
+                return 1.0 / sum;
+            }
+        },
+    };
 
     /**
      * Constructor.
      *
      * @param   description  short description
      */
-    Normalisation( String description ) {
+    protected Normalisation( String name, String description ) {
+        name_ = name;
         description_ = description;
     }
 
@@ -86,4 +104,18 @@ public enum Normalisation {
     public abstract double getScaleFactor( double sum, double max,
                                            double binWidth,
                                            boolean isCumulative );
+
+    @Override
+    public String toString() {
+        return name_;
+    }
+
+    /**
+     * Returns the Normalisation instances defined by this class.
+     *
+     * @return  list of normalisation instances
+     */
+    public static Normalisation[] getKnownValues() {
+        return KNOWN_VALUES.clone();
+    }
 }
