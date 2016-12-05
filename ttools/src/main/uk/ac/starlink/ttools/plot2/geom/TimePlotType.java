@@ -11,8 +11,12 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FillPlotter;
+import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
+import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
@@ -66,6 +70,10 @@ public class TimePlotType implements PlotType {
         plotters.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
             new FillPlotter( false ),
+            new HistogramPlotter( TimeDataGeom.T_COORD, true ),
+            new FixedKernelDensityPlotter( TimeDataGeom.T_COORD, true ),
+            new KnnKernelDensityPlotter( TimeDataGeom.T_COORD, true ),
+            new DensogramPlotter( TimeDataGeom.T_COORD, true ),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),

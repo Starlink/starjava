@@ -8192,7 +8192,8 @@ allows you to make a 1-dimensional histogram-like plots
 It is the main control in the
 <ref id="HistogramPlotWindow">Histogram</ref> plot window,
 but is also available  in the <ref id="PlanePlotWindow">Plane</ref>
-plot window, so you can overplot a histogram on a scatter plot,
+and <ref id="TimePlotWindow">Time</ref>
+plot windows, so you can overplot a histogram on scatter or time plots,
 if you can think of some reason to do that.
 The Histogram window starts off with one of these controls in the stack by
 default, but as usual you can add more by using the
@@ -10728,7 +10729,14 @@ see the <label>Coords</label> tab of the
     <li>&FORM.marks2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
-<li>&CONTROL.histogram;</li>
+<li>&CONTROL.histogram;, with these form options:
+    <ul>
+    <li>&FORM.histogram;</li>
+    <li>&FORM.kde;</li>
+    <li>&FORM.knn;</li>
+    <li>&FORM.densogram;</li>
+    </ul>
+    </li>
 <li>&CONTROL.function;</li>
 </ul>
 </p>
@@ -11865,6 +11873,14 @@ share a time axis but have their own Y axis.
     <li>&FORM.error; (vertical bars only)</li>
     <li>&FORM.label;</li>
     <li>&FORM.fill;</li>
+    </ul>
+    </li>
+<li>&CONTROL.histogram; with these form options:
+    <ul>
+    <li>&FORM.histogram;</li>
+    <li>&FORM.kde;</li>
+    <li>&FORM.knn;</li>
+    <li>&FORM.densogram;</li>
     </ul>
     </li>
 <li>&CONTROL.spectrogram;</li>
@@ -23562,6 +23578,9 @@ introduced since the last version:
     <li>Remove spurious padding from EPS graphics output.</li>
     <li>Fix TAP window bug that prevented job status from being updated
         in Running Jobs tab.</li> 
+    <li>Add the <ref id="HistogramLayerControl">Histogram</ref> control
+        to the <ref id="TimePlotWindow">Time</ref> plot window,
+        so you can now plot histograms with a temporal horizontal axis.</li>
     </ul>
     </p></dd>
 

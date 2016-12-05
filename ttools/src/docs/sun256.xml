@@ -10926,6 +10926,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add <code>blockmaxrec</code> parameter to
         <ref id="tapskymatch">tapskymatch</ref>,
         and improve warning text in case of result truncations.</li>
+    <li>Add histogram-like layer types to the
+        <ref id="plot2time">plot2time</ref> command,
+        so you can now plot histograms with a temporal horizontal axis.</li>
     </ul>
     </p></dd>
 
