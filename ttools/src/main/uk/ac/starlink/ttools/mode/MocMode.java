@@ -109,7 +109,7 @@ public class MocMode implements ProcessingMode {
         return DocUtils.join( new String[] {
             "<p>Generates a Multi-Order Coverage map from the sky positions",
             "associated with the rows of the input table,",
-            "and writes it out to a FITS or ASCII file.",
+            "and writes it out to a FITS or JSON file.",
             "</p>",
         } );
     }
@@ -230,8 +230,8 @@ public class MocMode implements ProcessingMode {
         private final int outMode_;
         static final MocFormat FITS =
             new MocFormat( "fits", HealpixMoc.FITS );
-        static final MocFormat ASCII =
-            new MocFormat( "ascii", HealpixMoc.ASCII );
+        static final MocFormat JSON =
+            new MocFormat( "json", HealpixMoc.JSON );
 
         /**
          * Constructor.
@@ -271,7 +271,7 @@ public class MocMode implements ProcessingMode {
          * @return  instance array
          */
         public static MocFormat[] getFormats() {
-            return new MocFormat[] { FITS, ASCII };
+            return new MocFormat[] { FITS, JSON };
         }
     }
 }

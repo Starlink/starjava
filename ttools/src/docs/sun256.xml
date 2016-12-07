@@ -10930,6 +10930,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="plot2time">plot2time</ref> command,
         so you can now plot histograms with a temporal horizontal axis.</li>
     <li>MOC library upgraded to v4.6 (from v3.3).  Improved MOC output.</li>
+    <li>Options for MOC output format
+        (<code>mocfmt</code> parameter
+        in <ref id="pixfoot">pixfoot</ref> command) have changed;
+        option <code>ascii</code> is replaced by <code>json</code>.
+        The old ASCII format was slightly broken JSON in any case.</li>
     </ul>
     </p></dd>
 
