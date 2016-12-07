@@ -1,11 +1,10 @@
 package uk.ac.starlink.ttools.cone;
 
 import java.util.logging.Logger;
-import healpix.core.HealpixBase;
-import healpix.core.Pointing;
-import healpix.core.Scheme;
-import healpix.core.base.set.LongIterator;
-import healpix.core.base.set.LongRangeSet;
+import healpix.essentials.HealpixBase;
+import healpix.essentials.Pointing;
+import healpix.essentials.RangeSet;
+import healpix.essentials.Scheme;
 import uk.ac.starlink.table.join.HealpixSkyPixellator;
 
 /**
@@ -58,9 +57,9 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
             alpha += 2 * Math.PI;
         }
         Pointing pointing = new Pointing( theta, alpha );
-        LongRangeSet rset;
+        RangeSet rset;
         try {
-            rset = healpixBase_.queryDisc( pointing, radius, true );
+            rset = healpixBase_.queryDisc( pointing, radius );
         }
         catch ( Exception e ) {
             logger_.warning( "Healpix error for "
@@ -71,12 +70,12 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
             return new Long[ 0 ];
         }
         else {
-            int npix = (int) rset.size();
+            int npix = (int) rset.nval();
             Long[] pixels = new Long[ npix ];
             int ip = 0;
-            for ( LongIterator longit = rset.longIterator();
-                  longit.hasNext(); ) {
-                pixels[ ip++ ] = new Long( longit.next() );
+            for ( RangeSet.ValueIterator vit = rset.valueIterator();
+                  vit.hasNext(); ) {
+                pixels[ ip++ ] = new Long( vit.next() );
             }
             assert ip == npix;
             return pixels;
