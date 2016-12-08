@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
+import uk.ac.starlink.ttools.cone.MocFormat;
 import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.SkyCoordParameter;
@@ -81,13 +82,14 @@ public class MocMode implements ProcessingMode {
         radiusParam_.setStringDefault( "0" );
 
         mocfmtParam_ =
-            new ChoiceParameter<MocFormat>( "mocfmt", MocFormat.getFormats() );
+            new ChoiceParameter<MocFormat>( "mocfmt", MocFormat.class,
+                                            CdsMocFormat.getFormats() );
         mocfmtParam_.setPrompt( "Output format for MOC file" );
         mocfmtParam_.setDescription( new String[] {
             "<p>Determines the output format for the MOC file.",
             "</p>",
         } );
-        mocfmtParam_.setDefaultOption( MocFormat.FITS );
+        mocfmtParam_.setDefaultOption( CdsMocFormat.FITS );
 
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPreferExplicit( true );
@@ -222,16 +224,16 @@ public class MocMode implements ProcessingMode {
     }
 
     /**
-     * Output strategy for a MOC.
+     * MocFormat implementation based on the cds MOC library.
      */
-    private static class MocFormat {
+    private static class CdsMocFormat implements MocFormat {
 
         private final String name_;
         private final int outMode_;
-        static final MocFormat FITS =
-            new MocFormat( "fits", HealpixMoc.FITS );
-        static final MocFormat JSON =
-            new MocFormat( "json", HealpixMoc.JSON );
+        static final CdsMocFormat FITS =
+            new CdsMocFormat( "fits", HealpixMoc.FITS );
+        static final CdsMocFormat JSON =
+            new CdsMocFormat( "json", HealpixMoc.JSON );
 
         /**
          * Constructor.
@@ -239,7 +241,7 @@ public class MocMode implements ProcessingMode {
          * @param   format name
          * @param   output mode key known to HealpixMoc class
          */
-        private MocFormat( String name, int outMode ) {
+        private CdsMocFormat( String name, int outMode ) {
             name_ = name;
             outMode_ = outMode;
         }
@@ -270,8 +272,8 @@ public class MocMode implements ProcessingMode {
          *
          * @return  instance array
          */
-        public static MocFormat[] getFormats() {
-            return new MocFormat[] { FITS, JSON };
+        public static CdsMocFormat[] getFormats() {
+            return new CdsMocFormat[] { FITS, JSON };
         }
     }
 }
