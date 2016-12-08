@@ -6,10 +6,12 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.net.HttpURLConnection;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -192,19 +194,8 @@ public class UwsJob {
         if ( info == null ) {
             info = readInfo();
         }
-        boolean useBlocking = hasBlocking( info );
         while ( UwsStage.forPhase( info.getPhase() ) != UwsStage.FINISHED ) {
-            final UwsJobInfo info2;
-            if ( useBlocking ) {
-                logger_.info( "Blocking read of UWS job" );
-                info2 = readInfoBlocking( -1, info );
-            }
-            else {
-                logger_.info( "Poll UWS job after " + pollMillis + "ms" );
-                Thread.sleep( pollMillis );
-                info2 = readInfo();
-            }
-            info = info2;
+            info = rereadInfo( info, pollMillis );
             String phase = info.getPhase();
             switch ( UwsStage.forPhase( phase ) ) {
                 case UNSTARTED:
@@ -263,6 +254,59 @@ public class UwsJob {
                 .append( lastPhase );
         }
         return readInfoQuery( qbuf.toString() );
+    }
+
+    /**
+     * Reads the current status document for this job from the server,
+     * given the results of a previous successful such read.
+     * Certain failures will be tolerated, on the ground that if it's
+     * worked once, it's reasonable to suppose that it might do again
+     * in the future, even if it doesn't do so every time.
+     *
+     * <p>This is particularly to defend against something like a
+     * temporary network outage or server reset, which in the context
+     * of a UWS job might reasonably represent only a temporary issue.
+     * 
+     * @param  lastInfo   successfully 
+     */
+    private UwsJobInfo rereadInfo( UwsJobInfo lastInfo, long pollMillis )
+            throws IOException, InterruptedException {
+        boolean useBlocking = hasBlocking( lastInfo );
+        while ( true ) {
+            boolean hasWaited = false;
+            try {
+                if ( useBlocking ) {
+                    logger_.info( "Blocking read of UWS job" );
+                    return readInfoBlocking( -1, lastInfo );
+                }
+                else {
+                    logger_.info( "Poll UWS job after " + pollMillis + "ms" );
+                    Thread.sleep( pollMillis );
+                    hasWaited = true;
+                    return readInfo();
+                }
+            }
+
+            /* Probably I ought also to catch HTTP 500s and
+             * Retry-After-bearing HTTP 503s here (see RFC2616).
+             * Maybe some other things too. But pulling out HTTP
+             * response codes (and headers) is not so easy,
+             * so wait until somebody complains before doing it. */
+            catch ( IOException e ) {
+                if ( e instanceof SocketException ||
+                     e instanceof UnknownHostException ) {
+                    String msg = "Connection failure - keep trying"
+                               + " (" + e + ")";
+                    logger_.log( Level.WARNING, msg, e );
+                    if ( ! hasWaited ) {
+                        Thread.sleep( pollMillis );
+                    }
+                }
+                else {
+                    throw e;
+                }
+            }
+        }
     }
 
     /**

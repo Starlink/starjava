@@ -10935,6 +10935,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in <ref id="pixfoot">pixfoot</ref> command) have changed;
         option <code>ascii</code> is replaced by <code>json</code>.
         The old ASCII format was slightly broken JSON in any case.</li>
+    <li>Improve <code>tapquery</code>/<code>tapresume</code> behaviour
+        when monitoring async jobs; if the service goes down,
+        the application will wait for it to come back rather than
+        bailing out.</li>
     </ul>
     </p></dd>
 
