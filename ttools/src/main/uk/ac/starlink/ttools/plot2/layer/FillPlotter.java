@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import java.awt.Graphics;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
@@ -141,6 +139,7 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         LayerOpt layerOpt = new LayerOpt( color, false );
         return new AbstractPlotLayer( this, geom, dataSpec, style, layerOpt ) {
             final boolean isHorizontal = style.isHorizontal_;
+            final int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
             public Drawing createDrawing( final Surface surface,
                                           Map<AuxScale,Range> auxRanges,
                                           final PaperType paperType ) {
@@ -154,7 +153,8 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
                                 return plan;
                             }
                         }
-                        return createPlan( surface, dataSpec, geom, dataStore );
+                        return FillPlan.createPlan( surface, dataSpec, geom,
+                                                    icPos, dataStore );
                     }
                     public void paintData( Object plan, Paper paper,
                                            DataStore dataStore ) {
@@ -177,84 +177,6 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
     }
 
     /**
-     * Creates a plan object for these plots.
-     * The form of the plan is (surprisingly?) not dependent
-     * on the isHorizontal or isPositive flags.
-     *
-     * @param   surface  plot surface
-     * @param  dataSpec  data specification
-     * @param  geom   data geom
-     * @param  dataStore   data store
-     * @return  new plan object
-     */
-    private FillPlan createPlan( Surface surface, DataSpec dataSpec,
-                                 DataGeom geom, DataStore dataStore ) {
-        int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
-        double[] dpos = new double[ surface.getDataDimCount() ];
-        Point2D.Double gp = new Point2D.Double();
-        Rectangle bounds = surface.getPlotBounds();
-        Gridder gridder = new Gridder( bounds.width, bounds.height );
-        Binner binner = new Binner( gridder.getLength() );
-        int x0 = bounds.x;
-        int y0 = bounds.y;
-        int nx = bounds.width;
-        int ny = bounds.height;
-        int[] xlos = new int[ nx ];
-        int[] xhis = new int[ nx ];
-        int[] ylos = new int[ ny ];
-        int[] yhis = new int[ ny ];
-        Point cpXlo = null;
-        Point cpXhi = null;
-        Point cpYlo = null;
-        Point cpYhi = null;
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                 surface.dataToGraphics( dpos, false, gp ) &&
-                 PlotUtil.isPointReal( gp ) ) {
-                int x = (int) gp.x - x0;
-                int y = (int) gp.y - y0;
-                boolean inX = x >= 0 && x < nx;
-                boolean inY = y >= 0 && y < ny;
-                if ( inX && inY ) {
-                    binner.increment( gridder.getIndex( x, y ) );
-                }
-                else if ( inX ) {
-                    if ( y < 0 ) {
-                        xlos[ x ]++;
-                        if ( cpYlo == null || y > cpYlo.y ) {
-                            cpYlo = new Point( x, y );
-                        }
-                    }
-                    else {
-                        xhis[ x ]++;
-                        if ( cpYhi == null || y < cpYhi.y ) {
-                            cpYhi = new Point( x, y );
-                        }
-                    }
-                }
-                else if ( inY ) {
-                    if ( x < 0 ) {
-                        ylos[ y ]++;
-                        if ( cpXlo == null || x > cpXlo.x ) {
-                           cpXlo = new Point( x, y );
-                        }
-                    }
-                    else {
-                        yhis[ y ]++;
-                        if ( cpXhi == null || x < cpXhi.x ) {
-                            cpXhi = new Point( x, y );
-                        }
-                    }
-                }
-            }
-        }
-        return new FillPlan( binner, gridder, xlos, xhis, ylos, yhis,
-                             cpXlo, cpXhi, cpYlo, cpYhi,
-                             geom, dataSpec, surface );
-    }
-
-    /**
      * Performs the actual painting of a fill plot onto a graphics context.
      *
      * @param  surface  plot surface
@@ -268,7 +190,7 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         int nlevel = colorModel.getMapSize();
         boolean isHorizontal = style.isHorizontal_;
         boolean invert = isHorizontal ^ style.isPositive_;
-        Binner binner = plan.binner_;
+        Binner binner = plan.getBinner();
         final int[] xlos;
         final int[] xhis;
         final int[] ylos;
@@ -280,22 +202,22 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         /* Horizontal plots can be handled with mostly the same logic,
          * as long as you tranpose X and Y in the grid indexing. */
         if ( isHorizontal ) {
-            xlos = plan.ylos_;
-            xhis = plan.yhis_;
-            ylos = plan.xlos_;
-            yhis = plan.xhis_;
-            cpXlo = transposePoint( plan.cpYlo_ );
-            cpXhi = transposePoint( plan.cpYhi_ );
-            gridder = Gridder.transpose( plan.gridder_ );
+            xlos = plan.getYlos();
+            xhis = plan.getYhis();
+            ylos = plan.getXlos();
+            yhis = plan.getXhis();
+            cpXlo = transposePoint( plan.getCpYlo() );
+            cpXhi = transposePoint( plan.getCpYhi() );
+            gridder = Gridder.transpose( plan.getGridder() );
         }
         else {
-            xlos = plan.xlos_;
-            xhis = plan.xhis_;
-            ylos = plan.ylos_;
-            yhis = plan.yhis_;
-            cpXlo = plan.cpXlo_;
-            cpXhi = plan.cpXhi_;
-            gridder = plan.gridder_;
+            xlos = plan.getXlos();
+            xhis = plan.getXhis();
+            ylos = plan.getYlos();
+            yhis = plan.getYhis();
+            cpXlo = plan.getCpXlo();
+            cpXhi = plan.getCpXhi();
+            gridder = plan.getGridder();
         }
         int nx = gridder.getWidth();
         int ny = gridder.getHeight();
@@ -470,6 +392,7 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         /**
          * Constructor.
          *
+         * @param  color    colour
          * @param  isHorizontal  true for horizontal fill, false for vertical
          * @param  isPositive   true to fill to positive infinity,
          *                      false to fill to negative infinity
@@ -530,83 +453,6 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
             else {
                 return false;
             }
-        }
-    }
-
-    /**
-     * Plan object for fill plots.
-     * This is an unweighted pixel density map (2d histogram),
-     * plus some additional compact information describing the data
-     * that falls outside of the plot density map.
-     */
-    private static class FillPlan {
-        final Binner binner_;
-        final Gridder gridder_;
-        final int[] xlos_;
-        final int[] xhis_;
-        final int[] ylos_;
-        final int[] yhis_;
-        final Point cpXlo_;
-        final Point cpXhi_;
-        final Point cpYlo_;
-        final Point cpYhi_;
-        final DataGeom geom_;
-        final DataSpec dataSpec_;
-        final Surface surface_;
-
-        /**
-         * Constructor.
-         *
-         * @param  binner  contains density map pixel counts
-         * @param  gridder   encapsulates geometry for grid indexing
-         * @param  xlos    bins counting all points above each pixel column
-         * @param  xhis    bins counting all points below each pixel column
-         * @param  ylos    bins counting all points to left of each pixel row
-         * @param  yhis    bins counding all points to right of each pixel row
-         * @param  cpXlo   closest point to the lower X boundary
-         *                 that falls outside the grid
-         * @param  cpXhi   closest point to the upper X boundary
-         *                 that falls outside the grid
-         * @param  cpYlo   closest point to the lower Y boundary
-         *                 that falls outside the grid
-         * @param  cpYhi   closest point to the upper Y boundary
-         *                 that falls outside the grid
-         * @param  geom   data geom
-         * @param  dataSpec  data specification
-         * @param  surface  plot surface
-         */
-        FillPlan( Binner binner, Gridder gridder,
-                  int[] xlos, int[] xhis, int[] ylos, int[] yhis,
-                  Point cpXlo, Point cpXhi, Point cpYlo, Point cpYhi,
-                  DataGeom geom, DataSpec dataSpec, Surface surface ) {
-            binner_ = binner;
-            gridder_ = gridder;
-            xlos_ = xlos;
-            xhis_ = xhis;
-            ylos_ = ylos;
-            yhis_ = yhis;
-            cpXlo_ = cpXlo;
-            cpXhi_ = cpXhi;
-            cpYlo_ = cpYlo;
-            cpYhi_ = cpYhi;
-            geom_ = geom;
-            dataSpec_ = dataSpec;
-            surface_ = surface;
-        }
-
-        /**
-         * Indicates wether this map's data is valid for a particular context.
-         *
-         * @param  geom   data geom
-         * @param  dataSpec  data specification
-         * @param  surface  plot surface
-         * @return   true iff this map can be used for the given params
-         */
-        public boolean matches( DataGeom geom, DataSpec dataSpec,
-                                Surface surface ) {
-            return geom_.equals( geom )
-                && dataSpec_.equals( dataSpec )
-                && surface_.equals( surface );
         }
     }
 }
