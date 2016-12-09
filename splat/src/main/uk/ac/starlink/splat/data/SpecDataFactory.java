@@ -1350,9 +1350,14 @@ public class SpecDataFactory
                     throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
                             " for the URL : " + url.toString()    );
                 }
-                compressed = ("gzip".equals(connection.getContentEncoding()) ||
-                             (connection.getContentType().contains("gzip")));
-                mimetype = new MimeType(connection.getContentType());
+                String conttype=connection.getContentType();
+                if (conttype==null) { // avoids NPE
+                    conttype=""; 
+                    mimetype = new MimeType();
+                } else
+                    mimetype = new MimeType(conttype);
+
+                compressed = ("gzip".equals(connection.getContentEncoding()) || conttype.contains("gzip"));
                 remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
             }
             connection.setConnectTimeout(10*1000); // 10 seconds
