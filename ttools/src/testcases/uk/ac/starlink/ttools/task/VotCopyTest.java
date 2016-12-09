@@ -62,7 +62,7 @@ public class VotCopyTest extends TableTestCase {
         env.setValue( "out", file.toString() )
            .setValue( "href", "false" );
         new VotCopy().createExecutable( env ).execute();
-        return file.toURL();
+        return file.toURI().toURL();
     }
 
     private VOElement readDOM( Map map ) throws Exception {
