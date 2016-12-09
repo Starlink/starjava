@@ -42,6 +42,22 @@ public class MocMode implements ProcessingMode {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.mode" );
 
+    /** MocFormat implementation that writes MOC 1.0-compliant FITS files. */
+    public static final MocFormat FITS_FORMAT = new CdsMocFormat( "fits" ) {
+        protected void doWrite( HealpixMoc moc, OutputStream out )
+                throws Exception {
+            moc.writeFits( out );
+        }
+    };
+
+    /** MocFormat implementation that writes JSON files. */
+    public static final MocFormat JSON_FORMAT = new CdsMocFormat( "json" ) {
+        protected void doWrite( HealpixMoc moc, OutputStream out )
+                throws Exception {
+            moc.writeJSON( out );
+        }
+    };
+
     /**
      * Constructor.
      */
@@ -83,13 +99,15 @@ public class MocMode implements ProcessingMode {
 
         mocfmtParam_ =
             new ChoiceParameter<MocFormat>( "mocfmt", MocFormat.class,
-                                            CdsMocFormat.getFormats() );
+                                            new MocFormat[] {
+                                                FITS_FORMAT, JSON_FORMAT,
+                                            } );
         mocfmtParam_.setPrompt( "Output format for MOC file" );
         mocfmtParam_.setDescription( new String[] {
             "<p>Determines the output format for the MOC file.",
             "</p>",
         } );
-        mocfmtParam_.setDefaultOption( CdsMocFormat.FITS );
+        mocfmtParam_.setDefaultOption( FITS_FORMAT );
 
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPreferExplicit( true );
@@ -224,38 +242,36 @@ public class MocMode implements ProcessingMode {
     }
 
     /**
-     * MocFormat implementation based on the cds MOC library.
+     * Partial MocFormat implementation.
      */
-    private static class CdsMocFormat implements MocFormat {
+    private static abstract class CdsMocFormat implements MocFormat {
 
         private final String name_;
-        private final int outMode_;
-        static final CdsMocFormat FITS =
-            new CdsMocFormat( "fits", HealpixMoc.FITS );
-        static final CdsMocFormat JSON =
-            new CdsMocFormat( "json", HealpixMoc.JSON );
 
         /**
          * Constructor.
          *
          * @param   format name
-         * @param   output mode key known to HealpixMoc class
          */
-        private CdsMocFormat( String name, int outMode ) {
+        CdsMocFormat( String name ) {
             name_ = name;
-            outMode_ = outMode;
         }
 
         /**
-         * Outputs a given MOC to a given stream.
+         * Does the write.
+         * This method throws Exception, which is what the corresponding
+         * CDS MOC library write methods do.
          *
          * @param  moc  MOC
          * @param  out  destination stream
          */
+        protected abstract void doWrite( HealpixMoc moc, OutputStream out )
+                throws Exception;
+
         public void writeMoc( HealpixMoc moc, OutputStream out )
                 throws IOException {
             try {
-                moc.write( out, outMode_ );
+                doWrite( moc, out );
             }
             catch ( Exception e ) {
                 throw (IOException) new IOException( "MOC write error" )
@@ -263,17 +279,9 @@ public class MocMode implements ProcessingMode {
             }
         }
 
+        @Override
         public String toString() {
             return name_;
-        }
-
-        /**
-         * Returns all known instances.
-         *
-         * @return  instance array
-         */
-        public static CdsMocFormat[] getFormats() {
-            return new CdsMocFormat[] { FITS, JSON };
         }
     }
 }

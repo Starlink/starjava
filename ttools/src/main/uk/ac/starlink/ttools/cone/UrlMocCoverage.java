@@ -160,6 +160,12 @@ public class UrlMocCoverage extends MocCoverage {
         }
         InputStream in = new BufferedInputStream( conn.getInputStream() );
         try {
+
+            // This constructor was OK at MOC v3.3, and deprecated at v4.6
+            // (in favour of a format-agnostic constructor).
+            // However, Pierre says (at my suggestion) he's going to
+            // undeprecate it again in a future release.
+            @SuppressWarnings("deprecation")
             HealpixMoc moc = new HealpixMoc( in, HealpixMoc.FITS );
             if ( logger_.isLoggable( Level.INFO ) ) {
                 logger_.info( "Got MOC footprint: " + summariseMoc( moc ) );

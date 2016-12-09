@@ -68,7 +68,7 @@ public abstract class MocCoverage implements Coverage {
         int mocOrder = moc_.getMaxOrder();
         try {
             long centerPixel = hpi_.ang2pix( mocOrder, alphaDeg, deltaDeg );
-            if ( moc_.isInTree( mocOrder, centerPixel ) ) {
+            if ( moc_.isIntersecting( mocOrder, centerPixel ) ) {
                 return true;
             }
             if ( radiusDeg == 0 ) {
@@ -82,7 +82,7 @@ public abstract class MocCoverage implements Coverage {
             long[] discPixels =
                 hpi_.queryDisc( discOrder, alphaDeg, deltaDeg, radiusDeg );
             for ( int i = 0; i < discPixels.length; i++ ) {
-                if ( moc_.isInTree( discOrder, discPixels[ i ] ) ) {
+                if ( moc_.isIntersecting( discOrder, discPixels[ i ] ) ) {
                     return true;
                 }
             }
