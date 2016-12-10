@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.TracePlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -70,6 +71,7 @@ public class TimePlotType implements PlotType {
         plotters.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
             new FillPlotter( false ),
+            new TracePlotter( false ),
             new HistogramPlotter( TimeDataGeom.T_COORD, true ),
             new FixedKernelDensityPlotter( TimeDataGeom.T_COORD, true ),
             new KnnKernelDensityPlotter( TimeDataGeom.T_COORD, true ),

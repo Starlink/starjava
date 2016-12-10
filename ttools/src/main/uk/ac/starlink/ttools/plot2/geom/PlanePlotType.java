@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
+import uk.ac.starlink.ttools.plot2.layer.TracePlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -96,6 +97,7 @@ public class PlanePlotType implements PlotType {
             new ContourPlotter(),
             new DensityPlotter( true, true ),
             new FillPlotter( true ),
+            new TracePlotter( true ),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
             new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
             new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
