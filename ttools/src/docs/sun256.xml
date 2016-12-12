@@ -10939,6 +10939,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         when monitoring async jobs; if the service goes down,
         the application will wait for it to come back rather than
         bailing out.</li>
+    <li>Plot commands <code>insets</code> parameter now lets you specify
+        margins round plots using any combination of
+        <code>&lt;top&gt;,&lt;left&gt;,&lt;bottom&gt;,&lt;right&gt;</code>,
+        rather than requiring all values or none.
+        Also fix related regression bugs present since v3.0-6.</li>
     </ul>
     </p></dd>
 

@@ -69,6 +69,7 @@ import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.Navigator;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -77,7 +78,6 @@ import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -138,7 +138,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ToggleButtonModel sketchModel_;
     private final ToggleButtonModel axisLockModel_;
     private final ToggleButtonModel auxLockModel_;
-    private final Ganger<P,A> dfltGanger_;
     private final ZoneId dfltZone_;
     private boolean hasShader_;
     private static final Level REPORT_LEVEL = Level.INFO;
@@ -162,7 +161,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         zoneFact_ = plotTypeGui_.createZoneFactory();
         canSelectPoints_ = plotTypeGui.hasPositions();
         dfltZone_ = zoneFact_.getDefaultZone();
-        dfltGanger_ = new SingleGanger<P,A>();
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
@@ -595,14 +593,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Returns the ganger that controls how multi-zone plots are configured.
-     * The default implementation returns a SingleGanger, but it may be
-     * overridden.  The returned value may change at any time.
+     * Returns the ganger that controls how multi-zone plots are laid out.
      *
-     * @return  ganger
+     * @return  currently specified ganger
      */
-    public Ganger<P,A> getGanger() {
-        return dfltGanger_;
+    private Ganger<P,A> getGanger() {
+        Padding padding = frameControl_.getPlotPosition().getPadding();
+        return (Ganger<P,A>)
+               plotTypeGui_.getGangerFactory().createGanger( padding );
     }
 
     /**

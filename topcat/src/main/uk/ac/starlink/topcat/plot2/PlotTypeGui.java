@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
+import uk.ac.starlink.ttools.plot2.GangerFactory;
+
 /**
  * Provides PlotType-specific aspects of the GUI, used by the 
  * generic PlotWindow GUI.
@@ -32,6 +34,14 @@ public interface PlotTypeGui<P,A> {
      * @return  false iff this plot type never supports selectable points
      */
     boolean hasPositions();
+
+    /**
+     * Returns the GangerFactory used by this plot.
+     * It controls how multi-zone plots are arranged.
+     *
+     * @return   ganger factory
+     */
+    GangerFactory getGangerFactory();
 
     /**
      * Returns a new zone ID factory for use with this plot.

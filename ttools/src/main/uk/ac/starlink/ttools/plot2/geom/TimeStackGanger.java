@@ -1,8 +1,11 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
+import uk.ac.starlink.ttools.plot2.Padding;
+
 /**
  * Ganger that stacks time plots vertically with a shared time axis.
- * This class is a singleton, see {@link #getInstance}.
  *
  * @author   Mark Taylor
  * @since    3 Feb 2016
@@ -10,14 +13,26 @@ package uk.ac.starlink.ttools.plot2.geom;
 public class TimeStackGanger
         extends StackGanger<TimeSurfaceFactory.Profile,TimeAspect> {
 
-    private static final TimeStackGanger INSTANCE = new TimeStackGanger();
     private static final boolean UP = false;
 
+    /** GangerFactory instance that returns TimeStackGangers. */
+    public static final GangerFactory FACTORY = new GangerFactory() {
+        public boolean isMultiZone() {
+            return true;
+        }
+        public Ganger createGanger( Padding padding ) {
+            return new TimeStackGanger( padding );
+        }
+    };
+
     /**
-     * Private constructor prevents public instantiation of singleton class.
+     * Constructor.
+     *
+     * @param  padding  defines user preferences, if any, for space
+     *                  reserved outside each plot zone
      */
-    private TimeStackGanger() {
-        super( UP );
+    public TimeStackGanger( Padding padding ) {
+        super( UP, padding );
     }
 
     public double[] getXLimits( TimeAspect aspect ) {
@@ -43,14 +58,5 @@ public class TimeStackGanger
             }
         }   
         return profiles;
-    }
-
-    /**
-     * Returns the sole instance of this class.
-     *
-     * @return   instance
-     */
-    public static TimeStackGanger getInstance() {
-        return INSTANCE;
     }
 }

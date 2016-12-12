@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2.task;
 
 import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
@@ -27,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.Gang;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -74,7 +74,6 @@ public class PlotDisplay<P,A> extends JComponent {
     private final Executor clickExecutor_;
     private final Zone<P,A>[] zones_;
     private Gang gang_;
-    private Insets dataInsets_;
     private Decoration navDecoration_;
 
     /**
@@ -240,6 +239,7 @@ public class PlotDisplay<P,A> extends JComponent {
      *                    or null for a non-interactive plot
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
+     * @param  padding   user requirements for external space
      * @param  dataStore   data storage object
      * @param surfaceAuxRanging  determines whether aux ranges are recalculated
      *                           when the surface changes
@@ -252,9 +252,9 @@ public class PlotDisplay<P,A> extends JComponent {
                         A aspect, ShadeAxisFactory shadeFact,
                         Range shadeFixRange, Navigator<A> navigator,
                         PaperTypeSelector ptSel, Compositor compositor,
-                        DataStore dataStore, boolean surfaceAuxRanging,
-                        boolean caching ) {
-        this( new SingleGanger<P,A>(), surfFact, 1,
+                        Padding padding, DataStore dataStore,
+                        boolean surfaceAuxRanging, boolean caching ) {
+        this( new SingleGanger<P,A>( padding ), surfFact, 1,
               new ZoneContent[] {
                   new ZoneContent( layers, legend, legPos, title )
               },
@@ -312,34 +312,24 @@ public class PlotDisplay<P,A> extends JComponent {
         Rectangle extBox =
             PlotUtil.subtractInsets( new Rectangle( getSize() ), getInsets() );
 
-        /* Get the data bounds for each plot if we can. */
-        Gang gang = null;
-        if ( dataInsets_ != null && nz_ == 1 ) {
-            Rectangle box0 = PlotUtil.subtractInsets( extBox, dataInsets_ );
-            gang = ganger_.createGang( new Rectangle[] { box0 } );
-        }
-        else {
-
-            /* If the surface icon member is non-null, that counts as a flag
-             * indicating that plot is up to date; it's the responsibility
-             * of the rest of this class to set that member null if the
-             * surface may no longer be correct. */
-            Rectangle[] dataBoxes = new Rectangle[ nz_ ];
-            boolean gotSurfs = true;
-            for ( int iz = 0; iz < nz_ && gotSurfs; iz++ ) {
-                Surface surf = zones_[ iz ].surface_;
-                if ( surf != null ) {
-                    dataBoxes[ iz ] = surf.getPlotBounds();
-                }
-                else {
-                    zones_[ iz ].icon_ = null;
-                    gotSurfs = false;
-                }
+        /* Get the data bounds for each plot if we can. 
+         * If the surface icon member is non-null, that counts as a flag
+         * indicating that plot is up to date; it's the responsibility
+         * of the rest of this class to set that member null if the
+         * surface may no longer be correct. */
+        Rectangle[] dataBoxes = new Rectangle[ nz_ ];
+        boolean gotSurfs = true;
+        for ( int iz = 0; iz < nz_ && gotSurfs; iz++ ) {
+            Surface surf = zones_[ iz ].surface_;
+            if ( surf != null ) {
+                dataBoxes[ iz ] = surf.getPlotBounds();
             }
-            if ( gotSurfs ) {
-                gang = ganger_.createGang( dataBoxes );
+            else {
+                zones_[ iz ].icon_ = null;
+                gotSurfs = false;
             }
         }
+        Gang gang = gotSurfs ? ganger_.createGang( dataBoxes ) : null;
 
         /* Acquire nominal plot bounds that are good enough for working
          * out aux data ranges. */
@@ -501,21 +491,6 @@ public class PlotDisplay<P,A> extends JComponent {
     }
 
     /**
-     * Sets the geometry of the region between the external bound
-     * of this component (excluding component borders) and the data region
-     * of the plots.  This insets region is where external axis labels, legend,
-     * and other plot decorations are drawn.  If null (the default),
-     * the extent of the region is worked out automatically and dynamically
-     * on the basis of what labels need to be drawn etc.
-     *
-     * @param  dataInsets  geometry of the region outside the actual data plot
-     */
-    public void setDataInsets( Insets dataInsets ) {
-        dataInsets_ = dataInsets;
-        clearPlot();
-    }
-
-    /**
      * Returns the index of the zone in whose data bounds a given point lies.
      *
      * @param   pos   graphics position
@@ -656,6 +631,7 @@ public class PlotDisplay<P,A> extends JComponent {
      *                        or null for auto-range where required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
+     * @param  padding   user requirements for external space
      * @param  dataStore   data storage object
      * @param surfaceAuxRanging  determines whether aux ranges are
      *                           recalculated when the surface changes
@@ -671,8 +647,8 @@ public class PlotDisplay<P,A> extends JComponent {
                                SurfaceFactory<P,A> surfFact, ConfigMap config,
                                Icon legend, float[] legPos, String title,
                                ShadeAxisFactory shadeFact,
-                               Range shadeFixRange,
-                               PaperTypeSelector ptSel, Compositor compositor,
+                               Range shadeFixRange, PaperTypeSelector ptSel,
+                               Compositor compositor, Padding padding,
                                DataStore dataStore, boolean surfaceAuxRanging,
                                boolean navigable, boolean caching ) {
 
@@ -694,7 +670,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                            : null;
 
         /* Prepare gang configuration; the gang has only a single member. */
-        Ganger<P,A> ganger = new SingleGanger<P,A>();
+        Ganger<P,A> ganger = new SingleGanger<P,A>( padding );
         ZoneContent[] contents = new ZoneContent[] {
             new ZoneContent( layers, legend, legPos, title ),
         };

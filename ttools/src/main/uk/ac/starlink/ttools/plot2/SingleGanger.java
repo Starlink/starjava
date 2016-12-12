@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
@@ -11,6 +12,35 @@ import java.util.Arrays;
  * @since    25 Jan 2016
  */
 public class SingleGanger<P,A> implements Ganger<P,A> {
+
+    private final Padding padding_;
+
+    /** GangerFactory instance that returns SingleGangers. */
+    public static final GangerFactory FACTORY = new GangerFactory() {
+        public boolean isMultiZone() {
+            return false;
+        }
+        public Ganger createGanger( Padding padding ) {
+            return new SingleGanger( padding );
+        }
+    };
+
+    /**
+     * Constructs a ganger with no specified padding.
+     */
+    public SingleGanger() {
+        this( null );
+    }
+
+    /**
+     * Constructs a ganger with specified padding.
+     *
+     * @param  padding   defines user preferences, if any, for space
+     *                   reserved for annotations
+     */
+    public SingleGanger( Padding padding ) {
+        padding_ = padding == null ? new Padding() : padding;
+    }
 
     public Gang createGang( Rectangle[] zonePlotBounds ) {
         if ( zonePlotBounds.length == 1 ) {
@@ -32,7 +62,7 @@ public class SingleGanger<P,A> implements Ganger<P,A> {
         ZoneContent content = contents[ 0 ];
         Rectangle plotBounds =
             PlotPlacement
-           .calculateDataBounds( extBounds, surfFact,
+           .calculateDataBounds( extBounds, padding_, surfFact,
                                  profiles[ 0 ], aspects[ 0 ], withScroll,
                                  content.getLegend(),
                                  content.getLegendPosition(),
@@ -42,7 +72,9 @@ public class SingleGanger<P,A> implements Ganger<P,A> {
 
     public Gang createApproxGang( Rectangle extBounds, int nz ) {
         if ( nz == 1 ) {
-            return new SingleGang( extBounds );
+            Insets insets = padding_.overrideInsets( new Insets( 0, 0, 0, 0 ) );
+            Rectangle plotBounds = PlotUtil.subtractInsets( extBounds, insets );
+            return new SingleGang( plotBounds );
         }
         else {
             throw new IllegalArgumentException( "Not single zone" );

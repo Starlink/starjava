@@ -4,9 +4,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Input;
-import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.geom.TimeStackGanger;
@@ -21,8 +22,6 @@ import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
 public class TimePlot2Task extends TypedPlot2Task {
 
     private static final TimePlotType PLOTTYPE = TimePlotType.getInstance();
-    private static final Ganger<TimeSurfaceFactory.Profile,TimeAspect> GANGER =
-        TimeStackGanger.getInstance();
     private static final Map<ConfigKey<String>,Input> AXLABEL_MAP =
         createAxisLabelMap();
 
@@ -31,7 +30,7 @@ public class TimePlot2Task extends TypedPlot2Task {
      */
     public TimePlot2Task() {
         super( PLOTTYPE, AXLABEL_MAP,
-               createDefaultPlotContext( PLOTTYPE, GANGER ) );
+               createDefaultPlotContext( PLOTTYPE, TimeStackGanger.FACTORY ) );
     }
 
     /**

@@ -553,8 +553,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /* Acquire per-panel state. */
         PlotPosition plotpos = posFact_.getItem();
-        Rectangle bounds = getOuterBounds( plotpos.getPlotSize() );
-        Insets insets = plotpos.getPlotInsets();
+        Rectangle bounds = getOuterBounds( plotpos );
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
         Ganger<P,A> ganger = gangerFact_.getItem();
@@ -634,7 +633,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /* Construct and return a plot job that defines what has to be done. */
         return new PlotJob<P,A>( workings_, surfFact_, ganger, zones,
-                                 storeFact_, bounds, insets, graphicsConfig,
+                                 storeFact_, bounds, graphicsConfig,
                                  bgColor, auxLock );
     }
 
@@ -665,8 +664,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         /* Draw a border around the outside of the plot zones.
          * This will normally be invisible, since the plot gang is sized
          * to fit this component.  However, if the size has been set
-         * explicitly (by supplying a PlotPosition object), it's useful
-         * to be able to see where the outline is. */
+         * explicitly it's useful to be able to see where the outline is. */
         if ( extBox != null && workings_.dataStore_ != null ) {
             Color color0 = g.getColor();
             g.setColor( Color.GRAY );
@@ -686,24 +684,20 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * Returns the bounds to use for the plot icon.
      * This includes axis decorations etc, but excludes component insets.
      *
-     * @param  sizeSetting  explicit settings for icon size, or null;
-     *                      negative members are ignored
+     * @param  plotPos   plot position including explicit settings
+     *                   for external dimensions (padding not used here)
      * @return   plot drawing bounds
      */
-    private Rectangle getOuterBounds( Dimension sizeSetting ) {
+    private Rectangle getOuterBounds( PlotPosition plotpos ) {
+        Integer xpix = plotpos.getWidth();
+        Integer ypix = plotpos.getHeight();
         Insets insets = getInsets();
         int x = insets.left;
         int y = insets.top;
-        int width = getWidth() - insets.left - insets.right;
-        int height = getHeight() - insets.top - insets.bottom;
-        if ( sizeSetting != null ) {
-            if ( sizeSetting.width > 0 ) {
-                width = sizeSetting.width;
-            }
-            if ( sizeSetting.height > 0 ) {
-                height = sizeSetting.height;
-            }
-        }
+        int width = xpix == null ? getWidth() - insets.left - insets.right
+                                 : xpix.intValue();
+        int height = ypix == null ? getHeight() - insets.top - insets.bottom
+                                  : ypix.intValue();
         return new Rectangle( x, y, width, height );
     }
 
@@ -747,12 +741,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  icon
      */
     public Icon createExportIcon( final boolean forceBitmap ) {
-        Insets insets = getInsets();
-        Dimension size = getSize();
-        final int xpix = size.width - insets.left - insets.right;
-        final int ypix = size.height - insets.top - insets.bottom;
-        return new ExportIcon( xpix, ypix, workings_, forceBitmap,
-                               ptSel_, compositor_ );
+        return new ExportIcon( workings_, forceBitmap, ptSel_, compositor_ );
     }
 
     /**
@@ -895,6 +884,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     private static <P,A> Workings<A>
             createDummyWorkings( SurfaceFactory<P,A> surfFact ) {
+        final Rectangle bounds = new Rectangle( 400, 300 );
         Gang gang = new Gang() {
             public int getNavigationZoneIndex( Point p ) {
                 return -1;
@@ -903,13 +893,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 return 1;
             }
             public Rectangle getZonePlotBounds( int iz ) {
-                return new Rectangle( 400, 300 );
+                return bounds;
             }
         };
         Workings.ZoneWork[] zones = new Workings.ZoneWork[] {
             createDummyZoneWork( surfFact ),
         };
-        return new Workings<A>( gang, zones, (DataStore) null, 1, 0L );
+        return new Workings<A>( gang, zones, bounds, (DataStore) null, 1, 0L );
     }
 
     /**
@@ -923,6 +913,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private static class Workings<A> {
         final Gang gang_;
         final ZoneWork<A>[] zones_;
+        final Rectangle extBounds_;
         final DataStore dataStore_;
         final int rowStep_;
         final long plotMillis_;
@@ -932,15 +923,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *
          * @param  gang   plot surface gang
          * @param  zones   per-zone working objects
+         * @param  extBounds   external bounds
          * @param  dataStore  data storage object
          * @param  rowStep   row stride used for subsample in actual plots
          * @param  plotMillis  wall-clock time in milliseconds taken for the
          *                     plot (plans+paint), but not data acquisition
          */
-        Workings( Gang gang, ZoneWork<A>[] zones, DataStore dataStore,
-                  int rowStep, long plotMillis ) {
+        Workings( Gang gang, ZoneWork<A>[] zones, Rectangle extBounds,
+                  DataStore dataStore, int rowStep, long plotMillis ) {
             gang_ = gang;
             zones_ = zones;
+            extBounds_ = extBounds;
             dataStore_ = dataStore;
             rowStep_ = rowStep;
             plotMillis_ = plotMillis;
@@ -1059,7 +1052,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private final Zone<P,A>[] zones_;
         private final DataStoreFactory storeFact_;
         private final Rectangle extBounds_;
-        private final Insets insets_;
         private final GraphicsConfiguration graphicsConfig_;
         private final Color bgColor_;
         private final boolean auxLock_;
@@ -1075,10 +1067,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param   zones    per-zone plot information
          * @param   storeFact  data store factory implementation
          * @param   extBounds   external bounds for entire plot display
-         * @param   insets   fixed space reserved for annotations between
-         *                   the plot data bounds and external bounds;
-         *                   may be null or incomplete
-         *                   (negative members are ignored)
          * @param   graphicsConfig  graphics configuration
          * @param   bgColor   background colour
          * @param   auxLock  true if the aux ranges are to be held over
@@ -1087,7 +1075,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          */
         PlotJob( Workings<A> oldWorkings, SurfaceFactory<P,A> surfFact,
                  Ganger<P,A> ganger, Zone<P,A>[] zones,
-                 DataStoreFactory storeFact, Rectangle extBounds, Insets insets,
+                 DataStoreFactory storeFact, Rectangle extBounds,
                  GraphicsConfiguration graphicsConfig, Color bgColor,
                  boolean auxLock ) {
             oldWorkings_ = oldWorkings;
@@ -1096,7 +1084,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             zones_ = zones;
             storeFact_ = storeFact;
             extBounds_ = extBounds;
-            insets_ = insets;
             graphicsConfig_ = graphicsConfig;
             bgColor_ = bgColor;
             auxLock_ = auxLock;
@@ -1344,17 +1331,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             }
 
             /* Work out gang geometry if we can (probably not). */
-            Gang gang;
-            if ( isFixedInsets( insets_ ) && nz == 1 ) {
-                Rectangle box0 = PlotUtil.subtractInsets( extBounds_, insets_ );
-                gang = ganger_.createGang( new Rectangle[] { box0 } );
-            }
-            else if ( ! usesShadeAxes() ) {
-                gang = createGang( aspects, new ShadeAxis[ nz ] );
-            }
-            else {
-                gang = null;
-            }
+            Gang gang = usesShadeAxes()
+                      ? null
+                      : createGang( aspects, new ShadeAxis[ nz ] );
 
             /* In any case, work out an approximate gang geometry we can
              * use for ranging.  Since we don't have shade axes yet,
@@ -1629,8 +1608,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * for all zones, unless it's exactly the same as last time,
              * in which case return null to indicate that no replotting
              * needs to be done.. */
-            return changed ? new Workings<A>( gang, zoneWorks, dataStore0,
-                                              rowStep, plotMillis )
+            return changed ? new Workings<A>( gang, zoneWorks, extBounds_,
+                                              dataStore0, rowStep, plotMillis )
                            : null;
         }
 
@@ -1688,26 +1667,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             }
 
             /* Then try to work out the gang. */
-            final Gang gang;
-            if ( isFixedInsets( insets_ ) && nz == 1 ) {
-                Rectangle box0 = PlotUtil.subtractInsets( extBounds_, insets_ );
-                gang = ganger_.createGang( new Rectangle[] { box0 } );
-            }
-            else if ( hasAllAspects && ! usesShadeAxes() ) {
-                gang = createGang( aspects, new ShadeAxis[ nz ] );
-            }
-            else if ( nz == 1 ) {
-                /* We could sort of do it in this case, since you can work out
-                 * the aux range, then the data bounds
-                 * (for nz>1 you can't, since you need all the aux ranges
-                 * to calculate the data bounds, and all the data bounds
-                 * to calculate the aux ranges).  But the Ganger interface
-                 * doesn't know that, so we can't. */
-                gang = null;
-            }
-            else {
-                gang = null;
-            }
+            final Gang gang = hasAllAspects && ! usesShadeAxes()
+                            ? createGang( aspects, new ShadeAxis[ nz ] )
+                            : null;
 
             /* If we have got the gang, we can calculate the surfaces.
              * Otherwise, return an array with all null elements. */
@@ -2205,8 +2167,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     private static class ExportIcon implements Icon {
 
-        private final int xpix_;
-        private final int ypix_;
         private final Workings workings_;
         private final boolean forceBitmap_;
         private final PaperTypeSelector ptSel_;
@@ -2215,19 +2175,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         /** 
          * Constructor.
          *
-         * @param  xpix   external width of icon
-         * @param  ypix   external height of icon
          * @param  workings  contains plot state
          * @param  forceBitmap   true to force bitmap output of vector graphics,
          *                       false to use default behaviour
          * @param  ptSel   rendering policy
          * @param  compositor  compositor for composition of transparent pixels
          */
-        public ExportIcon( int xpix, int ypix, Workings workings,
-                           boolean forceBitmap, PaperTypeSelector ptSel,
-                           Compositor compositor ) {
-            xpix_ = xpix;
-            ypix_ = ypix;
+        public ExportIcon( Workings workings, boolean forceBitmap,
+                           PaperTypeSelector ptSel, Compositor compositor ) {
             workings_ = workings;
             forceBitmap_ = forceBitmap;
             ptSel_ = ptSel;
@@ -2235,11 +2190,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         }
 
         public int getIconWidth() {
-            return xpix_;
+            return workings_.extBounds_.width;
         }
 
         public int getIconHeight() {
-            return ypix_;
+            return workings_.extBounds_.height;
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {

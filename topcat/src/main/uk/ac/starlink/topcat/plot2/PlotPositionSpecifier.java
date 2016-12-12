@@ -1,7 +1,5 @@
 package uk.ac.starlink.topcat.plot2;
 
-import java.awt.Dimension;
-import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Box;
@@ -9,6 +7,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -59,40 +58,23 @@ public class PlotPositionSpecifier extends SpecifierPanel<PlotPosition> {
 
     public PlotPosition getSpecifiedValue() {
         ConfigMap config = configSpecifier_.getSpecifiedValue();
-        Integer xpix = config.get( XPIX_KEY );
-        Integer ypix = config.get( YPIX_KEY );
-        Dimension size = xpix == null && ypix == null
-                       ? null
-                       : new Dimension( xpix == null ? -1 : xpix.intValue(),
-                                        ypix == null ? -1 : ypix.intValue() );
-        Integer top = config.get( TOP_KEY );
-        Integer left = config.get( LEFT_KEY );
-        Integer bottom = config.get( BOTTOM_KEY );
-        Integer right = config.get( RIGHT_KEY );
-        Insets insets =
-              top == null && left == null && bottom == null && right == null
-            ? null
-            : new Insets( top == null ? -1 : top.intValue(),
-                          left == null ? -1 : left.intValue(),
-                          bottom == null ? -1 : bottom.intValue(),
-                          right == null ? -1 : right.intValue() );
-        return new PlotPosition( size, insets );
+        return new PlotPosition( config.get( XPIX_KEY ),
+                                 config.get( YPIX_KEY ),
+                                 new Padding( config.get( TOP_KEY ),
+                                              config.get( LEFT_KEY ),
+                                              config.get( BOTTOM_KEY ),
+                                              config.get( RIGHT_KEY ) ) );
     }
 
     public void setSpecifiedValue( PlotPosition plotpos ) {
+        Padding padding = plotpos.getPadding();
         ConfigMap config = new ConfigMap();
-        Dimension size = plotpos.getPlotSize();
-        if ( size != null ) {
-            config.put( XPIX_KEY, size.width );
-            config.put( YPIX_KEY, size.height );
-        }
-        Insets insets = plotpos.getPlotInsets();
-        if ( insets != null ) {
-            config.put( TOP_KEY, insets.top );
-            config.put( LEFT_KEY, insets.left );
-            config.put( BOTTOM_KEY, insets.bottom );
-            config.put( RIGHT_KEY, insets.right );
-        }
+        config.put( XPIX_KEY, plotpos.getWidth() );
+        config.put( YPIX_KEY, plotpos.getHeight() );
+        config.put( TOP_KEY, padding.getTop() );
+        config.put( LEFT_KEY, padding.getLeft() );
+        config.put( BOTTOM_KEY, padding.getBottom() );
+        config.put( RIGHT_KEY, padding.getRight() );
         configSpecifier_.setSpecifiedValue( config );
     }
 

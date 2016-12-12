@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.io.IOException;
@@ -59,10 +58,12 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gang;
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.Navigator;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -117,10 +118,10 @@ import uk.ac.starlink.ttools.task.TableProducer;
 public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
     private final boolean allowAnimate_;
-    private final Ganger ganger_;
+    private final GangerFactory gangerFact_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
-    private final InsetsParameter insetsParam_;
+    private final PaddingParameter paddingParam_;
     private final PaintModeParameter painterParam_;
     private final DataStoreParameter dstoreParam_;
     private final StringMultiParameter seqParam_;
@@ -151,15 +152,15 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * Constructor with explicit animation capability.
      *
      * @param  allowAnimate  true iff animation options should be provided
-     * @param  ganger  controls how plots can be grouped,
-     *                 or null for single-zone plots
+     * @param  gangerFact    controls how plots can be grouped
      */
-    protected AbstractPlot2Task( boolean allowAnimate, Ganger ganger ) {
+    protected AbstractPlot2Task( boolean allowAnimate,
+                                 GangerFactory gangerFact ) {
         allowAnimate_ = allowAnimate;
-        ganger_ = ganger;
+        gangerFact_ = gangerFact;
         List<Parameter> plist = new ArrayList<Parameter>();
 
-        insetsParam_ = new InsetsParameter( "insets" );
+        paddingParam_ = new PaddingParameter( "insets" );
 
         xpixParam_ = new IntegerParameter( "xpix" );
         xpixParam_.setPrompt( "Total horizontal size in pixels" );
@@ -167,7 +168,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "<p>Size of the output image in the X direction in pixels.",
             "This includes space for any axis labels, padding",
             "and other decoration outside the plot area itself.",
-            "See also <code>" + insetsParam_.getName() + "</code>.",
+            "See also <code>" + paddingParam_.getName() + "</code>.",
             "</p>",
         } );
         xpixParam_.setIntDefault( 500 );
@@ -180,15 +181,15 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "<p>Size of the output image in the Y direction in pixels.",
             "This includes space for any axis labels, padding",
             "and other decoration outside the plot area itself.",
-            "See also <code>" + insetsParam_.getName() + "</code>.",
+            "See also <code>" + paddingParam_.getName() + "</code>.",
             "</p>",
         } );
         ypixParam_.setIntDefault( 400 );
         ypixParam_.setMinimum( 1 );
         plist.add( ypixParam_ );
 
-        insetsParam_.setPrompt( "Space outside plotting area" );
-        insetsParam_.setDescription( new String[] {
+        paddingParam_.setPrompt( "Space outside plotting area" );
+        paddingParam_.setDescription( new String[] {
             "<p>Defines the amount of space in pixels around the",
             "actual plotting area.",
             "This space is used for axis labels, and other decorations",
@@ -198,12 +199,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "is determined by this parameter along with", 
             "<code>" + xpixParam_ + "</code> and",
             "<code>" + ypixParam_ + "</code>.",
-            "If no value is set (the default), the insets will be determined",
-            "automatically according to how much space is required for",
-            "labels etc.",
+            "</p>",
+            "<p>The value of this parameter is 4 comma separated integers:",
+            "<code>&lt;top&gt;,&lt;left&gt;,&lt;bottom&gt;,&lt;right&gt;"
+                + "</code>.",
+            "Any or all of these values may be left blank,",
+            "in which case the corresponding margin will be calculated",
+            "automatically according to how much space is required.",
             "</p>",
         } );
-        plist.add( insetsParam_ );
+        plist.add( paddingParam_ );
 
         painterParam_ = createPaintModeParameter();
         plist.add( painterParam_ );
@@ -416,11 +421,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     /**
      * Constructor with default animation capability.
      *
-     * @param  ganger  controls how plots can be grouped;
-     *                 or null for single-zone plots
+     * @param  gangerFact    controls how plots can be grouped
      */
-    protected AbstractPlot2Task( Ganger ganger ) {
-        this( true, ganger );
+    protected AbstractPlot2Task( GangerFactory gangerFact ) {
+        this( true, gangerFact );
     }
 
     /**
@@ -1057,17 +1061,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         PlotType plotType = context.getPlotType();
         final SurfaceFactory surfFact = plotType.getSurfaceFactory();
         final PaperTypeSelector ptSel = plotType.getPaperTypeSelector();
-        boolean hasGang = ganger_ != null;
-        final Ganger ganger = ganger_ != null ? ganger_ : new SingleGanger();
 
         /* Set up generic configuration. */
         final int xpix = xpixParam_.intValue( env );
         final int ypix = ypixParam_.intValue( env );
-        final Insets insets = insetsParam_.insetsValue( env );
         final boolean forceBitmap = bitmapParam_.booleanValue( env );
         final boolean surfaceAuxRanging = false;
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
         final Compositor compositor = compositorParam_.objectValue( env );
+        Padding padding = paddingParam_.objectValue( env );
+        final Ganger ganger = gangerFact_.createGanger( padding );
 
         /* Gather the defined plot layers from the environment. */
         Map<String,PlotLayer> layerMap = createLayerMap( env, context );
@@ -1215,7 +1218,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                        ptSel, compositor, dataStore,
                                        surfaceAuxRanging, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
-                panel.setDataInsets( insets );
                 return panel;
             }
 
@@ -1239,7 +1241,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                        nz, contents, profiles, aspects,
                                        shadeFacts, shadeFixRanges,
                                        ptSel, compositor, dataStore,
-                                       xpix, ypix, insets, forceBitmap );
+                                       xpix, ypix, forceBitmap );
             }
         };
     }
@@ -1332,7 +1334,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* If no ganging, just group all the layer suffixes under
          * a single key. */
-        if ( ganger_ == null ) {
+        if ( ! gangerFact_.isMultiZone() ) {
             Map<String,String[]> map = new HashMap<String,String[]>();
             map.put( "", layerSuffixes );
             return map;
@@ -2211,7 +2213,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  non-null string containing zero or more XML &lt;p&gt; elements
      */
     private String getZoneDoc( String baseName, String suffix ) {
-        if ( ganger_ == null ) {
+        if ( ! gangerFact_.isMultiZone() ) {
             return "";
         }
         else if ( suffix != null && suffix.length() > 0 ) {
@@ -2386,9 +2388,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  dataStore   data storage object
      * @param  xpix    horizontal size of icon in pixels
      * @param  ypix    vertical size of icon in pixels
-     * @param  insets  may supply the inset space to be used for
-     *                 axis decoration etc; if null, this will be worked out
-     *                 automatically
      * @param  forceBitmap   true to force bitmap output of vector graphics,
      *                       false to use default behaviour
      * @return  icon  icon for plotting
@@ -2404,25 +2403,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             final Compositor compositor,
                             final DataStore dataStore,
                             final int xpix, final int ypix,
-                            Insets insets, final boolean forceBitmap ) {
+                            final boolean forceBitmap ) {
         final Rectangle extBox = new Rectangle( 0, 0, xpix, ypix );
         final boolean cached = false;
         final boolean withScroll = false;
 
-        /* Get the data bounds for each plot if we can. */
-        Gang gang = null;
-        if ( insets != null && nz == 1 ) {
-            Rectangle box0 = PlotUtil.subtractInsets( extBox, insets );
-            gang = ganger.createGang( new Rectangle[] { box0 } );
-        }
-
         /* Acquire nominal plot bounds that are good enough for working
          * out aux data ranges. */
         Gang approxGang =
-              gang != null
-            ? gang
-            : ganger.createGang( extBox, surfFact, nz, contents, profiles,
-                                 aspects, new ShadeAxis[ nz ], withScroll );
+            ganger.createGang( extBox, surfFact, nz, contents, profiles,
+                               aspects, new ShadeAxis[ nz ], withScroll );
 
         /* Calculate aux ranges if required.
          * Although this should maybe belong with the aspect determination
@@ -2451,12 +2441,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
         PlotUtil.logTime( logger_, "Range", start );
 
-        /* Finalise plot bounds if we didn't have them already. */
-        if ( gang == null ) {
-            gang = ganger.createGang( extBox, surfFact, nz, contents, profiles,
-                                      aspects, shadeAxes, withScroll );
-        }
-        final Gang gang0 = gang;
+        /* Work out plot bounds. */
+        final Gang gang =
+            ganger.createGang( extBox, surfFact, nz, contents, profiles,
+                               aspects, shadeAxes, withScroll );
 
         /* Construct and return an icon that paints all the zones. */
         return new Icon() {
@@ -2473,7 +2461,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     ZoneContent content = contents[ iz ];
                     PlotLayer[] layers = content.getLayers();
                     Surface surface =
-                        surfFact.createSurface( gang0.getZonePlotBounds( iz ),
+                        surfFact.createSurface( gang.getZonePlotBounds( iz ),
                                                 profiles[ iz ], aspects[ iz ] );
                     Decoration[] decs =
                         PlotPlacement
@@ -2511,11 +2499,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  parameters for acquiring config key values
      */
     public final List<Parameter> getZoneKeyParams( ConfigKey[] keys ) {
+        boolean isMultiZone = gangerFact_.isMultiZone();
         List<Parameter> plist = new ArrayList<Parameter>();
         for ( int ik = 0; ik < keys.length; ik++ ) {
             plist.add( ConfigParameter
                       .createZoneSuffixedParameter( keys[ ik ], DOC_ZONE_SUFFIX,
-                                                    ganger_ != null ) );
+                                                    isMultiZone ) );
         }
         return plist;
     }

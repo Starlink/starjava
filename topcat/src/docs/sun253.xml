@@ -23581,6 +23581,10 @@ introduced since the last version:
     <li>Add the <ref id="HistogramLayerControl">Histogram</ref> control
         to the <ref id="TimePlotWindow">Time</ref> plot window,
         so you can now plot histograms with a temporal horizontal axis.</li>
+    <li>Fix a regression bug (since v4.3-2) in the
+        <ref id="FrameControl">Frame</ref> layer control;
+        values entered were being ignored for image export or
+        display or both.</li>
     </ul>
     </p></dd>
 

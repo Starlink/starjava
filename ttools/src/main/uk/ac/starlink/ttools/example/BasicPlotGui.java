@@ -32,6 +32,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -215,6 +216,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         Range shadeFixRange = null;
         PaperTypeSelector ptSel = plotType_.getPaperTypeSelector();
         Compositor compositor = Compositor.SATURATION;
+        Padding padding = new Padding();
         boolean surfaceAuxRange = true;
         boolean navigable = true;
         boolean caching = true;
@@ -226,7 +228,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
               .createPlotDisplay( layers, sfact_, config,
                                   legend, legPos, title, shadeFact,
                                   shadeFixRange, ptSel, compositor,
-                                  dataStore, surfaceAuxRange,
+                                  padding, dataStore, surfaceAuxRange,
                                   navigable, caching );
     }
 

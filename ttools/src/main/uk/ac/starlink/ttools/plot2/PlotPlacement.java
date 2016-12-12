@@ -156,6 +156,7 @@ public class PlotPlacement {
      * decorations like axis annotations, legend etc.
      *
      * @param   extBounds  external bounds of plot placement
+     * @param   padding   requirements for outer padding, or null
      * @param   surfFact  surface factory
      * @param   profile  factory-specific surface profile
      * @param   aspect   factory-specific surface aspect
@@ -169,12 +170,13 @@ public class PlotPlacement {
      * @return   new plot placement
      */
     public static <P,A> PlotPlacement
-            createPlacement( Rectangle extBounds, SurfaceFactory<P,A> surfFact,
+            createPlacement( Rectangle extBounds, Padding padding,
+                             SurfaceFactory<P,A> surfFact,
                              P profile, A aspect, boolean withScroll,
                              Icon legend, float[] legPos, String title,
                              ShadeAxis shadeAxis ) {
         Rectangle dataBounds =
-            calculateDataBounds( extBounds, surfFact, profile, aspect,
+            calculateDataBounds( extBounds, padding, surfFact, profile, aspect,
                                  withScroll, legend, legPos, title, shadeAxis );
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
         Decoration[] decs =
@@ -183,9 +185,7 @@ public class PlotPlacement {
     }
 
     /**
-     * Determines the bounds for the data part of a plot given its
-     * external dimensions and other information about it.
-     * It does this by assessing how much space will be required for
+     * Determines the required insets for a plot to accommodate
      * axis annotations etc.
      *
      * @param   extBounds  external bounds of plot placement
@@ -201,8 +201,8 @@ public class PlotPlacement {
      * @param   shadeAxis  shader axis if required, or null
      * @return  data bounds rectangle
      */
-    public static <P,A> Rectangle
-            calculateDataBounds( Rectangle extBounds,
+    public static <P,A> Insets
+            calculateDataInsets( Rectangle extBounds,
                                  SurfaceFactory<P,A> surfFact, P profile,
                                  A aspect, boolean withScroll, Icon legend,
                                  float[] legPos, String title,
@@ -235,7 +235,7 @@ public class PlotPlacement {
         Rectangle surfRect = new Rectangle( extBounds );
         surfRect.width = Math.max( MIN_DIM, surfRect.width - legExtWidth );
 
-        /* Get padding for first guess at surface. */
+        /* Get insets for first guess at surface. */
         Surface surf = surfFact.createSurface( surfRect, profile, aspect );
         Insets insets = surf.getPlotInsets( withScroll );
         insets.right = Math.max( insets.right, legExtWidth );
@@ -246,8 +246,47 @@ public class PlotPlacement {
             insets.top += new CaptionIcon( title, surf.getCaptioner() )
                          .getIconHeight();
         }
+        return insets;
+    }
 
-        /* Work out available space given padding required by first guess. */
+    /**
+     * Determines the bounds for the data part of a plot given its
+     * external dimensions and other information about it.
+     * It does this by assessing how much space will be required for
+     * axis annotations etc.
+     *
+     * @param   extBounds  external bounds of plot placement
+     * @param   padding   preferences for outer padding, or null
+     * @param   surfFact  surface factory
+     * @param   profile  factory-specific surface profile
+     * @param   aspect   factory-specific surface aspect
+     * @param   withScroll  true if the placement should work well
+     *                      with future scrolling
+     * @param   legend   legend icon if required, or null
+     * @param   legPos  legend position if intenal legend is required;
+     *                  2-element (x,y) array, each element in range 0-1
+     * @param   title   title text, or null
+     * @param   shadeAxis  shader axis if required, or null
+     * @return  data bounds rectangle
+     */
+    public static <P,A> Rectangle
+            calculateDataBounds( Rectangle extBounds, Padding padding,
+                                 SurfaceFactory<P,A> surfFact, P profile,
+                                 A aspect, boolean withScroll, Icon legend,
+                                 float[] legPos, String title,
+                                 ShadeAxis shadeAxis ) {
+        padding = padding == null ? new Padding() : padding;
+        final Insets insets;
+        if ( padding.isDefinite() ) {
+            insets = padding.toDefiniteInsets();
+        }
+        else {
+            Insets dataInsets =
+                calculateDataInsets( extBounds, surfFact, profile, aspect,
+                                     withScroll, legend, legPos,
+                                     title, shadeAxis );
+            insets = padding.overrideInsets( dataInsets );
+        }
         return PlotUtil.subtractInsets( extBounds, insets );
     }
 

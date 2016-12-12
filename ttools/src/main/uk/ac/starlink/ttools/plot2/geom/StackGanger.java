@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Gang;
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -19,15 +20,23 @@ import uk.ac.starlink.ttools.plot2.ZoneContent;
 public abstract class StackGanger<P,A> implements Ganger<P,A> {
 
     private final boolean isUp_;
+    private final Padding padding_;
 
     /**
      * Constructor.
+     * The supplied padding is currently applied outside each plot zone.
+     * That's not the only way to do it; you could imagine wanting to
+     * apply this padding outside the union of plot zones, or to
+     * be able to supply different paddings for each zone.
      *
      * @param  isUp  true if zones are ordered upwards on the graphics plane,
      *               false if they go down
+     * @param  padding  defines user preferences, if any, for space
+     *                  reserved outside each plot zone
      */
-    protected StackGanger( boolean isUp ) {
+    protected StackGanger( boolean isUp, Padding padding ) {
         isUp_ = isUp;
+        padding_ = padding;
     }
 
     /**
@@ -85,7 +94,7 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
             ZoneContent content = contents[ iz ];
             zboxes[ iz ] =
                 PlotPlacement
-               .calculateDataBounds( zoneExtBox, surfFact,
+               .calculateDataBounds( zoneExtBox, padding_, surfFact,
                                      profiles[ iz ], aspects[ iz ],
                                      withScroll,
                                      content.getLegend(),

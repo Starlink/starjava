@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
+import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
@@ -43,6 +45,9 @@ public class PlanePlotWindow
         }
         public boolean hasPositions() {
             return true;
+        }
+        public GangerFactory getGangerFactory() {
+            return SingleGanger.FACTORY;
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;

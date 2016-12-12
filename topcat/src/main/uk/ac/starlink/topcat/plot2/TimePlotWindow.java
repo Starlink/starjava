@@ -7,7 +7,7 @@ import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
@@ -35,11 +35,6 @@ public class TimePlotWindow
         super( "Time Plot", parent, PLOT_TYPE, PLOT_GUI );
         getToolBar().addSeparator();
         addHelp( "TimePlotWindow" );
-    }
-
-    @Override
-    public Ganger<TimeSurfaceFactory.Profile,TimeAspect> getGanger() {
-        return TimeStackGanger.getInstance();
     }
 
     /**
@@ -117,6 +112,9 @@ public class TimePlotWindow
         }
         public boolean hasPositions() {
             return true;
+        }
+        public GangerFactory getGangerFactory() {
+            return TimeStackGanger.FACTORY;
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.createIntegerZoneFactory( true );

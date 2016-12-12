@@ -8,6 +8,9 @@ import java.awt.Rectangle;
  * This interface acts as a factory for Gang instances.
  * It takes care of how to align both graphics coordinates
  * and data coordinates so that the plots make sense together.
+ * As well as the basic layout of plots for a particular purpose,
+ * it may also understand and manage specified user preferences
+ * about the details.
  *
  * @author   Mark Taylor
  * @since    25 Jan 2016

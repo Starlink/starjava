@@ -10,8 +10,10 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -75,6 +77,10 @@ public class SkyPlotWindow
 
         public boolean hasPositions() {
             return true;
+        }
+
+        public GangerFactory getGangerFactory() {
+            return SingleGanger.FACTORY;
         }
 
         public ZoneFactory createZoneFactory() {

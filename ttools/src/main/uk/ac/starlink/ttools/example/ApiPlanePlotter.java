@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.example;
 
 import java.awt.Color;
-import java.awt.Insets;
 import java.io.IOException;
 import javax.swing.Icon;
 import uk.ac.starlink.table.StarTable;
@@ -12,6 +11,7 @@ import uk.ac.starlink.ttools.plot2.BasicCaptioner;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Navigator;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
@@ -144,13 +144,13 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* Dimensions. */
         int xpix = 500;
         int ypix = 400;
-        Insets dataInsets = null;
+        Padding padding = new Padding();
 
         /* Construct and return the plot generator. */
         return new PlotGenerator( layers, surfFact, profile, aspect,
                                   legend, legPos, title, shadeFact,
                                   shadeFixRange, ptSel, compositor,
-                                  dataStore, xpix, ypix, dataInsets );
+                                  dataStore, xpix, ypix, padding );
     }
 
     /**

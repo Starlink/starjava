@@ -11,7 +11,9 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Input;
@@ -49,8 +51,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
     public TypedPlot2Task( PlotType plotType,
                            Map<ConfigKey<String>,Input> axlabelMap,
                            PlotContext context ) {
-        super( context.getGanger() );
-        boolean hasGang = context.getGanger() != null;
+        super( context.getGangerFactory() );
         plotType_ = plotType;
         context_ = context;
         axlabelMap_ = axlabelMap == null
@@ -73,7 +74,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
         paramList.add( createLabelParameter( EXAMPLE_LAYER_SUFFIX ) );
         paramList.add( createLayerTypeParameter( EXAMPLE_LAYER_SUFFIX,
                                                  context ) );
-        if ( hasGang ) {
+        if ( context.getGangerFactory().isMultiZone() ) {
             paramList.add( createZoneParameter( EXAMPLE_LAYER_SUFFIX ) );
         }
 
@@ -100,7 +101,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
     public TypedPlot2Task( PlotType plotType,
                            Map<ConfigKey<String>,Input> axlabelMap ) {
         this( plotType, axlabelMap,
-              createDefaultPlotContext( plotType, (Ganger) null ) );
+              createDefaultPlotContext( plotType, SingleGanger.FACTORY ) );
     }
 
     public String getPurpose() {
@@ -179,14 +180,16 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      * parameter.
      *
      * @param  plotType  plot type
-     * @param  ganger  defines plot grouping, or null for single zone plots
+     * @param  gangerFact  defines plot grouping
      * @return  context
      */
-    public static PlotContext createDefaultPlotContext( PlotType plotType,
-                                                        Ganger ganger ) {
+    public static PlotContext
+            createDefaultPlotContext( PlotType plotType,
+                                      GangerFactory gangerFact ) {
         final DataGeom[] geoms = plotType.getPointDataGeoms();
         return geoms.length == 1
-             ? PlotContext.createFixedContext( plotType, geoms[ 0 ], ganger )
-             : PlotContext.createStandardContext( plotType, ganger );
+             ? PlotContext.createFixedContext( plotType, geoms[ 0 ],
+                                               gangerFact )
+             : PlotContext.createStandardContext( plotType, gangerFact );
     }
 }

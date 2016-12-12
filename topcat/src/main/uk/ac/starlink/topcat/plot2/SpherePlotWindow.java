@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
+import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
@@ -43,6 +45,9 @@ public class SpherePlotWindow
         }
         public boolean hasPositions() {
             return true;
+        }
+        public GangerFactory getGangerFactory() {
+            return SingleGanger.FACTORY;
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;

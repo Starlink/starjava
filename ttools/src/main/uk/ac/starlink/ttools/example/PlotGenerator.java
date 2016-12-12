@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.example;
 
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,6 +9,7 @@ import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Navigator;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
@@ -56,7 +56,7 @@ public class PlotGenerator<P,A> {
     private final DataStore dataStore_;
     private final int xpix_;
     private final int ypix_;
-    private final Insets dataInsets_;
+    private final Padding padding_;
  
     /**
      * Constructor.
@@ -80,9 +80,11 @@ public class PlotGenerator<P,A> {
      *                 (may get changed by window resizing)
      * @param  ypix    initial vertical size in pixels
      *                 (may get changed by window resizing)
-     * @param  dataInsets  extent of region outside plot data box,
-     *                     used for axis labels etc;
-     *                     if null, will be calculated automatically
+     * @param  padding   requirements for extent of region outside plot
+     *                   data box to contain axis labels etc;
+     *                   may be null or parts may be blank;
+     *                   those requirements not specified will be
+     *                   calculated automatically
      */
     public PlotGenerator( PlotLayer[] layers,
                           SurfaceFactory<P,A> surfFact, P profile, A aspect,
@@ -90,7 +92,7 @@ public class PlotGenerator<P,A> {
                           ShadeAxisFactory shadeFact, Range shadeFixRange,
                           PaperTypeSelector ptSel, Compositor compositor,
                           DataStore dataStore, int xpix, int ypix,
-                          Insets dataInsets ) {
+                          Padding padding ) {
         layers_ = layers;
         surfFact_ = surfFact;
         profile_ = profile;
@@ -105,7 +107,7 @@ public class PlotGenerator<P,A> {
         dataStore_ = dataStore;
         xpix_ = xpix;
         ypix_ = ypix;
-        dataInsets_ = dataInsets;
+        padding_ = padding;
     }
 
     /**
@@ -126,10 +128,9 @@ public class PlotGenerator<P,A> {
         PlotDisplay<P,A> display =
             new PlotDisplay( surfFact_, layers_, profile_, legend_, legPos_,
                              title_, aspect_, shadeFact_, shadeFixRange_,
-                             navigator, ptSel_, compositor_, dataStore_,
-                             surfaceAuxRange, caching );
+                             navigator, ptSel_, compositor_, padding_,
+                             dataStore_, surfaceAuxRange, caching );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
-        display.setDataInsets( dataInsets_ );
         return display;
     }
 
@@ -161,7 +162,7 @@ public class PlotGenerator<P,A> {
      */
     public Icon createIcon( boolean forceBitmap ) {
         return AbstractPlot2Task
-              .createPlotIcon( new SingleGanger<P,A>(), surfFact_, 1,
+              .createPlotIcon( new SingleGanger<P,A>( padding_ ), surfFact_, 1,
                                new ZoneContent[] {
                                    new ZoneContent( layers_, legend_,
                                                     legPos_, title_ )
@@ -171,6 +172,6 @@ public class PlotGenerator<P,A> {
                                new ShadeAxisFactory[] { shadeFact_ },
                                new Range[] { shadeFixRange_ },
                                ptSel_, compositor_, dataStore_,
-                               xpix_, ypix_, dataInsets_, forceBitmap );
+                               xpix_, ypix_, forceBitmap );
     }
 }
