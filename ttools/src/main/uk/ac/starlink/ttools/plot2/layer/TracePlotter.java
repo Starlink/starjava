@@ -13,25 +13,30 @@ import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
@@ -80,6 +85,49 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             }
         };
 
+    /** Report key for smoothing width. */
+    public static final ReportKey<Double> SMOOTHWIDTH_KEY =
+        ReportKey.createDoubleKey( new ReportMeta( "smoothwidth",
+                                                   "Smoothing Width" ),
+                                   false );
+
+    /** Config key for smoothing width configuration. */
+    public static final ConfigKey<BinSizer> SMOOTHSIZER_KEY =
+        BinSizer.createSizerConfigKey(
+            new ConfigMeta( "smooth", "Smoothing" )
+           .setStringUsage( "+<width>|-<count>" ) 
+           .setShortDescription( "Smoothing width specification" )
+           .setXmlDescription( new String[] {
+                "<p>Configures the smoothing width.",
+                "This is the characteristic width of the kernel function",
+                "to be convolved with the density in one dimension",
+                "to smooth the quantile function.",
+                "</p>",
+                BinSizer.getConfigKeyDescription(),
+            } )
+        , SMOOTHWIDTH_KEY, 100, false, true );
+
+    /** Config key for smoothing kernel shape. */
+    public static final ConfigKey<Kernel1dShape> KERNEL_KEY =
+        new OptionConfigKey<Kernel1dShape>(
+            new ConfigMeta( "kernel", "Kernel" )
+           .setShortDescription( "Smoothing kernel functional form" )
+           .setXmlDescription( new String[] {
+                "<p>The functional form of the smoothing kernel.",
+                "The functions listed refer to the unscaled shape;",
+                "all kernels are normalised to give a total area of unity.",
+                "</p>",
+            } )
+        , Kernel1dShape.class,
+        StandardKernel1dShape.getStandardOptions(),
+        StandardKernel1dShape.EPANECHNIKOV ) {
+            public String getXmlDescription( Kernel1dShape kshape ) {
+                return kshape.getDescription();
+            }
+        }
+       .setOptionUsage()
+       .addOptionsXml();
+
     /**
      * Constructor.
      *
@@ -94,7 +142,10 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
     public String getPlotterDescription() {
         return PlotUtil.concatLines( new String[] {
             "<p>Plots a line through a given quantile of the values",
-            "in each pixel column of a plot.",
+            "binned within each pixel column (or row) of a plot.",
+            "The line is optionally smoothed",
+            "using a configurable kernel and width,",
+            "to even out noise arising from the pixel binning.",
             "</p>",
         } );
     }
@@ -105,6 +156,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         list.add( StyleKeys.TRANSPARENCY );
         list.add( QUANTILE_KEY );
         list.add( THICK_KEY );
+        list.add( SMOOTHSIZER_KEY );
+        list.add( KERNEL_KEY );
         if ( hasVertical_ ) {
             list.add( HORIZONTAL_KEY );
         }
@@ -117,7 +170,10 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         boolean isHorizontal = config.get( HORIZONTAL_KEY );
         double quantile = config.get( QUANTILE_KEY );
         int thickness = config.get( THICK_KEY );
-        return new TraceStyle( color, isHorizontal, thickness, quantile );
+        Kernel1dShape kernelShape = config.get( KERNEL_KEY );
+        BinSizer smoothSizer = config.get( SMOOTHSIZER_KEY );
+        return new TraceStyle( color, isHorizontal, thickness, quantile,
+                               kernelShape, smoothSizer );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -134,6 +190,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             public Drawing createDrawing( final Surface surface,
                                           Map<AuxScale,Range> auxRanges,
                                           final PaperType paperType ) {
+                final PlanarSurface psurf = (PlanarSurface) surface;
+                final ReportMap report = createReport( style, psurf );
                 return new Drawing() {
                     public Object calculatePlan( Object[] knownPlans,
                                                  DataStore dataStore ) {
@@ -152,7 +210,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                         final FillPlan fplan = (FillPlan) plan;
                         paperType.placeDecal( paper, new Decal() {
                             public void paintDecal( Graphics g ) {
-                                paintTrace( surface, fplan, style, g );
+                                paintTrace( psurf, fplan, style, g );
                             }
                             public boolean isOpaque() {
                                 return isOpaque;
@@ -160,11 +218,30 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                         } );
                     }
                     public ReportMap getReport( Object plan ) {
-                        return null;
+                        return report;
                     }
                 };
             }
         };
+    }
+
+    /**
+     * Prepares a report characterising the state of the plot when
+     * a given style is applied to a given plotting surface.
+     *
+     * @param  style  style
+     * @param  psurf  surface
+     * @return  report
+     */
+    private ReportMap createReport( TraceStyle style, PlanarSurface psurf ) {
+        int iax = style.isHorizontal_ ? 0 : 1;
+        Axis xAxis = psurf.getAxes()[ iax ];
+        boolean xLog = psurf.getLogFlags()[ iax ];
+        double[] dlims = xAxis.getDataLimits();
+        double w = style.smoothSizer_.getWidth( xLog, dlims[ 0 ], dlims[ 1 ] );
+        ReportMap report = new ReportMap();
+        report.put( SMOOTHWIDTH_KEY, new Double( w ) );
+        return report;
     }
 
     /**
@@ -175,38 +252,45 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
      * @param  style   trace style
      * @param  g     target graphics context
      */
-    private void paintTrace( Surface surface, FillPlan plan, TraceStyle style,
-                             Graphics g ) {
+    private void paintTrace( PlanarSurface surface, FillPlan plan,
+                             TraceStyle style, Graphics g ) {
         boolean isHorizontal = style.isHorizontal_;
         int thickness = style.thickness_;
         final double quantile;
         Binner binner = plan.getBinner();
         final int[] xlos;
         final int[] xhis;
-        final int[] ylos;
-        final int[] yhis;
         final Gridder gridder;
 
-        /* Horizontal plots can be handled with mostly the same logic,
-         * as long as you tranpose X and Y in the grid indexing. */
+        /* Horizontal and vertical plots can be handled with basically
+         * the same logic, as long as you tranpose X and Y
+         * in the grid indexing. */
         if ( isHorizontal ) {
             xlos = plan.getXlos();
             xhis = plan.getXhis();
-            ylos = plan.getYlos();
-            yhis = plan.getYhis();
             gridder = plan.getGridder();
             quantile = 1.0 - style.quantile_;
         }
         else {
             xlos = plan.getYlos();
             xhis = plan.getYhis();
-            ylos = plan.getXlos();
-            yhis = plan.getXhis();
             gridder = Gridder.transpose( plan.getGridder() );
             quantile = style.quantile_;
         }
-        int nx = gridder.getWidth();
-        int ny = gridder.getHeight();
+        int iax = isHorizontal ? 0 : 1;
+        Axis xAxis = surface.getAxes()[ iax ];
+        boolean xLog = surface.getLogFlags()[ iax ];
+
+        /* Smooth data in X direction as required by convolving with 1d kernel. 
+         * NOTE: there will be edge effects associated with the kernel
+         * operating at the left and right edges of the grid.
+         * I could fix these as in the KDE plots by requiring a large
+         * enough grid in the plan that the edge is outside of the
+         * visible part of the plot.  Currently, I'm too lazy. */
+        Kernel1d kernel =
+            Pixel1dPlotter
+           .createKernel( style.kernelShape_, style.smoothSizer_, xAxis, xLog );
+        GridData gdata = createGridData( kernel, xlos, xhis, binner, gridder );
 
         /* Prepare to paint lines. */
         Color color0 = g.getColor();
@@ -222,16 +306,18 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         }
 
         /* Iterate over each column of pixels. */
-        int[] line = new int[ ny ];
+        int nx = gridder.getWidth();
+        int ny = gridder.getHeight();
+        double[] line = new double[ ny ];
         for ( int ix = 0; ix < nx; ix++ ) {
-            int xlo = xlos[ ix ];
-            int xhi = xhis[ ix ];
+            double xlo = gdata.getSumBelow( ix );
+            double xhi = gdata.getSumAbove( ix );
 
             /* Store the data for this pixel column and count the total
              * number of values in it. */
-            int count = xlo;
+            double count = xlo;
             for ( int iy = 0; iy < ny; iy++ ) {
-                int c = binner.getCount( gridder.getIndex( ix, iy ) );
+                double c = gdata.getSample( ix, iy );
                 line[ iy ] = c;
                 count += c;
             }
@@ -241,7 +327,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
              * quantile. */
             int jy = getRankIndex( xlo, xhi, count, line, quantile );
 
-            /* Plot a line to mark it. */
+            /* Plot a marker. */
             if ( jy >= 0 ) {
                 if ( isHorizontal ) {
                     g.fillRect( x0 + ix, y0 + jy, 1, thickness );
@@ -266,11 +352,11 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
      * @param  line    array of count values in grid
      * @param  quantile   value between 0 and 1 indicating target item
      */
-    private static int getRankIndex( int xlo, int xhi, int count, int[] line,
-                                     double quantile ) {
-        int rank = (int) Math.round( quantile * count );
+    private static int getRankIndex( double xlo, double xhi, double count,
+                                     double[] line, double quantile ) {
+        double rank = quantile * count;
         if ( count > 0 && rank >= xlo && rank <= count - xhi ) {
-            int s = xlo;
+            double s = xlo;
             for ( int iy = 0; iy < line.length; iy++ ) {
                 if ( s >= rank && s > 0 ) {
                     return iy;
@@ -282,6 +368,113 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
     }
 
     /**
+     * Provides a GridData object from count data.
+     *
+     * @param  kernel  smoothing kernel
+     * @param  xlos   sums of values below supplied grid per column
+     * @param  xhis   sums of values above supplied grid per column
+     * @param  binner   grided count data
+     * @param  gridder   contains grid geometry
+     */
+    private static GridData createGridData( final Kernel1d kernel,
+                                            final int[] xlos,
+                                            final int[] xhis,
+                                            final Binner binner,
+                                            final Gridder gridder ) {
+ 
+        /* If no smoothing is required, just return an adapter
+         * implementation. */
+        if ( kernel.getExtent() < 1 ) {
+            return new GridData() {
+                public double getSumBelow( int ix ) {
+                    return xlos[ ix ];
+                }
+                public double getSumAbove( int ix ) {
+                    return xhis[ ix ];
+                }
+                public double getSample( int ix, int iy ) {
+                    return binner.getCount( gridder.getIndex( ix, iy ) );
+                }
+            };
+        }
+
+        /* Otherwise, copy and convolve the data columns with the
+         * supplied kernel, and return a GridData implementation that is
+         * a view on the result. */
+        else {
+            int nx = gridder.getWidth();
+            int ny = gridder.getHeight();
+
+            /* Convolve grid in the horizontal direction. */
+            final double[] cdata = new double[ nx * ny ];
+            double[] line = new double[ nx ];
+            for ( int iy = 0; iy < ny; iy++ ) {
+                for ( int ix = 0; ix < nx; ix++ ) {
+                    line[ ix ] = binner.getCount( gridder.getIndex( ix, iy ) );
+                }
+                line = kernel.convolve( line );
+                for ( int ix = 0; ix < nx; ix++ ) {
+                    cdata[ gridder.getIndex( ix, iy ) ] = line[ ix ];
+                }
+            }
+
+            /* Convolve above/below sums in the horizontal direction. */
+            double[] dxlos = new double[ nx ];
+            double[] dxhis = new double[ nx ];
+            for ( int ix = 0; ix < nx; ix++ ) {
+                dxlos[ ix ] = xlos[ ix ];
+                dxhis[ ix ] = xhis[ ix ];
+            }
+            final double[] cxlos = kernel.convolve( dxlos );
+            final double[] cxhis = kernel.convolve( dxhis );
+            return new GridData() {
+                public double getSumBelow( int ix ) {
+                    return cxlos[ ix ];
+                }
+                public double getSumAbove( int ix ) {
+                    return cxhis[ ix ];
+                }
+                public double getSample( int ix, int iy ) {
+                    return cdata[ gridder.getIndex( ix, iy ) ];
+                }
+            };
+        }
+    }
+
+    /**
+     * Defines the ready-to-use grid data for calculating column medians.
+     */
+    private interface GridData {
+
+        /**
+         * Returns the sum of all the accumulated values below the
+         * sample grid for a given column.
+         *
+         * @param   ix  notional horizontal coordinate
+         * @return   sum of grid values below
+         */
+        double getSumBelow( int ix );
+
+        /**
+         * Returns the sum of all the accumulated values above the
+         * sample grid for a given column.
+         *
+         * @param   ix  notional horizontal coordinate
+         * @return   sum of grid values above
+         */
+        double getSumAbove( int ix );
+
+        /**
+         * Returns the accumulated value in a given grid cell.
+         *
+         * @param   ix  notional horizontal coordinate
+         * @param   iy  notional vertical coordinate
+         * @return  grid value
+         */
+        double getSample( int ix, int iy );
+    }
+
+    /**
      * Style for trace plot.
      */
     public static class TraceStyle implements Style {
@@ -289,6 +482,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         private final boolean isHorizontal_;
         private final int thickness_;
         private final double quantile_;
+        private final Kernel1dShape kernelShape_;
+        private final BinSizer smoothSizer_;
 
         /**
          * Constructor.
@@ -297,13 +492,18 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
          * @param  isHorizontal  true for horizontal fill, false for vertical
          * @param  thickness   line thickness
          * @param  quantile   target quantile in range 0..1
+         * @param  kernelShape     smoothing kernel
+         * @param  smoothSizer     smoothing extent control
          */
         public TraceStyle( Color color, boolean isHorizontal, int thickness,
-                           double quantile ) {
+                           double quantile, Kernel1dShape kernelShape,
+                           BinSizer smoothSizer ) {
             color_ = color;
             isHorizontal_ = isHorizontal;
             thickness_ = thickness;
             quantile_ = quantile;
+            kernelShape_ = kernelShape;
+            smoothSizer_ = smoothSizer;
         }
 
         public Icon getLegendIcon() {
@@ -334,6 +534,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             code = 23 * code + ( isHorizontal_ ? 3 : 5 );
             code = 23 * code + thickness_;
             code = 23 * code + Float.floatToIntBits( (float) quantile_ );
+            code = 23 * code + PlotUtil.hashCode( kernelShape_ );
+            code = 23 * code + smoothSizer_.hashCode();
             return code;
         }
 
@@ -344,7 +546,9 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                 return this.color_.equals( other.color_ )
                     && this.isHorizontal_ == other.isHorizontal_
                     && this.thickness_ == other.thickness_
-                    && this.quantile_ == other.quantile_;
+                    && this.quantile_ == other.quantile_
+                    && PlotUtil.equals( this.kernelShape_, other.kernelShape_)
+                    && this.smoothSizer_.equals( other.smoothSizer_ );
             }
             else {
                 return false;
