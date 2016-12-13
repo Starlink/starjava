@@ -123,7 +123,7 @@ public abstract class BinSizer {
         }
 
         public double getWidth( boolean xlog, double xlo, double xhi ) {
-            return binWidth_;
+            return xlog ? Math.max( 1, binWidth_ ) : binWidth_;
         }
 
         @Override
