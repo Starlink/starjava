@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.List;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.gui.ThicknessComboBox;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
@@ -23,16 +24,22 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ComboBoxSpecifier;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.config.SubrangeConfigKey;
+import uk.ac.starlink.ttools.plot2.config.UnitRangeSpecifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -42,7 +49,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
 /**
  * Plots a line through a cloud of points in 2d, tracing a given
- * quantile at each column (or row) of pixels.
+ * quantile or pair of quantiles at each column (or row) of pixels.
  *
  * @author   Mark Taylor
  * @since    9 Dec 2016
@@ -65,25 +72,11 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
 
     /** Key to configure line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =
-        StyleKeys.createThicknessKey( 3 );
+        createThicknessKey();
 
-    /** Key to configure target quantile. */
-    public static final ConfigKey<Double> QUANTILE_KEY =
-        new DoubleConfigKey( 
-            new ConfigMeta( "quantile", "Quantile" )
-           .setShortDescription( "Target quantile" )
-           .setXmlDescription( new String[] {
-                "<p>Value between 0 and 1 for the quantile",
-                "at which a value should be plotted.",
-                "</p>",
-            } ),
-        0.5 ) {
-            public Specifier<Double> createSpecifier() {
-                return new SliderSpecifier( 0, 1, false, 0.5, false,
-                                            SliderSpecifier
-                                           .TextOption.ENTER_ECHO );
-            }
-        };
+    /** Key to configure target quantile range. */
+    public static final ConfigKey<Subrange> QUANTILES_KEY =
+        createQuantilesKey();
 
     /** Report key for smoothing width. */
     public static final ReportKey<Double> SMOOTHWIDTH_KEY =
@@ -105,7 +98,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                 "</p>",
                 BinSizer.getConfigKeyDescription(),
             } )
-        , SMOOTHWIDTH_KEY, 100, false, true );
+        , SMOOTHWIDTH_KEY, 0, false, true );
 
     /** Config key for smoothing kernel shape. */
     public static final ConfigKey<Kernel1dShape> KERNEL_KEY =
@@ -128,6 +121,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
        .setOptionUsage()
        .addOptionsXml();
 
+    private static final String QUANTILES_NAME = "quantiles";
+
     /**
      * Constructor.
      *
@@ -146,6 +141,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             "The line is optionally smoothed",
             "using a configurable kernel and width,",
             "to even out noise arising from the pixel binning.",
+            "Instead of a simple line through a given quantile,",
+            "it is also possible to fill the region between two quantiles.",
             "</p>",
         } );
     }
@@ -154,7 +151,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
-        list.add( QUANTILE_KEY );
+        list.add( QUANTILES_KEY );
         list.add( THICK_KEY );
         list.add( SMOOTHSIZER_KEY );
         list.add( KERNEL_KEY );
@@ -168,11 +165,12 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         Color color = StyleKeys.getAlphaColor( config, StyleKeys.COLOR,
                                                StyleKeys.TRANSPARENCY );
         boolean isHorizontal = config.get( HORIZONTAL_KEY );
-        double quantile = config.get( QUANTILE_KEY );
+        Subrange qrange = config.get( QUANTILES_KEY );
         int thickness = config.get( THICK_KEY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
         BinSizer smoothSizer = config.get( SMOOTHSIZER_KEY );
-        return new TraceStyle( color, isHorizontal, thickness, quantile,
+        return new TraceStyle( color, isHorizontal, thickness,
+                               qrange.getLow(), qrange.getHigh(),
                                kernelShape, smoothSizer );
     }
 
@@ -255,8 +253,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
     private void paintTrace( PlanarSurface surface, FillPlan plan,
                              TraceStyle style, Graphics g ) {
         boolean isHorizontal = style.isHorizontal_;
-        int thickness = style.thickness_;
-        final double quantile;
+        int minThick = style.thickness_;
         Binner binner = plan.getBinner();
         final int[] xlos;
         final int[] xhis;
@@ -269,17 +266,20 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             xlos = plan.getXlos();
             xhis = plan.getXhis();
             gridder = plan.getGridder();
-            quantile = 1.0 - style.quantile_;
         }
         else {
             xlos = plan.getYlos();
             xhis = plan.getYhis();
             gridder = Gridder.transpose( plan.getGridder() );
-            quantile = style.quantile_;
         }
-        int iax = isHorizontal ? 0 : 1;
-        Axis xAxis = surface.getAxes()[ iax ];
-        boolean xLog = surface.getLogFlags()[ iax ];
+        int iXax = isHorizontal ? 0 : 1;
+        int iYax = isHorizontal ? 1 : 0;
+        Axis xAxis = surface.getAxes()[ iXax ];
+        boolean xLog = surface.getLogFlags()[ iXax ];
+        boolean yFlip = surface.getFlipFlags()[ iYax ];
+        boolean yInvert = isHorizontal ^ yFlip;
+        double qlo = yInvert ? 1.0 - style.qhi_ : style.qlo_;
+        double qhi = yInvert ? 1.0 - style.qlo_ : style.qhi_;
 
         /* Smooth data in X direction as required by convolving with 1d kernel. 
          * NOTE: there will be edge effects associated with the kernel
@@ -298,12 +298,6 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         Rectangle bounds = surface.getPlotBounds();
         int x0 = bounds.x;
         int y0 = bounds.y;
-        if ( isHorizontal ) {
-            y0 -= thickness / 2;
-        }
-        else {
-            x0 -= thickness / 2;
-        }
 
         /* Iterate over each column of pixels. */
         int nx = gridder.getWidth();
@@ -323,17 +317,32 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             }
             count += xhi;
 
-            /* Identify the Y coordinate corresponding to the desired
-             * quantile. */
-            int jy = getRankIndex( xlo, xhi, count, line, quantile );
-
-            /* Plot a marker. */
-            if ( jy >= 0 ) {
-                if ( isHorizontal ) {
-                    g.fillRect( x0 + ix, y0 + jy, 1, thickness );
+            /* Identify the Y graphics coordinates corresponding to the
+             * desired quantile range. */
+            int jylo = getRankIndex( xlo, xhi, count, line, qlo );
+            int jyhi = qlo == qhi
+                     ? jylo
+                     : getRankIndex( xlo, xhi, count, line, qhi );
+            if ( ! ( jylo < 0 && jyhi < 0 || jylo >= ny && jyhi >= ny ) ) {
+                int natThick = jyhi - jylo;
+                assert natThick >= 0 : jylo + " - " + jyhi;
+                int jy0;
+                int thick;
+                if ( natThick >= minThick ) {
+                    jy0 = jylo;
+                    thick = natThick;
                 }
                 else {
-                    g.fillRect( x0 + jy, y0 + ix, thickness, 1 );
+                    jy0 = jylo - minThick / 2;
+                    thick = minThick;
+                }
+
+                /* Plot a marker. */
+                if ( isHorizontal ) {
+                    g.fillRect( x0 + ix, y0 + jy0, 1, thick );
+                }
+                else {
+                    g.fillRect( x0 + jy0, y0 + ix, thick, 1 );
                 }
             }
         }
@@ -351,11 +360,22 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
      * @param  count   total of all counts before, during and after line
      * @param  line    array of count values in grid
      * @param  quantile   value between 0 and 1 indicating target item
+     * @return  index within line corresponding to rank;
+     *          -1 means before the first and line.length means after the last
      */
     private static int getRankIndex( double xlo, double xhi, double count,
                                      double[] line, double quantile ) {
         double rank = quantile * count;
-        if ( count > 0 && rank >= xlo && rank <= count - xhi ) {
+        if ( ! ( count > 0 ) ) {
+            return -1;
+        }
+        else if ( rank < xlo ) {
+            return -1;
+        }
+        else if ( rank > count - xhi ) {
+            return line.length;
+        }
+        else {
             double s = xlo;
             for ( int iy = 0; iy < line.length; iy++ ) {
                 if ( s >= rank && s > 0 ) {
@@ -363,8 +383,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                 }
                 s += line[ iy ];
             }
+            return line.length;
         }
-        return -1;
     }
 
     /**
@@ -442,6 +462,106 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
     }
 
     /**
+     * Returns a config key for minimal line thickness.
+     *
+     * @return  minimal thickness key
+     */
+    private static ConfigKey<Integer> createThicknessKey() {
+        ConfigMeta meta = new ConfigMeta( "thick", "Thickness" );
+        meta.setStringUsage( "<pixels>" );
+        meta.setShortDescription( "Minimum line thickness in pixels" );
+        meta.setXmlDescription( new String[] {
+            "<p>Sets the minimum extent of the markers that are plotted",
+            "in each pixel column (or row) to indicate the designated",
+            "value range.",
+            "If the range is zero sized",
+            "(<code>" + QUANTILES_NAME + "</code>",
+            "specifies a single value rather than a pair)",
+            "this will give the actual thickness of the plotted line.",
+            "If the range is non-zero however, the line may be thicker",
+            "than this in places according to the quantile positions.",
+            "</p>",
+        } );
+        return new IntegerConfigKey( meta, 3 ) {
+            public Specifier<Integer> createSpecifier() {
+                return new ComboBoxSpecifier<Integer>(
+                               new ThicknessComboBox( 7 ) );
+            }
+        };
+    }
+
+    /**
+     * Returns a config key for target quantile range.
+     *
+     * @return  quantile range key
+     */
+    private static ConfigKey<Subrange> createQuantilesKey() {
+        ConfigMeta meta = new ConfigMeta( QUANTILES_NAME, "Quantiles" );
+        meta.setStringUsage( "<low-frac>[,<high-frac>]" );
+        meta.setShortDescription( "Target quantile value or range" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines the quantile or quantile range",
+            "of values that should be marked in each pixel column (or row).",
+            "The value may be a single number in the range 0..1",
+            "indicating the quantile which should be marked.",
+            "Alternatively, it may be a pair of numbers,",
+            "each in the range 0..1,",
+            "separated by commas (<code>&lt;lo&gt;,&lt;hi&gt;</code>)",
+            "indicating two quantile lines bounding an area to be filled.",
+            "A pair of equal values \"<code>a,a</code>\"",
+            "is equivalent to the single value \"<code>a</code>\".",
+            "The default is <code>0.5</code>,",
+            "which means to mark the median value in each column,",
+            "and could equivalently be specified <code>0.5,0.5</code>.",
+            "</p>",
+        } );
+        final Subrange dflt = new Subrange( 0.5, 0.5 );  // median
+        return new SubrangeConfigKey( meta, dflt, 0, 1 ) {
+            @Override
+            public String valueToString( Subrange range ) {
+                double lo = range.getLow();
+                double hi = range.getHigh();
+                return lo == hi ? format( lo )
+                                : format( lo ) + "," + format( hi );
+            }
+            @Override
+            public Subrange stringToValue( String txt ) throws ConfigException {
+                Subrange r0;
+                try {
+                    double v0 = Double.parseDouble( txt.trim() );
+                    r0 = new Subrange( v0, v0 );
+                }
+                catch ( NumberFormatException e ) {
+                    r0 = null;
+                }
+                Subrange range = r0 == null ? super.stringToValue( txt ) : r0;
+                double lo = range.getLow();
+                double hi = range.getHigh();
+                if ( ! ( lo >= 0 ) ) {
+                    throw new ConfigException( this,
+                                               "Bad lower bound: "
+                                             + lo + " < 0" );
+                }
+                if ( ! ( hi <= 1 ) ) {
+                    throw new ConfigException( this,
+                                               "Bad upper bound: "
+                                             + hi + " > 1" );
+                }
+                return range;
+            }
+            @Override
+            public Specifier<Subrange> createSpecifier() {
+                return new UnitRangeSpecifier( dflt );
+            }
+            private String format( double val ) {
+                String txt = Double.toString( val );
+                txt.replaceAll( "\\.0$", "" );
+                return txt;
+            }
+        };
+    }
+
+    /**
      * Defines the ready-to-use grid data for calculating column medians.
      */
     private interface GridData {
@@ -481,9 +601,16 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         private final Color color_;
         private final boolean isHorizontal_;
         private final int thickness_;
-        private final double quantile_;
+        private final double qlo_;
+        private final double qhi_;
         private final Kernel1dShape kernelShape_;
         private final BinSizer smoothSizer_;
+        private final int[] TDATA = new int[] {
+             3,  3,  3,  4,  5,  5,  6, 6, 6, 5, 5, 4, 4, 3, 3, 4, 4, 4, 3, 3,
+        };
+        private final int[] YDATA = new int[] {
+            -1, -1, -2, -2, -2, -1, -1, 0, 1, 1, 2, 2, 1, 1, 0, 0 ,0 -1, -1, 0,
+        };
 
         /**
          * Constructor.
@@ -491,17 +618,19 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
          * @param  color    colour
          * @param  isHorizontal  true for horizontal fill, false for vertical
          * @param  thickness   line thickness
-         * @param  quantile   target quantile in range 0..1
+         * @param  qlo   target lower quantile in range 0..1
+         * @param  qhi   target upper quantile in range 0..1
          * @param  kernelShape     smoothing kernel
          * @param  smoothSizer     smoothing extent control
          */
         public TraceStyle( Color color, boolean isHorizontal, int thickness,
-                           double quantile, Kernel1dShape kernelShape,
+                           double qlo, double qhi, Kernel1dShape kernelShape,
                            BinSizer smoothSizer ) {
             color_ = color;
             isHorizontal_ = isHorizontal;
             thickness_ = thickness;
-            quantile_ = quantile;
+            qlo_ = qlo;
+            qhi_ = qhi;
             kernelShape_ = kernelShape;
             smoothSizer_ = smoothSizer;
         }
@@ -518,10 +647,22 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                 }
                 public void paintIcon( Component c, Graphics g, int x, int y ) {
                     Color color0 = g.getColor();
-                    int y1 = y + ( height - thickness_ ) / 2;
                     g.setColor( color_ );
-                    g.fillRect( x, y + ( height - thickness_ ) / 2,
-                                width, thickness_ );
+                    for ( int ix = 0; ix < width; ix++ ) {
+                        int yd = YDATA[ Math.min( ix, YDATA.length - 1 ) ];
+                        int td;
+                        if ( qlo_ == qhi_ ) {
+                            td = thickness_;
+                        }
+                        else {
+                            td = TDATA[ Math.min( ix, TDATA.length - 1 ) ];
+                            if ( td < thickness_ ) {
+                                td = thickness_;
+                            }
+                        }
+                        g.fillRect( x + ix, y + ( height - td ) / 2 + yd ,
+                                    1, td );
+                    }
                     g.setColor( color0 );
                 }
             };
@@ -533,7 +674,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             code = 23 * code + color_.hashCode();
             code = 23 * code + ( isHorizontal_ ? 3 : 5 );
             code = 23 * code + thickness_;
-            code = 23 * code + Float.floatToIntBits( (float) quantile_ );
+            code = 23 * code + Float.floatToIntBits( (float) qlo_ );
+            code = 23 * code + Float.floatToIntBits( (float) qhi_ );
             code = 23 * code + PlotUtil.hashCode( kernelShape_ );
             code = 23 * code + smoothSizer_.hashCode();
             return code;
@@ -546,7 +688,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                 return this.color_.equals( other.color_ )
                     && this.isHorizontal_ == other.isHorizontal_
                     && this.thickness_ == other.thickness_
-                    && this.quantile_ == other.quantile_
+                    && this.qlo_ == other.qlo_
+                    && this.qhi_ == other.qhi_
                     && PlotUtil.equals( this.kernelShape_, other.kernelShape_)
                     && this.smoothSizer_.equals( other.smoothSizer_ );
             }
