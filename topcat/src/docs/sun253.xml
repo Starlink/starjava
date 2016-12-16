@@ -170,6 +170,7 @@
   <!ENTITY FIG.form_skyellipse '&figs;form_skyellipse.gif'>
   <!ENTITY FIG.form_line '&figs;form_line.gif'>
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
+  <!ENTITY FIG.form_quantile '&figs;form_quantile.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
   <!ENTITY FIG.form_fill '&figs;form_fill.gif'>
@@ -265,6 +266,8 @@
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
   <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
                           <ref id="form-linearfit">Linear Fit</ref>'>
+  <!ENTITY FORM.quantile '&IMG.FORM_QUANTILE;
+                          <ref id="form-quantile">Quantile</ref>'>
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
@@ -9031,6 +9034,107 @@ The reported items are:
 
 </subsubsubsect>
 
+<subsubsubsect id="form-quantile">
+<subhead><title>Quantile Form</title></subhead>
+
+<figure>
+<caption><px>Quantile configuration panel</px></caption>
+<figureimage src="&FIG.form_quantile;"/>
+</figure>
+
+<p>The <label>Quantile</label> form (&IMG.FORM_QUANTILE;)
+plots a line through a given quantile of the values binned within
+each pixel column (or row) of a plot.
+The line is optionally smoothed using a configurable kernel and width,
+to even out noise from the pixel binning.
+Instead of a simple line through a given quantile, it is also
+possible to fill the region between two quantiles.
+</p>
+
+<p>One way to use this is to draw a line estimating a function
+<m>y=f(x)</m> (or <m>x=g(y)</m>) sampled by a noisy set of data points
+in two dimensions.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Transparency</dt>
+<dd><p>Transparency with which components are plotted,
+    from opaque to invisible.
+    </p></dd>
+<dt>Quantiles</dt>
+<dd><p>Defines the quantile or quantile range of values that should be
+    marked in each pixel column (or row).
+    The slider control goes from 0 (minimum in pixel column/row)
+    to 1 (maximum in pixel column/row), so 0.5 indicates the median.
+    This control is a double-slider, so you can drag out a range
+    of values.  If the values are the same as each other, a single
+    point will be indicated, but if there is a range then the area
+    between the indicated quantiles will be filled.
+    </p>
+    <p>The radio buttons let you toggle between using the slider to
+    set the quantile value(s) or entering them in the text fields.
+    If the two values are identical, you can leave the second text field blank.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Sets the minimum extent of the markers that are plotted in each
+    pixel column (or row) to indicate the designated value range. If the
+    range is zero sized (two bounding quantiles are equal)
+    this will give the actual thickness of the plotted line.
+    If the range is non-zero however, the line may be thicker than this in
+    places according to the quantile positions.
+    </p></dd>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width.
+    This is the characteristic width of the <label>Kernel</label>
+    function to be convolved with the density in one dimension
+    to smooth the quantile function.
+    </p>
+    <p>You can adjust it using the slider (wider smoothing to the right)
+    or enter a value in data coordinates explicitly in the text field.
+    If the smoothed axis is logarithmic, the value is a multiplication factor
+    rather than an additive increment.
+    </p></dd>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Horizontal</dt>
+<dd><p>Determines whether the trace bins are horizontal or vertical.
+    If true, there is a <em>y</em> value calculated for each pixel column, and
+    if false, there is an <em>x</em> value for each pixel row.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-label">
 <subhead><title>Text Label Form</title></subhead>
 
@@ -10723,6 +10827,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.contour;</li>
     <li>&FORM.density;</li>
     <li>&FORM.fill;</li>
+    <li>&FORM.quantile;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
@@ -11873,6 +11978,7 @@ share a time axis but have their own Y axis.
     <li>&FORM.error; (vertical bars only)</li>
     <li>&FORM.label;</li>
     <li>&FORM.fill;</li>
+    <li>&FORM.quantile;</li>
     </ul>
     </li>
 <li>&CONTROL.histogram; with these form options:
@@ -23585,6 +23691,8 @@ introduced since the last version:
         <ref id="FrameControl">Frame</ref> layer control;
         values entered were being ignored for image export or
         display or both.</li>
+    <li>Add new plotting form <ref id="form-quantile">Quantile</ref>
+        for Plane and Time plots.</li>
     </ul>
     </p></dd>
 

@@ -10944,6 +10944,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>&lt;top&gt;,&lt;left&gt;,&lt;bottom&gt;,&lt;right&gt;</code>,
         rather than requiring all values or none.
         Also fix related regression bugs present since v3.0-6.</li>
+    <li>Add new plot layer type <ref id="layer-quantile">quantile</ref>
+        for <code>plot2plane</code> and <code>plot2time</code> commands.</li>
     </ul>
     </p></dd>
 

@@ -66,6 +66,10 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
            .setXmlDescription( new String[] {
                 "<p>Determines whether the trace bins are horizontal",
                 "or vertical.",
+                "If <code>true</code>, there is a <m>y</m> value calculated",
+                "for each pixel column, and",
+                "if <code>false</code>, there is an <m>x</m> value for each",
+                "pixel row.",
                 "</p>",
             } )
         , true );
@@ -143,6 +147,10 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             "to even out noise arising from the pixel binning.",
             "Instead of a simple line through a given quantile,",
             "it is also possible to fill the region between two quantiles.",
+            "</p>",
+            "<p>One way to use this is to draw a line estimating a function",
+            "<m>y=f(x)</m> (or <m>x=g(y)</m>) sampled by a noisy set",
+            "of data points in two dimensions.",
             "</p>",
         } );
     }
