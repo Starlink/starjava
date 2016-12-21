@@ -420,7 +420,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
             boolean xflip = xAxis.dataToGraphics( dlimits[ 0 ] )
                           > xAxis.dataToGraphics( dlimits[ 1 ] );
             double[] cbins = new double[ nb ];
-            double sum = binArray.getLowerSum( xflip );
+            double sum = scale * binArray.getLowerSum( xflip );
             for ( int ib = 0; ib < nb; ib++ ) {
                 int jb = xflip ? nb - ib - 1 : ib;
                 sum += bins[ jb ];

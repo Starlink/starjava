@@ -23693,6 +23693,8 @@ introduced since the last version:
         display or both.</li>
     <li>Add new plotting form <ref id="form-quantile">Quantile</ref>
         for Plane and Time plots.</li>
+    <li>Fix KDE/KNN plotting bug that could get scaling badly wrong
+        for normalised cumulative plots.</li>
     </ul>
     </p></dd>
 
