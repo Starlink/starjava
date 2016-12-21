@@ -93,10 +93,12 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   normKey   config key for normalisation options
      */
     public KnnKernelDensityPlotter( FloatingCoord xCoord,
-                                    boolean hasWeight ) {
-        super( xCoord, hasWeight, "Knn", ResourceIcon.FORM_KNN );
+                                    boolean hasWeight,
+                                    ConfigKey<Normalisation> normKey ) {
+        super( xCoord, hasWeight, normKey, "Knn", ResourceIcon.FORM_KNN );
     }
 
     public String getPlotterDescription() {

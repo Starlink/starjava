@@ -51,6 +51,7 @@ public abstract class AbstractKernelDensityPlotter
     public static final ConfigKey<Integer> THICK_KEY =
         StyleKeys.createThicknessKey( 2 );
 
+    private final ConfigKey<Normalisation> normKey_;
     private static final int GUESS_PLOT_WIDTH = 300;
 
     /**
@@ -58,13 +59,16 @@ public abstract class AbstractKernelDensityPlotter
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   normKey   config key for normalisation options
      * @param   name  plotter name
      * @param   icon  plotter icon
      */
     protected AbstractKernelDensityPlotter( FloatingCoord xCoord,
                                             boolean hasWeight,
+                                            ConfigKey<Normalisation> normKey,
                                             String name, Icon icon ) {
         super( xCoord, hasWeight, name, icon );
+        normKey_ = normKey;
     }
 
     /**
@@ -92,7 +96,7 @@ public abstract class AbstractKernelDensityPlotter
         list.addAll( Arrays.asList( getKernelConfigKeys() ) );
         list.add( KERNEL_KEY );
         list.add( StyleKeys.CUMULATIVE );
-        list.add( StyleKeys.NORMALISE );
+        list.add( normKey_ );
         list.add( StyleKeys.FILL );
         list.add( THICK_KEY );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -103,7 +107,7 @@ public abstract class AbstractKernelDensityPlotter
                                                StyleKeys.TRANSPARENCY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
-        Normalisation norm = config.get( StyleKeys.NORMALISE );
+        Normalisation norm = config.get( normKey_ );
         FillMode fill = config.get( StyleKeys.FILL );
         KernelFigure kernelFigure = createKernelFigure( config );
         Stroke stroke = fill.hasLine()

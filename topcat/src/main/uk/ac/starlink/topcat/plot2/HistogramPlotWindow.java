@@ -38,6 +38,8 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
@@ -456,10 +458,13 @@ public class HistogramPlotWindow
             return surfFact_;
         }
         public Plotter[] getPlotters() {
+            ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE;
             return new Plotter[] {
-                new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
-                new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
-                new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
+                new HistogramPlotter( PlaneDataGeom.X_COORD, true, normKey ),
+                new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
+                                               normKey ),
+                new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
+                                             normKey ),
                 new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
                 FunctionPlotter.PLANE,
             };

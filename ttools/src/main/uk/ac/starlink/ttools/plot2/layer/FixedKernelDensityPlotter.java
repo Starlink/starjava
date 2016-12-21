@@ -21,10 +21,12 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   normKey   config key for normalisation options
      */
     public FixedKernelDensityPlotter( FloatingCoord xCoord,
-                                      boolean hasWeight ) {
-        super( xCoord, hasWeight, "KDE", ResourceIcon.FORM_KDE );
+                                      boolean hasWeight,
+                                      ConfigKey<Normalisation> normKey ) {
+        super( xCoord, hasWeight, normKey, "KDE", ResourceIcon.FORM_KDE );
     }
 
     protected ConfigKey[] getKernelConfigKeys() {

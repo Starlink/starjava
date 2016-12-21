@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -25,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.layer.LinearFitPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.PlaneEllipseCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
@@ -90,6 +92,7 @@ public class PlanePlotType implements PlotType {
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( shapePlotters ) );
+        ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE;
         list.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
             new LinearFitPlotter( true ),
@@ -98,9 +101,10 @@ public class PlanePlotType implements PlotType {
             new DensityPlotter( true, true ),
             new FillPlotter( true ),
             new TracePlotter( true ),
-            new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
-            new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
-            new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
+            new HistogramPlotter( PlaneDataGeom.X_COORD, true, normKey ),
+            new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
+                                           normKey ),
+            new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true, normKey ),
             new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
             FunctionPlotter.PLANE,
         } ) );
