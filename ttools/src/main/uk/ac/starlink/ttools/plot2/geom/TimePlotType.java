@@ -70,7 +70,7 @@ public class TimePlotType implements PlotType {
                         .asList( ShapePlotter
                                 .createShapePlotters( modeForms,
                                                       ShapeMode.MODES_2D ) ) );
-        ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE;
+        ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE_TIME;
         plotters.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
             new FillPlotter( false ),

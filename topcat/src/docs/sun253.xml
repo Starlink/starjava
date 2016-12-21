@@ -9586,6 +9586,9 @@ for the Histogram window:
         The total height of histogram bars is normalised to unity.
         </li>
     </ul>
+    When used in the <ref id="TimePlotWindow">Time plot</ref> only,
+    additional options <label>per_second</label>, <label>per_day</label> etc
+    are available corresponding to the frequency over the named time unit.
     </p></dd>
 </dl>
 </p>
@@ -9732,6 +9735,9 @@ for the Histogram window:
         The total height of histogram bars is normalised to unity.
         </li>
     </ul>
+    When used in the <ref id="TimePlotWindow">Time plot</ref> only,
+    additional options <label>per_second</label>, <label>per_day</label> etc
+    are available corresponding to the frequency over the named time unit.
     </p></dd>
 </dl>
 </p>
@@ -9900,6 +9906,9 @@ for the Histogram window:
         The total height of histogram bars is normalised to unity.
         </li>
     </ul>
+    When used in the <ref id="TimePlotWindow">Time plot</ref> only,
+    additional options <label>per_second</label>, <label>per_day</label> etc
+    are available corresponding to the frequency over the named time unit.
     </p></dd>
 </dl>
 </p>
@@ -23713,6 +23722,8 @@ introduced since the last version:
         for normalised cumulative plots.</li>
     <li>New normalisation (scaling) option <label>unit</label> for
         histogram, KDE, and KNN layers.</li>
+    <li>New normalisation (scaling) options <label>per_day</label> etc
+        for histogram, KDE and KNN layers in the Time plot window only.</li>
     </ul>
     </p></dd>
 

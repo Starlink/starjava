@@ -10950,6 +10950,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for normalised cumulative plots.</li>
     <li>New normalisation (scaling) option <label>unit</label> for
         histogram, KDE, and KNN plots.</li>
+    <li>New normalisation (scaling) options <label>per_day</label> etc
+        for histogram, KDE and KNN layers when used from the
+        <code>plot2time</code> command.</li>
     </ul>
     </p></dd>
 
