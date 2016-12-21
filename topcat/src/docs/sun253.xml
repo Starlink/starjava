@@ -9574,6 +9574,10 @@ for the Histogram window:
         The total area of histogram bars is normalised to unity.
         For cumulative plots, this behaves like <label>height</label>.
         </li>
+    <li><label>unit</label>:
+        Histogram bars are scaled by the inverse of the bin width in data units.
+        For cumulative plots, this behaves like <label>none</label>.
+        </li>
     <li><label>maximum</label>:
         The height of the tallest histogram bar is normalised to unity.
         For cumulative plots, this behaves like <label>height</label>.
@@ -9715,6 +9719,10 @@ for the Histogram window:
     <li><label>area</label>:
         The total area of histogram bars is normalised to unity.
         For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>unit</label>:
+        Histogram bars are scaled by the inverse of the bin width in data units.
+        For cumulative plots, this behaves like <label>none</label>.
         </li>
     <li><label>maximum</label>:
         The height of the tallest histogram bar is normalised to unity.
@@ -9879,6 +9887,10 @@ for the Histogram window:
     <li><label>area</label>:
         The total area of histogram bars is normalised to unity.
         For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>unit</label>:
+        Histogram bars are scaled by the inverse of the bin width in data units.
+        For cumulative plots, this behaves like <label>none</label>.
         </li>
     <li><label>maximum</label>:
         The height of the tallest histogram bar is normalised to unity.
@@ -10778,6 +10790,10 @@ and has the following controls:
     <li><label>area</label>:
         The total area of histogram bars is normalised to unity.
         For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>unit</label>:
+        Histogram bars are scaled by the inverse of the bin width in data units.
+        For cumulative plots, this behaves like <label>none</label>.
         </li>
     <li><label>maximum</label>:
         The height of the tallest histogram bar is normalised to unity.
@@ -23695,6 +23711,8 @@ introduced since the last version:
         for Plane and Time plots.</li>
     <li>Fix KDE/KNN plotting bug that could get scaling badly wrong
         for normalised cumulative plots.</li>
+    <li>New normalisation (scaling) option <label>unit</label> for
+        histogram, KDE, and KNN layers.</li>
     </ul>
     </p></dd>
 

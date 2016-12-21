@@ -10948,6 +10948,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for <code>plot2plane</code> and <code>plot2time</code> commands.</li>
     <li>Fix KDE/KNN plotting bug that could get scaling badly wrong
         for normalised cumulative plots.</li>
+    <li>New normalisation (scaling) option <label>unit</label> for
+        histogram, KDE, and KNN plots.</li>
     </ul>
     </p></dd>
 
