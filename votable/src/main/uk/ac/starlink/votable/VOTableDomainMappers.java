@@ -25,6 +25,11 @@ class VOTableDomainMappers {
         Pattern.compile( "time(\\.(epoch|start|end))?(;.*)?|TIME_DATE(_.*)?",
                          Pattern.CASE_INSENSITIVE );
 
+    /** Regex in Utype that looks like an ObsCore MJD-mandated value. */
+    static final Pattern OBSCORE_T_UTYPE_PATTERN =
+        Pattern.compile( ".*Char\\.TimeAxis\\.Coverage\\.Bounds\\.Limits.*",
+                         Pattern.CASE_INSENSITIVE );
+
     /**
      * Identifies suitable DomainMapper objects to associate with a column.
      *
@@ -36,11 +41,18 @@ class VOTableDomainMappers {
         Class clazz = info.getContentClass();
         String units = info.getUnitString();
         String ucd = info.getUCD();
+        String utype = info.getUtype();
         if ( xtype == null ) {
             xtype = "";
         }
         if ( units == null ) {
             units = "";
+        }
+        if ( ucd == null ) {
+            ucd = "";
+        }
+        if ( utype == null ) {
+            utype = "";
         }
 
         /* Unquote the string.  This tackles a convention in use
@@ -48,9 +60,6 @@ class VOTableDomainMappers {
          * to represent non-standard values, e.g. unit='"hms"'.
          * Also trim it for good measure. */
         units = unquote( units.trim() ).trim();
-        if ( ucd == null ) {
-            ucd = "";
-        }
 
         /* If it's a string, see if it looks like an ISO-8601 date. */
         if ( String.class.isAssignableFrom( clazz ) ) {
@@ -66,7 +75,9 @@ class VOTableDomainMappers {
 
         /* Try some numeric time domains. */
         if ( Number.class.isAssignableFrom( clazz ) ) {
-            if ( "mjd".equalsIgnoreCase( xtype ) ) {
+            if ( "mjd".equalsIgnoreCase( xtype ) ||
+                 ( OBSCORE_T_UTYPE_PATTERN.matcher( utype ).matches() && 
+                   "d".equals( units ) ) ) {
                 mappers.add( TimeMapper.MJD );
             }
             else if ( "jd".equalsIgnoreCase( xtype ) ) {
