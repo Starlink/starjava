@@ -49,7 +49,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  * @author   Mark Taylor
  * @since    30 Sep 2016
  */
-public class Stats1Plotter implements Plotter<LineStyle> {
+public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
@@ -146,16 +146,16 @@ public class Stats1Plotter implements Plotter<LineStyle> {
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public LineStyle createStyle( ConfigMap config ) {
+    public StatsStyle createStyle( ConfigMap config ) {
         Color color = config.get( StyleKeys.COLOR );
         Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                                 BasicStroke.JOIN_ROUND );
         boolean antialias = config.get( StyleKeys.ANTIALIAS );
-        return new LineStyle( color, stroke, antialias );
+        return new StatsStyle( color, stroke, antialias );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
-                                  final LineStyle style ) {
+                                  final StatsStyle style ) {
         LayerOpt layerOpt = new LayerOpt( style.getColor(), true );
         return new AbstractPlotLayer( this, fitDataGeom_, dataSpec,
                                       style, layerOpt ) {
@@ -179,6 +179,40 @@ public class Stats1Plotter implements Plotter<LineStyle> {
     }
 
     /**
+     * Style class associated with this plotter.
+     */
+    public static class StatsStyle extends LineStyle {
+
+        /**
+         * Constructor.
+         *
+         * @param  color   line colour
+         * @param  stroke  line stroke
+         * @param   antialias  true to draw line antialiased
+         */
+        public StatsStyle( Color color, Stroke stroke, boolean antialias ) {
+            super( color, stroke, antialias );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = super.hashCode();
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof StatsStyle ) {
+                StatsStyle other = (StatsStyle) o;
+                return super.equals( other );
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
      * Drawing for stats plot.
      */
     private class StatsDrawing implements Drawing {
@@ -186,7 +220,7 @@ public class Stats1Plotter implements Plotter<LineStyle> {
         private final PlanarSurface surface_;
         private final DataGeom geom_;
         private final DataSpec dataSpec_;
-        private final LineStyle style_;
+        private final StatsStyle style_;
         private final PaperType paperType_;
 
         /**
@@ -199,7 +233,7 @@ public class Stats1Plotter implements Plotter<LineStyle> {
          * @param  paperType  paper type
          */
         StatsDrawing( PlanarSurface surface, DataGeom geom, DataSpec dataSpec,
-                      LineStyle style, PaperType paperType ) {
+                      StatsStyle style, PaperType paperType ) {
             surface_ = surface;
             geom_ = geom;
             dataSpec_ = dataSpec;
@@ -306,9 +340,9 @@ public class Stats1Plotter implements Plotter<LineStyle> {
          *
          * @param  g  graphics context
          * @param  surface  plot surface
-         * @param  style   line style
+         * @param  style   style
          */
-        void paintLine( Graphics g, Surface surface, LineStyle style,
+        void paintLine( Graphics g, Surface surface, StatsStyle style,
                         boolean isBitmap ) {
             Graphics2D g2 = (Graphics2D) g;
             Rectangle box = surface.getPlotBounds();
