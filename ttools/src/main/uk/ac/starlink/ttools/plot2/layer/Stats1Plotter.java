@@ -37,6 +37,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -57,14 +58,23 @@ public class Stats1Plotter implements Plotter<LineStyle> {
     private final int icX_;
     private final int icWeight_;
 
+    /** Report key for fitted multiplicative constant. */
+    public static final ReportKey<Double> CONST_KEY =
+        ReportKey.createDoubleKey( new ReportMeta( "c", "Factor" ), true );
+
     /** Report key for fitted mean. */
-    private static final ReportKey<Double> MEAN_KEY =
+    public static final ReportKey<Double> MEAN_KEY =
         ReportKey.createDoubleKey( new ReportMeta( "mu", "Mean" ), true );
 
     /** Report key for fitted standard deviation. */
-    private static final ReportKey<Double> STDEV_KEY =
+    public static final ReportKey<Double> STDEV_KEY =
         ReportKey.createDoubleKey( new ReportMeta( "sigma",
                                                    "Standard Deviation" ),
+                                   true );
+
+    /** Report key for gaussian fit equation. */
+    public static final ReportKey<String> EQUATION_KEY =
+        ReportKey.createStringKey( new ReportMeta( "equation", "Equation" ),
                                    true );
 
     /**
@@ -152,10 +162,20 @@ public class Stats1Plotter implements Plotter<LineStyle> {
             public Drawing createDrawing( Surface surface,
                                           Map<AuxScale,Range> auxRanges,
                                           PaperType paperType ) {
-                return new StatsDrawing( surface, geom, dataSpec, style,
-                                         paperType );
+                return new StatsDrawing( (PlanarSurface) surface, geom,
+                                         dataSpec, style, paperType );
             }
         };
+    }
+
+    /**
+     * Log function, used for transforming X values to values for fitting.
+     *
+     * @param  val  value
+     * @return  log to base 10 of <code>val</code>
+     */
+    private static double log( double val ) {
+        return Math.log10( val );
     }
 
     /**
@@ -163,7 +183,7 @@ public class Stats1Plotter implements Plotter<LineStyle> {
      */
     private class StatsDrawing implements Drawing {
 
-        private final Surface surface_;
+        private final PlanarSurface surface_;
         private final DataGeom geom_;
         private final DataSpec dataSpec_;
         private final LineStyle style_;
@@ -178,7 +198,7 @@ public class Stats1Plotter implements Plotter<LineStyle> {
          * @param  style     line plotting style
          * @param  paperType  paper type
          */
-        StatsDrawing( Surface surface, DataGeom geom, DataSpec dataSpec,
+        StatsDrawing( PlanarSurface surface, DataGeom geom, DataSpec dataSpec,
                       LineStyle style, PaperType paperType ) {
             surface_ = surface;
             geom_ = geom;
@@ -189,12 +209,13 @@ public class Stats1Plotter implements Plotter<LineStyle> {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
+            boolean isLog = surface_.getLogFlags()[ 0 ];
 
             /* If one of the known plans matches the one we're about
              * to calculate, just return that. */
             for ( Object plan : knownPlans ) {
                 if ( plan instanceof StatsPlan &&
-                     ((StatsPlan) plan).matches( dataSpec_ ) ) {
+                     ((StatsPlan) plan).matches( isLog, dataSpec_ ) ) {
                     return plan;
                 }
             }
@@ -205,17 +226,24 @@ public class Stats1Plotter implements Plotter<LineStyle> {
             if ( weightCoord_ == null || dataSpec_.isCoordBlank( icWeight_ ) ) {
                 while ( tseq.next() ) {
                     double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                    stats.addPoint( x );
+                    double s = isLog ? log( x ) : x;
+                    if ( PlotUtil.isFinite( s ) ) {
+                        stats.addPoint( s );
+                    }
                 }
             }
             else {
                 while ( tseq.next() ) {
                     double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                    double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                    stats.addPoint( x, w );
+                    double s = isLog ? log( x ) : x;
+                    if ( PlotUtil.isFinite( s ) ) {
+                        double w =
+                            weightCoord_.readDoubleCoord( tseq, icWeight_ );
+                        stats.addPoint( s, w );
+                    }
                 } 
             }
-            return new StatsPlan( stats, dataSpec_ );
+            return new StatsPlan( isLog, stats, dataSpec_ );
         }
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
@@ -240,6 +268,7 @@ public class Stats1Plotter implements Plotter<LineStyle> {
      * Plan object encapsulating the inputs and results of a stats plot.
      */
     private static class StatsPlan {
+        final boolean isLog_;
         final double mean_;
         final double sigma_;
         final double c_;
@@ -248,10 +277,12 @@ public class Stats1Plotter implements Plotter<LineStyle> {
         /**
          * Constructor.
          *
+         * @param  isLog   true iff stats are calculated on data logarithms
          * @param  stats   univariate statistics giving fit results
          * @param  dataSpec   characterisation of input data points
          */
-        StatsPlan( WStats stats, DataSpec dataSpec ) {
+        StatsPlan( boolean isLog, WStats stats, DataSpec dataSpec ) {
+            isLog_ = isLog;
             mean_ = stats.getMean();
             sigma_ = stats.getSigma();
             c_ = stats.getSum() / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
@@ -262,10 +293,12 @@ public class Stats1Plotter implements Plotter<LineStyle> {
          * Indicates whether this object's state will be the same as
          * a plan calculated for the given input values.
          *
+         * @param  isLog   true iff stats are calculated on data logarithms
          * @param  dataSpec  characterisation of input data points
          */
-        boolean matches( DataSpec dataSpec ) {
-            return dataSpec.equals( dataSpec_ );
+        boolean matches( boolean isLog, DataSpec dataSpec ) {
+            return isLog == isLog_
+                && dataSpec.equals( dataSpec_ );
         }
 
         /**
@@ -309,7 +342,8 @@ public class Stats1Plotter implements Plotter<LineStyle> {
          * @return  Gaussian function evaluated at <code>x</code>
          */
         double gaussian( double x ) {
-            double p = ( x - mean_ ) / sigma_;
+            double s = isLog_ ? log( x ) : x;
+            double p = ( s - mean_ ) / sigma_;
             return c_ * Math.exp( - 0.5 * p * p );
         }
 
@@ -320,6 +354,23 @@ public class Stats1Plotter implements Plotter<LineStyle> {
          */
         public ReportMap getReport() {
             ReportMap report = new ReportMap();
+            String equation = new StringBuffer()
+                .append( "y" )
+                .append( " = " )
+                .append( CONST_KEY.getMeta().getShortName() )
+                .append( " * " )
+                .append( "exp( -[" )
+                .append( "(" )
+                .append( isLog_ ? "log10(x)" : "x" )
+                .append( "-" )
+                .append( MEAN_KEY.getMeta().getShortName() )
+                .append( ")" )
+                .append( "/" )
+                .append( STDEV_KEY.getMeta().getShortName() )
+                .append( "]^2 / 2)" )
+                .toString();
+            report.put( EQUATION_KEY, equation );
+            report.put( CONST_KEY, c_ );
             report.put( MEAN_KEY, mean_ );
             report.put( STDEV_KEY, sigma_ );
             return report;
