@@ -23724,6 +23724,7 @@ introduced since the last version:
         histogram, KDE, and KNN layers.</li>
     <li>New normalisation (scaling) options <label>per_day</label> etc
         for histogram, KDE and KNN layers in the Time plot window only.</li>
+    <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
     </ul>
     </p></dd>
 

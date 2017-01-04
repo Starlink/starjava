@@ -10953,6 +10953,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New normalisation (scaling) options <label>per_day</label> etc
         for histogram, KDE and KNN layers when used from the
         <code>plot2time</code> command.</li>
+    <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
     </ul>
     </p></dd>
 
