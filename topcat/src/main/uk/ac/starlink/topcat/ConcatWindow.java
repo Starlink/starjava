@@ -26,6 +26,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.BlankColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -237,17 +238,28 @@ public class ConcatWindow extends AuxWindow {
      */
     private StarTable makeTable() throws IOException {
         StarTable t1 = getBaseTable().getApparentStarTable();
-        final StarTable t2base = getAddedTable().getApparentStarTable();
+        final ViewerTableModel t2base = getAddedTable().getViewModel();
         int ncol = colSelectorModels_.length;
         ColumnStarTable t2 = ColumnStarTable
                             .makeTableWithRows( t2base.getRowCount() );
+        final int[] rowMap2 = t2base.getRowMap();
         for ( int icol = 0; icol < ncol; icol++ ) {
-            Object selObj = colSelectorModels_[ icol ].getSelectedItem();
-            ColumnData cdata = selObj instanceof ColumnData
-                             ? (ColumnData) selObj
-                             : null;
             ColumnInfo info = t1.getColumnInfo( icol );
-            t2.addColumn( getColumnData( cdata, info ) );
+            Object selObj = colSelectorModels_[ icol ].getSelectedItem();
+            ColumnData selData = selObj instanceof ColumnData
+                               ? (ColumnData) selObj
+                               : null;
+            final ColumnData baseData = getColumnData( selData, info );
+            ColumnData cdata =
+                  rowMap2 == null
+                ? baseData
+                : new ColumnData( baseData.getColumnInfo() ) {
+                      public Object readValue( long lrow ) throws IOException {
+                          int jrow = AbstractStarTable.checkedLongToInt( lrow );
+                          return baseData.readValue( rowMap2[ jrow ] );
+                      }
+                  };
+            t2.addColumn( cdata );
         }
         return new ConcatStarTable( t1, new StarTable[] { t1, t2 } );
     }

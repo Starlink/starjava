@@ -23725,6 +23725,10 @@ introduced since the last version:
     <li>New normalisation (scaling) options <label>per_day</label> etc
         for histogram, KDE and KNN layers in the Time plot window only.</li>
     <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
+    <li>Fix nasty <ref id="ConcatWindow">Concatenation Window</ref> bug;
+        the current subset and sort order of the Appended table
+        were not properly taken account of in the output.
+        This was a regression bug introduced at v4.3-4.</li>
     </ul>
     </p></dd>
 
