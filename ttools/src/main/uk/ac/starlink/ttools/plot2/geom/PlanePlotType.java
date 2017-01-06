@@ -107,7 +107,7 @@ public class PlanePlotType implements PlotType {
                                            normKey ),
             new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true, normKey ),
             new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
-            new Stats1Plotter( PlaneDataGeom.X_COORD, true ),
+            new Stats1Plotter( PlaneDataGeom.X_COORD, true, normKey ),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );

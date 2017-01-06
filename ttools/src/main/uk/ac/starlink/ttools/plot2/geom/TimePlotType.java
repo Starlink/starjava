@@ -81,7 +81,7 @@ public class TimePlotType implements PlotType {
                                            normKey ),
             new KnnKernelDensityPlotter( TimeDataGeom.T_COORD, true, normKey ),
             new DensogramPlotter( TimeDataGeom.T_COORD, true ),
-            new Stats1Plotter( TimeDataGeom.T_COORD, true ),
+            new Stats1Plotter( TimeDataGeom.T_COORD, true, normKey ),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),

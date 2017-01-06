@@ -53,6 +53,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
+    private final ConfigKey<Normalisation> normKey_;
     private final SliceDataGeom fitDataGeom_;
     private final CoordGroup fitCoordGrp_;
     private final int icX_;
@@ -72,19 +73,26 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                                                    "Standard Deviation" ),
                                    true );
 
-    /** Report key for gaussian fit equation. */
-    public static final ReportKey<String> EQUATION_KEY =
-        ReportKey.createStringKey( new ReportMeta( "equation", "Equation" ),
+    /** Report key for gaussian fit function. */
+    public static final ReportKey<String> FUNCTION_KEY =
+        ReportKey.createStringKey( new ReportMeta( "function", "Function" ),
                                    true );
+
+    /** Config key for equivalent histogram bar width. */
+    public static final ConfigKey<BinSizer> BINSIZER_KEY =
+        HistogramPlotter.BINSIZER_KEY;
 
     /**
      * Constructor.
      *
      * @param  xCoord   X axis coordinate
      * @param  hasWeight  true if weights may be used
+     * @param   normKey   config key for normalisation options
      */
-    public Stats1Plotter( FloatingCoord xCoord, boolean hasWeight ) {
+    public Stats1Plotter( FloatingCoord xCoord, boolean hasWeight,
+                          ConfigKey<Normalisation> normKey ) {
         xCoord_ = xCoord;
+        normKey_ = normKey;
         if ( hasWeight ) {
             weightCoord_ = FloatingCoord.WEIGHT_COORD;
             fitCoordGrp_ =
@@ -130,7 +138,19 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
               .append( "of a sample of, possibly weighted, values.\n" )
               .append( "By default this representation takes the form of\n" )
               .append( "a Gaussian fit to the histogram of the data.\n" )
-              .append( "</p>" )
+              .append( "</p>\n" )
+              .append( "<p>The <code>" + normKey_ + "</code> config option,\n" )
+              .append( "perhaps in conjunction with\n" )
+              .append( "<code>" + BINSIZER_KEY + "</code>,\n" )
+              .append( "can be used to scale the height\n" )
+              .append( "of the plotted curve in data units.\n" )
+              .append( "In this case, <code>" + BINSIZER_KEY + "</code>\n" )
+              .append( "just describes the bar width of a\n" )
+              .append( "notional histogram whose outline\n" )
+              .append( "the plotted Gaussian should try to track,\n" )
+              .append( "and is only relevant for some\n" )
+              .append( "normalisation options.\n" )
+              .append( "</p>\n" )
               .toString();
     }
 
@@ -143,6 +163,8 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         list.add( StyleKeys.COLOR );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         list.add( StyleKeys.ANTIALIAS );
+        list.add( normKey_ );
+        list.add( BINSIZER_KEY );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
@@ -151,7 +173,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                                 BasicStroke.JOIN_ROUND );
         boolean antialias = config.get( StyleKeys.ANTIALIAS );
-        return new StatsStyle( color, stroke, antialias );
+        Normalisation norm = config.get( normKey_ );
+        BinSizer sizer = config.get( BINSIZER_KEY );
+        return new StatsStyle( color, stroke, antialias, norm, sizer );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -183,20 +207,31 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
      */
     public static class StatsStyle extends LineStyle {
 
+        final Normalisation norm_;
+        final BinSizer sizer_;
+
         /**
          * Constructor.
          *
          * @param  color   line colour
          * @param  stroke  line stroke
          * @param   antialias  true to draw line antialiased
+         * @param  norm  normalisation
+         * @param  sizer   histogram equivalent bin sizer,
+         *                 may be used in conjunction with norm
          */
-        public StatsStyle( Color color, Stroke stroke, boolean antialias ) {
+        public StatsStyle( Color color, Stroke stroke, boolean antialias,
+                           Normalisation norm, BinSizer sizer ) {
             super( color, stroke, antialias );
+            norm_ = norm;
+            sizer_ = sizer;
         }
 
         @Override
         public int hashCode() {
             int code = super.hashCode();
+            code = 23 * code + PlotUtil.hashCode( norm_ );
+            code = 23 * code + PlotUtil.hashCode( sizer_ );
             return code;
         }
 
@@ -204,7 +239,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         public boolean equals( Object o ) {
             if ( o instanceof StatsStyle ) {
                 StatsStyle other = (StatsStyle) o;
-                return super.equals( other );
+                return super.equals( other )
+                    && PlotUtil.equals( this.norm_, other.norm_ )
+                    && PlotUtil.equals( this.sizer_, other.sizer_ );
             }
             else {
                 return false;
@@ -294,7 +331,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         }
 
         public ReportMap getReport( Object plan ) {
-            return ((StatsPlan) plan).getReport();
+            return ((StatsPlan) plan).getReport( surface_, style_ );
         }
     }
 
@@ -305,7 +342,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         final boolean isLog_;
         final double mean_;
         final double sigma_;
-        final double c_;
+        final double sum_;
         final DataSpec dataSpec_;
 
         /**
@@ -319,7 +356,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             isLog_ = isLog;
             mean_ = stats.getMean();
             sigma_ = stats.getSigma();
-            c_ = stats.getSum() / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
+            sum_ = stats.getSum();
             dataSpec_ = dataSpec;
         }
 
@@ -342,8 +379,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * @param  surface  plot surface
          * @param  style   style
          */
-        void paintLine( Graphics g, Surface surface, StatsStyle style,
+        void paintLine( Graphics g, PlanarSurface surface, StatsStyle style,
                         boolean isBitmap ) {
+            double factor = getFactor( surface, style );
             Graphics2D g2 = (Graphics2D) g;
             Rectangle box = surface.getPlotBounds();
             int gxlo = box.x - 2;
@@ -358,7 +396,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                    .graphicsToData( new Point( gxlo + ip, box.y ), null )[ 0 ];
                 if ( ! Double.isNaN( dx ) ) {
                     dpos[ 0 ] = dx;
-                    dpos[ 1 ] = gaussian( dx );
+                    dpos[ 1 ] = factor * gaussian( dx );
                     if ( surface.dataToGraphics( dpos, false, gpos ) &&
                          PlotUtil.isPointReal( gpos ) ) {
                         tracer.addVertex( gpos.x, gpos.y );
@@ -369,44 +407,66 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         }
 
         /**
+         * Returns the multiplicative factor by which the <code>gaussian</code>
+         * method should be multiplied to give the plotted value.
+         *
+         * @param  surface   target plotting surface
+         * @param  style     stats style
+         */
+        private double getFactor( PlanarSurface surface, StatsStyle style ) {
+            boolean xlog = surface.getLogFlags()[ 0 ];
+            double[] xlims = surface.getDataLimits()[ 0 ];
+            double bw = style.sizer_.getWidth( xlog, xlims[ 0 ], xlims[ 1 ] );
+            double binWidth = xlog ? log( bw ) : bw;
+            double c = 1.0 / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
+            double sum = sum_;
+            double max = c * sum * binWidth;
+            boolean isCumulative = false;
+            double normFactor =
+                style.norm_.getScaleFactor( sum, max, binWidth, isCumulative );
+            return normFactor * c * sum_ * binWidth;
+        }
+
+        /**
          * Returns the value of the Gaussian function for this plan,
          * using data coordinates.
+         * The result is lacking a scale factor;
+         * its value is unity at the mean.
          *
-         * @param  x  input value
-         * @return  Gaussian function evaluated at <code>x</code>
+         * @param  x  input value in data coordinates
+         * @return  unscaled Gaussian function evaluated at <code>x</code>
          */
         double gaussian( double x ) {
             double s = isLog_ ? log( x ) : x;
             double p = ( s - mean_ ) / sigma_;
-            return c_ * Math.exp( - 0.5 * p * p );
+            return Math.exp( - 0.5 * p * p );
         }
 
         /**
          * Returns a plot report based on the state of this plan.
          *
+         * @param   surface  target plotting surface
+         * @param   style    plot style
          * @return  report
          */
-        public ReportMap getReport() {
+        public ReportMap getReport( PlanarSurface surface, StatsStyle style ) {
             ReportMap report = new ReportMap();
-            String equation = new StringBuffer()
-                .append( "y" )
-                .append( " = " )
-                .append( CONST_KEY.getMeta().getShortName() )
-                .append( " * " )
-                .append( "exp( -[" )
-                .append( "(" )
-                .append( isLog_ ? "log10(x)" : "x" )
-                .append( "-" )
-                .append( MEAN_KEY.getMeta().getShortName() )
-                .append( ")" )
-                .append( "/" )
-                .append( STDEV_KEY.getMeta().getShortName() )
-                .append( "]^2 / 2)" )
-                .toString();
-            report.put( EQUATION_KEY, equation );
-            report.put( CONST_KEY, c_ );
+            double factor = getFactor( surface, style );
             report.put( MEAN_KEY, mean_ );
             report.put( STDEV_KEY, sigma_ );
+            report.put( CONST_KEY, factor );
+            String function = new StringBuffer()
+                .append( CONST_KEY.toText( factor ) )
+                .append( " * " )
+                .append( "exp(-0.5 * pow((" )
+                .append( isLog_ ? "log10(x)" : "x" )
+                .append( "-" )
+                .append( MEAN_KEY.toText( mean_ ) )
+                .append( ")/" )
+                .append( STDEV_KEY.toText( sigma_ ) )
+                .append( ", 2))" )
+                .toString();
+            report.put( FUNCTION_KEY, function );
             return report;
         }
     }

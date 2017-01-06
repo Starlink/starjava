@@ -467,7 +467,7 @@ public class HistogramPlotWindow
                 new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
                                              normKey ),
                 new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
-                new Stats1Plotter( PlaneDataGeom.X_COORD, true ),
+                new Stats1Plotter( PlaneDataGeom.X_COORD, true, normKey ),
                 FunctionPlotter.PLANE,
             };
         }
