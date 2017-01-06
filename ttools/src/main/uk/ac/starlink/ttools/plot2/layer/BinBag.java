@@ -124,7 +124,7 @@ public class BinBag {
         }
 
         /* Normalise. */
-        double bw = log_ ? Math.log( binWidth_ ) : binWidth_;
+        double bw = log_ ? log( binWidth_ ) : binWidth_;
         double scale = norm.getScaleFactor( total, max, bw, cumulative );
         if ( scale != 1.0 ) {
             for ( int ib = 0; ib < nbin; ib++ ) {
@@ -296,9 +296,9 @@ public class BinBag {
            if ( point <= 0 ) {
                point = 1;
            }
-           int n = (int) Math.floor( Math.log( point ) / Math.log( width ) );
+           int n = (int) Math.floor( log( point ) / log( width ) );
            double ref = Math.pow( width, n + phase );
-           assert Math.abs( Math.log( ref / point ) ) <= width;
+           assert Math.abs( log( ref / point ) ) <= width;
            return ref;
        }
        else {
@@ -308,6 +308,16 @@ public class BinBag {
            return ref;
        }
     }
+
+    /**
+     * Logarithm function, used for transforming values on logarithmic X axis.
+     *
+     * @param  val  value
+     * @return  log to base 10 of <code>val</code>
+     */
+    private static double log( double val ) {
+        return Math.log10( val ); 
+    }           
 
     /**
      * Describes the extent of a bin and the value it contains.
@@ -406,12 +416,12 @@ public class BinBag {
         LogBinMapper( double width, double floor ) {
             width_ = width;
             floor_ = floor;
-            logWidth1_ = 1. / Math.log( width );
+            logWidth1_ = 1. / log( width );
             floor1_ = 1. / floor;
         }
 
         public int getBinIndex( double value ) {
-            return (int) Math.floor( Math.log( value * floor1_ ) * logWidth1_ );
+            return (int) Math.floor( log( value * floor1_ ) * logWidth1_ );
         }
 
         public double[] getBinLimits( int index ) {
