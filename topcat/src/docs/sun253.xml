@@ -23729,6 +23729,7 @@ introduced since the last version:
         the current subset and sort order of the Appended table
         were not properly taken account of in the output.
         This was a regression bug introduced at v4.3-4.</li>
+    <li>Added STScI service to default list of RegTAP registry endpoints.</li>
     </ul>
     </p></dd>
 

@@ -61,6 +61,10 @@ public class RegTapRegistryQuery implements RegistryQuery {
     public static final String EUROVO_REG =
         "http://registry.euro-vo.org/regtap/tap";
 
+    /** TAP endpoint for STScI/VAO registry. */
+    public static final String STSCI_REG =
+        "http://vao.stsci.edu/RegTAP/TapService.aspx";
+
     /** TAP endpoint for INAF registry (not sure if this is permanent). */
     public static final String INAF_REG =
         "http://ia2-vo.oats.inaf.it:8080/registry";
@@ -68,6 +72,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
     /** List of known registry TAP endpoints. */
     public static final String[] REGISTRIES = new String[] {
         GAVO_REG,
+        STSCI_REG,
         ARI_REG,
         AIP_REG,
         PARIS_REG,
