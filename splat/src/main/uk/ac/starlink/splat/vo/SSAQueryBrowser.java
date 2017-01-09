@@ -85,6 +85,7 @@ import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
 import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.iface.AbstractServerPanel;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
 import uk.ac.starlink.splat.iface.SpectrumIO;
@@ -527,11 +528,11 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     private static SSAPAuthenticator authenticator;
        
     /**
-     * the serverlist as a serverTable
-     * @uml.property  name="serverTable"
+     * the Panel handling with services and options
+     * @uml.property  name="serverPanel"
      * @uml.associationEnd  
      */
-    private SSAServerTable serverTable;
+    private SSAServerTable serverPanel;
     
    
     static ProgressPanelFrame progressFrame = null;
@@ -542,7 +543,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      */
     private DataLinkQueryFrame dataLinkFrame = null;
 
-    private JPopupMenu specPopupMenu;
+ //   private JPopupMenu specPopupMenu;
 
     /**
      * Create an instance.
@@ -591,9 +592,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
       
        
         this.add(splitPanel);
-        leftPanel = new JPanel( );
+        leftPanel = initServerComponents();
    
-        initServerComponents();
+      
     //    tabPane.addTab("Server selection", leftPanel);
       
         centrePanel = new JPanel( new GridBagLayout() );
@@ -620,14 +621,16 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     }
 
 
-    public void initServerComponents()
+    public JPanel initServerComponents()
     {
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setAlignmentY((float) 1.);
+        JPanel sp = new JPanel();
+        sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
+        sp.setAlignmentY((float) 1.);
 
-        serverTable=new SSAServerTable( serverList );
-        serverTable.addPropertyChangeListener(this);
-        leftPanel.add(serverTable);
+        serverPanel=new SSAServerTable( serverList );
+        serverPanel.addPropertyChangeListener(this);
+        sp.add(serverPanel);
+        return sp;
     }
     
     
@@ -1367,7 +1370,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         
        
         // update serverlist from serverTable class
-        final SSAServerList slist=serverTable.getServerList();
+        final SSAServerList slist=(SSAServerList) serverPanel.getServerList();
         
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
@@ -1380,10 +1383,6 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         for (int i=0;i<recParams.length;i++)
             recommendedParams.add(recParams[i]);
         
-    //    ArrayList<String> recomendedParams = new ArrayList<>(Arrays.asList("APERTURE", "SPECRP", "SPATRES", "TIMERES", "SNR", "REDSHIFT", "VARAMPL", 
-    //                                                   "TARGETCLASS", "PUBDID", "CREATORDID", "COLLECTION", "TOP", "MTIME", "MAXREC", "RUNID" ));
-        
-        //serverList = serverTable.getServerList();
         Iterator i = slist.getIterator();
 
         SSAPRegResource server = null;
@@ -1392,7 +1391,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             if (server != null )
                 try {
                     
-                    if (serverTable.isServerSelected(server.getShortName())) {
+                    if (serverPanel.isServerSelected(server.getShortName())) {
 
                         SSAQuery ssaQuery =  new SSAQuery( server );
                         // ssaQuery.setServer(server) ; //Parameters(queryLine); // copy the query parameters to the new query
@@ -1733,12 +1732,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             int nrows = (int) starTable.getRowCount();
             if (  nrows > 0 ) {
                 table = new StarPopupTable( starTable, true );
-                table.rearrange();
+                table.rearrangeSSAP();
                 //table.removeduplicates();
-                //scrollPane = new JScrollPane( table );
-                table.setComponentPopupMenu(specPopupMenu);
-              //  scrollPane.setPreferredSize(new Dimension(600,400));
-                
+               
                 if (dataLinkParams != null) { // if datalink services are present, create a frame
                     
                     if ( dataLinkFrame == null ) {
@@ -1802,57 +1798,10 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * selected parameter determines the behaviour of all or just the selected
      * spectra.
      */
-    protected void displaySpectra( boolean selected, boolean display,
-            StarJTable table, int row )
+ 
+    protected void displaySpectra( Props[] propList, boolean display)
+
     {
-        //  List of all spectra to be loaded and their data formats and short
-        //  names etc.
-        ArrayList<Props> specList = new ArrayList<Props>();
-     
-        
-        if ( table == null ) { 
-            
-            if (starJTables == null)  // avoids NPE if no results are present
-                return;
-            //  Visit all the tabbed StarJTables.
-            Iterator<StarPopupTable> i = starJTables.iterator();
-            while ( i.hasNext() ) {
-                extractSpectraFromTable( i.next(), specList,
-                        selected, -1 );
-            }
-        }
-        else {
-            extractSpectraFromTable( table, specList, selected, row );
-        }
-
-        //  If we have no spectra complain and stop.
-        if ( specList.size() == 0 ) {
-            String mess;
-            if ( selected ) {
-                mess = "There are no spectra selected";
-            }
-            else {
-                mess = "No spectra available";
-            }
-            JOptionPane.showMessageDialog( this, mess, "No spectra",
-                    JOptionPane.ERROR_MESSAGE );
-            return;
-        }
-
-        //  And load and display...
-        SpectrumIO.Props[] propList = new SpectrumIO.Props[specList.size()];
-        specList.toArray( propList );
-        
-        // check for authentication
-        for (int p=0; p<propList.length; p++ ) {
-            URL url=null;
-            try {
-                 url = new URL(propList[p].getSpectrum());
-                 logger.info("Spectrum URL"+url);
-            } catch (MalformedURLException mue) {
-                logger.info(mue.getMessage());
-            }
-        }
 
         browser.threadLoadSpectra( propList, display );
         browser.toFront();
@@ -1860,381 +1809,6 @@ implements ActionListener, DocumentListener, PropertyChangeListener
 
 
 
-    /**
-     * Extract all the links to spectra for downloading, plus the associated
-     * information available in the VOTable. Each set of spectral information
-     * is used to populated a SpectrumIO.Prop object that is added to the
-     * specList list.
-     * <p>
-     * Can return the selected spectra, if requested, otherwise all spectra
-     * are returned or if a row value other than -1 is given just one row.
-     * @throws SplatException 
-     */ 
-    private void extractSpectraFromTable( StarJTable starJTable,
-            ArrayList<Props> specList,
-            boolean selected,
-            int row )
-    {
-        int[] selection = null;
-        
-        HashMap< String, String > dataLinkQueryParams = null;
-        String idSource = null;
-        String accessURL = null;
-        if ( dataLinkFrame != null && dataLinkFrame.isVisible() ) {
-            dataLinkQueryParams = dataLinkFrame.getParams();
-            idSource = dataLinkFrame.getIDSource(); 
-            accessURL = dataLinkFrame.getAccessURL();
-        }
-       
-        
-        //  Check for a selection if required, otherwise we're using the given
-        //  row.
-        if ( selected && row == -1 ) {
-            selection = starJTable.getSelectedRows();
-        }
-        else if ( row != -1 ) {
-            selection = new int[1];
-            selection[0] = row;
-        }
-
-        // Only do this if we're processing all rows or we have a selection.
-        if ( selection == null || selection.length > 0 ) {
-            StarTable starTable = starJTable.getStarTable();
-
-            //  Check for a column that contains links to the actual data
-            //  (XXX these could be XML links to data within this
-            //  document). The signature for this is an UCD of DATA_LINK,
-            //  or a UTYPE of Access.Reference.
-            int ncol = starTable.getColumnCount();
-            int linkcol = -1;
-            int typecol = -1;
-            int namecol = -1;
-            int axescol = -1;
-            int specaxiscol = -1;
-            int fluxaxiscol = -1;
-            int unitscol = -1;
-            int specunitscol = -1;
-            int fluxunitscol = -1;
-            int fluxerrorcol = -1;
-            int pubdidcol=-1;
-            int idsrccol=-1;
-            int specstartcol=-1;
-            int specstopcol=-1;
-            int timecol=-1;
-            int timeunitscol=-1;
-            
-            ColumnInfo colInfo;
-            String ucd;
-            String utype;
-            String dataLinkRequest="";
-            
-            for( int k = 0; k < ncol; k++ ) {
-                colInfo = starTable.getColumnInfo( k );
-                ucd = colInfo.getUCD();
-              
-                //  Old-style UCDs for backwards compatibility.
-                if ( ucd != null ) {
-                    ucd = ucd.toLowerCase();
-                    if ( ucd.equals( "data_link" ) ) {
-                        linkcol = k;
-                    }
-                    else if ( ucd.equals( "vox:spectrum_format" ) ) {
-                        typecol = k;
-                    }
-                    else if ( ucd.equals( "vox:image_title" ) ) {
-                        namecol = k;
-                    }
-                    else if ( ucd.equals( "vox:spectrum_axes" ) ) {
-                        axescol = k;
-                    }
-                    else if ( ucd.equals( "vox:spectrum_units" ) ) {
-                        unitscol = k;
-                    }
-                }
-
-                //  Version 1.0 utypes. XXX not sure if axes names
-                //  are in columns or are really parameters. Assume
-                //  these work like the old-style scheme and appear in
-                //  the columns.
-                utype = colInfo.getUtype();
-                if ( utype != null ) {
-                    utype = utype.toLowerCase();
-                    if ( utype.endsWith( "access.reference" ) ) {
-                        linkcol = k;
-                    }
-                    else if ( utype.endsWith( "access.format" ) ) {
-                        typecol = k;
-                    }
-                    else if ( utype.endsWith( "target.name" ) ) {
-                        namecol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralaxis.name" ) ) {
-                        specaxiscol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralaxis.unit" ) ) {
-                        specunitscol = k;
-                    }
-                    else if ( utype.endsWith( "char.fluxaxis.name" ) ) {
-                        fluxaxiscol = k;
-                    }
-                    else if ( utype.endsWith( "char.fluxaxis.accuracy.staterror" ) ) {
-                        fluxerrorcol = k;
-                    }
-                    else if ( utype.endsWith( "char.fluxaxis.unit" ) ) {
-                        fluxunitscol = k;
-                    }
-                    else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
-                        pubdidcol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
-                        specstartcol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
-                        specstopcol = k;
-                    }
-                }
-                if (colInfo.getName().equals("ssa_pubDID"))
-                    pubdidcol = k;
-                if (colInfo.getName().equals(idSource))
-                    idsrccol = k;
-                
-            } // for
-            
-            if (idsrccol != -1  && dataLinkQueryParams != null ) { // check if datalink parameters are present
-                 
-                if ( ! dataLinkQueryParams.isEmpty() ) {                   
-                    for (String key : dataLinkQueryParams.keySet()) {
-                        String value = dataLinkQueryParams.get(key);
-                                if (value != null && value.length() > 0) {
-                                    try {//
-                                           
-                                            if (! key.equals("IDSource") && ! (key.equals("AccessURL"))) {
-                                                dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
-                                            }
-                                       
-                                    } catch (UnsupportedEncodingException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }                                     
-                                }
-                    }
-                }
-            }
-           
-        
-            //  If we have a DATA_LINK column, gather the URLs it contains
-            //  that are appropriate.
-            if ( linkcol != -1 ) {
-                RowSequence rseq = null;
-                SpectrumIO.Props props = null;
-                String value = null;
-                String[] axes;
-                String[] units;
-                try {
-                    if ( ! selected && selection == null ) {
-                        //  Using all rows.
-                        rseq = starTable.getRowSequence();
-                        while ( rseq.next() ) {
-                            value = ( (String) rseq.getCell( linkcol ).toString() );
-                            value = value.trim();
-                            props = new SpectrumIO.Props( value );
-                            if ( typecol != -1 ) {
-                                value = ((String)rseq.getCell( typecol ).toString() );
-                                if ( value != null ) {
-                                    value = value.trim();
-                                    props.setType( SpecDataFactory.mimeToSPLATType( value ) );
-                                }
-                            } //while
-                            if ( namecol != -1 ) {
-                                value = ( (String)rseq.getCell( namecol ).toString() );
-                                if ( value != null ) {
-                                    value = value.trim();
-                                    props.setShortName( value );
-                                }
-                            }
-
-                            if ( axescol != -1 ) {
-
-                                //  Old style column names.
-                                value = ( (String)rseq.getCell( axescol ).toString() );
-                                if ( value != null ) {
-                                    value = value.trim();
-                                    axes = value.split("\\s");
-                                    props.setCoordColumn( axes[0] );
-                                    props.setDataColumn( axes[1] );
-                                    if ( axes.length == 3 ) {
-                                        props.setErrorColumn( axes[2] );
-                                    }
-                                }
-                            } // if axescol !- 1
-                            else {
-
-                                //  Version 1.0 style.
-                                if ( specaxiscol != -1 ) {
-                                    value = (String)rseq.getCell(specaxiscol).toString();
-                                    props.setCoordColumn( value );
-                                }
-                                if ( fluxaxiscol != -1 ) {
-                                    value = (String)rseq.getCell(fluxaxiscol).toString();
-                                    props.setDataColumn( value );
-                                }
-                                if ( fluxerrorcol != -1 ) {
-                                    value = (String)rseq.getCell(fluxerrorcol).toString();
-                                    props.setErrorColumn( value );
-                                }
-                            } //else 
-
-                            if ( unitscol != -1 ) {
-
-                                //  Old style column names.
-                                value = ( (String)rseq.getCell( unitscol ).toString() );
-                                if ( value != null ) {
-                                    value = value.trim();
-                                    units = value.split("\\s");
-                                    props.setCoordUnits( units[0] );
-                                    props.setDataUnits( units[1] );
-                                    //  Error must have same units as data.
-                                }
-                            }
-                            else {
-
-                                //  Version 1.0 style.
-                                if ( specunitscol != -1 ) {
-                                    value = (String)rseq.getCell(specunitscol).toString();
-                                    props.setCoordUnits( value );
-                                }
-                                if ( fluxunitscol != -1 ) {
-                                    value = (String)rseq.getCell(fluxunitscol).toString();
-                                    props.setDataUnits( value );
-                                }
-                            }
-                         
-                            if (idsrccol != -1  && dataLinkQueryParams != null) { 
-                                
-                                if (! dataLinkQueryParams.isEmpty()) { 
-                                   props.setIdValue(rseq.getCell(idsrccol).toString());
-                                   props.setIdSource(idSource);
-                                   props.setDataLinkRequest(dataLinkRequest);
-                                   props.setServerURL(dataLinkQueryParams.get("AccessURL"));
-                                   String format = dataLinkQueryParams.get("FORMAT");
-                                   if (format != null && format != "") {
-                                       props.setDataLinkFormat(format);
-                                       props.setType(SpecDataFactory.mimeToSPLATType( format ));
-                                   }
-                                }
-                            }
-                            specList.add( props );
-                        } //while
-                    } // if selected
-                    else {
-                        //  Just using selected rows. To do this we step
-                        //  through the table and check if that row is the
-                        //  next one in the selection (the selection is
-                        //  sorted).
-                        rseq = starTable.getRowSequence();
-                        int k = 0; // Table row
-                        int l = 0; // selection index
-                        while ( rseq.next() ) {
-                            if ( k == selection[l] ) {
-
-                                // Store this one as matches selection.
-                                if (rseq.getCell( linkcol ) != null)                                      
-                                    value = ( (String)rseq.getCell( linkcol ).toString() );
-                                if (value != null ) {         
-                                    value = value.trim();
-                                    props = new SpectrumIO.Props( value );
-                                } 
-                                if ( typecol != -1 ) {
-                                    value = null;
-                                    Object obj = rseq.getCell(typecol);
-                                    if (obj != null) 
-                                        value =((String)rseq.getCell(typecol).toString());
-                                    if ( value != null ) {
-                                        value = value.trim();
-                                        props.setType( SpecDataFactory.mimeToSPLATType( value ) );
-                                    }
-                                }
-                                if ( namecol != -1 ) {
-                                    value = null;
-                                    Object obj = rseq.getCell(namecol);
-                                    if (obj != null) 
-                                    value = ((String)rseq.getCell( namecol ).toString());
-                                    if ( value != null ) {
-                                        value = value.trim();
-                                        props.setShortName( value );
-                                    }
-                                }
-                                if ( axescol != -1 ) {
-                                    value = null;
-                                    Object obj = rseq.getCell(axescol);
-                                    if (obj != null) 
-                                        value = ((String)obj.toString());
-                                    
-                                    if (value != null ) {
-                                         value = value.trim();
-                                        axes = value.split("\\s");
-                                        props.setCoordColumn( axes[0] );
-                                        props.setDataColumn( axes[1] );
-                                    }
-                                }
-                                if ( unitscol != -1 ) {
-                                    value = null;
-                                    Object obj = rseq.getCell(unitscol);
-                                    if (obj != null) 
-                                        value = ((String)rseq.getCell(unitscol).toString());
-                                    if ( value != null ) {
-                                        units = value.split("\\s");
-                                        props.setCoordUnits( units[0] );
-                                        props.setDataUnits( units[1] );
-                                    }
-                                }
-                              
-                                if (idsrccol != -1  && dataLinkQueryParams != null) {  
-                                    
-                                    if (! dataLinkQueryParams.isEmpty()) { 
-                                        props.setIdValue(rseq.getCell(idsrccol).toString());
-                                        props.setIdSource(idSource);
-                                       props.setDataLinkRequest(dataLinkRequest);
-                                      // props.setServerURL(dataLinkQueryParam.get("AccessURL"));
-                                       props.setServerURL(accessURL);
-                                       String format = dataLinkQueryParams.get("FORMAT");
-                                       if (format != null && format != "") {
-                                           props.setDataLinkFormat(format);
-                                           props.setType(SpecDataFactory.mimeToSPLATType( format ) );
-                                       }
-                                    }
-                                }
-                                specList.add( props );
-
-                                //  Move to next selection.
-                                l++;
-                                if ( l >= selection.length ) {
-                                    break;
-                                }
-                            }
-                            k++;
-                        }
-                    } // if selected
-                } // try
-                catch (IOException ie) {
-                    ie.printStackTrace();
-                }
-                catch (NullPointerException ee) {
-                    ErrorDialog.showError( this, "Failed to parse query results file", ee );
-                }
-                finally {
-                    try {
-                        if ( rseq != null ) {
-                            rseq.close();
-                        }
-                    }
-                    catch (IOException iie) {
-                        // Ignore.
-                    }
-                }
-            }// if linkcol != -1
-        } 
-    }
 
     /**
      *  Restore a set of previous query results that have been written to a
@@ -2287,17 +1861,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         this.dispose();
     }
 
-    /**
-     * Configure the SSA servers.
-     *
-    protected void showServerWindow()
-    {
-        if ( serverWindow == null ) {
-            serverWindow = new SSAServerFrame( serverList );
-        }
-        serverWindow.setVisible( true );
-    }
-    */
+
     public static void main( String[] args )
     {
         try {
@@ -2544,23 +2108,19 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             updateQueryText();
         }
         else if (pvt.getPropertyName().equals("changedValue")) {
-            serverList = serverTable.getServerList();
+            serverList = (SSAServerList) serverPanel.getServerList();
             serverList.addMetadata((MetadataInputParameter) pvt.getNewValue()); 
-            serverTable.setServerList(serverList);
+            serverPanel.setServerList( serverList);
             updateQueryText(); 
         }
-            // update if the server list has been modifyed at ssaservertable (for example, new registry query)
+        // update if the server list has been modifyed at ssaservertable (for example, new registry query)
         else if (pvt.getPropertyName().equals("changeServerlist")) {
-            serverList = serverTable.getServerList();
+            serverList = (SSAServerList) serverPanel.getServerList();
             queryCustomParameters();
             updateParameters();
             metaPanel.updateUI();
-            try {
-                serverList.saveServers();
-                serverTable.saveServerTags();
-            } catch (SplatException e) {
-                logger.info("serverList backup failed"+e.getMessage());
-            }
+            //serverList.saveServers();
+            serverPanel.saveAll();
  
         }
         else if (pvt.getPropertyName().equals("selectionChanged")) {
@@ -2596,12 +2156,12 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     {
         // check serverlist (selected servers!!)
         // update serverlist
-        //serverList = serverTable.getServerList();
+        //serverList = serverPanel.getServerList();
        // ArrayList<String> parameters = new ArrayList();
         Iterator srv=serverList.getIterator();
         while ( srv.hasNext() ) {    
             SSAPRegResource server = (SSAPRegResource) srv.next();
-            if (serverTable.isServerSelected(server.getShortName())) {
+            if (serverPanel.isServerSelected(server.getShortName())) {
                     metaPanel.addParams((ArrayList<MetadataInputParameter>) server.getMetadata());
             }
         }            
@@ -2616,7 +2176,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * 
      */
     private void updateParameters() {
-        if (serverTable.getSelectionCount() == 1)
+        if (serverPanel.getSelectionCount() == 1)
             metaPanel.removeAll();
         showParameters();
     }

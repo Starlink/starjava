@@ -167,7 +167,7 @@ public class StarPopupTable extends  StarJTable {
     * (assuming that the utypes are properly defined)
     **/
    
-   public void rearrange() {
+   public void rearrangeSSAP() {
        // UCDs order :
        ArrayList<String> order = new ArrayList<String>(Arrays.asList(
                "char.spectralaxis.coverage.bounds.start", // spec start
@@ -198,7 +198,7 @@ public class StarPopupTable extends  StarJTable {
      // find indices of this columns from DefaultColumnModel   
  
      int [] newOrder = {-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1}; 
-            
+     
        StarTable startable = this.getStarTable();
        int cols = startable.getColumnCount();
       
@@ -216,11 +216,60 @@ public class StarPopupTable extends  StarJTable {
                }
            }
        }
+ 
        
        if (newOrder[0]!=-1 && newOrder[1]!=-1 && newOrder[2]!=-1 && newOrder[3]!=-1) {
            newOrder[2]=-1; // skip redundant information about wavelength range
            newOrder[3]=-1;
        }
+       
+       rearrange(newOrder);
+   }
+ 
+   
+   public void rearrangeObsCore() {
+       // UCDs order :
+       ArrayList<String> order = new ArrayList<String>(Arrays.asList(
+               "dataproduct_type", 
+               "em_min", //spec start
+               "em_max",  // spec stop 
+               "obs_title", 
+               "target_name", 
+               "t_min", // time start
+               "t_max", //  time stop 
+               "t_exptime", 
+               "access_format", 
+               "access_estsize"
+               ));
+                         
+
+     // find indices of this columns from DefaultColumnModel   
+ 
+     int [] newOrder = {-1,-1,-1,-1,-1,-1,-1,-1, -1, -1}; 
+     StarTable startable = this.getStarTable();
+     int cols = startable.getColumnCount();
+    
+     for (int i=0;i<cols;i++) {
+         ColumnInfo ci =  startable.getColumnInfo(i);
+        
+         if (ci != null) {
+             String name = ci.getName();
+             if (name != null) {
+                 name=name.toLowerCase();
+                 for (int j=0;j<order.size();j++) {
+                     if (name.endsWith(order.get(j)))
+                        newOrder[j]=i;
+                 }
+             }
+         }
+     }
+  
+     rearrange(newOrder);
+   }       
+   
+   private void rearrange( int[] newOrder ) {
+         
+  
              
        TableColumnModel model = this.getColumnModel();
        int moved=1;

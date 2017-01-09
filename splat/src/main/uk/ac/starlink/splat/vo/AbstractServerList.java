@@ -21,33 +21,50 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.vo.RegResource;
 
+/**
+ * AbstractServer list contains the common methods for handling a list of services 
+ * (SSAP, ObsCore, SLAP, VAMDC)
+ * 
+ * @author Margarida Castro Neves
+ *
+ */
+/**
+ * @author mm
+ *
+ */
 public abstract class AbstractServerList {
     
-    private static String oldconfigfile;    
-    private static String configFile;
-    private static String defaultFile;
-
     private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
     
-    public AbstractServerList()
+    /**
+     * AbstractServerList
+     * read the list from the configured file
+     * 
+     * @throws SplatException
+     */
+    protected AbstractServerList()
             throws SplatException
     {
-        configFile = getConfigFile();
-        defaultFile=getDefaultFile();
         restoreKnownServers();
     }
 
+
+    /**
+     * AbstractServerList
+     * create a list from a given StarTable
+     * 
+     * @throws SplatException
+     */
     public AbstractServerList(StarTable table)  //throws SplatException
     {    
-        configFile = getConfigFile();
-        defaultFile=getDefaultFile();
         addNewServers(table);      
     }
 
+    
+    
     abstract public String getConfigFile();
-  //  abstract public void setConfigFile();
     abstract public String getDefaultFile();
-  //  abstract public void setDefaultFile();
+
     
     /*
      * addNewServers
@@ -72,10 +89,10 @@ public abstract class AbstractServerList {
                     SSAPRegCapability caps[] = server.getCapabilities();
                     int nrcaps = server.getCapabilities().length;
                     int nrssacaps=0;
-                    // create one serverlist entry for each ssap capability  !!!! TO DO DO THIS ALREADY ON SSAPREGISTRYQUERY!
+                    // create one serverlist entry for each ssap capability  !!!! 
+                    // TODO:  DO THIS ALREADY ON SSAPREGISTRYQUERY!?
                     for (int c=0; c< nrcaps; c++) {
-                        //       String xsi= caps[c].getXsiType();
-                        //       if (xsi != null && xsi.startsWith("ssa")) {
+                       
                         SSAPRegResource ssapserver = new SSAPRegResource(server);
                         SSAPRegCapability onecap[] = new SSAPRegCapability[1];
                         onecap[0] = caps[c];  
@@ -94,12 +111,19 @@ public abstract class AbstractServerList {
                 // do nothing
                } 
             }
+           
         }      
 
     }
 
     // add new servers - Before adding, remove all old entries except the manually added ones
 
+    /**
+     * AddNewServers
+     * creates a new server list from table, but keeping the manually added services from the old list
+     * @param table  contains services to be added to the list 
+     * @param manuallyAddedServices the list of shortnames of the services that should be kept in the list
+     */
     public void addNewServers(StarTable table, ArrayList<String> manuallyAddedServices) {
 
 
@@ -121,18 +145,17 @@ public abstract class AbstractServerList {
 
 
     /**
-     * Add an SSA server to the known list.
+     * Add a server resource to the known list, saving after adding.
      *
      * @param server an instance of RegResource.
      */
     public void addServer( SSAPRegResource server )
     {
-
         addServer( server, true );
     }
 
     /**
-     * Add an SSA server resource to the known list.
+     * Add a server resource to the known list.
      *
      * @param server an instance of RegResource.
      * @param save if true then the backing store of servers should be updated.
@@ -162,7 +185,7 @@ public abstract class AbstractServerList {
     }
 
     /**
-     * Remove an SSA server from the known list, if already present.
+     * Remove a server from the known list, if already present.
      *
      * @param server an instance of RegResource.
      */
@@ -171,9 +194,15 @@ public abstract class AbstractServerList {
         String shortname = server.getShortName();
         if (shortname != null)
             shortname = shortname.trim();
-        serverList.remove( shortname );
+        removeServer( shortname );
 
     }
+    
+    /**
+     * Remove a server from the known list, if already present.
+     *
+     * @param the shortname of the server.
+     */
     public void removeServer( String shortName )
     {
         if (shortName != null)
@@ -185,7 +214,7 @@ public abstract class AbstractServerList {
      * Return an Iterator over the known servers. The objects iterated over
      * are instances of {@link RegResource}.
      */
-    public Iterator getIterator()
+    public Iterator<SSAPRegResource> getIterator()
     {
         return serverList.values().iterator();
     }
@@ -258,7 +287,7 @@ public abstract class AbstractServerList {
    
 
     /**
-     * Initialise the known servers which are kept in a resource file along
+     * Initialize the known servers which are kept in a resource file along
      * with SPLAT. The format of this file is determined by the
      * {@link XMLEncode} form produced for an {@link SSAPRegResource}.
      */
@@ -269,7 +298,7 @@ public abstract class AbstractServerList {
         //  application specific directory or, the first time, as part of the
         //  application resources.
         //  User file first.
-        File backingStore = Utilities.getConfigFile( configFile );
+        File backingStore = Utilities.getConfigFile( getConfigFile() );
         InputStream inputStream = null;
         boolean needSave = false;
         if ( backingStore.canRead() ) {
@@ -294,9 +323,9 @@ public abstract class AbstractServerList {
 
 
         //  If the restore of the user file failed, or it doesn't exist use
-        //  the system default version.
+        //  the system default version. (only for ssa)
         if ( ! restored ) {
-            inputStream = SSAServerList.class.getResourceAsStream(defaultFile);
+            inputStream = SSAServerList.class.getResourceAsStream(getDefaultFile());
             if ( inputStream == null ) {
                 // That's bad. Need to complain, unless this is an update
                 /// of the format. In which case skip this section.
@@ -328,7 +357,7 @@ public abstract class AbstractServerList {
             throws SplatException
     {
         InputStream inputStream = null;
-        boolean needSave = false;
+       
         if ( inputFile.canRead() ) {
             try {
                 inputStream = new FileInputStream( inputFile );
@@ -393,10 +422,10 @@ public abstract class AbstractServerList {
      * Save the current list of servers to the backing store configuration
      * file.
      */
-    protected void saveServers()
+    public void saveServers()
             throws SplatException
     {
-        saveServers( Utilities.getConfigFile( configFile ) );
+        saveServers( Utilities.getConfigFile( getConfigFile() ) );
     }
 
     /**
@@ -428,7 +457,7 @@ public abstract class AbstractServerList {
             throws SplatException
     {
         XMLEncoder encoder = new XMLEncoder( outputStream );
-        Iterator i = serverList.values().iterator();
+        Iterator<SSAPRegResource> i = serverList.values().iterator();
 
         //  Note these have to be SSAPRegResource instances, not RegResource.
         //  So that they can be serialised as beans.
@@ -448,11 +477,20 @@ public abstract class AbstractServerList {
         encoder.close();
     }
 
+    
+    /**
+     * get the number of list elements
+     * @return the list size
+     */
+    
     public int getSize() {
         return serverList.size();
     }
 
-    // add new value to metadata list in servers
+    /**
+     * add new value to metadata list in servers
+     * @param mip - the metadata parameter
+     */
     public void addMetadata(MetadataInputParameter mip) {
 
 
@@ -470,51 +508,5 @@ public abstract class AbstractServerList {
             serverList.put(servers.get(i), srv);
         }
     }
-
-
-    /**
-     * set selection tag
-     *
-         public void selectServer(String shortname) {
-             if (shortname != null)
-                shortname = shortname.trim();
-             if (serverList.containsKey(shortname))
-                     selectionList.put(shortname, true);
-         }
-         /**
-     * set selection tag
-     *
-          public void unselectServer(String shortname) {
-              if (shortname != null)
-                  shortname = shortname.trim();
-              if (serverList.containsKey(shortname))
-                      selectionList.put(shortname, false);
-          }
-          /**
-     * returns selection tag
-     *
-           public boolean isServerSelected(String shortname) {
-               if (shortname == null)
-                   return false; //this should not happen! 
-               else {
-                   shortname = shortname.trim();
-                   if (shortname.isEmpty())
-                       return false;
-               }
-               if (serverList.containsKey(shortname)) {
-                   if (selectionList.containsKey(shortname)) {
-                       // should not happen, but...
-                       // in case get() returns null:
-                       // need to test for null to avoid NPE on Windows
-
-                       boolean b = selectionList.get(shortname).booleanValue();
-                       return b;
-                   }
-                   else return false;
-               }
-               return false;
-           }
-     */
-
 
 }
