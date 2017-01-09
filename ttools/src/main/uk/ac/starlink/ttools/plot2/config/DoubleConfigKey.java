@@ -31,37 +31,11 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
     }
 
     public String valueToString( Double value ) {
-        if ( value == null ) {
-            return "";
-        }
-        else {
-            double dval = value.doubleValue();
-            if ( Double.isNaN( dval ) ) {
-                return "";
-            }
-            int ival = (int) dval;
-            if ( ival == dval ) {
-                return Integer.toString( ival );
-            }
-            else {
-                return Double.toString( dval );
-            }
-        }
+        return value == null ? "" : doubleToString( value.doubleValue() );
     }
 
     public Double stringToValue( String txt ) throws ConfigException {
-        if ( txt == null || txt.trim().length() == 0 ) {
-            return new Double( Double.NaN );
-        }
-        else {
-            try {
-                return Double.valueOf( txt.trim() );
-            }
-            catch ( NumberFormatException e ) {
-                throw new ConfigException( this,
-                                           "\"" + txt + "\" not numeric", e );
-            }
-        }
+        return stringToDouble( txt, this );
     }
 
     /**
@@ -131,6 +105,49 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
                 return new SliderSpecifier( lo, hi, log, dflt );
             }
         };
+    }
+
+    /**
+     * Returns a string representation of a double value.
+     *
+     * @param   dval   double value, may be NaN
+     * @return  stringified value, may be the empty string but not null
+     */
+    public static String doubleToString( double dval ) {
+        if ( Double.isNaN( dval ) ) {
+            return "";
+        }
+        int ival = (int) dval;
+        if ( ival == dval ) {
+            return Integer.toString( ival );
+        }
+        else {
+            return Double.toString( dval );
+        }
+    }
+
+    /**
+     * Interprets the value of a string as a double precision number.
+     *
+     * @param  txt  string, may be null
+     * @param  key  reference key, used for error reporting
+     * @return   numeric value where possible, NaN for empty string
+     * @throws   ConfigException  for non-numeric strings
+     */
+    public static double stringToDouble( String txt, ConfigKey<?> key )
+            throws ConfigException {
+        if ( txt == null || txt.trim().length() == 0 ) {
+            return new Double( Double.NaN );
+        }
+        else {
+            try {
+                return Double.valueOf( txt.trim() );
+            }
+            catch ( NumberFormatException e ) {
+                throw new ConfigException( key, "\"" + txt + "\" not numeric",
+                                           e );
+            }
+        }
     }
 
     /**
