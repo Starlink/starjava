@@ -16,6 +16,7 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
@@ -27,8 +28,11 @@ import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.DoubleArrayConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -81,6 +85,18 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     /** Config key for equivalent histogram bar width. */
     public static final ConfigKey<BinSizer> BINSIZER_KEY =
         HistogramPlotter.BINSIZER_KEY;
+
+    /** Config key to display a line at the mean value. */
+    public static final ConfigKey<Boolean> SHOWMEAN_KEY =
+        new BooleanConfigKey(
+            new ConfigMeta( "showmean", "Show Mean" )
+           .setShortDescription( "Display a line at the mean" )
+           .setXmlDescription( new String[] {
+                "<p>If true, a line is drawn at the position of",
+                "the calculated mean.",
+                "</p>",
+            } )
+        , true );
 
     /**
      * Constructor.
@@ -161,6 +177,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
+        list.add( SHOWMEAN_KEY );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         list.add( StyleKeys.ANTIALIAS );
         list.add( normKey_ );
@@ -170,12 +187,14 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
     public StatsStyle createStyle( ConfigMap config ) {
         Color color = config.get( StyleKeys.COLOR );
+        boolean showmean = Boolean.TRUE.equals( config.get( SHOWMEAN_KEY ) );
         Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                                 BasicStroke.JOIN_ROUND );
         boolean antialias = config.get( StyleKeys.ANTIALIAS );
         Normalisation norm = config.get( normKey_ );
         BinSizer sizer = config.get( BINSIZER_KEY );
-        return new StatsStyle( color, stroke, antialias, norm, sizer );
+        return new StatsStyle( color, stroke, antialias, showmean,
+                               norm, sizer );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -207,6 +226,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
      */
     public static class StatsStyle extends LineStyle {
 
+        final boolean showmean_;
         final Normalisation norm_;
         final BinSizer sizer_;
 
@@ -215,14 +235,17 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          *
          * @param  color   line colour
          * @param  stroke  line stroke
-         * @param   antialias  true to draw line antialiased
+         * @param  antialias  true to draw line antialiased
+         * @param  showmean   true to display a line showing the mean
          * @param  norm  normalisation
          * @param  sizer   histogram equivalent bin sizer,
          *                 may be used in conjunction with norm
          */
         public StatsStyle( Color color, Stroke stroke, boolean antialias,
-                           Normalisation norm, BinSizer sizer ) {
+                           boolean showmean, Normalisation norm,
+                           BinSizer sizer ) {
             super( color, stroke, antialias );
+            showmean_ = showmean;
             norm_ = norm;
             sizer_ = sizer;
         }
@@ -230,6 +253,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         @Override
         public int hashCode() {
             int code = super.hashCode();
+            code = 23 * code + ( showmean_ ? 11 : 17 );
             code = 23 * code + PlotUtil.hashCode( norm_ );
             code = 23 * code + PlotUtil.hashCode( sizer_ );
             return code;
@@ -240,6 +264,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             if ( o instanceof StatsStyle ) {
                 StatsStyle other = (StatsStyle) o;
                 return super.equals( other )
+                    && this.showmean_ == other.showmean_
                     && PlotUtil.equals( this.norm_, other.norm_ )
                     && PlotUtil.equals( this.sizer_, other.sizer_ );
             }
@@ -404,6 +429,18 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 }
             }
             tracer.flush();
+            if ( style.showmean_ ) {
+                double dx = mean_;
+                Axis[] axes = surface.getAxes();
+                double gx = axes[ 0 ].dataToGraphics( dx );
+                double gylo = axes[ 1 ].dataToGraphics( 0 );
+                double gyhi = axes[ 1 ].dataToGraphics( factor );
+                LineTracer meanTracer =
+                    style.createLineTracer( g2, box, 3, isBitmap );
+                meanTracer.addVertex( gx, gylo );
+                meanTracer.addVertex( gx, gyhi );
+                meanTracer.flush();
+            }
         }
 
         /**
