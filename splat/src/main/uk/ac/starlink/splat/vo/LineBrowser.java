@@ -42,7 +42,7 @@ import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
 import uk.ac.starlink.splat.iface.PlotChangedEvent;
 import uk.ac.starlink.splat.iface.PlotListener;
 import uk.ac.starlink.splat.iface.ProgressPanel;
-import uk.ac.starlink.splat.iface.SpectralLinesPanel;
+//import uk.ac.starlink.splat.iface.SpectralLinesPanel;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
@@ -56,15 +56,10 @@ import uk.ac.starlink.table.gui.TableLoadPanel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.VOTableBuilder;
 
-public class LineBrowser extends JFrame implements ActionListener, MouseListener, PlotListener, PropertyChangeListener {
+public class LineBrowser extends JFrame implements  MouseListener {
 
-//    private JPanel slapResultsPanel;
-    private ServerPopupTable slapServices;
-    private ServerPopupTable vamdcServices;
-    private JTabbedPane servTabPanel;
     private LinesResultsPanel resultsPanel;
     private SplatBrowser browser;
-    private SpectralLinesPanel frame;
     private JPanel contentPane;
     private PlotControl plot;
     /**
@@ -84,7 +79,8 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
     /**
      * Frame for adding a new server.
      */
-    protected AddNewServerFrame addServerWindow = null;
+ //   protected AddNewServerFrame addServerWindow = null;
+    private LinesQueryPanel linesQuery;
 
  
   
@@ -100,19 +96,19 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
         plot = pc;
        // globalList.addPlotListener(this);
       //  frame = new SpectralLinesPanel(this);
-        vamdclib = new VAMDCLib();
+//        vamdclib = new VAMDCLib();
         initFrame();
         initComponents();
         setVisible( true );
     }
     
-
+/*
     private void getSLAPServices() {
                    
             StarTable table = null;
             try {
                      
-                table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.SLAP), new StarTableFactory() );
+                table =  TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.SLAP), new StarTableFactory() );
              }
             catch ( IOException e ) {
                 ErrorDialog.showError( this, "Registry query failed", e );
@@ -126,14 +122,13 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
     private void getVAMDCServices() {
         
         
-        JTable vamdctab = VAMDCLib.queryRegistry(); 
+        StarTable vamdctab = VAMDCLib.queryRegistry(); 
 
-        vamdcServices = new ServerPopupTable(vamdctab);
+        vamdcServices = new ServerPopupTable(new VAMDCServerList(vamdctab));
         vamdcServices.setComponentPopupMenu(makeServerPopup());
-       
         
     }
-    
+ */   
     /**
      * Initialise frame properties (disposal, title, menus etc.).
      */
@@ -141,7 +136,7 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
     {
         setTitle( Utilities.getTitle( "Query for spectral lines" ));
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize(new Dimension(800, 600) );
+        setSize(new Dimension(800, 700) );
        // contentPane.add( actionBarContainer, BorderLayout.SOUTH );
       //  setPreferredSize( new Dimension( 600, 500 ) );
        
@@ -157,106 +152,17 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
         splitPane.setOneTouchExpandable( true );     
         splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
       
-        splitPane.setDividerLocation( 400 );
-
+      
         // initialize the right and left panels
-     
-        splitPane.setLeftComponent( initializeQueryComponents() );
+        linesQuery = new LinesQueryPanel(this);
+        //linesQuery = new LinesQueryPanel(initQueryPanel(), initServersPanel());
+        splitPane.setDividerLocation( 0.4); //linesQuery.getWidth() );
+
+        splitPane.setLeftComponent( linesQuery );
         splitPane.setRightComponent( initializeResultsComponents() );
         contentPane.add( splitPane, BorderLayout.CENTER );
         contentPane.updateUI();
     }
-
-    private JPanel initializeQueryComponents() {
-        
-        // the left part of the panel, contains service lists and query components
-        JPanel leftPanel = new JPanel(); 
-        leftPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));    
-        leftPanel.setPreferredSize(new Dimension(400,600));
-
-        // Line services list:
-       // JPanel servPanel = new JPanel();
-        //servPanel.setLayout( new BoxLayout(servPanel, BoxLayout.PAGE_AXIS ));
-
-       
-        servTabPanel = new JTabbedPane();
-       // servTabPanel.setPreferredSize(new Dimension(400,300));
-        servTabPanel.add( makeSlapPanel(), SLAP_INDEX);
-        servTabPanel.add( makeVamdcPanel(), VAMDC_INDEX);
-        servTabPanel.setTitleAt(SLAP_INDEX, "SLAP Services");
-        servTabPanel.setTitleAt(VAMDC_INDEX, "VAMDC Services");
-        
-        
-       // servPanel.add(servTabPanel);
-       // servPanel.add(makeButtonsPanel());
-
-        JPanel queryPanel = new JPanel();
-        queryPanel.setBorder(BorderFactory.createEtchedBorder() );
-        queryPanel.setLayout(new BoxLayout(queryPanel, BoxLayout.PAGE_AXIS));   
-        queryPanel.add(new SpectralLinesPanel(this));
-        leftPanel.add(queryPanel);
-        leftPanel.add(servTabPanel);
-        
-        return leftPanel;
-        
-    }
-    
-    private JPanel makeSlapPanel() {
-        
-        try {
-            slapServices = new ServerPopupTable(new SLAPServerList());
-            slapServices.setComponentPopupMenu(makeServerPopup());  
-        } catch (SplatException e) {
-           getSLAPServices();
-        }
-        JPanel slapPanel = new JPanel();
-        
-        slapPanel.setLayout(new BorderLayout());
-        JScrollPane serverScroller = new JScrollPane(slapServices); 
-        serverScroller.setPreferredSize(new Dimension(380,280));
-        slapPanel.add(serverScroller,  BorderLayout.NORTH);   
-        slapPanel.add(makeButtonsPanel(true), BorderLayout.SOUTH);
-        return slapPanel;
-    }
- 
-    
-    
- private JPanel makeVamdcPanel() {
-        
-        getVAMDCServices();
-        JPanel vamdcPanel = new JPanel();
-        vamdcPanel.setLayout(new BorderLayout());
-        JScrollPane serverScroller = new JScrollPane(vamdcServices); 
-        vamdcPanel.add(serverScroller,  BorderLayout.NORTH);  
-        vamdcPanel.add(makeButtonsPanel(false), BorderLayout.SOUTH);
-        vamdcPanel.updateUI();
-        return vamdcPanel;
-    }
- 
-    private JPanel makeButtonsPanel(boolean addnew ) {
-     
-     JPanel buttonsPanel = new JPanel();
-     buttonsPanel.setBorder(BorderFactory.createEmptyBorder());
-     buttonsPanel.setLayout( new BoxLayout(buttonsPanel, BoxLayout.LINE_AXIS ));
-     
-     if (addnew ) {
-         JButton newServerButton = new JButton("Add New Service");
-         newServerButton.addActionListener( this );
-         newServerButton.setActionCommand("NEWSERVICE");
-         newServerButton.setToolTipText("Manually add a new service");  
-         buttonsPanel.add(newServerButton);
-     }
-
-     JButton refreshButton = new JButton("Query Registry");
-     refreshButton.addActionListener( this );
-     refreshButton.setActionCommand("REFRESH");
-     refreshButton.setToolTipText("Query registry and refresh services list");  
-     buttonsPanel.add(refreshButton);
-     
-     return buttonsPanel;
- }
-    
    
    private  JPanel initializeResultsComponents()
    {
@@ -282,22 +188,22 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
            progressFrame=null;
        }
 
-       if (servTabPanel.getSelectedIndex()==SLAP_INDEX) {
+       if (linesQuery.isSLAPSelected()) {
            progressFrame = new ProgressPanelFrame( "Querying SLAP Services" );     
-           currentTable = slapServices;
+           currentTable = linesQuery.getSlapTable();
            // makeSlapQuery(ranges, lambda);           
        } else {
            progressFrame = new ProgressPanelFrame( "Querying VAMDC Services" );    
-           currentTable = vamdcServices;
+           currentTable = linesQuery.getVamdcTable();
            // makeVamdcQuery(ranges, lambda);
        }
        for ( int row : currentTable.getSelectedRows() ) {
            final String shortname = currentTable.getShortName(row);
            final String queryString;
-           if (servTabPanel.getSelectedIndex()==SLAP_INDEX) 
-               queryString = makeSlapQuery(ranges, lambda, element, row);
+           if (linesQuery.isSLAPSelected()) 
+               queryString = makeSlapQuery(ranges, lambda, element, currentTable.getAccessURL(row));
            else
-               queryString= makeVamdcQuery(ranges, lambda, element, row);
+               queryString= makeVamdcQuery(ranges, lambda, element, currentTable.getAccessURL(row));
 
            Logger.info(this, "query= "+queryString);
            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
@@ -346,10 +252,10 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
 
    }
 
-   private  String makeVamdcQuery( int [] ranges, double [] lambda, String element, int row) {
+   private  String makeVamdcQuery( int [] ranges, double [] lambda, String element, String accessURL) {
 
 
-       final String query = vamdcServices.getAccessURL(row)+"sync?LANG=VSS2&REQUEST=doQuery&FORMAT=XSAMS&QUERY=";
+       final String query = accessURL+"sync?LANG=VSS2&REQUEST=doQuery&FORMAT=XSAMS&QUERY=";
        String request = "select * where ";
 
        String wlist="";
@@ -379,9 +285,9 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
 
    }
 
-   private String makeSlapQuery( int [] ranges, double [] lambda, String element, int row) {
+   private String makeSlapQuery( int [] ranges, double [] lambda, String element, String accessURL) {
 
-       final String query = slapServices.getAccessURL(row);
+       final String query = accessURL;
        
        String request="REQUEST=queryData&";
        if (!query.endsWith("?")) {
@@ -463,7 +369,7 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
         con.setReadTimeout(30*1000);
         try {
           
-            if ( servTabPanel.getSelectedIndex()==SLAP_INDEX) {
+            if ( linesQuery.isSLAPSelected()) {
                 con.connect();
                 startable = new StarTableFactory(true).makeStarTable( con.getInputStream(), new VOTableBuilder() );
             } else {
@@ -501,14 +407,6 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
        
     }
     
-
-    protected ServerPopupTable getServicesTable() {        
-        return slapServices;
-    }
-
- //   protected JPanel getQueryResults() {
- //       return slapResultsPanel;
-//    }
     
     protected void displayLineSelection(StarJTable table) {
         
@@ -574,30 +472,6 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
 
     }
 
-    private JPopupMenu makeServerPopup() {
-        JPopupMenu popup = new JPopupMenu();
-
-        JMenuItem infoMenuItem = new JMenuItem("Info");
-        infoMenuItem.addActionListener(new ServerPopupMenuAction());
-        popup.add(infoMenuItem);
-        return popup;
-    }
-
-    protected class ServerPopupMenuAction extends AbstractAction
-    {
-
-        public void actionPerformed( ActionEvent e) {
-            if (servTabPanel.getSelectedIndex()==SLAP_INDEX) {
-                int r = slapServices.getPopupRow();
-                slapServices.showInfo(r, "SLAP"); 
-            } else {
-                int r = vamdcServices.getPopupRow();
-                vamdcServices.showInfo(r, "VAMDC"); 
-            }
-
-        }
-    }
-
 
     @Override
     public void mousePressed( MouseEvent e ) {}
@@ -606,65 +480,22 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
     public void mouseExited( MouseEvent e ) {}
     public void mouseClicked( MouseEvent e ) {} // TODO
 
-   
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        //Object source = e.getSource();
-        Object command = e.getActionCommand();
-        if ( command.equals( "NEWSERVICE" ) ) // add new server
-        {
-            addNewServer();
-        }
-        if ( command.equals( "REFRESH" ) ) // query registry - refresh server table
-        {         
-            getServers();           
-        }
-
-        // TODO Auto-generated method stub
-        
-    }
-    
-  
-    private void getServers() {
-     if (servTabPanel.getSelectedIndex()==SLAP_INDEX) {
-         getSLAPServices();
-     } else {
-         getVAMDCServices();
-     }
-        
-    }
-
-
-    /**
-     *  Add new server to the server list
-     */
-    protected void addNewServer()
-    {
-        if (servTabPanel.getSelectedIndex()==SLAP_INDEX) {
-    
-            if ( addServerWindow == null ) {
-                addServerWindow = new AddNewServerFrame();
-                addServerWindow.addPropertyChangeListener(this);
-            }
-            addServerWindow.setVisible( true );
-        }
-    }
-
-
+ 
+/*
     @Override
     public void plotCreated(PlotChangedEvent e) {
        
-        frame.setPlot(globalList.getPlot(e.getIndex()));       
-        frame.addRangeList();
+  //      frame.setPlot(globalList.getPlot(e.getIndex()));       
+   //     frame.addRangeList();
         contentPane.updateUI();
         
     }
 
     @Override
     public void plotRemoved(PlotChangedEvent e) {
-        if (globalList.plotCount() == 0) {
-            frame.removeRanges();
-        } 
+   //     if (globalList.plotCount() == 0) {
+   //         frame.removeRanges();
+   //     } 
         
     }
 
@@ -675,26 +506,29 @@ public class LineBrowser extends JFrame implements ActionListener, MouseListener
       //  contentPane.updateUI();
     }
 
-
+ */ 
     public PlotControl getPlot() {
-        // TODO Auto-generated method stub
         return this.plot;
     }
+
+ 
 
     
     /**
      * Event listener to trigger a list update when a new server is
      * added to addServerWIndow
      */
-    @Override   
+ /*   @Override   
+    
     public void propertyChange(PropertyChangeEvent pvt)
     {
        
-        SSAPRegResource reg = new SSAPRegResource(addServerWindow.getShortName(), addServerWindow.getServerTitle(), addServerWindow.getDescription(), addServerWindow.getAccessURL());
-        slapServices.addNewServer(reg);
+      //  SSAPRegResource reg = new SSAPRegResource(addServerWindow.getShortName(), addServerWindow.getServerTitle(), addServerWindow.getDescription(), addServerWindow.getAccessURL());
+    //    slapServices.addNewServer(reg);
       
     }
     
+ */   
 
 
 }

@@ -135,14 +135,9 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
     {
         browser = LineBrowser;
         this.plot = browser.getPlot();
-        //globalList.get
-       // if ( globalList.plotCount() > 0 ) {
-       //     PlotControl plot = globalList.getPlot(globalList.getPlotName(globalList.currentSpectrum));
-      //     setPlot( plot );
-       // }
-       // initFrame();
+        
         initUI();
-       // initMenus();
+       
        
     }
     
@@ -176,47 +171,69 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
      */
     protected void initUI()
     {
-        this.setLayout(new BorderLayout());
-        //  List of regions of spectrum where to search for lines.
-        rangePanel = new JPanel();
-        rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu );
-        rangeList.setPreferredSize(new Dimension(400,200));
-        rangePanel.add(rangeList);        
-        add( rangePanel, BorderLayout.NORTH);
        
-        JPanel elementPanel = new JPanel(new BorderLayout());
+        setLayout(new GridBagLayout());
+        setBorder(BorderFactory.createEtchedBorder() );
+        //  List of regions of spectrum where to search for lines.
+      
+        rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu );
+       // rangeList.setPreferredSize(new Dimension(380,150));
+        rangePanel = new JPanel();
+        rangePanel.add(rangeList, BorderLayout.PAGE_START);    
+        rangeList.setPreferredSize(new Dimension(320,120));
+       
+       
+        JPanel elementPanel = new JPanel(/*new BorderLayout()*/);
         JLabel label = new JLabel("Element Symbol: ");
         elementField = new JTextField(5);
-        elementPanel.add(label, BorderLayout.LINE_START);
+        elementPanel.add(label/*, BorderLayout.WEST*/);
         elementPanel.add(elementField);
         
         JButton queryButton = new JButton( new QueryAction("Search"));
-        queryButton.setToolTipText( "Search for spectral lines" );
-         
-        JPanel queryPanel = new JPanel(new BorderLayout());
-        //queryButtonsPanel.add(clearButton);
-        queryPanel.add(elementPanel,BorderLayout.LINE_START);
-        queryPanel.add(queryButton,BorderLayout.LINE_END);
-        add(queryPanel, BorderLayout.SOUTH);
-      
+        queryButton.setToolTipText( "Search for spectral lines" ); 
+        
+        //elementPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc2 = new GridBagConstraints();
+        gbc2.anchor = GridBagConstraints.WEST;
+       // gbc2.gridwidth=1;
+       // gbc2.gridheight=1;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        gbc2.weightx=0.5;
+        gbc2.weighty=0.5;
+        gbc2.gridx=0;  
+        gbc2.gridy=0;
 
+        JPanel queryPanel = new JPanel();
+        
+        queryPanel.setLayout(new GridBagLayout());     
+        queryPanel.add(elementPanel,gbc2);
+        gbc2.gridx=1;
+        gbc2.anchor = GridBagConstraints.LINE_END;
+       // gbc2.anchor = GridBagConstraints.EAST;
+        queryPanel.add(queryButton,gbc2);
+         
+        GridBagConstraints gbc = new GridBagConstraints();
+      //  gbc.gridwidth=GridBagConstraints.REMAINDER;
+       // gbc.gridheight=GridBagConstraints.RELATIVE;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+   //     gbc.fill = GridBagConstraints.BOTH;
+       // gbc.weightx=1;
+     //   gbc.weighty=1;
+        gbc.gridx=0;  
+        gbc.gridy=0;
+        
+        add( rangePanel, gbc);               
+        gbc.gridheight=GridBagConstraints.REMAINDER;
+       
+        gbc.gridy=1;
+        gbc.gridx=0;  
+     //   gbc.weightx=0;
+     //   gbc.weighty=1;
+        add(queryPanel, gbc);
+      
     }
     
-    /**
-     * Initialise frame properties (disposal, title, menus etc.).
-     *
-    protected void initFrame()
-    {
-        setTitle( Utilities.getTitle( "Query for spectral lines" ));
-        setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        contentPane.add( actionBarContainer, BorderLayout.SOUTH );
-        setSize( new Dimension( 600, 500 ) );
-        setVisible( true );
-    }
-   */ 
- //   public  RowPopupTable getSLAPServices() {
-        
-//    }
+ 
     
     public void queryLines() {
         
