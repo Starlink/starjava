@@ -1,6 +1,8 @@
 package uk.ac.starlink.splat.vamdc;
 
+import java.beans.IntrospectionException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,13 +13,15 @@ import org.vamdc.registry.client.Registry;
 import org.vamdc.registry.client.RegistryFactory;
 
 
-import gavo.spectral.lines.VoTableTranslator;
-import gavo.spectral.lines.XSAMSParser;
+import gavo.spectrallines.VoTableTranslator;
+import gavo.spectrallines.XSAMSParser;
 
-import gavo.spectral.ssldm.PhysicalQuantity;
-import gavo.spectral.ssldm.SpectralLine;
+import gavo.ssldm.PhysicalQuantity;
+import gavo.ssldm.SpectralLine;
 import net.ivoa.xml.voresource.v1.Contact;
 import net.ivoa.xml.voresource.v1.Resource;
+import uk.ac.starlink.splat.vo.SSAPRegResource;
+import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowListStarTable;
@@ -43,19 +47,22 @@ public class VAMDCLib {
      * Query the VAMDC Registry and get a table of databases 
      */
     
-    public static JTable queryRegistry(){
+    public static StarTable queryRegistry(){
         
-        JTable table = new JTable(new DefaultTableModel(new Object[]{"short name", "title", "description", "identifier",
-                "publisher", "contact", "access URL", "reference URL"}, 0));
+        ArrayList <SSAPRegResource> resources = new ArrayList<SSAPRegResource>();
+        BeanStarTable bst=null;
+        try {
+            bst = new BeanStarTable(SSAPRegResource.class);
+        } catch (IntrospectionException e) {
+            System.out.println(e.getMessage());
+        }
 
-        // from SSAP server table, how to map? "waveband", "content type", "data source", "creation type", "stantardid", "version", "subjects", "tags"
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-   
-        try{
+        try {
              
             Registry reg = RegistryFactory.getClient(RegistryFactory.REGISTRY_12_07);
             System.out.println("Queried Registry");
-           
+          
+            
             for (String ivoid : reg.getIVOAIDs(Registry.Service.VAMDC_TAP)){
                 try {
                     Resource r = reg.getResourceMetadata(ivoid);
@@ -73,23 +80,29 @@ public class VAMDCLib {
                     if (contacts!= null)
                         contact = contacts.get(0).getName().getValue()+" "+contacts.get(0).getEmail();
                     String refURL= r.getContent().getReferenceURL();
-                    System.out.println(title);
-                    System.out.println(ivoid);
-
-                    System.out.println("URL : "+reg.getVamdcTapURL(ivoid));
-                    model.addRow(new Object[]{ shortname, title, description, r.getIdentifier(), publisher, contact, reg.getVamdcTapURL(ivoid), refURL });
+                    
+                    SSAPRegResource resource = new SSAPRegResource(shortname, title, description, reg.getVamdcTapURL(ivoid).toString());                  
+                    resource.setIdentifier(r.getIdentifier());
+                    resource.setPublisher(publisher);
+                    resource.setContact(contact);
+                    resource.setReferenceUrl(refURL);
+                    
+                    resources.add(resource);
+                 
+                  
                 } catch (Exception e ) { 
                     System.out.println(e.getMessage());
                 }
 
             }
-            table.setModel(model);
+        //    table.setModel(model);
 
         } catch (Exception e ) { //catch (RegistryCommuicationException e) {
             System.out.println(e.getMessage());
             
         }
-        return table;
+        bst.setData(resources.toArray(new SSAPRegResource[0]));
+        return bst;
     }
     
     /** 
