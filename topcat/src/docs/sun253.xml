@@ -180,6 +180,7 @@
   <!ENTITY FIG.form_kde '&figs;form_kde.gif'>
   <!ENTITY FIG.form_knn '&figs;form_knn.gif'>
   <!ENTITY FIG.form_densogram '&figs;form_densogram.gif'>
+  <!ENTITY FIG.form_gaussian '&figs;form_gaussian.gif'>
   <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
   <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
   <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
@@ -282,6 +283,8 @@
   <!ENTITY FORM.knn '&IMG.FORM_KNN; <ref id="form-knn">KNN</ref>'>
   <!ENTITY FORM.densogram '&IMG.FORM_DENSOGRAM;
                           <ref id="form-densogram">Densogram</ref>'>
+  <!ENTITY FORM.gaussian '&IMG.FORM_GAUSSIAN;
+                          <ref id="form-gaussian">Gaussian</ref>'>
   <!ENTITY FORM.marks2 '&IMG.FORM_MARKS2; <ref id="form-marks2">Marks</ref>'>
   <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
@@ -8264,9 +8267,11 @@ You can remove a form with the <label>Remove</label> (&IMG.DELETE;) button
 in the same toolbar.
 You can also activate/deactivate them with the checkbox
 and move them up and down with the drag handle as usual.
-The available forms are currently the
-&FORM.histogram; and some variants on the idea of a Kernel Density Estimate:
-&FORM.kde;, &FORM.knn; and &FORM.densogram;.
+The available forms are currently
+&FORM.histogram;; some variants on the idea of a Kernel Density Estimate:
+&FORM.kde;, &FORM.knn;, &FORM.densogram;;
+and &FORM.gaussian;, which effectively plots a Gaussian best fit
+to a histogram.
 </p>
 
 <p>The <label>Global Style</label> and
@@ -10063,6 +10068,94 @@ for the Histogram window:
 
 </subsubsubsect>
 
+<subsubsubsect id="form-gaussian">
+<subhead><title>Gaussian Form</title></subhead>
+
+<figure>
+<caption><px>Gaussian fit configuration panel</px></caption>
+<figureimage src="&FIG.form_gaussian;"/>
+</figure>
+
+<p>The <label>Gaussian</label> form (&IMG.FORM_GAUSSIAN;)
+plots a best fit Gaussian to the histogram of a sample of data.
+In fact, all it does is to calculate the mean and standard deviation
+of the sample, and plot the corresponding Gaussian curve.
+The mean and standard deviation values are reported by the plot
+(see below).
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Show Mean</dt>
+<dd><p>If true, this will cause the mean value to be indicated by
+    a vertical line.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Controls the dash pattern of the line (solid, dots, dashes etc).
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>If true, lines are antialiased, which makes them look smoother
+    on the screen or bitmapped export images.
+    Has no effect on vector export images (PDF, EPS).
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Normalise</dt>
+<dd><p>Defines how the histogram is scaled vertically to map its height
+    to data coordinates.  The normalisation options match those for
+    the <ref id="form-histogram">histogram</ref> form,
+    so that if the same normalisation and bin size
+    is chosen here, the plotted curve will be a best fit to the
+    shape of the corresponding histogram bars.
+    </p></dd>
+<dt>Bin Size</dt>
+<dd><p>Defines the notional size of the bins of a histogram which
+    the plotted Gaussian should match.  This option is used only to
+    affect the vertical scaling, and only has effect for certain
+    values of the <label>Normalise</label> option.
+    </p></dd>
+</dl>
+</p>
+
+<p>As well as drawing the line onto the plot,
+the calculated fitting coefficients are
+displayed at the bottom of the form configuration panel,
+under the heading <label>Report</label>.
+Note the coefficients are calculated by subset, and
+are only displayed for one subset at a time.
+To see the calculated values, select the subset of interest in
+the <label>Subset</label> selector.
+The reported items are:
+<dl>
+<dt>Mean</dt>
+<dd><p>The mean of the data set.
+    </p></dd>
+<dt>Standard Deviation</dt>
+<dd><p>The standard deviation of the data set.
+    </p></dd>
+<dt>Factor</dt>
+<dd><p>The scaling factor applied to the basic exponential function
+    to yield the actual function plotted in data coordinates.
+    </p></dd>
+<dt>Function</dt>
+<dd><p>The actual function plotted; this includes the numeric values
+    shown by the other report items, and defines exactly what they mean.
+    This expression uses topcat's expression language,
+    and can be used (for instance) directly in the
+    <ref id="FunctionLayerControl">Function</ref> plotter.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-marks2">
 <subhead><title>Pair Marks Form</title></subhead>
 
@@ -10591,6 +10684,7 @@ note they only apply to histograms proper, not to KDEs:
     <li>&FORM.kde;</li>
     <li>&FORM.knn;</li>
     <li>&FORM.densogram;</li>
+    <li>&FORM.gaussian;</li>
     </ul>
     </li>
 <li>&CONTROL.function;</li>
@@ -10694,6 +10788,7 @@ in the <ref id="PlanePlotWindow">Plane</ref> window
 
 <p>The <label>Histogram</label> tab affects all
 <ref id="form-histogram">Histogram</ref> layers,
+and to some extent the <ref id="form-gaussian">Gaussian</ref> layer,
 and has the following controls:
 <dl>
 
@@ -10707,11 +10802,16 @@ and has the following controls:
     If the right-hand radio button is selected, you can enter a numeric
     value giving the actual width in data units of each bar
     (for a logarithmic X axis this value is a factor).
+    </p>
+    <p>Although <ref id="form-gaussian">Gaussian</ref> layers don't have bars,
+    the value of this control can affect the scaling of plotted gaussian fits
+    for some normalisation options, since the Gaussian plots try to scale
+    themselves to match the height of corresponding histograms.
     </p></dd>
 
 <dt>Bin Phase</dt>
 <dd><p>Controls where the horizontal zero point for binning is set.
-    For instance if your bin size is 1, it controls whether bins
+    For instance if your bin size is 1, it controls whether bin
     boundaries are at 0, 1, 2, ..  or 0.5, 1.5, 2.5, ... etc.
     If the slider is at either end of the scale, there will be a bin
     boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
@@ -10865,6 +10965,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.kde;</li>
     <li>&FORM.knn;</li>
     <li>&FORM.densogram;</li>
+    <li>&FORM.gaussian;</li>
     </ul>
     </li>
 <li>&CONTROL.function;</li>
@@ -11925,7 +12026,8 @@ cube wire frame enclosing the data volume.
     </p></dd>
 <dt>Antialiasing</dt>
 <dd><p>Controls whether grid lines will be drawn antialiased
-    (smoothed) or not.  This option does not affect exported plots.
+    (smoothed) or not.  This option does not affect plots exported
+    to vector formats.
     </p></dd>
 </dl>
 </p>
@@ -12012,6 +12114,7 @@ share a time axis but have their own Y axis.
     <li>&FORM.kde;</li>
     <li>&FORM.knn;</li>
     <li>&FORM.densogram;</li>
+    <li>&FORM.gaussian;</li>
     </ul>
     </li>
 <li>&CONTROL.spectrogram;</li>
@@ -23730,6 +23833,8 @@ introduced since the last version:
         were not properly taken account of in the output.
         This was a regression bug introduced at v4.3-4.</li>
     <li>Added STScI service to default list of RegTAP registry endpoints.</li>
+    <li>New <ref id="form-gaussian">Gaussian</ref> plotter for Gaussian fits
+        to histograms.</li>
     </ul>
     </p></dd>
 
