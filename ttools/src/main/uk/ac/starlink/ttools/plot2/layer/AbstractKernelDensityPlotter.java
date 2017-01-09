@@ -207,11 +207,13 @@ public abstract class AbstractKernelDensityPlotter
                 }
             }
             else {
-                nVertex = np + 2;
+                nVertex = np + 3;
                 pxs = new int[ nVertex ];
                 pys = new int[ nVertex ];
                 System.arraycopy( xs, 0, pxs, 1, np );
                 System.arraycopy( ys, 0, pys, 1, np );
+                pxs[ nVertex - 2 ] = pxs[ nVertex - 3 ] + 1;
+                pys[ nVertex - 2 ] = pys[ nVertex - 3 ];
             }
             pxs[ 0 ] = xs[ 0 ];
             pys[ 0 ] = gy0;
