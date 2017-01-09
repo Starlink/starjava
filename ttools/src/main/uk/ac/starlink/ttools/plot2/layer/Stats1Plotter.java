@@ -148,26 +148,24 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     }
 
     public String getPlotterDescription() {
-        return new StringBuffer()
-              .append( "<p>Presents a graphical representation of\n" )
-              .append( "the mean and standard deviation\n" )
-              .append( "of a sample of, possibly weighted, values.\n" )
-              .append( "By default this representation takes the form of\n" )
-              .append( "a Gaussian fit to the histogram of the data.\n" )
-              .append( "</p>\n" )
-              .append( "<p>The <code>" + normKey_ + "</code> config option,\n" )
-              .append( "perhaps in conjunction with\n" )
-              .append( "<code>" + BINSIZER_KEY + "</code>,\n" )
-              .append( "can be used to scale the height\n" )
-              .append( "of the plotted curve in data units.\n" )
-              .append( "In this case, <code>" + BINSIZER_KEY + "</code>\n" )
-              .append( "just describes the bar width of a\n" )
-              .append( "notional histogram whose outline\n" )
-              .append( "the plotted Gaussian should try to track,\n" )
-              .append( "and is only relevant for some\n" )
-              .append( "normalisation options.\n" )
-              .append( "</p>\n" )
-              .toString();
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots a best fit Gaussian to the histogram of",
+            "a sample of data.",
+            "In fact, all this plotter does is to calculate the mean",
+            "and standard deviation of the sample,",
+            "and plot the corresponding Gaussian curve.",
+            "The mean and standard deviation values are reported by the plot.",
+            "</p>",
+            "<p>The <code>" + normKey_ + "</code> config option,",
+            "perhaps in conjunction with <code>" + BINSIZER_KEY + "</code>,",
+            "can be used to scale the height of the plotted curve",
+            "in data units.",
+            "In this case, <code>" + BINSIZER_KEY + "</code>",
+            "just describes the bar width of a notional histogram",
+            "whose outline the plotted Gaussian should try to fit,",
+            "and is only relevant for some of the normalisation options.",
+            "</p>",
+        } );
     }
 
     public CoordGroup getCoordGroup() {
