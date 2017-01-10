@@ -700,19 +700,19 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         
             String lowerBand = lowerBandField.getText();
             if ( ! lowerBand.isEmpty() ) 
-                queryString += " AND em_min<=\'"+ lowerBand+"\'";
+                queryString += " AND em_min>=\'"+ lowerBand+"\'";
             
             String upperBand = upperBandField.getText();
             if ( ! upperBand.isEmpty() ) 
-                queryString += " AND em_max>=\'"+ upperBand+"\'";
+                queryString += " AND em_max<=\'"+ upperBand+"\'";
    
             String lowerTime = lowerTimeField.getText();
             if ( ! lowerTime.isEmpty() ) 
-                queryString += " AND t_min<=\'"+ lowerTime+"\'";
+                queryString += " AND t_min>=\'"+ lowerTime+"\'";
             
             String upperTime = upperTimeField.getText();
             if ( ! upperTime.isEmpty() )
-                queryString += " AND t_max>=\'"+ upperTime+"\'";
+                queryString += " AND t_max<=\'"+ upperTime+"\'";
         }    
         
         if (maxrec == 0) {
