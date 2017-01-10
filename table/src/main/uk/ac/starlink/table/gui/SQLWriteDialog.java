@@ -50,7 +50,7 @@ public class SQLWriteDialog extends JPanel implements TableSaveDialog {
 
     public Icon getIcon() {
         if ( icon_ == null ) {
-            icon_ = new ImageIcon( getClass().getResource( "sqlread.gif" ) );
+            icon_ = new ImageIcon( getClass().getResource( "sqlread.png" ) );
         }
         return icon_;
     }

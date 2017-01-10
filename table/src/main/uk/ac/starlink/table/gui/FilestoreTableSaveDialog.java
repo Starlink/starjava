@@ -69,7 +69,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
 
     public Icon getIcon() {
         if ( icon_ == null ) {
-            icon_ = new ImageIcon( getClass().getResource( "filestore.gif" ) );
+            icon_ = new ImageIcon( getClass().getResource( "filestore.png" ) );
         }
         return icon_;
     }

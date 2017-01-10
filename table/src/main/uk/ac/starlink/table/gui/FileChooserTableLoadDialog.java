@@ -33,7 +33,7 @@ public class FileChooserTableLoadDialog extends AbstractTableLoadDialog {
     public FileChooserTableLoadDialog() {
         super( "File Browser",
                "Load tables from files on the local filesystem" );
-        setIconUrl( StarTable.class.getResource( "gui/filechooser.gif" ) );
+        setIconUrl( StarTable.class.getResource( "gui/filechooser.png" ) );
     }
 
     protected Component createQueryComponent() {

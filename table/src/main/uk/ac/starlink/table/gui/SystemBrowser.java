@@ -124,7 +124,7 @@ public class SystemBrowser {
     public static Icon getSystemBrowserIcon() {
         if ( icon_ == null ) {
             icon_ = new ImageIcon( StarTable.class
-                                  .getResource( "gui/sysbrowser.gif" ) );
+                                  .getResource( "gui/sysbrowser.png" ) );
         }
         return icon_;
     }
