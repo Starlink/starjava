@@ -362,7 +362,7 @@ public class PlotExample {
                              null,
                     "binwidth=0.1", "xlo=12", "xhi=16", "xflip=true",
                              "xlabel=Magnitude", "xpix=500", null,
-                    "out=2mass.gif",
+                    "out=2mass.png",
                 },
                 new String[] {
                     "<p>Overplots histograms of three different columns",

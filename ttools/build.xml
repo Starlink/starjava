@@ -110,7 +110,7 @@
   <property name="src.docs" value="${src.dir}/docs"/>
   <property name="src.docs.examp" value="${src.docs}/examp"/>
   <property name="user.doc" value="sun256"/>
-  <property name="coverimage" value="ttools2.gif"/>
+  <property name="coverimage" value="ttools2.png"/>
   <property name="xdoc.etc" value="${star.dir}/etc/xdoc"/>
 
   <!-- Directory containing any script required to execute or setup package-->

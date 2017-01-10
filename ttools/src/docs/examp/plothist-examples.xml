@@ -20,7 +20,7 @@ stilts plothist inJ=2mass_xsc.fits xdataJ=j_m_k20fe barstyleJ=tops
                 inH=2mass_xsc.fits xdataH=h_m_k20fe barstyleH=tops
                 inK=2mass_xsc.fits xdataK=k_m_k20fe barstyleK=tops
                 binwidth=0.1 xlo=12 xhi=16 xflip=true xlabel=Magnitude xpix=500
-                out=2mass.gif
+                out=2mass.png
 </verbatim></dt>
 <dd><p>Overplots histograms of three different columns
 from the same input table.
@@ -36,5 +36,5 @@ The binwidth and X range are specified explicitly
 rather than leaving them to be chosen automatically
 by examining the data.
 </p>
-<p>The generated plot is <webref url='2mass.gif'>here</webref>.</p>
+<p>The generated plot is <webref url='2mass.png'>here</webref>.</p>
 </dd>

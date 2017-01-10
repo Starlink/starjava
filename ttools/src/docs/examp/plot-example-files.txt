@@ -5,4 +5,4 @@ xyplot2.png
 skyplot.png
 hist0.png
 hist.eps.gz
-2mass.gif
+2mass.png

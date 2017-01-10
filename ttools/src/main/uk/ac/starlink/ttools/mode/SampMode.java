@@ -209,11 +209,11 @@ public class SampMode implements ProcessingMode {
             httpd_.start();
 
             /* Inform hub of metadata. */
-            URL iconUrl = Stilts.class.getResource( "images/stilts_icon.gif" );
+            URL iconUrl = Stilts.class.getResource( "images/stilts_icon.png" );
             Metadata meta = getStiltsMetadata();
             if ( iconUrl != null ) {
                 URLMapperHandler iconHandler =
-                    new URLMapperHandler( httpd_, "stilts_icon.gif", iconUrl,
+                    new URLMapperHandler( httpd_, "stilts_icon.png", iconUrl,
                                           false );
                 httpd_.addHandler( iconHandler );
                 meta.setIconUrl( iconHandler.getBaseUrl().toString() );
