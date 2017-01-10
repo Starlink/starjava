@@ -20138,8 +20138,6 @@ functionality:
     for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
-<li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
-    (Acme) for GIF output</li>
 <li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/"
             >IVOA FITS Package</webref>
     (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
