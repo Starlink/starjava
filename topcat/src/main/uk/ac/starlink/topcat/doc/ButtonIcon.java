@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat.doc;
 
-import Acme.JPM.Encoders.GifEncoder;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -49,15 +48,16 @@ public class ButtonIcon {
     }
 
     /**
-     * Writes the image as currently painted to a GIF file with a given name.
+     * Writes the image as currently painted to a PNG file with a given name.
      *
      * @param   fname  filename
      */
-    public void writeGif( String fname ) throws IOException {
-        OutputStream out =
-            new BufferedOutputStream( new FileOutputStream( fname ) );
-        new GifEncoder( image_, out ).encode();
-        out.close();
+    public void writePng( String fname ) throws IOException {
+        String format = "PNG";
+        boolean fmtok = ImageIO.write( image_, format, new File( fname ) );
+        if ( ! fmtok ) {
+            throw new IOException( "Unknown format " + format );
+        }
         System.out.println( "Output image: " + fname );
     }
 
@@ -105,6 +105,6 @@ public class ButtonIcon {
      * @param  args  ignored
      */
     public static void main( String[] args ) throws IOException {
-        createRadial().writeGif( "clock1.gif" );
+        createRadial().writePng( "clock1.png" );
     }
 }

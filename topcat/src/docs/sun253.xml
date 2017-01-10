@@ -35,199 +35,199 @@
    !   Use -Dswing.metalTheme=steel when taking screenshots for visual
    !   consistency. -->
   <!ENTITY figs '../figures/'>
-  <!ENTITY FIG.ControlWindow '&figs;ControlWindow.gif'>
-  <!ENTITY FIG.ColumnInfoWindow '&figs;ColumnInfoWindow.gif'>
-  <!ENTITY FIG.JTable '&figs;JTable.gif'>
-  <!ENTITY FIG.ParameterWindow '&figs;ParameterWindow.gif'>
-  <!ENTITY FIG.TableViewerWindow '&figs;TableViewerWindow.gif'>
-  <!ENTITY FIG.SubsetWindow '&figs;SubsetWindow.gif'>
-  <!ENTITY FIG.StatsWindow '&figs;StatsWindow.gif'>
-  <!ENTITY FIG.LoadWindow '&figs;LoadWindow.gif'>
-  <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.gif'>
-  <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.gif'>
-  <!ENTITY FIG.SQLTableLoadDialog '&figs;SQLTableLoadDialog.gif'>
-  <!ENTITY FIG.ConeSearchDialog '&figs;ConeSearchDialog.gif'>
-  <!ENTITY FIG.GavoTableLoadDialog '&figs;GavoTableLoadDialog.gif'>
-  <!ENTITY FIG.SaveQueryWindow '&figs;SaveQueryWindow.gif'>
-  <!ENTITY FIG.FilestoreTableSaveDialog '&figs;FilestoreTableSaveDialog.gif'>
-  <!ENTITY FIG.SQLWriteDialog '&figs;SQLWriteDialog.gif'>
-  <!ENTITY FIG.ConcatWindow '&figs;ConcatWindow.gif'>
-  <!ENTITY FIG.MatchWindow '&figs;MatchWindow.gif'>
-  <!ENTITY FIG.MatchWindow1 '&figs;MatchWindow1.gif'>
-  <!ENTITY FIG.MatchWindowN '&figs;MatchWindowN.gif'>
-  <!ENTITY FIG.ActivationQueryWindow '&figs;ActivationQueryWindow.gif'>
-  <!ENTITY FIG.SoG '&figs;SoG.gif'>
-  <!ENTITY FIG.ImageWindow '&figs;ImageWindow.gif'>
-  <!ENTITY FIG.Splat '&figs;Splat.gif'>
-  <!ENTITY FIG.HelpWindow '&figs;HelpWindow.gif'>
-  <!ENTITY FIG.ParameterQueryWindow '&figs;ParameterQueryWindow.gif'>
+  <!ENTITY FIG.ControlWindow '&figs;ControlWindow.png'>
+  <!ENTITY FIG.ColumnInfoWindow '&figs;ColumnInfoWindow.png'>
+  <!ENTITY FIG.JTable '&figs;JTable.png'>
+  <!ENTITY FIG.ParameterWindow '&figs;ParameterWindow.png'>
+  <!ENTITY FIG.TableViewerWindow '&figs;TableViewerWindow.png'>
+  <!ENTITY FIG.SubsetWindow '&figs;SubsetWindow.png'>
+  <!ENTITY FIG.StatsWindow '&figs;StatsWindow.png'>
+  <!ENTITY FIG.LoadWindow '&figs;LoadWindow.png'>
+  <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.png'>
+  <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.png'>
+  <!ENTITY FIG.SQLTableLoadDialog '&figs;SQLTableLoadDialog.png'>
+  <!ENTITY FIG.ConeSearchDialog '&figs;ConeSearchDialog.png'>
+  <!ENTITY FIG.GavoTableLoadDialog '&figs;GavoTableLoadDialog.png'>
+  <!ENTITY FIG.SaveQueryWindow '&figs;SaveQueryWindow.png'>
+  <!ENTITY FIG.FilestoreTableSaveDialog '&figs;FilestoreTableSaveDialog.png'>
+  <!ENTITY FIG.SQLWriteDialog '&figs;SQLWriteDialog.png'>
+  <!ENTITY FIG.ConcatWindow '&figs;ConcatWindow.png'>
+  <!ENTITY FIG.MatchWindow '&figs;MatchWindow.png'>
+  <!ENTITY FIG.MatchWindow1 '&figs;MatchWindow1.png'>
+  <!ENTITY FIG.MatchWindowN '&figs;MatchWindowN.png'>
+  <!ENTITY FIG.ActivationQueryWindow '&figs;ActivationQueryWindow.png'>
+  <!ENTITY FIG.SoG '&figs;SoG.png'>
+  <!ENTITY FIG.ImageWindow '&figs;ImageWindow.png'>
+  <!ENTITY FIG.Splat '&figs;Splat.png'>
+  <!ENTITY FIG.HelpWindow '&figs;HelpWindow.png'>
+  <!ENTITY FIG.ParameterQueryWindow '&figs;ParameterQueryWindow.png'>
   <!ENTITY FIG.SyntheticColumnQueryWindow 
-           '&figs;SyntheticColumnQueryWindow.gif'>
-  <!ENTITY FIG.SkyColumnQueryWindow '&figs;SkyColumnQueryWindow.gif'>
+           '&figs;SyntheticColumnQueryWindow.png'>
+  <!ENTITY FIG.SkyColumnQueryWindow '&figs;SkyColumnQueryWindow.png'>
   <!ENTITY FIG.SyntheticSubsetQueryWindow 
-           '&figs;SyntheticSubsetQueryWindow.gif'>
-  <!ENTITY FIG.ClassifyWindow '&figs;ClassifyWindow.gif'>
-  <!ENTITY FIG.MethodWindow '&figs;MethodWindow.gif'>
-  <!ENTITY FIG.HtmlWindow '&figs;HtmlWindow.gif'>
-  <!ENTITY FIG.LogWindow '&figs;LogWindow.gif'>
-  <!ENTITY FIG.PointSelector '&figs;PointSelector.gif'>
-  <!ENTITY FIG.AxisWindow '&figs;AxisWindow.gif'>
-  <!ENTITY FIG.HistogramWindow '&figs;HistogramWindow.gif'>
-  <!ENTITY FIG.PlotWindow '&figs;PlotWindow.gif'>
-  <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.gif'>
-  <!ENTITY FIG.Cartesian3DWindow '&figs;Cartesian3DWindow.gif'>
-  <!ENTITY FIG.SphereWindow '&figs;SphereWindow.gif'>
-  <!ENTITY FIG.DensityWindow '&figs;DensityWindow.gif'>
-  <!ENTITY FIG.LinesWindow '&figs;LinesWindow.gif'>
-  <!ENTITY FIG.MarkStyleEditor '&figs;MarkStyleEditor.gif'>
-  <!ENTITY FIG.MarkStyleEditorNoLines '&figs;MarkStyleEditorNoLines.gif'>
-  <!ENTITY FIG.BarStyleEditor '&figs;BarStyleEditor.gif'>
-  <!ENTITY FIG.DensityStyleEditor '&figs;DensityStyleEditor.gif'>
-  <!ENTITY FIG.LinesStyleEditor '&figs;LinesStyleEditor.gif'>
-  <!ENTITY FIG.Cartesian3DWindow_aux '&figs;Cartesian3DWindow_aux.gif'>
-  <!ENTITY FIG.PlotWindow_err '&figs;PlotWindow_err.gif'>
-  <!ENTITY FIG.SphereWindow_labels '&figs;SphereWindow_labels.gif'>
-  <!ENTITY FIG.sampPanel '&figs;sampPanel.gif'>
-  <!ENTITY FIG.SampWindow_clients '&figs;SampWindow_clients.gif'>
-  <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
-  <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
-  <!ENTITY FIG.SsapTableLoadDialog '&figs;SsapTableLoadDialog.gif'>
-  <!ENTITY FIG.TapTableLoadDialog '&figs;TapTableLoadDialog.gif'>
+           '&figs;SyntheticSubsetQueryWindow.png'>
+  <!ENTITY FIG.ClassifyWindow '&figs;ClassifyWindow.png'>
+  <!ENTITY FIG.MethodWindow '&figs;MethodWindow.png'>
+  <!ENTITY FIG.HtmlWindow '&figs;HtmlWindow.png'>
+  <!ENTITY FIG.LogWindow '&figs;LogWindow.png'>
+  <!ENTITY FIG.PointSelector '&figs;PointSelector.png'>
+  <!ENTITY FIG.AxisWindow '&figs;AxisWindow.png'>
+  <!ENTITY FIG.HistogramWindow '&figs;HistogramWindow.png'>
+  <!ENTITY FIG.PlotWindow '&figs;PlotWindow.png'>
+  <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.png'>
+  <!ENTITY FIG.Cartesian3DWindow '&figs;Cartesian3DWindow.png'>
+  <!ENTITY FIG.SphereWindow '&figs;SphereWindow.png'>
+  <!ENTITY FIG.DensityWindow '&figs;DensityWindow.png'>
+  <!ENTITY FIG.LinesWindow '&figs;LinesWindow.png'>
+  <!ENTITY FIG.MarkStyleEditor '&figs;MarkStyleEditor.png'>
+  <!ENTITY FIG.MarkStyleEditorNoLines '&figs;MarkStyleEditorNoLines.png'>
+  <!ENTITY FIG.BarStyleEditor '&figs;BarStyleEditor.png'>
+  <!ENTITY FIG.DensityStyleEditor '&figs;DensityStyleEditor.png'>
+  <!ENTITY FIG.LinesStyleEditor '&figs;LinesStyleEditor.png'>
+  <!ENTITY FIG.Cartesian3DWindow_aux '&figs;Cartesian3DWindow_aux.png'>
+  <!ENTITY FIG.PlotWindow_err '&figs;PlotWindow_err.png'>
+  <!ENTITY FIG.SphereWindow_labels '&figs;SphereWindow_labels.png'>
+  <!ENTITY FIG.sampPanel '&figs;sampPanel.png'>
+  <!ENTITY FIG.SampWindow_clients '&figs;SampWindow_clients.png'>
+  <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.png'>
+  <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.png'>
+  <!ENTITY FIG.SsapTableLoadDialog '&figs;SsapTableLoadDialog.png'>
+  <!ENTITY FIG.TapTableLoadDialog '&figs;TapTableLoadDialog.png'>
   <!ENTITY FIG.TapTableLoadDialog_service
-           '&figs;TapTableLoadDialog_service.gif'>
-  <!ENTITY FIG.TapTableLoadDialog_query '&figs;TapTableLoadDialog_query.gif'>
-  <!ENTITY FIG.TapTableLoadDialog_jobs '&figs;TapTableLoadDialog_jobs.gif'>
-  <!ENTITY FIG.TapTableLoadDialog_resume '&figs;TapTableLoadDialog_resume.gif'>
-  <!ENTITY FIG.columnSelector '&figs;columnSelector.gif'>
-  <!ENTITY FIG.RegistryPanel '&figs;RegistryPanel.gif'>
-  <!ENTITY FIG.DalTableLoadDialog '&figs;DalTableLoadDialog.gif'>
-  <!ENTITY FIG.DalMultiPanel '&figs;DalMultiPanel.gif'>
-  <!ENTITY FIG.ConeMultiWindow '&figs;ConeMultiWindow.gif'>
-  <!ENTITY FIG.SiaMultiWindow '&figs;SiaMultiWindow.gif'>
-  <!ENTITY FIG.SsaMultiWindow '&figs;SsaMultiWindow.gif'>
-  <!ENTITY FIG.VizierTableLoadDialog '&figs;VizierTableLoadDialog.gif'>
-  <!ENTITY FIG.MemoryMonitor '&figs;MemoryMonitor.gif'>
-  <!ENTITY FIG.ParameterPanel '&figs;ParameterPanel.gif'>
-  <!ENTITY FIG.TupleSelector '&figs;TupleSelector.gif'>
-  <!ENTITY FIG.IntraMatchSpec '&figs;IntraMatchSpec.gif'>
-  <!ENTITY FIG.PairMatchSpec '&figs;PairMatchSpec.gif'>
-  <!ENTITY FIG.InterMatchSpec '&figs;InterMatchSpec.gif'>
-  <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.gif'>
-  <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.gif'>
-  <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.gif'>
-  <!ENTITY FIG.NavigationHelpPanel '&figs;NavigationHelpPanel.gif'>
-  <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.gif'>
-  <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.gif'>
-  <!ENTITY FIG.form-style '&figs;form-style.gif'>
-  <!ENTITY FIG.PlotExporter '&figs;PlotExporter.gif'>
-  <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.gif'>
-  <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.gif'>
-  <!ENTITY FIG.ShaderControl_map '&figs;ShaderControl_map.gif'>
-  <!ENTITY FIG.ShaderControl_ramp '&figs;ShaderControl_ramp.gif'>
-  <!ENTITY FIG.ShaderControl_range '&figs;ShaderControl_range.gif'>
-  <!ENTITY FIG.FunctionLayerControl '&figs;FunctionLayerControl.gif'>
+           '&figs;TapTableLoadDialog_service.png'>
+  <!ENTITY FIG.TapTableLoadDialog_query '&figs;TapTableLoadDialog_query.png'>
+  <!ENTITY FIG.TapTableLoadDialog_jobs '&figs;TapTableLoadDialog_jobs.png'>
+  <!ENTITY FIG.TapTableLoadDialog_resume '&figs;TapTableLoadDialog_resume.png'>
+  <!ENTITY FIG.columnSelector '&figs;columnSelector.png'>
+  <!ENTITY FIG.RegistryPanel '&figs;RegistryPanel.png'>
+  <!ENTITY FIG.DalTableLoadDialog '&figs;DalTableLoadDialog.png'>
+  <!ENTITY FIG.DalMultiPanel '&figs;DalMultiPanel.png'>
+  <!ENTITY FIG.ConeMultiWindow '&figs;ConeMultiWindow.png'>
+  <!ENTITY FIG.SiaMultiWindow '&figs;SiaMultiWindow.png'>
+  <!ENTITY FIG.SsaMultiWindow '&figs;SsaMultiWindow.png'>
+  <!ENTITY FIG.VizierTableLoadDialog '&figs;VizierTableLoadDialog.png'>
+  <!ENTITY FIG.MemoryMonitor '&figs;MemoryMonitor.png'>
+  <!ENTITY FIG.ParameterPanel '&figs;ParameterPanel.png'>
+  <!ENTITY FIG.TupleSelector '&figs;TupleSelector.png'>
+  <!ENTITY FIG.IntraMatchSpec '&figs;IntraMatchSpec.png'>
+  <!ENTITY FIG.PairMatchSpec '&figs;PairMatchSpec.png'>
+  <!ENTITY FIG.InterMatchSpec '&figs;InterMatchSpec.png'>
+  <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.png'>
+  <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.png'>
+  <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.png'>
+  <!ENTITY FIG.NavigationHelpPanel '&figs;NavigationHelpPanel.png'>
+  <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.png'>
+  <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.png'>
+  <!ENTITY FIG.form-style '&figs;form-style.png'>
+  <!ENTITY FIG.PlotExporter '&figs;PlotExporter.png'>
+  <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.png'>
+  <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.png'>
+  <!ENTITY FIG.ShaderControl_map '&figs;ShaderControl_map.png'>
+  <!ENTITY FIG.ShaderControl_ramp '&figs;ShaderControl_ramp.png'>
+  <!ENTITY FIG.ShaderControl_range '&figs;ShaderControl_range.png'>
+  <!ENTITY FIG.FunctionLayerControl '&figs;FunctionLayerControl.png'>
   <!ENTITY FIG.FunctionLayerControl_function
-           '&figs;FunctionLayerControl_function.gif'>
+           '&figs;FunctionLayerControl_function.png'>
   <!ENTITY FIG.FunctionLayerControl_style
-           '&figs;FunctionLayerControl_style.gif'>
+           '&figs;FunctionLayerControl_style.png'>
   <!ENTITY FIG.FunctionLayerControl_label
-           '&figs;FunctionLayerControl_label.gif'>
-  <!ENTITY FIG.SpectrogramLayerControl '&figs;SpectrogramLayerControl.gif'>
+           '&figs;FunctionLayerControl_label.png'>
+  <!ENTITY FIG.SpectrogramLayerControl '&figs;SpectrogramLayerControl.png'>
   <!ENTITY FIG.SpectrogramLayerControl_data
-           '&figs;SpectrogramLayerControl_data.gif'>
-  <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.gif'>
-  <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.gif'>
-  <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.gif'>
+           '&figs;SpectrogramLayerControl_data.png'>
+  <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.png'>
+  <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.png'>
+  <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.png'>
   <!ENTITY FIG.GangLayerControl_pair_position
-           '&figs;GangLayerControl_pair_position.gif'>
+           '&figs;GangLayerControl_pair_position.png'>
   <!ENTITY FIG.GangLayerControl_pair_subsets
-           '&figs;GangLayerControl_pair_subsets.gif'>
+           '&figs;GangLayerControl_pair_subsets.png'>
   <!ENTITY FIG.GangLayerControl_pair_form
-           '&figs;GangLayerControl_pair_form.gif'>
+           '&figs;GangLayerControl_pair_form.png'>
   <!ENTITY FIG.HistogramLayerControl_position
-           '&figs;HistogramLayerControl_position.gif'>
+           '&figs;HistogramLayerControl_position.png'>
   <!ENTITY FIG.HistogramLayerControl_subsets
-           '&figs;HistogramLayerControl_subsets.gif'>
+           '&figs;HistogramLayerControl_subsets.png'>
   <!ENTITY FIG.HistogramLayerControl_form
-           '&figs;HistogramLayerControl_form.gif'>
-  <!ENTITY FIG.HealpixLayerControl '&figs;HealpixLayerControl.gif'>
-  <!ENTITY FIG.HealpixLayerControl_data '&figs;HealpixLayerControl_data.gif'>
-  <!ENTITY FIG.HealpixLayerControl_style '&figs;HealpixLayerControl_style.gif'>
-  <!ENTITY FIG.mode_flat '&figs;mode_flat.gif'>
-  <!ENTITY FIG.mode_translucent '&figs;mode_translucent.gif'>
-  <!ENTITY FIG.mode_transparent '&figs;mode_transparent.gif'>
-  <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
-  <!ENTITY FIG.mode_density '&figs;mode_density.gif'>
-  <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
-  <!ENTITY FIG.mode_weighted '&figs;mode_weighted.gif'>
-  <!ENTITY FIG.form_mark '&figs;form_mark.gif'>
-  <!ENTITY FIG.form_size '&figs;form_size.gif'>
-  <!ENTITY FIG.form_sizexy '&figs;form_sizexy.gif'>
-  <!ENTITY FIG.form_vector '&figs;form_vector.gif'>
-  <!ENTITY FIG.form_skyvector '&figs;form_skyvector.gif'>
-  <!ENTITY FIG.form_error '&figs;form_error.gif'>
-  <!ENTITY FIG.form_xyellipse '&figs;form_xyellipse.gif'>
-  <!ENTITY FIG.form_skyellipse '&figs;form_skyellipse.gif'>
-  <!ENTITY FIG.form_line '&figs;form_line.gif'>
-  <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
-  <!ENTITY FIG.form_quantile '&figs;form_quantile.gif'>
-  <!ENTITY FIG.form_label '&figs;form_label.gif'>
-  <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
-  <!ENTITY FIG.form_fill '&figs;form_fill.gif'>
-  <!ENTITY FIG.form_density '&figs;form_density.gif'>
-  <!ENTITY FIG.form_skydensity '&figs;form_skydensity.gif'>
-  <!ENTITY FIG.form_histogram '&figs;form_histogram.gif'>
-  <!ENTITY FIG.form_kde '&figs;form_kde.gif'>
-  <!ENTITY FIG.form_knn '&figs;form_knn.gif'>
-  <!ENTITY FIG.form_densogram '&figs;form_densogram.gif'>
-  <!ENTITY FIG.form_gaussian '&figs;form_gaussian.gif'>
-  <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
-  <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
-  <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
-  <!ENTITY FIG.size_tab '&figs;size_tab.gif'>
-  <!ENTITY FIG.title_tab '&figs;title_tab.gif'>
-  <!ENTITY FIG.zone_tab '&figs;zone_tab.gif'>
-  <!ENTITY FIG.zone_axes '&figs;zone_axes.gif'>
-  <!ENTITY FIG.BinsControl_histogram '&figs;BinsControl_histogram.gif'>
-  <!ENTITY FIG.BinsControl_kde '&figs;BinsControl_kde.gif'>
-  <!ENTITY FIG.BinsControl_general '&figs;BinsControl_general.gif'>
-  <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
+           '&figs;HistogramLayerControl_form.png'>
+  <!ENTITY FIG.HealpixLayerControl '&figs;HealpixLayerControl.png'>
+  <!ENTITY FIG.HealpixLayerControl_data '&figs;HealpixLayerControl_data.png'>
+  <!ENTITY FIG.HealpixLayerControl_style '&figs;HealpixLayerControl_style.png'>
+  <!ENTITY FIG.mode_flat '&figs;mode_flat.png'>
+  <!ENTITY FIG.mode_translucent '&figs;mode_translucent.png'>
+  <!ENTITY FIG.mode_transparent '&figs;mode_transparent.png'>
+  <!ENTITY FIG.mode_auto '&figs;mode_auto.png'>
+  <!ENTITY FIG.mode_density '&figs;mode_density.png'>
+  <!ENTITY FIG.mode_aux '&figs;mode_aux.png'>
+  <!ENTITY FIG.mode_weighted '&figs;mode_weighted.png'>
+  <!ENTITY FIG.form_mark '&figs;form_mark.png'>
+  <!ENTITY FIG.form_size '&figs;form_size.png'>
+  <!ENTITY FIG.form_sizexy '&figs;form_sizexy.png'>
+  <!ENTITY FIG.form_vector '&figs;form_vector.png'>
+  <!ENTITY FIG.form_skyvector '&figs;form_skyvector.png'>
+  <!ENTITY FIG.form_error '&figs;form_error.png'>
+  <!ENTITY FIG.form_xyellipse '&figs;form_xyellipse.png'>
+  <!ENTITY FIG.form_skyellipse '&figs;form_skyellipse.png'>
+  <!ENTITY FIG.form_line '&figs;form_line.png'>
+  <!ENTITY FIG.form_linearfit '&figs;form_linearfit.png'>
+  <!ENTITY FIG.form_quantile '&figs;form_quantile.png'>
+  <!ENTITY FIG.form_label '&figs;form_label.png'>
+  <!ENTITY FIG.form_contour '&figs;form_contour.png'>
+  <!ENTITY FIG.form_fill '&figs;form_fill.png'>
+  <!ENTITY FIG.form_density '&figs;form_density.png'>
+  <!ENTITY FIG.form_skydensity '&figs;form_skydensity.png'>
+  <!ENTITY FIG.form_histogram '&figs;form_histogram.png'>
+  <!ENTITY FIG.form_kde '&figs;form_kde.png'>
+  <!ENTITY FIG.form_knn '&figs;form_knn.png'>
+  <!ENTITY FIG.form_densogram '&figs;form_densogram.png'>
+  <!ENTITY FIG.form_gaussian '&figs;form_gaussian.png'>
+  <!ENTITY FIG.form_marks2 '&figs;form_marks2.png'>
+  <!ENTITY FIG.form_link2 '&figs;form_link2.png'>
+  <!ENTITY FIG.font_tab '&figs;font_tab.png'>
+  <!ENTITY FIG.size_tab '&figs;size_tab.png'>
+  <!ENTITY FIG.title_tab '&figs;title_tab.png'>
+  <!ENTITY FIG.zone_tab '&figs;zone_tab.png'>
+  <!ENTITY FIG.zone_axes '&figs;zone_axes.png'>
+  <!ENTITY FIG.BinsControl_histogram '&figs;BinsControl_histogram.png'>
+  <!ENTITY FIG.BinsControl_kde '&figs;BinsControl_kde.png'>
+  <!ENTITY FIG.BinsControl_general '&figs;BinsControl_general.png'>
+  <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.png'>
   <!ENTITY FIG.PlaneAxisControl_navigation
-               '&figs;PlaneAxisControl_navigation.gif'>
-  <!ENTITY FIG.PlaneAxisControl_range '&figs;PlaneAxisControl_range.gif'>
-  <!ENTITY FIG.PlaneAxisControl_grid '&figs;PlaneAxisControl_grid.gif'>
-  <!ENTITY FIG.PlaneAxisControl_labels '&figs;PlaneAxisControl_labels.gif'>
-  <!ENTITY FIG.SkyAxisControl_projection '&figs;SkyAxisControl_projection.gif'>
-  <!ENTITY FIG.SkyAxisControl_navigation '&figs;SkyAxisControl_navigation.gif'>
-  <!ENTITY FIG.SkyAxisControl_fov '&figs;SkyAxisControl_fov.gif'>
-  <!ENTITY FIG.SkyAxisControl_grid '&figs;SkyAxisControl_grid.gif'>
-  <!ENTITY FIG.CubeAxisControl_coords '&figs;CubeAxisControl_coords.gif'>
+               '&figs;PlaneAxisControl_navigation.png'>
+  <!ENTITY FIG.PlaneAxisControl_range '&figs;PlaneAxisControl_range.png'>
+  <!ENTITY FIG.PlaneAxisControl_grid '&figs;PlaneAxisControl_grid.png'>
+  <!ENTITY FIG.PlaneAxisControl_labels '&figs;PlaneAxisControl_labels.png'>
+  <!ENTITY FIG.SkyAxisControl_projection '&figs;SkyAxisControl_projection.png'>
+  <!ENTITY FIG.SkyAxisControl_navigation '&figs;SkyAxisControl_navigation.png'>
+  <!ENTITY FIG.SkyAxisControl_fov '&figs;SkyAxisControl_fov.png'>
+  <!ENTITY FIG.SkyAxisControl_grid '&figs;SkyAxisControl_grid.png'>
+  <!ENTITY FIG.CubeAxisControl_coords '&figs;CubeAxisControl_coords.png'>
   <!ENTITY FIG.CubeAxisControl_navigation
-           '&figs;CubeAxisControl_navigation.gif'>
-  <!ENTITY FIG.CubeAxisControl_range '&figs;CubeAxisControl_range.gif'>
-  <!ENTITY FIG.CubeAxisControl_view '&figs;CubeAxisControl_view.gif'>
-  <!ENTITY FIG.CubeAxisControl_grid '&figs;CubeAxisControl_grid.gif'>
-  <!ENTITY FIG.CubeAxisControl_labels '&figs;CubeAxisControl_labels.gif'>
+           '&figs;CubeAxisControl_navigation.png'>
+  <!ENTITY FIG.CubeAxisControl_range '&figs;CubeAxisControl_range.png'>
+  <!ENTITY FIG.CubeAxisControl_view '&figs;CubeAxisControl_view.png'>
+  <!ENTITY FIG.CubeAxisControl_grid '&figs;CubeAxisControl_grid.png'>
+  <!ENTITY FIG.CubeAxisControl_labels '&figs;CubeAxisControl_labels.png'>
   <!ENTITY FIG.SphereAxisControl_navigation
-           '&figs;SphereAxisControl_navigation.gif'>
-  <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.gif'>
-  <!ENTITY FIG.SphereAxisControl_view '&figs;SphereAxisControl_view.gif'>
-  <!ENTITY FIG.SphereAxisControl_grid '&figs;SphereAxisControl_grid.gif'>
-  <!ENTITY FIG.TimeAxisControl_coords '&figs;TimeAxisControl_coords.gif'>
+           '&figs;SphereAxisControl_navigation.png'>
+  <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.png'>
+  <!ENTITY FIG.SphereAxisControl_view '&figs;SphereAxisControl_view.png'>
+  <!ENTITY FIG.SphereAxisControl_grid '&figs;SphereAxisControl_grid.png'>
+  <!ENTITY FIG.TimeAxisControl_coords '&figs;TimeAxisControl_coords.png'>
   <!ENTITY FIG.TimeAxisControl_navigation
-           '&figs;TimeAxisControl_navigation.gif'>
-  <!ENTITY FIG.TimeAxisControl_range '&figs;TimeAxisControl_range.gif'>
-  <!ENTITY FIG.TimeAxisControl_grid '&figs;TimeAxisControl_grid.gif'>
-  <!ENTITY FIG.TimeAxisControl_labels '&figs;TimeAxisControl_labels.gif'>
-  <!ENTITY FIG.HistogramPlotWindow '&figs;HistogramPlotWindow.gif'>
-  <!ENTITY FIG.PlanePlotWindow '&figs;PlanePlotWindow.gif'>
-  <!ENTITY FIG.SkyPlotWindow '&figs;SkyPlotWindow.gif'>
-  <!ENTITY FIG.CubePlotWindow '&figs;CubePlotWindow.gif'>
-  <!ENTITY FIG.SpherePlotWindow '&figs;SpherePlotWindow.gif'>
-  <!ENTITY FIG.TimePlotWindow '&figs;TimePlotWindow.gif'>
-  <!ENTITY FIG.plotmatch_dialog '&figs;plotmatch_dialog.gif'>
-  <!ENTITY FIG.SkyPlotWindow_plotmatch '&figs;SkyPlotWindow_plotmatch.gif'>
-  <!ENTITY FIG.CdsUploadMatchWindow '&figs;CdsUploadMatchWindow.gif'>
+           '&figs;TimeAxisControl_navigation.png'>
+  <!ENTITY FIG.TimeAxisControl_range '&figs;TimeAxisControl_range.png'>
+  <!ENTITY FIG.TimeAxisControl_grid '&figs;TimeAxisControl_grid.png'>
+  <!ENTITY FIG.TimeAxisControl_labels '&figs;TimeAxisControl_labels.png'>
+  <!ENTITY FIG.HistogramPlotWindow '&figs;HistogramPlotWindow.png'>
+  <!ENTITY FIG.PlanePlotWindow '&figs;PlanePlotWindow.png'>
+  <!ENTITY FIG.SkyPlotWindow '&figs;SkyPlotWindow.png'>
+  <!ENTITY FIG.CubePlotWindow '&figs;CubePlotWindow.png'>
+  <!ENTITY FIG.SpherePlotWindow '&figs;SpherePlotWindow.png'>
+  <!ENTITY FIG.TimePlotWindow '&figs;TimePlotWindow.png'>
+  <!ENTITY FIG.plotmatch_dialog '&figs;plotmatch_dialog.png'>
+  <!ENTITY FIG.SkyPlotWindow_plotmatch '&figs;SkyPlotWindow_plotmatch.png'>
+  <!ENTITY FIG.CdsUploadMatchWindow '&figs;CdsUploadMatchWindow.png'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">

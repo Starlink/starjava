@@ -139,7 +139,7 @@ public class TopcatPlasticListener extends HubManager {
 
         /* Get TOPCAT icon. */
         else if ( MessageId.INFO_GETICONURL.equals( message ) ) {
-            return "http://www.starlink.ac.uk/topcat/images/tc_sok.gif";
+            return "http://www.starlink.ac.uk/topcat/images/tc_sok.png";
         }
 
         else if ( MessageId.INFO_GETDESCRIPTION.equals( message ) ) {

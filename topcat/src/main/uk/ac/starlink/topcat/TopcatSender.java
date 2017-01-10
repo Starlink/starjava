@@ -137,7 +137,7 @@ public abstract class TopcatSender {
         meta.setDescriptionText( "Attempts to send tables to "
                                + "a running TOPCAT instance" );
         meta.setIconUrl( "http://www.starlink.ac.uk/topcat/"
-                       + "images/to_tc3.gif" );
+                       + "images/to_tc3.png" );
         meta.put( "author.name", "Mark Taylor" );
         conn.declareMetadata( meta );
 
