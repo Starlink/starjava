@@ -1368,6 +1368,22 @@
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
       <sysproperty key="java.awt.headless" value="true"/>
+
+      <!-- This is fiddly.
+       !   The version of FOP we're using here (0.20, very old) doesn't
+       !   handle PNGs on its own, but can do it with the help of JAI or JIMI.
+       !   Trying to do it using JAI fails with various errors
+       |   (complains about PNG magic numbers amongst other things).
+       !   So we can use JIMI, which is in the XDOC package.  
+       !   But, FOP tries JAI in preference to JIMI if both are present
+       !   (FOP docs say JAI is faster, though both seem exceedingly slow),
+       !   so we have to ensure that JAI is not on the classpath.
+       !   Since SoG requires JAI, it is probably in the JDK's
+       !   extensions directory.  So here we reset the java.ext.dirs
+       !   so that JAI doesn't get picked up.
+       !   If we ever upgrade to a later FOP, we can dispense with both JIMI
+       !   and these classpath acrobatics. -->
+      <sysproperty key="java.ext.dirs" value=""/>
       <arg value="-q"/>
       <arg value="-fo"/> <arg value="${build.docs}/${user.doc}.fo"/>
       <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>

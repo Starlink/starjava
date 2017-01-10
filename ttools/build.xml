@@ -1283,6 +1283,10 @@
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
       <sysproperty key="java.awt.headless" value="true"/>
+      <!-- This classpath tweaking may be required if PNGs are present
+       !   and an old version of FOP is in use - see discussion in
+       !   topcat/build.xml. -->
+      <sysproperty key="java.ext.dirs" value=""/>
       <arg value="-q"/>
       <arg value="-fo"/> <arg value="${build.docs}/${user.doc}.fo"/>
       <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>
