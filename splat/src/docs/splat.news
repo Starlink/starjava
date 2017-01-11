@@ -1,9 +1,21 @@
 1 Starlink SPLAT news.
+
+
+
+   3.11-5
+   ======
+   - changes in user interface structure (SSAP, Obscore)
+   - correction of Obscore simple search interface
+   - added data product type option to obscore simple search (allow timeseries or spectra)
+    
    3.11-4
    ======
 
    Fix a problem receiving local files from SAMP communicators.
-
+   - improvement on handling remote files (detecting file type, compression)
+   - Timeseries initial support
+   - sending spectra as table via SAMP
+   - Bug fix: sending SAMP results tableImprovements in the ObsCore interface
 
    3.11-3
    ======
