@@ -20,6 +20,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -49,6 +51,8 @@ public class MultiFormLayerControl extends FormLayerControl {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
+    private static final String[] HINT_LINES =
+        { "Add layers", "using \"Forms\"", "button above", };
 
     /**
      * Constructor.
@@ -133,6 +137,21 @@ public class MultiFormLayerControl extends FormLayerControl {
         formPanel.add( body, BorderLayout.CENTER );
         formStackModel_.addPlotActionListener( getActionForwarder() );
 
+        /* Fix it so that the hint message is visible at appropriate times. */
+        formStackModel_.addListDataListener( new ListDataListener() {
+            public void contentsChanged( ListDataEvent evt ) {
+            }
+            public void intervalRemoved( ListDataEvent evt ) {
+                if ( formStackModel_.getSize() == 0 ) {
+                    setHintVisible( true );
+                }
+            }
+            public void intervalAdded( ListDataEvent evt ) {
+                setHintVisible( false );
+            }
+        } );
+        setHintVisible( true );
+
         /* Divide up the supplied plotters into those which constitute
          * mode/form families, and standalone ones. */
         singlePlotterList_ = new ArrayList<Plotter>();
@@ -210,6 +229,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      */
     public void addDefaultLayer() {
         dfltFormAct_.actionPerformed( null );
+        setHintVisible( true );
     }
 
     /**
@@ -230,6 +250,16 @@ public class MultiFormLayerControl extends FormLayerControl {
         else {
             logger_.warning( "Failed to add layer " + lcmd );
         }
+    }
+
+    /**
+     * Determines whether the hint about using the Forms button is
+     * painted or not.
+     *
+     * @param  isVisible  true iff hint is to be displayed
+     */
+    private void setHintVisible( boolean isVisible ) {
+        formStack_.setListMessage( isVisible ? HINT_LINES : null );
     }
 
     /**
