@@ -88,16 +88,32 @@ public class MultiFormLayerControl extends FormLayerControl {
         final JComponent fcHolder = new JPanel( new BorderLayout() );
         formStackModel_ = new ControlStackModel();
         formStack_ = new ControlStack( formStackModel_ );
+        final Action removeAction =
+            formStack_
+           .createRemoveAction( "Remove Selected Form",
+                                "Delete the currently selected form"
+                              + " from the stack" );
         formStack_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 fcHolder.removeAll();
                 Object item = formStack_.getSelectedValue();
-                if ( item instanceof FormControl ) {
-                    FormControl fc = (FormControl) item;
+                FormControl fc = item instanceof FormControl
+                               ? (FormControl) item
+                               : null;
+                if ( fc != null ) {
                     fcHolder.add( fc.getPanel(), BorderLayout.NORTH );
                     fcHolder.revalidate();
                     fcHolder.repaint();
                 }
+                String fcTrailer = fc == null
+                                 ? ""
+                                 : " (" + fc.getControlLabel() + ")";
+                removeAction.putValue( Action.NAME,
+                                       "Remove Selected Form" + fcTrailer );
+                removeAction.putValue( Action.SHORT_DESCRIPTION,
+                                       "Delete the currently selected form"
+                                     + fcTrailer + " from the stack" );
+                removeAction.setEnabled( fc != null );
             }
         } );
         JScrollPane stackScroller = new JScrollPane( formStack_ );
@@ -148,11 +164,6 @@ public class MultiFormLayerControl extends FormLayerControl {
         for ( Plotter plotter : singlePlotterList_ ) {
             formActionList.add( new SingleFormAction( plotter ) );
         }
-
-        /* Action to remove the current form from the stack. */
-        Action removeAction =
-            formStack_.createRemoveAction( "Remove",
-                                           "Delete the current form" );
 
         /* Populate a menu with these actions. */
         final JPopupMenu formMenu = new JPopupMenu( "Forms" );
@@ -317,10 +328,10 @@ public class MultiFormLayerControl extends FormLayerControl {
          * @param  plotter   object that generates plot layers
          */
         public SingleFormAction( Plotter plotter ) {
-            super( plotter.getPlotterName(),
+            super( "Add " + plotter.getPlotterName(),
                    ResourceIcon.toAddIcon( plotter.getPlotterIcon() ) );
             putValue( SHORT_DESCRIPTION,
-                      "Add new " + plotter.getPlotterName() + " form" );
+                      "Add a new " + plotter.getPlotterName() + " plot layer" );
             plotter_ = plotter;
         }
 
@@ -344,10 +355,10 @@ public class MultiFormLayerControl extends FormLayerControl {
          * @param  form   common form
          */
         public ModeFormAction( ModePlotter[] plotters, ModePlotter.Form form ) {
-            super( form.getFormName(),
+            super( "Add " + form.getFormName(),
                    ResourceIcon.toAddIcon( form.getFormIcon() ) );
             putValue( SHORT_DESCRIPTION,
-                      "Add new " + form.getFormName() + " form" );
+                      "Add a new " + form.getFormName() + " plot layer" );
             plotters_ = plotters;
         }
 
