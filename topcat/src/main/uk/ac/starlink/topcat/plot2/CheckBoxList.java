@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
@@ -29,6 +31,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
  * Second, the list entries can be reordered by the user dragging
  * them up or down in the list.  A distinctive handle is provided to
  * indicate this option visually.
+ * Third, you can overpaint a message below the list items.
  *
  * <p>The selection model for the checkboxes and the list model giving
  * entry ordering are held externally to this implementation, so must be
@@ -44,6 +47,7 @@ public abstract class CheckBoxList<T> extends JList {
     private final boolean canSelect_;
     private final CheckBoxCellRenderer renderer_;
     private final DragListener dragger_;
+    private String[] msgLines_;
 
     /**
      * Constructor.
@@ -135,6 +139,17 @@ public abstract class CheckBoxList<T> extends JList {
         return clazz_.isInstance( value ) ? clazz_.cast( value ) : null;
     }
 
+    /**
+     * Sets a message which is overpainted on the blank part of this
+     * component.  If null or empty, no message is painted.
+     *
+     * @param  msgLines  lines of a message to paint
+     */
+    public void setListMessage( String[] msgLines ) {
+        msgLines_ = msgLines;
+        repaint();
+    }
+
     @Override
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
@@ -155,6 +170,33 @@ public abstract class CheckBoxList<T> extends JList {
             bounds.y += dy;
             dragComp.setBounds( bounds );
             dragComp.stamp( g );
+        }
+
+        /* Overpaint the message text if there is any. */
+        if ( msgLines_ != null && msgLines_.length > 0 ) {
+            int nItem = getModel().getSize();
+            Rectangle space = getBounds( null );
+            Rectangle itemBounds = getCellBounds( 0, getModel().getSize() - 1 );
+            if ( itemBounds != null ) {
+                space.y = itemBounds.y + itemBounds.height;
+                space.height -= itemBounds.height;
+            }
+            Color color0 = g.getColor();
+            g.setColor( Color.LIGHT_GRAY );
+            FontMetrics fm = g.getFontMetrics();
+            int wmax = 0;
+            for ( String line : msgLines_ ) {
+                int width = (int) fm.getStringBounds( line, g ).getWidth();
+                wmax = Math.max( wmax, width );
+            }
+            int x = Math.max( 0, ( space.width - wmax ) / 2 );
+            int y = space.y + fm.getLeading() + fm.getAscent();
+            int dy = fm.getAscent() + fm.getDescent() + fm.getLeading();
+            for ( String line : msgLines_ ) {
+                y += dy;
+                g.drawString( line, x, y );
+            }
+            g.setColor( color0 );
         }
     }
 
