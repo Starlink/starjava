@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,11 +12,14 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -102,7 +107,12 @@ public class MultiFormLayerControl extends FormLayerControl {
         fcScroller.getVerticalScrollBar().setUnitIncrement( 16 );
         JComponent formPanel = new JPanel( new BorderLayout() );
         JComponent body =  new JPanel( new BorderLayout() );
-        body.add( stackScroller, BorderLayout.WEST );
+        JComponent leftBox = Box.createVerticalBox();
+        JComponent fBar = new JPanel( new BorderLayout() );
+        fBar.setBorder( BorderFactory.createEmptyBorder( 0, 0, 2, 2 ) );
+        leftBox.add( fBar );
+        leftBox.add( stackScroller );
+        body.add( leftBox, BorderLayout.WEST );
         body.add( fcScroller, BorderLayout.CENTER );
         formPanel.add( body, BorderLayout.CENTER );
         formStackModel_.addPlotActionListener( getActionForwarder() );
@@ -144,15 +154,26 @@ public class MultiFormLayerControl extends FormLayerControl {
             formStack_.createRemoveAction( "Remove",
                                            "Delete the current form" );
 
-        /* Populate a toolbar with these actions. */
-        JToolBar formToolbar = new JToolBar();
-        formToolbar.setFloatable( false );
+        /* Populate a menu with these actions. */
+        final JPopupMenu formMenu = new JPopupMenu( "Forms" );
         for ( Action formAct : formActionList ) {
-            formToolbar.add( formAct );
+            formMenu.add( formAct );
         }
-        formToolbar.addSeparator();
-        formToolbar.add( removeAction );
-        formPanel.add( formToolbar, BorderLayout.NORTH );
+        formMenu.addSeparator();
+        formMenu.add( removeAction );
+        Action fmenuAct = new AbstractAction( "Forms", ResourceIcon.ADD ) {
+            public void actionPerformed( ActionEvent evt ) {
+                Object src = evt.getSource();
+                if ( src instanceof Component ) {
+                    Component comp = (Component) src;
+                    formMenu.show( comp, 0, 0 );
+                }
+            }
+        };
+        JButton fmenuButt = new JButton( fmenuAct );
+        fmenuButt.setMargin( new Insets( 2, 2, 2, 2 ) );
+        fBar.add( fmenuButt, BorderLayout.NORTH );
+
         addControlTab( "Form", formPanel, false );
         if ( zsel != null ) {
             addZoneTab( zsel );
