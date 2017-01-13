@@ -55,7 +55,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
     public static final String AIP_REG = "http://gavo.aip.de/tap";
 
     /** TAP endpoint for registry hosted at ObsPM, synced with GAVO. */
-    public static final String PARIS_REG = "http://voparis-cdpp.obspm.fr/tap";
+    public static final String PARIS_REG = "http://voparis-rr.obspm.fr/tap";
 
     /** TAP endpoint for Euro-VO registry, currently hosted at ESAC. */
     public static final String EUROVO_REG =
