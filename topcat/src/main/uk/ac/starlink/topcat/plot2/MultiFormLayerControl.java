@@ -100,10 +100,7 @@ public class MultiFormLayerControl extends FormLayerControl {
         formStack_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 fcHolder.removeAll();
-                Object item = formStack_.getSelectedValue();
-                FormControl fc = item instanceof FormControl
-                               ? (FormControl) item
-                               : null;
+                Control fc = formStack_.getCurrentControl();
                 if ( fc != null ) {
                     fcHolder.add( fc.getPanel(), BorderLayout.NORTH );
                     fcHolder.revalidate();
@@ -137,17 +134,27 @@ public class MultiFormLayerControl extends FormLayerControl {
         formPanel.add( body, BorderLayout.CENTER );
         formStackModel_.addPlotActionListener( getActionForwarder() );
 
-        /* Fix it so that the hint message is visible at appropriate times. */
+        /* Fix it so that the hint message is visible at appropriate times,
+         * and the form stack is resized according to the width of its
+         * current contents. */
         formStackModel_.addListDataListener( new ListDataListener() {
             public void contentsChanged( ListDataEvent evt ) {
+                rejig();
             }
             public void intervalRemoved( ListDataEvent evt ) {
                 if ( formStackModel_.getSize() == 0 ) {
                     setHintVisible( true );
                 }
+                rejig();
             }
             public void intervalAdded( ListDataEvent evt ) {
                 setHintVisible( false );
+                rejig();
+            }
+            private void rejig() {
+                JComponent panel = getPanel();
+                panel.revalidate();
+                panel.repaint();
             }
         } );
         setHintVisible( true );
