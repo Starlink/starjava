@@ -7952,9 +7952,11 @@ For a simple scatter plot, this is all that you need.
 However, there are a number of other forms that you can plot as well
 or instead of the simple markers - vectors, error bars, ellipses,
 contours, text labels etc.  You add a new form to the stack by
-clicking on one of the buttons in the toolbar in the tab.
-You can remove a form with the <label>Remove</label> (&IMG.DELETE;)
-button in the same toolbar.  You can also activate/deactivate them
+clicking on the &IMG.ADD; <label>Forms</label> button,
+which gives you a menu of all the available forms for the current layer control.
+You can remove a form by selecting it and selecting
+the <label>Remove</label> (&IMG.DELETE;) button in the same menu.
+You can also activate/deactivate the entries in the stack
 with the checkbox and move them up and down with the drag handle as usual.
 The list of forms that are avaiable depends on the plot type;
 the full list is in <ref id="ShapeForm"/>.
@@ -8053,7 +8055,9 @@ and the panel on the right shows the detailed configuration for the
 currently selected form.
 </p>
 
-<p>The available forms for a pair plot are currently
+<p>The available forms for a pair plot
+(select them using the &IMG.ADD; <label>Forms</label> button)
+are currently
 <ref id="form-marks2">Marks</ref> (&IMG.FORM_MARKS2;)
 which draws the points at both ends of the pair, and
 <ref id="form-link2">Link</ref> (&IMG.FORM_LINK2;)
@@ -8262,10 +8266,11 @@ The colour is by default determined by the setting in the
 <label>Subsets</label> tab.
 This may be all you need, but if you want to use other histogram-like
 plots such as Kernel Density Estimates, you can add new forms to the stack
-by clicking on one of the buttons in the toolbar in the tab.
-You can remove a form with the <label>Remove</label> (&IMG.DELETE;) button
-in the same toolbar.
-You can also activate/deactivate them with the checkbox
+using items in the popup menu from the &IMG.ADD; <label>Forms</label> button
+above the stack.
+You can remove a form by selecting it and using the
+<label>Remove</label> (&IMG.DELETE;) item in the same menu.
+You can also activate/deactivate entries in the stack with the checkbox
 and move them up and down with the drag handle as usual.
 The available forms are currently
 &FORM.histogram;; some variants on the idea of a Kernel Density Estimate:
@@ -23833,6 +23838,10 @@ introduced since the last version:
     <li>Added STScI service to default list of RegTAP registry endpoints.</li>
     <li>New <ref id="form-gaussian">Gaussian</ref> plotter for Gaussian fits
         to histograms.</li>
+    <li>GUI change in the <label>Form</label> tab of plot windows:
+        to add (and remove) forms there is now a &IMG.ADD; <label>Forms</label>
+        button that pops up a menu rather than the toolbar with form icons.
+        There were getting to be too many icons to fit in the toolbar.</li>
     </ul>
     </p></dd>
 
