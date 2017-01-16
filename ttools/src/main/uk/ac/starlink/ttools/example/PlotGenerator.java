@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
+import uk.ac.starlink.ttools.plot2.task.PlotCaching;
 import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
 /**
@@ -117,19 +118,23 @@ public class PlotGenerator<P,A> {
      *                         when the surface changes
      * @param  navigator  user gesture navigation controller,
      *                    or null for a non-interactive plot
-     * @param  caching   if true, plot image will be cached where applicable,
-     *                   if false it will be regenerated from the data
+     * @param  cacheImage  if true, plot image will be cached where applicable,
+     *                   if false it will be regenerated from data
      *                   on every repaint
      * @return  plot display component
      */
     public PlotDisplay<P,A> createPlotDisplay( Navigator<A> navigator,
                                                boolean surfaceAuxRange,
-                                               boolean caching ) {
+                                               boolean cacheImage ) {
+        PlotCaching cachePolicy = new PlotCaching();
+        cachePolicy.setReuseRanges( ! surfaceAuxRange );
+        cachePolicy.setCacheImage( cacheImage );
+        cachePolicy.setUsePlans( true );
         PlotDisplay<P,A> display =
             new PlotDisplay( surfFact_, layers_, profile_, legend_, legPos_,
                              title_, aspect_, shadeFact_, shadeFixRange_,
                              navigator, ptSel_, compositor_, padding_,
-                             dataStore_, surfaceAuxRange, caching );
+                             dataStore_, cachePolicy );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
         return display;
     }

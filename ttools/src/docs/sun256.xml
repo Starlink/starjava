@@ -10954,6 +10954,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for histogram, KDE and KNN layers when used from the
         <code>plot2time</code> command.</li>
     <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
+    <li>Modify <em>plan</em> caching arrangements for STILTS plots.
+        This results in much better interactive performance
+        (navigation etc) for some plot layer types plotted to the screen.
+        There are also some minor API changes to a few of the plot2
+        utility classes, which now provide more flexibility for caching.</li>
     </ul>
     </p></dd>
 

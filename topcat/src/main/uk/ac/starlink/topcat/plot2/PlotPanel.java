@@ -2202,6 +2202,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Shape clip = g.getClip();
             DataStore dataStore = workings_.dataStore_;
             boolean cached = false;
+            Collection<Object> plans = null;
             for ( Workings.ZoneWork zone : workings_.zones_ ) {
                 PlotPlacement placer = zone.placer_;
                 PlotLayer[] layers = zone.layers_;
@@ -2217,7 +2218,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     layers = new PlotLayer[ 0 ];
                 }
                 PlotUtil.createPlotIcon( placer, layers, auxRanges,
-                                         dataStore, paperType, cached )
+                                         dataStore, paperType, cached, plans )
                         .paintIcon( c, g, 0, 0 );
             }
             g.translate( -x, -y );

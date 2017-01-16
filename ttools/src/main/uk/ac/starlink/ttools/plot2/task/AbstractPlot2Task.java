@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -499,9 +500,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                      * which will draw the requested plot on demand,
                      * including resizing when appropriate. */
                     if ( isSwing ) {
+                        PlotCaching caching = PlotCaching.createFullyCached();
                         final JComponent panel =
                             executor.createPlotComponent( dataStore,
-                                                          true, true );
+                                                          true, caching );
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
                                 ((SwingPainter) painter).postComponent( panel );
@@ -674,6 +676,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         long nrow = animateTable.getRowCount(); 
         RowSequence aseq = animateTable.getRowSequence();
         final JComponent holder = new JPanel( new BorderLayout() );
+        PlotCaching caching = PlotCaching.createFullyCached();
         DataStore dataStore = null;
 
         /* The swing animation is not parallelised, but should be.
@@ -696,7 +699,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 PlotExecutor executor = createPlotExecutor( frameEnv, context );
                 dataStore = executor.createDataStore( dataStore );
                 final JComponent panel =
-                    executor.createPlotComponent( dataStore, true, true );
+                    executor.createPlotComponent( dataStore, true, caching );
                 final boolean init = irow == 0;
 
                 /* It's necessary to use invokeAndWait here, since the
@@ -813,8 +816,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         dstoreParam_.setDefaultCaching( caching );
         PlotExecutor executor =
             createPlotExecutor( env, getPlotContext( env ) );
+        PlotCaching plotCaching = caching ? PlotCaching.createFullyCached()
+                                          : PlotCaching.createUncached();
         return executor.createPlotComponent( executor.createDataStore( null ),
-                                             true, caching );
+                                             true, plotCaching );
     }
 
     public Parameter[] getContextParameters( Environment env )
@@ -1066,7 +1071,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final int xpix = xpixParam_.intValue( env );
         final int ypix = ypixParam_.intValue( env );
         final boolean forceBitmap = bitmapParam_.booleanValue( env );
-        final boolean surfaceAuxRanging = false;
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
         final Compositor compositor = compositorParam_.objectValue( env );
         Padding padding = paddingParam_.objectValue( env );
@@ -1206,7 +1210,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
             public PlotDisplay createPlotComponent( DataStore dataStore,
                                                     boolean navigable,
-                                                    boolean caching ) {
+                                                    PlotCaching caching ) {
                 Navigator navigator = navigable
                                     ? surfFact.createNavigator( navConfig )
                                     : null;
@@ -1215,8 +1219,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                    .createGangDisplay( ganger, surfFact, nz, contents,
                                        profiles, aspectConfigs,
                                        shadeFacts, shadeFixRanges, navigator,
-                                       ptSel, compositor, dataStore,
-                                       surfaceAuxRanging, caching );
+                                       ptSel, compositor, dataStore, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
                 return panel;
             }
@@ -2406,6 +2409,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             final boolean forceBitmap ) {
         final Rectangle extBox = new Rectangle( 0, 0, xpix, ypix );
         final boolean cached = false;
+        final Object[] planArray = null;
+        final Set<Object> planSet = null;
         final boolean withScroll = false;
 
         /* Acquire nominal plot bounds that are good enough for working
@@ -2432,7 +2437,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             Map<AuxScale,Range> auxRanges =
                 PlotDisplay.getAuxRanges( content.getLayers(), approxSurf,
                                           shadeFixRanges[ iz ], shadeFact,
-                                          dataStore );
+                                          planArray, dataStore );
             auxRangeList.add( auxRanges );
             Range shadeRange = auxRanges.get( AuxScale.COLOR );
             if ( shadeFact != null && shadeRange != null ) {
@@ -2483,7 +2488,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     Icon zicon =
                         PlotUtil
                        .createPlotIcon( placer, layers, auxRangeList.get( iz ),
-                                        dataStore, paperType, cached );
+                                        dataStore, paperType, cached, planSet );
                     zicon.paintIcon( c, g, 0, 0 );
                 }
                 g.translate( -x, -y );
@@ -2655,13 +2660,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
          * @param  dataStore  object containing plot data
          * @param  navigable  if true, standard pan/zoom mouse listeners
          *                   will be installed
-         * @param  caching   if true, plot image will be cached where
-         *                   applicable, if false it will be regenerated
-         *                   from the data on every repaint
+         * @param  caching   plot caching policy
          */
         PlotDisplay createPlotComponent( DataStore dataStore,
                                          boolean navigable,
-                                         boolean caching );
+                                         PlotCaching caching );
 
         /**
          * Generates an icon which will draw the plot.

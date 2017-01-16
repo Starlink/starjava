@@ -12,9 +12,12 @@ import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
@@ -563,7 +566,10 @@ public class PlotUtil {
     }
 
     /**     
-     * Creates an icon which will paint a surface and the layers on it
+     * Creates an icon which will paint a surface and the layers on it.
+     * If the <code>storedPlans</code> object is supplied, it may contain
+     * plans from previous plots.  On exit, it will contain the plans
+     * used for this plot.
      *
      * @param  placer  plot placement
      * @param  layers   layers constituting plot content
@@ -571,25 +577,37 @@ public class PlotUtil {
      * @param  dataStore  data storage object
      * @param  paperType  rendering type
      * @param  cached  whether to cache pixels for future use
+     * @param  storedPlans  writable collection of plan objects, or null
      * @return   icon containing complete plot
      */ 
     @Slow
     public static Icon createPlotIcon( PlotPlacement placer, PlotLayer[] layers,
                                        Map<AuxScale,Range> auxRanges,
                                        DataStore dataStore, PaperType paperType,
-                                       boolean cached ) {
+                                       boolean cached,
+                                       Collection<Object> storedPlans ) {
         Surface surface = placer.getSurface();
         int nl = layers.length;
         logger_.info( "Layers: " + nl + ", Paper: " + paperType );
         Drawing[] drawings = new Drawing[ nl ];
         Object[] plans = new Object[ nl ];
+        Set<Object> knownPlans = new HashSet<Object>();
+        if ( storedPlans != null ) {
+            knownPlans.addAll( storedPlans );
+        }
         long t1 = System.currentTimeMillis();
         for ( int il = 0; il < nl; il++ ) {
             drawings[ il ] = layers[ il ]
                             .createDrawing( surface, auxRanges, paperType );
-            plans[ il ] = drawings[ il ].calculatePlan( plans, dataStore );
+            plans[ il ] = drawings[ il ].calculatePlan( knownPlans.toArray(),
+                                                        dataStore );
+            knownPlans.add( plans[ il ] );
         }
         PlotUtil.logTime( logger_, "Plans", t1 );
+        if ( storedPlans != null ) {
+            storedPlans.clear();
+            storedPlans.addAll( new HashSet<Object>( Arrays.asList( plans ) ) );
+        }
         Icon dataIcon =
             paperType.createDataIcon( surface, drawings, plans, dataStore,
                                       cached );

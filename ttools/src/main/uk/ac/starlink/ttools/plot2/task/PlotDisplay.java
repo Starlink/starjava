@@ -8,9 +8,11 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -69,7 +71,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
     private final boolean surfaceAuxRanging_;
-    private final boolean caching_;
+    private final boolean cacheImage_;
     private final List<PointSelectionListener> pslList_;
     private final Executor clickExecutor_;
     private final Zone<P,A>[] zones_;
@@ -107,11 +109,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
-     * @param surfaceAuxRanging  determines whether aux ranges are recalculated
-     *                           when the surface changes
-     * @param  caching   if true, plot image will be cached where applicable,
-     *                   if false it will be regenerated from the data
-     *                   on every repaint
+     * @param  caching  plot caching policy
      */
     public PlotDisplay( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
                         int nz, ZoneContent[] zoneContents,
@@ -119,24 +117,24 @@ public class PlotDisplay<P,A> extends JComponent {
                         ShadeAxisFactory[] shadeFacts, Range[] shadeFixRanges,
                         final Navigator<A> navigator,
                         PaperTypeSelector ptSel, Compositor compositor,
-                        DataStore dataStore,
-                        boolean surfaceAuxRanging, boolean caching ) {
+                        DataStore dataStore, PlotCaching caching ) {
         ganger_ = ganger;
         surfFact_ = surfFact;
         nz_ = nz;
         zones_ = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
         profiles = ganger.adjustProfiles( profiles.clone() );
+        boolean usePlans = caching.getUsePlans();
         A[] okAspects = ganger.adjustAspects( aspects.clone(), -1 );
         for ( int iz = 0; iz < nz_; iz++ ) {
             zones_[ iz ] = new Zone( zoneContents[ iz ], profiles[ iz ],
                                      shadeFacts[ iz ], shadeFixRanges[ iz ],
-                                     okAspects[ iz ] );
+                                     okAspects[ iz ], usePlans );
         }
         ptSel_ = ptSel;
         compositor_ = compositor;
         dataStore_ = dataStore;
-        surfaceAuxRanging_ = surfaceAuxRanging;
-        caching_ = caching;
+        surfaceAuxRanging_ = ! caching.getReuseRanges();
+        cacheImage_ = caching.getCacheImage();
         pslList_ = new ArrayList<PointSelectionListener>();
 
         /* Add navigation mouse listeners if required. */
@@ -241,11 +239,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  compositor  compositor for pixel composition
      * @param  padding   user requirements for external space
      * @param  dataStore   data storage object
-     * @param surfaceAuxRanging  determines whether aux ranges are recalculated
-     *                           when the surface changes
-     * @param  caching   if true, plot image will be cached where applicable,
-     *                   if false it will be regenerated from the data
-     *                   on every repaint
+     * @param  caching  plot caching policy
      */
     public PlotDisplay( SurfaceFactory<P,A> surfFact, PlotLayer[] layers,
                         P profile, Icon legend, float[] legPos, String title,
@@ -253,7 +247,7 @@ public class PlotDisplay<P,A> extends JComponent {
                         Range shadeFixRange, Navigator<A> navigator,
                         PaperTypeSelector ptSel, Compositor compositor,
                         Padding padding, DataStore dataStore,
-                        boolean surfaceAuxRanging, boolean caching ) {
+                        PlotCaching caching ) {
         this( new SingleGanger<P,A>( padding ), surfFact, 1,
               new ZoneContent[] {
                   new ZoneContent( layers, legend, legPos, title )
@@ -262,8 +256,7 @@ public class PlotDisplay<P,A> extends JComponent {
               PlotUtil.singletonArray( aspect ),
               new ShadeAxisFactory[] { shadeFact },
               new Range[] { shadeFixRange },
-              navigator, ptSel, compositor, dataStore,
-              surfaceAuxRanging, caching );
+              navigator, ptSel, compositor, dataStore, caching );
     }
 
     /**
@@ -347,10 +340,13 @@ public class PlotDisplay<P,A> extends JComponent {
                 if ( zone.auxRanges_ == null ||
                      ( surfaceAuxRanging_ &&
                        ! zone.approxSurf_.equals( oldApproxSurf ) ) ) {
+                    Object[] plans = zone.plans_ == null
+                                   ? null
+                                   : zone.plans_.toArray();
                     zone.auxRanges_ =
                         getAuxRanges( content.getLayers(), zone.approxSurf_,
                                       zone.shadeFixRange_, zone.shadeFact_,
-                                      dataStore_ );
+                                      plans, dataStore_ );
                     Range shadeRange = zone.auxRanges_.get( AuxScale.COLOR );
                     ShadeAxisFactory shadeFact = zone.shadeFact_;
                     zone.shadeAxis_ = shadeRange != null && shadeFact != null
@@ -397,7 +393,8 @@ public class PlotDisplay<P,A> extends JComponent {
                 /* Create the plot icon. */
                 zone.icon_ =
                     PlotUtil.createPlotIcon( placer, layers, zone.auxRanges_,
-                                             dataStore_, paperType, caching_ );
+                                             dataStore_, paperType,
+                                             cacheImage_, zone.plans_ );
             }
         }
         PlotUtil.logTime( logger_, "Cache", cacheStart );
@@ -407,7 +404,7 @@ public class PlotDisplay<P,A> extends JComponent {
         for ( int iz = 0; iz < nz_; iz++ ) {
             Zone zone = zones_[ iz ];
             zone.icon_.paintIcon( this, g, extBox.x, extBox.y );
-            if ( ! caching_ ) {
+            if ( ! cacheImage_ ) {
                 zone.icon_ = null;
             }
         }
@@ -633,12 +630,8 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  compositor  compositor for pixel composition
      * @param  padding   user requirements for external space
      * @param  dataStore   data storage object
-     * @param surfaceAuxRanging  determines whether aux ranges are
-     *                           recalculated when the surface changes
      * @param  navigable true for an interactive plot
-     * @param  caching   if true, plot image will be cached where applicable,
-     *                   if false it will be regenerated from the data
-     *                   on every repaint
+     * @param  caching   plot caching policy
      * @return  new plot component
      */
     @Slow
@@ -649,8 +642,8 @@ public class PlotDisplay<P,A> extends JComponent {
                                ShadeAxisFactory shadeFact,
                                Range shadeFixRange, PaperTypeSelector ptSel,
                                Compositor compositor, Padding padding,
-                               DataStore dataStore, boolean surfaceAuxRanging,
-                               boolean navigable, boolean caching ) {
+                               DataStore dataStore, boolean navigable,
+                               PlotCaching caching ) {
 
         /* Read profile from config. */
         P profile = surfFact.createProfile( config );
@@ -683,8 +676,7 @@ public class PlotDisplay<P,A> extends JComponent {
         return new PlotDisplay<P,A>( ganger, surfFact, 1, contents,
                                      profiles, aspects, 
                                      shadeFacts, shadeFixRanges, navigator,
-                                     ptSel, compositor, dataStore,
-                                     surfaceAuxRanging, caching );
+                                     ptSel, compositor, dataStore, caching );
     }
 
     /**
@@ -710,10 +702,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
-     * @param surfaceAuxRanging  determines whether aux ranges are recalculated
-     *                           when the surface changes
-     * @param  caching   if true, plot image will be cached where applicable,
-     *                   if false it will be regenerated from the data
+     * @param  caching   plot caching policy
      *                   on every repaint
      * @return   new plot component
      */
@@ -725,8 +714,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                ShadeAxisFactory[] shadeFacts,
                                Range[] shadeFixRanges, Navigator<A> navigator,
                                PaperTypeSelector ptSel, Compositor compositor,
-                               DataStore dataStore, boolean surfaceAuxRanging,
-                               boolean caching ) {
+                               DataStore dataStore, PlotCaching caching ) {
 
         /* Determine aspects.  This may or may not require reading the ranges
          * from the data (slow).  */
@@ -748,8 +736,7 @@ public class PlotDisplay<P,A> extends JComponent {
         return new PlotDisplay<P,A>( ganger, surfFact, nz, contents,
                                      profiles, aspects,
                                      shadeFacts, shadeFixRanges, navigator,
-                                     ptSel, compositor, dataStore,
-                                     surfaceAuxRanging, caching );
+                                     ptSel, compositor, dataStore, caching );
     }
 
     /**
@@ -759,13 +746,16 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  surface  plot surface
      * @param  shadeFixRange  fixed shade range limits, if any
      * @param  shadeFact  makes shader axis, or null
+     * @param  plans   array of calculated plan objects, or null
      * @param  dataStore  data storage object
+     * @return   ranging information
      */
     @Slow
     public static Map<AuxScale,Range> getAuxRanges( PlotLayer[] layers,
                                                     Surface surface,
                                                     Range shadeFixRange,
                                                     ShadeAxisFactory shadeFact,
+                                                    Object[] plans,
                                                     DataStore dataStore ) {
 
         /* Work out what ranges have been requested by plot layers. */
@@ -793,7 +783,7 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Calculate the ranges from the data. */
         long start = System.currentTimeMillis();
-        Object[] plans = new Object[ 0 ];
+        plans = plans == null ? new Object[ 0 ] : plans;
         Map<AuxScale,Range> auxDataRanges =
             AuxScale.calculateAuxRanges( calcScales, layers, surface, plans,
                                          dataStore );
@@ -814,6 +804,7 @@ public class PlotDisplay<P,A> extends JComponent {
         final P profile_;
         final ShadeAxisFactory shadeFact_;
         final Range shadeFixRange_;
+        final Set<Object> plans_;
         A aspect_;
         Map<AuxScale,Range> auxRanges_;
         Surface approxSurf_;
@@ -833,14 +824,16 @@ public class PlotDisplay<P,A> extends JComponent {
          * @param  shadeFact  shade axis factory, or null
          * @param  shadeFixRange  fixed range for shader axis, or null
          * @param  initialAspect   aspect for initial display
+         * @param  usePlans  if true, store plotting plans for reuse
          */
         Zone( ZoneContent content, P profile, ShadeAxisFactory shadeFact,
-              Range shadeFixRange, A initialAspect ) {
+              Range shadeFixRange, A initialAspect, boolean usePlans ) {
             content_ = content;
             profile_ = profile;
             shadeFact_ = shadeFact;
             shadeFixRange_ = shadeFixRange;
             aspect_ = initialAspect;
+            plans_ = usePlans ? new HashSet<Object>() : null;
         }
     }
 }

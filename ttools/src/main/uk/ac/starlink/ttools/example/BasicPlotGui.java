@@ -57,6 +57,7 @@ import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.CoordValue;
 import uk.ac.starlink.ttools.plot2.task.JELDataSpec;
+import uk.ac.starlink.ttools.plot2.task.PlotCaching;
 import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 import uk.ac.starlink.ttools.plot2.task.PointSelectionEvent;
 import uk.ac.starlink.ttools.plot2.task.PointSelectionListener;
@@ -219,7 +220,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         Padding padding = new Padding();
         boolean surfaceAuxRange = true;
         boolean navigable = true;
-        boolean caching = true;
+        PlotCaching caching = PlotCaching.createFullyCached();
 
         /* Create and return the live, navigable plot display object.
          * See the implementation in that class for the various bits of
@@ -228,8 +229,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
               .createPlotDisplay( layers, sfact_, config,
                                   legend, legPos, title, shadeFact,
                                   shadeFixRange, ptSel, compositor,
-                                  padding, dataStore, surfaceAuxRange,
-                                  navigable, caching );
+                                  padding, dataStore, navigable, caching );
     }
 
     /**
