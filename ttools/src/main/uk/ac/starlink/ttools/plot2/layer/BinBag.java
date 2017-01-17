@@ -52,9 +52,7 @@ public class BinBag {
         log_ = log;
         binWidth_ = binWidth;
         binPhase_ = binPhase;
-        double ref = getRef( log, binWidth, binPhase, point );
-        mapper_ = log ? new LogBinMapper( binWidth, ref )
-                      : new LinearBinMapper( binWidth, ref );
+        mapper_ = BinMapper.createMapper( log, binWidth, binPhase, point );
         valueMap_ = new HashMap<Integer,Value>();
     }
 
@@ -124,7 +122,7 @@ public class BinBag {
         }
 
         /* Normalise. */
-        double bw = log_ ? log( binWidth_ ) : binWidth_;
+        double bw = log_ ? BinMapper.log( binWidth_ ) : binWidth_;
         double scale = norm.getScaleFactor( total, max, bw, cumulative );
         if ( scale != 1.0 ) {
             for ( int ib = 0; ib < nbin; ib++ ) {
@@ -274,52 +272,6 @@ public class BinBag {
     }
 
     /**
-     * Determines a bin base reference point with a phase equivalent to
-     * the given one, but which is close to a supplied point.
-     *
-     * @param  logFlag  false for linear scaling, true for logarithmic
-     * @param  width    bin width
-     * @param  phase    bin phase
-     * @param  point    representative point
-     * @return   axis position of a bin boundary
-     *           for the given <code>width</code> and <code>phase</code>,
-     *           but close to <code>point</code>
-     */
-    private static double getRef( boolean logFlag, double width, double phase,
-                                  double point ) {
-       phase = phase % 1;
-       if ( phase < 0 ) {
-           phase += 1;
-       }
-       assert phase >= 0 && phase < 1 : phase;
-       if ( logFlag ) {
-           if ( point <= 0 ) {
-               point = 1;
-           }
-           int n = (int) Math.floor( log( point ) / log( width ) );
-           double ref = Math.pow( width, n + phase );
-           assert Math.abs( log( ref / point ) ) <= width;
-           return ref;
-       }
-       else {
-           int n = (int) Math.floor( point / width );
-           double ref = ( n + phase ) * width;
-           assert Math.abs( ref - point ) <= width;
-           return ref;
-       }
-    }
-
-    /**
-     * Logarithm function, used for transforming values on logarithmic X axis.
-     *
-     * @param  val  value
-     * @return  log to base 10 of <code>val</code>
-     */
-    private static double log( double val ) {
-        return Math.log10( val ); 
-    }           
-
-    /**
      * Describes the extent of a bin and the value it contains.
      */
     public interface Bin {
@@ -344,90 +296,6 @@ public class BinBag {
          * @return   bin value
          */
         public double getY();
-    }
-
-    /**
-     * Maps axis values to bin indices.
-     */
-    private interface BinMapper {
-
-        /**
-         * Returns the bin index for a given value.
-         *
-         * @param   value  axis value
-         * @return  bin index
-         */
-        int getBinIndex( double value );
-
-        /**
-         * Returns the bin limits for a given bin index.
-         *
-         * @param   index  bin index
-         * @return   (lower,upper) bin limits
-         */
-        double[] getBinLimits( int index );
-    }
-
-    /**
-     * BinMapper implementation for linear axis scaling.
-     */
-    private static class LinearBinMapper implements BinMapper {
-        private final double width_;
-        private final double width1_;
-        private final double floor_;
-
-        /**
-         * Constructor.
-         *
-         * @param  width  additive bin width
-         * @param  floor  lower bound of bin zero
-         */
-        LinearBinMapper( double width, double floor ) {
-            width_ = width;
-            width1_ = 1.0 / width;
-            floor_ = floor;
-        }
-
-        public int getBinIndex( double value ) {
-            return (int) Math.floor( ( value - floor_ ) * width1_ );
-        }
-
-        public double[] getBinLimits( int index ) {
-            double lo = floor_ + index * width_;
-            return new double[] { lo, lo + width_ };
-        }
-    }
-
-    /**
-     * BinMapper implementation for logarithmic axis scaling.
-     */
-    private static class LogBinMapper implements BinMapper {
-        private final double width_;
-        private final double floor_;
-        private final double logWidth1_;
-        private final double floor1_;
-
-        /**
-         * Constructor.
-         *
-         * @param  width  multiplicative bin width
-         * @param  floor  lower bound of bin zero
-         */
-        LogBinMapper( double width, double floor ) {
-            width_ = width;
-            floor_ = floor;
-            logWidth1_ = 1. / log( width );
-            floor1_ = 1. / floor;
-        }
-
-        public int getBinIndex( double value ) {
-            return (int) Math.floor( log( value * floor1_ ) * logWidth1_ );
-        }
-
-        public double[] getBinLimits( int index ) {
-            double lo = floor_ * Math.pow( width_, index );
-            return new double[] { lo, lo * width_ };
-        }
     }
 
     /**
