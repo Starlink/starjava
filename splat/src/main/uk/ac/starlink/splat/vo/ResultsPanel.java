@@ -846,127 +846,136 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             String ucd;
             String utype;
             String dataLinkRequest="";
-            
+
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
                 ucd = colInfo.getUCD();
                 utype = colInfo.getUtype();
-             
+
 
                 // for Obscore, use the column name
 
                 String colName = colInfo.getName();
-                if (datatype == OBSCORE && colName != null) {
-                    colName = colName.toLowerCase();
-                    if ( colName.endsWith( "access_url" ) ) {
-                        linkcol = k;
-                    }
-                    else if ( colName.endsWith( "access_format" ) ) {
-                        typecol = k;
-                    }
-                    else if ( colName.endsWith( "target_name" ) ) {
-                        namecol = k;
-                    }
-                    else if ( colName.endsWith( "obs_ucd" ) ) {
-                        ucdcol = k;
-                    }
-                    else if ( colName.endsWith( "obs_publisher_did" ) ) {
-                        pubdidcol = k;
-                    }
-                    else if ( colName.endsWith( "em_min" ) ) {
-                        specstartcol = k;
-                    }
-                    else if ( colName.endsWith( "em_max" ) ) {
-                        specstopcol = k;
-                    }
-                } else if (datatype==SSAP && ucd != null ) {
-                    //  Old-style UCDs for backwards compatibility.
-               
-                    ucd = ucd.toLowerCase();
-                    if ( ucd.equals( "data_link" ) ) {
-                        linkcol = k;
-                    }
-                    else if ( ucd.equals( "vox:spectrum_format" ) ) {
-                        typecol = k;
-                    }
-                    else if ( ucd.equals( "vox:image_title" ) ) {
-                        namecol = k;
-                    }
-                    else if ( ucd.equals( "vox:spectrum_axes" ) ) {
-                        axescol = k;
-                    }
-                    else if ( ucd.equals( "vox:spectrum_units" ) ) {
-                        unitscol = k;
-                    }
-                } else if (utype != null ){
-                    //  Version 1.0 utypes. XXX not sure if axes names
-                    //  are in columns or are really parameters. Assume
-                    //  these work like the old-style scheme and appear in
-                    //  the columns.
-                    utype = utype.toLowerCase();
-                    if ( utype.endsWith( "access.reference" ) ) {
-                        linkcol = k;
-                    }
-                    else if ( utype.endsWith( "access.format" ) ) {
-                        typecol = k;
-                    }
-                    else if ( utype.endsWith( "target.name" ) ) {
-                        namecol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralaxis.name" ) ) {
-                        specaxiscol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralaxis.unit" ) ) {
-                        specunitscol = k;
-                    }
-                    else if ( utype.endsWith( "char.fluxaxis.name" ) ) {
-                        fluxaxiscol = k;
-                    }
-                    else if ( utype.endsWith( "char.fluxaxis.accuracy.staterror" ) ) {
-                        fluxerrorcol = k;
-                    }
-                    else if ( utype.endsWith( "char.fluxaxis.unit" ) ) {
-                        fluxunitscol = k;
-                    }
-                    else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
-                        pubdidcol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
-                        specstartcol = k;
-                    }
-                    else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
-                        specstopcol = k;
+                if (datatype == OBSCORE ) {
+                    if (colName != null) {
+                        colName = colName.toLowerCase();
+                        if ( colName.endsWith( "access_url" ) ) {
+                            linkcol = k;
+                        }
+                        else if ( colName.endsWith( "access_format" ) ) {
+                            typecol = k;
+                        }
+                        else if ( colName.endsWith( "target_name" ) ) {
+                            namecol = k;
+                        }
+                        else if ( colName.endsWith( "obs_ucd" ) ) {
+                            ucdcol = k;
+                        }
+                        else if ( colName.endsWith( "obs_publisher_did" ) ) {
+                            pubdidcol = k;
+                        }
+                        else if ( colName.endsWith( "em_min" ) ) {
+                            specstartcol = k;
+                        }
+                        else if ( colName.endsWith( "em_max" ) ) {
+                            specstopcol = k;
+                        }
                     }
                 }
-                if (datatype==SSAP && colInfo.getName().equals("ssa_pubDID"))
-                    pubdidcol = k;
+                if (datatype==SSAP ) {
+                    if ( ucd != null && !ucd.isEmpty()) {
+
+                        //  Old-style UCDs for backwards compatibility.
+
+                        ucd = ucd.toLowerCase();
+                        if ( ucd.equals( "data_link" ) ) {
+                            linkcol = k;
+                        }
+                        else if ( ucd.equals( "vox:spectrum_format" ) ) {
+                            typecol = k;
+                        }
+                        else if ( ucd.equals( "vox:image_title" ) ) {
+                            namecol = k;
+                        }
+                        else if ( ucd.equals( "vox:spectrum_axes" ) ) {
+                            axescol = k;
+                        }
+                        else if ( ucd.equals( "vox:spectrum_units" ) ) {
+                            unitscol = k;
+                        }
+                    } 
+                    if (utype != null ){
+                        //  Version 1.0 utypes. XXX not sure if axes names
+                        //  are in columns or are really parameters. Assume
+                        //  these work like the old-style scheme and appear in
+                        //  the columns.
+                        utype = utype.toLowerCase();
+                        if ( utype.endsWith( "access.reference" ) ) {
+                            linkcol = k;
+                        }
+                        else if ( utype.endsWith( "access.format" ) ) {
+                            typecol = k;
+                        }
+                        else if ( utype.endsWith( "target.name" ) ) {
+                            namecol = k;
+                        }
+                        else if ( utype.endsWith( "char.spectralaxis.name" ) ) {
+                            specaxiscol = k;
+                        }
+                        else if ( utype.endsWith( "char.spectralaxis.unit" ) ) {
+                            specunitscol = k;
+                        }
+                        else if ( utype.endsWith( "char.fluxaxis.name" ) ) {
+                            fluxaxiscol = k;
+                        }
+                        else if ( utype.endsWith( "char.fluxaxis.accuracy.staterror" ) ) {
+                            fluxerrorcol = k;
+                        }
+                        else if ( utype.endsWith( "char.fluxaxis.unit" ) ) {
+                            fluxunitscol = k;
+                        }
+                        else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
+                            pubdidcol = k;
+                        }
+                        else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
+                            specstartcol = k;
+                        }
+                        else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
+                            specstopcol = k;
+                        }
+
+                    }
+                    if (colInfo.getName().equals("ssa_pubDID"))
+                        pubdidcol = k;
+                }
+
                 if (colInfo.getName().equals(idSource))
                     idsrccol = k;
-                
+
             } // for
-            
+
             if (datatype == SSAP && idsrccol != -1  && dataLinkQueryParams != null ) { // check if datalink parameters are present
-                 
+
                 if ( ! dataLinkQueryParams.isEmpty() ) {                   
                     for (String key : dataLinkQueryParams.keySet()) {
                         String value = dataLinkQueryParams.get(key);
-                                if (value != null && value.length() > 0) {
-                                    try {//
-                                           
-                                            if (! key.equals("IDSource") && ! (key.equals("AccessURL"))) {
-                                                dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
-                                            }
-                                       
-                                    } catch (UnsupportedEncodingException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }                                     
+                        if (value != null && value.length() > 0) {
+                            try {//
+
+                                if (! key.equals("IDSource") && ! (key.equals("AccessURL"))) {
+                                    dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                 }
+
+                            } catch (UnsupportedEncodingException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }                                     
+                        }
                     }
                 }
             }
-           
-        
+
+
             //  If we have a DATA_LINK column, gather the URLs it contains
             //  that are appropriate.
             if ( linkcol != -1 ) {
