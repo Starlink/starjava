@@ -85,8 +85,17 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
                       public String getDisplayValue() {
                           return Double.toString( getSliderValue() );
                       }
+                      @Override
+                      public Dimension getMinimumSize() {
+                          return minWidth( super.getMinimumSize(), 100 );
+                      }
                   }
-                : new JSlider( MIN, MAX );
+                : new JSlider( MIN, MAX ) {
+                      @Override
+                      public Dimension getMinimumSize() {
+                          return minWidth( super.getMinimumSize(), 100 );
+                      }
+                  };
         resetOpt_ = reset >= lo && reset <= hi;
         Action resetAct = new AbstractAction( null, ResourceIcon.ZERO ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -101,6 +110,10 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
             @Override
             public Dimension getMaximumSize() {
                 return getPreferredSize();
+            }
+            @Override
+            public Dimension getMinimumSize() {
+                return minWidth( super.getMinimumSize(), 60 );
             }
         };
         sliderButton_ = new JRadioButton();
@@ -327,6 +340,18 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
             s = 1 - s;
         }
         return (int) Math.round( s * ( MAX - MIN ) + MIN );
+    }
+
+    /**
+     * Adjusts a dimension to ensure that its width is no smaller than
+     * a given value.
+     *
+     * @param  size  input dimension
+     * @param  minWidth   minimum acceptable size of width
+     * @return  output dimension, width may have been adjusted
+     */
+    private static Dimension minWidth( Dimension size, int minWidth ) {
+        return new Dimension( Math.max( minWidth, size.width ), size.height );
     }
 
     /**
