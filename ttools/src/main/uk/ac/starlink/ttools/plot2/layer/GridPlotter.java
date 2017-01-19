@@ -319,18 +319,6 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             combiner_ = combiner;
         }
 
-        /**
-         * Indicates whether this style has any transparency.
-         *
-         * @return   if true, the colours painted by this shader within
-         *           the plot's geometric region of validity (that is,
-         *           on the sky) are guaranteed always to have an alpha
-         *           value of 1
-         */
-        boolean isOpaque() {
-            return ! Shaders.isTransparent( shader_ );
-        }
-
         public Icon getLegendIcon() {
             return Shaders.createShaderIcon( shader_, null, true, 16, 8, 2, 2 );
         }
@@ -385,8 +373,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
          */
         GridLayer( GridPlotter plotter, DataGeom geom, DataSpec dataSpec,
                    GridStyle style ) {
-            super( plotter, geom, dataSpec, style,
-                   style.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL );
+            super( plotter, geom, dataSpec, style, LayerOpt.NO_SPECIAL );
             gstyle_ = style;
             icPos_ = COORD_GROUP.getPosCoordIndex( 0, geom );
             icWeight_ = COORD_GROUP.getExtraCoordIndex( 0, geom ); 
@@ -580,7 +567,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                         paintBins( g, gplan.result_ );
                     }
                     public boolean isOpaque() {
-                        return gstyle_.isOpaque();
+                        return false;
                     }
                 } );
             }
