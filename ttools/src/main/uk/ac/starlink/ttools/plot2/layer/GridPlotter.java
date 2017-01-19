@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -312,6 +313,120 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
          * though it might lead to problems with small logarithmic pixels
          * (for which the result will be near to unity). */
         return (float) extent;
+    }
+
+    /**
+     * Does the actual painting.
+     *
+     * @param  g  graphics context
+     * @param  pixer   defines pixel grid
+     * @param  binResult  grid data
+     * @param  scaler   scales bin values to unit range
+     * @param  colorModel  colour map; index zero corresponds to transparency
+     * @param  surface   plot surface
+     */
+    private static void paintBins( Graphics g, GridPixer pixer,
+                                   BinList.Result binResult,
+                                   Scaler scaler, IndexColorModel colorModel,
+                                   PlanarSurface surface ) {
+        int ncolor = colorModel.getMapSize() - 1;
+
+        /* Sample bin grid onto output pixel grid. */
+        if ( true ) {
+            Rectangle bounds = surface.getPlotBounds();
+            int nx = bounds.width;
+            int ny = bounds.height;
+            int x0 = bounds.x;
+            int y0 = bounds.y;
+            Gridder gridder = new Gridder( nx, ny );
+            int npix = gridder.getLength();
+            int[] grid = new int[ npix ];
+            Point2D.Double gp = new Point2D.Double();
+            int ib0 = -1;
+            int sval = -1;
+            for ( int ip = 0; ip < npix; ip++ ) {
+                gp.x = x0 + gridder.getX( ip );
+                gp.y = y0 + gridder.getY( ip );
+                double[] dpos = surface.graphicsToData( gp, null );
+                int ib = pixer.getBinIndex( dpos );
+                if ( ib >= 0 ) {
+                    if ( ib != ib0 ) {
+                        ib0 = ib;
+                        double dval = binResult.getBinValue( ib );
+                        sval = Double.isNaN( dval )
+                             ? 0
+                             : Math.min( 1 + (int) ( scaler.scaleValue( dval )
+                                                     * ncolor ),
+                                         ncolor - 1 );
+                    }
+                    grid[ ip ] = sval;
+                }
+            }
+
+            /* Paint the pixel grid. */
+            new PixelImage( new Dimension( nx, ny ), grid, colorModel )
+               .paintPixels( g, new Point( x0, y0 ) );
+        }
+
+        /* Alternatively, paint each pixel separately.
+         * I'd expect this to be much faster for large pixels, but in
+         * interactive tests it didn't seem to be.  Also, there seem to
+         * be numeric problems in some cases.
+         * So stick to the other method for now. */
+        else {
+            double[][] dlims = surface.getDataLimits();
+            int[] ixRange = pixer.xgrid_.getBinRange( dlims[ 0 ] );
+            int[] iyRange = pixer.ygrid_.getBinRange( dlims[ 1 ] );
+            int ixlo = ixRange[ 0 ];
+            int ixhi = ixRange[ 1 ];
+            int iylo = iyRange[ 0 ];
+            int iyhi = iyRange[ 1 ];
+            Color[] colors = new Color[ ncolor + 1 ];
+            for ( int ic = 0; ic < ncolor + 1; ic++ ) {
+                colors[ ic ] = new Color( colorModel.getRGB( ic ), true );
+            }
+            BinMapper xMapper = pixer.xgrid_.mapper_;
+            BinMapper yMapper = pixer.ygrid_.mapper_;
+            Axis xAxis = surface.getAxes()[ 0 ];
+            Axis yAxis = surface.getAxes()[ 1 ];
+            Color color0 = g.getColor();
+            for ( int iy = iylo; iy <= iyhi; iy++ ) {
+                for ( int ix = ixlo; ix <= ixhi; ix++ ) {
+                    int ibin = pixer.getBinIndex( ix, iy );
+                    assert ibin >= 0;
+                    double dval = binResult.getBinValue( ibin );
+                    if ( ! Double.isNaN( dval ) ) {
+                        int sval =
+                            Math.min( 1 + (int) ( scaler.scaleValue( dval )
+                                                  * ncolor ),
+                                      ncolor - 1 );
+                        g.setColor( colors[ sval ] );
+                        int[] gxs = getGraphicsBounds( ix, xMapper, xAxis );
+                        int[] gys = getGraphicsBounds( iy, yMapper, yAxis );
+                        g.fillRect( gxs[ 0 ], gys[ 0 ],
+                                    gxs[ 1 ] - gxs[ 0 ], gys[ 1 ] - gys[ 0 ] );
+                    }
+                }
+            }
+            g.setColor( color0 );
+        }
+    }
+
+    /**
+     * Calculates the 1-d bounds in graphics coordinates for a given grid bin.
+     *
+     * @param  ibin  bin index
+     * @param  mapper   bin mapper
+     * @param  axis    graphical axis
+     * @return   2-element (lo,hi) bounds of bin in graphics coordinates
+     */
+    private static int[] getGraphicsBounds( int ibin, BinMapper mapper,
+                                            Axis axis ) {
+        double[] dlimits = mapper.getBinLimits( ibin );
+        int g0 = (int) Math.floor( axis.dataToGraphics( dlimits[ 0 ] ) );
+        int g1 = (int) Math.floor( axis.dataToGraphics( dlimits[ 1 ] ) );
+        return g0 <= g1 ? new int[] { g0, g1 }
+                        : new int[] { g1, g0 };
     }
 
     /**
@@ -641,7 +756,14 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 final GridPlan gplan = (GridPlan) plan;
                 ptype_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
-                        paintBins( g, gplan.pixer_, gplan.result_ );
+                        Scaler scaler =
+                            Scaling.createRangeScaler( gstyle_.scaling_,
+                                                       auxRange_ );
+                        IndexColorModel colorModel =
+                            PixelImage.createColorModel( gstyle_.shader_,
+                                                         true );
+                        paintBins( g, gplan.pixer_, gplan.result_,
+                                   scaler, colorModel, surface_ );
                     }
                     public boolean isOpaque() {
                         return false;
@@ -657,68 +779,6 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 report.put( YBINWIDTH_KEY,
                             new Double( pixer.ygrid_.binWidth_ ) );
                 return report;
-            }
-
-            /**
-             * Does the actual painting for this layer.
-             *
-             * @param  g  graphics context
-             * @param  pixer   defines pixel grid
-             * @param  binResult  grid data
-             */
-            private void paintBins( Graphics g, GridPixer pixer,
-                                    BinList.Result binResult ) {
-
-                /* Work out how to scale binlist values to turn into
-                 * entries in a colour map.  The first entry in the colour map
-                 * (index zero) corresponds to transparency. */
-                Scaler scaler =
-                    Scaling.createRangeScaler( gstyle_.scaling_, auxRange_ );
-                IndexColorModel colorModel =
-                    PixelImage.createColorModel( gstyle_.shader_, true );
-                int ncolor = colorModel.getMapSize() - 1;
-
-                /* Sample bin grid onto output pixel grid.
-                 * There is a more efficient way to do this for the (common?)
-                 * case in which bins are all the same shape and are
-                 * larger than a screen pixel: draw onto a 1-pixel-per-bin
-                 * image and paint it scaled to the graphics context
-                 * (PixelImage.paintScaledPixels).  But that would be more
-                 * vulnerable to pathological conditions (tiny bins). */
-                Rectangle bounds = surface_.getPlotBounds();
-                int nx = bounds.width;
-                int ny = bounds.height;
-                int x0 = bounds.x;
-                int y0 = bounds.y;
-                Gridder gridder = new Gridder( nx, ny );
-                int npix = gridder.getLength();
-                int[] grid = new int[ npix ];
-                Point2D.Double gp = new Point2D.Double();
-                int ib0 = -1;
-                int sval = -1;
-                for ( int ip = 0; ip < npix; ip++ ) {
-                    gp.x = x0 + gridder.getX( ip );
-                    gp.y = y0 + gridder.getY( ip );
-                    double[] dpos = surface_.graphicsToData( gp, null );
-                    int ib = pixer.getBinIndex( dpos );
-                    if ( ib >= 0 ) {
-                        if ( ib != ib0 ) {
-                            ib0 = ib;
-                            double dval = binResult.getBinValue( ib );
-                            sval = Double.isNaN( dval )
-                                 ? 0
-                                 : Math.min( 1 +
-                                             (int) ( scaler.scaleValue( dval )
-                                                     * ncolor ),
-                                             ncolor - 1 );
-                        }
-                        grid[ ip ] = sval;
-                    }
-                }
-
-                /* Paint the pixel grid. */
-                new PixelImage( new Dimension( nx, ny ), grid, colorModel )
-                   .paintPixels( g, new Point( x0, y0 ) );
             }
         }
     }
