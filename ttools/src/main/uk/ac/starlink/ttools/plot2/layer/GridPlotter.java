@@ -19,11 +19,9 @@ import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
-import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
-import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -33,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -93,6 +92,9 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     private static final CoordGroup COORD_GROUP =
         CoordGroup
        .createCoordGroup( 1, new Coord[] { FloatingCoord.WEIGHT_COORD } );
+
+    /** Tuning parameter, fractional external border for grid calculations. */
+    private static final double PADDING = 0.8;
 
     /**
      * Constructor.
@@ -395,68 +397,79 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,
                                             Range range ) {
+
+                    /* Work out the grid we need to sample over. */
                     PlanarSurface psurf = (PlanarSurface) surface;
-                    GridPlan gridPlan =
-                        getGridPlan( plans, createGridPixer( psurf ) );
-                    BinList.Result binResult =
-                          gridPlan == null
-                        ? readBins( psurf, dataSpec, dataStore ).getResult()
-                        : gridPlan.result_;
-                    PlotUtil.extendRange( range, binResult );
+                    GridPixer pixer0 = createGridPixer( psurf, 0 );
+
+                    /* If there is a plan covering the current data use it,
+                     * otherwise we need to re-grid. */
+                    GridPlan gridPlan = getGridPlan( plans, pixer0 );
+                    final GridPixer pixer;
+                    final BinList.Result binResult;
+                    if ( gridPlan != null ) {
+                        binResult = gridPlan.result_;
+                        pixer = gridPlan.pixer_;
+                    }
+                    else {
+                        binResult = readBins( pixer0, dataSpec, dataStore )
+                                   .getResult();
+                        pixer = pixer0;
+                    }
+
+                    /* Use the grid pixer and binResult got by either means
+                     * to adjust the aux range. */
+                    extendRange( range, psurf, pixer, binResult );
                 }
             } );
             return map;
         }
 
         /**
-         * Returns a GridPixer for a given surface suitable for this layer.
+         * Returns a GridPixer for this layer suitable for gridding data
+         * on a given plot surface.  A fractional padding parameter
+         * indicates how far outside the visible plot bounds the grid
+         * data should be gathered.  The point of this is that if a
+         * large padding is chosen, then the data gathered can be reused
+         * for a surface somewhat outside the bounds of the original one.
+         * If you're not going to reuse the data on a different surface,
+         * set <code>fpad=0</code>.
          *
-         * @param  surface  plot surface
-         * @return   pixer
+         * @param   surface  plot surface
+         * @param   fpad     fractional padding (0 is no padding)
+         * @return   new grid pixer
          */
-        GridPixer createGridPixer( PlanarSurface surface ) {
-            BinMapper[] binMappers = new BinMapper[ 2 ];
-            int[] ilobins = new int[ 2 ];
-            int[] ihibins = new int[ 2 ];
-            double[] binWidths = new double[ 2 ];
+        GridPixer createGridPixer( PlanarSurface surface, double fpad ) {
+            Subrange padder = new Subrange( 0.0 - fpad, 1.0 + fpad );
+            GridSpec[] grids = new GridSpec[ 2 ];
             BinSizer[] sizers = { gstyle_.xSizer_, gstyle_.ySizer_ };
             double[] phases = { gstyle_.xPhase_, gstyle_.yPhase_ };
-            Axis[] axes = surface.getAxes();
-            double[][] dataLimits = surface.getDataLimits();
             boolean[] logFlags = surface.getLogFlags();
+            double[][] dataLimits = surface.getDataLimits();
             for ( int i = 0; i < 2; i++ ) {
                 boolean isLog = logFlags[ i ];
                 double dlo = dataLimits[ i ][ 0 ];
                 double dhi = dataLimits[ i ][ 1 ];
+                double[] drange =
+                    PlotUtil.scaleRange( dlo, dhi, padder, isLog );
                 double binWidth = sizers[ i ].getWidth( isLog, dlo, dhi );
-                binWidths[ i ] = binWidth;
                 double phase = phases[ i ];
-                BinMapper mapper =
-                    BinMapper.createMapper( isLog, binWidth, phase, dlo );
-                binMappers[ i ] = mapper;
-                int ibin0 = mapper.getBinIndex( dlo );
-                int ibin1 = mapper.getBinIndex( dhi );
-                ilobins[ i ] = Math.min( ibin0, ibin1 );
-                ihibins[ i ] = Math.max( ibin0, ibin1 );
+                grids[ i ] = new GridSpec( isLog, binWidth, phase, drange );
             }
-            return new GridPixer( binMappers[ 0 ], ilobins[ 0 ], ihibins[ 0 ],
-                                  binWidths[ 0 ],
-                                  binMappers[ 1 ], ilobins[ 1 ], ihibins[ 1 ],
-                                  binWidths[ 1 ] );
+            return new GridPixer( grids[ 0 ], grids[ 1 ] );
         }
 
         /**
          * Returns the calculated histogram for this layer on a given
          * plot surface.
          *
-         * @param  surface   plot surface
+         * @param  pixer      grid definition
          * @param  dataSpec   data specification
          * @param  dataStore  data storage
          * @return   populated bin list
          */
-        private BinList readBins( PlanarSurface surface, DataSpec dataSpec,
+        private BinList readBins( GridPixer pixer, DataSpec dataSpec,
                                   DataStore dataStore ) {
-            GridPixer pixer = createGridPixer( surface );
             int nbin = pixer.getBinCount();
             Combiner combiner = gstyle_.combiner_;
             BinList binList = combiner.createArrayBinList( nbin );
@@ -520,6 +533,33 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         }
 
         /**
+         * Extends a given range object to accomodate values in a supplied
+         * data grid.
+         *
+         * @param   range  range object to adjust
+         * @param   surface   plot surface over which data is to be surveyed
+         * @param   pixer    defines grid geometry
+         * @param   binResult   accumulated grid data
+         */
+        private void extendRange( Range range, PlanarSurface surface,
+                                  GridPixer pixer, BinList.Result binResult ) {
+            double[][] dlims = surface.getDataLimits();
+            int[] ixRange = pixer.xgrid_.getBinRange( dlims[ 0 ] );
+            int[] iyRange = pixer.ygrid_.getBinRange( dlims[ 1 ] );
+            int ixlo = ixRange[ 0 ];
+            int ixhi = ixRange[ 1 ];
+            int iylo = iyRange[ 0 ];
+            int iyhi = iyRange[ 1 ];
+            for ( int iy = iylo; iy <= iyhi; iy++ ) {
+                for ( int ix = ixlo; ix <= ixhi; ix++ ) {
+                    int ibin = pixer.getBinIndex( ix, iy );
+                    assert ibin >= 0;
+                    range.submit( binResult.getBinValue( ibin ) );
+                }
+            }
+        }
+
+        /**
          * Drawing implementation for the density map.
          */
         private class GridDrawing implements Drawing {
@@ -527,7 +567,6 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             private final PlanarSurface surface_;
             private final Range auxRange_;
             private final PaperType ptype_;
-            private final GridPixer gridPixer_;
 
             /**
              * Constructor.
@@ -541,21 +580,23 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 surface_ = surface;
                 auxRange_ = auxRange;
                 ptype_ = ptype;
-                gridPixer_ = createGridPixer( surface );
             }
 
             public GridPlan calculatePlan( Object[] knownPlans,
                                            DataStore dataStore ) {
-                GridPlan knownPlan = getGridPlan( knownPlans, gridPixer_ );
+                GridPlan knownPlan =
+                    getGridPlan( knownPlans, createGridPixer( surface_, 0 ) );
                 if ( knownPlan != null ) {
                     return knownPlan;
                 }
                 else {
                     DataSpec dataSpec = getDataSpec();
+                    GridPixer pixer1 = createGridPixer( surface_, PADDING );
                     BinList.Result binResult =
-                        readBins( surface_, dataSpec, dataStore ).getResult();
-                    return new GridPlan( gridPixer_, gstyle_.combiner_,
-                                         dataSpec, getDataGeom(), binResult );
+                        readBins( pixer1, dataSpec, dataStore )
+                       .getResult();
+                    return new GridPlan( pixer1, gstyle_.combiner_, dataSpec,
+                                         getDataGeom(), binResult );
                 }
             }
 
@@ -564,7 +605,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 final GridPlan gplan = (GridPlan) plan;
                 ptype_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
-                        paintBins( g, gplan.result_ );
+                        paintBins( g, gplan.pixer_, gplan.result_ );
                     }
                     public boolean isOpaque() {
                         return false;
@@ -574,14 +615,23 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
 
             public ReportMap getReport( Object plan ) {
                 ReportMap report = new ReportMap();
+                GridPixer pixer = createGridPixer( surface_, 0.0 );
                 report.put( XBINWIDTH_KEY,
-                            new Double( gridPixer_.xBinWidth_ ) );
+                            new Double( pixer.xgrid_.binWidth_ ) );
                 report.put( YBINWIDTH_KEY,
-                            new Double( gridPixer_.yBinWidth_ ) );
+                            new Double( pixer.ygrid_.binWidth_ ) );
                 return report;
             }
 
-            private void paintBins( Graphics g, BinList.Result binResult ) {
+            /**
+             * Does the actual painting for this layer.
+             *
+             * @param  g  graphics context
+             * @param  pixer   defines pixel grid
+             * @param  binResult  grid data
+             */
+            private void paintBins( Graphics g, GridPixer pixer,
+                                    BinList.Result binResult ) {
 
                 /* Work out how to scale binlist values to turn into
                  * entries in a colour map.  The first entry in the colour map
@@ -614,7 +664,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                     gp.x = x0 + gridder.getX( ip );
                     gp.y = y0 + gridder.getY( ip );
                     double[] dpos = surface_.graphicsToData( gp, null );
-                    int ib = gridPixer_.getBinIndex( dpos );
+                    int ib = pixer.getBinIndex( dpos );
                     if ( ib >= 0 ) {
                         if ( ib != ib0 ) {
                             ib0 = ib;
@@ -622,7 +672,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                             sval = Double.isNaN( dval )
                                  ? 0
                                  : Math.min( 1 +
-                                             (int) ( scaler .scaleValue( dval )
+                                             (int) ( scaler.scaleValue( dval )
                                                      * ncolor ),
                                              ncolor - 1 );
                         }
@@ -677,7 +727,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
          */
         public boolean matches( GridPixer pixer,  Combiner combiner,
                                 DataSpec dataSpec, DataGeom geom ) {
-            return pixer_.equals( pixer )
+            return pixer_.contains( pixer )
                 && combiner_.equals( combiner )
                 && dataSpec_.equals( dataSpec )
                 && geom_.equals( geom );
@@ -687,54 +737,23 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     /**
      * Defines the mapping of graphics coordinates to bin index.
      */
-    @Equality
     private static class GridPixer {
 
-        private final BinMapper xMapper_;
-        private final BinMapper yMapper_;
-        private final int ixlo_;
-        private final int ixhi_;
-        private final int iylo_;
-        private final int iyhi_;
+        private final GridSpec xgrid_;
+        private final GridSpec ygrid_;
         private final Gridder gridder_;
-        private final double dxlo_;
-        private final double dxhi_;
-        private final double dylo_;
-        private final double dyhi_;
-        final double xBinWidth_;
-        final double yBinWidth_;
 
         /**
          * Constructor.
          *
-         * @param  xMapper  mapper for X axis
-         * @param  ixlo     lowest bin index for X axis
-         * @param  ixhi     highest bin index for X axis
-         * @param  xBinWidth   additive/multiplicative bin width for X axis
-         * @param  yMapper  mapper for Y axis
-         * @param  iylo     lowest bin index for Y axis
-         * @param  iyhi     highest bin index for Y axis
-         * @param  yBinWidth   additive/multiplicative bin width for Y axis
+         * @param  xgrid  1-d grid specification in X direction
+         * @parma  ygrid  1-d grid specification in Y direction
          */
-        GridPixer( BinMapper xMapper, int ixlo, int ixhi, double xBinWidth,
-                   BinMapper yMapper, int iylo, int iyhi, double yBinWidth ) {
-            xMapper_ = xMapper;
-            ixlo_ = ixlo;
-            ixhi_ = ixhi;
-            yMapper_ = yMapper;
-            iylo_ = iylo;
-            iyhi_ = iyhi;
-            xBinWidth_ = xBinWidth;
-            yBinWidth_ = yBinWidth;
-            gridder_ = new Gridder( ixhi_ - ixlo_ + 1, iyhi_ - iylo_ + 1 );
-            double[] xloLimits = xMapper_.getBinLimits( ixlo_ );
-            double[] xhiLimits = xMapper_.getBinLimits( ixhi_ );
-            double[] yloLimits = yMapper_.getBinLimits( iylo_ );
-            double[] yhiLimits = yMapper_.getBinLimits( iyhi_ );
-            dxlo_ = Math.min( xloLimits[ 0 ], xhiLimits[ 0 ] );
-            dxhi_ = Math.max( xloLimits[ 1 ], xhiLimits[ 1 ] );
-            dylo_ = Math.min( yloLimits[ 0 ], yhiLimits[ 0 ] );
-            dyhi_ = Math.max( yloLimits[ 1 ], yhiLimits[ 1 ] );
+        GridPixer( GridSpec xgrid, GridSpec ygrid ) {
+            xgrid_ = xgrid;
+            ygrid_ = ygrid;
+            gridder_ = new Gridder( xgrid.ihi_ - xgrid.ilo_ + 1,
+                                    ygrid.ihi_ - ygrid.ilo_ + 1 );
         }
 
         /**
@@ -762,52 +781,156 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
              * out of range, and and it also avoids some nasty problems
              * with bad data values (e.g. negative values for a
              * logarithmic mapper). */
-            if ( dx >= dxlo_ && dx < dxhi_ && dy >= dylo_ && dy < dyhi_ ) {
-                int ix = xMapper_.getBinIndex( dx );
-                int iy = yMapper_.getBinIndex( dy );
+            if ( xgrid_.containsDataPoint( dx ) &&
+                 ygrid_.containsDataPoint( dy ) ) {
+                int ix = xgrid_.mapper_.getBinIndex( dx );
+                int iy = ygrid_.mapper_.getBinIndex( dy );
 
                 /* Unfortunately, small numerical errors in the mapper
                  * conversions can lead to values falling just outside the
-                 * bins in any case.  So we have to check against the
-                 * bin indices as well. */
-                if ( ix >= ixlo_ && ix <= ixhi_ &&
-                     iy >= iylo_ && iy <= iyhi_ ) {
-                    return gridder_.getIndex( ix - ixlo_, iy - iylo_ );
-                }
-                else {
-                    assert ix >= ixlo_ - 1 && ix <= ixhi_ + 1
-                        && iy >= iylo_ - 1 && iy <= iyhi_ + 1;
-                }
+                 * bins in any case.  So it's necessary that the implementation
+                 * of getBinIndex checks against bin indices as well. */
+                assert xgrid_.nearlyContainsBin( ix )
+                    && ygrid_.nearlyContainsBin( iy );
+                return getBinIndex( ix, iy );
             }
             return -1;
         }
 
-        @Override
-        public int hashCode() {
-            int code = 88721114;
-            code = 23 * code + xMapper_.hashCode();
-            code = 23 * code + yMapper_.hashCode();
-            code = 23 * code + ixlo_;
-            code = 23 * code + ixhi_;
-            code = 23 * code + iylo_;
-            code = 23 * code + iyhi_;
-            return code;
+        /**
+         * Returns the grid index given the X and Y grid indices.
+         *
+         * @param   ix  X gridder bin index
+         * @param   iy  Y girdder bin index
+         * @return   grid index for bin list, or negative number if off-grid
+         */
+        int getBinIndex( int ix, int iy ) {
+            return xgrid_.containsBin( ix ) && ygrid_.containsBin( iy )
+                 ? gridder_.getIndex( xgrid_.getBinOffset( ix ),
+                                      ygrid_.getBinOffset( iy ) )
+                 : -1;
         }
 
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof GridPixer ) {
-                GridPixer other = (GridPixer) o;
-                return this.xMapper_.equals( other.xMapper_ )
-                    && this.yMapper_.equals( other.yMapper_ )
-                    && this.ixlo_ == other.ixlo_
-                    && this.ixhi_ == other.ixhi_
-                    && this.iylo_ == other.iylo_
-                    && this.iyhi_ == other.iyhi_;
-            }
-            else {
-                return false;
-            }
+        /**
+         * Indicates whether this pixer is a superset of the given pixer.
+         *
+         * @param  other  comparison object
+         * @return   true iff this object contains all the information
+         *           contained by <code>other</code>
+         */
+        boolean contains( GridPixer other ) {
+            return xgrid_.contains( other.xgrid_ )
+                && ygrid_.contains( other.ygrid_ );
+        }
+    }
+
+    /**
+     * Specifies bin geometry for a 1-dimensional grid.
+     */
+    private static class GridSpec {
+        final boolean isLog_;
+        final double binWidth_;
+        final double phase_;
+        final double dlo_;
+        final double dhi_;
+
+        final BinMapper mapper_;
+        final int ilo_;
+        final int ihi_;
+
+        /**
+         * Constructor.
+         *
+         * @param  isLog     false for linear, true for logarithmic
+         * @param  binWidth  bin width, additive/multiplicative for linear/log
+         * @param  phase   scaled phase (non-degenerate range is 0..1)
+         * @param  drange  2-element [lo,hi] array giving required
+         *                 minimum extent in data coordinates
+         */
+        GridSpec( boolean isLog, double binWidth, double phase,
+                  double[] drange ) {
+            isLog_ = isLog;
+            binWidth_ = binWidth;
+            phase_ = phase;
+            mapper_ =
+                BinMapper.createMapper( isLog, binWidth, phase, drange[ 0 ] );
+            int i0 = mapper_.getBinIndex( drange[ 0 ] );
+            int i1 = mapper_.getBinIndex( drange[ 1 ] );
+            double[] dlimits0 = mapper_.getBinLimits( i0 );
+            double[] dlimits1 = mapper_.getBinLimits( i1 );
+            ilo_ = Math.min( i0, i1 );
+            ihi_ = Math.max( i0, i1 );
+            dlo_ = Math.min( dlimits0[ 0 ], dlimits1[ 0 ] );
+            dhi_ = Math.max( dlimits0[ 1 ], dlimits1[ 1 ] );
+        }
+
+        /**
+         * Indicates whether this specification is a superset of the given one.
+         *
+         * @param  other  comparison object
+         * @return   true iff this object contains all the information
+         *           contained by <code>other</code>
+         */
+        boolean contains( GridSpec other ) {
+            return this.binWidth_ == other.binWidth_
+                && this.phase_ == other.phase_
+                && this.dlo_ <= other.dlo_
+                && this.dhi_ >= other.dhi_;
+        }
+
+        /**
+         * Tests whether a given value in data coordinates falls within this
+         * grid's bounds.
+         *
+         * @param   d  test data point
+         * @return   true iff d falls within the grid bounds of this object
+         */
+        boolean containsDataPoint( double d ) {
+            return d >= dlo_ && d < dhi_;
+        }
+
+        /**
+         * Tests whether a given bin index falls within this grid's bounds.
+         *
+         * @param   ibin   test bin index
+         * @return  true iff ibin identifies one of this grid's bins
+         */
+        boolean containsBin( int ibin ) {
+            return ibin >= ilo_ && ibin <= ihi_;
+        }
+
+        /**
+         * Tests whether a given bin index either
+         * falls within this grid's bounds or is just outside them.
+         * 
+         * @param  ibin  bin index
+         * @return  true iff ibin is no more than one away from this grid
+         */
+        boolean nearlyContainsBin( int ibin ) {
+            return ibin >= ilo_ - 1 && ibin <= ihi_ + 1;
+        }
+
+        /**
+         * Returns the offset index for a given bin.
+         *
+         * @param  ibin  bin index as returned by the mapper
+         * @return  offset bin index in the range 0..(ihi_-ilo_)
+         */
+        int getBinOffset( int ibin ) {
+            return ibin - ilo_;
+        }
+
+        /**
+         * Returns the range of bin indices corresponding to a range in
+         * data coordinates for this grid.
+         *
+         * @param   dataRange  2-element array (lo,hi) of data values
+         * @return  2-element array (lo,hi) of bin indices
+         */
+        int[] getBinRange( double[] dataRange ) {
+            int i0 = mapper_.getBinIndex( dataRange[ 0 ] );
+            int i1 = mapper_.getBinIndex( dataRange[ 1 ] );
+            return new int[] { Math.min( i0, i1 ), Math.max( i0, i1 ) };
         }
     }
 }
