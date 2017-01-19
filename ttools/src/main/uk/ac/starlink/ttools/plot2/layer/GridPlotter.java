@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -285,6 +286,35 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     }
 
     /**
+     * Returns the approximate extent of a graphics pixel
+     * on an axis in data units.
+     * The idea of the rounding is that this should produce a result
+     * that does not differ if the axis is simply translated;
+     * that may be important if you want to use the grid size to label
+     * subsequent grid data results, to avoid recalculating them
+     * if the requirements have not significantly changed.
+     *
+     * @param  axis  axis
+     * @return   additive/multiplicative extent of a graphics pixel
+     *           for linear/logarithmic axis
+     */
+    private static double getRoundedPixelWidth( Axis axis ) {
+        int[] glimits = axis.getGraphicsLimits();
+        double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
+        double d1 = axis.graphicsToData( gmid - 0.5 );
+        double d2 = axis.graphicsToData( gmid + 0.5 );
+        double extent = Math.abs( axis.isLinear() ? d2 - d1 : d2 / d1 );
+
+        /* Try to round the result so that it's not sensitive to tiny
+         * precision-related changes in the calculations.
+         * As a blunt instrument, just cast it to float which should
+         * chop off some significant figures.  I think that ought to work,
+         * though it might lead to problems with small logarithmic pixels
+         * (for which the result will be near to unity). */
+        return (float) extent;
+    }
+
+    /**
      * Style for configuring the grid plot.
      */
     public static class GridStyle implements Style {
@@ -445,6 +475,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             BinSizer[] sizers = { gstyle_.xSizer_, gstyle_.ySizer_ };
             double[] phases = { gstyle_.xPhase_, gstyle_.yPhase_ };
             boolean[] logFlags = surface.getLogFlags();
+            Axis[] axes = surface.getAxes();
             double[][] dataLimits = surface.getDataLimits();
             for ( int i = 0; i < 2; i++ ) {
                 boolean isLog = logFlags[ i ];
@@ -452,7 +483,12 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 double dhi = dataLimits[ i ][ 1 ];
                 double[] drange =
                     PlotUtil.scaleRange( dlo, dhi, padder, isLog );
-                double binWidth = sizers[ i ].getWidth( isLog, dlo, dhi );
+                double reqWidth = sizers[ i ].getWidth( isLog, dlo, dhi );
+
+                /* Avoid sub-pixel grids since it would both be expensive
+                 * on memory and produce visually worse results. */
+                double binWidth =
+                    Math.max( reqWidth, getRoundedPixelWidth( axes[ i ] ) );
                 double phase = phases[ i ];
                 grids[ i ] = new GridSpec( isLog, binWidth, phase, drange );
             }
