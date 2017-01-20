@@ -222,7 +222,8 @@ public class StyleKeys {
         public String getXmlDescription( Combiner combiner ) {
             return combiner.getDescription();
         }
-    };
+    }.setOptionUsage()
+     .addOptionsXml();
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
         BarStyle.FORM_OPEN,
