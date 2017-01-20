@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FillPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
+import uk.ac.starlink.ttools.plot2.layer.GridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
@@ -99,6 +100,7 @@ public class PlanePlotType implements PlotType {
             new LinearFitPlotter( true ),
             new LabelPlotter(),
             new ContourPlotter(),
+            new GridPlotter( true ),
             new DensityPlotter( true, true ),
             new FillPlotter( true ),
             new TracePlotter( true ),

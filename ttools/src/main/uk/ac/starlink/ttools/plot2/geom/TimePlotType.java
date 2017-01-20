@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FillPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
+import uk.ac.starlink.ttools.plot2.layer.GridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
@@ -76,6 +77,7 @@ public class TimePlotType implements PlotType {
             new LinePlotter(),
             new FillPlotter( false ),
             new TracePlotter( false ),
+            new GridPlotter( true ),
             new HistogramPlotter( TimeDataGeom.T_COORD, true, normKey ),
             new FixedKernelDensityPlotter( TimeDataGeom.T_COORD, true,
                                            normKey ),
