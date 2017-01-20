@@ -14,7 +14,6 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
-import uk.ac.starlink.ttools.plot2.layer.DensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FillPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
@@ -101,7 +100,6 @@ public class PlanePlotType implements PlotType {
             new LabelPlotter(),
             new ContourPlotter(),
             new GridPlotter( true ),
-            new DensityPlotter( true, true ),
             new FillPlotter( true ),
             new TracePlotter( true ),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true, normKey ),

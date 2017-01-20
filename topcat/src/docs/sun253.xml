@@ -175,7 +175,6 @@
   <!ENTITY FIG.form_contour '&figs;form_contour.png'>
   <!ENTITY FIG.form_fill '&figs;form_fill.png'>
   <!ENTITY FIG.form_grid '&figs;form_grid.png'>
-  <!ENTITY FIG.form_density '&figs;form_density.png'>
   <!ENTITY FIG.form_skydensity '&figs;form_skydensity.png'>
   <!ENTITY FIG.form_histogram '&figs;form_histogram.png'>
   <!ENTITY FIG.form_kde '&figs;form_kde.png'>
@@ -275,8 +274,6 @@
                         <ref id="form-contour">Contour</ref>'>
   <!ENTITY FORM.grid '&IMG.FORM_GRID;
                       <ref id="form-grid">Grid</ref>'>
-  <!ENTITY FORM.density '&IMG.FORM_DENSITY;
-                        <ref id="form-density">Density</ref>'>
   <!ENTITY FORM.skydensity '&IMG.FORM_SKYDENSITY;
                            <ref id="form-skydensity">SkyDensity</ref>'>
   <!ENTITY FORM.fill '&IMG.FORM_FILL; <ref id="form-fill">Fill</ref>'>
@@ -7725,7 +7722,6 @@ The following plot layers do this:
 <li><ref id="mode-aux" plaintextref="yes">Aux colour mode</ref></li>
 <li><ref id="mode-weighted" plaintextref="yes">Weighted colour mode</ref></li>
 <li><ref id="form-grid" plaintextref="yes">Grid form</ref></li>
-<li><ref id="form-density" plaintextref="yes">Density form</ref></li>
 <li><ref id="form-skydensity" plaintextref="yes">Sky Density form</ref></li>
 </ul>
 These all colour parts of the plot in a way that is quantitatively
@@ -9282,7 +9278,6 @@ or relative to the plot dimensions.
 <p>The shading is done using the shared colour map.
 This colour map is used by all currently visible
 <label>Grid</label>,
-<ref id="form-density">Density</ref>,
 <ref id="mode-aux">Aux</ref> and
 <ref id="mode-weighted">Weighted</ref> layers.
 When at least one such layer is being plotted,
@@ -9364,92 +9359,6 @@ range, ramp display etc.
 
 </subsubsubsect>
 
-
-<subsubsubsect id="form-density">
-<subhead><title>Density Form</title></subhead>
-
-<figure>
-<caption><px>Density form configuration panel</px></caption>
-<figureimage src="&FIG.form_density;"/>
-</figure>
-
-<p>The <label>Density</label> form (&IMG.FORM_DENSITY;)
-plots a density map (2-d histogram) on the pixel grid of the plot surface,
-coarsened by a configurable factor.
-You can optionally use a weighting for the data values,
-and you can configure how the values are combined
-to produce the output bin values. 
-</p>
-
-<p>This form is somewhat experimental and may be modified in the future.
-</p>
-
-<p>The shading is done using the shared colour map.
-This colour map is used by all currently visible
-<label>Density</label>,
-<ref id="form-grid">Grid</ref>,
-<ref id="mode-aux">Aux</ref> and
-<ref id="mode-weighted">Weighted</ref> layers.
-When at least one such layer is being plotted,
-the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
-is visible
-in the control panel, which allows you to configure the colour map,
-range, ramp display etc.
-</p>
-
-<p>The configuration options are:
-<dl>
-<dt>Weight</dt>
-<dd><p>The weight value applied to each plotted point.
-    Fill this in with a column name or expression from the table
-    just like for a positional coordinate.
-    The exact way this quantity is used depends on the setting of the
-    <label>Combine</label> control below.
-    If it's left blank, the weighting is considered to be unity
-    (all values are 1); this makes sense for some combination types
-    (e.g. sum) but not others (e.g. mean).
-    </p></dd>
-
-<dt>Bin Size</dt>
-<dd><p>Determines the dimension of grid bins in pixels.
-    Bins are square in pixel dimensions and this value gives the
-    extent in pixels along each side.
-    Currently, only integer values are allowed.
-    </p></dd>
-
-<dt>Combine</dt>
-<dd><p>Determines how the weight values associated with markers
-    plotted covering a given bin are combined
-    to produce the numeric value used for that bin's colour.
-    </p>
-    <p>
-    The following options (some are more useful than others)
-    are currently available:
-    <ul>
-    <li><code>sum</code>: the sum of all weights</li>
-    <li><code>mean</code>: the mean of all weights</li>
-    <li><code>median</code>: the median of all weights;
-        (note, this is expensive to calculate and may be slow)</li>
-    <li><code>min</code>: the minimum weight</li>
-    <li><code>max</code>: the maximum weight</li>
-    <li><code>stdev</code>: the sample standard deviation of all weights</li>
-    <li><code>count</code>: the number of points plotted
-        (weight value is ignored, this is like Density mode)</li>
-    <li><code>hit</code>: one if any point is plotted, blank otherwise
-        (weight value is ignored, this is like Flat mode)</li>
-    </ul>
-    </p></dd>
-
-<dt>Opaque Limit</dt>
-<dd><p>Determines transparency of the points.
-    By default, they are fully opaque, but if you slide the slider to
-    the right, they will become progressively more transparent.
-    </p></dd>
-</dl>
-</p>
-
-</subsubsubsect>
-
 <subsubsubsect id="form-skydensity">
 <subhead><title>SkyDensity Form</title></subhead>
 
@@ -9474,7 +9383,6 @@ of equal area to cover the celestial sphere.
 This colour map is used by all currently visible
 <label>SkyDensity</label>,
 <ref id="form-grid">Grid</ref>,
-<ref id="form-density">Density</ref>,
 <ref id="mode-aux">Aux</ref> and
 <ref id="mode-weighted">Weighted</ref> layers.
 When at least one such layer is being plotted,
@@ -10617,8 +10525,7 @@ There is an additional option to draw the points with a fixed transparency.
 This colour map is used by all currently visible
 <label>Aux</label>,
 <ref id="mode-weighted">Weighted</ref>, 
-<ref id="form-grid">Grid</ref>,
-<ref id="form-density">Density</ref> and
+<ref id="form-grid">Grid</ref> and
 <ref id="form-skydensity">SkyDensity</ref> layers.
 When at least one such layer is being plotted,
 the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
@@ -10679,8 +10586,7 @@ but allows you to do things that are not possible in either.
 This colour map is used by all currently visible
 <label>Weighted</label>,
 <ref id="mode-aux">Aux</ref>,
-<ref id="form-grid">Grid</ref>,
-<ref id="form-density">Density</ref> and
+<ref id="form-grid">Grid</ref> and
 <ref id="form-skydensity">SkyDensity</ref> layers.
 When at least one such layer is being plotted,
 the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
@@ -11072,7 +10978,6 @@ see the <label>Coords</label> tab of the
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     <li>&FORM.grid;</li>
-    <li>&FORM.density;</li>
     <li>&FORM.fill;</li>
     <li>&FORM.quantile;</li>
     </ul></li>
@@ -23611,7 +23516,8 @@ introduced since the last version:
             available for all plot types</li>
         <li><ref id="form-skydensity">SkyDensity form</ref>,
             using HEALPix bins on the celestial sphere, for the Sky plot</li>
-        <li><ref id="form-density">Density form</ref>,
+        <li>Density form
+            <em>(later replaced by Grid form)</em>
             using square N*N screen pixel bins, for the Plane plot</li>
         </ul>
         The details are somewhat experimental and may 
@@ -23964,7 +23870,11 @@ introduced since the last version:
         <ref id="ConcatWindow">Concattenation Window</ref> that tries to
         match up columns between the two tables.</li>
     <li>Add new layer form <ref id="form-grid">Grid</ref> for Plane and
-        Time plots.</li>
+        Time plots.
+        This replaces the <em>Density</em> layer form, which has been
+        withdrawn
+        (Grid can do all the same things and more,
+        except specify bin size in screen pixels).</li>
     </ul>
     </p></dd>
 

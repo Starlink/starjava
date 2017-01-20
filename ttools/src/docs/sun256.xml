@@ -10633,7 +10633,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             available for all plot types</li>
         <li><ref id="layer-skydensity">SkyDensity layer</ref>,
             using HEALPix bins on the celestial sphere, for the Sky plot</li>
-        <li><ref id="layer-density">Density layer</ref>,
+        <li>Density layer
+            (<em>later obsoleted by <ref id="layer-grid">Grid layer</ref></em>),
             using square N*N screen pixel bins, for the Plane plot</li>
         </ul>
         The details are somewhat experimental and may
@@ -10960,7 +10961,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         There are also some minor API changes to a few of the plot2
         utility classes, which now provide more flexibility for caching.</li>
     <li>Add new layer type <ref id="layer-grid">grid</ref> for
-        <code>plot2plane</code> and <code>plot2time</code>.</li>
+        <code>plot2plane</code> and <code>plot2time</code>.
+        This replaces the <code>density</code> layer,
+        which has been withdrawn
+        (<code>grid</code> can do all the same things and more,
+        except specify bin size in screen pixels).</li>
     </ul>
     </p></dd>
 
