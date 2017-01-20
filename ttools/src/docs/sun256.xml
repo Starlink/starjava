@@ -10959,6 +10959,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (navigation etc) for some plot layer types plotted to the screen.
         There are also some minor API changes to a few of the plot2
         utility classes, which now provide more flexibility for caching.</li>
+    <li>Add new layer type <ref id="layer-grid">grid</ref> for
+        <code>plot2plane</code> and <code>plot2time</code>.</li>
     </ul>
     </p></dd>
 

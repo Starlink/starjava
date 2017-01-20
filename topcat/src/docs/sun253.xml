@@ -174,6 +174,7 @@
   <!ENTITY FIG.form_label '&figs;form_label.png'>
   <!ENTITY FIG.form_contour '&figs;form_contour.png'>
   <!ENTITY FIG.form_fill '&figs;form_fill.png'>
+  <!ENTITY FIG.form_grid '&figs;form_grid.png'>
   <!ENTITY FIG.form_density '&figs;form_density.png'>
   <!ENTITY FIG.form_skydensity '&figs;form_skydensity.png'>
   <!ENTITY FIG.form_histogram '&figs;form_histogram.png'>
@@ -272,6 +273,8 @@
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
+  <!ENTITY FORM.grid '&IMG.FORM_GRID;
+                      <ref id="form-grid">Grid</ref>'>
   <!ENTITY FORM.density '&IMG.FORM_DENSITY;
                         <ref id="form-density">Density</ref>'>
   <!ENTITY FORM.skydensity '&IMG.FORM_SKYDENSITY;
@@ -7721,6 +7724,7 @@ The following plot layers do this:
 <ul>
 <li><ref id="mode-aux" plaintextref="yes">Aux colour mode</ref></li>
 <li><ref id="mode-weighted" plaintextref="yes">Weighted colour mode</ref></li>
+<li><ref id="form-grid" plaintextref="yes">Grid form</ref></li>
 <li><ref id="form-density" plaintextref="yes">Density form</ref></li>
 <li><ref id="form-skydensity" plaintextref="yes">Sky Density form</ref></li>
 </ul>
@@ -9252,6 +9256,115 @@ so they don't look very beautiful in exported vector output formats
 
 </subsubsubsect>
 
+<subsubsubsect id="form-grid">
+<subhead><title>Grid Form</title></subhead>
+
+<figure>
+<caption><px>Grid form configuration panel</px></caption>
+<figureimage src="&FIG.form_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> form (&IMG.FORM_GRID;)
+plots 2-d point data aggregated into rectangular cells on the plotting plane.
+You can optionally use a weighting for the points,
+and you can configure how the values are combined to produce the
+output pixel values (colours).
+You can use this layer type in various ways,
+including as a 2-d histogram or weighted density map,
+or to plot gridded data.
+</p>
+
+<p>The X and Y dimensions of the grid cells (or equivalently histogram bins)
+can be configured in terms of either the data coordinates
+or relative to the plot dimensions.
+</p>
+
+<p>The shading is done using the shared colour map.
+This colour map is used by all currently visible
+<label>Grid</label>,
+<ref id="form-density">Density</ref>,
+<ref id="mode-aux">Aux</ref> and
+<ref id="mode-weighted">Weighted</ref> layers.
+When at least one such layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis control</ref>
+is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>The weight value applied to each plotted point.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    The exact way this quantity is used depends on the setting of the
+    <label>Combine</label> control below.
+    If it's left blank, the weighting is considered to be unity
+    (all values are 1); this makes sense for some combination types
+    (e.g. <code>sum</code>) but not others (e.g. <code>mean</code>).
+    </p></dd>
+
+<dt>X Bin Size</dt>
+<dt>Y Bin Size</dt>
+<dd><p>A scale for the horizontal/vertical extent of of the rectangular
+    bins into which the data is aggregated.
+    There are two ways to specify this.
+    If the left-hand radio button is selected, the adjacent slider will
+    adjust the bin size, which is also affected by the actual width of
+    the plotting window in pixels.  Slide the slider left to get narrower
+    bins or right to get wider ones.
+    If the right-hand radio button is selected, you can enter a numeric
+    value giving the actual extent in data units of the dimension.
+    If the axis in question is logarithmic, this value is a factor.
+    </p></dd>
+
+<dt>Combine</dt>
+<dd><p>Determines how the <label>Weight</label> values for the
+    points falling within a given data bin
+    are combined to produce the numeric value used for that bin's colour.
+    For unweighted values (a pure density map) it usually makes sense
+    to use <code>count</code> or <code>sum</code>.
+    However, if there is a non-blank <label>Weight</label> coordinate,
+    one of the other values such as <code>mean</code> may be more revealing.
+    </p>
+    <p>
+    The following options (some are more useful than others)
+    are currently available:
+    <ul>
+    <li><code>sum</code>: the sum of all weights</li>
+    <li><code>mean</code>: the mean of all weights</li>
+    <li><code>median</code>: the median of all weights;
+        (note, this is more expensive to calculate and can be slow)</li>
+    <li><code>min</code>: the minimum weight</li>
+    <li><code>max</code>: the maximum weight</li>
+    <li><code>stdev</code>: the sample standard deviation of all weights</li>
+    <li><code>count</code>: the number of points plotted
+        (weight value is ignored, this is like Density mode)</li>
+    <li><code>hit</code>: one if any point is plotted, blank otherwise
+        (weight value is ignored, this is like Flat mode)</li>
+    </ul>
+    </p></dd>
+
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the filled area.
+    </p></dd>
+
+<dt>X Bin Phase</dt>
+<dt>Y Bin Phase</dt>
+<dd><p>Controls where the horizontal/vertical zero point for bins is set.
+    For instance if your X/Y bin size is 1, it controls whether bin boundaries
+    on the X/Y axis are at 0, 1, 2, ... or 0.5, 1.5, 2.5, ... etc.
+    If the slider is at either end of the scale, there will be a bin
+    boundary at X/Y=0 (linear axis) or X/Y=1 (logarithmic axis).
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsubsect>
+
+
 <subsubsubsect id="form-density">
 <subhead><title>Density Form</title></subhead>
 
@@ -9274,7 +9387,7 @@ to produce the output bin values.
 <p>The shading is done using the shared colour map.
 This colour map is used by all currently visible
 <label>Density</label>,
-<ref id="form-skydensity">SkyDensity</ref>,
+<ref id="form-grid">Grid</ref>,
 <ref id="mode-aux">Aux</ref> and
 <ref id="mode-weighted">Weighted</ref> layers.
 When at least one such layer is being plotted,
@@ -9360,6 +9473,7 @@ of equal area to cover the celestial sphere.
 <p>The shading is done using the shared colour map.
 This colour map is used by all currently visible
 <label>SkyDensity</label>,
+<ref id="form-grid">Grid</ref>,
 <ref id="form-density">Density</ref>,
 <ref id="mode-aux">Aux</ref> and
 <ref id="mode-weighted">Weighted</ref> layers.
@@ -9564,7 +9678,7 @@ for the Histogram window:
     </p></dd>
 <dt>Bin Phase</dt>
 <dd><p>Controls where the horizontal zero point for binning is set.
-    For instance if your bin size is 1, it controls whether bins
+    For instance if your bin size is 1, it controls whether bin
     boundaries are at 0, 1, 2, ..  or 0.5, 1.5, 2.5, ... etc.
     If the slider is at either end of the scale, there will be a bin
     boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
@@ -10503,6 +10617,7 @@ There is an additional option to draw the points with a fixed transparency.
 This colour map is used by all currently visible
 <label>Aux</label>,
 <ref id="mode-weighted">Weighted</ref>, 
+<ref id="form-grid">Grid</ref>,
 <ref id="form-density">Density</ref> and
 <ref id="form-skydensity">SkyDensity</ref> layers.
 When at least one such layer is being plotted,
@@ -10564,6 +10679,7 @@ but allows you to do things that are not possible in either.
 This colour map is used by all currently visible
 <label>Weighted</label>,
 <ref id="mode-aux">Aux</ref>,
+<ref id="form-grid">Grid</ref>,
 <ref id="form-density">Density</ref> and
 <ref id="form-skydensity">SkyDensity</ref> layers.
 When at least one such layer is being plotted,
@@ -10955,6 +11071,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.linearfit;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
+    <li>&FORM.grid;</li>
     <li>&FORM.density;</li>
     <li>&FORM.fill;</li>
     <li>&FORM.quantile;</li>
@@ -12111,6 +12228,7 @@ share a time axis but have their own Y axis.
     <li>&FORM.label;</li>
     <li>&FORM.fill;</li>
     <li>&FORM.quantile;</li>
+    <li>&FORM.grid;</li>
     </ul>
     </li>
 <li>&CONTROL.histogram; with these form options:
@@ -23845,6 +23963,8 @@ introduced since the last version:
     <li>Minor improvements to the logic in the
         <ref id="ConcatWindow">Concattenation Window</ref> that tries to
         match up columns between the two tables.</li>
+    <li>Add new layer form <ref id="form-grid">Grid</ref> for Plane and
+        Time plots.</li>
     </ul>
     </p></dd>
 
