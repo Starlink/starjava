@@ -222,10 +222,15 @@ public class ConcatWindow extends AuxWindow {
             /* Otherwise, just make the best guess about how to match
              * them up. */
             else { 
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    guessColumn( colSelectorModels_[ icol ],
-                                 ((StarTableColumn) colModel1.getColumn( icol ))
-                                                             .getColumnInfo() );
+                for ( int ic1 = 0; ic1 < ncol; ic1++ ) {
+                    ColumnDataComboBoxModel cdModel2 =
+                        colSelectorModels_[ ic1 ];
+                    ColumnInfo info1 =
+                        ((StarTableColumn) colModel1.getColumn( ic1 ))
+                       .getColumnInfo();
+                    ColumnData guessData =
+                        cdModel2.getUniqueMatchColumnData( info1 );
+                    cdModel2.setSelectedItem( guessData );
                 }
             }
         }
@@ -337,45 +342,7 @@ public class ConcatWindow extends AuxWindow {
     }
 
     /**
-     * Sets the initial selection on a column combo model to match 
-     * a given column info.  It matches names and UCDs and so on to try
-     * to find some that look like they go together.  Could probably be
-     * improved.
-     *
-     * @param  comboModel  combobox model containing the possible choices.
-     *         Option 0 is some kind of null option
-     * @param  cinfo1      column info which the selection should try to match
-     */
-    private static void guessColumn( ColumnDataComboBoxModel comboModel,
-                                     ColumnInfo cinfo1 ) {
-        int iSel = 0;
-        String name1 = cinfo1.getName();
-        String ucd1 = cinfo1.getUCD();
-
-        /* If there is only one possible selection which matches the name
-         * or the UCD of the column, use that.  Otherwise, use the null 
-         * option. */
-        for ( int i = 1; i < comboModel.getSize(); i++ ) {
-            ColumnInfo cinfo2 = ((ColumnData) comboModel.getElementAt( i ))
-                               .getColumnInfo();
-            boolean match =
-                name1 != null && name1.equalsIgnoreCase( cinfo2.getName() ) ||
-                ucd1 != null && ucd1.equals( cinfo2.getUCD() );
-            if ( match ) {
-                if ( iSel == 0 ) {
-                    iSel = i;
-                }
-                else {
-                    iSel = 0;
-                    break;
-                }
-            }
-        }
-        comboModel.setSelectedItem( comboModel.getElementAt( iSel ) );
-    }
-
-    /**
-     * Action definisions for ConcatWindow.
+     * Action definitions for ConcatWindow.
      */
     private class ConcatAction extends BasicAction {
         ConcatAction( String name, Icon icon, String description ) {

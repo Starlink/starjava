@@ -295,6 +295,80 @@ public class ColumnDataComboBoxModel
         return score;
     }
 
+    /**
+     * Attempts to locate and return a member of this model which
+     * is the only match for a given <code>info</code>.
+     * If no good match can be found, or if multiple equally good matches
+     * are found, null is returned.
+     * Exactly how the matching is done is
+     * not defined - presumably grubbing about with UCDs or column names etc.
+     *
+     * @param  info  metadata item to match
+     * @return   object suitable for selection in this model which matches
+     *           <code>info</code>, or null if nothing suitable can be found
+     */
+    public ColumnData getUniqueMatchColumnData( ValueInfo info ) {
+        int nc = getSize();
+        ColumnInfo[] infos0 = new ColumnInfo[ nc ];
+        for ( int i = 0; i < nc; i++ ) {
+            ColumnData cdata = getColumnDataAt( i );
+            ColumnInfo info0 = cdata == null ? null : cdata.getColumnInfo();
+            infos0[ i ] = info0 == null ? new ColumnInfo( (String) null )
+                                        : info0;
+        }
+
+        /* Try to find unique matched name. */
+        String name1 = info.getName();
+        if ( name1 != null ) {
+            int imatch = 0;
+            int nmatch = 0;
+            for ( int i = 0; i < nc; i++ ) {
+                if ( name1.equalsIgnoreCase( infos0[ i ].getName() ) ) {
+                    imatch = i;
+                    nmatch++;
+                }
+            }
+            if ( nmatch == 1 ) {
+                return getColumnDataAt( imatch );
+            }
+        }
+
+        /* Try to find unique matched UCD. */
+        String ucd1 = info.getUCD();
+        if ( ucd1 != null ) {
+            int imatch = 0;
+            int nmatch = 0;
+            for ( int i = 0; i < nc; i++ ) {
+                if ( ucd1.equalsIgnoreCase( infos0[ i ].getUCD() ) ) {
+                    imatch = i;
+                    nmatch++;
+                }
+            }
+            if ( nmatch == 1 ) {
+                return getColumnDataAt( imatch );
+            }
+        }
+
+        /* Try to find unique matched Utype. */
+        String utype1 = info.getUtype();
+        if ( utype1 != null ) {
+            int imatch = 0;
+            int nmatch = 0;
+            for ( int i = 0; i < nc; i++ ) {
+                if ( ucd1.equalsIgnoreCase( infos0[ i ].getUtype() ) ) {
+                    imatch = i;
+                    nmatch++;
+                }
+            }
+            if ( nmatch == 1 ) {
+                return getColumnDataAt( imatch );
+            }
+        }
+
+        /* No luck. */
+        return null;
+    }
+
     /*
      * Implementation of the TableColumnModelListener interface.
      * These methods watch for changes in the TableColumnModel and 

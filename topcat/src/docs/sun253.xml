@@ -23842,6 +23842,9 @@ introduced since the last version:
         to add (and remove) forms there is now a &IMG.ADD; <label>Forms</label>
         button that pops up a menu rather than the toolbar with form icons.
         There were getting to be too many icons to fit in the toolbar.</li>
+    <li>Minor improvements to the logic in the
+        <ref id="ConcatWindow">Concattenation Window</ref> that tries to
+        match up columns between the two tables.</li>
     </ul>
     </p></dd>
 
