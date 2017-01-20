@@ -48,9 +48,9 @@ public class TimePlotWindow
     private static int getTimeIndex( ColumnDataComboBoxModel colModel ) {
         if ( colModel != null ) {
             for ( int ic = 0; ic < colModel.getSize(); ic++ ) {
-                Object item = colModel.getElementAt( ic );
-                if ( item instanceof ColumnData ) {
-                    ColumnInfo info = ((ColumnData) item).getColumnInfo();
+                ColumnData cdata = colModel.getColumnDataAt( ic );
+                if ( cdata != null ) {
+                    ColumnInfo info = cdata.getColumnInfo();
                     for ( DomainMapper mapper : info.getDomainMappers() ) {
                         if ( mapper instanceof TimeMapper ) {
                             return ic;
@@ -91,10 +91,9 @@ public class TimePlotWindow
                         int icy = -1;
                         for ( int ic = 0; ic < yModel.getSize() && icy < 0;
                               ic++ ) {
-                            Object item = yModel.getElementAt( ic );
-                            if ( ic != ict && item instanceof ColumnData ) {
-                                ColumnInfo info =
-                                    ((ColumnData) item).getColumnInfo();
+                            ColumnData cdata = yModel.getColumnDataAt( ic );
+                            if ( ic != ict && cdata != null ) {
+                                ColumnInfo info = cdata.getColumnInfo();
                                 if ( Number.class
                                     .isAssignableFrom( info
                                                       .getContentClass() ) ) {

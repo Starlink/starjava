@@ -147,9 +147,8 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
                                 ColumnData cmpCol ) {
             int ncol = selector.getSize();
             for ( int ic = 0; ic < ncol; ic++ ) {
-                Object item = selector.getElementAt( ic );
-                if ( item instanceof ColumnData ) {
-                    ColumnData cdata = (ColumnData) item;
+                ColumnData cdata = selector.getColumnDataAt( ic );
+                if ( cdata != null ) {
                     if ( isDifferent( cdata, cmpCol ) ) {
                         return cdata;
                     }
@@ -193,9 +192,8 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
             HpxCol byName = null;
             HpxCol byDescrip = null;
             for ( int ic = 0; ic < ncol; ic++ ) {
-                Object item = selector.getElementAt( ic );
-                if ( item instanceof ColumnData ) {
-                    ColumnData cdata = (ColumnData) item;
+                ColumnData cdata = selector.getColumnDataAt( ic );
+                if ( cdata != null ) {
                     ColumnInfo info = cdata.getColumnInfo();
                     if ( byName == null ) {
                         String name = info.getName();

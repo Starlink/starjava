@@ -230,11 +230,10 @@ public class SkyPlotWindow
         private static boolean populate( ColumnDataComboBoxModel model,
                                          ValueInfo info ) {
             for ( int i = 0; i < model.getSize(); i++ ) {
-                Object item = model.getElementAt( i );
-                if ( item instanceof ColumnData &&
-                     infoMatches( ((ColumnData) item).getColumnInfo(),
-                                  info ) ) {
-                    model.setSelectedItem( item );
+                ColumnData cdata = model.getColumnDataAt( i );
+                if ( cdata != null &&
+                     infoMatches( cdata.getColumnInfo(), info ) ) {
+                    model.setSelectedItem( cdata );
                     return true;
                 }
             }
@@ -251,9 +250,9 @@ public class SkyPlotWindow
         private static ValueInfo[] getInfos( ColumnDataComboBoxModel model ) {
             List<ValueInfo> list = new ArrayList<ValueInfo>();
             for ( int i = 0; i < model.getSize(); i++ ) {
-                Object item = model.getElementAt( i );
-                if ( item instanceof ColumnData ) {
-                    ValueInfo info = ((ColumnData) item).getColumnInfo();
+                ColumnData cdata = model.getColumnDataAt( i );
+                if ( cdata != null ) {
+                    ValueInfo info = cdata.getColumnInfo();
                     if ( info != null ) {
                         list.add( info );
                     }

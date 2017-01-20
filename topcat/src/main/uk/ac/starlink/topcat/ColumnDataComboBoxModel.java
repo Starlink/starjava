@@ -147,6 +147,17 @@ public class ColumnDataComboBoxModel
         return activeColumns_.get( index );
     }
 
+    /**
+     * Returns the element at a given index as a typed object.
+     *
+     * @param   index   requested index
+     * @return   value at index as a ColumnData, or null
+     */
+    public ColumnData getColumnDataAt( int index ) {
+        Object el = getElementAt( index );
+        return el instanceof ColumnData ? (ColumnData) el : null;
+    }
+
     public int getSize() {
         return activeColumns_.size();
     }
@@ -175,13 +186,13 @@ public class ColumnDataComboBoxModel
          * then case-insensitive. */
         int ncol = getSize();
         for ( int i = 0; i < ncol; i++ ) {
-            ColumnData item = (ColumnData) getElementAt( i );
+            ColumnData item = getColumnDataAt( i );
             if ( item != null && txt.equals( item.toString() ) ) {
                 return item;
             }
         }
         for ( int i = 0; i < ncol; i++ ) {
-            ColumnData item = (ColumnData) getElementAt( i );
+            ColumnData item = getColumnDataAt( i );
             if ( item != null && txt.equalsIgnoreCase( item.toString() ) ) {
                 return item;
             }
@@ -224,9 +235,8 @@ public class ColumnDataComboBoxModel
         int bestScore = 0;
         ColumnData bestData = null;
         for ( int i = 0; i < getSize(); i++ ) {
-            Object item = getElementAt( i );
-            if ( item instanceof ColumnData ) {
-                ColumnData cdata = (ColumnData) item;
+            ColumnData cdata = getColumnDataAt( i );
+            if ( cdata != null ) {
                 int score = match( info, cdata.getColumnInfo() );
                 if ( score > bestScore ) {
                     bestScore = score;
