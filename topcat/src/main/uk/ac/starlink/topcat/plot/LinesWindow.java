@@ -1052,7 +1052,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             ComboBoxModel xModel = getColumnSelector( 0 ).getModel();
             ColumnData timeCol = xModel instanceof ColumnDataComboBoxModel
                 ? ((ColumnDataComboBoxModel) xModel)
-                 .getColumnData( TopcatUtils.TIME_INFO )
+                 .getBestMatchColumnData( TopcatUtils.TIME_INFO )
                 : null;
             xModel.setSelectedItem( timeCol == null ? xModel.getElementAt( 1 )
                                                     : timeCol );

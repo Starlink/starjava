@@ -231,7 +231,7 @@ public class ColumnDataComboBoxModel
      * @return   object suitable for selection in this model which matches
      *           <code>info</code>, or null if nothing suitable can be found
      */
-    public ColumnData getColumnData( ValueInfo info ) {
+    public ColumnData getBestMatchColumnData( ValueInfo info ) {
         int bestScore = 0;
         ColumnData bestData = null;
         for ( int i = 0; i < getSize(); i++ ) {
