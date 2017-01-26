@@ -392,7 +392,7 @@ public class SkyDensityPlotter
                     }
                     else {
                         BinList.Result binResult =
-                            readBins( ssurf, true, dataSpec, dataStore )
+                            readBins( ssurf, dataSpec, dataStore )
                            .getResult();
                         createTileRenderer( ssurf )
                        .extendAuxRange( range, binResult );
@@ -445,15 +445,13 @@ public class SkyDensityPlotter
          * suitable for plotting this layer on a given surface.
          *
          * @param   surface   target plot surface
-         * @param   visibleOnly   true to use only points in the plot bounds,
-         *                        false to use them all
          * @param   dataSpec   data specification
          * @param   dataStore  data storage
          * @return   populated bin list
          * @slow
          */
-        private BinList readBins( SkySurface surface, boolean visibleOnly,
-                                  DataSpec dataSpec, DataStore dataStore ) {
+        private BinList readBins( SkySurface surface, DataSpec dataSpec,
+                                  DataStore dataStore ) {
             SkyPixer skyPixer = createSkyPixer( surface );
             BinList binList = null;
             long npix = skyPixer.getPixelCount();
@@ -468,14 +466,11 @@ public class SkyDensityPlotter
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
             double[] v3 = new double[ 3 ];
-            Point2D.Double gp = new Point2D.Double();
 
             /* Unweighted. */
             if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
                 while ( tseq.next() ) {
-                    if ( geom_.readDataPos( tseq, icPos, v3 ) &&
-                        ( ! visibleOnly ||
-                          surface.dataToGraphics( v3, true, gp ) ) ) {
+                    if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
                         binList.submitToBin( skyPixer.getIndex( v3 ), 1 );
                     }
                 }
@@ -484,9 +479,7 @@ public class SkyDensityPlotter
             /* Weighted. */
             else {
                 while ( tseq.next() ) {
-                    if ( geom_.readDataPos( tseq, icPos, v3 ) &&
-                         ( ! visibleOnly ||
-                           surface.dataToGraphics( v3, true, gp ) ) ) {
+                    if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
                         double w = weightCoord_
                                   .readDoubleCoord( tseq, icWeight_ );
                         if ( ! Double.isNaN( w ) ) {
@@ -571,7 +564,7 @@ public class SkyDensityPlotter
                 }
                 else {
                     BinList.Result binResult =
-                        readBins( surface_, false, dataSpec, dataStore )
+                        readBins( surface_, dataSpec, dataStore )
                        .getResult().compact();
                     return new SkyDensityPlan( level_, combiner, binResult,
                                                dataSpec, geom_ );
