@@ -377,6 +377,7 @@ public class SkyDensityPlotter
                                             Object[] knownPlans,
                                             Range range ) {
                     SkySurface ssurf = (SkySurface) surface;
+                    int level = getLevel( ssurf );
 
                     /* If we have a cached plan, use that for the ranging.
                      * This will be faster than rebinning the data for
@@ -385,7 +386,7 @@ public class SkyDensityPlotter
                      * for small datasets.
                      * This is a possible target for future optimisation. */
                     SkyDensityPlan splan =
-                        getSkyPlan( knownPlans, dstyle_.level_, dataSpec );
+                        getSkyPlan( knownPlans, level, dataSpec );
                     if ( splan != null ) {
                         splan.extendVisibleRange( range, ssurf );
                     }
