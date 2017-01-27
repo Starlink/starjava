@@ -1103,7 +1103,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         int l = 0; // selection index
                         while ( rseq.next() ) {
                                              
-                            if ( k == selection[l]) {
+                            if ( k == starJTable.convertRowIndexToModel(selection[l])) {
 
                                 // Store this one as matches selection.
                                 if (rseq.getCell( linkcol ) != null)                                      
