@@ -74,6 +74,7 @@ public class ResourceIcon {
         CLICK3 = readIcon( "click3.png" ),
         MOUSE_WHEEL = readIcon( "mwheel.png" ),
         ZERO = readIcon( "ozero.png" ),
+        COLOR_WHEEL = readIcon( "colorwheel18.png" ),
 
         /* Placeholder and terminator. */
         TTOOLS_DOWHAT = readIcon( "burst.png" );
