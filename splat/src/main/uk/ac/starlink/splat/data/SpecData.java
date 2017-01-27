@@ -2740,7 +2740,7 @@ public class SpecData
         return bounds;
     }
 
-    public int getPrefferedPlotType() {
+    public int getPreferredPlotType() {
     	int plotType = SpecData.POLYLINE;
     	
     	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
@@ -2750,7 +2750,7 @@ public class SpecData
     	return plotType;
     }
     
-    public int getPrefferedPointType() {
+    public int getPreferredPointType() {
     	int pointType = 0; // dot
     	
     	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {

@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -72,7 +73,6 @@ import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 import org.xml.sax.InputSource;
 
 import jsky.catalog.BasicQueryArgs;
@@ -92,6 +92,7 @@ import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.EventEnabledTransmitter;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Transmitter;
@@ -504,6 +505,16 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     /** The list of all input parameters read from the servers */
    // protected static SSAMetadataFrame metaFrame = null;
     protected static SSAMetadataPanel metaPanel = null;
+    
+    /**
+     * SAMP transmitter for selected FITS results
+     */
+    protected EventEnabledTransmitter binFITSTransmitter;
+    
+    /**
+     * SAMP transmitter for selected VOTable results
+     */
+    protected EventEnabledTransmitter voTableTransmitter;
 
     /** Make sure the proxy environment is setup */
     static {
@@ -543,7 +554,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      */
     private DataLinkQueryFrame dataLinkFrame = null;
 
- //   private JPopupMenu specPopupMenu;
+    // private JPopupMenu specPopupMenu;
 
     /**
      * Create an instance.
@@ -754,6 +765,17 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( transmitter.createSendMenu() )
         .setMnemonic( KeyEvent.VK_T );
+        
+        interopMenu.addSeparator();
+        binFITSTransmitter = communicator.createBinFITSTableTransmitter( this );
+        interopMenu.add( binFITSTransmitter.getBroadcastAction() );
+        interopMenu.add( binFITSTransmitter.createSendMenu() );
+        
+        interopMenu.addSeparator();
+        voTableTransmitter = communicator.createVOTableTransmitter( this );
+        interopMenu.add( voTableTransmitter.getBroadcastAction() );
+        interopMenu.add( voTableTransmitter.createSendMenu() );
+        
 
         //  Create the Help menu.
         HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window", menuBar, null /*toolBar*/ );
@@ -1759,6 +1781,8 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                 }
 
                 //  Double click on row means load just that spectrum.
+                table.addMouseListener( binFITSTransmitter );
+                table.addMouseListener( voTableTransmitter );
                 table.addMouseListener( resultsPanel );
             }
         }
@@ -1798,7 +1822,6 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * selected parameter determines the behaviour of all or just the selected
      * spectra.
      */
- 
     protected void displaySpectra( Props[] propList, boolean display)
 
     {
@@ -1806,10 +1829,12 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         browser.threadLoadSpectra( propList, display );
         browser.toFront();
     }
-
-
-
-
+    
+    public List<Props> getSpectraAsList(boolean selected) {
+        return resultsPanel.getSpectraAsList(selected, null, -1);
+    }
+    
+    
     /**
      *  Restore a set of previous query results that have been written to a
      *  VOTable. The file name is obtained interactively.

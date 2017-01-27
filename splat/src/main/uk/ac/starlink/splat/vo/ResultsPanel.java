@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -737,7 +738,9 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                 return null;
             //  Visit all the tabbed StarJTables.
             for (int i=0;i<resultsPane.getTabCount();i++) {
-                specList = extractSpectraFromTable(  (StarJTable) resultsPane.getComponentAt(i), selected, -1 );
+              
+                JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
+                specList = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1 );
             }
         }
         else {
@@ -826,6 +829,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             int ncol = starTable.getColumnCount();
             int linkcol = -1;
             int typecol = -1;
+            int producttypecol = -1;
             int namecol = -1;
             int axescol = -1;
             int specaxiscol = -1;
@@ -945,6 +949,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         }
 
                     }
+                    if (colInfo.getName().contains("ssa_producttype"))
+                        producttypecol = k;
                     if (colInfo.getName().equals("ssa_pubDID"))
                         pubdidcol = k;
                 }
@@ -998,7 +1004,14 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                     value = value.trim();
                                     props.setType( SpecDataFactory.mimeToSPLATType( value ) );
                                 }
-                            } //while
+                            }
+                            if ( producttypecol != -1 ) {
+                                value = ((String)rseq.getCell( producttypecol ).toString() );
+                                if ( value != null ) {
+                                    value = value.trim();
+                                    props.setObjectType(SpecDataFactory.productTypeToObjectType(value));
+                                }
+                            }
                             if ( namecol != -1 ) {
                                 value = ( (String)rseq.getCell( namecol ).toString() );
                                 if ( value != null ) {
@@ -1062,19 +1075,19 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                     props.setDataUnits( value );
                                 }
                             }
-                         
+
                             if (idsrccol != -1  && dataLinkQueryParams != null) { 
-                                
+
                                 if (! dataLinkQueryParams.isEmpty()) { 
-                                   props.setIdValue(rseq.getCell(idsrccol).toString());
-                                   props.setIdSource(idSource);
-                                   props.setDataLinkRequest(dataLinkRequest);
-                                   props.setServerURL(dataLinkQueryParams.get("AccessURL"));
-                                   String format = dataLinkQueryParams.get("FORMAT");
-                                   if (format != null && format != "") {
-                                       props.setDataLinkFormat(format);
-                                       props.setType(SpecDataFactory.mimeToSPLATType( format ));
-                                   }
+                                    props.setIdValue(rseq.getCell(idsrccol).toString());
+                                    props.setIdSource(idSource);
+                                    props.setDataLinkRequest(dataLinkRequest);
+                                    props.setServerURL(dataLinkQueryParams.get("AccessURL"));
+                                    String format = dataLinkQueryParams.get("FORMAT");
+                                    if (format != null && format != "") {
+                                        props.setDataLinkFormat(format);
+                                        props.setType(SpecDataFactory.mimeToSPLATType( format ));
+                                    }
                                 }
                             }
                             specList.add( props );
@@ -1089,7 +1102,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         int k = 0; // Table row
                         int l = 0; // selection index
                         while ( rseq.next() ) {
-                            if ( k == selection[l] ) {
+                                             
+                            if ( k == selection[l]) {
 
                                 // Store this one as matches selection.
                                 if (rseq.getCell( linkcol ) != null)                                      
@@ -1108,11 +1122,22 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                         props.setType( SpecDataFactory.mimeToSPLATType( value ) );
                                     }
                                 }
+                                if ( producttypecol != -1 ) {
+                                    value = null;
+                                    Object obj = rseq.getCell(producttypecol);
+                                    if (obj != null)
+                                        value =((String)rseq.getCell(producttypecol).toString());
+                                    if ( value != null ) {
+                                        value = value.trim();
+                                        props.setObjectType(SpecDataFactory.productTypeToObjectType(value));
+                                    }
+                                }
+
                                 if ( namecol != -1 ) {
                                     value = null;
                                     Object obj = rseq.getCell(namecol);
                                     if (obj != null) 
-                                    value = ((String)rseq.getCell( namecol ).toString());
+                                        value = ((String)rseq.getCell( namecol ).toString());
                                     if ( value != null ) {
                                         value = value.trim();
                                         props.setShortName( value );
@@ -1123,9 +1148,9 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                     Object obj = rseq.getCell(axescol);
                                     if (obj != null) 
                                         value = ((String)obj.toString());
-                                    
+
                                     if (value != null ) {
-                                         value = value.trim();
+                                        value = value.trim();
                                         axes = value.split("\\s");
                                         props.setCoordColumn( axes[0] );
                                         props.setDataColumn( axes[1] );
@@ -1142,20 +1167,20 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                         props.setDataUnits( units[1] );
                                     }
                                 }
-                              
+
                                 if (idsrccol != -1  && dataLinkQueryParams != null) {  
-                                    
+
                                     if (! dataLinkQueryParams.isEmpty()) { 
                                         props.setIdValue(rseq.getCell(idsrccol).toString());
                                         props.setIdSource(idSource);
-                                       props.setDataLinkRequest(dataLinkRequest);
-                                      // props.setServerURL(dataLinkQueryParam.get("AccessURL"));
-                                       props.setServerURL(accessURL);
-                                       String format = dataLinkQueryParams.get("FORMAT");
-                                       if (format != null && format != "") {
-                                           props.setDataLinkFormat(format);
-                                           props.setType(SpecDataFactory.mimeToSPLATType( format ) );
-                                       }
+                                        props.setDataLinkRequest(dataLinkRequest);
+                                        // props.setServerURL(dataLinkQueryParam.get("AccessURL"));
+                                        props.setServerURL(accessURL);
+                                        String format = dataLinkQueryParams.get("FORMAT");
+                                        if (format != null && format != "") {
+                                            props.setDataLinkFormat(format);
+                                            props.setType(SpecDataFactory.mimeToSPLATType( format ) );
+                                        }
                                     }
                                 }
                                 specList.add( props );
@@ -1232,5 +1257,17 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                 displaySpectra( false, false, (StarJTable) table, row );
             }             
         }
+    }
+
+
+
+    public ArrayList<Props> getSpectraAsList(boolean selected, StarJTable table, int row) {
+        if (table == null)
+            return null;
+        
+        Props[] specArray = prepareSpectra( selected, table, row );
+        if (specArray != null)
+            return (ArrayList<Props>) Arrays.asList(specArray);
+        else return null;
     }   
 }
