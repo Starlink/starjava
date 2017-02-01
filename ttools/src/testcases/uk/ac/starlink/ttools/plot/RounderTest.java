@@ -16,6 +16,16 @@ public class RounderTest extends TestCase {
         checkRounder( Rounder.LOG, Math.PI );
     }
 
+    public void testTime() {
+        for ( double base : new double[] { 3e-1, 3e2, 3e4, 3e6 } ) {
+            checkRounder( Rounder.TIME_SECOND, base );
+        }
+        Rounder tr = Rounder.TIME_SECOND;
+        assertEquals( 60., tr.round( 50 ) );
+        assertEquals( 60., tr.round( 76 ) );
+        assertEquals( 24 * 3600., tr.nextUp( 23 * 3600 ) );
+    }
+
     public void checkRounder( Rounder rounder, double base ) {
         for ( int i = 0; i < 999; i++ ) {
             double rv = rounder.round( base );

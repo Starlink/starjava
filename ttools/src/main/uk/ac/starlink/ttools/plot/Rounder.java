@@ -18,6 +18,9 @@ public abstract class Rounder {
     /** Number rounder for logarithmic scaling.  All values are &gt;1. */
     public static final Rounder LOG = new LogRounder();
 
+    /** Number rounder for time intervals in seconds.  All values are &gt;0. */
+    public static final Rounder TIME_SECOND = new SecondRounder();
+
     private static final double LOG10 = Math.log( 10. );
 
     /**
@@ -214,6 +217,91 @@ public abstract class Rounder {
                 return label_ > 1 ? (double) label_
                                   : 1. + Math.pow( 2., label_ - 2 );
             }
+        }
+    }
+
+    /**
+     * Implements number rounding for linear units of seconds.
+     * Round numbers are human-friendly units, like multiples of
+     * minutes, hours, years etc.
+     */
+    private static class SecondRounder extends Rounder {
+        private static final long SECOND = 1;
+        private static final long MIN = 60;
+        private static final long HOUR = 60 * MIN;
+        private static final long DAY = 24 * HOUR;
+        private static final long WEEK = 7 * DAY;
+        private static final long YEAR = 365 * DAY + DAY / 4;
+        private final double[] periods_;
+        private final int np_;
+        private final double pmin_;
+        private final double pmax_;
+
+        /**
+         * Constructor.
+         */
+        public SecondRounder() {
+            double[] periods = new double[] {
+                1, 2, 5, 10, 30,
+                MIN, 2 * MIN, 5 * MIN, 10 * MIN, 15 * MIN, 30 * MIN,
+                HOUR, 2 * HOUR, 4 * HOUR, 6 * HOUR, 12 * HOUR,
+                DAY, 2 * DAY, 4 * DAY, WEEK, 2 * WEEK,
+                YEAR / 12, YEAR / 4, YEAR / 2,
+                YEAR, 2 * YEAR, 5 * YEAR, 10 * YEAR,
+            };
+            periods_ = periods.clone();
+            np_ = periods_.length;
+            pmin_ = periods[ 0 ];
+            pmax_ = periods[ np_ - 1 ];
+            Arrays.sort( periods_ );
+            assert Arrays.equals( periods_, periods );
+        }
+
+        public double nextUp( double value ) {
+            int pt = Arrays.binarySearch( periods_, value );
+            if ( pt == np_ - 1 || pt == - (np_ + 1) ) {
+                assert value >= pmax_;
+                return YEAR * LINEAR.nextUp( value / YEAR );
+            }
+            else if ( pt == -1 ) {
+                assert value < pmin_;
+                return SECOND * LINEAR.nextUp( value / SECOND );
+            }
+            else if ( pt >= 0 ) {
+                assert value >= pmin_ && value <= pmax_;
+                return periods_[ pt + 1 ];
+            }
+            else {
+                assert value > pmin_ && value < pmax_;
+                return periods_[ - pt - 1 ];
+            }
+        }
+
+        public double nextDown( double value ) {
+            int pt = Arrays.binarySearch( periods_, value );
+            if ( pt == 0 || pt == -1 ) {
+                assert value <= pmin_;
+                return SECOND * LINEAR.nextDown( value / SECOND );
+            }
+            else if ( pt == - (np_ + 1) ) {
+                assert value > pmax_;
+                return YEAR * LINEAR.nextDown( value / YEAR );
+            }
+            else if ( pt > 0 ) {
+                assert value >= pmin_ && value <= pmax_;
+                return periods_[ pt - 1 ];
+            }
+            else {
+                assert value > pmin_ && value < pmax_;
+                return periods_[ - pt - 2 ];
+            }
+        }
+
+        public double round( double value ) {
+            double up = nextUp( value );
+            double down = nextDown( value );
+            return Math.log( up ) + Math.log( down ) > 2 * Math.log( value )
+                 ? down : up;
         }
     }
 }
