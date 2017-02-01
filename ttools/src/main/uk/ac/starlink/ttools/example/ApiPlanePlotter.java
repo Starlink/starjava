@@ -234,7 +234,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         Normalisation norm = Normalisation.NONE;
         int thick = 1;
         float[] dash = null;
-        BinSizer sizer = BinSizer.createCountBinSizer( 16, true );
+        BinSizer sizer = BinSizer.createCountBinSizer( 16 );
         double phase = 0;
         HistogramPlotter.HistoStyle style =
             new HistogramPlotter.HistoStyle( color, barForm, placement,

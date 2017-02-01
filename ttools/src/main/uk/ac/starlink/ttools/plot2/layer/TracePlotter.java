@@ -102,7 +102,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                 "</p>",
                 BinSizer.getConfigKeyDescription(),
             } )
-        , SMOOTHWIDTH_KEY, 0, false, true );
+        , SMOOTHWIDTH_KEY, 0, true );
 
     /** Config key for smoothing kernel shape. */
     public static final ConfigKey<Kernel1dShape> KERNEL_KEY =
@@ -244,7 +244,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         Axis xAxis = psurf.getAxes()[ iax ];
         boolean xLog = psurf.getLogFlags()[ iax ];
         double[] dlims = xAxis.getDataLimits();
-        double w = style.smoothSizer_.getWidth( xLog, dlims[ 0 ], dlims[ 1 ] );
+        double w = style.smoothSizer_.getWidth( xLog, dlims[ 0 ], dlims[ 1 ],
+                                                (Rounding) null );
         ReportMap report = new ReportMap();
         report.put( SMOOTHWIDTH_KEY, new Double( w ) );
         return report;

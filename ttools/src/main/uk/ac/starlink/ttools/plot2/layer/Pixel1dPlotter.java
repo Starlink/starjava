@@ -77,7 +77,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 "</p>",
                 BinSizer.getConfigKeyDescription(),
             } )
-        , SMOOTHWIDTH_KEY, 100, false, true );
+        , SMOOTHWIDTH_KEY, 100, true );
 
     /** Config key for smoothing kernel shape. */
     public static final ConfigKey<Kernel1dShape> KERNEL_KEY =
@@ -475,7 +475,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     public static double getPixelWidth( BinSizer sizer, Axis xAxis,
                                         boolean xLog ) {
         double[] dLimits = xAxis.getDataLimits();
-        double dWidth = sizer.getWidth( xLog, dLimits[ 0 ], dLimits[ 1 ] );
+        double dWidth = sizer.getWidth( xLog, dLimits[ 0 ], dLimits[ 1 ],
+                                        (Rounding) null );
         double gx0 = xAxis.dataToGraphics( dLimits[ 0 ] );
         double gx1 = xAxis.dataToGraphics( xLog ? dLimits[ 0 ] * dWidth
                                                 : dLimits[ 0 ] + dWidth );

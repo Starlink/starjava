@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
-import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
@@ -33,14 +32,17 @@ public abstract class BinSizer {
      * @param  xlog  false for linear scaling, true for logarithmic
      * @param  xlo   axis lower bound
      * @param  xhi   axis upper bound
+     * @param  rounding  rounding policy hint (may be ignored)
+     *                   or null for no rounding
      * @return   additive/multiplicative bin width appropriate for the
      *           given range
      */
-    public abstract double getWidth( boolean xlog, double xlo, double xhi );
+    public abstract double getWidth( boolean xlog, double xlo, double xhi,
+                                     Rounding rounding );
 
     /**
      * Returns a bin sizer instance which always returns the same fixed
-     * value.
+     * value.  No rounding is performed.
      *
      * @param  binWidth  fixed bin width
      * @return  bin sizer
@@ -51,16 +53,15 @@ public abstract class BinSizer {
 
     /**
      * Returns a bin sizer instance which divides the axis range up into
-     * a fixed number of equal intervals.  If the rounding flag is true,
-     * the number is approximate, and bin widths returned are round numbers.
+     * an approximately fixed number of equal intervals.
+     * Rounding is performed on request, so that bin sizes are sensible
+     * values that give a bin count near the requested value.
      *
      * @param   nbin   number of intervals to divide the axis into
-     * @param   rounding   if true, only round numbers are returned
      * @return  bin sizer instance
      */
-    public static BinSizer createCountBinSizer( double nbin,
-                                                boolean rounding ) {
-        return new CountBinSizer( nbin, rounding );
+    public static BinSizer createCountBinSizer( double nbin ) {
+        return new CountBinSizer( nbin );
     }
 
     /**
@@ -69,17 +70,15 @@ public abstract class BinSizer {
      * @param   meta  key metadata
      * @param   widthReportKey  report key giving bin width in data coordinates
      * @param   dfltNbin  default bin count
-     * @param  rounding  true to prefer round numbers for output bin widths
      * @param  allowZero  true iff zero is an allowed width
      * @return  new config key
      */
     public static ConfigKey<BinSizer>
             createSizerConfigKey( ConfigMeta meta,
                                   ReportKey<Double> widthReportKey,
-                                  int dfltNbin, boolean rounding,
-                                  boolean allowZero ) {
+                                  int dfltNbin, boolean allowZero ) {
         return new BinSizerConfigKey( meta, widthReportKey, dfltNbin,
-                                      rounding, allowZero );
+                                      allowZero );
     }
 
     /**
@@ -122,7 +121,8 @@ public abstract class BinSizer {
             binWidth_ = binWidth;
         }
 
-        public double getWidth( boolean xlog, double xlo, double xhi ) {
+        public double getWidth( boolean xlog, double xlo, double xhi,
+                                Rounding rounding ) {
             return xlog ? Math.max( 1, binWidth_ ) : binWidth_;
         }
 
@@ -145,42 +145,34 @@ public abstract class BinSizer {
 
     /**
      * BinSizer implementation that chops the data range
-     * up into a fixed number of equal intervals, with optional rounding
-     * of the resulting width.
+     * up into a (roughly) fixed number of equal intervals.
+     * It might not be exact according to whether rounding is requested.
      */
     private static class CountBinSizer extends BinSizer {
         private final double nbin_;
-        private final boolean rounding_;
 
         /**
          * Constructor.
          *
          * @param  nbin  number of intervals
-         * @param  rounding  true to round the output bin widths to sensible
-         *                   values
          */
-        CountBinSizer( double nbin, boolean rounding ) {
+        CountBinSizer( double nbin ) {
             nbin_ = nbin;
-            rounding_ = rounding;
         }
 
-        public double getWidth( boolean xlog, double xlo, double xhi ) {
+        public double getWidth( boolean xlog, double xlo, double xhi,
+                                Rounding rounding ) {
             double width0 = xlog ? Math.exp( Math.log( xhi / xlo ) / nbin_ )
                                  : ( xhi - xlo ) / nbin_;
-            if ( rounding_ ) {
-                Rounder rounder = xlog ? Rounder.LOG : Rounder.LINEAR;
-                return rounder.round( width0 );
-            }
-            else {
-                return width0;
-            }
+            return rounding == null
+                 ? width0
+                 : rounding.getRounder( xlog ).round( width0 );
         }
 
         @Override
         public int hashCode() {
             int code = 44301;
             code = 23 * code + Float.floatToIntBits( (float) nbin_ );
-            code = 23 * code + ( rounding_ ? 5 : 7 );
             return code;
         }
 
@@ -188,8 +180,7 @@ public abstract class BinSizer {
         public boolean equals( Object o ) {
             if ( o instanceof CountBinSizer ) {
                 CountBinSizer other = (CountBinSizer) o;
-                return this.nbin_ == other.nbin_
-                    && this.rounding_ == other.rounding_;
+                return this.nbin_ == other.nbin_;
             }
             else {
                 return false;
@@ -209,7 +200,6 @@ public abstract class BinSizer {
 
         private final ReportKey<Double> widthReportKey_;
         private final int dfltNbin_;
-        private final boolean rounding_;
         private final boolean allowZero_;
 
         /**
@@ -218,16 +208,13 @@ public abstract class BinSizer {
          * @param   meta  key metadata
          * @param   widthReportKey  report key giving bin width in data coords
          * @param   dlftNbin  default bin count
-         * @param  rounding  true to prefer round numbers for output bin widths
          * @param  allowZero  true iff zero is an allowed width
          */
         BinSizerConfigKey( ConfigMeta meta, ReportKey<Double> widthReportKey,
-                           int dfltNbin, boolean rounding, boolean allowZero ) {
-            super( meta, BinSizer.class,
-                   new CountBinSizer( dfltNbin, rounding ) );
+                           int dfltNbin, boolean allowZero ) {
+            super( meta, BinSizer.class, new CountBinSizer( dfltNbin ) );
             widthReportKey_ = widthReportKey;
             dfltNbin_ = dfltNbin;
-            rounding_ = rounding;
             allowZero_ = allowZero;
         }
 
@@ -245,7 +232,7 @@ public abstract class BinSizer {
                 return new FixedBinSizer( dval );
             }
             else if ( dval <= -1 ) {
-                return new CountBinSizer( -dval, rounding_ );
+                return new CountBinSizer( -dval );
             }
             else {
                 String msg =
@@ -272,7 +259,7 @@ public abstract class BinSizer {
 
         public Specifier<BinSizer> createSpecifier() {
             return new BinSizerSpecifier( widthReportKey_, dfltNbin_,
-                                          rounding_, allowZero_, 1000 );
+                                          allowZero_, 1000 );
         }
     }
 
@@ -282,7 +269,6 @@ public abstract class BinSizer {
     public static class BinSizerSpecifier extends SpecifierPanel<BinSizer> {
 
         private final ReportKey<Double> widthReportKey_;
-        private final boolean rounding_;
         private final boolean allowZero_;
         private final SliderSpecifier sliderSpecifier_;
         private final int maxCount_;
@@ -292,15 +278,13 @@ public abstract class BinSizer {
          *
          * @param   widthReportKey  report key giving bin width in data coords
          * @param   dlftNbin  default bin count
-         * @param  rounding  true to prefer round numbers for output bin widths
          * @param  allowZero  true iff zero is an allowed width
          * @param   maxCount   maximum  count value
          */
         BinSizerSpecifier( ReportKey<Double> widthReportKey, int dfltNbin,
-                           boolean rounding, boolean allowZero, int maxCount ) {
+                           boolean allowZero, int maxCount ) {
             super( true );
             widthReportKey_ = widthReportKey;
-            rounding_ = rounding;
             allowZero_ = allowZero;
             maxCount_ = maxCount;
             double reset = dfltNbin == 0 ? maxCount : dfltNbin;
@@ -327,7 +311,7 @@ public abstract class BinSizer {
                 }
             }
             return dval >= 0 ? new FixedBinSizer( dval )
-                             : new CountBinSizer( - dval, rounding_ );
+                             : new CountBinSizer( - dval );
         }
 
         public void setSpecifiedValue( BinSizer sizer ) {

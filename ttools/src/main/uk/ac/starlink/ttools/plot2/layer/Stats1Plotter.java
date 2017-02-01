@@ -451,7 +451,10 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         private double getFactor( PlanarSurface surface, StatsStyle style ) {
             boolean xlog = surface.getLogFlags()[ 0 ];
             double[] xlims = surface.getDataLimits()[ 0 ];
-            double bw = style.sizer_.getWidth( xlog, xlims[ 0 ], xlims[ 1 ] );
+            Rounding xround =
+                Rounding.getRounding( surface.getTimeFlags()[ 0 ] );
+            double bw = style.sizer_.getWidth( xlog, xlims[ 0 ], xlims[ 1 ],
+                                               xround );
             double binWidth = xlog ? log( bw ) : bw;
             double c = 1.0 / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
             double sum = sum_;

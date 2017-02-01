@@ -40,6 +40,7 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
+import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
@@ -60,6 +61,7 @@ public class HistogramPlotter
     private final CoordGroup histoCoordGrp_;
     private final int icX_;
     private final int icWeight_;
+    private final boolean isTimeX_;
 
     /** ReportKey for histogram bins. */
     public static final ReportKey<BinBag> BINS_KEY =
@@ -94,7 +96,7 @@ public class HistogramPlotter
                 "or the numeric entry field to fix the bin width.",
                 "</p>",
             } )
-        , BINWIDTH_KEY, 30, true, false );
+        , BINWIDTH_KEY, 30, false );
 
     /** Config key for bar line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =
@@ -156,6 +158,15 @@ public class HistogramPlotter
         icWeight_ = hasWeight
                   ? histoCoordGrp_.getExtraCoordIndex( 1, null )
                   : -1;
+
+        /* This is not nice, and will come back to bite me if I want to
+         * allow for configurable axis alignment of the histogram.
+         * But this information is required during
+         * PlotLayer.extendCoordinateRange, and in the current framework
+         * there's no better way to get it.
+         * The problem is that PlotLayer.extendCoordinateRange is defined
+         * with rather arbitrary/adhoc arguments. */
+        isTimeX_ = xCoord == TimeDataGeom.T_COORD;
     }
 
     public String getPlotterName() {
@@ -223,6 +234,7 @@ public class HistogramPlotter
             Color color = style.color_;
             final boolean isOpaque = color.getAlpha() == 255
                                  && style.barForm_.isOpaque();
+            final Rounding xround = Rounding.getRounding( isTimeX_ );
             LayerOpt layerOpt = new LayerOpt( color, isOpaque );
             return new AbstractPlotLayer( this, histoDataGeom_, dataSpec,
                                           style, layerOpt ) {
@@ -238,7 +250,8 @@ public class HistogramPlotter
                     double[] xlimits = pSurf.getDataLimits()[ 0 ];
                     final double xlo = xlimits[ 0 ];
                     final double xhi = xlimits[ 1 ];
-                    final double binWidth = sizer.getWidth( xlog, xlo, xhi );
+                    final double binWidth =
+                        sizer.getWidth( xlog, xlo, xhi, xround );
 
                     /* We can't work out what other histogram data sets are
                      * being plotted or where this one fits in - that level
@@ -310,7 +323,7 @@ public class HistogramPlotter
                     double[] xlimits = xRange.getFiniteBounds( xlog );
                     double xlo = xlimits[ 0 ];
                     double xhi = xlimits[ 1 ];
-                    double binWidth = sizer.getWidth( xlog, xlo, xhi );
+                    double binWidth = sizer.getWidth( xlog, xlo, xhi, xround );
                     BinBag binBag = readBins( xlog, binWidth, binPhase, xlo,
                                               dataSpec, dataStore );
 

@@ -86,7 +86,8 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
 
         public ReportMap getReportMap( boolean xLog, double dlo, double dhi ) {
             ReportMap report = new ReportMap();
-            report.put( SMOOTHWIDTH_KEY, binSizer_.getWidth( xLog, dlo, dhi ) );
+            report.put( SMOOTHWIDTH_KEY,
+                        binSizer_.getWidth( xLog, dlo, dhi, (Rounding) null ) );
             return report;
         }
 

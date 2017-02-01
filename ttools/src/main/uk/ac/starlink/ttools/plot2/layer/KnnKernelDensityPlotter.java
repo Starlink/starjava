@@ -88,6 +88,9 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
     public static final ConfigKey<BinSizer> MAXSIZER_CKEY =
         createLimitSizerKey( true );
 
+    /** No bin size rounding here. */
+    private static final Rounding ROUNDING = null;
+
     /**
      * Constructor.
      *
@@ -145,8 +148,8 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
         boolean isSymmetric = config.get( SYMMETRIC_CKEY );
         BinSizer minSizer = config.get( MINSIZER_CKEY );
         BinSizer maxSizer = config.get( MAXSIZER_CKEY );
-        if ( minSizer.getWidth( false, 0, 1 ) >
-             maxSizer.getWidth( false, 0, 1 ) ) {
+        if ( minSizer.getWidth( false, 0, 1, ROUNDING ) >
+             maxSizer.getWidth( false, 0, 1, ROUNDING ) ) {
             throw new ConfigException( MINSIZER_CKEY,
                                        "Smoothing min/max are "
                                      + "the wrong way round" );
@@ -181,10 +184,9 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
         } );
         ReportKey<Double> reportKey = isMax ? MAXWIDTH_RKEY : MINWIDTH_RKEY;
         int dfltNbin = isMax ? 100 : 0;
-        boolean rounding = false;
         boolean allowZero = true;
         return BinSizer.createSizerConfigKey( meta, reportKey, dfltNbin,
-                                              rounding, allowZero );
+                                              allowZero );
     }
 
     /**
@@ -224,8 +226,10 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
 
         public ReportMap getReportMap( boolean xLog, double dlo, double dhi ) {
             ReportMap report = new ReportMap();
-            report.put( MINWIDTH_RKEY, minSizer_.getWidth( xLog, dlo, dhi ) );
-            report.put( MAXWIDTH_RKEY, maxSizer_.getWidth( xLog, dlo, dhi ) );
+            report.put( MINWIDTH_RKEY,
+                        minSizer_.getWidth( xLog, dlo, dhi, ROUNDING ) );
+            report.put( MAXWIDTH_RKEY,
+                        maxSizer_.getWidth( xLog, dlo, dhi, ROUNDING ) );
             return report;
         }
 

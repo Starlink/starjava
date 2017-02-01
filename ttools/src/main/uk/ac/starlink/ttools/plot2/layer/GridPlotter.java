@@ -241,10 +241,9 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             "or the numeric entry field to fix the bin size.",
             "</p>",
         } );
-        boolean rounding = true;
         boolean allowZero = false;
         return BinSizer.createSizerConfigKey( meta, widthRepKey, 30,
-                                              rounding, allowZero );
+                                              allowZero );
     }
 
     /**
@@ -590,15 +589,18 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             BinSizer[] sizers = { gstyle_.xSizer_, gstyle_.ySizer_ };
             double[] phases = { gstyle_.xPhase_, gstyle_.yPhase_ };
             boolean[] logFlags = surface.getLogFlags();
+            boolean[] timeFlags = surface.getTimeFlags();
             Axis[] axes = surface.getAxes();
             double[][] dataLimits = surface.getDataLimits();
             for ( int i = 0; i < 2; i++ ) {
                 boolean isLog = logFlags[ i ];
+                Rounding rounding = Rounding.getRounding( timeFlags[ i ] );
                 double dlo = dataLimits[ i ][ 0 ];
                 double dhi = dataLimits[ i ][ 1 ];
                 double[] drange =
                     PlotUtil.scaleRange( dlo, dhi, padder, isLog );
-                double reqWidth = sizers[ i ].getWidth( isLog, dlo, dhi );
+                double reqWidth =
+                    sizers[ i ].getWidth( isLog, dlo, dhi, rounding );
 
                 /* Avoid sub-pixel grids since it would both be expensive
                  * on memory and produce visually worse results. */

@@ -212,7 +212,7 @@ public class DensogramPlotter
         BinSizer sizer = style.sizer_;
         double[] dlimits = xAxis.getDataLimits();
         double dSmoothWidth =
-            sizer.getWidth( xLog, dlimits[ 0 ], dlimits[ 1 ] );
+            sizer.getWidth( xLog, dlimits[ 0 ], dlimits[ 1 ], (Rounding) null );
         ReportMap report = new ReportMap();
         report.put( SMOOTHWIDTH_KEY, dSmoothWidth );
         return report;
