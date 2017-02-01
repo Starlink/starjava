@@ -198,6 +198,10 @@ public class TimeSurface implements Surface, PlanarSurface {
         return new boolean[] { false, yflip_ };
     }
 
+    public boolean[] getTimeFlags() {
+        return new boolean[] { true, false };
+    }
+
     public double[][] getDataLimits() {
         return new double[][] { { dtlo_, dthi_ }, { dylo_, dyhi_ } };
     }

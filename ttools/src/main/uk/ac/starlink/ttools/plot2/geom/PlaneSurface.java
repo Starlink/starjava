@@ -206,6 +206,10 @@ public class PlaneSurface implements Surface, PlanarSurface {
         return new boolean[] { xflip_, yflip_ };
     }
 
+    public boolean[] getTimeFlags() {
+        return new boolean[] { false, false };
+    }
+
     public Axis[] getAxes() {
         return new Axis[] { xAxis_, yAxis_ };
     }

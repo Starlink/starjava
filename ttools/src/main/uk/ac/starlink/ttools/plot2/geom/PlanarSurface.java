@@ -29,6 +29,15 @@ public interface PlanarSurface extends Surface {
     public boolean[] getFlipFlags();
 
     /**
+     * Indicates which axes represent time values.
+     *
+     * @return  2-element array giving horizontal, vertical time flags;
+     *          true for time axis with data units of seconds,
+     *          false for normal numeric axis
+     */
+    public boolean[] getTimeFlags();
+
+    /**
      * Returns the axis objects used by this surface.
      *
      * @return  2-element array giving horizontal, vertical axis instances
