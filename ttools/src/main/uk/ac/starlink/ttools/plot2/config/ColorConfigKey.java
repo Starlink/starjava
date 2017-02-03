@@ -29,13 +29,13 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
 
     // These present some alternative colour lists; currently only classic
     // is actually used.
-    private static final Map<String,Color> SRON5_COLORS =
+    public static final Map<String,Color> SRON5_COLORS =
         Collections.unmodifiableMap( createSron5Colors() );
-    private static final Map<String,Color> SRON7_COLORS =
+    public static final Map<String,Color> SRON7_COLORS =
         Collections.unmodifiableMap( createSron7Colors() );
-    private static final Map<String,Color> SRONBRIGHT_COLORS =
+    public static final Map<String,Color> SRONBRIGHT_COLORS =
         Collections.unmodifiableMap( createSronBrightColors() );
-    private static final Map<String,Color> CLASSIC_COLORS =
+    public static final Map<String,Color> CLASSIC_COLORS =
         Collections.unmodifiableMap( createClassicColors() );
 
     /**

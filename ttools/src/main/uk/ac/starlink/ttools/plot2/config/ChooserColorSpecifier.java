@@ -1,15 +1,23 @@
 package uk.ac.starlink.ttools.plot2.config;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -17,11 +25,15 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JToggleButton;
 import javax.swing.UIManager;
+import javax.swing.colorchooser.AbstractColorChooserPanel;
+import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 
@@ -38,6 +50,7 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     private final ChooseAction okAct_;
     private final ChooseAction resetAct_;
     private Color color_;
+    private static final Map<String,Color[]> PALETTES = createPalettes();
 
     /**
      * Constructs a specifier based on a given default colour.
@@ -46,10 +59,12 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
      */
     public ChooserColorSpecifier( Color dfltColor ) {
         this( new JColorChooser( dfltColor ) );
+        chooser_.addChooserPanel( new PaletteColorChooserPanel( PALETTES ) );
 
         /* Get rid of the default JColorChooser preview panel.
          * The details of it are not very useful here. */
         chooser_.setPreviewPanel( new JPanel() );
+
     }
     
     /**
@@ -143,6 +158,54 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     }
 
     /**
+     * Creates some standard named colour lists.
+     *
+     * @return   paletteName-&gt;colourList map
+     */
+    private static Map<String,Color[]> createPalettes() {
+        Map<String,Color[]> map = new LinkedHashMap<String,Color[]>();
+
+        // This is the one that's always been available in topcat.
+        map.put( "Classic",
+                 ColorConfigKey.CLASSIC_COLORS.values()
+                                              .toArray( new Color[ 0 ] ) );
+
+        // From Paul Tol's https://personal.sron.nl/~pault/, not in document.
+        map.put( "SRON-Bright",
+                 toColors( new int[] { 0xee3333, 0x3366aa, 0x66aa55, 0xcccc55,
+                                       0x992288, 0xee7722, 0x11aa99, } ) );
+
+        // From Fig 2 of Paul Tol's SRON/EPS/TN/09-002,
+        // https://personal.sron.nl/~pault/colourschemes.pdf.
+        map.put( "SRON-Light",
+                 toColors( new int[] { 0x77aadd, 0x77cccc, 0x88ccaa, 0xdddd77,
+                                       0xddaa77, 0xdd7788, 0xcc99bb, } ) );
+        map.put( "SRON-Mid",
+                 toColors( new int[] { 0x4477aa, 0x44aaaa, 0x44aa77, 0xaaaa44,
+                                       0xaa7744, 0xaa4455, 0xaa4488, } ) );
+        map.put( "SRON-Dark",
+                 toColors( new int[] { 0x114477, 0x117777, 0x117744, 0x777711,
+                                       0x774411, 0x771122, 0x771155, } ) );
+        return Collections.unmodifiableMap( map );
+    }
+
+    /**
+     * Converts an array of RGB values to a corresponding array
+     * of Color objects.
+     *
+     * @param  rgbs   RGB array
+     * @return   colour array
+     */
+    private static Color[] toColors( int[] rgbs ) {
+        int nc = rgbs.length;
+        Color[] colors = new Color[ nc ];
+        for ( int ic = 0; ic < nc; ic++ ) {
+            colors[ ic ] = new Color( rgbs[ ic ], false );
+        }
+        return colors;
+    }
+
+    /**
      * Action that can select a colour.
      */
     private class ChooseAction extends AbstractAction {
@@ -214,6 +277,136 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
                 }
             } );
             return mItem;
+        }
+    }
+
+    /**
+     * ColorChooserPanel implementation that can display named colour lists
+     * for selection.
+     */
+    private static class PaletteColorChooserPanel
+                         extends AbstractColorChooserPanel {
+
+        private final Map<String,Color[]> palettes_;
+
+        /**
+         * Constructor.
+         *
+         * @param   palettes   paletteName-&gt;colourList map
+         */
+        PaletteColorChooserPanel( Map<String,Color[]> palettes ) {
+            palettes_ = palettes;
+        }
+
+        protected void buildChooser() {
+            setLayout( new BorderLayout() );
+            ButtonGroup bgrp = new ButtonGroup();
+            ColorSelectionModel model = getColorSelectionModel();
+            LabelledComponentStack stack = new LabelledComponentStack();
+            for ( Map.Entry<String,Color[]> entry : palettes_.entrySet() ) {
+                stack.addLine( entry.getKey(),
+                               new Palette( entry.getValue(), model, bgrp ) );
+            }
+            add( stack, BorderLayout.CENTER );
+
+        }
+
+        public String getDisplayName() {
+            return "Palettes";
+        }
+
+        public int getMnemonic() {
+            return KeyEvent.VK_P;
+        }
+
+        public Icon getSmallDisplayIcon() {
+            return null;
+        }
+
+        public Icon getLargeDisplayIcon() {
+            return null;
+        }
+
+        public void updateChooser() {
+        }
+    }
+
+    /**
+     * Component to display a horizontal list of colour buttons.
+     */
+    private static class Palette extends JPanel {
+
+        /**
+         * Constructor.
+         *
+         * @param  colors  array of colours
+         * @param  model   colour selection model to adjust on button selection
+         * @param  bgrp    button group to ensure mutual exclusivity
+         */
+        Palette( Color[] colors, final ColorSelectionModel model,
+                 ButtonGroup bgrp ) {
+            setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
+            ChangeListener listener = new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    Object src = evt.getSource();
+                    if ( src instanceof ColorButton ) {
+                        ColorButton cb = (ColorButton) src;
+                        if ( cb.isSelected() ) {
+                            Color color = cb.getColor();
+                            model.setSelectedColor( color );
+                        }
+                    }
+                }
+            };
+            for ( Color c : colors ) {
+                ColorButton butt = new ColorButton( c );
+                butt.setMargin( new Insets( 0, 0, 0, 0 ) );
+                add( butt );
+                add( Box.createHorizontalStrut( 2 ) );
+                bgrp.add( butt );
+                butt.addChangeListener( listener );
+            }
+        }
+    }
+
+    /**
+     * ToggleButton that displays a colour.
+     */
+    private static class ColorButton extends JToggleButton {
+        private static final int iconWidth_ = 12;
+        private static final int iconHeight_ = 12;
+        private final Color color_;
+
+        /**
+         * Constructor.
+         *
+         * @param  color   button colour
+         */
+        ColorButton( Color color ) {
+            color_ = color;
+            setIcon( new Icon() {
+                public int getIconWidth() {
+                    return iconWidth_;
+                }
+                public int getIconHeight() {
+                    return iconHeight_;
+                }
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                    Color color0 = g.getColor();
+                    g.setColor( color_ );
+                    g.fillRect( x, y, iconWidth_, iconHeight_ );
+                    g.setColor( color0 );
+                }
+            } );
+        }
+
+        /**
+         * Returns the colour of this button.
+         *
+         * @return  colour
+         */
+        public Color getColor() {
+            return color_;
         }
     }
 }
