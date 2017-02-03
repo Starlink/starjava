@@ -1,9 +1,11 @@
 package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import uk.ac.starlink.ttools.gui.ColorComboBox;
@@ -113,8 +115,12 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
 
     public Specifier<Color> createSpecifier() {
         Color[] colors = getOptionMap().values().toArray( new Color[ 0 ] );
+        List<Specifier<Color>> specifiers = new ArrayList<Specifier<Color>>();
+        specifiers.add( new ComboBoxSpecifier<Color>(
+                            new ColorComboBox( colors ) ) );
+        specifiers.add( new ChooserColorSpecifier( colors[ 0 ] ) );
         Specifier<Color> basic =
-            new ComboBoxSpecifier<Color>( new ColorComboBox( colors ) );
+            new MultiSpecifierPanel<Color>( false, colors[ 0 ], specifiers );
         return allowHide_
              ? new ToggleSpecifier<Color>( basic, null, "Hide" )
              : basic;
