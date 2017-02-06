@@ -23875,6 +23875,9 @@ introduced since the last version:
         withdrawn
         (Grid can do all the same things and more,
         except specify bin size in screen pixels).</li>
+    <li>The colour selector widget now comes with a new
+        <label>Free colour chooser</label> &IMG.COLOR_WHEEL; button,
+        giving you various ways to select any RGB colour you like.</li>
     </ul>
     </p></dd>
 
