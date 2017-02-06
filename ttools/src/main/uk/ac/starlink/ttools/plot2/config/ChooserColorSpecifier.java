@@ -14,14 +14,19 @@ import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -45,6 +50,7 @@ import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 
 /**
  * SpecifierPanel subclass that uses a JColorChooser to specify a colour.
@@ -59,7 +65,7 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     private final ChooseAction okAct_;
     private final ChooseAction resetAct_;
     private Color color_;
-    private static final Map<String,Color[]> PALETTES = createPalettes();
+    private static final Map<String,Color[]> PALETTE_MAP = createPaletteMap();
 
     /**
      * Constructs a specifier based on a given default colour.
@@ -68,7 +74,7 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
      */
     public ChooserColorSpecifier( Color dfltColor ) {
         this( new JColorChooser( dfltColor ) );
-        chooser_.addChooserPanel( new PaletteColorChooserPanel( PALETTES ) );
+        chooser_.addChooserPanel( new PaletteColorChooserPanel( PALETTE_MAP ) );
 
         /* Get rid of the default JColorChooser preview panel.
          * The details of it are not very useful here. */
@@ -171,7 +177,7 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
      *
      * @return   paletteName-&gt;colourList map
      */
-    private static Map<String,Color[]> createPalettes() {
+    private static Map<String,Color[]> createPaletteMap() {
         Map<String,Color[]> map = new LinkedHashMap<String,Color[]>();
 
         // This is the one that's always been available in topcat.
@@ -411,28 +417,54 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     private static class PaletteColorChooserPanel
                          extends AbstractColorChooserPanel {
 
-        private final Map<String,Color[]> palettes_;
+        private final Map<String,Color[]> paletteMap_;
+        private ButtonGroup bgrp_;
+        private Action nextAct_;
+        private Action prevAct_;
 
         /**
          * Constructor.
          *
-         * @param   palettes   paletteName-&gt;colourList map
+         * @param   paletteMap   paletteName-&gt;colourList map
          */
-        PaletteColorChooserPanel( Map<String,Color[]> palettes ) {
-            palettes_ = palettes;
+        PaletteColorChooserPanel( Map<String,Color[]> paletteMap ) {
+            paletteMap_ = paletteMap;
         }
 
         protected void buildChooser() {
             setLayout( new BorderLayout() );
-            ButtonGroup bgrp = new ButtonGroup();
+            bgrp_ = new ButtonGroup();
             ColorSelectionModel model = getColorSelectionModel();
             LabelledComponentStack stack = new LabelledComponentStack();
-            for ( Map.Entry<String,Color[]> entry : palettes_.entrySet() ) {
-                stack.addLine( entry.getKey(),
-                               new Palette( entry.getValue(), model, bgrp ) );
+
+            /* Set up a palette component for each named list of colours. */
+            List<Palette> paletteList = new ArrayList<Palette>();
+            for ( Map.Entry<String,Color[]> entry : paletteMap_.entrySet() ) {
+                String label = entry.getKey();
+                Color[] colors = entry.getValue();
+                Palette p = new Palette( colors, model, bgrp_ );
+                stack.addLine( label, p );
+                paletteList.add( p );
             }
             add( stack, BorderLayout.CENTER );
+            Palette[] palettes = paletteList.toArray( new Palette[ 0 ] );
 
+            /* Provide buttons to move to the next/previous colour in
+             * the current palette. */
+            nextAct_ = new RotateAction( bgrp_, palettes, true );
+            prevAct_ = new RotateAction( bgrp_, palettes, false );
+            JButton nextButt = new JButton( nextAct_ );
+            JButton prevButt = new JButton( prevAct_ );
+            nextButt.setHideActionText( true );
+            prevButt.setHideActionText( true );
+            JComponent controlBox = Box.createHorizontalBox();
+            controlBox.add( Box.createHorizontalGlue() );
+            controlBox.add( prevButt );
+            controlBox.add( Box.createHorizontalStrut( 5 ) );
+            controlBox.add( nextButt );
+            controlBox.setBorder( BorderFactory
+                                 .createEmptyBorder( 10, 0, 10, 0 ) );
+            add( controlBox, BorderLayout.SOUTH );
         }
 
         public String getDisplayName() {
@@ -443,15 +475,24 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
             return KeyEvent.VK_P;
         }
 
+        /**
+         * Returns null.  Up to java 8, these seem to be ignored anyway.
+         */
         public Icon getSmallDisplayIcon() {
             return null;
         }
 
+        /**
+         * Returns null.  Up to java 8, these seem to be ignored anyway.
+         */
         public Icon getLargeDisplayIcon() {
             return null;
         }
 
         public void updateChooser() {
+            boolean hasSel = bgrp_.getSelection() != null;
+            prevAct_.setEnabled( hasSel );
+            nextAct_.setEnabled( hasSel );
         }
     }
 
@@ -459,6 +500,8 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
      * Component to display a horizontal list of colour buttons.
      */
     private static class Palette extends JPanel {
+
+        final ButtonModel[] buttModels_;
 
         /**
          * Constructor.
@@ -482,8 +525,11 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
                     }
                 }
             };
-            for ( Color c : colors ) {
-                ColorButton butt = new ColorButton( c );
+            int nc = colors.length;
+            buttModels_ = new ButtonModel[ nc ];
+            for ( int ic = 0; ic < nc; ic++ ) {
+                ColorButton butt = new ColorButton( colors[ ic ] );
+                buttModels_[ ic ] = butt.getModel();
                 butt.setMargin( new Insets( 0, 0, 0, 0 ) );
                 add( butt );
                 add( Box.createHorizontalStrut( 2 ) );
@@ -531,6 +577,55 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
          */
         public Color getColor() {
             return color_;
+        }
+    }
+
+    /**
+     * Action that rotates the selection over the members of a single palette.
+     * The implementation is not optimally efficient.  Never mind.
+     */
+    private static class RotateAction extends AbstractAction {
+
+        private final ButtonGroup bgrp_;
+        private final Palette[] palettes_;
+        private final int increment_;
+
+        /**
+         * Constructor.
+         *
+         * @param   bgrp  button group representing all available selections
+         * @param   palettes   list of palettes over which rotation can happen
+         * @param   isUp  true to rotate forward, false for backward
+         */
+        public RotateAction( ButtonGroup bgrp, Palette[] palettes,
+                             boolean isUp ) {
+            super( isUp ? "Next" : "Prev",
+                   isUp ? ComboBoxBumper.INC_ICON : ComboBoxBumper.DEC_ICON );
+            putValue( SHORT_DESCRIPTION,
+                      "Select " + ( isUp ? "next" : "previous" ) + " button"
+                    + "in the current row" );
+            bgrp_ = bgrp;
+            palettes_ = palettes;
+            increment_ = isUp ? +1 : -1;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            ButtonModel sel = bgrp_.getSelection();
+            if ( sel != null ) {
+                for ( Palette p : palettes_ ) {
+                    ButtonModel[] bms = p.buttModels_;
+                    int ix = Arrays.asList( bms ).indexOf( sel );
+                    if ( ix >= 0 ) {
+                        int nb = bms.length;
+                        int jx = ( ix + increment_ ) % nb;
+                        if ( jx < 0 ) {
+                            jx += nb;
+                        }
+                        bgrp_.setSelected( bms[ jx ], true );
+                        return;
+                    }
+                }
+            }
         }
     }
 }
