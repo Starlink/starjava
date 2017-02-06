@@ -3,11 +3,15 @@ package uk.ac.starlink.ttools.plot2.config;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.geom.AffineTransform;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collections;
@@ -36,6 +40,10 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot.MarkShape;
+import uk.ac.starlink.ttools.plot.MarkStyle;
+import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
@@ -275,6 +283,16 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
         private final int iconHeight_;
         private final int iconWidth_;
         private final Color disabledColor_;
+        private final Font hexFont_;
+        private final int gap_;
+        private final int blockWidth_;
+        private final int shadeWidth_;
+        private final Shader[] shaders_;
+        private final int markWidth_;
+        private final int[] sizes_;
+        private final int txtWidth_;
+        private final int padTxt_;
+        private final int yTxt_;
 
         /**
          * Constructor.
@@ -283,9 +301,29 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
          */
         PreviewIcon( int height ) {
             iconHeight_ = height;
-            iconWidth_ = 24;
+            blockWidth_ = 24;
+            gap_ = 10;
+            shadeWidth_ = 20;
+            shaders_ = new Shader[] {
+                Shaders.invert( Shaders.FADE_BLACK ),
+                Shaders.FADE_WHITE,
+            };
+            markWidth_ = 10;
+            sizes_ = new int[] { 0, 1, 2, 3, 2, 1, 0, };
             Color dcol = UIManager.getColor( "Label.disabledForeground" );
             disabledColor_ = dcol == null ? Color.GRAY : dcol;
+            hexFont_ = new Font( Font.MONOSPACED, Font.PLAIN, 12 );
+            FontRenderContext frc =
+                new FontRenderContext( new AffineTransform(), false, false );
+            String hex0 = getHexString( Color.BLACK );
+            txtWidth_ = hexFont_.getStringBounds( hex0, frc ).getBounds().width;
+            LineMetrics lm = hexFont_.getLineMetrics( hex0, frc );
+            yTxt_ = (int) ( lm.getHeight() + lm.getLeading() );
+            padTxt_ = 4;
+            iconWidth_ = blockWidth_ + gap_
+                       + shadeWidth_ * shaders_.length + gap_
+                       + markWidth_ * sizes_.length + gap_
+                       + txtWidth_ + 2 * padTxt_ + gap_;
         }
 
         /**
@@ -304,10 +342,65 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
+
+            /* Save graphics context. */
             Color color0 = g.getColor();
-            g.setColor( c.isEnabled() ? getPreviewColor() : disabledColor_ );
-            g.fillRect( x, y, iconWidth_, iconHeight_ );
+            Font font0 = g.getFont();
+
+            /* Determine colour to preview. */
+            Color color = c.isEnabled() ? getPreviewColor() : disabledColor_;
+
+            /* Solid rectangle of colour. */
+            g.setColor( color );
+            g.fillRect( x, y, blockWidth_, iconHeight_ );
+            x += blockWidth_ + gap_;
+
+            /* Block showing fade black -> colour -> white. */
+            for ( Shader sh : shaders_ ) {
+                Shaders.createShaderIcon( Shaders.applyShader( sh, color,
+                                                               shadeWidth_ ),
+                                          true, shadeWidth_, iconHeight_, 0, 0 )
+                       .paintIcon( c, g, x, y );
+                x += shadeWidth_;
+            }
+            x += gap_;
+
+            /* Plot some markers. */
+            g.setColor( Color.WHITE );
+            g.fillRect( x, y, sizes_.length * markWidth_, iconHeight_ );
+            for ( int i = 0; i < sizes_.length; i++ ) {
+                MarkShape.FILLED_CIRCLE.getStyle( color, sizes_[ i ] )
+                                       .getIcon( markWidth_, iconHeight_ )
+                                       .paintIcon( c, g, x, y );
+                x += markWidth_;
+            }
+            x += gap_;
+
+            /* Write rrggbb text representation. */
+            g.setColor( Color.WHITE );
+            g.fillRect( x, y, txtWidth_ + 2 * padTxt_, iconHeight_ );
+            g.setFont( hexFont_ );
+            g.setColor( color );
+            g.drawString( getHexString( color ), x + padTxt_, yTxt_ );
+            x += txtWidth_ + 2 * padTxt_;
+
+            /* Restore graphics context. */
+            g.setFont( font0 );
             g.setColor( color0 );
+        }
+
+        /**
+         * Returns the RRGGBB hexadecimal representation of a given colour.
+         *
+         * @param  color  query colour
+         * @return  6-digit string representation
+         */
+        private String getHexString( Color color ) {
+            String hex = Integer.toString( color.getRGB() & 0xffffff, 16 );
+            for ( int i = hex.length(); i < 6; i++ ) {
+                hex = "0" + hex;
+            }
+            return hex;
         }
     }
 
