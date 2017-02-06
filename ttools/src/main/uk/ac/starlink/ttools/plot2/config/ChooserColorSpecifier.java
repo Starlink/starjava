@@ -26,6 +26,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.colorchooser.ColorSelectionModel;
@@ -218,24 +219,9 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
          */
         ChooseAction( String name ) {
             super( name );
-            final int iconWidth = 24;
-            final int iconHeight = 12;
-            Color dcol = UIManager.getColor( "Label.disabledForeground" );
-            final Color disabledColor = dcol == null ? Color.GRAY : dcol;
-            putValue( SMALL_ICON, new Icon() {
-                public int getIconWidth() {
-                    return iconWidth;
-                }
-                public int getIconHeight() {
-                    return iconHeight;
-                }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                    Color color0 = g.getColor();
-                    g.setColor( c.isEnabled()
-                              ? ChooseAction.this.getActionColor()
-                              : disabledColor );
-                    g.fillRect( x, y, iconWidth, iconHeight );
-                    g.setColor( color0 );
+            putValue( SMALL_ICON, new PreviewIcon( 12 ) {
+                protected Color getPreviewColor() {
+                    return ChooseAction.this.getActionColor();
                 }
             } );
         }
@@ -277,6 +263,51 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
                 }
             } );
             return mItem;
+        }
+    }
+
+    /**
+     * Icon used for displaying the preview for a selected colour
+     * in a JMenuItem.
+     */
+    private static abstract class PreviewIcon implements Icon {
+
+        private final int iconHeight_;
+        private final int iconWidth_;
+        private final Color disabledColor_;
+
+        /**
+         * Constructor.
+         *
+         * @param  height  icon height in pixels
+         */
+        PreviewIcon( int height ) {
+            iconHeight_ = height;
+            iconWidth_ = 24;
+            Color dcol = UIManager.getColor( "Label.disabledForeground" );
+            disabledColor_ = dcol == null ? Color.GRAY : dcol;
+        }
+
+        /**
+         * Returns the colour selection to be previewed.
+         *
+         * @return   selection colour
+         */
+        protected abstract Color getPreviewColor();
+
+        public int getIconWidth() {
+            return iconWidth_;
+        }
+
+        public int getIconHeight() {
+            return iconHeight_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            Color color0 = g.getColor();
+            g.setColor( c.isEnabled() ? getPreviewColor() : disabledColor_ );
+            g.fillRect( x, y, iconWidth_, iconHeight_ );
+            g.setColor( color0 );
         }
     }
 
