@@ -107,6 +107,10 @@ public class HumanMatchEngine implements MatchEngine {
                                                    unwrapTuple( tuple2 ) ) );
     }
 
+    public double getScoreScale() {
+        return scoreWrapper_.wrapDouble( baseEngine_.getScoreScale() );
+    }
+
     public ValueInfo getMatchScoreInfo() {
         return scoreInfo_;
     }

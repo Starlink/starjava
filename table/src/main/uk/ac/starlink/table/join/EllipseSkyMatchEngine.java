@@ -164,6 +164,10 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         return match == null ? -1 : match.score_;
     }
 
+    public double getScoreScale() {
+        return 2.0;
+    }
+
     public Object[] getBins( Object[] tuple ) {
         SkyEllipse ellipse = toSkyEllipse( tuple );
         return getBins( ellipse.alpha_, ellipse.delta_,

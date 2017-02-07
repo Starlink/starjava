@@ -80,6 +80,10 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
         return matchScore( 3, toXyz( tuple1 ), toXyz( tuple2 ), getError() );
     }
 
+    public double getScoreScale() {
+        return getError();
+    }
+
     public Object[] getBins( Object[] tuple ) {
         return getRadiusBins( toXyz( tuple ), getError() * 0.5 );
     }

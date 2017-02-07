@@ -84,6 +84,10 @@ public class IsotropicCartesianMatchEngine
                            getError() );
     }
 
+    public double getScoreScale() {
+        return getError();
+    }
+
     public Object[] getBins( Object[] tuple ) {
         return getRadiusBins( toCoords( tuple ), getError() * 0.5 );
     }

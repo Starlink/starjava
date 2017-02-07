@@ -111,6 +111,26 @@ public interface MatchEngine {
     ValueInfo getMatchScoreInfo();
 
     /**
+     * Returns a scale value for the match score.
+     * The intention is that the result of
+     * {@link #matchScore(Object[],Object) matchScore}/{@link #getScoreScale}
+     * is of order unity, and is thus comparable between
+     * different match engines.
+     *
+     * <p>As a general rule, the result should be the maximum value ever
+     * returned from the <code>matchScore</code> method,
+     * corresponding to the least good successful match.
+     * For binary MatchEngine implementations
+     * (all matches are either score=0 or failures)
+     * a value of 1 is recommended.
+     * If nothing reliable can be said about the scale, NaN may be returned.
+     *
+     * @return   scale of successful match scores,
+     *           a positive finite number or NaN
+     */
+    double getScoreScale();
+
+    /**
      * Returns a set of ValueInfo objects indicating what is required for
      * the elements of each tuple.  The length of this array is the 
      * number of elements in the tuple.  Each element should at least

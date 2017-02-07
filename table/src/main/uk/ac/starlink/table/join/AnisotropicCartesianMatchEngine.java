@@ -100,6 +100,10 @@ public class AnisotropicCartesianMatchEngine
         return Math.sqrt( normDist2 );
     }
 
+    public double getScoreScale() {
+        return 1.0;
+    }
+
     public Object[] getBins( Object[] tuple ) {
         return getScaleBins( toCoords( tuple ) );
     }

@@ -116,6 +116,10 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return SCORE_INFO;
     }
 
+    public double getScoreScale() {
+        return 1.0;
+    }
+
     public String toString() {
         return "2-d Cartesian Ellipses";
     }

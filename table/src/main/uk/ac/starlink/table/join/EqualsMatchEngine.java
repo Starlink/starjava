@@ -31,6 +31,10 @@ public class EqualsMatchEngine implements MatchEngine {
         return isEqual( tuple1[ 0 ], tuple2[ 0 ] ) ? 0.0 : -1.0;
     }
 
+    public double getScoreScale() {
+        return 1.0;
+    }
+
     public Object[] getBins( Object[] tuple ) {
         Object obj = tuple[ 0 ];
         return Tables.isBlank( obj )

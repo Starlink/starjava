@@ -78,6 +78,19 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
     }
 
     /**
+     * Returns the maximum value that will be returned from the
+     * static <code>matchScore</code> method for a given maximum error.
+     *
+     * @param   maxerr  maximum permitted separation of points 1 and 2
+     *                  in radians
+     * @return  maximum score value; currently that's <code>maxerr</code>
+     *          converted to arcseconds
+     */
+    static double maxScore( double maxerr ) {
+        return INVERSE_ARC_SECOND * maxerr;
+    }
+
+    /**
      * Uses the pixellator to get a list of bin objects for a given
      * small circle.
      *

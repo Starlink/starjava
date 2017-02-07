@@ -19,6 +19,7 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
     private final int ndim_;
     private final double[] err2s_;
     private final DescribedValue[] matchParams_;
+    private double scoreScale_;
 
     private static final ValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
@@ -66,6 +67,11 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
     protected void setScale( int idim, double err ) {
         super.setScale( idim, err );
         err2s_[ idim ] = err * err;
+        double sscale2 = 0;
+        for ( int i = 0; i < ndim_; i++ ) {
+            sscale2 += err2s_[ i ];
+        }
+        scoreScale_ = Math.sqrt( sscale2 );
     }
 
     public ValueInfo[] getTupleInfos() {
@@ -105,6 +111,10 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
 
     public boolean canBoundMatch() {
         return true;
+    }
+
+    public double getScoreScale() {
+        return scoreScale_;
     }
 
     public NdRange getMatchBounds( NdRange[] inRanges, int index ) {

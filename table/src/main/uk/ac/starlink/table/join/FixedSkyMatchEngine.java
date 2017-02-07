@@ -86,6 +86,10 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
                            getSeparation() );
     }
 
+    public double getScoreScale() {
+        return maxScore( getSeparation() );
+    }
+
     public Object[] getBins( Object[] tuple ) {
         return getBins( getAlpha( tuple ), getDelta( tuple ),
                         getSeparation() * 0.5 );

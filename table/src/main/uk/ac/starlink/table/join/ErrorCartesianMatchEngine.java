@@ -94,6 +94,18 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
                            getTupleError( tuple1 ) + getTupleError( tuple2 ) );
     }
 
+    /**
+     * Returns NaN, since the scale depends on the per-row errors,
+     * which are not known.
+     * You could make use of the rough (tuning) scale information we have,
+     * which would give you something of the right magnitude,
+     * but that risks making match behaviour dependent on a tuning
+     * parameter, which would be bad.
+     */
+    public double getScoreScale() {
+        return Double.NaN;
+    }
+
     public Object[] getBins( Object[] tuple ) {
         return getRadiusBins( getTupleCoords( tuple ), getTupleError( tuple ) );
     }

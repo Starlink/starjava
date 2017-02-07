@@ -14,6 +14,12 @@ import uk.ac.starlink.table.ValueInfo;
  * keep down the number of bins returned by the {@link MatchEngine#getBins}
  * method of the component match engines.
  *
+ * <p>The match score is formed by taking the scaled match scores of the
+ * constituent engines and adding them in quadrature
+ * (if no scaling is available, unscaled values are used).
+ * Versions of this class before 2017 did not do that, it just added
+ * unscaled match scores together, which doesn't make much sense.
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class CombinedMatchEngine implements MatchEngine {
@@ -72,7 +78,7 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        double totalScore = 0.0;
+        double sum2 = 0.0;
         for ( int i = 0; i < nPart; i++ ) {
             Object[] subTuple1 = work1[ i ];
             Object[] subTuple2 = work2[ i ];
@@ -80,13 +86,29 @@ public class CombinedMatchEngine implements MatchEngine {
                               subTuple1, 0, tupleSizes[ i ] );
             System.arraycopy( tuple2, tupleStarts[ i ],
                               subTuple2, 0, tupleSizes[ i ] );
-            double score = engines[ i ].matchScore( subTuple1, subTuple2 );
+            MatchEngine engine = engines[ i ];
+            double score = engine.matchScore( subTuple1, subTuple2 );
             if ( score < 0 ) {
                 return -1.;
             }
-            totalScore += score;
+            double scale = engine.getScoreScale();
+            double d1 = scale > 0 ? ( score / scale ) : score;    
+            sum2 += d1 * d1;
         }
-        return totalScore;
+        return Math.sqrt( sum2 );
+    }
+
+    /**
+     * Returns the number of constituent matches if they all have definite
+     * score scaling values.  Otherwise, returns NaN.
+     */
+    public double getScoreScale() {
+        for ( int i = 0; i < nPart; i++ ) {
+            if ( ! ( engines[ i ].getScoreScale() > 0 ) ) {
+                return Double.NaN;
+            }
+        }
+        return nPart;
     }
 
     /**
