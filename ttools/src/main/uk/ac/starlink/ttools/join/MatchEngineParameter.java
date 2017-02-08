@@ -359,6 +359,13 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
         setConfigValues( env, engine.getTuningParameters(), tuningParam_,
                          false );
 
+        /* Warn if there is not a sensible metric. */
+        if ( ( engine instanceof CombinedMatchEngine ) &&
+             ! ( engine.getScoreScale() > 0 ) ) {
+            logger_.warning( "Matcher " + stringVal + " can't be scaled"
+                           + "; Best match won't make much sense" );
+        }
+
         /* Return the configured object. */
         return engine;
     }

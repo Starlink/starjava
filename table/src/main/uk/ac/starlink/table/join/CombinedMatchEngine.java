@@ -3,6 +3,7 @@ package uk.ac.starlink.table.join;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -36,6 +37,11 @@ public class CombinedMatchEngine implements MatchEngine {
     private final Object[][] work0;
     private final Object[][] work1;
     private final Object[][] work2;
+
+    private static final ValueInfo SCORE_INFO =
+        new DefaultValueInfo( "Separation", Double.class,
+                              "Scaled distance between points "
+                            + "in combined space" );
 
     /**
      * Constructs a new MatchEngine based on a sequence of others.
@@ -111,16 +117,8 @@ public class CombinedMatchEngine implements MatchEngine {
         return nPart;
     }
 
-    /**
-     * The match score is got by adding together the scores from all
-     * the constituent matchers.  Since the metrics they employ will
-     * all be different, the resulting value is probabl meaningless.
-     * Therefore we decline to tag it with a meaning.
-     *
-     * @return  null
-     */
     public ValueInfo getMatchScoreInfo() {
-        return null;
+        return SCORE_INFO;
     }
 
     public Object[] getBins( Object[] tuple ) {

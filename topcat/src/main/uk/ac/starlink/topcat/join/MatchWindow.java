@@ -435,20 +435,20 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         Arrays.fill( someLengths2, someLength );
         Arrays.fill( someLengths3, someLength );
         Arrays.fill( someLengths4, someLength );
-        CombinedMatchEngine skyPlus1Engine = 
-            new CombinedMatchEngine( new MatchEngine[] {
+        MatchEngine skyPlus1Engine = createCombinedEngine( "Sky + X",
+            new MatchEngine[] {
                 new FixedSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
                                          someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths1 ),
-            } );
-        skyPlus1Engine.setName( "Sky + X" );
-        CombinedMatchEngine skyPlus2Engine = 
-            new CombinedMatchEngine( new MatchEngine[] {
+            }
+        );
+        MatchEngine skyPlus2Engine = createCombinedEngine( "Sky + XY",
+            new MatchEngine[] {
                 new FixedSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
                                          someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths2 ),
-            } );
-        skyPlus2Engine.setName( "Sky + XY" );
+            }
+        );
         MatchEngine htmEngine = new FixedSkyMatchEngine( new HtmSkyPixellator(),
                                                          someAngle ) {
             public String toString() {
@@ -482,4 +482,27 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         };
     }
 
+    /**
+     * Constructs a CombinedMatchEngine from an array of constituents.
+     *
+     * @param  name   output matcher name
+     * @param  subEngines   constituent match engines
+     * @return  resulting engine
+     */
+    private static MatchEngine
+            createCombinedEngine( String name, MatchEngine[] subEngines ) {
+        CombinedMatchEngine cEngine = new CombinedMatchEngine( subEngines );
+        cEngine.setName( name );
+
+        /* This tests that the resulting match engine has a suitable
+         * match score calculation function; that is one that can
+         * reasonably be compared between tuple pairs to provide
+         * a "best" match.  A matcher could still be used in the
+         * absence of this, but at present all the supplied combined
+         * matchers do satisfy this, which is probably good policy since
+         * it reduces surprising results. */
+        assert cEngine.getScoreScale() > 0
+             : "CombinedMatchEngine " + name + " is not scalable";
+        return cEngine;
+    }
 }
