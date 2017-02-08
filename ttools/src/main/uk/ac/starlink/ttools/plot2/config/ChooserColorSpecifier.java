@@ -180,18 +180,34 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     private static Map<String,Color[]> createPaletteMap() {
         Map<String,Color[]> map = new LinkedHashMap<String,Color[]>();
 
-        // This is the one that's always been available in topcat.
-        map.put( "Classic",
-                 ColorConfigKey.CLASSIC_COLORS.values()
-                                              .toArray( new Color[ 0 ] ) );
+        /* This is the one that's always been available in topcat. */
+        map.put( "Classic", ColorConfigKey.getPlottingColors() );
 
-        // From Paul Tol's https://personal.sron.nl/~pault/, not in document.
+        /* Copied from MATLAB
+         * (http://uk.mathworks.com/help/matlab/graphics_transition/
+         *         why-are-plot-lines-different-colors.html).
+         * I'm not sure what the licencing situation is here.
+         * Probably it's OK to copy a sequence of colours from a web page.
+         * But I admit I haven't asked. */
+        map.put( "Cycle1",
+                 toColors( new int[] { 0xff0000, 0x0000ff, 0x008000, 0xc0c000, 
+                                       0xc000c0, 0x00c0c0, 0x404040, } ) );
+        map.put( "Cycle2",
+                 new Color[] { new Color( 0.635f, 0.078f, 0.184f ),
+                               new Color( 0.000f, 0.447f, 0.741f ),
+                               new Color( 0.466f, 0.674f, 0.188f ),
+                               new Color( 0.929f, 0.694f, 0.125f ),
+                               new Color( 0.494f, 0.184f, 0.556f ),
+                               new Color( 0.301f, 0.745f, 0.933f ),
+                               new Color( 0.850f, 0.325f, 0.098f ), } );
+
+        /* From Paul Tol's https://personal.sron.nl/~pault/, not in document. */
         map.put( "SRON-Bright",
                  toColors( new int[] { 0xee3333, 0x3366aa, 0x66aa55, 0xcccc55,
-                                       0x992288, 0xee7722, 0x11aa99, } ) );
+                                       0x992288, 0x11aa99, 0xee7722, } ) );
 
-        // From Fig 2 of Paul Tol's SRON/EPS/TN/09-002,
-        // https://personal.sron.nl/~pault/colourschemes.pdf.
+        /* From Fig 2 of Paul Tol's SRON/EPS/TN/09-002,
+         * https://personal.sron.nl/~pault/colourschemes.pdf. */
         map.put( "SRON-Light",
                  toColors( new int[] { 0x77aadd, 0x77cccc, 0x88ccaa, 0xdddd77,
                                        0xddaa77, 0xdd7788, 0xcc99bb, } ) );
