@@ -23878,6 +23878,9 @@ introduced since the last version:
     <li>The colour selector widget now comes with a new
         <label>Free colour chooser</label> &IMG.COLOR_WHEEL; button,
         giving you various ways to select any RGB colour you like.</li>
+    <li>The <ref id="Maths">Maths</ref> function
+        <code>hypot</code> now takes an arbitrary number of arguments
+        (instead of just two).</li>
     </ul>
     </p></dd>
 

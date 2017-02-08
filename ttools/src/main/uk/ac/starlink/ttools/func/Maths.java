@@ -168,15 +168,31 @@ public class Maths {
     }
 
     /**
-     * Returns the square root of the sum of squares of its two arguments.
-     * Doing it like this may avoid intermediate overflow or underflow.
+     * Returns the square root of the sum of squares of its arguments.
+     * In the 2-argument case, doing it like this may avoid intermediate
+     * overflow or underflow.
      *
-     * @param   x  a value
-     * @param   y  a value
-     * @return  sqrt(<code>x</code><sup>2</sup> + <code>y</code><sup>2</sup>)
+     * @example <code>hypot(3,4) = 5</code>
+     * @example <code>hypot(2,2,2,2) = 4</code>
+     *
+     * @param   xs  one or more numeric values
+     * @return  sqare root of sum of squares of arguments
      */
-    public static double hypot( double x, double y ) {
-        return Math.hypot( x, y );
+    public static double hypot( double... xs ) {
+        switch ( xs.length ) {
+            case 0:
+                return 0;
+            case 1:
+                return xs[ 0 ];
+            case 2:
+                return Math.hypot( xs[ 0 ], xs[ 1 ] );
+            default:
+                double s2 = 0;
+                for ( double x : xs ) {
+                    s2 += x * x;
+                }
+                return Math.sqrt( s2 );
+        }
     }
 
     /**
