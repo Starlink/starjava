@@ -49,6 +49,8 @@ import nom.tam.fits.HeaderCard;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.vo.DalResourceXMLFilter;
+import uk.ac.starlink.splat.vo.DataLinkParams;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 
 
@@ -225,6 +227,7 @@ public class SpecDataFactory
     /** the authenticator for access control **/
     private SSAPAuthenticator authenticator;
     
+    
     /**
      *  Hide the constructor from use.
      */
@@ -329,10 +332,28 @@ public class SpecDataFactory
         NameParser namer = new NameParser( specspec );
   
         boolean isRemote = namer.isRemote();
+       
         if ( isRemote ) {
-                
-             if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {
-                PathParser pathParser = remoteToLocalFile( namer.getURL(), type );
+             int remotetype = checkMimeType(namer.getURL());
+             if (remotetype == DATALINK) { //if it's a datalink file, it has to be parsed and its information extracted
+                 try {
+                     DataLinkParams dlp = new DataLinkParams(specspec);
+                     if ( dlp.getQueryContentType(0) == null || dlp.getQueryContentType(0).isEmpty()) //if not, use contenttype
+                         type = GUESS;
+                     else 
+                         type = mimeToSPLATType(dlp.getQueryContentType(0)); 
+                  // got the datalink information, do it all again with the new url
+                     return getAll(dlp.getQueryAccessURL(0), type);
+                 } catch (IOException e) {
+                     throw new SplatException(e);
+                 }
+             }
+                 
+             if (remotetype != GUESS)
+                 type = remotetype;
+              
+             if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {               
+                PathParser pathParser = remoteToLocalFile( namer.getURL(), type ); 
                 specspec = pathParser.ndfname();
              }
         } 
@@ -371,7 +392,7 @@ public class SpecDataFactory
                     }
                 }
                     break;
-                case DATALINK: 
+                case DATALINK:
                 case TABLE: {
                 	added = impls.add(makeTableSpecDataImpl( specspec ));
                 	//impl = makeTableSpecDataImpl( specspec );
@@ -410,6 +431,28 @@ public class SpecDataFactory
         return specDataList;
       }
     
+   
+
+    private int checkMimeType(URL url) throws SplatException {
+        String conttype = "";
+
+        try {
+
+            URLConnection connection = openConnection(url);
+
+            conttype=connection.getContentType();
+            if (conttype==null) { // avoids NPE
+                 conttype="";                        
+            } 
+           
+        } catch (Exception e) {
+            throw new SplatException(e);
+        }
+        if (conttype.isEmpty())
+            return GUESS;
+        return mimeToSPLATType(conttype);
+    }
+
     /**
      *  Check the format of the incoming specification and create an
      *  instance of SpecData for it.
@@ -1303,7 +1346,7 @@ public class SpecDataFactory
         }
         else if ( impl instanceof TableSpecDataImpl ) {
             result[0] = TABLE;
-            //result[1] = ????; // What type of TABLE is this?
+            
         }
         return result;
     }
@@ -1320,155 +1363,122 @@ public class SpecDataFactory
     {
         PathParser namer = null;
         boolean compressed = false;
-        MimeType mimetype = null;
         String remotetype = null;
-      
+
+        //  Contact the resource.
+
+        URLConnection connection=null;
+        String conttype = "";
+        
         try {
-            
-            //  Contact the resource.
-           
-            
-            URLConnection connection = url.openConnection();
-          
-            //  Handle switching from HTTP to HTTPS, if a HTTP 30x redirect is
-            //  returned, as Java doesn't do this by default (security issues
-            //  when moving from secure to non-secure).
-            if ( connection instanceof HttpURLConnection ) {
-                int code = ((HttpURLConnection)connection).getResponseCode();
-                
-               
-                if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
-                     code == HttpURLConnection.HTTP_MOVED_TEMP ||
-                     code == HttpURLConnection.HTTP_SEE_OTHER ) {
-                    String newloc = connection.getHeaderField( "Location" );
-                    URL newurl = new URL( newloc );
-                    connection = newurl.openConnection();
-                }
-                code = ((HttpURLConnection)connection).getResponseCode();
-                if ( code >= 500  ) // 5** codes, server is not available so we can stop right now.
-                {
-                    throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
-                            " for the URL : " + url.toString()    );
-                }
-                String conttype=connection.getContentType();
-                if (conttype!=null) {
-                    mimetype = new MimeType(conttype);
-                }
+            connection = openConnection(url);
+            conttype=connection.getContentType();
+        } catch (IOException e) {
+            throw new SplatException( e );
+        }
+       
+        if (conttype==null) { // avoids NPE
+            conttype=""; 
+        }
 
-                compressed = ("gzip".equals(connection.getContentEncoding()) || conttype.contains("gzip"));
-                remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
-            }
+        compressed = ("gzip".equals(connection.getContentEncoding()) || conttype.contains("gzip"));
+        remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
 
-            // Handle local URLs.
-            if (mimetype == null) {
-                mimetype = new MimeType();
-            }
-
-            connection.setConnectTimeout(10*1000); // 10 seconds
-            connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
-            InputStream is = connection.getInputStream();
+        InputStream is;
+        try {
+            is = connection.getInputStream();
             if (compressed)
                 is = new GZIPInputStream(is);
-            //  And read it into a local file. Use the existing file extension
-            //  if available and we're not guessing the type.
-            namer = new PathParser( url.toString() );
+        } catch (IOException e) {
+            throw new SplatException( e );
+        }
+       
+        //  And read it into a local file. Use the existing file extension
+        //  if available and we're not guessing the type.
+        namer = new PathParser( url.toString() );
 
-            String stype = null;
-            
-            // parse mime type
-            if (mimetype.getSubType().contains("votable") || mimetype.getSubType().contains("xml")) {
-                type = HDX;
-            } else if (mimetype.getSubType().contains("fits") ) {
-                type = FITS;
-            } else if (mimetype.getPrimaryType().contains("text") && mimetype.getSubType().contains("plain") ) {
-                type = TEXT;
-            } 
-            
-            //  Create a temporary file. Use a file extension based on the
-            //  type, if known.
-           
-            switch (type) {
-                case FITS: {
-                    stype = ".fits";
-                }
-                break;
-                case HDS: {
-                    stype = ".sdf";
-                }
-                break;
-                case TEXT: {
-                    stype = ".txt";
-                }
-                break;
-                case HDX: {
-                    stype = ".xml";
-                }
-                break;
-                case TABLE: {
+        String stype = null;
+
+        type=mimeToSPLATType(conttype);
+
+        //  Create a temporary file. Use a file extension based on the
+        //  type, if known.
+
+        switch (type) {
+            case FITS: {
+                stype = ".fits";
+            }
+            break;
+            case HDS: {
+                stype = ".sdf";
+            }
+            break;
+            case TEXT: {
+                stype = ".txt";
+            }
+            break;
+            case HDX: {
+                stype = ".xml";
+            }
+            break;
+            case TABLE: {
+                stype = ".tmp";
+            }
+            break;
+            case GUESS: {
+                stype = ".tmp";
+            }
+            break;
+            default: {
+                if (remotetype != null) 
+                    stype=remotetype; // the type of the remote filename
+                else 
+                    stype = namer.type();
+
+                if ( stype.equals( "" ) ) {
                     stype = ".tmp";
-                }
-                break;
-                case GUESS: {
-                    stype = ".tmp";
-                }
-                break;
-                default: {
-                    if (remotetype != null) 
-                        stype=remotetype; // the type of the remote filename
-                    else 
-                        stype = namer.type();
-                    
-                    if ( stype.equals( "" ) ) {
-                        stype = ".tmp";
-                    }
                 }
             }
-            
-            TemporaryFileDataSource datsrc =
-                new TemporaryFileDataSource( is, url.toString(), "SPLAT",
-                                             stype, null );
-            String tmpFile = datsrc.getFile().getCanonicalPath();
-           
-            namer.setPath( tmpFile );
-            datsrc.close();
+        }
 
+        try {          
+            TemporaryFileDataSource datsrc = new TemporaryFileDataSource( is, url.toString(), "SPLAT", stype, null );
+            String tmpFile = datsrc.getFile().getCanonicalPath();
+            namer.setPath( tmpFile );
+            datsrc.close(); 
             //  Check file. If an error occurred with the request at the
             //  server end this will probably result in the download of an
             //  HTML file, or a file starting with NULL.
             FileInputStream fis = new FileInputStream( tmpFile );
-         /*   BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-             String line1 = null, line2=null;
-             line1 = br.readLine();
-             line2 = br.readLine(); 
-             br.close();*/
-            // char[] header = line1.toCharArray();
+
+            // try to get file format from its first lines 
+            // if extension is not in pathname
+
             byte[] header = new byte[4];
             fis.read( header );
             fis.close();
 
             //  Test if equal to '<!DO' of "<!DOCTYPE" or '<HTM'
             if ( ( header[0] == '<' && header[1] == '!' &&
-                   header[2] == 'D' && header[3] == 'O' ) ||
-                 header[0] == '<' && header[1] == 'H' &&
-                 header[2] == 'T' && header[3] == 'M' ) {
+                    header[2] == 'D' && header[3] == 'O' ) ||
+                    header[0] == '<' && header[1] == 'H' &&
+                    header[2] == 'T' && header[3] == 'M' ) {
                 //  Must be HTML.
                 throw new SplatException( "Cannot use the file returned" +
-                                          " by the URL : " + url.toString() +
-                                          " it contains an HTML document" );
+                        " by the URL : " + url.toString() +
+                        " it contains an HTML document" );
             }
             else if ( header[0] == 0 && header[1] == 0 ) {
                 throw new SplatException( "Cannot use the file returned" +
-                                          " by the URL : " + url.toString() +
-                                          " as it is empty" );
+                        " by the URL : " + url.toString() +
+                        " as it is empty" );
             }
-            
-            // try to get file format from its first lines 
-            // if extension is not in pathname
-  
-        }
-        catch (Exception e) {
+
+
+        } catch (Exception e) {
             throw new SplatException( e );
         }
+
         return namer;
     }
 
@@ -1824,14 +1834,13 @@ public class SpecDataFactory
         //  Access the VOTable.
         VOElement root = null;
         try {
-            root = new VOElementFactory().makeVOElement( specspec );
+            root = new VOElementFactory().makeVOElement( specspec );            
         }
         catch (Exception e) {
             throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
             //throw new SplatException( "Failed to open SED VOTable"+e.getMessage(), e );
         }
 
-        //  First element should be a RESOURCE.
         VOElement[] resource = root.getChildren();
         String tagName = null;
         String utype = null;
@@ -1840,6 +1849,9 @@ public class SpecDataFactory
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
             if ( "RESOURCE".equals( tagName ) ) {
+              //  String resourceType = resource[i].getAttribute("type");
+             //   if (resourceType.equalsIgnoreCase("results"))
+              //      throw new SplatException("results table");
 
                 //  Look for the TABLEs and check if any have utype
                 //  "sed:Segment" these are the spectra.
@@ -1847,9 +1859,7 @@ public class SpecDataFactory
                 for ( int j = 0; j < child.length; j++ ) {
                     tagName = child[j].getTagName();
                     if ( "TABLE".equals( tagName ) ) {
-                        utype = child[j].getAttribute( "utype" );                    
-                        //   if ( "sed:Segment".equals( utype ) ) { // we try this also for multiple spectra in a VOTable which do not have this utype (i.E. echelle spectra)
-                            
+                        utype = child[j].getAttribute( "utype" );                                               
                                 try {
                                     table = new VOStarTable( (TableElement) child[j] );
                                
@@ -2023,6 +2033,33 @@ public class SpecDataFactory
 
     public void setAuthenticator(SSAPAuthenticator auth) {
         authenticator=auth;
+    }
+    
+    private URLConnection openConnection(URL url) throws SplatException, IOException {
+        
+        URLConnection connection = url.openConnection();
+
+        if ( connection instanceof HttpURLConnection ) {
+            int code = ((HttpURLConnection)connection).getResponseCode();
+            if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+                    code == HttpURLConnection.HTTP_MOVED_TEMP ||
+                    code == HttpURLConnection.HTTP_SEE_OTHER ) {
+                String newloc = connection.getHeaderField( "Location" );
+                URL newurl = new URL( newloc );
+                connection = newurl.openConnection();
+            }
+
+
+            code = ((HttpURLConnection)connection).getResponseCode();
+            if ( code >= 500  ) // 5** codes, server is not available so we can stop right now.
+            {
+                throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
+                        " for the URL : " + url.toString()    );
+            }
+        }
+        connection.setConnectTimeout(10*1000); // 10 seconds
+        connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
+        return connection;
     }
 }
 
