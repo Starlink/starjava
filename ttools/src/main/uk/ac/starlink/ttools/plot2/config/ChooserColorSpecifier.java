@@ -3,57 +3,60 @@ package uk.ac.starlink.ttools.plot2.config;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
-import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import uk.ac.starlink.table.gui.LabelledComponentStack;
+import javax.swing.plaf.basic.BasicArrowButton;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.ReportMap;
-import uk.ac.starlink.util.gui.ComboBoxBumper;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * SpecifierPanel subclass that uses a JColorChooser to specify a colour.
+ * The color chooser is somewhat customised, including by installing a
+ * custom Palettes chooser panel, and the whole thing is displayed
+ * in a popup menu rather than a dialogue or frame, since that more
+ * closely approximates what you get from other SpecifierPanel components
+ * (such as a JComboBox).
  *
  * @author   Mark Taylor
  * @since    27 Jan 2017
@@ -74,12 +77,12 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
      */
     public ChooserColorSpecifier( Color dfltColor ) {
         this( new JColorChooser( dfltColor ) );
-        chooser_.addChooserPanel( new PaletteColorChooserPanel( PALETTE_MAP ) );
+        chooser_.addChooserPanel( new PaletteColorChooserPanel( PALETTE_MAP,
+                                                                chooser_ ) );
 
         /* Get rid of the default JColorChooser preview panel.
          * The details of it are not very useful here. */
         chooser_.setPreviewPanel( new JPanel() );
-
     }
     
     /**
@@ -174,10 +177,12 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
 
     /**
      * Creates some standard named colour lists.
+     * The sequences of some of these have been somewhat adjusted
+     * so that the colours align between different palettes.
      *
      * @return   paletteName-&gt;colourList map
      */
-    private static Map<String,Color[]> createPaletteMap() {
+    public static Map<String,Color[]> createPaletteMap() {
         Map<String,Color[]> map = new LinkedHashMap<String,Color[]>();
 
         /* This is the one that's always been available in topcat. */
@@ -237,7 +242,7 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     }
 
     /**
-     * Action that can select a colour.
+     * Action that can select a colour and dismiss the popup.
      */
     private class ChooseAction extends AbstractAction {
         private static final String COLOR_PROP = "colorChoice";
@@ -427,60 +432,60 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     }
 
     /**
-     * ColorChooserPanel implementation that can display named colour lists
-     * for selection.
+     * Custom chooser panel implementation that lets you choose from
+     * a number of pre-configured palettes.
      */
     private static class PaletteColorChooserPanel
                          extends AbstractColorChooserPanel {
 
         private final Map<String,Color[]> paletteMap_;
-        private ButtonGroup bgrp_;
-        private Action nextAct_;
-        private Action prevAct_;
+        private final JColorChooser chooser_;
+        private PalettePanel ppanel_;
+        private NavigateAction[] navActs_;
 
         /**
          * Constructor.
          *
-         * @param   paletteMap   paletteName-&gt;colourList map
+         * @param  paletteMap   map of palette name-&gt;colour lists
+         * @param  chooser   chooser on behalf of which his panel will work
          */
-        PaletteColorChooserPanel( Map<String,Color[]> paletteMap ) {
+        public PaletteColorChooserPanel( Map<String,Color[]> paletteMap,
+                                         JColorChooser chooser ) {
             paletteMap_ = paletteMap;
+            chooser_ = chooser;
         }
 
         protected void buildChooser() {
             setLayout( new BorderLayout() );
-            bgrp_ = new ButtonGroup();
-            ColorSelectionModel model = getColorSelectionModel();
-            LabelledComponentStack stack = new LabelledComponentStack();
 
-            /* Set up a palette component for each named list of colours. */
-            List<Palette> paletteList = new ArrayList<Palette>();
-            for ( Map.Entry<String,Color[]> entry : paletteMap_.entrySet() ) {
-                String label = entry.getKey();
-                Color[] colors = entry.getValue();
-                Palette p = new Palette( colors, model, bgrp_ );
-                stack.addLine( label, p );
-                paletteList.add( p );
+            /* Add the main palette display/interaction panel. */
+            ppanel_ = new PalettePanel( paletteMap_ );
+            ppanel_.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
+            add( ppanel_, BorderLayout.CENTER );
+
+            /* Add a row of N/E/W/S navigation buttons below the palettes. */
+            JComponent bbox = Box.createHorizontalBox();
+            add( bbox, BorderLayout.SOUTH );
+            bbox.add( Box.createHorizontalGlue() );
+            navActs_ = new NavigateAction[] {
+                new NavigateAction( SwingConstants.SOUTH ),
+                new NavigateAction( SwingConstants.WEST ),
+                new NavigateAction( SwingConstants.EAST ),
+                new NavigateAction( SwingConstants.NORTH ),
+            };
+
+            /* Arrange for keyboard arrow keys to do navigation too. */
+            InputMap inputMap = getInputMap( WHEN_IN_FOCUSED_WINDOW );
+            for ( NavigateAction navAct : navActs_ ) {
+                bbox.add( Box.createHorizontalStrut( 5 ) );
+                bbox.add( new ShrinkWrapper( navAct.createButton() ) );
+                String navKey = "Palette." + navAct.txt_;
+                inputMap.put( navAct.keyStroke_, navKey );
+                getActionMap().put( navKey, navAct );
             }
-            add( stack, BorderLayout.CENTER );
-            Palette[] palettes = paletteList.toArray( new Palette[ 0 ] );
 
-            /* Provide buttons to move to the next/previous colour in
-             * the current palette. */
-            nextAct_ = new RotateAction( bgrp_, palettes, true );
-            prevAct_ = new RotateAction( bgrp_, palettes, false );
-            JButton nextButt = new JButton( nextAct_ );
-            JButton prevButt = new JButton( prevAct_ );
-            nextButt.setHideActionText( true );
-            prevButt.setHideActionText( true );
-            JComponent controlBox = Box.createHorizontalBox();
-            controlBox.add( Box.createHorizontalGlue() );
-            controlBox.add( prevButt );
-            controlBox.add( Box.createHorizontalStrut( 5 ) );
-            controlBox.add( nextButt );
-            controlBox.setBorder( BorderFactory
-                                 .createEmptyBorder( 10, 0, 10, 0 ) );
-            add( controlBox, BorderLayout.SOUTH );
+            /* Initialise selection. */
+            ppanel_.setSelection( -1, -1 );
         }
 
         public String getDisplayName() {
@@ -492,155 +497,303 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
         }
 
         /**
-         * Returns null.  Up to java 8, these seem to be ignored anyway.
+         * Returns null.
+         * At least up to java 8, these seem to be ignored anyway.
          */
         public Icon getSmallDisplayIcon() {
             return null;
         }
 
         /**
-         * Returns null.  Up to java 8, these seem to be ignored anyway.
+         * Returns null.
+         * At least up to java 8, these seem to be ignored anyway.
          */
         public Icon getLargeDisplayIcon() {
             return null;
         }
 
         public void updateChooser() {
-            boolean hasSel = bgrp_.getSelection() != null;
-            prevAct_.setEnabled( hasSel );
-            nextAct_.setEnabled( hasSel );
         }
-    }
-
-    /**
-     * Component to display a horizontal list of colour buttons.
-     */
-    private static class Palette extends JPanel {
-
-        final ButtonModel[] buttModels_;
 
         /**
-         * Constructor.
-         *
-         * @param  colors  array of colours
-         * @param  model   colour selection model to adjust on button selection
-         * @param  bgrp    button group to ensure mutual exclusivity
+         * Action that can move round the palette grid.
          */
-        Palette( Color[] colors, final ColorSelectionModel model,
-                 ButtonGroup bgrp ) {
-            setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-            ChangeListener listener = new ChangeListener() {
-                public void stateChanged( ChangeEvent evt ) {
-                    Object src = evt.getSource();
-                    if ( src instanceof ColorButton ) {
-                        ColorButton cb = (ColorButton) src;
-                        if ( cb.isSelected() ) {
-                            Color color = cb.getColor();
-                            model.setSelectedColor( color );
-                        }
-                    }
+        private class NavigateAction extends AbstractAction {
+            private final int swingDirection_;
+            private final String txt_;
+            private final int dx_;
+            private final int dy_;
+            private final KeyStroke keyStroke_;
+
+            /**
+             * Constructor.
+             *
+             * @param   swingDirection
+             *          one of SwingConstants.NORTH/SOUTH/EAST/WEST
+             */
+            NavigateAction( int swingDirection ) {
+                swingDirection_ = swingDirection;
+                final int keyEvent;
+                switch ( swingDirection_ ) {
+                    case SwingConstants.NORTH:
+                        txt_ = "Up";
+                        dx_ = 0;
+                        dy_ = -1;
+                        keyEvent = KeyEvent.VK_UP;
+                        break;
+                    case SwingConstants.SOUTH:
+                        txt_ = "Down";
+                        dx_ = 0;
+                        dy_ = +1;
+                        keyEvent = KeyEvent.VK_DOWN;
+                        break;
+                    case SwingConstants.WEST:
+                        txt_ = "Left";
+                        dx_ = -1;
+                        dy_ = 0;
+                        keyEvent = KeyEvent.VK_LEFT;
+                        break;
+                    case SwingConstants.EAST:
+                        txt_ = "Right";
+                        dx_ = +1;
+                        dy_ = 0;
+                        keyEvent = KeyEvent.VK_RIGHT;
+                        break;
+                    default:
+                        throw new IllegalArgumentException();
                 }
-            };
-            int nc = colors.length;
-            buttModels_ = new ButtonModel[ nc ];
-            for ( int ic = 0; ic < nc; ic++ ) {
-                ColorButton butt = new ColorButton( colors[ ic ] );
-                buttModels_[ ic ] = butt.getModel();
-                butt.setMargin( new Insets( 0, 0, 0, 0 ) );
-                add( butt );
-                add( Box.createHorizontalStrut( 2 ) );
-                bgrp.add( butt );
-                butt.addChangeListener( listener );
+                keyStroke_ = KeyStroke.getKeyStroke( keyEvent, 0 );
+                putValue( NAME, txt_ );
+                putValue( SHORT_DESCRIPTION,
+                          "Move " + txt_ + " in palette grid" );
+            }
+
+            public void actionPerformed( ActionEvent evt ) {
+                ppanel_.navigate( dx_, dy_ );
+                ppanel_.repaint();
+            }
+
+            /**
+             * Returns a button that will invoke this action.
+             */
+            public JButton createButton() {
+                JButton button = new BasicArrowButton( swingDirection_ );
+                button.setAction( this );
+                return button;
             }
         }
-    }
-
-    /**
-     * ToggleButton that displays a colour.
-     */
-    private static class ColorButton extends JToggleButton {
-        private static final int iconWidth_ = 12;
-        private static final int iconHeight_ = 12;
-        private final Color color_;
 
         /**
-         * Constructor.
-         *
-         * @param  color   button colour
+         * Panel that displays the grid of palette colours for selection.
          */
-        ColorButton( Color color ) {
-            color_ = color;
-            setIcon( new Icon() {
-                public int getIconWidth() {
-                    return iconWidth_;
+        private class PalettePanel extends JComponent {
+
+            private final int np_;
+            private final String[] labels_;
+            private final Color[][] colors_;
+            private final int ncmax_;
+            private final int xPatch_ = 12;
+            private final int yPatch_ = 12;
+            private final int xGap_ = 4;
+            private final int yGap_ = 4;
+            private final Font font_;
+            private final int yPatchOff_;
+            private final int txtWidth_;
+            private final int lineHeight_;
+            private final LineMetrics lineMetrics_;
+            private final Color txtColor_;
+            private final Color selectColor_;
+            private final Color overColor_;
+            private int[] xySel_;
+            private int[] xyOver_;
+
+            /**
+             * Constructor.
+             *
+             * @param   paletteName-&gt;colourList map
+             */
+            PalettePanel( Map<String,Color[]> paletteMap ) {
+
+                /* Set up constants etc for component painting. */
+                np_ = paletteMap.size();
+                labels_ = new String[ np_ ];
+                colors_ = new Color[ np_ ][];
+                int ip = 0;
+                int ncmax = 0;
+                for ( Map.Entry<String,Color[]> entry :
+                      paletteMap.entrySet() ) {
+                    labels_[ ip ] = entry.getKey() + ": ";
+                    colors_[ ip ] = entry.getValue();
+                    ncmax = Math.max( ncmax, colors_[ ip ].length );
+                    ip++;
                 }
-                public int getIconHeight() {
-                    return iconHeight_;
+                ncmax_ = ncmax;
+                font_ = UIManager.getFont( "Label.font" );
+                xyOver_ = new int[] { -1, -1 };
+                FontRenderContext frc =
+                    new FontRenderContext( new AffineTransform(),
+                                           false, false );
+                int txtWidth = 0;
+                int txtHeight = 0;
+                for ( String label : labels_ ) {
+                    Rectangle r =
+                        font_.getStringBounds( label, frc ).getBounds();
+                    txtWidth = Math.max( txtWidth, r.width );
+                    txtHeight = Math.max( txtHeight, r.height );
                 }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                    Color color0 = g.getColor();
-                    g.setColor( color_ );
-                    g.fillRect( x, y, iconWidth_, iconHeight_ );
-                    g.setColor( color0 );
-                }
-            } );
-        }
+                txtWidth_ = txtWidth;
+                lineHeight_ = txtHeight;
+                lineMetrics_ = font_.getLineMetrics( labels_[ 0 ], frc );
+                yPatchOff_ = ( lineHeight_ - yPatch_ ) / 2;
+                txtColor_ = UIManager.getColor( "ColorChooser.foreground" );
+                overColor_ =
+                    UIManager.getColor( "ComboBox.selectionBackground" );
+                selectColor_ = txtColor_;
+                setSelection( -1, -1 );
 
-        /**
-         * Returns the colour of this button.
-         *
-         * @return  colour
-         */
-        public Color getColor() {
-            return color_;
-        }
-    }
-
-    /**
-     * Action that rotates the selection over the members of a single palette.
-     * The implementation is not optimally efficient.  Never mind.
-     */
-    private static class RotateAction extends AbstractAction {
-
-        private final ButtonGroup bgrp_;
-        private final Palette[] palettes_;
-        private final int increment_;
-
-        /**
-         * Constructor.
-         *
-         * @param   bgrp  button group representing all available selections
-         * @param   palettes   list of palettes over which rotation can happen
-         * @param   isUp  true to rotate forward, false for backward
-         */
-        public RotateAction( ButtonGroup bgrp, Palette[] palettes,
-                             boolean isUp ) {
-            super( isUp ? "Next" : "Prev",
-                   isUp ? ComboBoxBumper.INC_ICON : ComboBoxBumper.DEC_ICON );
-            putValue( SHORT_DESCRIPTION,
-                      "Select " + ( isUp ? "next" : "previous" ) + " button"
-                    + "in the current row" );
-            bgrp_ = bgrp;
-            palettes_ = palettes;
-            increment_ = isUp ? +1 : -1;
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            ButtonModel sel = bgrp_.getSelection();
-            if ( sel != null ) {
-                for ( Palette p : palettes_ ) {
-                    ButtonModel[] bms = p.buttModels_;
-                    int ix = Arrays.asList( bms ).indexOf( sel );
-                    if ( ix >= 0 ) {
-                        int nb = bms.length;
-                        int jx = ( ix + increment_ ) % nb;
-                        if ( jx < 0 ) {
-                            jx += nb;
+                /* Mouse click will set selection. */
+                final JComponent paletteComp = this;
+                addMouseListener( new MouseAdapter() {
+                    @Override
+                    public void mouseClicked( MouseEvent evt ) {
+                        int[] sel = getGridPosition( evt.getPoint() );
+                        int ix = sel[ 0 ];
+                        int iy = sel[ 1 ];
+                        if ( ix >= 0 && iy >= 0 ) {
+                            setSelection( ix, iy );
                         }
-                        bgrp_.setSelected( bms[ jx ], true );
-                        return;
+                        paletteComp.repaint();
+                    }
+                } );
+
+                /* Mouse rollover will highlight colour. */
+                addMouseMotionListener( new MouseAdapter() {
+                    @Override
+                    public void mouseMoved( MouseEvent evt ) {
+                        xyOver_ = getGridPosition( evt.getPoint() );
+                        paletteComp.repaint();
+                    }
+                } );
+            }
+
+            @Override
+            protected void paintComponent( Graphics g ) {
+                super.paintComponent( g );
+                Color color0 = g.getColor();
+                Font font0 = g.getFont();
+                g.setFont( font_ );
+                Insets insets = getInsets();
+                int gy = insets.top;
+                int yTxtOff = (int) lineMetrics_.getHeight();
+                for ( int ip = 0; ip < np_; ip++ ) {
+                    int gx = insets.left;
+                    g.setColor( txtColor_ );
+                    g.drawString( labels_[ ip ], gx, gy + yTxtOff );
+                    gx += txtWidth_;
+                    Color[] colors = colors_[ ip ];
+                    for ( int ic = 0; ic < colors.length; ic++ ) {
+                        gx += xGap_;
+                        int x0 = gx;
+                        int y0 = gy + yPatchOff_;
+                        int w0 = xPatch_;
+                        int h0 = yPatch_;
+                        if ( ic == xySel_[ 0 ] && ip == xySel_[ 1 ] ) {
+                            g.setColor( selectColor_ );
+                            g.fillRect( x0 - 4, y0 - 4, w0 + 8, h0 + 8 );
+                        }
+                        else if ( ic == xyOver_[ 0 ] && ip == xyOver_[ 1 ] ) {
+                            g.setColor( overColor_ );
+                            g.fillRect( x0 - 3, y0 - 3, w0 + 6, h0 + 6 );
+                        }
+                        g.setColor( Color.GRAY );
+                        g.fillRect( x0 - 1, y0 - 1, w0 + 2, h0 + 2 );
+                        g.setColor( colors[ ic ] );
+                        g.fillRect( x0, y0, w0, h0 );
+                        gx += xPatch_ + xGap_;
+                    }
+                    gy += lineHeight_ + yGap_;
+                }
+                g.setColor( color0 );
+                g.setFont( font0 );
+            }
+
+            @Override
+            public Dimension getPreferredSize() {
+                Insets insets = getInsets();
+                return new Dimension( txtWidth_
+                                    + ncmax_ * ( xPatch_ + 2 * xGap_ )
+                                    + insets.left + insets.right,
+                                      np_ * lineHeight_ + ( np_ - 1 ) * yGap_
+                                    + insets.top + insets.bottom );
+            }
+
+            /**
+             * Returns the coordinates of the colour patch corresponding
+             * to a graphics position.
+             *
+             * @param  p   position on this component
+             */
+            private int[] getGridPosition( Point p ) {
+                Insets insets = getInsets();
+                int px = p.x - insets.left - txtWidth_ - xGap_;
+                int ix = px % ( xPatch_ + 2 * xGap_ ) <= xPatch_
+                       ? px / ( xPatch_ + 2 * xGap_ )
+                       : -1;
+                int py = p.y - insets.top - yPatchOff_;
+                int iy = py % ( lineHeight_  + yGap_ ) <= yPatch_
+                       ? py / ( lineHeight_ + yGap_ )
+                       : -1;
+                return iy >= 0 && iy < np_ &&
+                       ix >= 0 && ix < colors_[ iy ].length
+                     ? new int[] { ix, iy }
+                     : new int[] { -1, -1 };
+            }
+
+            /**
+             * Make a relative X/Y change in the location of the currently
+             * selected colour patch in the grid.
+             * Wrap arounds will be applied.
+             * One of <code>dx</code>/<code>dy</code> should be +/-1,
+             * the other should be zero.
+             *
+             * @param  dx  grid X offset
+             * @param  dy  grid Y offset
+             */
+            public void navigate( int dx, int dy ) {
+                int ix = xySel_[ 0 ];
+                int iy = xySel_[ 1 ];
+
+                /* This code is not bulletproof, but it should work for the
+                 * dx/dy values we are expecting. */
+                if ( ix >= 0 && iy >= 0 ) {
+                    int nc = colors_[ iy ].length;
+                    ix = ( ix + dx + nc ) % nc;
+                    iy = ( iy + dy + np_ ) % np_;
+                    nc = colors_[ iy ].length;
+                    ix = Math.min( ix, nc - 1 );
+                }
+                setSelection( ix, iy );
+            }
+
+            /**
+             * Sets the currently selected colour patch on the grid.
+             *
+             * @param  ix  grid X coordinate
+             * @param  iy  grid Y coordinate
+             */
+            private void setSelection( int ix, int iy ) {
+                xySel_ = new int[] { ix, iy };
+                boolean hasSel = ix >= 0 && iy >= 0;
+                if ( hasSel ) {
+                    chooser_.getSelectionModel()
+                            .setSelectedColor( colors_[ iy ][ ix ] );
+                }
+                if ( navActs_ != null ) {
+                    for ( Action act : navActs_ ) {
+                        act.setEnabled( hasSel );
                     }
                 }
+                repaint();
             }
         }
     }
