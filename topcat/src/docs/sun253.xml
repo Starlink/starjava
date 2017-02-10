@@ -6817,6 +6817,7 @@ More may be introduced in future releases.
     <li>Contours</li>
     <li>Variable size markers</li>
     <li>Kernel density estimates</li>
+    <li>... and many more</li>
     </ul>
     </p></dd>
 
@@ -6892,7 +6893,7 @@ currently available in the new-style plots are:
     or a better job)</li>
 <li>fogging in 3D plots</li>
 </ul>
-The intention is to introduce some of all of these in a future release,
+These may be introduced in a future release,
 possibly informed by user demand.
 </p>
 
