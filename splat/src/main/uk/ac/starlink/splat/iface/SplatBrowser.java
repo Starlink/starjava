@@ -543,6 +543,26 @@ public class SplatBrowser
                     }
                 });
         }
+        
+        addClosingPrompt();
+ 
+    }
+
+    private void addClosingPrompt() {
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we)
+            { 
+                String choices[] = {"Yes","No"};
+                int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you want to close SPLAT-VO?","SPLAT-VO",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,choices,choices[1]);
+                if(PromptResult==JOptionPane.YES_OPTION)
+                {
+                    System.exit(0);
+                }
+            }
+        });
+        
     }
 
     /**
@@ -2201,7 +2221,7 @@ public class SplatBrowser
                         	props.setType(SpecDataFactory.mimeToSPLATType(stype));
                         	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
                         }
-                    }
+                    } 
                     spectra = specDataFactory.get( props.getSpectrum(), props.getType() ); ///!!! IF it's a list???
                     for (int s=0; s < spectra.size(); s++ ){
                         spectrum=spectra.get(s);
