@@ -306,6 +306,10 @@ import uk.ac.starlink.table.StarTable;
         serverList=list;
         populate();
     }
+    
+    public void setServerListValue(AbstractServerList list) {
+        serverList=list;
+    }
 
     public void sortTable() {
         TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>) getRowSorter();

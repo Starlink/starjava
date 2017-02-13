@@ -1009,9 +1009,13 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
                         
              MetadataTableModel mtm = (MetadataTableModel) tme.getSource();
              String paramname = (String) mtm.getValueAt(tme.getFirstRow(), NAME_INDEX);
-             
-             this.firePropertyChange("changedValue", null, metaParam.get("INPUT:"+paramname) );
-         //    this.firePropertyChange("changeQuery", false, true);      
+             String value = mtm.getValueAt(tme.getFirstRow(), VALUE_INDEX).toString();
+             if (value != null && !value.isEmpty()) {
+                 MetadataInputParameter param = metaParam.get("INPUT:"+paramname);
+                 param.setValue(value);
+                 this.firePropertyChange("changedValue", null, param );
+                 //    this.firePropertyChange("changeQuery", false, true);      
+             }
         }
     }
     // fire this only in certain events

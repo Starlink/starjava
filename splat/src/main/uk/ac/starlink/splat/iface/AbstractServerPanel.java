@@ -78,7 +78,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
    
     protected JButton addServerButton = null;
   
-    private JComboBox<String> tagCombo;
+    private JComboBox tagCombo;
     private  String MANUALLY_ADDED_STR = "ManuallyAdded";
     private static boolean ManuallyAddPossible = true;
 
@@ -382,7 +382,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
 
     
     /**
-     * Set the ServerList.
+     * Set the ServerList and reconstruct the table.
      *
      * @param serverList the ServerList reference.
      */
@@ -391,6 +391,17 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         TableRowSorter<DefaultTableModel> savedSorter = getTableRowSorter();
         serverTable.setServerList(serverList);
         setTableRowSorter(savedSorter);         
+    }
+    /**
+     * Set the ServerList without reconstructing the table.
+     *
+     * @param serverList the ServerList reference.
+     */ 
+    public void setServerListValue( AbstractServerList serverList )
+    {
+       // TableRowSorter<DefaultTableModel> savedSorter = getTableRowSorter();
+        serverTable.setServerListValue(serverList);
+      // setTableRowSorter(savedSorter);         
     }
    
     /**
@@ -796,7 +807,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
             JPanel getTagPanel = new JPanel();
             getTagPanel.setLayout(new BorderLayout());
            // boolean newTag = true;
-           final JComboBox<String> newTagCombo = new JComboBox<String>();
+           final JComboBox newTagCombo = new JComboBox();
            final JTextField tagText=new JTextField(15);
            
            for (int i=0;i<tagCombo.getItemCount();i++)
@@ -886,7 +897,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
 
               serverTags.restoreTags();
               String[] tags = serverTags.getTags();
-              tagCombo = new JComboBox<String>(); 
+              tagCombo = new JComboBox(); 
 
               tagCombo.setPrototypeDisplayValue("------------");
               tagCombo.addItem(""); 

@@ -2135,10 +2135,10 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         else if (pvt.getPropertyName().equals("changedValue")) {
             serverList = (SSAServerList) serverPanel.getServerList();
             serverList.addMetadata((MetadataInputParameter) pvt.getNewValue()); 
-            serverPanel.setServerList( serverList);
+            serverPanel.setServerListValue(serverList);
             updateQueryText(); 
         }
-        // update if the server list has been modifyed at ssaservertable (for example, new registry query)
+        // update if the server list has been modified at ssaservertable (for example, new registry query)
         else if (pvt.getPropertyName().equals("changeServerlist")) {
             serverList = (SSAServerList) serverPanel.getServerList();
             queryCustomParameters();
@@ -2341,11 +2341,14 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             } else
                 metadata = null;
 
+            
             if (progressPanel != null)
                 progressPanel.stop();  
             // add results to the queue
-            workQueue.setServer(server);
-            workQueue.addWork(metadata);
+            if (metadata!=null) {
+               workQueue.setServer(server);
+                workQueue.addWork(metadata);
+            }
             return null;
         } //doinbackground
 
@@ -2420,7 +2423,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
          * @uml.property  name="server"
          * @uml.associationEnd  
          */
-        SSAPRegResource server;
+        SSAPRegResource server=null;
 
         public WorkQueue( int total ) {
             maxItems = total;
@@ -2435,12 +2438,13 @@ implements ActionListener, DocumentListener, PropertyChangeListener
 
         // takes the work from the queue as soon as it's not empty
         public synchronized ParamElement[] getWork() throws InterruptedException {
-            //  logger.info( "GETWORK " + workedItems + " " + maxItems);
+            //  logger.info( "GETWORK " + workedItems + " " + maxItems );
             if (workedItems >= maxItems) return null;
             while (queue.isEmpty()) {
                 this.wait();
             }
             ParamElement [] data = (ParamElement[]) queue.removeFirst();     
+           // logger.info( "GETWORK " + workedItems + " " + maxItems + " server "+ this.getServer().getShortName()+" nrparams "+ data.length);
             workedItems++;
             return (data);
         }
@@ -2456,7 +2460,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
          * @return
          * @uml.property  name="server"
          */
-        public SSAPRegResource getServer(  ) {
+        public SSAPRegResource getServer() {
             return this.server;
         }
     } // WorkerQueue
