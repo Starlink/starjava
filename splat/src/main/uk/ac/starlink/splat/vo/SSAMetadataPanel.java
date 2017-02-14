@@ -906,7 +906,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         
         while (it.hasNext()) {
            MetadataInputParameter mip = it.next();         
-           addRow ( mip, mtm, false );
+           addRow ( mip, mtm, mip.isChecked() );
         }
     }
     
@@ -925,7 +925,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
             if (name.equals(paramName)) {
                 found=true;
                 mtm.removeRow(row);
-                addRow ( mip, mtm, false );
+                addRow ( mip, mtm, mip.isChecked() );
             }
         }
       
@@ -936,17 +936,17 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     // checkbox included 
     public static void addRow(MetadataInputParameter mip, MetadataTableModel mtm ) {
-        addRow ( mip, mtm, false );
+        addRow ( mip, mtm, mip.isChecked() );
     }
     
     public static void addRow(MetadataInputParameter mip ) {
         MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
-        addRow ( mip, mtm, false );
+        addRow ( mip, mtm, mip.isChecked() );
     }
     
     public static void addRow(MetadataInputParameter mip, boolean selected ) {
         MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
-        addRow ( mip, mtm, false );
+        addRow ( mip, mtm, selected );
     }
     
     // useCheckBox true: checkbox included
@@ -1010,8 +1010,10 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
              MetadataTableModel mtm = (MetadataTableModel) tme.getSource();
              String paramname = (String) mtm.getValueAt(tme.getFirstRow(), NAME_INDEX);
              String value = mtm.getValueAt(tme.getFirstRow(), VALUE_INDEX).toString();
+             MetadataInputParameter param = metaParam.get("INPUT:"+paramname);
+             param.setChecked(rowChecked(tme.getFirstRow()));
              if (value != null && !value.isEmpty()) {
-                 MetadataInputParameter param = metaParam.get("INPUT:"+paramname);
+
                  param.setValue(value);
                  this.firePropertyChange("changedValue", null, param );
                  //    this.firePropertyChange("changeQuery", false, true);      
@@ -1068,7 +1070,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
                 return Boolean.class;
             return String.class;
         }
-
+      
     } //MetadataTableModel
 
 
