@@ -105,6 +105,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
                                    : getNoScrollTickPadding();
         insets.left += 2;
         insets.bottom += 2;
+        insets.top = Math.max( 2, insets.top );
+        insets.right = Math.max( 2, insets.right );
         if ( xAnnotate_ && xlabel_ != null ) {
             Rectangle cxbounds = captioner_.getCaptionBounds( xlabel_ );
             insets.bottom += -cxbounds.y + captioner_.getPad();
@@ -180,11 +182,7 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
      */
     private Insets getNoScrollTickPadding() {
 
-        // This method seems to be broken - probably the problem is in
-        // getTickBoxes.  Defer to getScrollTickPadding instead for now.
-        if ( true ) return getScrollTickPadding();
-
-        /* Make a rectangle big enough to hold every ticmark painted
+        /* Make a rectangle big enough to hold every tickmark painted
          * in its actual position. */
         Rectangle bounds = new Rectangle( xoff_, yoff_, 0, 0 );
         if ( xAnnotate_ ) {
@@ -201,9 +199,9 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         /* Turn that into an insets object relative to the plot bounds,
          * and return. */
         int left = Math.max( 0, gxlo_ - bounds.x );
-        int right = Math.max( 0, gxhi_ - bounds.x - bounds.width );
+        int right = Math.max( 0, bounds.x + bounds.width - gxhi_ );
         int top = Math.max( 0, gylo_ - bounds.y );
-        int bottom = Math.max( 0, gyhi_ - bounds.y - bounds.height );
+        int bottom = Math.max( 0, bounds.y + bounds.height - gyhi_ );
         return new Insets( top, left, bottom, right );
     }
 
@@ -216,7 +214,7 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
      */
     private Rectangle[] getTickBoxes( Tick[] ticks, boolean isY ) {
         Orientation orient = isY ? Y_ORIENT : X_ORIENT;
-        AffineTransform axisTrans = axisTransform( 0, 0, isY );
+        AffineTransform axisTrans = axisTransform( xoff_, yoff_, isY );
         int cpad = captioner_.getPad();
         List<Rectangle> list = new ArrayList<Rectangle>();
         for ( int it = 0; it < ticks.length; it++ ) {
