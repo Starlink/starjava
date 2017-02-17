@@ -543,27 +543,10 @@ public class SplatBrowser
                     }
                 });
         }
-        
-        addClosingPrompt();
  
     }
 
-    private void addClosingPrompt() {
-        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        this.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent we)
-            { 
-                String choices[] = {"Yes","No"};
-                int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you want to close SPLAT-VO?","SPLAT-VO",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,choices,choices[1]);
-                if(PromptResult==JOptionPane.YES_OPTION)
-                {
-                    System.exit(0);
-                }
-            }
-        });
-        
-    }
+
 
     /**
      * Set the ndAction value to match a string description. Strings are
@@ -3322,8 +3305,13 @@ public class SplatBrowser
     protected void processWindowEvent( WindowEvent e )
     {
         super.processWindowEvent( e );
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         if ( e.getID() == WindowEvent.WINDOW_CLOSING ) {
-            exitApplicationEvent();
+                int PromptResult = JOptionPane.showConfirmDialog(null,"Are you sure you want to close SPLAT-VO?","SPLAT-VO",JOptionPane.YES_NO_OPTION);                
+                if(PromptResult==JOptionPane.YES_OPTION)
+                {
+                    exitApplicationEvent();
+                }           
         }
     }
 
