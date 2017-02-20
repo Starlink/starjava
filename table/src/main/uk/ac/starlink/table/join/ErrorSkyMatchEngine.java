@@ -39,8 +39,8 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
                               "Per-object error radius along a great circle" );
     private static final DefaultValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
-                              "Distance between matched objects " +
-                              "along a great circle" );
+                              "Scaled distance between matched objects " +
+                              "along a great circle (0..1)" );
     static {
         SCALE_INFO.setUnitString( "radians" );
         SCALE_INFO.setUCD( "pos.angDistance" );
@@ -49,9 +49,6 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         ERR_INFO.setUnitString( "radians" );
         ERR_INFO.setUCD( "pos.angDistance" );
         ERR_INFO.setNullable( false );
-
-        SCORE_INFO.setUnitString( "arcsec" );
-        SCORE_INFO.setUCD( "pos.angDistance" );
     }
 
     /**
@@ -99,21 +96,34 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return matchScore( getAlpha( tuple1 ), getDelta( tuple1 ),
-                           getAlpha( tuple2 ), getDelta( tuple2 ),
-                           getError( tuple1 ) + getError( tuple2 ) );
+        double delta1 = getDelta( tuple1 );
+        double delta2 = getDelta( tuple2 );
+        double maxerr = getError( tuple1 ) + getError( tuple2 );
+
+        /* Cheap test which will throw out most comparisons straight away:
+         * see if the separation in declination is greater than the maximum
+         * acceptable separation. */
+        if ( Math.abs( delta1 - delta2 ) > maxerr ) {
+            return -1.0;
+        }
+
+        /* Otherwise declinations at least are close; do a proper test. */
+        double alpha1 = getAlpha( tuple1 );
+        double alpha2 = getAlpha( tuple2 );
+        double sep = calculateSeparation( alpha1, delta1, alpha2, delta2 );
+        if ( sep <= maxerr ) {
+            return maxerr > 0 ? sep / maxerr : 0.0;
+        }
+        else {
+            return -1.0;
+        }
     }
 
     /**
-     * Returns NaN, since the scale depends on the per-row errors,
-     * which are not known.
-     * You could make use of the rough (tuning) scale information we have,
-     * which would give you something of the right magnitude,
-     * but that risks making match behaviour dependent on a tuning
-     * parameter, which would be bad.
+     * Returns unity.
      */
     public double getScoreScale() {
-        return Double.NaN;
+        return 1.0;
     }
 
     public Object[] getBins( Object[] tuple ) {

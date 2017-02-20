@@ -23908,6 +23908,12 @@ introduced since the last version:
         for the constituent matchers, which meant a <em>Best</em> match
         was pretty meaningless.  Now, it adds scaled distances in quadrature,
         so Best matching should give you a somewhat sensible result.</li>
+    <li>The <em>Sky with Errors</em>
+        and <em>N-dimensional Cartesian with Errors</em>
+        <ref id="matchCriteria">match types</ref>
+        now report output separations as scaled (dimensionless)
+        values rather than in physical units; this means the results are
+        more comparable, so <em>Best</em> matches will make more sense.</li>
     </ul>
     </p></dd>
 

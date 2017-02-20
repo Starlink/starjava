@@ -11006,6 +11006,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for the constituent matchers, which meant a <em>Best</em> match
         was pretty meaningless.  Now, it adds scaled distances in quadrature,
         so Best matching should give you a somewhat sensible result.</li>
+    <li>The <code><ref id="SkyMatchEngine-err">skyerr</ref></code>
+        and <code><ref id="ErrorCartesianMatchEngine">nd_err</ref></code> 
+        matchers now report output separations as scaled (dimensionless)
+        values rather than in physical units; this means the results are
+        more comparable, so <em>Best</em> matches will make more sense.</li>
     </ul>
     </p></dd>
 

@@ -23,7 +23,7 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
 
     private static final DefaultValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
-                              "Spatial distance between matched points" );
+                              "Scaled distance between matched points, 0..1" );
     private static final DefaultValueInfo ERROR_INFO =
         new DefaultValueInfo( "Error", Number.class,
                               "Per-object error radius" );
@@ -89,21 +89,28 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return matchScore( ndim_,
-                           getTupleCoords( tuple1 ), getTupleCoords( tuple2 ),
-                           getTupleError( tuple1 ) + getTupleError( tuple2 ) );
+        double[] coords1 = getTupleCoords( tuple1 );
+        double[] coords2 = getTupleCoords( tuple2 );
+        double err = getTupleError( tuple1 ) + getTupleError( tuple2 );
+        double err2 = err * err;
+        double dist2 = 0;
+        for ( int id = 0; id < ndim_; id++ ) {
+            double d = coords2[ id ] - coords1[ id ];
+            dist2 += d * d;
+            if ( ! ( dist2 <= err2 ) ) {
+                return -1;
+            }
+        }
+        double score = err2 > 0 ? Math.sqrt( dist2 / err2 ) : 0.0;
+        assert score >= 0 && score <= 1;
+        return score;
     }
 
     /**
-     * Returns NaN, since the scale depends on the per-row errors,
-     * which are not known.
-     * You could make use of the rough (tuning) scale information we have,
-     * which would give you something of the right magnitude,
-     * but that risks making match behaviour dependent on a tuning
-     * parameter, which would be bad.
+     * Returns unity.
      */
     public double getScoreScale() {
-        return Double.NaN;
+        return 1.0;
     }
 
     public Object[] getBins( Object[] tuple ) {
