@@ -105,8 +105,9 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     /**
-     * Returns the number of constituent matches if they all have definite
-     * score scaling values.  Otherwise, returns NaN.
+     * Returns the square root of the number of constituent matchers
+     * if they all have definite score scaling values.
+     * Otherwise, returns NaN.
      */
     public double getScoreScale() {
         for ( int i = 0; i < nPart; i++ ) {
@@ -114,7 +115,7 @@ public class CombinedMatchEngine implements MatchEngine {
                 return Double.NaN;
             }
         }
-        return nPart;
+        return Math.sqrt( nPart );
     }
 
     public ValueInfo getMatchScoreInfo() {
