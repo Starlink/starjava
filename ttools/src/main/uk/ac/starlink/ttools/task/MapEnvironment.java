@@ -4,8 +4,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -32,6 +36,7 @@ public class MapEnvironment implements TableEnvironment {
     private final ByteArrayOutputStream err_ = new ByteArrayOutputStream();
     private final PrintStream pout_ = new PrintStream( out_ );
     private final PrintStream perr_ = new PrintStream( err_ );
+    private final Set<String> usedNames_ = new HashSet<String>();
     private Class resourceBase_ = MapEnvironment.class;
     private boolean strictVot_;
     private boolean debug_;
@@ -235,6 +240,7 @@ public class MapEnvironment implements TableEnvironment {
                 value = mapVal;
             }
         }
+        usedNames_.add( pname );
 
         /* Now we have the value, pass it to the parameter somehow. */
         /* Treat null values specially. */
@@ -303,6 +309,20 @@ public class MapEnvironment implements TableEnvironment {
 
     public void setStrictVotable( boolean strict ) {
         strictVot_ = strict;
+    }
+
+    /**
+     * Returns an array containing any words of the input argument list
+     * which were never queried by the application to find their value.
+     * Such unused words probably merit a warning, since they
+     * may for instance be misspelled versions of real parameters.
+     *
+     * @return   array of unused words
+     */
+    public String[] getUnused() {
+        List<String> pnames = new ArrayList<String>( paramMap_.keySet() );
+        pnames.removeAll( usedNames_ );
+        return pnames.toArray( new String[ 0 ] );
     }
 
     /**
