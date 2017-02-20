@@ -11011,6 +11011,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         matchers now report output separations as scaled (dimensionless)
         values rather than in physical units; this means the results are
         more comparable, so <em>Best</em> matches will make more sense.</li>
+    <li>Fix small bug in <code>plot2plane</code>/<code>plot2time</code>
+        label painting; horizontal axis label was sometimes off the
+        bottom of the plot by a few pixels.</li>
     </ul>
     </p></dd>
 

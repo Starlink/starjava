@@ -23914,6 +23914,9 @@ introduced since the last version:
         now report output separations as scaled (dimensionless)
         values rather than in physical units; this means the results are
         more comparable, so <em>Best</em> matches will make more sense.</li>
+    <li>Fix small bug in Plane/Time plot windows;
+        horizontal axis label was sometimes off the bottom of the plot
+        by a few pixels.</li>
     </ul>
     </p></dd>
 
