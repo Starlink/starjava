@@ -211,7 +211,7 @@ public abstract class Axis {
         textBounds = combineRect( textBounds, tickBounds );
  
         /* Place title. */
-        if ( title != null ) {
+        if ( title != null && title.length() > 0 ) {
             Rectangle cbounds = captioner.getCaptionBounds( title );
             int tx = ( ghi_ - glo_ ) / 2 - cbounds.width / 2;
             int ty = orient.isDown()
