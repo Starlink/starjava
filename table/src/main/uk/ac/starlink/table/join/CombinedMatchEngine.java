@@ -25,6 +25,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class CombinedMatchEngine implements MatchEngine {
 
+    private final boolean inSphere;
     private final MatchEngine[] engines;
     private final int[] tupleSizes;
     private final int[] tupleStarts;
@@ -52,6 +53,7 @@ public class CombinedMatchEngine implements MatchEngine {
      * @param   engines  match engine sequence to be combined
      */
     public CombinedMatchEngine( MatchEngine[] engines ) {
+        this.inSphere = false;
         this.engines = engines;
         nPart = engines.length;
         tupleSizes = new int[ nPart ];
@@ -101,7 +103,13 @@ public class CombinedMatchEngine implements MatchEngine {
             double d1 = scale > 0 ? ( score / scale ) : score;    
             sum2 += d1 * d1;
         }
-        return Math.sqrt( sum2 );
+        double sum1 = Math.sqrt( sum2 );
+        if ( inSphere ) {
+            return sum1 <= 1 ? sum1 : -1.0;
+        }
+        else {
+            return sum1;
+        }
     }
 
     /**
