@@ -7,6 +7,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -38,14 +39,8 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
 
     HashMap< String, DataLinkParams > servers; // one entry for each datalink supporting server
     /** The list of all dataLink parameters read from the servers as a hash map */
-    private  HashMap< String, String > dataLinkParam=null;  // pairs param - value
     /** List of all possible parameters **/
-    private HashMap<String,String> accessURL; // the query access URL 
-    private HashMap<String,String> idSource; // the query id source 
-    private String currentServer = null; // HashMap for accessURL and idSourcem key=server!!
-   // private ArrayList <String> [] accessURL = new String[]();
-    
-
+     private String currentServer = null; // HashMap for accessURL and idSourcem key=server!!
     
     Boolean isActive;
     // Panel for components and options from dataLink parameters
@@ -56,7 +51,6 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     private JButton clearButton;
     private ArrayList<Component> queryComponents;
     private JComboBox optbox;
-    private JScrollPane scroller;
 
     private JLabel okLabel;
 
@@ -67,13 +61,9 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     
     public DataLinkQueryFrame() {
         isActive = false;
-        servers = new HashMap< String, DataLinkParams >();
-        dataLinkParam = new HashMap<String, String>();
-        accessURL= new HashMap<String, String>();
-        idSource= new HashMap<String, String>();
+        servers = new HashMap< String, DataLinkParams >();    
         queryComponents = new ArrayList<Component>();
         
-       
         initUI();        
     }
    
@@ -88,7 +78,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     {
  
         servers.clear();
-        dataLinkParam.clear();
+ //       dataLinkParam.clear();
         queryComponents.clear();
 
     }
@@ -157,11 +147,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
            
     }
 
-    private void setMaximumSize(int i, int j) {
-        // TODO Auto-generated method stub
-        
-    }
-
+ 
     public void addToUI(String shortname, DataLinkParams dlp ) {
    
           
@@ -199,6 +185,8 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                    String xtype = params[i].getXtype();
                    long[] arraysize = params[i].getArraysize();
                    
+                   String[] paramValue=dlp.getQueryParamsValue(service, paramName);
+                   
                    ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
                    String [] options = null;
                    
@@ -212,17 +200,26 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        c.gridwidth=2;
                        c.weightx=0.0;
                        if (paramName.equals("FORMAT")) { // choose best format for SPLAT as default
-                           for (i=0;i<options.length; i++) {
-                               if ( options[i].contains("application/x-votable")) {
-                                   value = options[i];
-                               } else if ( value == null && options[i].contains("application/fits")) {
-                                   value = options[i];
+                  
+                           if (value != null && ! paramValue[0].isEmpty())
+                               value=paramValue[0];
+                           else {
+                               for (i=0;i<options.length; i++) {
+                                   if ( options[i].contains("application/x-votable")) {
+                                       value = options[i];
+                                   } else if ( value == null && options[i].contains("application/fits")) {
+                                       value = options[i];
+                                   }
                                }
+                               dlp.setFormat(value);
                            }
                        } 
                        else  {
                            optbox.addItem("");
-                           value="";
+                           if (value != null && ! paramValue[0].isEmpty())
+                               value=paramValue[0];
+                           else 
+                               value="";
                        }
                        optbox.setSelectedItem(value);
                        optbox.setMaximumSize( optbox.getPreferredSize() );
@@ -245,8 +242,12 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                           
                            IntervalField interval = new IntervalField();                           
                            interval.setName(paramName);
+                           if (paramValue.length == 2) {
+                               interval.setInterval(paramValue[0], paramValue[1]);
+                           }
                            servicePanel.add(interval, c);
                            queryComponents.add(interval); 
+                         
                             
                        }
                        else {
@@ -260,6 +261,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                            paramField.addActionListener(this);
                            paramField.getDocument().putProperty("owner", paramField); //set the owner
                            paramField.getDocument().addDocumentListener(this);
+                           paramField.setText(paramValue[0]);
                            Dimension size=new Dimension(paramField.getPreferredSize().width, paramField.getPreferredSize().height+5);
                            paramField.setMinimumSize(size);
                            paramField.setMaximumSize(size);
@@ -286,21 +288,17 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                    i++;
                } //while
                if ( /*servicePanel.getComponentCount()*/c.gridy > 0 ) { // !!!!! for the moment, add only parameters for visible query components!
-                  accessURL.put(currentServer, dlp.getQueryAccessURL(service));
-                  idSource.put(currentServer, dlp.getQueryIdSource(service));    
                   paramPanel.add(servicePanel);
                }
            }// for
            
     } // addToUI
 
+       
+    public String  getIDSource(String server) {
+         return  servers.get(server).getIdSource();
+    }
     
-    public String  getAccessURL() {
-        return accessURL.get(currentServer);
-    }
-    public String  getIDSource() {
-        return idSource.get(currentServer);
-    }
 
     public void actionPerformed(ActionEvent e) {
        
@@ -312,7 +310,9 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         
         okLabel.setIcon(null);
         if (source.equals(clearButton)) {
-            dataLinkParam.clear();
+           
+            DataLinkParams serverparam = servers.get(currentServer);
+
 
             for (int i = 0; i < queryComponents.size(); i++) 
             {      
@@ -330,10 +330,14 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                     intp.clear();
                 }
             }
+            okLabel.setIcon(okImage);
+            setQueryParams();
+            
             
         } else if (source.equals(submitButton)) {
             
             boolean ok = true;
+            
             for (int i = 0; i < queryComponents.size(); i++) 
             {      
                 Component c = queryComponents.get(i);
@@ -341,47 +345,70 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                     JComboBox cb = (JComboBox) c;
                     String name = cb.getName();
                     // if ( cb.getSelectedItem().toString().length() > 0)
-                    dataLinkParam.put(name, cb.getSelectedItem().toString());
-
+                  
                 }
                 if (c instanceof JTextField) {
                     JTextField tf = (JTextField) c;
                     String name = tf.getName();
                     // to do: consistency checking, add values/ranges
-                    dataLinkParam.put(name, tf.getText());   
+               
+
                 }
                 if (c instanceof IntervalField) { // interval
                     IntervalField intp = (IntervalField) c;
                     String name = intp.getName();
-                    
                     // to do: consistency checking, add values/ranges
-                    dataLinkParam.put(name, intp.getText());   
-                }
+               }
                 
             } // for    
 
-            if (ok)
+            if (ok) {
                 okLabel.setIcon(okImage);
+                setQueryParams();
+            }
+           
+           
             else 
                 okLabel.setIcon(notOkImage);
-
-         //   okLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             
         } 
         dataLinkPanel.updateUI();
     }
     
     
-    public String setServer(String server) {
+    private void setQueryParams() {
+        DataLinkParams dlp = servers.get(currentServer);
+        for (int i = 0; i < queryComponents.size(); i++) 
+        {      
+            Component c = queryComponents.get(i);
+            String name = c.getName();
+            if (c instanceof JComboBox) {
+                JComboBox cb = (JComboBox) c;              
+                dlp.setQueryParam(name, (String) cb.getSelectedItem());
+            }
+            if (c instanceof JTextField) {
+                JTextField tf = (JTextField) c;
+                dlp.setQueryParam(name, (String) tf.getText());;
+            }
+            if (c instanceof IntervalField) { // interval
+                IntervalField intp = (IntervalField) c;
+                dlp.setQueryParam(name, intp.getLower(), intp.getUpper());
+            }
+        }
+        
+        
+    }
+
+    public String setServer(String server) {//, HashMap<String,String> params) {
         
         paramPanel.removeAll();
         okLabel.setIcon(null);
         if (servers.get(server) == null)
             return null;
         currentServer=server;
-        dataLinkParam.clear();
         queryComponents.clear();
         addToUI(server, servers.get(server));
+
         paramPanel.updateUI();
         dataLinkPanel.revalidate();
         dataLinkPanel.repaint();
@@ -389,14 +416,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         
     }
     
-    public HashMap<String,String> getParams() {
-        if (dataLinkParam != null) {
-            return dataLinkParam;
-        }
-     //   if (servers == null )
-            return null;
-      //  return servers.get(currentServer);
-    }
+
     
     public DataLinkParams getServerParams(String currentServer) {
         
@@ -421,24 +441,6 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         //get the owner of this document
       Object owner = de.getDocument().getProperty("owner");
         JTextField param=(JTextField) owner;
- /*       
-        dataLinkParam.put(param.getName(), param.getText());
-        
-        
-        String inputText = (String) ((JTextField) owner).getText();
-       
-        
-        double radius = 0.0;
-        if ( inputText != null && inputText.length() > 0 ) {
-            try {
-                double dvalue = Double.parseDouble( inputText );
-            }
-            catch (NumberFormatException e1) {
-                ErrorDialog.showError( this, "Value should be a numeric", e1);                         
-                return;
-            }
-        }
-  */      
         
     }
 
@@ -472,15 +474,47 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             this.add(_upper);
         }
         
-        String getText() {
+      
+
+        public void setInterval(String interval) {
+            if (interval == null || interval.isEmpty()) {
+                _upper.setText("");
+                _lower.setText("");
+            }
+            String[] values = interval.split("/", 1);
+            _lower.setText(values[0]);
+            if (values.length>1)
+                _upper.setText(values[1]);
+            else
+                _upper.setText("");
+        }
+        
+        public void setInterval(String min, String max) {
+           
+                _upper.setText(max);
+                _lower.setText(min);
+        
+        }
+
+        protected String getLower() {
+            return _lower.getText();
+        }
+        
+        protected String getUpper() {
+            return _upper.getText();
+        }
+        
+        private String getText() {
             String value="";
             String   txt=_lower.getText();
             if ( txt == null || txt.isEmpty())           
-                txt="-Inf";
-            value=txt+" ";
+//                txt="-Inf";
+                txt="";
+            value=txt+"/";
             txt=_upper.getText();
             if ( txt == null || txt.isEmpty())           
-                txt="+Inf";
+//                txt="+Inf";
+                txt="";
             value+=txt;  
             
             return value;   

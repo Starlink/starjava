@@ -86,9 +86,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     protected JButton deselectVisibleButton;
     protected JButton deselectAllButton;
     private JToggleButton dataLinkButton;
-//    private SSAQueryBrowser ssaQueryBrowser=null;
-//    private ObsCorePanel obsQueryBrowser=null;
-  //  protected LineBrowser slQueryBrowser=null;
+
 
     protected JPopupMenu popupMenu;
     
@@ -104,8 +102,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      */
     private DataLinkQueryFrame dataLinkFrame = null;
     private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.ResultsPanel" );
-
- 
+//    private HashMap <String,HashMap<String,String>> datalinkValues = new HashMap();
 
     public ResultsPanel() {
         
@@ -150,7 +147,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                    if (resultsPane.getIconAt(resultsPane.getSelectedIndex())!=null) { // it's a datalink service
 
                         if (dataLinkFrame != null && dataLinkEnabled) {
-                            dataLinkFrame.setServer(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+                            String server=resultsPane.getTitleAt(resultsPane.getSelectedIndex());
+                            dataLinkFrame.setServer(server);//, datalinkValues.get(server) );
                             dataLinkFrame.setVisible(true);
                         } 
                     } else {
@@ -206,7 +204,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         ( "Download all spectra selected in all tables");
         gbcontrol.gridx=2;
         controlPanel.add( downloadSelectedButton, gbcontrol );
-      
+
 
         downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
         downloadAllButton.addActionListener( this );
@@ -223,7 +221,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         deselectVisibleButton.setMargin(new Insets(1,10,1,10));  
         deselectVisibleButton.setToolTipText
         ( "Deselect all spectra in displayed table" );
-      //  controlPanel2.add( deselectVisibleButton );
+        //  controlPanel2.add( deselectVisibleButton );
         gbcontrol.gridx=4;
         controlPanel.add( deselectVisibleButton, gbcontrol );
 
@@ -233,7 +231,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         deselectAllButton.setMargin(new Insets(1,10,1,10));  
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
-     //   controlPanel2.add( deselectAllButton );
+        //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
 
@@ -243,12 +241,12 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         dataLinkButton.setToolTipText ( "DataLink parameters" );
         dataLinkButton.setEnabled(false);
         dataLinkButton.setVisible(false);
-     //   controlPanel2.add( deselectAllButton );
+        //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=6;
         controlPanel.add( dataLinkButton, gbcontrol );
-       
+
         return controlPanel;
-     
+
     }
 
     
@@ -307,7 +305,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             return;
         }
         if ( source.equals( dataLinkButton ) ) { 
-            if (dataLinkFrame != null && dataLinkFrame.getParams() != null) {
+            if (dataLinkFrame != null ) { //&& dataLinkFrame.getParams() != null) {
                 if ( dataLinkButton.getModel().isSelected() ) {
                     activateDataLinkSupport();
                     if (resultsPane.isEnabledAt(resultsPane.getSelectedIndex()))
@@ -412,7 +410,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         // if current selection is not a DataLink service do nothing
         if (selected < 0)
             return;      
-         dataLinkFrame.setServer(resultsPane.getTitleAt(selected)); 
+        String server = resultsPane.getTitleAt(selected);
+        dataLinkFrame.setServer(server);//,datalinkValues.get(server)); 
     }
     
     /**
@@ -688,8 +687,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         DataLinkParams dlp = new DataLinkParams(resource[i]);
                         if ( newFrame == null ) {
                             newFrame = new DataLinkQueryFrame();
+                            if (datatype==SSAP)
+                                newFrame.addPropertyChangeListener("datalinkParamsChanged", (SSAQueryBrowser) this.browser);
                        } 
                        newFrame.addServer(name, dlp);  // associate this datalink service information to the current server
+                       //datalinkValues.put(name, newFrame.getParams());
                     }
                 }
             }
@@ -740,11 +742,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             for (int i=0;i<resultsPane.getTabCount();i++) {
               
                 JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
-                specList = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1 );
+                specList = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1, resultsPane.getTitleAt(i) );
             }
         }
         else {
-            specList = extractSpectraFromTable( table, selected, row );
+            specList = extractSpectraFromTable( table, selected, row , resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
         }
 
         //  If we have no spectra complain and stop.
@@ -788,24 +790,26 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      * <p>
      * Can return the selected spectra, if requested, otherwise all spectra
      * are returned or if a row value other than -1 is given just one row.
+     * @param server 
      * @throws SplatException 
      */ 
     private ArrayList<Props> extractSpectraFromTable( StarJTable starJTable,
           //  ArrayList<Props> specList,
             boolean selected,
-            int row )
+            int row, String server )
     {
         int[] selection = null;
         ArrayList<Props> specList = new ArrayList<Props>();
         
-        HashMap< String, String > dataLinkQueryParams = null;
+ //       HashMap< String, String > dataLinkQueryParams = null;
         String idSource = null;
-        String accessURL = null;
-        if ( dataLinkFrame != null && dataLinkFrame.isVisible() ) {
-            dataLinkQueryParams = dataLinkFrame.getParams();
-            idSource = dataLinkFrame.getIDSource(); 
-            accessURL = dataLinkFrame.getAccessURL();
-        }
+//        String accessURL = null;
+      //  if ( dataLinkFrame != null ) { // && dataLinkFrame.isVisible() ) {
+        if ( dataLinkEnabled  ) { 
+            idSource = dataLinkFrame.getIDSource(server); 
+        //    accessURL = dataLinkFrame.getAccessURL(server);
+            
+        } 
        
         
         //  Check for a selection if required, otherwise we're using the given
@@ -960,16 +964,22 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
 
             } // for
 
-            if (datatype == SSAP && idsrccol != -1  && dataLinkQueryParams != null ) { // check if datalink parameters are present
+            //   if (datatype == SSAP && idsrccol != -1  && dataLinkQueryParams != null ) { // check if datalink parameters are present
+            if ( dataLinkEnabled && idsrccol != -1  ) { 
+                //  if ( ! dataLinkQueryParams.isEmpty() ) {    
+                DataLinkParams dlp = dataLinkFrame.getServerParams(server);
+                for (int s=0; s< dlp.getServiceCount(); s++) {
+                    for (String key : dlp.getQueryParamsNames(s)) {
+                        String [] value = dlp.getQueryParamsValue(s, key);
+                        if (value != null && value.length > 0) {
 
-                if ( ! dataLinkQueryParams.isEmpty() ) {                   
-                    for (String key : dataLinkQueryParams.keySet()) {
-                        String value = dataLinkQueryParams.get(key);
-                        if (value != null && value.length() > 0) {
                             try {//
-
                                 if (! key.equals("IDSource") && ! (key.equals("AccessURL"))) {
-                                    dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
+                                    if (value.length==2) {
+                                        dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0]+" "+value[1], "UTF-8");
+                                    } else {
+                                        dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0], "UTF-8");
+                                    }                                     
                                 }
 
                             } catch (UnsupportedEncodingException e) {
@@ -979,6 +989,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         }
                     }
                 }
+
             }
 
 
@@ -1076,14 +1087,15 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                 }
                             }
 
-                            if (idsrccol != -1  && dataLinkQueryParams != null) { 
+                            if (idsrccol != -1  && dataLinkEnabled) { 
 
-                                if (! dataLinkQueryParams.isEmpty()) { 
+                                if (dataLinkFrame != null) { 
+                                    DataLinkParams dlp = dataLinkFrame.getServerParams(server);
                                     props.setIdValue(rseq.getCell(idsrccol).toString());
                                     props.setIdSource(idSource);
                                     props.setDataLinkRequest(dataLinkRequest);
-                                    props.setServerURL(dataLinkQueryParams.get("AccessURL"));
-                                    String format = dataLinkQueryParams.get("FORMAT");
+                                    props.setServerURL(dlp.getAccessURL());
+                                    String format = dlp.getFormat();
                                     if (format != null && format != "") {
                                         props.setDataLinkFormat(format);
                                         props.setType(SpecDataFactory.mimeToSPLATType( format ));
@@ -1168,15 +1180,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                     }
                                 }
 
-                                if (idsrccol != -1  && dataLinkQueryParams != null) {  
+                                if (idsrccol != -1  && dataLinkEnabled) {  
 
-                                    if (! dataLinkQueryParams.isEmpty()) { 
+                                    if (dataLinkFrame != null) { 
+                                        DataLinkParams dlp = dataLinkFrame.getServerParams(server);
                                         props.setIdValue(rseq.getCell(idsrccol).toString());
                                         props.setIdSource(idSource);
                                         props.setDataLinkRequest(dataLinkRequest);
                                         // props.setServerURL(dataLinkQueryParam.get("AccessURL"));
-                                        props.setServerURL(accessURL);
-                                        String format = dataLinkQueryParams.get("FORMAT");
+                                        props.setServerURL(dlp.getAccessURL());
+                                        String format = dlp.getFormat();
                                         if (format != null && format != "") {
                                             props.setDataLinkFormat(format);
                                             props.setType(SpecDataFactory.mimeToSPLATType( format ) );
@@ -1269,5 +1282,14 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         if (specArray != null)
             return (ArrayList<Props>) Arrays.asList(specArray);
         else return null;
+    }
+
+/*    public void setDatalinkValues(HashMap<String,String> values) {
+        //save to the current tab
+        datalinkValues.remove(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+        datalinkValues.put(resultsPane.getTitleAt(resultsPane.getSelectedIndex()), values);
+        
     }   
+    */
+    
 }

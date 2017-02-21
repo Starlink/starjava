@@ -7,7 +7,9 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
 
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
@@ -27,17 +29,14 @@ public class DataLinkParams {
     
     
     ArrayList <DataLinkService> service ;
-    private String id_source; // the field used as datalink id source
-    private ParamElement request; // 
-    private String accessURL; // the access URL for the service
-    private String contentType; // 
+  
+    private String id_source; // the field used as datalink id source 
     private String format;
     private ArrayList<VOElement> serviceElement;
 
-    HashMap <String,String> paramMap= new HashMap<String,String>(); 
     int queryIndex = -1;
    
-    ArrayList<ParamElement> paramList = null;
+  //  ArrayList<ParamElement> paramList = null;
     
     /**
      * Constructs an empty instance. Information will be added with addparam(VOElement).
@@ -47,9 +46,6 @@ public class DataLinkParams {
       
         service = new ArrayList <DataLinkService>();
         id_source=null;
-        request=null;
-        accessURL=null;
-        contentType=null;
         format = null;
         serviceElement=null;
     }
@@ -63,9 +59,6 @@ public class DataLinkParams {
      */
     public DataLinkParams( String dataLinksrc) throws IOException {
         id_source=null;
-        request=null;
-        accessURL=null;
-        contentType=null;
         format = ""; 
         service = new ArrayList<DataLinkService>();
         DataLinkService thisService = new DataLinkService();
@@ -155,34 +148,13 @@ public class DataLinkParams {
             // handle the group  PARAM elements
             int size=grpParams.length;
             for ( int j=0; j < size ; j++ ) {
-                ParamElement pel = (ParamElement) grpParams[j];
+                ParamElement pel = (ParamElement) grpParams[j];               
                 if ( pel.getAttribute("name").equals("ID")) {
                     id_source = pel.getAttribute("ref");
-                    if (id_source.startsWith("#") )
-                            id_source=id_source.substring(1);
-                    // LINK will not be used anymore
-                    // will be removed soon
-                  /*  if (id_source == null ) {
-                        VOElement el = pel.getChildByName("LINK"); // link inside a group element
-                        if (el.getAttribute( "content-role").equals("ddl:id-source") )
-                            id_source = el.getAttribute("value"); 
-                    }*/
-                    thisService.addParam("idSource", id_source );
-       /*         } else if ( pel.getAttribute("name").equals("FORMAT") ) { //choose best format
-                    ValuesElement values = (ValuesElement) pel.getChildByName("VALUES");
-                    String [] options = values.getOptions();
-                    format = "application/x-votable"; // default value
-                    for (i=0;i<options.length; i++) {
-                        if ( options[i].contains("application/x-votable")) {
-                           format=options[i];
-                        } else if ( format == null && options[i].contains("application/fits")) {
-                            format=options[i];
-                        }
+                    if (id_source.startsWith("#") ) {
+                        thisService.addParam("idSource", id_source );
                     }
-                   
-                    thisService.addParam("FORMAT", format);
-                   // thisService.addParam("FORMAT", "application/x-votable");
-        */            
+
                 } else {
                     thisService.addGroupParam(pel);
                     queryIndex = j;
@@ -193,31 +165,55 @@ public class DataLinkParams {
         }
     }
     
+    public String getIdSource() {      
+        return id_source;
+    }
+    
+    
     public  ParamElement [] getQueryParams(int queryIndex) {    
         if (service.get(queryIndex) != null)
             return service.get(queryIndex).getQueryParams();
         else return null;
     }
-    public boolean hasQueryParams(int i) { // hack - to differenciate a service with query parameters where user inputs the values and
-                                           // services containing only links. SHOULD BE DONE DIFFERENTLY (HOW?)
-        return (service.get(queryIndex).getQueryParams().length != 0);
-        
+    public  String [] getQueryParamsValue(int queryIndex, String param ) {    
+        if (service.get(queryIndex) != null)
+            return service.get(queryIndex).getQueryParamValue(param);
+        else return null;
     }
+    
+    public  Set<String> getQueryParamsNames(int queryIndex) {    
+            DataLinkService s = service.get(queryIndex);
+            if (s != null )
+                return s.getQueryParamNames();           
+        return Collections.emptySet(); 
+    }
+    
+   
     public int getServiceCount() {
         return service.size();
     }
  
+    public String getAccessURL() {
+        String aurl="";
+        for (int i=0;i<service.size();i++) {
+            aurl=getQueryAccessURL(i);
+            if (aurl != null && !aurl.isEmpty())
+                return aurl;
+        }
+        return "";
+    }
+   
     public String getQueryAccessURL(int queryIndex) {
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
-            String idsrc;
-            idsrc = service.get(queryIndex).getParam("access_url");//("accessURL");
-            if (idsrc != null) 
-                return idsrc;
-            idsrc = service.get(queryIndex).getParam("accessURL"); // temporary -- to b removed
-            if (idsrc != null) 
-                return idsrc;
+            String aurl;
+            aurl = service.get(queryIndex).getParam("access_url");//("accessURL");
+            if (aurl != null) 
+                return aurl;
+            aurl = service.get(queryIndex).getParam("accessURL"); // temporary -- to b removed
+            if (aurl != null) 
+                return aurl;
         }
-        return null;
+        return "";
             
     }
   
@@ -234,6 +230,7 @@ public class DataLinkParams {
         
     }
     
+  
     public String  getQueryIdSource(int queryIndex) {   
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
             String idsrc= service.get(queryIndex).getParam("ID");  // ("idSource");
@@ -249,7 +246,7 @@ public class DataLinkParams {
     
     public String  getQueryFormat(int queryIndex) {   
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
-            String format = service.get(queryIndex).getQueryParam("FORMAT");
+            String format = service.get(queryIndex).getQueryParamValue("FORMAT")[0];
             //if (format == null)
             //   format = service.get(queryIndex).getQueryParam("content_type");
             return format;
@@ -265,6 +262,25 @@ public class DataLinkParams {
     public ArrayList<VOElement> getServiceElement() {
         return serviceElement;        
     }
+    
+    protected void setQueryParam( String paramName, String value ) {
+        for (DataLinkService srv : service)
+                srv.setQueryParam(paramName, value);        
+   }
+    protected void setQueryParam( String paramName, String min, String max ) {
+        for (DataLinkService srv : service)
+                srv.setQueryParam(paramName, min, max);        
+   }
+    
+    public void setFormat(String format) {
+        this.format=format;
+    }
+    public String getFormat() {
+        return this.format;
+    }
+    
+    
+   
    
     public void writeParamToFile( BufferedWriter writer, String sname ) throws IOException {
         //writer.write( "<RESOURCE type=\"meta\" utype=\"adhoc:service\" name=\""+name+"\">" );
@@ -372,9 +388,12 @@ public class DataLinkParams {
     protected class DataLinkService {
         
         //  parameter -  value 
-        HashMap <String,String> paramMap = null; 
+        private HashMap <String,String> paramMap = null; 
+        private HashMap <String,String[]> queryParamMap= new HashMap<String,String[]>(); 
+
+      
         // parameters inside a GROUP element
-        ArrayList <ParamElement> groupParams = null;
+         ArrayList <ParamElement> groupParams = null;
         
         
         protected DataLinkService() {
@@ -386,30 +405,64 @@ public class DataLinkParams {
             paramMap.put(key, value);
             
         }
+        
+        protected String getParam(String name) {
+            return paramMap.get(name);
+        }
+        protected boolean hasParam(String name) {
+            return paramMap.containsKey(name);
+        }
+        
         protected  void addGroupParam(ParamElement param) {
             
             groupParams.add(param);
-            
+            //ParamElement [] groupParam = groupParams.toArray(new ParamElement[]{});
+            for (ParamElement p : groupParams ) {
+                String xtype = p.getXtype();
+                long[] arraysize = p.getArraysize();
+                if ( xtype != null && xtype.equalsIgnoreCase("interval") && arraysize != null && arraysize[0]!=1) {
+                    queryParamMap.put(p.getName(), new String[] {"", ""} );
+                } else {
+                    queryParamMap.put(p.getName(), new String[] {""} );
+                }
+            }
         }
+        
         protected ParamElement [] getQueryParams() {
       
             return (ParamElement[]) groupParams.toArray(new ParamElement[]{});
         }
         
-        protected String getQueryParam( String paramName ) {
+        protected int getQueryParamCount() {
+            if (groupParams==null)
+                return 0;
+            return groupParams.size();
+        }
+        
+        protected  Set<String> getQueryParamNames() {
+            return  queryParamMap.keySet();
+        }
+            
+        protected String [] getQueryParamValue( String paramName ) {
              
-             for (int i=0;i<groupParams.size(); i++ ) {
-                 ParamElement pel = groupParams.get(i);
-                 if (pel.getName().equals(paramName))
-                     return pel.getValue();
-             }
-             return null;
+            return queryParamMap.get(paramName);
+            
+        }
+        protected void setQueryParam( String paramName, String value ) {        
+            queryParamMap.replace(paramName, new String[] { value });
+        }
+        protected void setQueryParam( String paramName, String min, String max ) {
+            queryParamMap.replace(paramName, new String[] { min, max });
         }
         
-        protected String getParam(String name) {
-            return paramMap.get(name);
-        }
-        
+      
+      /*  protected void clearParams() {
+            for (String key: paramMap.keySet()) 
+                changeParamValue(key,"");
+        }*/
     }
+
+   
+   
     
 }
