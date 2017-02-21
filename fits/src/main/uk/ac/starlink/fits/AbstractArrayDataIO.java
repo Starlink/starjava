@@ -151,11 +151,11 @@ public abstract class AbstractArrayDataIO
     }
 
     public int readUnsignedByte() throws IOException {
-        return get() | 0xff;
+        return get() & 0xff;
     }
 
     public int readUnsignedShort() throws IOException {
-        return readShort() | 0xffff;
+        return readShort() & 0xffff;
     }
 
     /*
