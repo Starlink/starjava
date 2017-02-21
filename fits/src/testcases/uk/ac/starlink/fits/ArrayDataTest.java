@@ -18,7 +18,7 @@ import uk.ac.starlink.util.TestCase;
 
 public class ArrayDataTest extends TestCase {
 
-    private final int cblock = 8 + 4 + 4 + 2 + 1;
+    private final int cblock = 8 + 4 + 4 + 2 + 2 + 1;
 
     public ArrayDataTest( String name ) {
         super( name );
@@ -68,6 +68,7 @@ public class ArrayDataTest extends TestCase {
     private void writeBlock( int i, DataOutput out ) throws IOException {
         out.writeByte( (byte) i );
         out.writeShort( (short) i );
+        out.writeShort( (short) i );
         out.writeInt( i );
         out.writeFloat( (float) i );
         out.writeDouble( (float) i );
@@ -78,6 +79,7 @@ public class ArrayDataTest extends TestCase {
         if ( phase == 0 ) {
             assertEquals( (byte) i, in.readByte() );
             assertEquals( (short) i, in.readShort() );
+            assertEquals( (int) i, in.readUnsignedShort() );
             assertEquals( (int) i, in.readInt() );
             assertEquals( (float) i, in.readFloat() );
             assertEquals( (double) i, in.readDouble() );
@@ -88,16 +90,19 @@ public class ArrayDataTest extends TestCase {
         else if ( phase == 2 ) {
             byte[] bbuf = new byte[ 1 ];
             short[] sbuf = new short[ 1 ];
+            int[] usbuf = new int[ 1 ];
             int[] ibuf = new int[ 2 ];
             float[] fbuf = new float[ 4 ];
             double[] dbuf = new double[ 1 ];
             in.read( bbuf );
             in.read( sbuf, 0, 1 );
+            usbuf[ 0 ] = in.readUnsignedShort();
             in.read( ibuf, 1, 1 );
             in.read( fbuf, 2, 1 );
             in.read( dbuf );
             assertEquals( (byte) i, bbuf[ 0 ] );
             assertEquals( (short) i, sbuf[ 0 ] );
+            assertEquals( (int) i, usbuf[ 0 ] );
             assertEquals( (int) i, ibuf[ 1 ] );
             assertEquals( (float) i, fbuf[ 2 ] );
             assertEquals( (double) i, dbuf[ 0 ] );
