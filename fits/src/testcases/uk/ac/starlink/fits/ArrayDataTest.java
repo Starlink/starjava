@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,10 +19,19 @@ import uk.ac.starlink.util.TestCase;
 
 public class ArrayDataTest extends TestCase {
 
-    private final int cblock = 8 + 4 + 4 + 2 + 2 + 1;
+    private final String txt_ = "A" + "b" + "\u0393";
+    private final int nc_;
+    private final int cblock_;
 
     public ArrayDataTest( String name ) {
         super( name );
+        try {
+            nc_ = txt_.getBytes( "UTF-8" ).length + 2; // includes 2-byte length
+        }
+        catch ( UnsupportedEncodingException e ) {
+            throw new AssertionError();
+        }
+        cblock_ = 8 + 4 + 4 + 2 + 2 + 1 + nc_;
         Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
@@ -36,7 +46,7 @@ public class ArrayDataTest extends TestCase {
             writeBlock( i, out );
         }
         out.close();
-        assertEquals( cblock * count, file.length() );
+        assertEquals( cblock_ * count, file.length() );
 
         ArrayDataInput[] ins = new ArrayDataInput[] {
             new BufferedDataInputStream( new FileInputStream( file ) ),
@@ -54,10 +64,10 @@ public class ArrayDataTest extends TestCase {
             if ( in instanceof RandomAccess ) {
                 RandomAccess rin = (RandomAccess) in;
                 for ( int j = count - 1; j >= 0; j-- ) {
-                    rin.seek( j * cblock );
-                    assertEquals( j * cblock, rin.getFilePointer() );
+                    rin.seek( j * cblock_ );
+                    assertEquals( j * cblock_, rin.getFilePointer() );
                     readBlock( j, rin );
-                    assertEquals( ( j + 1 ) * cblock, rin.getFilePointer() );
+                    assertEquals( ( j + 1 ) * cblock_, rin.getFilePointer() );
                 }
             }
             in.close();
@@ -72,6 +82,7 @@ public class ArrayDataTest extends TestCase {
         out.writeInt( i );
         out.writeFloat( (float) i );
         out.writeDouble( (float) i );
+        out.writeUTF( txt_ );
     }
 
     private void readBlock( int i, ArrayDataInput in ) throws IOException {
@@ -83,9 +94,10 @@ public class ArrayDataTest extends TestCase {
             assertEquals( (int) i, in.readInt() );
             assertEquals( (float) i, in.readFloat() );
             assertEquals( (double) i, in.readDouble() );
+            assertEquals( txt_, in.readUTF() );
         }
         else if ( phase == 1 ) {
-            for ( int skip = cblock; skip > 0; skip -= in.skip( skip ) );
+            for ( int skip = cblock_; skip > 0; skip -= in.skip( skip ) );
         }
         else if ( phase == 2 ) {
             byte[] bbuf = new byte[ 1 ];
@@ -94,12 +106,14 @@ public class ArrayDataTest extends TestCase {
             int[] ibuf = new int[ 2 ];
             float[] fbuf = new float[ 4 ];
             double[] dbuf = new double[ 1 ];
+            byte[] cbuf = new byte[ nc_ ];
             in.read( bbuf );
             in.read( sbuf, 0, 1 );
             usbuf[ 0 ] = in.readUnsignedShort();
             in.read( ibuf, 1, 1 );
             in.read( fbuf, 2, 1 );
             in.read( dbuf );
+            in.read( cbuf );
             assertEquals( (byte) i, bbuf[ 0 ] );
             assertEquals( (short) i, sbuf[ 0 ] );
             assertEquals( (int) i, usbuf[ 0 ] );
@@ -108,7 +122,7 @@ public class ArrayDataTest extends TestCase {
             assertEquals( (double) i, dbuf[ 0 ] );
         }
         else if ( phase == 3 ) {
-            byte[] buf = new byte[ cblock ];
+            byte[] buf = new byte[ cblock_ ];
             in.read( buf );
             assertEquals( (byte) i, buf[ 0 ] );
             assertEquals( (short) i,
