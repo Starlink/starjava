@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,13 +40,19 @@ public class ArrayDataTest extends TestCase {
         int count = 999;
         File file = File.createTempFile( "iotest", ".fits" );
         file.deleteOnExit();
-        DataOutputStream out =
+        ByteBuffer mbuf = ByteBuffer.allocate( cblock_ * count );
+        DataOutputStream fout =
             new DataOutputStream(
                 new BufferedOutputStream( new FileOutputStream( file ) ) );
+        AbstractArrayDataIO mout = new MappedFile( mbuf );
         for ( int i = 0; i < count; i++ ) {
-            writeBlock( i, out );
+            writeBlock( i, fout );
+            writeBlock( i, mout );
         }
-        out.close();
+        fout.close();
+        assertEquals( 0, mout.remaining() );
+        mout.close();
+        mbuf.rewind();
         assertEquals( cblock_ * count, file.length() );
 
         ArrayDataInput[] ins = new ArrayDataInput[] {
@@ -55,6 +62,7 @@ public class ArrayDataTest extends TestCase {
             new BufferedFile( file.toString(), "r", 29 ),
             new MappedFile( file.toString() ),
             new MultiMappedFile( file, FileChannel.MapMode.READ_ONLY, 1023 ),
+            new MappedFile( mbuf ),
         };
         for ( int ii = 0; ii < ins.length; ii++ ) {
             ArrayDataInput in = ins[ ii ];
