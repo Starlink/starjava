@@ -170,7 +170,7 @@ class TableTest(unittest.TestCase):
     def assertEqualData(self, t1, t2):
         try:
             self.assertEquals(len(t1), len(t2))
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
         for ir, rows in enumerate(map(None, t1, t2)):
             self.assertEquals(rows[0], rows[1], "row %d" % ir)
