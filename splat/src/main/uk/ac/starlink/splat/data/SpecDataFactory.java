@@ -349,7 +349,7 @@ public class SpecDataFactory
                  }
              }
                  
-             if (remotetype != GUESS)
+             if (remotetype != GUESS && remotetype != NOT_SUPPORTED)
                  type = remotetype;
               
              if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {               
@@ -1398,9 +1398,11 @@ public class SpecDataFactory
         namer = new PathParser( url.toString() );
 
         String stype = null;
-
-        type=mimeToSPLATType(conttype);
-
+      
+        int mimetype=mimeToSPLATType(conttype);
+        if (type == GUESS && mimetype != GUESS && mimetype != NOT_SUPPORTED)
+           type=mimetype;
+        
         //  Create a temporary file. Use a file extension based on the
         //  type, if known.
 
