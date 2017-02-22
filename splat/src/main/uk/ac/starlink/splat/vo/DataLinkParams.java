@@ -57,7 +57,7 @@ public class DataLinkParams {
      *  The VOTABLE must contain only Datalink info
      * @throws IOException 
      */
-    public DataLinkParams( String dataLinksrc) throws IOException {
+    public DataLinkParams(String dataLinksrc) throws IOException {
         id_source=null;
         format = ""; 
         service = new ArrayList<DataLinkService>();
@@ -265,10 +265,14 @@ public class DataLinkParams {
     
     protected void setQueryParam( String paramName, String value ) {
         for (DataLinkService srv : service)
+            if (srv.hasQueryParam(paramName))
                 srv.setQueryParam(paramName, value);        
    }
+    
+
     protected void setQueryParam( String paramName, String min, String max ) {
         for (DataLinkService srv : service)
+            if (srv.hasQueryParam(paramName))
                 srv.setQueryParam(paramName, min, max);        
    }
     
@@ -400,7 +404,7 @@ public class DataLinkParams {
             paramMap= new HashMap<String,String>(); 
             groupParams= new ArrayList<ParamElement>();
         }
-        
+
         protected  void addParam(String key, String value) {
             paramMap.put(key, value);
             
@@ -412,7 +416,9 @@ public class DataLinkParams {
         protected boolean hasParam(String name) {
             return paramMap.containsKey(name);
         }
-        
+        protected boolean hasQueryParam(String name) {
+            return queryParamMap.containsKey(name);
+        }
         protected  void addGroupParam(ParamElement param) {
             
             groupParams.add(param);
@@ -448,11 +454,13 @@ public class DataLinkParams {
             return queryParamMap.get(paramName);
             
         }
-        protected void setQueryParam( String paramName, String value ) {        
-            queryParamMap.replace(paramName, new String[] { value });
+        protected void setQueryParam( String paramName, String value ) {  
+            queryParamMap.remove(paramName);
+            queryParamMap.put(paramName, new String[] { value });
         }
         protected void setQueryParam( String paramName, String min, String max ) {
-            queryParamMap.replace(paramName, new String[] { min, max });
+            queryParamMap.remove(paramName);
+            queryParamMap.put(paramName, new String[] { min, max });
         }
         
       
@@ -462,6 +470,7 @@ public class DataLinkParams {
         }*/
     }
 
+   
    
    
     
