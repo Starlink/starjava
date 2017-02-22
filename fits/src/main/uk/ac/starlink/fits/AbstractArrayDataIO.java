@@ -2,6 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.DataInputStream;
 import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
@@ -18,15 +19,6 @@ import nom.tam.util.ArrayDataOutput;
  *     or commercial so long as this copyright notice is retained
  *     in the source code or included in or referred to in any
  *     derived software.
- *
- * One method (writeUTF(java.lang.String,java.io.DataOutput) is from
- * Sun's J2SE1.4 java.io.DataOutputStream implementation.
- * That file contains the following notice:
- *
- *     @(#)DataOutputStream.java    1.34 01/12/03
- *
- *     Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- *     SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
 
@@ -502,7 +494,12 @@ public abstract class AbstractArrayDataIO
     }
 
     public void writeUTF( String str ) throws IOException {
-        writeUTF( str, this );
+        byte[] utfBytes = str.getBytes( "UTF-8" );
+        byte[] buf = new byte[ utfBytes.length + 2 ];
+        buf[0] =  (byte) ( ( utfBytes.length >>> 8 ) & 0xff );
+        buf[1] =  (byte) ( utfBytes.length & 0xFF );
+        System.arraycopy( utfBytes, 0, buf, 2, utfBytes.length );
+        write( buf );
     }
 
     public void write( byte[] buf ) throws IOException {
@@ -608,69 +605,4 @@ public abstract class AbstractArrayDataIO
         return new IOException( "Attempted write beyond buffer limit" );
     }
 
-    /**
-     * Writes a string to the specified DataOutput using UTF-8 encoding in a
-     * machine-independent manner.
-     * <p>
-     * First, two bytes are written to out as if by the <code>writeShort</code>
-     * method giving the number of bytes to follow. This value is the number of
-     * bytes actually written out, not the length of the string. Following the
-     * length, each character of the string is output, in sequence, using the
-     * UTF-8 encoding for the character. If no exception is thrown, the
-     * counter <code>written</code> is incremented by the total number of
-     * bytes written to the output stream. This will be at least two
-     * plus the length of <code>str</code>, and at most two plus
-     * thrice the length of <code>str</code>.
-     * <p>
-     * The implementation of this method is taken directly from a
-     * package-private static method of the Sun J2SE1.4 DataOutputStream
-     * implementation.
-     *
-     * @param      str   a string to be written.
-     * @param      out   destination to write to
-     * @return     The number of bytes written out.
-     * @exception  IOException  if an I/O error occurs.
-     */
-    private static int writeUTF(String str, DataOutput out) throws IOException {
-        int strlen = str.length();
-        int utflen = 0;
-        char[] charr = new char[strlen];
-        int c, count = 0;
-
-        str.getChars(0, strlen, charr, 0);
-
-        for (int i = 0; i < strlen; i++) {
-            c = charr[i];
-            if ((c >= 0x0001) && (c <= 0x007F)) {
-                utflen++;
-            } else if (c > 0x07FF) {
-                utflen += 3;
-            } else {
-                utflen += 2;
-            }
-        }
-
-        if (utflen > 65535)
-            throw new UTFDataFormatException();
-
-        byte[] bytearr = new byte[utflen+2];
-        bytearr[count++] = (byte) ((utflen >>> 8) & 0xFF);
-        bytearr[count++] = (byte) ((utflen >>> 0) & 0xFF);
-        for (int i = 0; i < strlen; i++) {
-            c = charr[i];
-            if ((c >= 0x0001) && (c <= 0x007F)) {
-                bytearr[count++] = (byte) c;
-            } else if (c > 0x07FF) {
-                bytearr[count++] = (byte) (0xE0 | ((c >> 12) & 0x0F));
-                bytearr[count++] = (byte) (0x80 | ((c >>  6) & 0x3F));
-                bytearr[count++] = (byte) (0x80 | ((c >>  0) & 0x3F));
-            } else {
-                bytearr[count++] = (byte) (0xC0 | ((c >>  6) & 0x1F));
-                bytearr[count++] = (byte) (0x80 | ((c >>  0) & 0x3F));
-            }
-        }
-        out.write(bytearr);
-
-        return utflen + 2;
-    }
 }
