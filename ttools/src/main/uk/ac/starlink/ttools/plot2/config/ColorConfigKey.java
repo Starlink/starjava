@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.ttools.gui.ColorComboBox;
 
 /**
@@ -60,6 +62,10 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
     /** Standard colour name for light grey. */
     public static final String COLORNAME_LIGHTGREY = "light_grey";
 
+    private static final Pattern RGB_REGEX =
+        Pattern.compile( "(?:0x|#|)([0-9a-fA-F]{6})" );
+    private static final NamedColorSet NAMED_COLORS = NamedColorSet.CSS;
+
     /**
      * Constructs a config key using the default colour option list.
      *
@@ -99,14 +105,16 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
     }
 
     public Color decodeString( String sval ) {
-        final int rgb;
-        try {
-            rgb = Integer.parseInt( sval, 16 );
+        Matcher rgbMatcher = RGB_REGEX.matcher( sval );
+        if ( rgbMatcher.matches() ) {
+            int rgb = Integer.parseInt( rgbMatcher.group( 1 ), 16 );
+            return new Color( rgb );
         }
-        catch ( NumberFormatException e ) {
-            return null;
+        Color named = NAMED_COLORS.getColor( sval );
+        if ( named != null ) {
+            return named;
         }
-        return new Color( rgb );
+        return null;
     }
 
     public String stringifyValue( Color color ) {
@@ -151,15 +159,27 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
                     .append( "</code>" );
         }
         meta.setXmlDescription( new String[] {
-            "<p>The color of " + theItem + ".",
+            "<p>The color of " + theItem + ",",
+            "given by name or as a hexadecimal RGB value.",
             "</p>",
-            "<p>The value may be a six-digit hexadecimal number",
-            "giving red, green and blue intensities,",
-            " e.g.  \"<code>ff00ff</code>\" for magenta.",
-            "Alternatively it may be the name of one of the",
-            "pre-defined colors.",
-            "These are currently",
+            "<p>The standard plotting colour names are",
             nameList.toString() + ".",
+            "However, many other common colour names (too many to list here)",
+            "are also understood.",
+            "The list currently contains those colour names understood",
+            "by most web browsers,",
+            "from <code>AliceBlue</code> to <code>YellowGreen</code>,",
+            "listed e.g. in the",
+            "<em>Extended color keywords</em> section of",
+            "the <webref url='https://www.w3c.org/TR/css3-color'>CSS3</webref>",
+            "standard.",
+            "</p>",
+            "<p>Alternatively, a six-digit hexadecimal number <em>RRGGBB</em>",
+            "may be supplied,",
+            "optionally prefixed by \"<code>#</code>\" or \"<code>0x</code>\",",
+            "giving red, green and blue intensities,",
+            "e.g.  \"<code>ff00ff</code>\", \"<code>#ff00ff</code>\"",
+            "or \"<code>0xff00ff</code>\" for magenta.",
             "</p>",
         } );
         return meta;

@@ -3211,7 +3211,7 @@ markers size for both layers, you can write instead:
    stilts plot2plane
        size=5
        layer_1=mark in_1=cat1.fits x_1=BMAG-RMAG   y_1=BMAG  color_1=magenta
-       layer_2=mark in_2=cat2.fits x_2=mag_b-mag_r y_2=mag_b color_2=cyan
+       layer_2=mark in_2=cat2.fits x_2=mag_b-mag_r y_2=mag_b color_2=teal
 </verbatim>
 Although the <code>size</code> parameter no longer has an explicit suffix,
 it's still a layer parameter, it just applies to multiple layers.
@@ -5595,7 +5595,7 @@ systems if you specify the data and view systems e.g.:
 <dt><verbatim>
 stilts plot2sky in=messier.xml lon=RA lat=DEC
                 layer.pos=mark size.pos=4
-                layer.txt=label label.txt=Name layer.color=grey
+                layer.txt=label label.txt=Name color.txt=slategrey
 </verbatim></dt>
 <dd><p>Plots the positions of all the Messier objects on the sky,
     with text labels giving their object names.
@@ -5884,8 +5884,8 @@ stilts plot2time tmin=2007-06-07T02:40 tmax=2007-06-07T06:20 tformat=mjd
 stilts plot2time in=STEREO_STA_L1_SEPT_20070607_V05.cdf t=epoch_ns
                  layer_1=spectrogram spectrum_1=spec_0_ns zone_1=A
                  layer_2=spectrogram spectrum_2=spec_0_e  zone_2=B
-                 layer_3=line y_3='mean(spec_0_ns)' color_3=red  zone_3=C
-                 layer_4=line y_4='mean(spec_0_e)'  color_4=blue zone_4=C
+                 layer_3=line y_3='mean(spec_0_ns)' color_3=plum    zone_3=C
+                 layer_4=line y_4='mean(spec_0_e)'  color_4=skyblue zone_4=C
                  ylogC=true
                  auxfunc=sqrt auxmapA=viridis auxmapB=magma
 </verbatim></dt>
@@ -11014,6 +11014,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix small bug in <code>plot2plane</code>/<code>plot2time</code>
         label painting; horizontal axis label was sometimes off the
         bottom of the plot by a few pixels.</li>
+    <li>Colours may now be specified to the <code>plot2*</code> commands
+        using any of the (140) CSS-like colour names rather
+        than just the dozen standard plotting colours.</li>
     </ul>
     </p></dd>
 
