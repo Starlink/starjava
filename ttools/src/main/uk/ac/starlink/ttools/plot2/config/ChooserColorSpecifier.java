@@ -24,6 +24,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.UIManager;
+import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
@@ -54,6 +55,8 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
     private final ChooseAction resetAct_;
     private Color color_;
     private static final Map<String,Color[]> PALETTE_MAP = createPaletteMap();
+    private static final Map<String,Color> COLOR_MAP =
+        NamedColorSet.CSS_DARK.getMap();
 
     /**
      * Constructs a specifier based on a given default colour.
@@ -62,8 +65,15 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
      */
     public ChooserColorSpecifier( Color dfltColor ) {
         this( new JColorChooser( dfltColor ) );
-        chooser_.addChooserPanel( new PaletteColorChooserPanel( PALETTE_MAP,
-                                                                chooser_ ) );
+
+        /* Add custom choosers. */
+        AbstractColorChooserPanel[] extraChoosers = {
+            new PaletteColorChooserPanel( PALETTE_MAP, chooser_ ),
+            new NamedColorChooserPanel( COLOR_MAP, chooser_ ),
+        };
+        for ( AbstractColorChooserPanel c : extraChoosers ) {
+            chooser_.addChooserPanel( c );
+        }
 
         /* Get rid of the default JColorChooser preview panel.
          * The details of it are not very useful here. */
