@@ -801,6 +801,19 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     }
 
     /**
+     * Prepares a plot for this task as specified by a given environment,
+     * but does not run any of the actual plotting code.
+     * If this utility method completes without error, there is a good chance
+     * that the specified plot will also run without error.
+     *
+     * @param  env  populated environment
+     * @throws   TaskException   in case of error
+     */
+    public void testEnv( Environment env ) throws TaskException {
+        createPlotExecutor( env, getPlotContext( env ) );
+    }
+
+    /**
      * Returns a graphical component that displays an interactive view of
      * the plot described by a value-bearing execution environment.
      * This utility method is not used for executing the task defined by
