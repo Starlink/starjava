@@ -166,10 +166,10 @@ public class PlotExample {
         map.put( "cat.xml", "/mbt/devel/text/cambridge2008/6dfgs_mini.xml" );
         map.put( "6dfgs_mini.xml",
                  "/mbt/devel/text/cambridge2008/6dfgs_mini.xml" );
-        map.put( "2mass_xsc.fits", "/d2/scratch2/colfits/2mass_xsc.colfits" );
+        map.put( "2mass_xsc.fits", "/mbt/data/survey/2mass_xsc.fits" );
         map.put( "iras_psc.fits", "/mbt/data/survey/iras_psc.fits" );
         map.put( "messier.xml",
-                 "/mbt/starjava/java/source/topcat/src/etc/demo/votable/" 
+                 "/mbt/starjava/source/topcat/src/etc/demo/votable/" 
                  + "messier.xml" );
         map.put( "sim1.fits", "/mbt/data/table/gavo_g1.fits" );
         map.put( "sim2.fits", "/mbt/data/table/gavo_g2.fits" );
