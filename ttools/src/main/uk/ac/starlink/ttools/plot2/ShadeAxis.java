@@ -232,8 +232,28 @@ public class ShadeAxis {
 
             /* Paint the ramp frame and axis annotations. */
             g2.setColor( Color.BLACK );
+  
+            /* Paint the rectangular frame by filling four 1-pixel-wide
+             * rectangles, one for each side of the frame.
+             * This may look like an eccentric alternative
+             * to a simple drawRect call, but the trouble is that for
+             * some vector Graphics implementations (PDF/PostScript outputs)
+             * you tend to get subpixel offsets in line positioning,
+             * so that mixing drawRect and fillRect calls leads to
+             * a ramp frame that is slightly offset from the contents.
+             * That might (or might not) be a bug in those Graphics
+             * implementations, but it's more reliable and straightforward
+             * to work round that behaviour than to try fixing it. */
+            int fw = 1;           // frame width
+            int bx = box_.x;
+            int by = box_.y + 1;  // 1-pixel offset in drawing code above
+            g2.fillRect( bx, by, fw, box_.height );
+            g2.fillRect( bx, by + box_.height - fw, box_.width, fw );
+            g2.fillRect( bx, by, box_.width, fw );
+            g2.fillRect( bx + box_.width - fw, by, fw, box_.height );
+
+            /* Paint the axis labels. */
             AffineTransform trans0 = g2.getTransform();
-            g2.drawRect( box_.x, box_.y, box_.width, box_.height );
             g2.translate( box_.x + box_.width, box_.y + box_.height );
             g2.rotate( - Math.PI / 2 );
             axis_.drawLabels( ticks_, label_, captioner_, ORIENTATION,

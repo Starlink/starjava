@@ -23917,6 +23917,8 @@ introduced since the last version:
     <li>Fix small bug in Plane/Time plot windows;
         horizontal axis label was sometimes off the bottom of the plot
         by a few pixels.</li>
+    <li>Fix subpixel offset of colour ramp frame in PDF/PostScript graphics
+        output.</li>
     </ul>
     </p></dd>
 

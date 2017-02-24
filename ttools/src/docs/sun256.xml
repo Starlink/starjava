@@ -11017,6 +11017,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Colours may now be specified to the <code>plot2*</code> commands
         using any of the (140) CSS-like colour names rather
         than just the dozen standard plotting colours.</li>
+    <li>Fix subpixel offset of colour ramp frame in PDF/PostScript graphics
+        output.</li>
     </ul>
     </p></dd>
 
