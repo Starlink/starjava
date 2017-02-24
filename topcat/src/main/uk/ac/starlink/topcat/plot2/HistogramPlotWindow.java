@@ -46,6 +46,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.AbstractKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.BinBag;
+import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
@@ -250,6 +251,7 @@ public class HistogramPlotWindow
             GuiDataSpec dataSpec = (GuiDataSpec) layer.getDataSpec();
             boolean isCumulative = style.isCumulative();
             Normalisation norm = style.getNormalisation();
+            Combiner combiner = style.getCombiner();
             int icWeight = plotter.getWeightCoordIndex();
             boolean hasWeight =
                 icWeight >= 0 && ! dataSpec.isCoordBlank( icWeight );
@@ -273,7 +275,8 @@ public class HistogramPlotWindow
                     .append( "_" );
             }
             if ( hasWeight ) {
-                nbuf.append( "SUM_" )
+                nbuf.append( combiner.getName() )
+                    .append( "_" )
                     .append( weightName );
             }
             else {
@@ -289,7 +292,12 @@ public class HistogramPlotWindow
             if ( isCumulative ) {
                 descripWords.add( "cumulative" );
             }
-            descripWords.add( "count" );
+            if ( hasWeight ) {
+                descripWords.add( combiner.getName().toLowerCase() );
+            }
+            else {
+                descripWords.add( "count" );
+            }
             StringBuffer dbuf = new StringBuffer();
             for ( String word : descripWords ) {
                 dbuf.append( word )

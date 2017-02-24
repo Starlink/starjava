@@ -19,8 +19,9 @@ public class BinBag {
     private final boolean log_;
     private final double binWidth_;
     private final double binPhase_;
+    private final Combiner combiner_;
     private final BinMapper mapper_;
-    private final Map<Integer,Value> valueMap_;
+    private final Map<Integer,Combiner.Container> valueMap_;
 
     /**
      * Constructor.
@@ -44,36 +45,38 @@ public class BinBag {
      *                     and multiplicative for logarithmic scaling
      * @param   binPhase   determines sub-bin boundary shifts along axis,
      *                     normally in range 0..1
+     * @param   combiner   aggregation mode
      * @param   point   representative point on axis near which bins are
      *                  situated
      */
     public BinBag( boolean log, double binWidth, double binPhase,
-                   double point ) {
+                   Combiner combiner, double point ) {
         log_ = log;
         binWidth_ = binWidth;
         binPhase_ = binPhase;
+        combiner_ = combiner;
         mapper_ = BinMapper.createMapper( log, binWidth, binPhase, point );
-        valueMap_ = new HashMap<Integer,Value>();
+        valueMap_ = new HashMap<Integer,Combiner.Container>();
     }
 
     /**
-     * Adds a value to the bin in which a given point falls.
-     * Checking is performed; if the value is unsuitable
+     * Submits a value for aggregation in the bin in which a given point falls.
+     * Checking is performed; if the point is unsuitable
      * (for instance infinite) it will be ignored.
      *
      * @param  point  axis coordinate
-     * @param  inc   value to accumulate onto bin value
+     * @param  datum   value to aggregate into bin value
      */
-    public void addToBin( double point, double inc ) {
+    public void submitToBin( double point, double datum ) {
         if ( ! Double.isNaN( point ) && ! Double.isInfinite( point ) &&
              ( ( ! log_ ) || point > 0 ) ) {
             int ix = mapper_.getBinIndex( point );
-            Value val = valueMap_.get( ix );
+            Combiner.Container val = valueMap_.get( ix );
             if ( val == null ) {
-                val = new Value();
+                val = combiner_.createContainer();
                 valueMap_.put( ix, val );
             }
-            val.value_ += inc;
+            val.submit( datum );
         }
     }
 
@@ -115,7 +118,7 @@ public class BinBag {
         double total = 0;
         double max = 0;
         for ( int ib = 0; ib < nbin; ib++ ) {
-            double value = valueMap_.get( binIndices[ ib ] ).value_;
+            double value = valueMap_.get( binIndices[ ib ] ).getResult();
             binValues[ ib ] = cumulative ? total + value : value;
             total += value;
             max = Math.max( max, Math.abs( value ) );
@@ -230,21 +233,24 @@ public class BinBag {
     }
 
     /**
-     * Indicates whether the bin boundaries used by this object are the
-     * same as a given bin set specification.
+     * Indicates whether the bin boundaries and aggregation mode
+     * used by this object are the same as a given bin set specification.
      *
      * @param   log  false for linear scaling, true for logarithmic
      * @param   binWidth   width of each bin; this is additive for linear
      *                     and multiplicative for logarithmic scaling
      * @param   binPhase   determines sub-bin boundary shifts along axis
      *                     normally in range 0..1
+     * @param   combiner   aggregation mode
      * @return  true iff a BinBag constructed using the given parameters
-     *          would have the same bin boundaries as this one
+     *          would have the same behaviour as this one
      */
-    public boolean matches( boolean log, double binWidth, double binPhase ) {
+    public boolean matches( boolean log, double binWidth, double binPhase,
+                            Combiner combiner ) {
         return log == log_
             && binWidth == binWidth_
-            && binPhase == binPhase_;
+            && binPhase == binPhase_
+            && combiner.equals( combiner_ );
     }
 
     /**
@@ -296,12 +302,5 @@ public class BinBag {
          * @return   bin value
          */
         public double getY();
-    }
-
-    /**
-     * Holds a single mutable double value.  Used for accumulating bin sums.
-     */
-    private static class Value {
-        double value_;
     }
 }

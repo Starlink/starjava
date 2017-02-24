@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
+import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
@@ -236,10 +237,11 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         float[] dash = null;
         BinSizer sizer = BinSizer.createCountBinSizer( 16 );
         double phase = 0;
+        Combiner combiner = Combiner.SUM;
         HistogramPlotter.HistoStyle style =
             new HistogramPlotter.HistoStyle( color, barForm, placement,
                                              cumulative, norm, thick, dash,
-                                             sizer, phase );
+                                             sizer, phase, combiner );
 
         /* Combine data and style to generate a histogram plot layer. */
         Plotter plotter =

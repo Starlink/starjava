@@ -6,8 +6,10 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -31,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -123,6 +126,31 @@ public class HistogramPlotter
             } )
         , 0, 0, 1, false );
 
+    /** Config key for bin aggregation mode. */
+    public static final ConfigKey<Combiner> COMBINER_KEY =
+        new OptionConfigKey<Combiner>(
+            new ConfigMeta( "combine", "Combine" )
+           .setShortDescription( "Bin aggregation mode" )
+           .setXmlDescription( new String[] {
+                "<p>Defines how the values landing in each bin",
+                "are aggregated together to produce the value",
+                "assigned to that bin (and hence its height).",
+                "</p>",
+                "<p>The default is <code>" + Combiner.SUM + "</code>,",
+                "which results in a normal weighted or unweighted histogram.",
+                "Other modes only make much sense if there is a non-unit",
+                "weighting; in this case",
+                "<code>" + Combiner.MEAN + "</code> or",
+                "<code>" + Combiner.MEDIAN + "</code> may be of interest.",
+                "</p>",
+            } )
+        , Combiner.class, Combiner.getKnownCombiners(), Combiner.SUM ) {
+        public String getXmlDescription( Combiner combiner ) {
+            return combiner.getDescription();
+        }
+    }.setOptionUsage()
+     .addOptionsXml();
+
     /**
      * Constructor.
      *
@@ -178,7 +206,36 @@ public class HistogramPlotter
     }
 
     public String getPlotterDescription() {
-        return "<p>Plots a histogram.</p>";
+        final String weightPara;
+        if ( weightCoord_ != null ) {
+            weightPara = PlotUtil.concatLines( new String[] {
+                "<p>Bin heights may optionally be weighted by the",
+                "values of some additional coordinate,",
+                "supplied using the",
+                "<code>" + weightCoord_.getInput().getMeta().getShortName()
+                         + "</code>",
+                "parameter.",
+                "In this case you can choose how these weights are combined",
+                "in each bin using the",
+                "<code>" + COMBINER_KEY.getMeta().getShortName() + "</code>",
+                "parameter.",
+                "</p>",
+            } );
+        }
+        else {
+            weightPara = "";
+        }
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots a histogram.",
+            "</p>",
+            weightPara,
+            "<p>Various options are provided for configuring how the",
+            "bar heights are calculated,",
+            "but note that not all combinations of the available parameters",
+            "will necessarily lead to meaningful visualisations.",
+            "</p>",
+            // for instance combine=mean and cumulative=true.
+        } );
     }
 
     public CoordGroup getCoordGroup() {
@@ -186,17 +243,24 @@ public class HistogramPlotter
     }
 
     public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
+        List<ConfigKey> list = new ArrayList<ConfigKey>();
+        list.addAll( Arrays.asList( new ConfigKey[] {
             StyleKeys.COLOR,
             StyleKeys.TRANSPARENCY,
             BINSIZER_KEY,
             PHASE_KEY,
+        } ) );
+        if ( weightCoord_ != null ) {
+            list.add( COMBINER_KEY );
+        }
+        list.addAll( Arrays.asList( new ConfigKey[] {
             StyleKeys.CUMULATIVE,
             normKey_,
             StyleKeys.BAR_FORM,
             THICK_KEY,
             StyleKeys.DASH,
-        };
+        } ) );
+        return list.toArray( new ConfigKey[ 0 ] );
     }
 
     public HistoStyle createStyle( ConfigMap config ) {
@@ -210,8 +274,9 @@ public class HistogramPlotter
         float[] dash = config.get( StyleKeys.DASH );
         BinSizer sizer = config.get( BINSIZER_KEY );
         double binPhase = config.get( PHASE_KEY );
+        Combiner combiner = config.get( COMBINER_KEY );
         return new HistoStyle( color, barForm, placement, cumulative, norm,
-                               thick, dash, sizer, binPhase );
+                               thick, dash, sizer, binPhase, combiner );
     }
 
     public boolean hasReports() {
@@ -229,6 +294,7 @@ public class HistogramPlotter
         else {
             final double binPhase = style.phase_;
             final BinSizer sizer = style.sizer_;
+            final Combiner combiner = style.combiner_;
             final boolean cumul = style.cumulative_;
             final Normalisation norm = style.norm_;
             Color color = style.color_;
@@ -268,15 +334,15 @@ public class HistogramPlotter
                                 if ( knownPlans[ ip ] instanceof HistoPlan ) {
                                     HistoPlan plan =
                                         (HistoPlan) knownPlans[ ip ];
-                                    if ( plan.matches( xlog, binWidth,
-                                                       binPhase, dataSpec ) ) {
+                                    if ( plan.matches( xlog, binWidth, binPhase,
+                                                       combiner, dataSpec ) ) {
                                         return plan;
                                     }
                                 }
                             }
                             BinBag binBag =
-                                readBins( xlog, binWidth, binPhase, xlo,
-                                          dataSpec, dataStore );
+                                readBins( xlog, binWidth, binPhase, combiner,
+                                          xlo, dataSpec, dataStore );
                             return new HistoPlan( binBag, dataSpec );
                         }
                         public void paintData( Object plan, Paper paper,
@@ -324,8 +390,9 @@ public class HistogramPlotter
                     double xlo = xlimits[ 0 ];
                     double xhi = xlimits[ 1 ];
                     double binWidth = sizer.getWidth( xlog, xlo, xhi, xround );
-                    BinBag binBag = readBins( xlog, binWidth, binPhase, xlo,
-                                              dataSpec, dataStore );
+                    BinBag binBag =
+                        readBins( xlog, binWidth, binPhase, combiner,
+                                  xlo, dataSpec, dataStore );
 
                     /* Assume y=0 is always of interest for a histogram. */
                     yRange.submit( 0 );
@@ -371,27 +438,29 @@ public class HistogramPlotter
      * @param   xlog  false for linear scaling, true for logarithmic
      * @param   binWidth  additive/multiplicative bin width
      * @param   binPhase   bin reference point, 0..1
+     * @param   combiner   bin aggregation mode
      * @param   point     representative data value along axis
      * @param   dataSpec  specification for histogram data values
      * @param   dataStore  data storage
      */
     private BinBag readBins( boolean xlog, double binWidth, double binPhase,
-                             double point, DataSpec dataSpec,
+                             Combiner combiner, double point, DataSpec dataSpec,
                              DataStore dataStore ) {
-        BinBag binBag = new BinBag( xlog, binWidth, binPhase, point );
+        BinBag binBag = new BinBag( xlog, binWidth, binPhase, combiner, point );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         if ( weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ ) ) {
             while ( tseq.next() ) {
                 double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                binBag.addToBin( x, 1 );
+                binBag.submitToBin( x, 1 );
             }
         }
         else {
             while ( tseq.next() ) {
                 double x = xCoord_.readDoubleCoord( tseq, icX_ );
                 double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                double weight = Double.isNaN( w ) ? 0 : w;
-                binBag.addToBin( x, weight );
+                if ( ! Double.isNaN( w ) ) {
+                    binBag.submitToBin( x, w );
+                }
             }
         }
         return binBag;
@@ -553,6 +622,7 @@ public class HistogramPlotter
         private final float[] dash_;
         private final BinSizer sizer_;
         private final double phase_;
+        private final Combiner combiner_;
 
         private final BarStyle barStyle_;
 
@@ -568,12 +638,13 @@ public class HistogramPlotter
          * @param  dash    line dash pattern (only relevant for some forms)
          * @param  sizer   determines bin widths
          * @param  phase   bin reference point, 0..1
+         * @param  combiner  bin aggregation mode
          */
         public HistoStyle( Color color, BarStyle.Form barForm,
                            BarStyle.Placement placement,
                            boolean cumulative, Normalisation norm,
                            int thick, float[] dash,
-                           BinSizer sizer, double phase ) {
+                           BinSizer sizer, double phase, Combiner combiner ) {
             color_ = color;
             barForm_ = barForm;
             placement_ = placement;
@@ -583,6 +654,7 @@ public class HistogramPlotter
             dash_ = dash;
             sizer_ = sizer;
             phase_ = phase;
+            combiner_ = combiner;
             barStyle_ = new BarStyle( color, barForm, placement );
             barStyle_.setLineWidth( thick );
             barStyle_.setDash( dash );
@@ -615,6 +687,15 @@ public class HistogramPlotter
             return norm_;
         }
 
+        /**
+         * Returns the combination mode used for aggregating values into bins.
+         *
+         * @return  combiner
+         */
+        public Combiner getCombiner() {
+            return combiner_;
+        }
+
         public Icon getLegendIcon() {
             return barStyle_;
         }
@@ -631,6 +712,7 @@ public class HistogramPlotter
             code = 23 * code + Arrays.hashCode( dash_ );
             code = 23 * code + sizer_.hashCode();
             code = 23 * code + Float.floatToIntBits( (float) phase_ );
+            code = 23 * code + combiner_.hashCode();
             return code;
         }
 
@@ -646,7 +728,8 @@ public class HistogramPlotter
                     && this.thick_ == other.thick_
                     && Arrays.equals( this.dash_, other.dash_ )
                     && this.sizer_.equals( other.sizer_ )
-                    && this.phase_ == other.phase_;
+                    && this.phase_ == other.phase_
+                    && this.combiner_.equals( other.combiner_ );
             }
             else {
                 return false;
@@ -679,11 +762,12 @@ public class HistogramPlotter
          * @param   xlog   axis scaling
          * @param   binWidth   bin width
          * @param   binPhase    bin reference point, 0..1
+         * @param   combiner    bin aggregation mode
          * @param   dataSpec   source of coordinate data
          */
         boolean matches( boolean xlog, double binWidth, double binPhase,
-                         DataSpec dataSpec ) {
-            return binBag_.matches( xlog, binWidth, binPhase )
+                         Combiner combiner, DataSpec dataSpec ) {
+            return binBag_.matches( xlog, binWidth, binPhase, combiner )
                 && dataSpec_.equals( dataSpec );
         }
     }
