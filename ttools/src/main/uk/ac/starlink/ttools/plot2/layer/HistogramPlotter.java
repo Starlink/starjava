@@ -12,6 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.IteratorRowSequence;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.Range;
@@ -75,6 +80,10 @@ public class HistogramPlotter
     public static final ReportKey<Double> BINWIDTH_KEY =
         ReportKey.createDoubleKey( new ReportMeta( "binwidth", "Bin Width" ),
                                    false );
+
+    /** ReportKey for tabular result of plot. */
+    public static final ReportKey<StarTable> BINTABLE_KEY =
+        ReportKey.createTableKey( new ReportMeta( "bins", "Bin data" ), true );
 
     /** Config key for bin size configuration. */
     public static final ConfigKey<BinSizer> BINSIZER_KEY =
@@ -280,7 +289,7 @@ public class HistogramPlotter
     }
 
     public boolean hasReports() {
-        return false;
+        return true;
     }
 
     /**
@@ -297,6 +306,8 @@ public class HistogramPlotter
             final Combiner combiner = style.combiner_;
             final boolean cumul = style.cumulative_;
             final Normalisation norm = style.norm_;
+            final boolean hasWeight = weightCoord_ != null
+                                   && ! dataSpec.isCoordBlank( icWeight_ );
             Color color = style.color_;
             final boolean isOpaque = color.getAlpha() == 255
                                  && style.barForm_.isOpaque();
@@ -362,9 +373,14 @@ public class HistogramPlotter
                         public ReportMap getReport( Object plan ) {
                             ReportMap report = new ReportMap();
                             if ( plan instanceof HistoPlan ) {
-                                BinBag bbag = ((HistoPlan) plan).binBag_;
+                                HistoPlan hplan = (HistoPlan) plan;
+                                BinBag bbag = hplan.binBag_;
                                 report.put( BINS_KEY, bbag );
                                 report.put( BINWIDTH_KEY, bbag.getBinWidth() );
+                                report.put( BINTABLE_KEY,
+                                            new BinBagTable( hplan, style,
+                                                             hasWeight,
+                                                             xlog ) );
                             }
                             return report;
                         }
@@ -606,6 +622,86 @@ public class HistogramPlotter
             g2.scale( 1, -1 );
             barStyle.drawBar( g, xlo, xhi, y0, y1, iseq, nseq );
             g2.setTransform( trans0 );
+        }
+    }
+
+    /**
+     * Adapts a BinBag to a StarTable for presentation as a reported
+     * output of a histogram plot.
+     */
+    private static class BinBagTable extends AbstractStarTable {
+        private final BinBag binBag_;
+        private final HistoStyle hstyle_;
+        private final boolean xlog_;
+        private final ColumnInfo xmidInfo_;
+        private final ColumnInfo xminInfo_;
+        private final ColumnInfo xmaxInfo_;
+        private final ColumnInfo yInfo_;
+        private final ColumnInfo[] colInfos_;
+
+        /**
+         * Constructor.
+         *
+         * @param  hplan   plan containing bin data
+         * @param  hstyle  plot style
+         * @param  hasWeight  true if the weight coordinate may be non-blank
+         * @param  xlog   true for horizontal coordinate is logarithmic,
+         *                false for linear
+         */
+        BinBagTable( HistoPlan hplan, HistoStyle hstyle, boolean hasWeight,
+                     boolean xlog ) {
+            binBag_ = hplan.binBag_;
+            hstyle_ = hstyle;
+            xlog_ = xlog;
+            Combiner combiner = hstyle.getCombiner();
+            String yName = "Y_" + ( hasWeight ? combiner.getName() : "COUNT" );
+            xmidInfo_ = new ColumnInfo( "XMID", Double.class, "Bin midpoint" );
+            xminInfo_ = new ColumnInfo( "XLOW", Double.class,
+                                        "Bin lower bound" );
+            xmaxInfo_ = new ColumnInfo( "XHIGH", Double.class,
+                                        "Bin upper bound" );
+            yInfo_ = new ColumnInfo( yName, Double.class, "Bin height" );
+            colInfos_ =
+                new ColumnInfo[] { xmidInfo_, yInfo_, xminInfo_, xmaxInfo_, };
+        }
+
+        public int getColumnCount() {
+            return colInfos_.length;
+        }
+
+        public ColumnInfo getColumnInfo( int icol ) {
+            return colInfos_[ icol ];
+        }
+
+        public long getRowCount() {
+            return -1;
+        }
+
+        public RowSequence getRowSequence() {
+            final Iterator<BinBag.Bin> binIt =
+                binBag_.binIterator( hstyle_.isCumulative(),
+                                     hstyle_.getNormalisation() );
+            final Iterator<Object[]> rowIt = new Iterator<Object[]>() {
+                public boolean hasNext() {
+                    return binIt.hasNext();
+                }
+                public Object[] next() {
+                    BinBag.Bin bin = binIt.next();
+                    double xmin = bin.getXMin();
+                    double xmax = bin.getXMax();
+                    double xmid = PlotUtil.scaleValue( xmin, xmax, 0.5, xlog_ );
+                    return new Object[] {
+                        new Double( xmid ),
+                        new Double( bin.getY() ),
+                        new Double( xmin ),
+                        new Double( xmax ),
+                    };
+                }
+                public void remove() {
+                    binIt.remove();
+                }
+            };
+            return new IteratorRowSequence( rowIt );
         }
     }
 
