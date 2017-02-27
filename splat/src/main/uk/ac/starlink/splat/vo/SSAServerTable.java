@@ -8,6 +8,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ import uk.ac.starlink.util.gui.ProxySetupFrame;
  */
 
 
-public class SSAServerTable extends AbstractServerPanel  {
+public class SSAServerTable extends AbstractServerPanel  implements PropertyChangeListener {
     
     // Logger.
     private static Logger logger =
@@ -499,6 +500,12 @@ public class SSAServerTable extends AbstractServerPanel  {
                         band_all.setSelected(false);
                     }
                 }
+                if (name.equals("src_theo") &&  e.getStateChange() == ItemEvent.SELECTED) {
+                   firePropertyChange("changeToTheory", false, true);
+                }
+                if (name.equals("src_obs") &&  e.getStateChange() == ItemEvent.SELECTED) {
+                    firePropertyChange("changeToObservation", false, true);
+                 }
                 
             } // if selected/deselected
             

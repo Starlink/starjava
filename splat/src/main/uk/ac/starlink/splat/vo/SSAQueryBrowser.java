@@ -206,13 +206,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      */
     protected JPanel queryPanel = null;
 
-    /**
-     * Basic Query panel
-     * @uml.property  name="basicQueryPanel"
-     * @uml.associationEnd  
-     */
-    protected JPanel basicQueryPanel = null;
-
+  
     /**
      * Customized Query panel
      * @uml.property  name="customQueryPanel"
@@ -308,6 +302,11 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * @uml.property  name="dataLinkEnabled"
      */
     protected boolean dataLinkEnabled = false;
+    
+    /**
+     * it's a theory query
+     */
+    protected boolean theoryQuery = false;
     
     /**
      * Make the query to all known servers
@@ -443,6 +442,8 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * @uml.associationEnd  
      */
   //  protected JTabbedPane resultsPane = null;
+     
+     protected ArrayList<JLabel> observationLabels = null;
 
     /**
      * The list of StarJTables in use
@@ -956,6 +957,12 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         
         layouter.add(radiusLabel, false);
         layouter.add(radmaxrecPanel,true);
+        
+        observationLabels = new ArrayList<JLabel>();
+        observationLabels.add(raLabel);
+        observationLabels.add(decLabel);
+        observationLabels.add(radiusLabel);
+        
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
@@ -1352,7 +1359,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                 ra = null;
                 dec = null;
             }
-            else {
+            else if (! theoryQuery) { // if position fields are disabled it's a theoretical service. No complaint.
                 int n = JOptionPane.showConfirmDialog( this,
                         "You have not supplied " +
                                 "a search centre or object " +
@@ -1370,27 +1377,28 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             }
         }
 
-        //  And the radius.
-        String radiusText = radiusField.getText();
-        double radius=0;// = 10.0;
-        if ( radiusText != null && radiusText.length() > 0 ) {
-            try {
-                radius = Double.parseDouble( radiusText );
+        if (! theoryQuery) {
+            //  And the radius.
+            String radiusText = radiusField.getText();
+            double radius=0;// = 10.0;
+            if ( radiusText != null && radiusText.length() > 0 ) {
+                try {
+                    radius = Double.parseDouble( radiusText );
+                }
+                catch (NumberFormatException e) {
+                    ErrorDialog.showError( this, "Radius input error", e );
+                    return;
+                }
             }
-            catch (NumberFormatException e) {
-                ErrorDialog.showError( this, "Radius input error", e );
+
+            try {
+                queryLine.setPosition(ra, dec);
+            } catch (NumberFormatException e) {
+                ErrorDialog.showError( this, "Position input error", e );
                 return;
             }
         }
 
-        try {
-            queryLine.setPosition(ra, dec);
-        } catch (NumberFormatException e) {
-            ErrorDialog.showError( this, "Position input error", e );
-            return;
-        }
-        
-       
         // update serverlist from serverTable class
         final SSAServerList slist=(SSAServerList) serverPanel.getServerList();
         
@@ -2153,9 +2161,60 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             updateParameters();
             metaPanel.updateUI();
         }
+        else if (pvt.getPropertyName().equals("changeToTheory")) {
+            theoryQuery=true;
+            deactivateObsParameters();
+            updateQueryText();
+            updateParameters();
+            metaPanel.updateUI();
+        }
+        else if (pvt.getPropertyName().equals("changeToObservation")) {
+            theoryQuery=false;
+            activateObsParameters();
+            updateQueryText();
+            updateParameters();
+            metaPanel.updateUI();
+        }
        
     }
     
+    private void activateObsParameters() {
+        nameLookup.setEnabled(true);
+        raField.setEnabled(true);
+        decField.setEnabled(true);
+        radiusField.setEnabled(true);  
+        radiusField.setText("10.0");
+       // for (JLabel l:observationLabels) {
+       //     l.setForeground(Color.black);
+      //  }
+        radiusField.setEnabled(true);
+        nameLookup.setVisible(true);
+        raField.setVisible(true);
+        decField.setVisible(true);
+        radiusField.setVisible(true);
+        for (JLabel l:observationLabels) {
+            //l.setForeground(Color.gray);
+            l.setVisible(true);
+        }
+    }
+
+    private void deactivateObsParameters() {
+       nameLookup.setEnabled(false);
+       raField.setEnabled(false);
+       decField.setEnabled(false);
+       radiusField.setText("");
+       radiusField.setEnabled(false);
+       nameLookup.setVisible(false);
+       raField.setVisible(false);
+       decField.setVisible(false);
+       radiusField.setVisible(false);
+       for (JLabel l:observationLabels) {
+           //l.setForeground(Color.gray);
+           l.setVisible(false);
+       }
+           
+    }
+
     private void updateQueryText() {
         
         if (metaPanel != null)
@@ -2346,8 +2405,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                 progressPanel.stop();  
             // add results to the queue
             if (metadata!=null) {
-               workQueue.setServer(server);
-                workQueue.addWork(metadata);
+               SSAServerMetadata servermeta = new SSAServerMetadata(server, metadata);
+              // workQueue.setServer(servermeta);
+                workQueue.addWork(servermeta);
             }
             return null;
         } //doinbackground
@@ -2390,9 +2450,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         {
             // progressPanel.start();
             try {
-                ParamElement [] data = workQueue.getWork();
-                if ( data != null)
-                    processMetadata(data, workQueue.getServer());
+                SSAServerMetadata data = workQueue.getWork();
+                if ( data.getMetadata() != null)
+                    processMetadata(data.getMetadata(), data.getServer());
             } 
             catch (InterruptedException e) {
             }
@@ -2437,13 +2497,13 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         }
 
         // takes the work from the queue as soon as it's not empty
-        public synchronized ParamElement[] getWork() throws InterruptedException {
+        public synchronized SSAServerMetadata getWork() throws InterruptedException {
             //  logger.info( "GETWORK " + workedItems + " " + maxItems );
             if (workedItems >= maxItems) return null;
             while (queue.isEmpty()) {
                 this.wait();
             }
-            ParamElement [] data = (ParamElement[]) queue.removeFirst();     
+            SSAServerMetadata data =  (SSAServerMetadata) queue.removeFirst();     
            // logger.info( "GETWORK " + workedItems + " " + maxItems + " server "+ this.getServer().getShortName()+" nrparams "+ data.length);
             workedItems++;
             return (data);
@@ -2696,6 +2756,34 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         }
         updateQueryText();
         
+    }
+    
+    /** Pair Service + Metadata **/
+    
+    private class SSAServerMetadata {
+        
+        private SSAPRegResource ssaServer;
+        private ParamElement[] metadata;
+        
+        public SSAServerMetadata( SSAPRegResource server, ParamElement[] meta) {
+            ssaServer=server;
+            metadata=meta;
+        }
+        
+        public SSAPRegResource getServer() {
+            return ssaServer;
+        }
+        public void setServer(SSAPRegResource ssaServer) {
+            this.ssaServer = ssaServer;
+        }
+        public ParamElement[] getMetadata() {
+            return metadata;
+        }
+        public void setMetadata(ParamElement[] metadata) {
+            this.metadata = metadata;
+        }
+      
+                
     }
     
 }
