@@ -181,7 +181,7 @@
   <!ENTITY FIG.form_knn '&figs;form_knn.png'>
   <!ENTITY FIG.form_densogram '&figs;form_densogram.png'>
   <!ENTITY FIG.form_gaussian '&figs;form_gaussian.png'>
-  <!ENTITY FIG.form_marks2 '&figs;form_marks2.png'>
+  <!ENTITY FIG.form_mark2 '&figs;form_mark2.png'>
   <!ENTITY FIG.form_link2 '&figs;form_link2.png'>
   <!ENTITY FIG.font_tab '&figs;font_tab.png'>
   <!ENTITY FIG.size_tab '&figs;size_tab.png'>
@@ -285,8 +285,8 @@
                           <ref id="form-densogram">Densogram</ref>'>
   <!ENTITY FORM.gaussian '&IMG.FORM_GAUSSIAN;
                           <ref id="form-gaussian">Gaussian</ref>'>
-  <!ENTITY FORM.marks2 '&IMG.FORM_MARKS2; <ref id="form-marks2">Marks</ref>'>
-  <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link</ref>'>
+  <!ENTITY FORM.mark2 '&IMG.FORM_MARKS2; <ref id="form-mark2">Mark2</ref>'>
+  <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link2</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
   <!ENTITY GESTURE.DRAG2 '&IMG.DRAG2; Center drag (SHIFT-drag)'>
   <!ENTITY GESTURE.DRAG3 '&IMG.DRAG3; Right drag (CTRL-drag)'>
@@ -8059,9 +8059,9 @@ currently selected form.
 <p>The available forms for a pair plot
 (select them using the &IMG.ADD; <label>Forms</label> button)
 are currently
-<ref id="form-marks2">Marks</ref> (&IMG.FORM_MARKS2;)
+<ref id="form-mark2">Mark2</ref> (&IMG.FORM_MARKS2;)
 which draws the points at both ends of the pair, and
-<ref id="form-link2">Link</ref> (&IMG.FORM_LINK2;)
+<ref id="form-link2">Link2</ref> (&IMG.FORM_LINK2;)
 which draws a line linking them.
 You can configure these, and select them on or off, separately.
 The detail panel for these forms are dependent on the form itself
@@ -10184,15 +10184,15 @@ The reported items are:
 
 </subsubsubsect>
 
-<subsubsubsect id="form-marks2">
-<subhead><title>Pair Marks Form</title></subhead>
+<subsubsubsect id="form-mark2">
+<subhead><title>Mark2 Form</title></subhead>
 
 <figure>
-<caption><px>Pair Mark form configuration panel</px></caption>
-<figureimage src="&FIG.form_marks2;"/>
+<caption><px>Mark2 form configuration panel</px></caption>
+<figureimage src="&FIG.form_mark2;"/>
 </figure>
 
-<p>The <label>Pair Mark</label> form (&IMG.FORM_MARKS2;)
+<p>The <label>Mark2</label> form (&IMG.FORM_MARKS2;)
 is available from the
 <ref id="GangLayerControl_pair">pair position layer control</ref>,
 and plots a marker of configurable
@@ -10218,14 +10218,14 @@ you can use two single <ref id="form-mark">Mark</ref> forms.
 </subsubsubsect>
 
 <subsubsubsect id="form-link2">
-<subhead><title>Pair Link Form</title></subhead>
+<subhead><title>Link2 Form</title></subhead>
 
 <figure>
-<caption><px>Pair Link form configuration panel</px></caption>
+<caption><px>Link2 form configuration panel</px></caption>
 <figureimage src="&FIG.form_link2;"/>
 </figure>
 
-<p>The <label>Pair Link</label> form (&IMG.FORM_LINK2;)
+<p>The <label>Link2</label> form (&IMG.FORM_LINK2;)
 is available from the
 <ref id="GangLayerControl_pair">pair position layer control</ref>,
 and plots a line linking the two points in a position pair.
@@ -10984,7 +10984,7 @@ see the <label>Coords</label> tab of the
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.marks2;</li>
+    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
 <li>&CONTROL.histogram;, with these form options:
@@ -11277,7 +11277,7 @@ values as their default (both Equatorial) and no conversion will be done.
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.marks2;</li>
+    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
 <li>&CONTROL.healpix;</li>
@@ -11548,7 +11548,7 @@ see the <label>Coords</label> tab of the
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.marks2;</li>
+    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
 </ul>
@@ -11859,7 +11859,7 @@ In many respects this works like the
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.marks2;</li>
+    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
 </ul>
