@@ -116,6 +116,11 @@
   <!ENTITY plot2d-examples SYSTEM 'plot2d-examples.xml'>
   <!ENTITY plot3d-examples SYSTEM 'plot3d-examples.xml'>
   <!ENTITY plothist-examples SYSTEM 'plothist-examples.xml'>
+
+  <!-- Automatically generated plot2 figures. -->
+  <!ENTITY figs './'>
+  <!ENTITY % plot2-defs SYSTEM 'plot2-figdefs.xml'>
+  %plot2-defs;
 ]>
 
 <sun>

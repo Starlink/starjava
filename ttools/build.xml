@@ -1126,6 +1126,8 @@
     <copy todir="${build.docs}/${user.doc}">
       <fileset dir="${src.docs.examp}"
                includesfile="${src.docs.examp}/plot-example-files.txt"/>
+      <fileset dir="${src.docs.examp}"
+               includesfile="${src.docs.examp}/plot2-figs.lis"/>
     </copy>
 
     <!-- Construct XML documentation for the JEL-accessible classes.
@@ -1283,6 +1285,7 @@
           style="${xdoc.etc}/toFo.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="FIGDIR" expression="${build.docs}/${user.doc}"/>
       <param name="COVERIMAGE" expression="${coverimage}"/>
     </xslt>
     <java classname="org.apache.fop.apps.Fop"
