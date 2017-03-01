@@ -144,7 +144,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         resultsPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if ( dataLinkEnabled ) {
-                   if (resultsPane.getIconAt(resultsPane.getSelectedIndex())!=null) { // it's a datalink service
+                   if (isDatalinkService(resultsPane.getSelectedIndex())) { // it's a datalink service
 
                         if (dataLinkFrame != null && dataLinkEnabled) {
                             String server=resultsPane.getTitleAt(resultsPane.getSelectedIndex());
@@ -167,6 +167,10 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         if (controlPanel == null)
             controlPanel=initControlPanel();
         add( controlPanel, gbc );
+    }
+    
+    private boolean isDatalinkService (int tabIndex ) {
+        return resultsPane.getIconAt(tabIndex)!=null;
     }
     
     private JPanel initControlPanel() 
@@ -742,13 +746,13 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             //  Visit all the tabbed StarJTables.
             for (int i=0;i<resultsPane.getTabCount();i++) {              
                 JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
-                ArrayList<Props> tabspecs = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1, resultsPane.getTitleAt(i) );
+                ArrayList<Props> tabspecs = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1, resultsPane.getTitleAt(i), isDatalinkService(i) );
                 if (tabspecs != null && tabspecs.size()>0)
                     specList.addAll(tabspecs);
             }
         }
-        else {
-            specList = extractSpectraFromTable( table, selected, row , resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+        else { // it's the current table
+            specList = extractSpectraFromTable( table, selected, row , resultsPane.getTitleAt(resultsPane.getSelectedIndex()), dataLinkEnabled);
         }
 
         //  If we have no spectra complain and stop.
@@ -798,17 +802,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     private ArrayList<Props> extractSpectraFromTable( StarJTable starJTable,
           //  ArrayList<Props> specList,
             boolean selected,
-            int row, String server )
+            int row, String server, boolean dataLinkService )
     {
         int[] selection = null;
         ArrayList<Props> specList = new ArrayList<Props>();
         
         String idSource = null;
-        if ( dataLinkEnabled  ) { 
+        if ( dataLinkService && dataLinkEnabled  ) { 
             idSource = dataLinkFrame.getIDSource(server);             
         } 
-       
-        
+               
         //  Check for a selection if required, otherwise we're using the given
         //  row.
         if ( selected && row == -1 ) {
@@ -962,7 +965,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             } // for
 
             //   if (datatype == SSAP && idsrccol != -1  && dataLinkQueryParams != null ) { // check if datalink parameters are present
-            if ( dataLinkEnabled && idsrccol != -1  ) { 
+            if ( dataLinkService && dataLinkEnabled && idsrccol != -1  ) { 
                 //  if ( ! dataLinkQueryParams.isEmpty() ) {    
                 DataLinkParams dlp = dataLinkFrame.getServerParams(server);
                 for (int s=0; s< dlp.getServiceCount(); s++) {
@@ -1084,7 +1087,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                 }
                             }
 
-                            if (idsrccol != -1  && dataLinkEnabled) { 
+                            if (idsrccol != -1  && dataLinkService && dataLinkEnabled) { 
 
                                 if (dataLinkFrame != null) { 
                                     DataLinkParams dlp = dataLinkFrame.getServerParams(server);
@@ -1177,7 +1180,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                     }
                                 }
 
-                                if (idsrccol != -1  && dataLinkEnabled) {  
+                                if (idsrccol != -1  && dataLinkEnabled && dataLinkService ) {  
 
                                     if (dataLinkFrame != null) { 
                                         DataLinkParams dlp = dataLinkFrame.getServerParams(server);
