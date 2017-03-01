@@ -187,6 +187,10 @@
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
   <property name="home.page" value="http://www.starlink.ac.uk/${name}/"/>
 
+  <!-- Directory containing plot2 example graphics in the TTOOLS package. -->
+  <property name="plot2.figdir"
+            value="${star.build.dir}/ttools/src/docs/examp"/>
+
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
 
@@ -436,6 +440,10 @@
     </copy>
     <copy todir="${build.classes}/uk/ac/starlink/topcat">
       <fileset dir="${src.docs}" includes="figures/*"/>
+    </copy>
+    <copy todir="${build.classes}/uk/ac/starlink/topcat/figures">
+      <fileset dir="${plot2.figdir}"
+               includesfile="${plot2.figdir}/plot2-figs.lis"/>
     </copy>
 
     <!-- Write some required PNGs to the images directory programatically. -->
@@ -1363,7 +1371,7 @@
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
           fork="yes"
-          maxmemory="256M">
+          maxmemory="512M">
       <classpath>
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
@@ -1419,6 +1427,10 @@
                includes="docs.dtd"/>
       <fileset dir="${gbin.docs}"
                includes="gbin-stil-*.xdoc"/>
+    </copy>
+    <copy todir="${build.docs}/figures">
+      <fileset dir="${plot2.figdir}"
+               includesfile="${plot2.figdir}/plot2-figs.lis"/>
     </copy>
 
     <!-- Write a file containing entity definitions for all the image files
