@@ -2243,12 +2243,6 @@ public class SplatBrowser
                 //                    throw new SplatException( se );
 
             }
-            catch(SplatException sple) {
-                if (! sple.getMessage().contains("No TABLE element found")) 
-                    JOptionPane.showMessageDialog
-                    ( this, sple.getMessage(), "",
-                      JOptionPane.ERROR_MESSAGE );
-            }
         }
     }
 
