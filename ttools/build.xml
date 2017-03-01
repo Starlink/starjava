@@ -100,6 +100,15 @@
   <property name="junit.summary" value="no"/>
   <property name="junit.assertions" value="-enableassertions"/>
 
+  <!-- Local directory and remote URL containing example plot data files.
+   !   Note you can override these using system properties -
+   !   it may be a good idea to reset plot2.figdata.dir to some
+   !   external directory if you have multiple starjava builds. -->
+  <property name="plot2.figdata.dir"
+            value="${basedir}/plot2data/"/>
+  <property name="plot2.figdata.url"
+            value="http://www.starlink.ac.uk/stilts/plot2data/"/>
+
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
 
@@ -1306,15 +1315,77 @@
    !   =======================
    !
    !   This target is not called by any of the standard targets, but may
+   !   be invoked by hand to write example plot graphics output files
+   !   into the source tree.
+   !
+   !   These plots are not generated as part of the standard build process
+   !   because (a) they are somewhat time-consuming to produce and
+   !   (b) they require large binary data input files that ought not to be
+   !   checked into the source archive.  But this target should be executed
+   !   by hand from time to time (including before a release) when
+   !   plotting code might have changed.
+   !-->
+  <target name="plot2-examples"
+          description="-> generate example graphics for plot2 commands"
+          depends="build,plot2-figdata">
+    <echo message="Writing plot2 example files to ${src.docs.examp}"/>
+    <echo message="Input data from ${plot2.figdata.dir}"/>
+    <java classpathref="classpath"
+          classname="uk.ac.starlink.ttools.build.Plot2Example"
+          failonerror="yes"
+          fork="yes">
+      <arg value="-dataDir"/>
+      <arg value="${plot2.figdata.dir}"/>
+      <arg value="-outDir"/>
+      <arg value="${src.docs.examp}"/>
+      <arg value="-mode"/>
+      <arg value="write"/>
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
+  </target>
+
+  <!--
+   !   =====================================
+   !   Acquires data files for example plots
+   !   =====================================
+   !
+   !   Copies missing data files required for generating plot2 example
+   !   graphics from an external URL to a local directory.
+   !-->
+  <target name="plot2-figdata"
+          depends="build">
+    <mkdir dir="${plot2.figdata.dir}"/>
+    <java classpathref="classpath"
+          classname="uk.ac.starlink.ttools.build.Plot2Example"
+          failonerror="yes"
+          fork="yes">
+      <arg value="-dataDir"/>
+      <arg value="${plot2.figdata.dir}"/>
+      <arg value="-dataUrl"/>
+      <arg value="${plot2.figdata.url}"/>
+      <arg value="-mode"/>
+      <arg value="copydata"/>
+    </java>
+  </target>
+
+  <!--
+   !   ===================================
+   !   Generates example plots (old-style)
+   !   ===================================
+   !
+   !   This target is not called by any of the standard targets, but may
    !   be invoked by hand to write example plot files and associated
    !   descriptions into the source tree.  This approach may be changed
    !   at a later date, but for now it's more convenient than generating
    !   these plots at build time, since (a) the plotting is somewhat
    !   time-consuming and (b) some input datasets are large (not ideal for 
    !   checking into source archive).
+   !
+   !   These examples refer to the old-style plotting framework,
+   !   so are more or less obsolete.
    !-->
   <target name="plot-examples"
-          description="-> generate example text and graphics for plot commands "
+          description="-> generate example old-style plots (obsolete)"
           depends="build">
     <echo message="Writing plot example files to source dir ${src.docs.examp}"/>
     <java classpathref="classpath"
