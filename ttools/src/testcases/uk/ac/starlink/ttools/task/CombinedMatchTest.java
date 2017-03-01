@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.URLDataSource;
 
 public class CombinedMatchTest extends TestCase {
 
@@ -18,8 +19,8 @@ public class CombinedMatchTest extends TestCase {
     public CombinedMatchTest() throws Exception {
         Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
         StarTableFactory tf = new StarTableFactory( true );
-        tmass_ = tf.makeStarTable( getClass().getResource( "p_2mass.fits" ) );
-        tycho_ = tf.makeStarTable( getClass().getResource( "p_tycho.fits" ) );
+        tmass_ = tf.makeStarTable( new URLDataSource( tmassLoc_ ) );
+        tycho_ = tf.makeStarTable( new URLDataSource( tychoLoc_ ) );
     }
 
     public void testSkyX() throws Exception {
