@@ -324,6 +324,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
 
     }
     
+
     /**
      * Get the main SPLAT browser to download and display spectra.
      * <p>
@@ -335,7 +336,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             StarJTable table, int row )
     {
      
-      Props[] propList = prepareSpectra(selected, getCurrentTable(table), row);
+      if (resultsPane.getTabCount()==0)  // avoids NPE if no results are present
+            return;
+      
+     // Props[] propList = prepareSpectra(selected, getCurrentTable(table), row);
+      Props[] propList = prepareSpectra(selected, table, row);
       if (propList==null||propList.length==0)
           return;
       if (datatype==SSAP)
@@ -343,7 +348,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
       else if (datatype==OBSCORE)
         ((ObsCorePanel) browser).displaySpectra(propList, display);
     }
-    
+/*    
     protected StarJTable  getCurrentTable(StarJTable table) 
     {       
         if (table == null) {
@@ -353,7 +358,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
              return table;
         }        
     }
-
+*/
     
     /**
      * Deselect all spectra
@@ -364,9 +369,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      */
     protected void deselectSpectra( boolean all )
     {
-      
-     
- 
+       
       if (datatype==SSAP)
           ((SSAQueryBrowser) browser).deselectSpectra(all, resultsPane.getSelectedComponent());
       else if (datatype==OBSCORE){
@@ -501,7 +504,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
 
         //  Add a filter for XML files.
         BasicFileFilter xmlFileFilter = new BasicFileFilter( "xml", "XML files" );
-       fileChooser.addChoosableFileFilter( xmlFileFilter );
+        fileChooser.addChoosableFileFilter( xmlFileFilter );
 
         //  But allow all files as well.
         fileChooser.addChoosableFileFilter( fileChooser.getAcceptAllFileFilter() );
@@ -732,17 +735,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     protected Props[] prepareSpectra( boolean selected, StarJTable table, int row )
     {
         //  List of all spectra to be loaded 
-        ArrayList<Props> specList = null;
+        ArrayList<Props> specList = new ArrayList<Props>();
      
         
         if ( table == null ) { 
-            if (resultsPane.getTabCount()==0)  // avoids NPE if no results are present
-                return null;
             //  Visit all the tabbed StarJTables.
-            for (int i=0;i<resultsPane.getTabCount();i++) {
-              
+            for (int i=0;i<resultsPane.getTabCount();i++) {              
                 JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
-                specList = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1, resultsPane.getTitleAt(i) );
+                ArrayList<Props> tabspecs = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1, resultsPane.getTitleAt(i) );
+                if (tabspecs != null && tabspecs.size()>0)
+                    specList.addAll(tabspecs);
             }
         }
         else {
@@ -801,14 +803,9 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         int[] selection = null;
         ArrayList<Props> specList = new ArrayList<Props>();
         
- //       HashMap< String, String > dataLinkQueryParams = null;
         String idSource = null;
-//        String accessURL = null;
-      //  if ( dataLinkFrame != null ) { // && dataLinkFrame.isVisible() ) {
         if ( dataLinkEnabled  ) { 
-            idSource = dataLinkFrame.getIDSource(server); 
-        //    accessURL = dataLinkFrame.getAccessURL(server);
-            
+            idSource = dataLinkFrame.getIDSource(server);             
         } 
        
         
