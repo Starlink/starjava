@@ -229,6 +229,38 @@
   <!ENTITY FIG.SkyPlotWindow_plotmatch '&figs;SkyPlotWindow_plotmatch.png'>
   <!ENTITY FIG.CdsUploadMatchWindow '&figs;CdsUploadMatchWindow.png'>
 
+  <!-- Example plots generated in stilts. -->
+  <!ENTITY FIG.plot2-layer-mark '&figs;plot2-layer-mark.png'>
+  <!ENTITY FIG.plot2-layer-size '&figs;plot2-layer-size.png'>
+  <!ENTITY FIG.plot2-layer-sizexy '&figs;plot2-layer-sizexy.png'>
+  <!ENTITY FIG.plot2-layer-xyvector '&figs;plot2-layer-xyvector.png'>
+  <!ENTITY FIG.plot2-layer-skyvector '&figs;plot2-layer-skyvector.png'>
+  <!ENTITY FIG.plot2-layer-xyerror '&figs;plot2-layer-xyerror.png'>
+  <!ENTITY FIG.plot2-layer-xyellipse '&figs;plot2-layer-xyellipse.png'>
+  <!ENTITY FIG.plot2-layer-skyellipse '&figs;plot2-layer-skyellipse.png'>
+  <!ENTITY FIG.plot2-layer-line '&figs;plot2-layer-line.png'>
+  <!ENTITY FIG.plot2-layer-linearfit '&figs;plot2-layer-linearfit.png'>
+  <!ENTITY FIG.plot2-layer-quantile '&figs;plot2-layer-quantile.png'>
+  <!ENTITY FIG.plot2-layer-label '&figs;plot2-layer-label.png'>
+  <!ENTITY FIG.plot2-layer-contour '&figs;plot2-layer-contour.png'>
+  <!ENTITY FIG.plot2-layer-grid '&figs;plot2-layer-grid.png'>
+  <!ENTITY FIG.plot2-layer-skydensity '&figs;plot2-layer-skydensity.png'>
+  <!ENTITY FIG.plot2-layer-fill '&figs;plot2-layer-fill.png'>
+  <!ENTITY FIG.plot2-layer-histogram '&figs;plot2-layer-histogram.png'>
+  <!ENTITY FIG.plot2-layer-kde '&figs;plot2-layer-kde.png'>
+  <!ENTITY FIG.plot2-layer-knn '&figs;plot2-layer-knn.png'>
+  <!ENTITY FIG.plot2-layer-densogram '&figs;plot2-layer-densogram.png'>
+  <!ENTITY FIG.plot2-layer-gaussian '&figs;plot2-layer-gaussian.png'>
+  <!ENTITY FIG.plot2-layer-mark2 '&figs;plot2-layer-mark2.png'>
+  <!ENTITY FIG.plot2-layer-link2 '&figs;plot2-layer-link2.png'>
+  <!ENTITY FIG.plot2-shading-flat '&figs;plot2-shading-flat.png'>
+  <!ENTITY FIG.plot2-shading-auto '&figs;plot2-shading-auto.png'>
+  <!ENTITY FIG.plot2-shading-density '&figs;plot2-shading-density.png'>
+  <!ENTITY FIG.plot2-shading-transparent '&figs;plot2-shading-transparent.png'>
+  <!ENTITY FIG.plot2-shading-translucent '&figs;plot2-shading-translucent.png'>
+  <!ENTITY FIG.plot2-shading-aux '&figs;plot2-shading-aux.png'>
+  <!ENTITY FIG.plot2-shading-weighted '&figs;plot2-shading-weighted.png'>
+
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
   <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
@@ -8498,14 +8530,19 @@ Not all are available for every plot type.
 <subsubsubsect id="form-mark">
 <subhead><title>Mark Form</title></subhead>
 
+<p>The <label>Mark</label> form (&IMG.FORM_MARK;)
+simply plots markers with a fixed shape and size.
+</p>
+
+<figure>
+<caption><px>Example Mark plot</px></caption>
+<figureimage src="&FIG.plot2-layer-mark;"/>
+</figure>
+
 <figure>
 <caption><px>Mark form configuration panel</px></caption>
 <figureimage src="&FIG.form_mark;"/>
 </figure>
-
-<p>The <label>Mark</label> form (&IMG.FORM_MARK;)
-simply plots markers with a fixed shape and size.
-</p>
 
 <p>Configuration options are:
 <dl>
@@ -8525,11 +8562,6 @@ simply plots markers with a fixed shape and size.
 
 <subsubsubsect id="form-size">
 <subhead><title>Size Form</title></subhead>
-
-<figure>
-<caption><px>Size form configuration panel</px></caption>
-<figureimage src="&FIG.form_size;"/>
-</figure>
 
 <p>The <label>Size</label> form (&IMG.FORM_SIZE;)
 plots markers of a fixed shape
@@ -8558,6 +8590,16 @@ Other options may be introduced in future.
 For sizes that correspond to actual data values,
 the <ref id="form-error">Error</ref> form may be more appropriate.
 </p>
+
+<figure>
+<caption><px>Example Size plot</px></caption>
+<figureimage src="&FIG.plot2-layer-size;"/>
+</figure>
+
+<figure>
+<caption><px>Size form configuration panel</px></caption>
+<figureimage src="&FIG.form_size;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8600,11 +8642,6 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 <subsubsubsect id="form-sizexy">
 <subhead><title>SizeXY Form</title></subhead>
 
-<figure>
-<caption><px>SizeXY form configuration panel</px></caption>
-<figureimage src="&FIG.form_sizexy;"/>
-</figure>
-
 <p>The <label>SizeXY</label> form (&IMG.FORM_SIZEXY;)
 plots a shaped marker whose width and height vary independently
 acoording to two supplied data coordinates.
@@ -8633,6 +8670,16 @@ Other options may be introduced in future.
 For sizes that correspond to actual data values,
 the <ref id="form-error">Error</ref> form may be more appropriate.
 </p>
+
+<figure>
+<caption><px>Example SizeXY plot</px></caption>
+<figureimage src="&FIG.plot2-layer-sizexy;"/>
+</figure>
+
+<figure>
+<caption><px>SizeXY form configuration panel</px></caption>
+<figureimage src="&FIG.form_sizexy;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8675,11 +8722,6 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 <subsubsubsect id="form-vector">
 <subhead><title>Vector Form</title></subhead>
 
-<figure>
-<caption><px>Vector form configuration panel</px></caption>
-<figureimage src="&FIG.form_vector;"/>
-</figure>
-
 <p>The <label>Vector</label> form (&IMG.FORM_VECTOR;)
 plots directed lines from the
 data position given delta values for the coordinates.
@@ -8696,6 +8738,16 @@ them a sensible size (so the largest ones are a few tens of pixels long).
 This scaling can be adjusted or turned off using the
 <label>Scale</label> and <label>Auto Scale</label> options below.
 </p>
+
+<figure>
+<caption><px>Example XYVector plot</px></caption>
+<figureimage src="&FIG.plot2-layer-xyvector;"/>
+</figure>
+
+<figure>
+<caption><px>Vector form configuration panel</px></caption>
+<figureimage src="&FIG.form_vector;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8731,11 +8783,6 @@ This scaling can be adjusted or turned off using the
 <subsubsubsect id="form-skyvector">
 <subhead><title>SkyVector Form</title></subhead>
 
-<figure>
-<caption><px>SkyVector form configuration panel</px></caption>
-<figureimage src="&FIG.form_skyvector;"/>
-</figure>
-
 <p>The <label>SkyVector</label> form (&IMG.FORM_VECTOR;)
 plots directed lines from the data position
 given relative offsets to longitude.cos(latitude) and latitude
@@ -8754,6 +8801,16 @@ them a sensible size (so the largest ones are a few tens of pixels long).
 This scaling can be adjusted or turned off using the
 <label>Scale</label> and <label>Auto Scale</label> options below.
 </p>
+
+<figure>
+<caption><px>Example SkyVector plot</px></caption>
+<figureimage src="&FIG.plot2-layer-skyvector;"/>
+</figure>
+
+<figure>
+<caption><px>SkyVector form configuration panel</px></caption>
+<figureimage src="&FIG.form_skyvector;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8795,11 +8852,6 @@ This scaling can be adjusted or turned off using the
 <subsubsubsect id="form-error">
 <subhead><title>Error Bars Form</title></subhead>
 
-<figure>
-<caption><px>Error Bars form configuration panel</px></caption>
-<figureimage src="&FIG.form_error;"/>
-</figure>
-
 <p>The <label>Error Bars</label> form (&IMG.FORM_ERROR;)
 draws symmetric or asymmetric
 error bars in some or all of the dimensions of a 1-, 2- or 3-dimensional
@@ -8809,6 +8861,16 @@ The shape of the error "bars" is quite configurable, including
 (for rotated ellipses and rectangles,
 see the <ref id="form-xyellipse">XYEllipse</ref> form).
 </p>
+
+<figure>
+<caption><px>Example XYError plot</px></caption>
+<figureimage src="&FIG.plot2-layer-xyerror;"/>
+</figure>
+
+<figure>
+<caption><px>Error Bars form configuration panel</px></caption>
+<figureimage src="&FIG.form_error;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8842,15 +8904,20 @@ see the <ref id="form-xyellipse">XYEllipse</ref> form).
 <subsubsubsect id="form-xyellipse">
 <subhead><title>Ellipse Form</title></subhead>
 
-<figure>
-<caption><px>Ellipse form configuration panel</px></caption>
-<figureimage src="&FIG.form_xyellipse;"/>
-</figure>
-
 <p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
 draws an ellipse (or rectangle, triangle, or other similar figure) defined by 
 major and minor radii and an optional rotation angle.
 </p>
+
+<figure>
+<caption><px>Example XYEllipse plot</px></caption>
+<figureimage src="&FIG.plot2-layer-xyellipse;"/>
+</figure>
+
+<figure>
+<caption><px>Ellipse form configuration panel</px></caption>
+<figureimage src="&FIG.form_xyellipse;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8897,16 +8964,21 @@ major and minor radii and an optional rotation angle.
 <subsubsubsect id="form-skyellipse">
 <subhead><title>SkyEllipse Form</title></subhead>
 
-<figure>
-<caption><px>SkyEllipse form configuration panel</px></caption>
-<figureimage src="&FIG.form_skyellipse;"/>
-</figure>
-
 <p>The <label>SkyEllipse</label> (&IMG.FORM_ELLIPSE;)
 draws an ellipse (or rectangle, triangle, or other similar figure)
 on the celestial sphere defined by
 major and minor radii and an optional rotation angle.
 </p>
+
+<figure>
+<caption><px>Example SkyEllipse plot</px></caption>
+<figureimage src="&FIG.plot2-layer-skyellipse;"/>
+</figure>
+
+<figure>
+<caption><px>SkyEllipse form configuration panel</px></caption>
+<figureimage src="&FIG.form_skyellipse;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8951,17 +9023,22 @@ major and minor radii and an optional rotation angle.
 <subsubsubsect id="form-line">
 <subhead><title>Line Form</title></subhead>
 
-<figure>
-<caption><px>Line form configuration panel</px></caption>
-<figureimage src="&FIG.form_line;"/>
-</figure>
-
 <p>The <label>Line</label> form (&IMG.PLOT_LINE;)
 draws a point-to-point line joining
 up the points making up the data set.
 Note that for a large and unordered data set this can lead to a big
 scribble on the screen.
 </p>
+
+<figure>
+<caption><px>Example Line plot</px></caption>
+<figureimage src="&FIG.plot2-layer-line;"/>
+</figure>
+
+<figure>
+<caption><px>Line form configuration panel</px></caption>
+<figureimage src="&FIG.form_line;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -8982,16 +9059,21 @@ scribble on the screen.
 <subsubsubsect id="form-linearfit">
 <subhead><title>Linear Fit Form</title></subhead>
 
+<p>The <label>Linear Fit</label> form (&IMG.FORM_LINEARFIT;)
+determines a least-squares best fit of a line to the data points,
+optionally weighted by a given value, and plots the corresponding line.
+</p>
+
+<figure>
+<caption><px>Example LinearFit plot</px></caption>
+<figureimage src="&FIG.plot2-layer-linearfit;"/>
+</figure>
+
 <figure>
 <caption><px>Linear Fit configuration panel</px></caption>
 <figureimage src="&FIG.form_linearfit;"/>
 <!-- Data from VizieR J/A+A/320/79/table4 -->
 </figure>
-
-<p>The <label>Linear Fit</label> form (&IMG.FORM_LINEARFIT;)
-determines a least-squares best fit of a line to the data points,
-optionally weighted by a given value, and plots the corresponding line.
-</p>
 
 <p>The configuration options are:
 <dl>
@@ -9048,11 +9130,6 @@ The reported items are:
 <subsubsubsect id="form-quantile">
 <subhead><title>Quantile Form</title></subhead>
 
-<figure>
-<caption><px>Quantile configuration panel</px></caption>
-<figureimage src="&FIG.form_quantile;"/>
-</figure>
-
 <p>The <label>Quantile</label> form (&IMG.FORM_QUANTILE;)
 plots a line through a given quantile of the values binned within
 each pixel column (or row) of a plot.
@@ -9066,6 +9143,16 @@ possible to fill the region between two quantiles.
 <m>y=f(x)</m> (or <m>x=g(y)</m>) sampled by a noisy set of data points
 in two dimensions.
 </p>
+
+<figure>
+<caption><px>Example Quantile plot</px></caption>
+<figureimage src="&FIG.plot2-layer-quantile;"/>
+</figure>
+
+<figure>
+<caption><px>Quantile configuration panel</px></caption>
+<figureimage src="&FIG.form_quantile;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -9149,14 +9236,19 @@ in two dimensions.
 <subsubsubsect id="form-label">
 <subhead><title>Text Label Form</title></subhead>
 
+<p>The <label>Text Label</label> form (&IMG.PLOT_LABEL;)
+draws a text label by each point position.
+</p>
+
+<figure>
+<caption><px>Example Label plot</px></caption>
+<figureimage src="&FIG.plot2-layer-label;"/>
+</figure>
+
 <figure>
 <caption><px>Text Label form configuration panel</px></caption>
 <figureimage src="&FIG.form_label;"/>
 </figure>
-
-<p>The <label>Text Label</label> form (&IMG.PLOT_LABEL;)
-draws a text label by each point position.
-</p>
 
 <p>The configuration options are:
 <dl>
@@ -9207,11 +9299,6 @@ draws a text label by each point position.
 <subsubsubsect id="form-contour">
 <subhead><title>Contour Form</title></subhead>
 
-<figure>
-<caption><px>Contour form configuration panel</px></caption>
-<figureimage src="&FIG.form_contour;"/>
-</figure>
-
 <p>The <label>Contour</label> form (&IMG.PLOT_CONTOUR;)
 plots position density contours.
 These provide another way
@@ -9225,6 +9312,16 @@ to visualise the characteristics of overdense regions in a crowded plot.
 so they don't look very beautiful in exported vector output formats
 (PDF, PostScript).
 </p>
+
+<figure>
+<caption><px>Example Contour plot</px></caption>
+<figureimage src="&FIG.plot2-layer-contour;"/>
+</figure>
+
+<figure>
+<caption><px>Contour form configuration panel</px></caption>
+<figureimage src="&FIG.form_contour;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -9256,11 +9353,6 @@ so they don't look very beautiful in exported vector output formats
 <subsubsubsect id="form-grid">
 <subhead><title>Grid Form</title></subhead>
 
-<figure>
-<caption><px>Grid form configuration panel</px></caption>
-<figureimage src="&FIG.form_grid;"/>
-</figure>
-
 <p>The <label>Grid</label> form (&IMG.FORM_GRID;)
 plots 2-d point data aggregated into rectangular cells on the plotting plane.
 You can optionally use a weighting for the points,
@@ -9287,6 +9379,16 @@ is visible
 in the control panel, which allows you to configure the colour map,
 range, ramp display etc.
 </p>
+
+<figure>
+<caption><px>Example Grid plot</px></caption>
+<figureimage src="&FIG.plot2-layer-grid;"/>
+</figure>
+
+<figure>
+<caption><px>Grid form configuration panel</px></caption>
+<figureimage src="&FIG.form_grid;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -9363,11 +9465,6 @@ range, ramp display etc.
 <subsubsubsect id="form-skydensity">
 <subhead><title>SkyDensity Form</title></subhead>
 
-<figure>
-<caption><px>SkyDensity form configuration panel</px></caption>
-<figureimage src="&FIG.form_skydensity;"/>
-</figure>
-
 <p>The <label>SkyDensity</label> form (&IMG.FORM_SKYDENSITY;)
 plots a density map on the sky using a HEALPix grid
 with a configurable resolution.
@@ -9392,6 +9489,16 @@ is visible
 in the control panel, which allows you to configure the colour map,
 range, ramp display etc.
 </p>
+
+<figure>
+<caption><px>Example SkyDensity plot</px></caption>
+<figureimage src="&FIG.plot2-layer-skydensity;"/>
+</figure>
+
+<figure>
+<caption><px>SkyDensity form configuration panel</px></caption>
+<figureimage src="&FIG.form_skydensity;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -9479,11 +9586,6 @@ by the plot:
 <subsubsubsect id="form-fill">
 <subhead><title>Fill Form</title></subhead>
 
-<figure>
-<caption><px>Fill form configuration panel</px></caption>
-<figureimage src="&FIG.form_fill;"/>
-</figure>
-
 <p>If a two-dimensional dataset represents a single-valued function,
 the <label>Fill</label> form (&IMG.FORM_FILL;) will fill the area underneath
 the function's curve with a solid colour.
@@ -9503,6 +9605,16 @@ For X,Y data which is not single-valued, the result may not be very useful.
 <ref id="PlanePlotWindow">Plane</ref> or
 <ref id="TimePlotWindow">Time</ref> plot windows.
 </p>
+
+<figure>
+<caption><px>Example Fill plot</px></caption>
+<figureimage src="&FIG.plot2-layer-fill;"/>
+</figure>
+
+<figure>
+<caption><px>Fill form configuration panel</px></caption>
+<figureimage src="&FIG.form_fill;"/>
+</figure>
 
 <p>The configuration options are:
 <dl>
@@ -9532,6 +9644,11 @@ For X,Y data which is not single-valued, the result may not be very useful.
 <subhead><title>Histogram Form</title></subhead>
 
 <figure>
+<caption><px>Example Histogram plot</px></caption>
+<figureimage src="&FIG.plot2-layer-histogram;"/>
+</figure>
+
+<figure>
 <caption><px>Histogram form configuration panel</px></caption>
 <figureimage src="&FIG.form_histogram;"/>
 </figure>
@@ -9540,9 +9657,10 @@ For X,Y data which is not single-valued, the result may not be very useful.
 plots a histogram generated by binning samples along the X axis.
 </p>
 
-<p>This form may be used in either the
-<ref id="HistogramPlotWindow">Histogram</ref> or
-<ref id="PlanePlotWindow">Plane</ref> plot windows.
+<p>This form may be used in the
+<ref id="HistogramPlotWindow">Histogram</ref>,
+<ref id="PlanePlotWindow">Plane</ref> or
+<ref id="TimePlotWindow">Time</ref> plot windows.
 </p>
 
 <p>These options always appear in the form configuration panel:
@@ -9632,11 +9750,6 @@ for the Histogram window:
 <subsubsubsect id="form-kde">
 <subhead><title>KDE Form</title></subhead>
 
-<figure>
-<caption><px>KDE form configuration panel</px></caption>
-<figureimage src="&FIG.form_kde;"/>
-</figure>
-
 <p>The <label>KDE</label> form (&IMG.FORM_KDE;)
 plots a discrete Kernel Density Estimate giving a smoothed
 frequency of data values along the horizontal axis,
@@ -9658,10 +9771,21 @@ quantisation will be at the pixel level, hence in most cases not visually
 apparent.
 </p>
 
-<p>This form may be used in either the
-<ref id="HistogramPlotWindow">Histogram</ref> or
-<ref id="PlanePlotWindow">Plane</ref> plot windows.
+<p>This form may be used in the
+<ref id="HistogramPlotWindow">Histogram</ref>,
+<ref id="PlanePlotWindow">Plane</ref> or
+<ref id="TimePlotWindow">Time</ref> plot windows.
 </p>
+
+<figure>
+<caption><px>Example KDE plot</px></caption>
+<figureimage src="&FIG.plot2-layer-kde;"/>
+</figure>
+
+<figure>
+<caption><px>KDE form configuration panel</px></caption>
+<figureimage src="&FIG.form_kde;"/>
+</figure>
 
 <p>These options always appear in the form configuration panel:
 <dl>
@@ -9780,11 +9904,6 @@ for the Histogram window:
 <subsubsubsect id="form-knn">
 <subhead><title>KNN Form</title></subhead>
 
-<figure>
-<caption><px>KNN form configuration panel</px></caption>
-<figureimage src="&FIG.form_knn;"/>
-</figure>
-
 <p>The <label>KNN</label> form (&IMG.FORM_KNN;)
 plots a discrete Kernel Density Estimate giving a smoothed
 frequency of data values along the horizontal axis, using an adaptive
@@ -9809,9 +9928,20 @@ apparent.
 </p>
 
 <p>This form may be used in either the
-<ref id="HistogramPlotWindow">Histogram</ref> or
-<ref id="PlanePlotWindow">Plane</ref> plot windows.
+<ref id="HistogramPlotWindow">Histogram</ref>,
+<ref id="PlanePlotWindow">Plane</ref> or
+<ref id="TimePlotWindow">Time</ref> plot windows.
 </p>
+
+<figure>
+<caption><px>Example KNN plot</px></caption>
+<figureimage src="&FIG.plot2-layer-knn;"/>
+</figure>
+
+<figure>
+<caption><px>KNN form configuration panel</px></caption>
+<figureimage src="&FIG.form_knn;"/>
+</figure>
 
 <p>These options always appear in the form configuration panel:
 <dl>
@@ -9951,11 +10081,6 @@ for the Histogram window:
 <subsubsubsect id="form-densogram">
 <subhead><title>Densogram Form</title></subhead>
 
-<figure>
-<caption><px>Densogram form configuration panel</px></caption>
-<figureimage src="&FIG.form_densogram;"/>
-</figure>
-
 <p>The <label>Densogram</label> form (&IMG.FORM_DENSOGRAM;)
 represents smoothed density of data values along the horizontal axis using
 a colourmap. This is like a Kernel Density Estimate (smoothed histogram
@@ -9971,9 +10096,20 @@ you to use it.
 </p>
 
 <p>This form may be used in either the
-<ref id="HistogramPlotWindow">Histogram</ref> or
-<ref id="PlanePlotWindow">Plane</ref> plot windows.
+<ref id="HistogramPlotWindow">Histogram</ref>,
+<ref id="PlanePlotWindow">Plane</ref> or
+<ref id="TimePlotWindow">Time</ref> plot windows.
 </p>
+
+<figure>
+<caption><px>Example Densogram plot</px></caption>
+<figureimage src="&FIG.plot2-layer-densogram;"/>
+</figure>
+
+<figure>
+<caption><px>Densogram form configuration panel</px></caption>
+<figureimage src="&FIG.form_densogram;"/>
+</figure>
 
 <p>These options always appear in the form configuration panel:
 <dl>
@@ -10099,11 +10235,6 @@ for the Histogram window:
 <subsubsubsect id="form-gaussian">
 <subhead><title>Gaussian Form</title></subhead>
 
-<figure>
-<caption><px>Gaussian fit configuration panel</px></caption>
-<figureimage src="&FIG.form_gaussian;"/>
-</figure>
-
 <p>The <label>Gaussian</label> form (&IMG.FORM_GAUSSIAN;)
 plots a best fit Gaussian to the histogram of a sample of data.
 In fact, all it does is to calculate the mean and standard deviation
@@ -10111,6 +10242,16 @@ of the sample, and plot the corresponding Gaussian curve.
 The mean and standard deviation values are reported by the plot
 (see below).
 </p>
+
+<figure>
+<caption><px>Example Gaussian plot</px></caption>
+<figureimage src="&FIG.plot2-layer-gaussian;"/>
+</figure>
+
+<figure>
+<caption><px>Gaussian fit configuration panel</px></caption>
+<figureimage src="&FIG.form_gaussian;"/>
+</figure>
 
 <p>These options always appear in the form configuration panel:
 <dl>
@@ -10187,11 +10328,6 @@ The reported items are:
 <subsubsubsect id="form-mark2">
 <subhead><title>Mark2 Form</title></subhead>
 
-<figure>
-<caption><px>Mark2 form configuration panel</px></caption>
-<figureimage src="&FIG.form_mark2;"/>
-</figure>
-
 <p>The <label>Mark2</label> form (&IMG.FORM_MARKS2;)
 is available from the
 <ref id="GangLayerControl_pair">pair position layer control</ref>,
@@ -10200,6 +10336,16 @@ shape and size at both points in a position pair.
 The same marker is used for both ends; if you want different points
 you can use two single <ref id="form-mark">Mark</ref> forms.
 </p>
+
+<figure>
+<caption><px>Example Mark2 plot</px></caption>
+<figureimage src="&FIG.plot2-layer-mark2;"/>
+</figure>
+
+<figure>
+<caption><px>Mark2 form configuration panel</px></caption>
+<figureimage src="&FIG.form_mark2;"/>
+</figure>
 
 <p>Configuration options are:
 <dl>
@@ -10220,16 +10366,21 @@ you can use two single <ref id="form-mark">Mark</ref> forms.
 <subsubsubsect id="form-link2">
 <subhead><title>Link2 Form</title></subhead>
 
-<figure>
-<caption><px>Link2 form configuration panel</px></caption>
-<figureimage src="&FIG.form_link2;"/>
-</figure>
-
 <p>The <label>Link2</label> form (&IMG.FORM_LINK2;)
 is available from the
 <ref id="GangLayerControl_pair">pair position layer control</ref>,
 and plots a line linking the two points in a position pair.
 </p>
+
+<figure>
+<caption><px>Example Link2 plot</px></caption>
+<figureimage src="&FIG.plot2-layer-link2;"/>
+</figure>
+
+<figure>
+<caption><px>Link2 form configuration panel</px></caption>
+<figureimage src="&FIG.form_link2;"/>
+</figure>
 
 <p>Configuration options are:
 <dl>
@@ -10273,6 +10424,11 @@ subsections.
 <subhead><title>Flat Mode</title></subhead>
 
 <figure>
+<caption><px>Example Flat shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-flat;"/>
+</figure>
+
+<figure>
 <caption><px>Flat shading mode selection</px></caption>
 <figureimage src="&FIG.mode_flat;"/>
 </figure>
@@ -10290,6 +10446,11 @@ This mode works without problem for both bitmapped and vector output.
 
 <subsubsubsect id="mode-translucent">
 <subhead><title>Translucent Mode</title></subhead>
+
+<figure>
+<caption><px>Example Translucent shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-translucent;"/>
+</figure>
 
 <figure>
 <caption><px>Translucent shading mode selection</px></caption>
@@ -10327,6 +10488,11 @@ layers will be completely obscured.
 
 <subsubsubsect id="mode-transparent">
 <subhead><title>Transparent Mode</title></subhead>
+
+<figure>
+<caption><px>Example Transparent shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-transparent;"/>
+</figure>
 
 <figure>
 <caption><px>Transparent shading mode selection</px></caption>
@@ -10367,6 +10533,11 @@ layers will be completely obscured.
 
 <subsubsubsect id="mode-auto">
 <subhead><title>Auto Mode</title></subhead>
+
+<figure>
+<caption><px>Example Auto shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-auto;"/>
+</figure>
 
 <figure>
 <caption><px>Auto shading mode selection</px></caption>
@@ -10411,6 +10582,11 @@ In the case of PostScript, this completely obscures any previous layers.
 
 <subsubsubsect id="mode-density">
 <subhead><title>Density Mode</title></subhead>
+
+<figure>
+<caption><px>Example Density shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-density;"/>
+</figure>
 
 <figure>
 <caption><px>Density mode selection</px></caption>
@@ -10511,6 +10687,11 @@ In the case of PostScript, this completely obscures any previous layers.
 <subhead><title>Aux Mode</title></subhead>
 
 <figure>
+<caption><px>Example Aux shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-aux;"/>
+</figure>
+
+<figure>
 <caption><px>Aux mode selection</px></caption>
 <figureimage src="&FIG.mode_aux;"/>
 </figure>
@@ -10565,6 +10746,11 @@ layers will be completely obscured.
 
 <subsubsubsect id="mode-weighted">
 <subhead><title>Weighted Mode</title></subhead>
+
+<figure>
+<caption><px>Example Weighted shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-weighted;"/>
+</figure>
 
 <figure>
 <caption><px>Weighted mode selection</px></caption>
@@ -23921,6 +24107,9 @@ introduced since the last version:
         output.</li>
     <li>Various tweaks to the details of how plots are positioned on
         the screen or in output graphics files.</li>
+    <li>Improved documentation of plot <ref id="ShapeForm">Forms</ref> and
+        <ref id="ShapeMode">Shading Modes</ref> in the user document -
+        each option now has a screenshot showing it in action.</li>
     </ul>
     </p></dd>
 
