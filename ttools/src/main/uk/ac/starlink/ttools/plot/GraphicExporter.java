@@ -7,6 +7,7 @@ import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -283,6 +284,10 @@ public abstract class GraphicExporter {
                                            : BufferedImage.TYPE_INT_RGB;
             BufferedImage image = new BufferedImage( w, h, imageType );
             Graphics2D g2 = image.createGraphics();
+            g2.setRenderingHint( RenderingHints.KEY_RENDERING,
+                                 RenderingHints.VALUE_RENDER_QUALITY );
+            g2.setRenderingHint( RenderingHints.KEY_STROKE_CONTROL,
+                                 RenderingHints.VALUE_STROKE_PURE );
 
             /* Clear the background.  Failing to do this can leave junk. */
             Color color = g2.getColor();
