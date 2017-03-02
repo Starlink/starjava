@@ -342,25 +342,35 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setPrompt( "Force non-vector graphics output?" );
         bitmapParam_.setDescription( new String[] {
-            "<p>This option only has an effect when writing output",
-            "to vector graphics formats (PDF and PostScript).",
-            "If set <code>true</code>, the data contents of the plot",
-            "are drawn as a pixel map embedded into the output",
-            "file rather than plotting each point in the output.",
-            "This may make the output less beautiful",
-            "(round markers will no longer be perfectly round),",
-            "but it may result in a much smaller file",
-            "if there are very many data points. Plot annotations such as",
-            "axis labels will not be affected - they are still drawn as",
-            "vector text.",
-            "Note that in some cases",
+            "<p>Affects whether rendering of the data contents of a plot",
+            "(though not axis labels etc) is always done to",
+            "an intermediate bitmap rather than, where possible,",
+            "being painted using graphics primitives.",
+            "This is a rather arcane setting that may nevertheless",
+            "have noticeable effects on the appearance and",
+            "size of an output graphics file, as well as plotting time.",
+            "For some types of plot",
             "(e.g. <code>" + ShapeFamilyLayerType.SHADING_PREFIX
                            + EXAMPLE_LAYER_SUFFIX + "="
                            + ShapeMode.AUTO.getModeName() + "</code>",
             "or    <code>" + ShapeFamilyLayerType.SHADING_PREFIX
                            + EXAMPLE_LAYER_SUFFIX + "="
                            + ShapeMode.DENSITY.getModeName() + "</code>)",
-            "this kind of pixellisation will happen in any case.",
+            "it will have no effect, since this kind of rendering",
+            "happens in any case.",
+            "</p>",
+            "<p>When writing to vector graphics formats (PDF and PostScript),",
+            "setting it true will force the data contents to be bitmapped.",
+            "This may make the output less beautiful",
+            "(round markers will no longer be perfectly round),",
+            "but it may result in a much smaller file",
+            "if there are very many data points.",
+            "</p>",
+            "<p>When writing to bitmapped output formats",
+            "(PNG, GIF, JPEG, ...),",
+            "it fixes shapes to be the same as seen on the screen",
+            "rather than be rendered at the mercy of the graphics system,",
+            "which sometimes introduces small distortions.",
             "</p>",
         } );
         bitmapParam_.setBooleanDefault( false );
