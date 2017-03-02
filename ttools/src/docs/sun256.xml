@@ -11026,6 +11026,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         output.</li>
     <li>Various tweaks to the details of how plots are positioned on
         the screen or in output graphics files.</li>
+    <li>Improved documentation of plot <ref id="LayerType">layer types</ref>
+        and <ref id="ShapeMode">shading modes</ref> in the user document -
+        each option now has a screenshot and the text of the command that
+        generates it.</li>
     </ul>
     </p></dd>
 

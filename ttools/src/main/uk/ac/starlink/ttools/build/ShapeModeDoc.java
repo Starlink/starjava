@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -31,6 +32,9 @@ public class ShapeModeDoc {
     private final boolean basicXml_;
     private final String suffix_;
     private final String paramPrefix_;
+    private final Map<String,String> examplesMap_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.build" );
 
     /**
      * Constructor.
@@ -41,6 +45,7 @@ public class ShapeModeDoc {
         basicXml_ = basicXml;
         suffix_ = AbstractPlot2Task.EXAMPLE_LAYER_SUFFIX;
         paramPrefix_ = ShapeFamilyLayerType.SHADING_PREFIX;
+        examplesMap_ = Plot2Example.getExamplesXml();
     }
 
     /**
@@ -91,6 +96,26 @@ public class ShapeModeDoc {
             .append( suffix_ )
             .append( "</code>.\n" )
             .append( "</p>\n" );
+
+        /* Add example figure. */
+        String exname = "shading-" + mname;
+        String exXml = examplesMap_.get( exname );
+        if ( exXml != null ) {
+            sbuf.append( "<p>\n" )
+                .append( "<strong>Example:</strong>\n" )
+                .append( "</p>\n" )
+                .append( "<figure>\n" )
+                .append( "<figureimage src='&FIG.plot2-" )
+                .append( exname )
+                .append( ";'/>\n" )
+                .append( "</figure>\n" )
+                .append( "<p>" )
+                .append( exXml )
+                .append( "</p>\n" );
+        }
+        else {
+            logger_.severe( "No example figure for shading type " + mname );
+        }
 
         /* Parameter details. */
         if ( params.length > 0 ) {
