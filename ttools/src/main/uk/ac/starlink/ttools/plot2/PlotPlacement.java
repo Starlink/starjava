@@ -34,6 +34,7 @@ public class PlotPlacement {
     private final List<Decoration> decorations_;
     private static final int EXTERNAL_LEGEND_GAP = 10;
     private static final int MIN_DIM = 24;
+    private static final int PAD = 2;
 
     /**
      * Constructs a placement with no decorations.
@@ -199,6 +200,7 @@ public class PlotPlacement {
      *                  2-element (x,y) array, each element in range 0-1
      * @param   title   title text, or null
      * @param   shadeAxis  shader axis if required, or null
+     * @param   pad   extra padding in pixels around the outside
      * @return  data bounds rectangle
      */
     public static <P,A> Insets
@@ -206,7 +208,7 @@ public class PlotPlacement {
                                  SurfaceFactory<P,A> surfFact, P profile,
                                  A aspect, boolean withScroll, Icon legend,
                                  float[] legPos, String title,
-                                 ShadeAxis shadeAxis ) {
+                                 ShadeAxis shadeAxis, int pad ) {
 
         /* This implementation currently places the legend in the top
          * right corner of the plot surface's requested insets,
@@ -246,6 +248,12 @@ public class PlotPlacement {
             insets.top += new CaptionIcon( title, surf.getCaptioner() )
                          .getIconHeight();
         }
+
+        /* Small amount of extra padding. */
+        insets.top += pad;
+        insets.left += pad;
+        insets.right += pad;
+        insets.bottom += pad;
         return insets;
     }
 
@@ -284,7 +292,7 @@ public class PlotPlacement {
             Insets dataInsets =
                 calculateDataInsets( extBounds, surfFact, profile, aspect,
                                      withScroll, legend, legPos,
-                                     title, shadeAxis );
+                                     title, shadeAxis, PAD );
             insets = padding.overrideInsets( dataInsets );
         }
         return PlotUtil.subtractInsets( extBounds, insets );

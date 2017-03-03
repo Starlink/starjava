@@ -39,6 +39,10 @@ public interface Surface {
      * accommodate more or less space on the axes according to exactly
      * where ticks happen to fall on the axes.
      *
+     * <p>This method is supposed to return only the space that may
+     * actually be touched by the plot.  The calling code may wish to
+     * apply additional padding on top of this for cosmetic reasons.
+     *
      * @param   withScroll  true to reserve space for nicer scrolling
      * @return   plot data area insets
      */

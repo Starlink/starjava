@@ -36,7 +36,6 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
     private final int xoff_;
     private final int yoff_;
 
-    public static final int PAD = 2;
     public static final boolean INVERT_Y = true;
     public static final Orientation X_ORIENT = Orientation.X;
     public static final Orientation Y_ORIENT = Orientation.Y;
@@ -141,12 +140,6 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
             insets.bottom = Math.max( insets.bottom, scrollInsets.bottom );
             insets.right = Math.max( insets.right, scrollInsets.right );
         }
-
-        /* Add a small amount of padding. */
-        insets.left += PAD;
-        insets.bottom += PAD;
-        insets.top = Math.max( PAD, insets.top );
-        insets.right = Math.max( PAD, insets.right );
         return insets;
     }
 
