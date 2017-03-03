@@ -11019,6 +11019,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         than just the dozen standard plotting colours.</li>
     <li>Fix subpixel offset of colour ramp frame in PDF/PostScript graphics
         output.</li>
+    <li>Various tweaks to the details of how plots are positioned on
+        the screen or in output graphics files.</li>
     </ul>
     </p></dd>
 
