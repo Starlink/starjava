@@ -96,6 +96,8 @@
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
 
+  <loadfile property="version" srcFile="${basedir}/src/main/uk/ac/starlink/splat/util/splat.version"/>
+
   <!-- Compilation options -->
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
