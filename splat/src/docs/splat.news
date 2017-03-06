@@ -1,4 +1,11 @@
 1 Starlink SPLAT news.
+   3.11-6
+   ======
+   - no more need for builtin server list. If no previously saved list found, ask user to query the registry. (ssap,obscore)
+   - ssap: bug corrections in metadata handling
+   - ssap: now keeping datalink parameters in memory after changing tabs
+   - ssap: better differentiation between theoretical and observation services input parameters
+   - improved/corrected download of several spectra (buttons behaviour, error messages)
 
 
 
