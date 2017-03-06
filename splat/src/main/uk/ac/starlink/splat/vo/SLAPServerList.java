@@ -20,8 +20,8 @@ public class SLAPServerList extends AbstractServerList {
     public String getConfigFile() {
         return configFile;
     }
-    @Override
-    public String getDefaultFile() {
-        return defaultFile;
-    }
+//    @Override
+//    public String getDefaultFile() {
+//        return defaultFile;
+//    }
 }

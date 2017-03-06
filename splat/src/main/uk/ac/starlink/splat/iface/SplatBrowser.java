@@ -1914,7 +1914,7 @@ public class SplatBrowser
                 authenticator = ssapBrowser.getAuthenticator();
             }
             catch (SplatException e) {
-                ErrorDialog.showError( this, e );
+                ssapBrowser = new SSAQueryBrowser( null, this );
                 return;
             }
         } else {

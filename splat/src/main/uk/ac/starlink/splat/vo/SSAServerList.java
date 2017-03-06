@@ -33,7 +33,7 @@ public class SSAServerList extends AbstractServerList
  //   private HashMap<String, Boolean> selectionList = new HashMap<String, Boolean>();
     private static final String oldconfigFile = "SSAPServerListV3.xml";
     private  static final String configFile = "SSAPServerListV4.xml";
-    private  static final String defaultFile = "serverlist.xml";
+ //   private  static final String defaultFile = "serverlist.xml";
     
 
     public SSAServerList()
@@ -42,7 +42,7 @@ public class SSAServerList extends AbstractServerList
         super();
     }
     
-    public SSAServerList(StarTable table)  throws SplatException
+    public SSAServerList(StarTable table)  //throws SplatException
     {    
          super(table);      
     }
@@ -51,9 +51,6 @@ public class SSAServerList extends AbstractServerList
     public String getConfigFile() {
         return configFile;
     }
-    @Override
-    public String getDefaultFile() {
-        return defaultFile;
-    }
+  
 
 }

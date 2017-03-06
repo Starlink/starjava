@@ -65,8 +65,8 @@ import uk.ac.starlink.table.StarTable;
          super();       
          serverList=list;
          populate();
-      //   setRowSorter(new TableRowSorter<TableModel>(this.getModel()));
          sortTableAlphabetically();
+             
      }
 
     /* 
@@ -76,12 +76,14 @@ import uk.ac.starlink.table.StarTable;
      * this way the columns are set in the desired order
      */
     public void populate() {
-        
-        Iterator<?>  i =  serverList.getIterator();
+       
       
         DefaultTableModel model =  (DefaultTableModel) this.getModel();
         model.setRowCount(0);
         model.setColumnIdentifiers(headers);
+        
+        Iterator<?>  i =  serverList.getIterator();
+
         
         while( i.hasNext()) {
             SSAPRegResource server= (SSAPRegResource) i.next(); 
@@ -167,40 +169,24 @@ import uk.ac.starlink.table.StarTable;
      */
 
     public void updateServers(StarTable table ) {
-        
-        try {
-            if (serverList == null)
-                serverList = new SSAServerList(table);
-            else 
-                serverList.addNewServers(table );
-            
-        } catch (SplatException e) {                
-            e.printStackTrace();
-        }
 
-      //  this.setStarTable(table, false);
+        if (serverList == null)
+            serverList = new SSAServerList(table);
+        else 
+            serverList.addNewServers(table);
         populate();        
     }
-    
-    public void updateServers(StarTable table, ArrayList<String> manuallyAddedServices ) {
-        
-        try {
-            if (serverList == null)
-                serverList = new SSAServerList(table);
-            else 
-                serverList.addNewServers(table, manuallyAddedServices );
-            
-        } catch (SplatException e) {                
-            e.printStackTrace();
-        }
 
-      //  this.setStarTable(table, false);
+    public void updateServers(StarTable table, ArrayList<String> manuallyAddedServices ) {
+
+        if (serverList == null)
+            serverList = new SSAServerList(table);
+        else 
+            serverList.addNewServers(table, manuallyAddedServices );
+
         populate();       
-       
+
     }
-    
-   
-   
 
     /**
      *  Opens a Dialog Window with Information on the right-clicked service
@@ -208,8 +194,7 @@ import uk.ac.starlink.table.StarTable;
      * @param tags 
      */
     public void showInfo(int r, String type, String[] tags) {
-       
-       
+              
         String info = "<HTML><TABLE border=0 valign=\"top\">";
         DefaultTableModel model = (DefaultTableModel) this.getModel();
             

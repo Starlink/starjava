@@ -52,6 +52,7 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.AbstractServerList;
 import uk.ac.starlink.splat.vo.AddNewServerFrame;
+import uk.ac.starlink.splat.vo.ObsCoreServerList;
 import uk.ac.starlink.splat.vo.SSAPRegResource;
 import uk.ac.starlink.splat.vo.ServerPopupTable;
 import uk.ac.starlink.splat.vo.ServerTags;
@@ -155,6 +156,16 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     public void setServerTable(ServerPopupTable table) {
         serverTable=table;
         selectTaggedServers(getSelectedTag());
+    }
+    
+    public StarTable  queryRegistryWhenServersNotFound() {
+        int option = JOptionPane.showConfirmDialog(this, "No previously saved services list found. Query the Registry?", 
+                "Not Found", JOptionPane.YES_NO_OPTION);
+        if (option == JOptionPane.YES_OPTION) {
+            StarTable table = makeRegistryQuery();    
+            return table;
+        } else
+            return null;
     }
 
    

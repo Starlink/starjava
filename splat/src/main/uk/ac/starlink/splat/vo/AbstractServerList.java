@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import jsky.util.Logger;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.BeanStarTable;
@@ -46,6 +47,7 @@ public abstract class AbstractServerList {
             throws SplatException
     {
         restoreKnownServers();
+        
     }
 
 
@@ -63,7 +65,7 @@ public abstract class AbstractServerList {
     
     
     abstract public String getConfigFile();
-    abstract public String getDefaultFile();
+    //abstract public String getDefaultFile();
 
     
     /*
@@ -75,45 +77,43 @@ public abstract class AbstractServerList {
 
     public void addNewServers(StarTable table ) {
 
-        if ( table != null ) {
+        if ( table == null ) 
+            return;
 
-            // now add  the new ones
-            if ( table instanceof BeanStarTable ) {
-                Object[] resources = ((BeanStarTable)table).getData();
-                for ( int i = 0; i < resources.length; i++ ) {
+        // now add  the new ones
+        if ( table instanceof BeanStarTable ) {
+            Object[] resources = ((BeanStarTable)table).getData();
+            for ( int i = 0; i < resources.length; i++ ) {
 
-                    SSAPRegResource server = (SSAPRegResource)resources[i];
-                    String shortname = server.getShortName();
-                    if (shortname == null || shortname.length()==0)
-                        shortname = server.getTitle(); // avoid problems if server has no name (should not happen, but it does!!!)
-                    SSAPRegCapability caps[] = server.getCapabilities();
-                    int nrcaps = server.getCapabilities().length;
-                    int nrssacaps=0;
-                    // create one serverlist entry for each ssap capability  !!!! 
-                    // TODO:  DO THIS ALREADY ON SSAPREGISTRYQUERY!?
-                    for (int c=0; c< nrcaps; c++) {
-                       
-                        SSAPRegResource ssapserver = new SSAPRegResource(server);
-                        SSAPRegCapability onecap[] = new SSAPRegCapability[1];
-                        onecap[0] = caps[c];  
-                        String name = shortname;
-                        ssapserver.setCapabilities(onecap);
-                        if (nrssacaps > 0) 
-                            name =  name + "(" + nrssacaps + ")";
-                        ssapserver.setShortName(name);
-                        addServer( ssapserver, false );
-                        nrssacaps++;
-                    }                    
-                }
-               try {
-                saveServers();
-               } catch (SplatException e) {
-                // do nothing
-               } 
+                SSAPRegResource server = (SSAPRegResource)resources[i];
+                String shortname = server.getShortName();
+                if (shortname == null || shortname.length()==0)
+                    shortname = server.getTitle(); // avoid problems if server has no name (should not happen, but it does!!!)
+                SSAPRegCapability caps[] = server.getCapabilities();
+                int nrcaps = server.getCapabilities().length;
+                int nrssacaps=0;
+                // create one serverlist entry for each ssap capability  !!!! 
+                // TODO:  DO THIS ALREADY ON SSAPREGISTRYQUERY!?
+                for (int c=0; c< nrcaps; c++) {
+
+                    SSAPRegResource ssapserver = new SSAPRegResource(server);
+                    SSAPRegCapability onecap[] = new SSAPRegCapability[1];
+                    onecap[0] = caps[c];  
+                    String name = shortname;
+                    ssapserver.setCapabilities(onecap);
+                    if (nrssacaps > 0) 
+                        name =  name + "(" + nrssacaps + ")";
+                    ssapserver.setShortName(name);
+                    addServer( ssapserver, false );
+                    nrssacaps++;
+                }                    
             }
-           
-        }      
-
+            try {
+                saveServers();
+            } catch (SplatException e) {
+                // do nothing
+            } 
+        }
     }
 
     // add new servers - Before adding, remove all old entries except the manually added ones
@@ -316,31 +316,29 @@ public abstract class AbstractServerList {
                 inputStream.close();
             }
             catch (Exception e) {
-                e.printStackTrace();
+               // e.printStackTrace();
             }
         }
-
-
 
         //  If the restore of the user file failed, or it doesn't exist use
         //  the system default version. (only for ssa)
         if ( ! restored ) {
-            inputStream = SSAServerList.class.getResourceAsStream(getDefaultFile());
-            if ( inputStream == null ) {
+         //   inputStream = SSAServerList.class.getResourceAsStream(getDefaultFile());
+        //    if ( inputStream == null ) {
                 // That's bad. Need to complain, unless this is an update
                 /// of the format. In which case skip this section.
-                throw new SplatException( "Internal error: Failed to find" +
-                                          " the builtin server listing" );
-               //return;
-            }
-            needSave = true;
-            restoreServers( inputStream );
-            try {
-                inputStream.close();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
+               throw new SplatException( "Failed to find" +
+                                         " a server listing file" );
+               
+        //    }  
+        //    needSave = true;
+         //   restoreServers( inputStream );
+        //    try {
+        //        inputStream.close();
+        //    }
+        //    catch (Exception e) {
+        //        e.printStackTrace();
+        //    }
         }
 
         // Save the current state back to disk if we're using the default list.
@@ -406,7 +404,7 @@ public abstract class AbstractServerList {
                 break; // End of list.
             }
             catch ( NoSuchElementException e ) {
-                System.out.println( "Failed to read server list " +
+                Logger.info(this, "Failed to read server list " +
                         " (old-style or invalid):  '" +
                         e.getMessage() + "'"  );
                 ok = false;

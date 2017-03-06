@@ -6,7 +6,7 @@ import uk.ac.starlink.table.StarTable;
 public class ObsCoreServerList extends AbstractServerList {
 
     private static String configFile = "ObsCoreServerListV4.xml";
-    private static String defaultFile = "obscoreserverlist.xml";
+ //   private static String defaultFile = "obscoreserverlist.xml";
 
     public ObsCoreServerList() throws SplatException {
         super();
@@ -20,10 +20,10 @@ public class ObsCoreServerList extends AbstractServerList {
     public String getConfigFile() {
         return configFile;
     }
-    @Override
-    public String getDefaultFile() {
-        return defaultFile;
-    }
+ //   @Override
+ //   public String getDefaultFile() {
+ //       return defaultFile;
+ //   }
 
 
 }

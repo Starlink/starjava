@@ -24,6 +24,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -126,10 +127,14 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
 
         getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.LINE_AXIS) );
         initMenubar();
-        initComponents();
+        Boolean found = initComponents();
       
         setVisible(true);
-
+        if (! found ) {
+            StarTable table = queryPanel.queryRegistryWhenServersNotFound();  
+            queryPanel.setServerList(new ObsCoreServerList(table));
+            
+        }
     }
     
     /**
@@ -190,7 +195,7 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
      *  Initialise all visual components.
      */
     
-    private void initComponents()
+    private boolean initComponents()
     {
         //  Set up the content pane and window size.
         contentPane = (JPanel) getContentPane();
@@ -209,19 +214,25 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
         splitPane.setDividerLocation( divLoc );
 
         // initialize the right and left panels
-      
+        Boolean serverFileFound=true;
+        ObsCoreServerList osl=null;
         try {
-            queryPanel = new ObsCoreQueryServerPanel(new ObsCoreServerList(), new Dimension(divLoc,height));
-            queryPanel.addPropertyChangeListener(this);
-            splitPane.setLeftComponent( queryPanel);
+            osl=new ObsCoreServerList();  
+           
         } catch (SplatException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+           
+            osl = new ObsCoreServerList(null); // empty table
+            serverFileFound=false;
+            
         }
+        queryPanel = new ObsCoreQueryServerPanel(osl, new Dimension(divLoc,height));
+        queryPanel.addPropertyChangeListener(this);
+        splitPane.setLeftComponent( queryPanel);
        
         splitPane.setRightComponent( initializeResultsComponents() );
       
         contentPane.add( splitPane, BorderLayout.CENTER );
+        return serverFileFound;
     }
     
 
@@ -366,21 +377,6 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
         return tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
     }
 
-    StarTable queryRegistry() {
-        
-        StarTable table;
-        try {
-            
-            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.OBSCORE), new StarTableFactory() );
-         }
-        catch ( IOException e ) {
-            ErrorDialog.showError( this, "Registry query failed", e );
-            return null;
-        }
-        
-        return table;
- 
-    }
 
     /**
      * Event listener to trigger 
@@ -405,10 +401,6 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
         browser.toFront();
     }
 
-
-
-                                    //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
-                                        //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
     /**
      * Setup the default name servers (SIMBAD and NED) to use to resolve
      * astronomical object names. Note these are just those used in JSky.

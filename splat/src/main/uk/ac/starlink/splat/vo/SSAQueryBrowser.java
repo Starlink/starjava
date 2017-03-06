@@ -563,8 +563,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     public SSAQueryBrowser( SSAServerList serverList, SplatBrowser browser )
     {
         this.serverList = serverList;
-        this.browser = browser;
-        
+        this.browser = browser;        
         
         authenticator = new SSAPAuthenticator();
         Authenticator.setDefault(authenticator);
@@ -574,12 +573,21 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         metaPanel = new SSAMetadataPanel();
         metaPanel.addPropertyChangeListener(this);
 
+        Boolean found=true;
+        if (serverList==null) {
+            this.serverList=new SSAServerList(null);        
+            found=false;
+        }
         initUI();
         this.pack();
         this.setVisible(true);
         initMenusAndToolbar();
         initFrame(); 
-
+        
+        if (!found) {
+            StarTable table = serverPanel.queryRegistryWhenServersNotFound();  
+            serverPanel.setServerList(new SSAServerList(table));            
+        }
     }
 
     public SSAPAuthenticator getAuthenticator() {
@@ -605,8 +613,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
        
         this.add(splitPanel);
         leftPanel = initServerComponents();
-   
-      
+         
     //    tabPane.addTab("Server selection", leftPanel);
       
         centrePanel = new JPanel( new GridBagLayout() );
