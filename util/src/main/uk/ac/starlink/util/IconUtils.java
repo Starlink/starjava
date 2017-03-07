@@ -93,7 +93,7 @@ public class IconUtils {
      * @param  icon
      * @return  image
      */
-    public static BufferedImage createImage( Icon icon ) {
+    private static BufferedImage createImage( Icon icon ) {
         int w = icon.getIconWidth();
         int h = icon.getIconHeight();
 
@@ -102,7 +102,15 @@ public class IconUtils {
             new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB );
         Graphics2D g2 = image.createGraphics();
 
-        /* Clear it to transparent white. */
+        /* This ought to clear it to transparent white (00ffffff).
+         * But in fact it seems to remain transparent black (00000000).
+         * That shouldn't make a difference, but in some cases PNGs
+         * written with a transparent background can end up displaying
+         * with black backgrounds when they end up in PDFs (probably
+         * a bug in Fop?).  I have wasted a vast amount of time trying
+         * to get this right and so far failed.  But if you just want
+         * to copy an existing image you can use AlphaComposite.SRC
+         * for the actual painting. */
         Color color = g2.getColor();
         Composite compos = g2.getComposite();
         g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );

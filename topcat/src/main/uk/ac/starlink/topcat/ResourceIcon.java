@@ -1,7 +1,10 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.AlphaComposite;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.image.BufferedImage;
@@ -28,6 +31,7 @@ import java.util.Map;
 import javax.help.JHelp;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
 import uk.ac.starlink.table.gui.FileChooserTableLoadDialog;
 import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
@@ -36,7 +40,6 @@ import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.ttools.plot.ErrorMode;
-import uk.ac.starlink.util.IconUtils;
 import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.Ri1RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
@@ -284,6 +287,8 @@ public class ResourceIcon implements Icon {
         }
     };
 
+    private static Component dummyComponent_;
+
     private String location;
     private Icon baseIcon;
     private Boolean resourceFound;
@@ -400,12 +405,15 @@ public class ResourceIcon implements Icon {
         }
         BufferedImage image =
             new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
-        Component c = null;
-        Graphics g = image.createGraphics();
+        Component c = getDummyComponent();
+        Graphics2D g2 = image.createGraphics();
+        Composite compos0 = g2.getComposite();
+        g2.setComposite( AlphaComposite.Src );
         for ( int i = 0; i < icons.length; i++ ) {
-            icons[ i ].paintIcon( c, g, 0, 0 );
+            icons[ i ].paintIcon( c, g2, 0, 0 );
+            g2.setComposite( compos0 );
         }
-        g.dispose();
+        g2.dispose();
         return new ImageIcon( image );
     }
 
@@ -792,11 +800,60 @@ public class ResourceIcon implements Icon {
      */
     private static void writePng( Icon icon, File file ) throws IOException {
         String format = "PNG";
-        boolean fmtok =
-            ImageIO.write( IconUtils.createImage( icon ), format, file );
+        boolean fmtok = ImageIO.write( toImage( icon ), format, file );
         if ( ! fmtok ) {
             throw new IOException( "Unknown format " + format );
         }
+    }
+
+    /**
+     * Provides an empty component.
+     *
+     * @return   lazily constructed component
+     */
+    private static Component getDummyComponent() {
+        if ( dummyComponent_ == null ) {
+            dummyComponent_ = new JPanel();
+        }
+        return dummyComponent_;
+    }
+
+    /**
+     * Converts an Icon to an BufferedImage.
+     *
+     * @param  input icon
+     * @return  image with icon painted on it
+     */
+    private static BufferedImage toImage( Icon icon ) {
+        int w = icon.getIconWidth();
+        int h = icon.getIconHeight();
+
+        /* Create an image to draw on. */
+        BufferedImage image =
+            new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB );
+        Graphics2D g2 = image.createGraphics();
+
+        /* This clears the image.  It may not be necessary.
+         * What I really want to do is to clear it to transparent white
+         * (0x00ffffff) but this seems incredibly hard to do,
+         * it's likely to be transparent black instead (0x00000000).
+         * It shouldn't make a difference, but in some cases writing a
+         * PNG with the wrong coloured transparent background shows up
+         * coloured in a PDF. */
+        g2.setComposite( AlphaComposite.Clear );
+        g2.fillRect( 0, 0, w, h );
+
+        /* Copy the icon completely; this will overwrite the background
+         * if the icon is an image or otherwise fills the area,
+         * so meaning failure of the previous step doesn't matter. */
+        g2.setComposite( AlphaComposite.Src );
+
+        /* Paint the icon. */
+        icon.paintIcon( getDummyComponent(), g2, 0, 0 );
+
+        /* Clear up and return the icon. */
+        g2.dispose();
+        return image;
     }
 
     /**
