@@ -10953,84 +10953,111 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Update taplint OBS stage for PR-ObsCore-v1.1-20160923.</li>
-    <li>Add new parameter <code>auxwidth</code> to plot2 commands,
-        to control colour ramp lateral dimension in pixels.</li>
-    <li>Remove spurious padding from EPS graphics output.</li>
-    <li>Add <code>blockmaxrec</code> parameter to
-        <ref id="tapskymatch">tapskymatch</ref>,
-        and improve warning text in case of result truncations.</li>
-    <li>Add histogram-like layer types to the
-        <ref id="plot2time">plot2time</ref> command,
-        so you can now plot histograms with a temporal horizontal axis.</li>
-    <li>MOC library upgraded to v4.6 (from v3.3).  Improved MOC output.</li>
-    <li>Options for MOC output format
-        (<code>mocfmt</code> parameter
-        in <ref id="pixfoot">pixfoot</ref> command) have changed;
-        option <code>ascii</code> is replaced by <code>json</code>.
-        The old ASCII format was slightly broken JSON in any case.</li>
-    <li>Improve <code>tapquery</code>/<code>tapresume</code> behaviour
-        when monitoring async jobs; if the service goes down,
-        the application will wait for it to come back rather than
-        bailing out.</li>
-    <li>Plot commands <code>insets</code> parameter now lets you specify
-        margins round plots using any combination of
-        <code>&lt;top&gt;,&lt;left&gt;,&lt;bottom&gt;,&lt;right&gt;</code>,
-        rather than requiring all values or none.
-        Also fix related regression bugs present since v3.0-6.</li>
-    <li>Add new plot layer type <ref id="layer-quantile">quantile</ref>
-        for <code>plot2plane</code> and <code>plot2time</code> commands.</li>
-    <li>Fix KDE/KNN plotting bug that could get scaling badly wrong
-        for normalised cumulative plots.</li>
-    <li>New normalisation (scaling) option <label>unit</label> for
-        histogram, KDE, and KNN plots.</li>
-    <li>New normalisation (scaling) options <label>per_day</label> etc
-        for histogram, KDE and KNN layers when used from the
-        <code>plot2time</code> command.</li>
-    <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
-    <li>Modify <em>plan</em> caching arrangements for STILTS plots.
-        This results in much better interactive performance
-        (navigation etc) for some plot layer types plotted to the screen.
-        There are also some minor API changes to a few of the plot2
-        utility classes, which now provide more flexibility for caching.</li>
-    <li>Add new layer type <ref id="layer-grid">grid</ref> for
-        <code>plot2plane</code> and <code>plot2time</code>.
-        This replaces the <code>density</code> layer,
-        which has been withdrawn
-        (<code>grid</code> can do all the same things and more,
-        except specify bin size in screen pixels).</li>
-    <li><code>taplint</code> can now optionally write its output in JSON
-        format (see <code>format</code> parameter).</li>
-    <li>The <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref> function
-        <code>hypot</code> now takes an arbitrary number of arguments
-        (instead of just two).</li>
-    <li>Fixed the match score (distance measure) for
-        <ref id="CombinedMatchEngine">combined matchers</ref>.
-        Previously, the score was a linear sum of the unscaled distances
-        for the constituent matchers, which meant a <em>Best</em> match
-        was pretty meaningless.  Now, it adds scaled distances in quadrature,
-        so Best matching should give you a somewhat sensible result.</li>
-    <li>The <code><ref id="SkyMatchEngine-err">skyerr</ref></code>
-        and <code><ref id="ErrorCartesianMatchEngine">nd_err</ref></code> 
-        matchers now report output separations as scaled (dimensionless)
-        values rather than in physical units; this means the results are
-        more comparable, so <em>Best</em> matches will make more sense.</li>
-    <li>Fix small bug in <code>plot2plane</code>/<code>plot2time</code>
-        label painting; horizontal axis label was sometimes off the
-        bottom of the plot by a few pixels.</li>
-    <li>Colours may now be specified to the <code>plot2*</code> commands
-        using any of the (140) CSS-like colour names rather
-        than just the dozen standard plotting colours.</li>
-    <li>Fix subpixel offset of colour ramp frame in PDF/PostScript graphics
-        output.</li>
-    <li>Various tweaks to the details of how plots are positioned on
-        the screen or in output graphics files.</li>
-    <li>Improved documentation of plot <ref id="LayerType">layer types</ref>
-        and <ref id="ShapeMode">shading modes</ref> in the user document -
-        each option now has a screenshot and the text of the command that
-        generates it.</li>
-    </ul>
+    <dl>
+    <dt>Plotting improvements</dt>
+    <dd><p>
+        <ul>
+        <li>Improved documentation of plot
+            <ref id="LayerType">layer types</ref> and
+            <ref id="ShapeMode">shading modes</ref> in the user document -
+            each option now has an example graphic
+            and the text of the command that generates it.</li>
+        <li>New layer type <ref id="layer-grid">grid</ref>,
+            to plot a 2-d weighted histogram.
+            This replaces the <code>density</code> layer,
+            which has been withdrawn
+            (<code>grid</code> can do all the same things and more,
+            except specify bin size in screen pixels).</li>
+        <li>New plot layer type <ref id="layer-quantile">quantile</ref>,
+            which can (e.g.) plot median lines through noisy data.</li>
+        <li>New plot layer type <ref id="layer-gaussian">gaussian</ref>,
+            for Gaussian fits to histograms.</li>
+        <li>Histogram-like layer types are now available from the
+            <ref id="plot2time">plot2time</ref> command as well as
+            from <code>plot2plane</code>,
+            so you can now plot histograms with a temporal horizontal axis.</li>
+        <li>New normalisation (scaling) option <code>unit</code> for
+            histogram, KDE, and KNN plots.</li>
+        <li>New normalisation (scaling) options <code>per_day</code> etc
+            for histogram, KDE and KNN layers when used from the
+            <code>plot2time</code> command.</li>
+        <li>Colour names recognised by the <code>plot2*</code> command
+            <code>*color</code> parameters
+            now include the (140)
+            <webref url="https://www.w3c.org/TR/css3-color#svg-color"
+                    >CSS-like</webref> colours alongside
+            the dozen standard plotting colours.</li>
+        <li>Plot commands <code>insets</code> parameter now lets you specify
+            margins round plots using any combination of
+            <code>&lt;top&gt;,&lt;left&gt;,&lt;bottom&gt;,&lt;right&gt;</code>,
+            rather than requiring all values or none.</li>
+        <li>Add new parameter <code>auxwidth</code> to plot2 commands,
+            to control colour ramp lateral dimension in pixels.</li>
+        <li>Modify <em>plan</em> caching arrangements for STILTS plots.
+            This results in much better interactive performance
+            (navigation etc) for some plot layer types plotted to the screen.
+            There are also some minor API changes to a few of the plot2
+            utility classes, which now provide more flexibility
+            for caching.</li>
+        <li>Various tweaks to the details of how plots are positioned on
+            the screen or in output graphics files.</li>
+        </ul>
+        </p></dd>
+    <dt>Miscellaneous enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed the match score (distance measure) for
+            <ref id="CombinedMatchEngine">combined matchers</ref>.
+            Previously, the score was a linear sum of the unscaled distances
+            for the constituent matchers, which meant a <em>Best</em> match
+            was pretty meaningless.
+            Now, it adds scaled distances in quadrature,
+            so Best matching should give you a somewhat sensible result.</li>
+        <li>The <code><ref id="SkyMatchEngine-err">skyerr</ref></code>
+            and <code><ref id="ErrorCartesianMatchEngine">nd_err</ref></code>
+            matchers now report output separations as scaled (dimensionless)
+            values rather than in physical units; this means the results are
+            more comparable, so <em>Best</em> matches will make more sense.</li>
+        <li><ref id="taplint">taplint</ref>
+            can now optionally write its output in JSON
+            format (see <code>format</code> parameter).</li>
+        <li>Update <code>taplint</code> OBS stage for
+            PR-ObsCore-v1.1-20160923.</li>
+        <li>The <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref> function
+            <code>hypot</code> now takes an arbitrary number of arguments
+            (instead of exactly two).</li>
+        <li>Add <code>blockmaxrec</code> parameter to
+            <ref id="tapskymatch">tapskymatch</ref>,
+            and improve warning text in case of result truncations.</li>
+        <li>Improve <code>tapquery</code>/<code>tapresume</code> behaviour
+            when monitoring async jobs; if the service goes down,
+            the application will wait for it to come back rather than
+            bailing out.</li>
+        <li>Options for MOC output format
+            (<code>mocfmt</code> parameter
+            in <ref id="pixfoot">pixfoot</ref> command) have changed;
+            option <code>ascii</code> is replaced by <code>json</code>.
+            The old ASCII format was slightly broken JSON in any case.</li>
+        <li>MOC library upgraded to v4.6 (from v3.3).  Improved MOC output.</li>
+        <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix KDE/KNN plotting bug that could get scaling badly wrong
+            for normalised cumulative plots.</li>
+        <li>Fix some regression bugs relating to <code>plot2</code> command
+            <code>insets</code> parameter, present since v3.0-6.</li>
+        <li>Remove spurious padding from EPS graphics output.</li>
+        <li>Fix small bug in <code>plot2plane</code>/<code>plot2time</code>
+            label painting; horizontal axis label was sometimes off the
+            bottom of the plot by a few pixels.</li>
+        <li>Fix subpixel offset of colour ramp frame in PDF/PostScript graphics
+            output.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
