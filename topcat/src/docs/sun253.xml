@@ -118,7 +118,6 @@
   <!ENTITY FIG.NavigationHelpPanel '&figs;NavigationHelpPanel.png'>
   <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.png'>
   <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.png'>
-  <!ENTITY FIG.form-style '&figs;form-style.png'>
   <!ENTITY FIG.PlotExporter '&figs;PlotExporter.png'>
   <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.png'>
   <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.png'>
@@ -7323,11 +7322,24 @@ distinguishable.
 
 <p>These table layer controls generally have three tabs:
 <label>Position</label>, <label>Subsets</label> and <label>Form</label>.
-The Position tab is for specifying coordinates, and depends on the
-specific type of the plot and the layer control.
-The <label>Subsets</label> and <label>Form</label> control which
+The <label>Position</label> tab is for specifying coordinates,
+and depends on the specific type of the plot and the layer control.
+The <label>Subsets</label> and <label>Form</label> tabs control which
 row subsets are plotted and how they are displayed,
 and a description of how they are arranged follows below.
+</p>
+
+<figure>
+<caption><px>Position tab of a table data layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_position;"/>
+</figure>
+
+<p>The <label>Position</label> tab lets you specify a table and
+a basic set of coordinates for the positions to plot.
+The details of how the data point at each of those positions is
+represented, including in some cases
+more coordinate values (e.g. for error bar sizes etc),
+are specified in the other tabs (usually <label>Form</label>).
 </p>
 
 <figure>
@@ -7365,14 +7377,28 @@ all the forms plotted for a given subset, rather than one form at a time.
 </p>
 
 <figure>
-<caption><px>Style configuration in Form tab
-             of a table data layer control</px></caption>
-<figureimage src="&FIG.form-style;"/>
+<caption><px>Form tab of a table data layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_form;"/>
 </figure>
 
-<p>The <label>Form</label> tab allows you to select style information
-to determine the details of how the plot will look for each layer.
-The details differ greatly between layer control types, but they
+<p>The <label>Form</label> tab lets you control how the data coordinates
+specified in the <label>Position</label> tab will be used to
+generate graphics on the screen.
+On the left is a stack of different Form types that will each be plotted;
+a default item <label>Mark</label> is usually included to start with,
+but you can add more from the &IMG.ADD; <label>Forms</label> menu button.
+Each form in this stack can be turned on or off individually by clicking
+its activation checkbox, dragged up and down using its grab handle,
+or deleted using the &IMG.DELETE; <label>Remove Selected Form</label>
+item from the Forms menu.
+</p>
+
+<p>When you select a form by clicking on it in the stack,
+a configuration sub-panel will appear on the right hand side of this panel.
+This allows you to select style information
+to determine the details of how the plot will look for each layer,
+and sometimes also reports information calculated by the plot.
+The details differ greatly between forms, but they
 generally contain two sub-panels for defining the style details,
 <label>Global Style</label> and <label>Subset Styles</label>:
 <dl>
