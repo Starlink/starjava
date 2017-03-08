@@ -16594,7 +16594,7 @@ of a metric on that space to count as a match.
     Sky distance and X distance by their maximum values and adds them in
     quadrature, so they have equal weight
     (<m>d=sqrt([r/r<sub>max</sub>]<sup>2</sup>
-              +[dX/dX<sub>max</sub>]<sup>2</sup>)</m>)
+              +[dX/dX<sub>max</sub>]<sup>2</sup>)</m>).
     </p>
     <p><em>Note that in TOPCAT versions 4.3-5 and earlier
     a linear unscaled distance combination was used here,
@@ -16617,7 +16617,7 @@ of a metric on that space to count as a match.
     quadrature, so they have equal weight
     (<m>d=sqrt([r/r<sub>max</sub>]<sup>2</sup>
               +[dX/dX<sub>max</sub>]<sup>2</sup>
-              +[dY/dY<sub>max</sub>]<sup>2</sup>)</m>)
+              +[dY/dY<sub>max</sub>]<sup>2</sup>)</m>).
     </p>
     <p><em>Note that in TOPCAT versions 4.3-5 and earlier
     a linear unscaled distance combination was used here,
@@ -24065,78 +24065,107 @@ introduced since the last version:
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>Fixed a bug that could show Error information for the wrong job
-        in the TAP Running Jobs tab.</li>
-    <li>Remove spurious padding from EPS graphics output.</li>
-    <li>Fix TAP window bug that prevented job status from being updated
-        in Running Jobs tab.</li> 
-    <li>Add the <ref id="HistogramLayerControl">Histogram</ref> control
-        to the <ref id="TimePlotWindow">Time</ref> plot window,
-        so you can now plot histograms with a temporal horizontal axis.</li>
-    <li>Fix a regression bug (since v4.3-2) in the
-        <ref id="FrameControl">Frame</ref> layer control;
-        values entered were being ignored for image export or
-        display or both.</li>
-    <li>Add new plotting form <ref id="form-quantile">Quantile</ref>
-        for Plane and Time plots.</li>
-    <li>Fix KDE/KNN plotting bug that could get scaling badly wrong
-        for normalised cumulative plots.</li>
-    <li>New normalisation (scaling) option <label>unit</label> for
-        histogram, KDE, and KNN layers.</li>
-    <li>New normalisation (scaling) options <label>per_day</label> etc
-        for histogram, KDE and KNN layers in the Time plot window only.</li>
-    <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
-    <li>Fix nasty <ref id="ConcatWindow">Concatenation Window</ref> bug;
-        the current subset and sort order of the Appended table
-        were not properly taken account of in the output.
-        This was a regression bug introduced at v4.3-4.</li>
-    <li>Added STScI service to default list of RegTAP registry endpoints.</li>
-    <li>New <ref id="form-gaussian">Gaussian</ref> plotter for Gaussian fits
-        to histograms.</li>
-    <li>GUI change in the <label>Form</label> tab of plot windows:
-        to add (and remove) forms there is now a &IMG.ADD; <label>Forms</label>
-        button that pops up a menu rather than the toolbar with form icons.
-        There were getting to be too many icons to fit in the toolbar.</li>
-    <li>Minor improvements to the logic in the
-        <ref id="ConcatWindow">Concattenation Window</ref> that tries to
-        match up columns between the two tables.</li>
-    <li>Add new layer form <ref id="form-grid">Grid</ref> for Plane and
-        Time plots.
-        This replaces the <em>Density</em> layer form, which has been
-        withdrawn
-        (Grid can do all the same things and more,
-        except specify bin size in screen pixels).</li>
-    <li>The colour selector widget now comes with a new
-        <label>Free colour chooser</label> &IMG.COLOR_WHEEL; button,
-        giving you various ways to select any RGB colour you like.</li>
-    <li>The <ref id="Maths">Maths</ref> function
-        <code>hypot</code> now takes an arbitrary number of arguments
-        (instead of just two).</li>
-    <li>Fixed the match score (distance measure) for the
-        <label>Sky+X</label> and <label>Sky+XY</label>
-        <ref id="matchCriteria">matching algorithms</ref>.
-        Previously, the score was a linear sum of the unscaled distances
-        for the constituent matchers, which meant a <em>Best</em> match
-        was pretty meaningless.  Now, it adds scaled distances in quadrature,
-        so Best matching should give you a somewhat sensible result.</li>
-    <li>The <em>Sky with Errors</em>
-        and <em>N-dimensional Cartesian with Errors</em>
-        <ref id="matchCriteria">match types</ref>
-        now report output separations as scaled (dimensionless)
-        values rather than in physical units; this means the results are
-        more comparable, so <em>Best</em> matches will make more sense.</li>
-    <li>Fix small bug in Plane/Time plot windows;
-        horizontal axis label was sometimes off the bottom of the plot
-        by a few pixels.</li>
-    <li>Fix subpixel offset of colour ramp frame in PDF/PostScript graphics
-        output.</li>
-    <li>Various tweaks to the details of how plots are positioned on
-        the screen or in output graphics files.</li>
-    <li>Improved documentation of plot <ref id="ShapeForm">Forms</ref> and
-        <ref id="ShapeMode">Shading Modes</ref> in the user document -
-        each option now has a screenshot showing it in action.</li>
-    </ul>
+    <dl>
+    <dt>Visualisation improvements</dt>
+    <dd><p>
+        <ul>
+        <li>The GUI has changed in the <label>Form</label> tab
+            of plot window
+            <ref id="tableDataControl">Data Layer Control</ref> panels.
+            To add (and remove) forms there is now a
+            &IMG.ADD; <label>Forms</label>
+            button that pops up a menu rather than the toolbar with form icons
+            that used to be there.
+            This change was necessitated because there were getting to be
+            too many icons to fit in the default width of the toolbar.
+            But it's probably an improvement anyway since you can now
+            see the name of each available form as well as its icon.</li>
+        <li>Improved the documentation of plot
+            <ref id="ShapeForm">Forms</ref> and
+            <ref id="ShapeMode">Shading Modes</ref>
+            in the user document -
+            each option now has a screenshot showing it in action.</li>
+        <li>The colour selector widget now comes with a new
+            <label>Free colour chooser</label> &IMG.COLOR_WHEEL; button,
+            giving you various ways to select any RGB colour you like.</li>
+        <li>New <ref id="form-grid">Grid</ref> plot form,
+            to plot a 2-d weighted histogram.
+            This replaces the <em>Density</em> form,
+            which has been withdrawn
+            (Grid can do all the same things and more,
+            except specify bin size in screen pixels).</li>
+        <li>New <ref id="form-quantile">Quantile</ref> plot form,
+            which can (e.g.) plot median lines through noisy data.</li>
+        <li>New <ref id="form-gaussian">Gaussian</ref> plot form
+            for Gaussian fits to histograms.</li>
+        <li>New normalisation (scaling) option <label>unit</label> for
+            histogram, KDE, and KNN layers.</li>
+        <li>New normalisation (scaling) options <label>per_day</label> etc
+            for histogram, KDE and KNN layers in the Time plot window only.</li>
+        <li>The <ref id="HistogramLayerControl">Histogram</ref> control
+            is now available from the
+            <ref id="TimePlotWindow">Time</ref> as well as the Plane
+            plot window, so you can now plot histograms with a temporal
+            horizontal axis.</li>
+        <li>Various tweaks to the details of how plots are positioned on
+            the screen or in output graphics files.</li>
+        </ul>
+        </p></dd>
+    <dt>Miscellaneous enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed the match score (distance measure) for the
+            <label>Sky+X</label> and <label>Sky+XY</label>
+            <ref id="matchCriteria">matching algorithms</ref>.
+            Previously, the score was a linear sum of the unscaled distances
+            for the constituent matchers, which meant a <em>Best</em> match
+            was pretty meaningless.
+            Now, it adds scaled distances in quadrature,
+            so Best matching should give you a somewhat sensible result.</li>
+        <li>The <label>Sky with Errors</label>
+            and <label>N-dimensional Cartesian with Errors</label>
+            <ref id="matchCriteria">matching algorithms</ref>
+            now report output separations as scaled (dimensionless)
+            values rather than in physical units.
+            This means the results are more comparable,
+            so <em>Best</em> match results will make more sense.</li>
+        <li>The <ref id="Maths">Maths</ref> function
+            <code>hypot</code> now takes an arbitrary number of arguments
+            (instead of exactly two).</li>
+        <li>Added STScI service to default list of RegTAP registry
+            endpoints.</li>
+        <li>Minor improvements to the logic in the
+            <ref id="ConcatWindow">Concatenation Window</ref> that tries to
+            match up columns between the two tables.</li>
+        <li>Update JCDF library to v1.2-2 (2017-01-01 leap second).</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix KDE/KNN plotting bug that could get scaling badly wrong
+            for normalised cumulative plots.</li>
+        <li>Fix nasty <ref id="ConcatWindow">Concatenation Window</ref> bug;
+            the current subset and sort order of the Appended table
+            were not properly taken account of in the output.
+            This was a regression bug introduced at v4.3-4.</li>
+        <li>Fix a regression bug (since v4.3-2) in the
+            <ref id="FrameControl">Frame</ref> layer control;
+            values entered were being ignored for image export or
+            display or both.</li>
+        <li>Fixed a bug that could show Error information for the wrong job
+            in the TAP Running Jobs tab.</li>
+        <li>Fix TAP window bug that prevented job status from being updated
+            in Running Jobs tab.</li>
+        <li>Fix small bug in Plane/Time plot windows;
+            horizontal axis label was sometimes off the bottom of the plot
+            by a few pixels.</li>
+        <li>Fix subpixel offset of colour ramp frame in PDF/PostScript graphics
+            output.</li>
+        <li>Remove spurious padding from EPS graphics output.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
