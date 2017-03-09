@@ -244,14 +244,15 @@ public class PlotPlacement {
         }
         if ( title != null ) {
 
-            /* Slightly annoying that we have to create a surfact just to
+            /* Slightly annoying that we have to create a surface just to
              * get the captioner, but it should be cheap. */
             Captioner captioner =
                 surfFact.createSurface( extBounds, profile, aspect )
                         .getCaptioner();
             decInsets.top =
                 Math.max( decInsets.top,
-                          new CaptionIcon( title, captioner ).getIconHeight() );
+                          captioner.getCaptionBounds( title ).height
+                          + captioner.getPad() );
         }
 
         /* Insets for padding outside space that is actually painted on
