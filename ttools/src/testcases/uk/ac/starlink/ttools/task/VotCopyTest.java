@@ -60,6 +60,7 @@ public class VotCopyTest extends TableTestCase {
         File file = File.createTempFile( "votcopy", ".vot" );
         file.deleteOnExit();
         env.setValue( "out", file.toString() )
+           .setValue( "charset", "utf-8" )
            .setValue( "href", "false" );
         new VotCopy().createExecutable( env ).execute();
         return file.toURI().toURL();
