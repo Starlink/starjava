@@ -304,6 +304,11 @@ public class Times {
      * The default output corresponds to the string
      * "<code>yyyy-MM-dd'T'HH:mm:ss</code>"
      *
+     * <p>Note that the output from certain formatting characters
+     * (such as <code>MMM</code> for month, <code>EEE</code> for day of week)
+     * is dependent on your locale (system language settings).
+     * The output time zone however always corresponds to UTC.
+     *
      * @example   <code>formatMjd(50000.3, "EEE dd, MMM, yy") 
      *                  = "Tue 10 Oct, 95"</code>
      * @example   <code>formatMjd(50000.1234, "'time 'H:mm:ss.SSS")

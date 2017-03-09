@@ -110,8 +110,11 @@ public class TimesTest extends TestCase {
         assertEquals( "2005-06-30", Times.mjdToDate( 53551.72917 ) );
         assertEquals( "17:30:00", Times.mjdToTime( 53551.72917 ) );
 
-        assertEquals( "Tue 10 Oct, 95", 
-                      Times.formatMjd( 50000.3, "EEE dd MMM, yy" ) );
+        // Note that the output for some formatting characters such as
+        // EEE (day of week) are sensitive to the default Locale.
+        // So avoid them in this test.
+        assertEquals( "283/001995[UTC]", 
+                      Times.formatMjd( 50000.3, "DD/yyyyyy[z]" ) );
         assertEquals( "time 2:57:41.760", 
                       Times.formatMjd( 50000.1234, "'time 'H:mm:ss.SSS" ) );
 
