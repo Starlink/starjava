@@ -11064,6 +11064,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dd><p>
     <ul>
     <li>Fix bug in plot title placement.</li>
+    <li>The <code>charset</code> parameter of <code>votcopy</code>
+        now defaults to UTF-8 rather than the system default.</li>
     </ul>
     </p></dd>
 

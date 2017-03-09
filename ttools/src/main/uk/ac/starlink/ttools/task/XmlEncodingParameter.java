@@ -4,6 +4,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -19,16 +21,28 @@ import uk.ac.starlink.task.TaskException;
 public class XmlEncodingParameter extends Parameter<Charset>
                                   implements ExtraParameter {
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
+
     public XmlEncodingParameter( String name ) {
         super( name, Charset.class, true );
         setUsage( "<xml-encoding>" );
         setNullPermitted( true );
+        String dflt = "UTF-8";
+        try {
+            Charset.forName( dflt );
+            setStringDefault( dflt );
+        }
+        catch ( UnsupportedCharsetException e ) {
+            logger_.log( Level.WARNING,
+                         "Unsupported charset " + dflt + "???", e );
+        }
 
         setDescription( new String[] {
             "<p>Selects the Unicode encoding used for the output XML.",
-            "The available options and default are dependent on your JVM,",
-            "but the default probably corresponds to UTF-8.",
-            "Use <code>help=" + getName() + "</code> for a full listing.",
+            "The available options are dependent on your JVM,",
+            "use <code>help=" + getName() + "</code> for a full listing.",
+            "Setting the value null will use the JVM's system default.",
             "</p>",
         } );
     }
