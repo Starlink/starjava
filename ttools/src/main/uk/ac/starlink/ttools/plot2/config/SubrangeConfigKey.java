@@ -1,12 +1,13 @@
 package uk.ac.starlink.ttools.plot2.config;
 
-import com.jidesoft.swing.RangeSlider;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.Hashtable;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -113,7 +114,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
     private static class SubrangeSpecifier extends SpecifierPanel<Subrange> {
         private final double rmin_;
         private final double rmax_;
-        private final RangeSlider slider_;
+        private final JSlider slider_;
         private static final int MIN = 0;
         private static final int MAX = 10000;
 
@@ -124,9 +125,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
             super( true );
             rmin_ = rmin;
             rmax_ = rmax;
-            slider_ = new RangeSlider( MIN, MAX );
-            slider_.setLowValue( MIN );
-            slider_.setHighValue( MAX );
+            slider_ = RangeSliderUtil.createRangeSlider( MIN, MAX );
             slider_.addChangeListener( getChangeForwarder() );
             if ( ! ( rmin == 0 && rmax == 1 ) ) {
                 Hashtable<Integer,JComponent> labels =
@@ -143,8 +142,9 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         }
 
         public Subrange getSpecifiedValue() {
-            int ilo = slider_.getLowValue();
-            int ihi = slider_.getHighValue();
+            int[] range = RangeSliderUtil.getSliderRange( slider_ );
+            int ilo = range[ 0 ];
+            int ihi = range[ 1 ];
 
             /* Don't return a zero range. */
             if ( ilo == ihi ) {
@@ -160,8 +160,9 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         }
 
         public void setSpecifiedValue( Subrange subrange ) {
-            slider_.setLowValue( unscale( subrange.getLow() ) );
-            slider_.setHighValue( unscale( subrange.getHigh() ) );
+            RangeSliderUtil.setSliderRange( slider_,
+                                            unscale( subrange.getLow() ),
+                                            unscale( subrange.getHigh() ) );
         }
 
         public void submitReport( ReportMap report ) {
@@ -174,7 +175,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
          * @return   slider range interval roughly equivalent to one pixel
          */
         private int getQuantum() {
-            int npix = slider_.getOrientation() == RangeSlider.VERTICAL
+            int npix = slider_.getOrientation() == SwingConstants.VERTICAL
                      ? slider_.getHeight()
                      : slider_.getWidth();
             npix = Math.max( 10, Math.min( 10000, npix ) );

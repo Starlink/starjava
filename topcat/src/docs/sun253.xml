@@ -26480,6 +26480,12 @@ introduced since the last version:
     <li>Fix a bug in the TAP client that caused a read error for result
         VOTables longer than 2Gb.</li>
     <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
+    <li>Introduce a fallback RangeSlider for use in plot windows when the
+        JIDE-OSS one is unavailable.  That cures some circumstances
+        in which plot windows could fail, e.g. (apparently?)
+        Java 10 on OSX or use of Nimbus Look&amp;Feel.
+        It does mean that range sliders may look ugly in at least some
+        OSX environments, but at least it doesn't crash.</li>
     </ul>
     </p></dd>
 
