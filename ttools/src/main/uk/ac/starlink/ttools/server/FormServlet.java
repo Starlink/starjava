@@ -20,7 +20,6 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
-import uk.ac.starlink.ttools.task.StiltsServer;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
 
