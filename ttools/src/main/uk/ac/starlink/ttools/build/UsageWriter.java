@@ -210,7 +210,7 @@ public class UsageWriter {
     private static String nbsps( int count ) {
         StringBuffer sbuf = new StringBuffer( count );
         for ( int i = 0; i < count; i++ ) {
-            sbuf.append( "\u00a0" );
+            sbuf.append( "&#xA0;" );
         }
         return sbuf.toString();
     }
