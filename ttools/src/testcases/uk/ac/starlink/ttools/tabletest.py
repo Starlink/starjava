@@ -10,56 +10,55 @@ import cStringIO
 
 class TableTest(unittest.TestCase):
     def setUp(self, testdir = None):
-        global messier
         if testdir is None:
             testdir = os.path.dirname(__file__)
-        messier = stilts.tread(os.path.join(testdir, "messier.xml"))
+        self.messier = stilts.tread(os.path.join(testdir, "messier.xml"))
 
     def testObj(self):
-        cols = messier.columns()
+        cols = self.messier.columns()
         self.assertEquals('Name', str(cols[0]))
         self.assertEquals('ImageURL', cols[-1].getName())
         colNgc = cols[2]
         self.assertEquals('NGC', str(colNgc))
 
-        self.assertEquals('messier.xml', messier.parameters()['DemoLoc'])
-        mp = messier.cmd_setparam('-type', 'float',
-                                  '-unit', 'pint',
-                                  'volume', '3.5')
+        self.assertEquals('messier.xml', self.messier.parameters()['DemoLoc'])
+        mp = self.messier.cmd_setparam('-type', 'float',
+                                       '-unit', 'pint',
+                                       'volume', '3.5')
         self.assertEquals(3.5, mp.parameters()['volume'])
         volparam = mp.getParameterByName('volume')
         self.assertEquals('pint', volparam.getInfo().getUnitString())
         self.assertEquals(java.lang.Float(0).getClass(),
                           volparam.getInfo().getContentClass())
 
-        self.assert_(messier.isRandom())
-        self.assertEquals(110, len(messier))
-        self.assertEquals(110, messier.count_rows())
-        self.assertEquals(110, messier.rowCount)
-        self.assertEquals(110, messier.cmd_select("true").count_rows());
-        for (ir, row) in enumerate(messier):
-            self.assertEquals(row, messier[ir])
+        self.assert_(self.messier.isRandom())
+        self.assertEquals(110, len(self.messier))
+        self.assertEquals(110, self.messier.count_rows())
+        self.assertEquals(110, self.messier.rowCount)
+        self.assertEquals(110, self.messier.cmd_select("true").count_rows());
+        for (ir, row) in enumerate(self.messier):
+            self.assertEquals(row, self.messier[ir])
             for (ic, cell) in enumerate(row):
-                self.assertEquals(cell, messier[ir][ic])
+                self.assertEquals(cell, self.messier[ir][ic])
             self.assertEquals('M', row[0][0])
             self.assertEquals('M', row['Name'][0])
             self.assertEquals('.jpg', row[-1][-4:])
             self.assertEquals('.jpg', row['ImageURL'][-4:])
-        head1 = messier.cmd_head(1)
-        tail1 = messier.cmd_tail(1)
+        head1 = self.messier.cmd_head(1)
+        tail1 = self.messier.cmd_tail(1)
         self.assertEquals(1, len(head1))
         self.assertEquals(1, len(tail1))
         self.assertEquals(1, head1.count_rows())
         self.assertEquals(1, tail1.count_rows())
-        self.assertEquals(messier[0], head1[0])
-        self.assertEquals(messier[-1], tail1[0])
+        self.assertEquals(self.messier[0], head1[0])
+        self.assertEquals(self.messier[-1], tail1[0])
 
-        self.assertEquals(5, len(messier[20:25]))
-        self.assertEquals(messier[10], messier[10:12][0])
+        self.assertEquals(5, len(self.messier[20:25]))
+        self.assertEquals(self.messier[10], self.messier[10:12][0])
 
-        names0 = ['M' + str(i+1) for i in xrange(0, len(messier))]
-        names1 = messier.coldata('Name')
-        names2 = tuple(messier.cmd_seqview().coldata(0))
+        names0 = ['M' + str(i+1) for i in xrange(0, len(self.messier))]
+        names1 = self.messier.coldata('Name')
+        names2 = tuple(self.messier.cmd_seqview().coldata(0))
         for key in (1, slice(0,4), -5, slice(0, 10, 10), slice(50, -50)):
             dat0 = tuple(names0.__getitem__(key))
             dat1 = tuple(names1.__getitem__(key))
@@ -67,57 +66,59 @@ class TableTest(unittest.TestCase):
             self.assertEquals(dat0, dat1)
             self.assertEquals(dat0, dat2)
 
-        self.assertEquals(tuple(messier.coldata(-1)),
-                          tuple(messier.coldata('ImageURL')))
+        self.assertEquals(tuple(self.messier.coldata(-1)),
+                          tuple(self.messier.coldata('ImageURL')))
 
-        self.assertEqualTable(3*messier, messier+messier+messier)
-        self.assertEqualTable(3*messier, messier*3)
+        self.assertEqualTable(3*self.messier,
+                              self.messier+self.messier+self.messier)
+        self.assertEqualTable(3*self.messier, self.messier*3)
 
-        self.assertEquals('M23', messier[22][0])
-        self.assertEquals('M23', messier[22]['Name'])
-        self.assertEquals(6494, int(messier[22]['NGC']))
-        self.assertEquals(6494, int(messier[22][colNgc]))
-        self.assertEquals('.jpg', messier[5]['ImageURL'][-4:])
-        self.assertEquals('.jpg', messier[5][-1][-4:])
+        self.assertEquals('M23', self.messier[22][0])
+        self.assertEquals('M23', self.messier[22]['Name'])
+        self.assertEquals(6494, int(self.messier[22]['NGC']))
+        self.assertEquals(6494, int(self.messier[22][colNgc]))
+        self.assertEquals('.jpg', self.messier[5]['ImageURL'][-4:])
+        self.assertEquals('.jpg', self.messier[5][-1][-4:])
 
     def testFilters(self):
-        ands = (messier.cmd_select('equals("And",CON)')
-                       .cmd_sort('-down', 'ID')
-                       .cmd_keepcols('NAME'))
+        ands = (self.messier.cmd_select('equals("And",CON)')
+                            .cmd_sort('-down', 'ID')
+                            .cmd_keepcols('NAME'))
         self.assertEquals(['M110','M32','M31'],
                           [str(row[0]) for row in ands])
 
-        self.assertEquals('M101', messier[100]['Name'])
+        self.assertEquals('M101', self.messier[100]['Name'])
         self.assertEquals('M101',
-                          messier.cmd_addcol('Name', '999')[100]['Name'])
+                          self.messier.cmd_addcol('Name', '999')[100]['Name'])
         self.assertEquals(999,
-                          messier.cmd_addcol('-before', '1', 'Name', 999)
-                                  [100]['Name'])
+                          self.messier.cmd_addcol('-before', '1', 'Name', 999)
+                          [100]['Name'])
 
     def testTasks(self):
         self.assertEquals(99, int(stilts.calc('100-1')))
         self.assertEquals(31,
-                          int(stilts.calc(table=messier
-                                               .cmd_setparam("number", "29"),
+                          int(stilts.calc(table=self.messier
+                                          .cmd_setparam("number", "29"),
                                           expression='2 + param$number')))
 
-        self.assertEqualTable(2*messier, stilts.tcat([messier, messier]))
-        self.assertEqualTable(2*messier,
-                              stilts.tcatn(nin=2, in1=messier, in2=messier,
-                                           countrows=True))
+        self.assertEqualTable(2*self.messier,
+                              stilts.tcat([self.messier, self.messier]))
+        self.assertEqualTable(2*self.messier,
+                              stilts.tcatn(nin=2, in1=self.messier,
+                                           in2=self.messier, countrows=True))
 
-        m2 = stilts.tjoin(nin=2, in1=messier, in2=messier,
+        m2 = stilts.tjoin(nin=2, in1=self.messier, in2=self.messier,
                           fixcols='all', suffix1='_A', suffix2='_B')
-        self.assertEquals(len(m2.columns()), 2*len(messier.columns()))
-        self.assertEqualData(m2.cmd_keepcols('*_A'), messier)
+        self.assertEquals(len(m2.columns()), 2*len(self.messier.columns()))
+        self.assertEqualData(m2.cmd_keepcols('*_A'), self.messier)
 
         self.assertEquals(['ID', 'lcol'],
                           [str(c) for c in
-                               stilts.tcat(in_=[messier.cmd_keepcols(2)]*2,
+                               stilts.tcat(in_=[self.messier.cmd_keepcols(2)]*2,
                                            loccol='lcol').columns()])
         self.assertEquals(['ID'],
                           [str(c) for c in
-                               stilts.tcat(in_=[messier.cmd_keepcols(2)]*2,
+                               stilts.tcat(in_=[self.messier.cmd_keepcols(2)]*2,
                                            loccol=None).columns()])
 
         self.assertRaises(SyntaxError, stilts.calc, '1+2', spurious='99')
@@ -126,25 +127,26 @@ class TableTest(unittest.TestCase):
 
     def testIO(self):
         for fmt in ['csv', 'fits', 'ascii', 'votable']:
-            self.ioRoundTrip(messier, fmt)
+            self.ioRoundTrip(self.messier, fmt)
 
     def testMultiIO(self):
         for fmt in ['votable', 'fits-basic', 'fits-plus']:
-            self.ioMultiRoundTrip([messier, messier.cmd_every(3)], fmt)
+            self.ioMultiRoundTrip([self.messier, self.messier.cmd_every(3)],
+                                  fmt)
 
     def testModes(self):
-        count = captureJavaOutput(messier.mode_count)
+        count = captureJavaOutput(self.messier.mode_count)
         ncol, nrow = map(int, re.compile(r': *(\w+)').findall(count))
-        self.assertEquals(ncol, len(messier.columns()))
-        self.assertEquals(nrow, len(messier))
+        self.assertEquals(ncol, len(self.messier.columns()))
+        self.assertEquals(nrow, len(self.messier))
 
-        meta = captureJavaOutput(messier.mode_meta)
+        meta = captureJavaOutput(self.messier.mode_meta)
         lastmeta = meta.split('\n')[-2]
         index, name, clazz = re.compile(r'\w+').findall(lastmeta)[0:3]
-        self.assertEquals(len(messier.columns()), int(index))
-        self.assertEquals(messier.columns()[-1].getName(), name)
+        self.assertEquals(len(self.messier.columns()), int(index))
+        self.assertEquals(self.messier.columns()[-1].getName(), name)
 
-        discard = captureJavaOutput(messier.mode_discard)
+        discard = captureJavaOutput(self.messier.mode_discard)
         self.assert_(not discard)
 
     def testFuncs(self):
