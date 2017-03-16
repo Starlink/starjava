@@ -28,6 +28,7 @@ public abstract class GraphicExporter {
 
     private final String name_;
     private final String mimeType_;
+    private final boolean isVector_;
     private final String description_;
     private final String[] fileSuffixes_;
 
@@ -36,14 +37,16 @@ public abstract class GraphicExporter {
      *
      * @param   name  exporter name (usually graphics format name)
      * @param   mimeType  MIME type for this exporter's output format
+     * @param   isVector  true for vector formats, false for bitmapped
      * @param   description  minimal description of format (may just be name)
      * @param   fileSuffixes  file suffixes which usually indicate the
      *          export format used by this instance (may be null)
      */
-    protected GraphicExporter( String name, String mimeType, String description,
-                               String[] fileSuffixes ) {
+    protected GraphicExporter( String name, String mimeType, boolean isVector,
+                               String description, String[] fileSuffixes ) {
         name_ = name;
         mimeType_ = mimeType;
+        isVector_ = isVector;
         description_ = description;
         fileSuffixes_ = fileSuffixes == null ? new String[ 0 ]
                                              : (String[]) fileSuffixes.clone();
@@ -76,6 +79,15 @@ public abstract class GraphicExporter {
      */
     public String getMimeType() {
         return mimeType_;
+    }
+
+    /**
+     * Indicates whether this exports to a vector or bitmapped graphics format.
+     *
+     * @return  true for vector graphics, false for bitmapped
+     */
+    public boolean isVector() {
+        return isVector_;
     }
 
     /**
@@ -162,7 +174,7 @@ public abstract class GraphicExporter {
 
     /** Exports to Encapsulated PostScript. */
     public static final GraphicExporter EPS =
-            new GraphicExporter( "eps", "application/postscript",
+            new GraphicExporter( "eps", "application/postscript", true,
                                  "Encapsulated PostScript",
                                  new String[] { ".eps", ".ps", } ) {
         public void exportGraphic( Picture picture, OutputStream out )
@@ -263,7 +275,7 @@ public abstract class GraphicExporter {
         ImageIOExporter( String name, String mimeType, String description,
                          String[] fileSuffixes, String iioName,
                          boolean transparentBg ) {
-            super( name, mimeType, description, fileSuffixes );
+            super( name, mimeType, false, description, fileSuffixes );
             iioName_ = iioName;
             transparentBg_ = transparentBg;
             isSupported_ =
@@ -334,6 +346,7 @@ public abstract class GraphicExporter {
          */
         GzipExporter( GraphicExporter baseExporter ) {
             super( baseExporter.getName() + "-gzip", baseExporter.getMimeType(),
+                   baseExporter.isVector(),
                    "Gzipped " + baseExporter.getDescription(),
                    appendGzipSuffix( baseExporter.getFileSuffixes() ) );
             baseExporter_ = baseExporter;
