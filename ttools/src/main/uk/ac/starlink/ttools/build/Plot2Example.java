@@ -36,6 +36,7 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
+import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.PictureImageIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -559,11 +560,20 @@ public class Plot2Example {
             }
         },
 
-        /** Writes plot files and auxiliary text files to outDir. */
-        write( true ) {
+        /** Writes PNG plot files and auxiliary text files to outDir. */
+        png( true ) {
             public void execute( Context context, Plot2Example[] examples )
                     throws Exception {
-                writeExamples( context, examples, GraphicExporter.PNG, false );
+                writeExamples( context, examples, GraphicExporter.PNG, ".png" );
+            }
+        },
+
+        /** Writes PDF plot files and auxiliary text files to outDir. */
+        pdf( true ) {
+            public void execute( Context context, Plot2Example[] examples )
+                    throws Exception {
+                writeExamples( context, examples,
+                               PdfGraphicExporter.BASIC, ".pdf" );
             }
         },
 
@@ -635,15 +645,15 @@ public class Plot2Example {
          * @param  context  plot execution context
          * @param  examples  examples to write
          * @param  exporter   graphic format exporter
-         * @param  isVector   true iff exporter is a vector format
          */
         private static void writeExamples( Context context,
                                            Plot2Example[] examples,
                                            GraphicExporter exporter,
-                                           boolean isVector )
+                                           String suffix )
                 throws Exception {
-            String[] extraParams = isVector ? new String[ 0 ] : FORCEBITMAP;
-            String suffix = exporter.getFileSuffixes()[ 0 ];
+            String[] extraParams = exporter.isVector()
+                                 ? new String[ 0 ]
+                                 : FORCEBITMAP;
             File outDir = context.outDir_;
             int nex = examples.length;
 

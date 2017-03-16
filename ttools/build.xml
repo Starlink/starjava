@@ -1342,7 +1342,7 @@
       <arg value="-outDir"/>
       <arg value="${src.docs.examp}"/>
       <arg value="-mode"/>
-      <arg value="write"/>
+      <arg value="png"/>
       <sysproperty key="java.awt.headless" value="true"/>
     </java>
   </target>
