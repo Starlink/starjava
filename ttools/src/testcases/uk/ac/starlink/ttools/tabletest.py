@@ -1,14 +1,19 @@
+import unittest
 import stilts
 import java
-import uk
+import uk.ac.starlink
+import os.path
 import sys
 import re
 import StringIO
 import cStringIO
 
-messier = stilts.tread(testdir + "/messier.xml")
-
 class TableTest(unittest.TestCase):
+    def setUp(self, testdir = None):
+        global messier
+        if testdir is None:
+            testdir = os.path.dirname(__file__)
+        messier = stilts.tread(os.path.join(testdir, "messier.xml"))
 
     def testObj(self):
         cols = messier.columns()
@@ -175,7 +180,8 @@ class TableTest(unittest.TestCase):
         for ir, rows in enumerate(map(None, t1, t2)):
             self.assertEquals(rows[0], rows[1], "row %d" % ir)
 
-    def runTest(self):
+    def runTest(self, testdir):
+        self.setUp(testdir)
         tests = [value for key, value in vars(TableTest).iteritems()
                        if key.startswith('test') and callable(value)]
         for test in tests:
@@ -203,4 +209,7 @@ class _UnclosedStringIO(StringIO.StringIO):
     def close(self):
         pass
 
-TableTest().runTest()
+if "testdir" in globals():   # testdir was set from JyStiltsTest
+    TableTest().runTest(testdir)
+elif __name__ == '__main__': # standalone
+    unittest.main()
