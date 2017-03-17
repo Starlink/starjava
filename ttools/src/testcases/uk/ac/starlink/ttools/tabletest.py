@@ -215,3 +215,5 @@ if "testdir" in globals():   # testdir was set from JyStiltsTest
     TableTest().runTest(testdir)
 elif __name__ == '__main__': # standalone
     unittest.main()
+else:                        # shouldn't happen
+    raise RuntimeWarning('Tests not run')
