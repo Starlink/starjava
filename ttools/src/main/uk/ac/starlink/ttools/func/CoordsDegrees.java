@@ -162,6 +162,27 @@ public class CoordsDegrees {
     }
 
     /**
+     * Calculates the position angle between two points on the sky in degrees.
+     * The result is in the range +/-180.
+     * If point 2 is due east of point 1, the result is +90.
+     * Zero is returned if the points are coincident.
+     *
+     * @param  ra1   right ascension of point 1 in degrees
+     * @param  dec1  declination of point 1 in degrees
+     * @param  ra2   right ascension of point 2 in degrees
+     * @param  dec2  declination of point 2 in degrees
+     * @return  bearing in degrees of point 2 from point 1.
+     */
+    public static double posAngDegrees( double ra1, double dec1,
+                                        double ra2, double dec2 ) {
+        return radiansToDegrees(
+            CoordsRadians.posAngRadians( degreesToRadians( ra1 ),
+                                         degreesToRadians( dec1 ),
+                                         degreesToRadians( ra2 ),
+                                         degreesToRadians( dec2 ) ) );
+    }
+
+    /**
      * Converts degrees to radians.
      *
      * @param  deg   angle in degrees

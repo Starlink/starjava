@@ -271,6 +271,32 @@ public class CoordsRadians {
     }
 
     /**
+     * Calculates the position angle between two points on the sky in radians.
+     * The result is in the range +/-pi.
+     * If point 2 is due east of point 1, the result is +pi/2.
+     * Zero is returned if the points are coincident.
+     *
+     * @param  ra1   right ascension of point 1 in radians
+     * @param  dec1  declination of point 1 in radians
+     * @param  ra2   right ascension of point 2 in radians
+     * @param  dec2  declination of point 2 in radians
+     * @return  bearing in radians of point 2 from point 1
+     */
+    public static double posAngRadians( double ra1, double dec1,
+                                        double ra2, double dec2 ) {
+
+        /* This code is written with reference to the source code of
+         * SLA_DBEAR in (the FORTRAN) SLALIB. */
+        double dra = ra2 - ra1;
+        double y = Math.sin( dra ) * Math.cos( dec2 );
+        double x = Math.sin( dec2 ) * Math.cos( dec1 )
+                 - Math.cos( dec2 ) * Math.sin( dec1 ) * Math.cos( dra );
+        return x == 0 && y == 0
+             ? 0
+             : Math.atan2( y, x );
+    }
+
+    /**
      * Converts hours to radians.
      *
      * @param  hours   angle in hours

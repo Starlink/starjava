@@ -11066,6 +11066,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug in plot title placement.</li>
     <li>The <code>charset</code> parameter of <code>votcopy</code>
         now defaults to UTF-8 rather than the system default.</li>
+    <li>Add position angle calculation functions
+        <code>posAngRadians</code> and <code>posAngDegrees</code>
+        to expression language.</li>
     </ul>
     </p></dd>
 

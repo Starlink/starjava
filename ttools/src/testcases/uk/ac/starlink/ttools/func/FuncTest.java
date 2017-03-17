@@ -518,6 +518,12 @@ public class FuncTest extends TestCase {
                       CoordsRadians
                      .skyDistanceRadians( -1, 0.0, -1, Maths.PI / 2.0 ), TINY );
 
+        assertEquals( Maths.PI / 2.0,
+                      CoordsRadians.posAngRadians( 0, 0, 0.1, 0 ), TINY );
+        assertEquals( - Maths.PI / 2.0,
+                      CoordsRadians.posAngRadians( 0.1, 0, -0.1, 0 ), TINY );
+        assertEquals( 0.0, CoordsRadians.posAngRadians( 1, .2, 1, .3 ), TINY );
+
         double ra1 = 0.1;
         double dec1 = 1.2;
         double ra2 = 0.2;
@@ -609,6 +615,10 @@ public class FuncTest extends TestCase {
         double dec2 = +88;
         assertEquals( CoordsDegrees.skyDistanceDegrees( ra1, dec1, ra2, dec2 ),
                       CoordsDegrees.skyDistanceDegrees( ra2, dec2, ra1, dec1 ));
+
+        assertEquals( +90, CoordsDegrees.posAngDegrees( 0, 0, 15, 0 ), TINY );
+        assertEquals( -90, CoordsDegrees.posAngDegrees( 15, 0, -15, 0 ), TINY );
+        assertEquals( 0., CoordsDegrees.posAngDegrees( 35, 8, 35, 12 ), TINY );
 
         assertEquals( 45, CoordsDegrees.hmsToDegrees( "03:00:00.0" ) );
         assertEquals( -45, CoordsDegrees.hmsToDegrees( "-03: 0:0" ) );
