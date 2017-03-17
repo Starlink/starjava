@@ -1,0 +1,24 @@
+STARJAVA licensing
+------------------
+
+Starjava code is licensed under the GNU Lesser General Public License
+(LGPL), version 2.1 or later, available from
+http://www.gnu.org/licenses/lgpl.html.
+
+This license is hereby asserted to apply to all the original
+(non-third-party) code and associated files in the packages
+from this starjava repository, specifically:
+
+   array      diva  jaiutil   ndx         splat     ttools
+   astgui     fits  jniast    pal         srb       util
+   astrogrid  frog  jnihds    plastic     startask  vo
+   cdf        gbin  jnikappa  registry    table     votable
+   coco       hds   jpcs      rv          task      xdoc
+   connect    hdx   mirage    soapserver  topcat
+   datanode   help  ndtools   sog         treeview
+
+In particular this license applies to all the java classes in
+or under the uk.ac.starlink namespace.
+
+If LGPL licensing is not acceptable for particular usage requirements,
+it may be possible to provide the code under other licensing arrangements.
