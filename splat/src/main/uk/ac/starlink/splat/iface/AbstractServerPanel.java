@@ -335,7 +335,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         gbc.gridx=0;
         botActionBar.add( newQueryButton, gbc );
        // controlPanel.add( newQueryButton, BorderLayout.PAGE_END );
-        newQueryButton.setToolTipText( "Query registry for new SSAP services" );
+        newQueryButton.setToolTipText( "Query registry for new services" );
         
 
         //  Add action to just delete all servers.
