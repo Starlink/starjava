@@ -58,10 +58,12 @@ if test -z "$SPLAT_DIR"; then
 fi
 echo "SPLAT_DIR = $SPLAT_DIR"
 
-#  Check if we are running Cygwin.
+#  Check if we are running Cygwin od macOs.
 cygwin=false;
+macos=false;
 case "`uname`" in
   CYGWIN*) cygwin=true ;;
+  Darwin*) macos=true ;;
 esac
 
 # Set the amount of memory that we use for the heap. Increase this
@@ -108,9 +110,9 @@ defines="$defines \
 
 # icon for Mac
 showIcon="";
-case "`uname`" in
-  Darwin*) showIcon="-Xdock:icon=$SPLAT_DIR/../../etc/splat/icons/splat.png";;
-esac
+if $macos; then
+showIcon="-Xdock:icon=$SPLAT_DIR/../../etc/icons/splat.png";
+fi
 
 #  Locate the "starjava" command. This should be in ".." or on the 
 #  PATH. "starjava" also defines the LD_LIBRARY_PATH to locate the
