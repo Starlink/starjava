@@ -423,6 +423,7 @@ public class PlotControlFrame
             ImageHolder.class.getResource( "config.gif" ) );
         ImageIcon pannerImage = new ImageIcon(
             ImageHolder.class.getResource( "panner.gif" ) );
+      
 
         //  Add action to print figure.
         PrintAction printAction  =
@@ -513,6 +514,7 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
         ImageIcon statsImage =
             new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
+
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -620,6 +622,7 @@ public class PlotControlFrame
         optionsMenu.setText( "Options" );
         optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
+        
 
         //  Arrange to carefully align coordinates when asked (expensive
         //  otherwise).
@@ -744,14 +747,20 @@ public class PlotControlFrame
         lineOptionsMenu.setText( "Line identifiers" );
         lineOptionsMenu.setMnemonic( KeyEvent.VK_L );
         optionsMenu.add( lineOptionsMenu );
+        
+        ImageIcon linesImage = new ImageIcon(
+                ImageHolder.class.getResource( "linestrs.png" ) );
+
 
         openSlapBrowser = new JMenuItem("SLAP Browser");
         
       
         SLAPAction slapAction =
-                new SLAPAction( "SLAP Browser", 
-                        "Open Simple Line Access Protocol browser" );
+                new SLAPAction( "Lines Browser", linesImage,
+                        "Open Spectral Line browser (SLAP/VAMDC)" );
         lineOptionsMenu.add(slapAction);
+      
+        toolBar.add( slapAction );
      
         //openSlapBrowser.addActionListener( this );
     
@@ -1955,9 +1964,10 @@ public class PlotControlFrame
      */
     protected class SLAPAction extends AbstractAction
     {
-        public SLAPAction( String name, String help )
+        public SLAPAction( String name, Icon icon, String help )
         {
-            super( name);
+            super( name, icon);
+           // super( name);
             putValue( SHORT_DESCRIPTION, help );
 
             //putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control V" ) );

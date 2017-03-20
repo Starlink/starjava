@@ -796,7 +796,11 @@ public class SpecDataFactory
             long rowCount = 0;
             String pos = i+"";
             
-            if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
+            if (exttype.equals( "IMAGE" )) {
+               
+                
+            }
+            if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) || 
                     dims == null || dims[0] == 0 ) {
                 try {
                     datsrc = new FileDataSource( specspec );
@@ -837,12 +841,14 @@ public class SpecDataFactory
                         impl=null;
                         logger.info( e.getMessage() );                       
                         // throw new SplatException (e);
+                        e.printStackTrace();
                     }
                     else logger.info( "Failed to open FITS table "+e.getMessage() );
                     //throw new SplatException( "Failed to open FITS table", e );
                     success=false;
                 }
             } 
+           
 
                 /* add only if data array size is not 0 
                  * (we can do this since we loop over all

@@ -72,7 +72,7 @@ public class TableColumnChooser
         coordUtypePatterns = new ArrayList();
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP
         addCoordUtypePattern( ".*timeaxis.*" );       // LightCurves
-        addCoordUtypePattern( ".*line\\.wavelength" );     // SLAP
+        addCoordUtypePattern( ".*line.wavelength*" );     // SLAP
 
         dataNamePatterns = new ArrayList();
         addDataNamePattern( "flux.*" );

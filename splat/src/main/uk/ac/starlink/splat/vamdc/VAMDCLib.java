@@ -2,24 +2,21 @@ package uk.ac.starlink.splat.vamdc;
 
 import java.beans.IntrospectionException;
 import java.io.InputStream;
-import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+import javax.xml.bind.JAXBException;
 
 import org.vamdc.registry.client.Registry;
 import org.vamdc.registry.client.RegistryFactory;
 
 
-import gavo.spectrallines.VoTableTranslator;
-import gavo.spectrallines.XSAMSParser;
-
-import gavo.ssldm.PhysicalQuantity;
-import gavo.ssldm.SpectralLine;
+import jsky.util.Logger;
 import net.ivoa.xml.voresource.v1.Contact;
 import net.ivoa.xml.voresource.v1.Resource;
+import uk.ac.starlink.splat.data.ssldm.PhysicalQuantity;
+import uk.ac.starlink.splat.data.ssldm.SpectralLine;
 import uk.ac.starlink.splat.vo.SSAPRegResource;
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.ColumnInfo;
@@ -114,19 +111,27 @@ public class VAMDCLib {
      * @throws Exception
      */
     public StarTable getResultStarTable(String query, InputStream inps ) throws Exception { 
-        
          
         ArrayList<SpectralLine> lines = new ArrayList<SpectralLine>();
         XSAMSParser  xsams;
         try {
             xsams = new XSAMSParser(inps); 
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
+            inps.close();
+        } catch (JAXBException e) {
+            Logger.info(this, "JAXBException: "+e.getMessage());
+            e.printStackTrace();
+            throw e;
+            //return null;
+        }
+        catch (Exception e) {
+            Logger.info(this, "Exception: "+e.getMessage());
             e.printStackTrace();
             throw e;
             //return null;
         }
         lines = xsams.getSpectralLines();
+        if (lines == null || lines.isEmpty())
+            return null;
         VoTableTranslator votable = new VoTableTranslator(lines, query);
         
         return makeStarTable(votable, lines);
@@ -140,11 +145,12 @@ public class VAMDCLib {
         
 
       //  ArrayList<String> tableLines = votable.makeTable();
-        // do not create votable; translate direct from the line array - easier to parse right now
         String [] cols = votable.getColumns();
+       
+        
         ColumnInfo[] columns = new ColumnInfo[cols.length];
         for (int i=0;i<cols.length;i++) {
-            columns[i]=new ColumnInfo(getValueInfo(lines.get(0), cols[i]));
+            columns[i]=new ColumnInfo(getValueInfo(lines.get(0), cols[i], votable.getUtype(i)));
         }
        
         RowListStarTable rlst = new RowListStarTable(columns);
@@ -157,31 +163,32 @@ public class VAMDCLib {
         return rlst;
     }
 
-    private ValueInfo getValueInfo(SpectralLine line, String colname) {
+    private ValueInfo getValueInfo(SpectralLine line, String colname, String utype) {
  
-        if (colname.equals("title")) 
-            return  makeValueInfo(colname, "ssldm:Line.title");
+       
+     
         if (colname.equals("wavelength")) 
-            return  makeValueInfo(colname, line.getWavelength());
-
+            return  makeValueInfo(colname, line.getWavelength(), utype);
+    
         if (colname.equals("initial energy")) 
-            return  makeValueInfo(colname, line.getInitialLevel().getEnergy());
+            return  makeValueInfo(colname, line.getInitialLevel().getEnergy(), utype );
            
         if (colname.equals("final energy"))
-            return makeValueInfo(colname, line.getFinalLevel().getEnergy());
+            return makeValueInfo(colname, line.getFinalLevel().getEnergy(), utype);
+        
         if (colname.equals("einsteinA"))
-            return makeValueInfo(colname, line.getEinsteinA());
-        if (colname.equals("initial level"))
-            return makeValueInfo(colname,  "ssldm:line.initialLevel.name");
-        if (colname.equals("final level"))
-            return makeValueInfo(colname,  "ssldm:line.finalLevel.name");
+            return makeValueInfo(colname, line.getEinsteinA(), utype);
+       
         if (colname.equals("air wavelength"))
-            return makeValueInfo(colname, line.getAirWavelength());
+            return makeValueInfo(colname, line.getAirWavelength(), utype);
+        
         if (colname.equals("oscillator strength"))
-            return makeValueInfo(colname, line.getOscillatorStrength());
+            return makeValueInfo(colname, line.getOscillatorStrength(), utype );
+        
         if (colname.equals("weighted oscillator strength"))
-            return makeValueInfo(colname, line.getOscillatorStrength());
-        return null;
+            return makeValueInfo(colname, line.getOscillatorStrength(), utype);
+        
+        return makeValueInfo(colname,  utype);
        
 }
     private ValueInfo makeValueInfo(String colname,  String utype) {
@@ -191,12 +198,16 @@ public class VAMDCLib {
         
     }
 
-    private DefaultValueInfo makeValueInfo(String colname, PhysicalQuantity pq) {
+    private DefaultValueInfo makeValueInfo(String colname, PhysicalQuantity pq, String utype) {
         //System.out.println("colname "+ colname);
+        if (pq==null) {   
+            pq = new PhysicalQuantity();
+        }
         DefaultValueInfo vinfo = new DefaultValueInfo(colname);
         vinfo.setUnitString(pq.getUnitExpression());
         vinfo.setUCD(pq.getUcd());
-        vinfo.setUtype(pq.getUtype());
+        vinfo.setUtype(utype);
+       
     
         return vinfo;
     }
@@ -208,26 +219,37 @@ public class VAMDCLib {
             if (cols[i].getName().equals("title"))
                 row[i]=line.getTitle();            
             if (cols[i].getName().equals("wavelength"))
-                row[i]=line.getWavelength().getValue(); 
+                row[i]=getQuantityValue(line.getWavelength());
+            if (cols[i].getName().equals("element"))
+                row[i]=line.getInitialElement().getElementName();
+            if (cols[i].getName().equals("stage"))
+                row[i]=line.getInitialElement().getIonizationStageRoman();
             if (cols[i].getName().equals("initial energy"))
-                row[i]=line.getInitialLevel().getEnergy().getValue();
+                row[i]=getQuantityValue(line.getInitialLevel().getEnergy());
             if (cols[i].getName().equals("final energy"))
-                row[i]=line.getFinalLevel().getEnergy().getValue();
+                row[i]=getQuantityValue(line.getFinalLevel().getEnergy());
             if (cols[i].getName().equals("Einstein A"))
-                row[i]=line.getEinsteinA().getValue();
+                row[i]=getQuantityValue(line.getEinsteinA());
             if (cols[i].getName().equals("initial level"))
-                row[i]=line.getInitialElement().getName();
-            if (cols[i].getName().equals("initial level"))
-                row[i]=line.getFinalElement().getName();
+                row[i]=line.getInitialLevel().getConfiguration();
+            if (cols[i].getName().equals("final level"))
+                row[i]=line.getFinalLevel().getConfiguration();
             if (cols[i].getName().equals("air wavelength"))
-                row[i]=line.getAirWavelength().getValue();
+                row[i]=getQuantityValue(line.getAirWavelength());
             if (cols[i].getName().equals("oscillator strength"))
-                row[i]=line.getOscillatorStrength().getValue();
+                row[i]=getQuantityValue(line.getOscillatorStrength());
             if (cols[i].getName().equals("weighted oscillator strength"))
-                row[i]=line.getOscillatorStrength().getValue();                
+                row[i]=getQuantityValue(line.getOscillatorStrength());                
         }
         
         return row;
+    }
+
+
+    private Object getQuantityValue(PhysicalQuantity pq) {
+        if (pq==null)
+            return null;
+        else return (pq.getValue());
     }
 
 }

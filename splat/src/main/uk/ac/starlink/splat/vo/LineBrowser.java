@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -74,7 +75,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
     private SpecData currentLines = null;
     private int SLAP_INDEX=0;
     private int VAMDC_INDEX=1;
-    private VAMDCLib vamdclib;
+    private VAMDCLib vamdc;
     
     /**
      * Frame for adding a new server.
@@ -85,7 +86,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
  
   
   /*  public SLAPBrowser(SplatBrowser splatbrowser) {   
-     
+      
        this();
        browser=splatbrowser;
        
@@ -96,7 +97,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
         plot = pc;
        // globalList.addPlotListener(this);
       //  frame = new SpectralLinesPanel(this);
-//        vamdclib = new VAMDCLib();
+        vamdc = new VAMDCLib();
         initFrame();
         initComponents();
         setVisible( true );
@@ -178,7 +179,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
    
    }
 
-   public void makeQuery( int [] ranges, double [] lambda, String element) {
+   public void makeQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element) {
 
        resultsPanel.removeAllResults();
        ServerPopupTable currentTable=null;
@@ -197,13 +198,17 @@ public class LineBrowser extends JFrame implements  MouseListener {
            currentTable = linesQuery.getVamdcTable();
            // makeVamdcQuery(ranges, lambda);
        }
-       for ( int row : currentTable.getSelectedRows() ) {
+       for ( int r : currentTable.getSelectedRows() ) {
+           
+           int row=currentTable.convertRowIndexToModel(r);
            final String shortname = currentTable.getShortName(row);
            final String queryString;
+           
+         
            if (linesQuery.isSLAPSelected()) 
-               queryString = makeSlapQuery(ranges, lambda, element, currentTable.getAccessURL(row));
+               queryString = makeSlapQuery(ranges, lambdas, element, currentTable.getAccessURL(row));
            else
-               queryString= makeVamdcQuery(ranges, lambda, element, currentTable.getAccessURL(row));
+               queryString= makeVamdcQuery(ranges, lambdas, element, currentTable.getAccessURL(row));
 
            Logger.info(this, "query= "+queryString);
            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
@@ -252,7 +257,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
 
    }
 
-   private  String makeVamdcQuery( int [] ranges, double [] lambda, String element, String accessURL) {
+   private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String accessURL) {
 
 
        final String query = accessURL+"sync?LANG=VSS2&REQUEST=doQuery&FORMAT=XSAMS&QUERY=";
@@ -260,10 +265,15 @@ public class LineBrowser extends JFrame implements  MouseListener {
 
        String wlist="";
        
-       
-       for (int i=0;i<ranges.length;i+=2) { // have to convert from meters to angstroms
-           wlist+="RadTransWaveLength >= "+lambda[ranges[i]]*1E10+" AND RadTransWavelength <= "+lambda[ranges[i+1]]*1E10;
-           if (i+1<ranges.length-1)
+       for (int spec =0;spec<ranges.size();spec++) {
+           int[] range=ranges.get(spec);
+           double[] lambda=lambdas.get(spec);
+           for (int i=0;i<range.length;i+=2) { // have to convert from meters to angstroms
+               wlist+="(RadTransWaveLength >= "+lambda[range[i]]*1E10+" AND RadTransWavelength <= "+lambda[range[i+1]]*1E10+")";
+               if (i+1<range.length-1)
+                   wlist+=" OR ";
+           }
+           if (spec<ranges.size()-1)
                wlist+=" OR ";
        }
        String and="";
@@ -285,7 +295,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
 
    }
 
-   private String makeSlapQuery( int [] ranges, double [] lambda, String element, String accessURL) {
+   private String makeSlapQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String accessURL) {
 
        final String query = accessURL;
        
@@ -295,9 +305,15 @@ public class LineBrowser extends JFrame implements  MouseListener {
        }
        
        String wlist="";
-       for (int i=0;i<ranges.length;i+=2) {
-           wlist+=lambda[ranges[i]]+"/"+lambda[ranges[i+1]];
-           if (i+1<ranges.length-1)
+       for (int spec =0;spec<ranges.size();spec++) {
+           int[] range=ranges.get(spec);
+           double[] lambda=lambdas.get(spec);
+           for (int i=0;i<range.length;i+=2) {
+               wlist+=lambda[range[i]]+"/"+lambda[range[i+1]];
+               if (i+1<range.length-1)
+                   wlist+=",";
+           }
+           if (spec<ranges.size()-1)
                wlist+=",";
        }
        String and="";
@@ -373,7 +389,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
                 con.connect();
                 startable = new StarTableFactory(true).makeStarTable( con.getInputStream(), new VOTableBuilder() );
             } else {
-                startable = vamdclib.getResultStarTable(query, con.getInputStream());
+                startable = vamdc.getResultStarTable(query, con.getInputStream());
             }
             
         } catch (IOException e) {
@@ -384,11 +400,11 @@ public class LineBrowser extends JFrame implements  MouseListener {
              String msg = e.getMessage();
              if (msg == null)
                  msg="Server error";
-            //e.printStackTrace();
+            e.printStackTrace();
             progressPanel.logMessage(msg);
             
         }
-  
+      
         if ( startable != null &&  startable.getRowCount() > 0 ) {
             StarPopupTable ptable = new StarPopupTable( startable, true );         
                  

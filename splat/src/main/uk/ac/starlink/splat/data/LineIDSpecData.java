@@ -8,22 +8,18 @@
  */
 package uk.ac.starlink.splat.data;
 
-import java.awt.Rectangle;
-
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.io.IOException;
-import java.util.Arrays;
 
-import uk.ac.starlink.ast.Grf;
-import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Grf;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfState;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.ast.ASTChannel;
 
 /**
  * A type of EditableSpecData that draws a string at a "spectral"

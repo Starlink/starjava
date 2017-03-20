@@ -26,8 +26,8 @@ public class LinesQueryPanel extends AbstractServerPanel  {
     
    
     private static int WIDTH = 350;
-    private static int HEIGHT = 700;
-    private static int optionsHeight = 260;
+    private static int HEIGHT = 750;
+    private static int optionsHeight = 280;
     
     private int SLAP_INDEX=0;
     private int VAMDC_INDEX=1;
@@ -70,6 +70,8 @@ public class LinesQueryPanel extends AbstractServerPanel  {
         JScrollPane optionsScroller = new JScrollPane();
         optionsScroller.getViewport().add( queryPanel, null); //invOptionsPanel, null );
         optionsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        optionsScroller.setPreferredSize(new Dimension(WIDTH,optionsHeight));
+       // optionsScroller.setMinimumSize(new Dimension(WIDTH-20,optionsHeight-20));
         optionsScroller.setMinimumSize(new Dimension(WIDTH-20,optionsHeight-20));
         return optionsScroller;
     }
@@ -138,12 +140,7 @@ public class LinesQueryPanel extends AbstractServerPanel  {
        
        JPanel vamdcPanel = initServerPanel(vamdcServices);
        addServerButton.setEnabled(false); //addServerButton.setVisible(false);
-     //  vamdcPanel.setLayout(new BorderLayout());
-     //  JScrollPane serverScroller = new JScrollPane(vamdcServices); 
-    //   vamdcPanel.add(serverScroller,  BorderLayout.NORTH);  
-    //   vamdcPanel.add(makeButtonsPanel(false), BorderLayout.SOUTH);
-    //   vamdcPanel.updateUI();
-    //   return vamdcPanel;
+    
        return vamdcPanel;
    }
    
