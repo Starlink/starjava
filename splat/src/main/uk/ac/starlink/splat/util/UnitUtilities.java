@@ -169,6 +169,11 @@ public class UnitUtilities
              "10^(-17) erg cm^(-2) s^(-1) Angstrom(-1)".equals( result ) ) {
             result = "10E-17 erg/cm^2/s/Angstrom";
         }
+        
+        // 
+        if ( "A".equals( result ) ) {
+            result = "Angstrom";
+        }
 
         return result;
     }
