@@ -347,97 +347,113 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             ColumnWriter colwriter = colWriters[ icol ];
             if ( colwriter != null ) {
                 jcol++;
-                String forcol = " for column " + jcol;
-                ColumnInfo colinfo = colInfos[ icol ];
-
-                /* Name. */
-                String name = colinfo.getName();
-                if ( name != null && name.trim().length() > 0 ) {
-                    FitsConstants
-                   .addTrimmedValue( hdr, "TTYPE" + jcol, name,
-                                     "label" + forcol );
-                }
-
-                /* Format. */
-                String form = colwriter.getFormat();
-                hdr.addValue( "TFORM" + jcol, form, "format" + forcol );
-
-                /* Units. */
-                String unit = colinfo.getUnitString();
-                if ( unit != null && unit.trim().length() > 0 ) {
-                    FitsConstants
-                   .addTrimmedValue( hdr, "TUNIT" + jcol, unit,
-                                     "units" + forcol );
-                }
-
-                /* Blank. */
-                Number bad = colwriter.getBadNumber();
-                if ( bad != null ) {
-                    hdr.addValue( "TNULL" + jcol, bad.longValue(),
-                                  "blank value" + forcol );
-                }
-
-                /* Shape. */
-                int[] dims = colwriter.getDims();
-                if ( dims != null && dims.length > 1 ) {
-                    StringBuffer sbuf = new StringBuffer();
-                    for ( int i = 0; i < dims.length; i++ ) {
-                        sbuf.append( i == 0 ? '(' : ',' );
-                        sbuf.append( dims[ i ] );
-                    }
-                    sbuf.append( ')' );
-                    hdr.addValue( "TDIM" + jcol, sbuf.toString(),
-                                  "dimensions" + forcol );
-                }
-
-                /* Scaling. */
-                double zero = colwriter.getZero();
-                double scale = colwriter.getScale();
-                if ( zero != 0.0 ) {
-                    hdr.addValue( "TZERO" + jcol, zero, "base" + forcol );
-                }
-                if ( scale != 1.0 ) {
-                    hdr.addValue( "TSCALE" + jcol, scale,
-                                  "factor" + forcol );
-                }
-
-                /* Comment (non-standard). */
-                String comm = colinfo.getDescription();
-                if ( comm != null && comm.trim().length() > 0 ) {
-                    try {
-                        hdr.addValue( "TCOMM" + jcol, comm, null );
-                    }
-                    catch ( HeaderCardException e ) {
-                        // never mind.
-                    }
-                }
-
-                /* UCD (non-standard). */
-                String ucd = colinfo.getUCD();
-                if ( ucd != null && ucd.trim().length() > 0 &&
-                     ucd.length() < 68 ) {
-                    try {
-                        hdr.addValue( "TUCD" + jcol, ucd, null );
-                    }
-                    catch ( HeaderCardException e ) {
-                        // never mind.
-                    }
-                }
-
-                /* Utype (non-standard). */
-                String utype = colinfo.getUtype();
-                if ( utype != null && utype.trim().length() > 0
-                                   && utype.trim().length() < 68 ) {
-                    try {
-                        hdr.addValue( "TUTYP" + jcol, utype, null );
-                    }
-                    catch ( HeaderCardException e ) {
-                        // never mind.
-                    }
-                }
+                BintableColumnHeader colhead =
+                    BintableColumnHeader.createStandardHeader( jcol );
+                addHeader( hdr, colhead, colInfos[ icol ], colwriter, jcol );
             }
         }
         return hdr;
+    }
+
+    /**
+     * Writes header information for a given column into a header object.
+     *
+     * @param  hdr  destination header
+     * @param  colhead   header key handler for column to write
+     * @param  colinfo   column metadata
+     * @param  colwriter   column writer
+     * @param  column index; first column is 1
+     */
+    private void addHeader( Header hdr, BintableColumnHeader colhead,
+                            ColumnInfo colinfo, ColumnWriter colwriter,
+                            int jcol )
+            throws HeaderCardException {
+        String forcol = " for column " + jcol;
+
+        /* Name. */
+        String name = colinfo.getName();
+        if ( name != null && name.trim().length() > 0 ) {
+            FitsConstants.addTrimmedValue( hdr, colhead.getKeyName( "TTYPE" ),
+                                           name, "label" + forcol );
+        }
+
+        /* Format. */
+        String form = colwriter.getFormat();
+        hdr.addValue( colhead.getKeyName( "TFORM" ), form, "format" + forcol );
+
+        /* Units. */
+        String unit = colinfo.getUnitString();
+        if ( unit != null && unit.trim().length() > 0 ) {
+            FitsConstants.addTrimmedValue( hdr, colhead.getKeyName( "TUNIT" ),
+                                           unit, "units" + forcol );
+        }
+
+        /* Blank. */
+        Number bad = colwriter.getBadNumber();
+        if ( bad != null ) {
+            hdr.addValue( colhead.getKeyName( "TNULL" ), bad.longValue(),
+                          "blank value" + forcol );
+        }
+
+        /* Shape. */
+        int[] dims = colwriter.getDims();
+        if ( dims != null && dims.length > 1 ) {
+            StringBuffer sbuf = new StringBuffer();
+            for ( int i = 0; i < dims.length; i++ ) {
+                sbuf.append( i == 0 ? '(' : ',' );
+                sbuf.append( dims[ i ] );
+            }
+            sbuf.append( ')' );
+            hdr.addValue( colhead.getKeyName( "TDIM" ), sbuf.toString(),
+                          "dimensions" + forcol );
+        }
+
+        /* Scaling. */
+        double zero = colwriter.getZero();
+        double scale = colwriter.getScale();
+        if ( zero != 0.0 ) {
+            hdr.addValue( colhead.getKeyName( "TZERO" ), zero,
+                          "base" + forcol );
+        }
+        if ( scale != 1.0 ) {
+            hdr.addValue( colhead.getKeyName( "TSCALE" ), scale,
+                          "factor" + forcol );
+        }
+
+        /* Comment (non-standard). */
+        String comm = colinfo.getDescription();
+        if ( comm != null && comm.trim().length() > 0 ) {
+            try {
+                hdr.addValue( colhead.getKeyName( "TCOMM" ), comm, null );
+            }
+            catch ( HeaderCardException e ) {
+                // never mind.
+            }
+        }
+
+        /* UCD (non-standard). */
+        String ucd = colinfo.getUCD();
+        if ( ucd != null && ucd.trim().length() > 0 &&
+             ucd.length() < 68 ) {
+            try {
+                hdr.addValue( colhead.getKeyName( "TUCD" ), ucd, null );
+            }
+            catch ( HeaderCardException e ) {
+                // never mind.
+            }
+        }
+
+        /* Utype (non-standard). */
+        String utype = colinfo.getUtype();
+        if ( utype != null && utype.trim().length() > 0
+                           && utype.trim().length() < 68 ) {
+            try {
+                hdr.addValue( colhead.getKeyName( "TUTYP" ), utype, null );
+            }
+            catch ( HeaderCardException e ) {
+                // never mind.
+            }
+        }
     }
 
     public void writeData( DataOutput strm ) throws IOException {
