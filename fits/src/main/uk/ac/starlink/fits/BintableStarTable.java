@@ -126,34 +126,35 @@ public abstract class BintableStarTable extends AbstractStarTable
         colReaders_ = new ColumnReader[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             int jcol = icol + 1;
+            BintableColumnHeader colhead =
+                BintableColumnHeader.createStandardHeader( jcol );
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
             List auxdata = cinfo.getAuxData();
             colInfos_[ icol ] = cinfo;
 
             /* Name. */
-            String ttype = cards.getStringValue( "TTYPE" + jcol );
+            String ttype = colhead.getStringValue( cards, "TTYPE" );
             if ( ttype != null ) {
                 cinfo.setName( ttype );
             }
     
             /* Units. */
-            String tunit = cards.getStringValue( "TUNIT" + jcol );
+            String tunit = colhead.getStringValue( cards, "TUNIT" );
             if ( tunit != null ) {
                 cinfo.setUnitString( tunit );
             }
     
             /* Format string. */
-            String tdisp = cards.getStringValue( "TDISP" + jcol );
+            String tdisp = colhead.getStringValue( cards, "TDISP" );
             if ( tdisp != null ) {
                 auxdata.add( new DescribedValue( TDISP_INFO, tdisp ) );
             }
             
             /* Blank value. */
-            String blankKey = "TNULL" + jcol;
             long blank;
             boolean hasBlank;
-            if ( cards.containsKey( blankKey ) ) {
-                blank = cards.getLongValue( blankKey ).longValue();
+            if ( colhead.containsKey( cards, "TNULL" ) ) {
+                blank = colhead.getLongValue( cards, "TNULL" ).longValue();
                 hasBlank = true; 
                 auxdata.add( new DescribedValue( TNULL_INFO,
                                                  new Long( blank ) ) );
@@ -166,7 +167,7 @@ public abstract class BintableStarTable extends AbstractStarTable
             
             /* Shape. */ 
             int[] dims = null;
-            String tdim = cards.getStringValue( "TDIM" + jcol );
+            String tdim = colhead.getStringValue( cards, "TDIM" );
             if ( tdim != null ) {
                 tdim = tdim.trim(); 
                 if ( tdim.charAt( 0 ) == '(' &&
@@ -190,15 +191,15 @@ public abstract class BintableStarTable extends AbstractStarTable
             /* Scaling. */
             final double scale;
             final Number zero;
-            if ( cards.containsKey( "TSCAL" + jcol ) ) {
-                scale = cards.getDoubleValue( "TSCAL" + jcol ).doubleValue();
+            if ( colhead.containsKey( cards, "TSCAL" ) ) {
+                scale = colhead.getDoubleValue( cards, "TSCAL" ).doubleValue();
                 auxdata.add( new DescribedValue( TSCAL_INFO,
                                                  new Double( scale ) ) );
             }
             else {
                 scale = 1.0;
             }
-            if ( cards.containsKey( "TZERO" + jcol ) ) {
+            if ( colhead.containsKey( cards, "TZERO" ) ) {
 
                 /* Careful here.  For unsigned long values, the TZERO value
                  * is 9223372036854775808 == 2^63 == Long.MAX_VALUE+1,
@@ -206,7 +207,7 @@ public abstract class BintableStarTable extends AbstractStarTable
                  * (loses precision).  So we need to be prepared to use
                  * arbitrary precision numbers.  Check the javadocs when
                  * manipulating these, behaviour is sometimes surprising. */
-                String zstr = cards.getStringValue( "TZERO" + jcol );
+                String zstr = colhead.getStringValue( cards, "TZERO" );
                 BigDecimal zbig = new BigDecimal( zstr );
                 boolean zIsInt =
                     zbig.compareTo( new BigDecimal( zbig.toBigInteger() ) )
@@ -238,7 +239,7 @@ public abstract class BintableStarTable extends AbstractStarTable
             }
 
             /* Format code (recorded but otherwise ignored). */
-            String tbcol = cards.getStringValue( "TBCOL" + jcol );
+            String tbcol = colhead.getStringValue( cards, "TBCOL" );
             if ( tbcol != null ) {
                 int bcolval = Integer.parseInt( tbcol );
                 auxdata.add( new DescribedValue( TBCOL_INFO,
@@ -246,25 +247,29 @@ public abstract class BintableStarTable extends AbstractStarTable
             }
 
             /* Data type. */
-            String tform = cards.getStringValue( "TFORM" + jcol );
+            String tform = colhead.getStringValue( cards, "TFORM" );
             if ( tform != null ) {
                 auxdata.add( new DescribedValue( TFORM_INFO, tform ) );
             }
+            else {
+                throw new FitsException( "Missing column format header "
+                                       + colhead.getKeyName( "TFORM" ) );
+            }
 
             /* Comment (non-standard). */
-            String tcomm = cards.getStringValue( "TCOMM" + jcol );
+            String tcomm = colhead.getStringValue( cards, "TCOMM" );
             if ( tcomm != null ) {
                 cinfo.setDescription( tcomm );
             }
 
             /* UCD (non-standard). */
-            String tucd = cards.getStringValue( "TUCD" + jcol );
+            String tucd = colhead.getStringValue( cards, "TUCD" );
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
             }
 
             /* Utype (non-standard). */
-            String tutype = cards.getStringValue( "TUTYP" + jcol );
+            String tutype = colhead.getStringValue( cards, "TUTYP" );
             if ( tutype != null ) {
                 cinfo.setUtype( tutype );
             }
