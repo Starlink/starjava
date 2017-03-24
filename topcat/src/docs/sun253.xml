@@ -24175,6 +24175,9 @@ introduced since the last version:
     <li>Add position angle calculation functions
         <code>posAngRadians</code> and <code>posAngDegrees</code>
         to expression language.</li>
+    <li>Fix bug when saving tables generated from plots
+        (e.g. SkyDensity HEALPix maps) that sometimes saved data
+        from the wrong plot.</li>
     </ul>
     </p></dd>
 

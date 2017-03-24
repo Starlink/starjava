@@ -68,7 +68,7 @@ public class AuxWindow extends JFrame {
     private JPanel mainArea;
     private JPanel controlPanel;
     private JMenuBar menuBar;
-    private Map saveWindows;
+    private Map<String,SaveTableQueryWindow> saveWindows;
     private boolean closeIsExit;
     private boolean isStandalone;
     private boolean packed;
@@ -98,7 +98,7 @@ public class AuxWindow extends JFrame {
         if ( parent != null ) {
             positionAfter( parent, this );
         }
-        saveWindows = new HashMap();
+        saveWindows = new HashMap<String,SaveTableQueryWindow>();
 
         /* Set up a switch for whether this window's content pane will be
          * wrapped in a scrollpane or not.  This is not generally advisable,
@@ -419,23 +419,26 @@ public class AuxWindow extends JFrame {
                                 "Save " + dataType + " as a table to disk" ) {
             public void actionPerformed( ActionEvent evt ) {
 
-                /* Lazily create a table saver window for saving this kind
-                 * of data. */
-                if ( ! saveWindows.containsKey( dataType ) ) {
+                /* Get a table saver window for saving this kind of data.
+                 * If there is a previously opened one not currently
+                 * on screen then use that, since it will contain state
+                 * that may be useful to the user.
+                 * Otherwise create one and save it for later. */
+                SaveTableQueryWindow saveWindow = saveWindows.get( dataType );
+                if ( saveWindow == null || saveWindow.isVisible() ) {
                     StarTableOutput sto =
                         ControlWindow.getInstance().getTableOutput();
-                    SaveTableQueryWindow saveWindow =
+                    saveWindow =
                         new SaveTableQueryWindow( "Save " + dataType +
                                                   " as table",
-                                                  AuxWindow.this, tSrc, sto,
-                                                  false );
+                                                  AuxWindow.this, sto, false );
                     saveWindows.put( dataType, saveWindow );
                 }
 
                 /* Pop up the window thereby inviting the user to save the
                  * table. */
-                ((SaveTableQueryWindow) saveWindows.get( dataType ))
-                                       .setVisible( true );
+                saveWindow.setTableSource( tSrc );
+                saveWindow.setVisible( true );
             }
         };
     }

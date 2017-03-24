@@ -24,20 +24,18 @@ import uk.ac.starlink.table.TableSource;
 public class SaveTableQueryWindow extends QueryWindow {
 
     private final TableSaveChooser chooser_;
+    private TableSource tsrc_;
 
     /**
      * Constructor.
      *
      * @param  title  window title
      * @param  parent   parent window
-     * @param  tsrc    supplier of the table to be saved (invoked when the
-     *                 window save operation is activated)
      * @param  sto    table output handler
      * @param  progress  true iff you want a save progress bar
      */
     public SaveTableQueryWindow( String title, Component parent,
-                                 final TableSource tsrc, StarTableOutput sto,
-                                 boolean progress ) {
+                                 StarTableOutput sto, boolean progress ) {
         super( title, parent, false, true );
         chooser_ = new TableSaveChooser( sto,
                                          new TableSaveDialog[] {
@@ -45,7 +43,9 @@ public class SaveTableQueryWindow extends QueryWindow {
                                              new SystemTableSaveDialog(),
                                          } ) {
             public StarTable[] getTables() {
-                return new StarTable[] { tsrc.getStarTable() };
+                TableSource tsrc = getTableSource();
+                return tsrc == null ? new StarTable[ 0 ]
+                                    : new StarTable[] { tsrc.getStarTable() };
             }
             public void done() {
                 super.done();
@@ -70,6 +70,28 @@ public class SaveTableQueryWindow extends QueryWindow {
         /* Help button.  This is not exactly the right help for this
          * window, but it's quite close. */
         addHelp( "TableSaveChooser" );
+    }
+
+    /**
+     * Sets the source of tables to be written.
+     * Should be called with a non-null value before the user is
+     * invited to save.
+     *
+     * @param   tsrc supplier of the table to be saved (invoked when the
+     *               window save operation is activated)
+     */
+    public void setTableSource( TableSource tsrc ) {
+        tsrc_ = tsrc;
+    }
+
+    /**
+     * Returns the currently configured table source.
+     *
+     * @return   supplier of the table to be saved (invoked when the
+     *           window save operation is activated)
+     */
+    public TableSource getTableSource() {
+        return tsrc_;
     }
 
     /**
