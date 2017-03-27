@@ -927,8 +927,9 @@ public class TableSpecDataImpl
             }
         }
 
+        
         if ( desc != null && ! "".equals( desc ) ) {
-            astref.setLabel( 1, desc );
+            astref.setLabel( 1, desc.trim() );
         }
     }
 }
