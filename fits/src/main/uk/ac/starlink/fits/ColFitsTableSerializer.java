@@ -37,6 +37,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
      * Constructor.
      *
      * @param   table  table to serialize
+     * @throws IOException if it won't be possible to write the given table
      */
     public ColFitsTableSerializer( StarTable table )
             throws IOException {
@@ -47,6 +48,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         ncol_ = table.getColumnCount();
         colStores_ = new ColumnStore[ ncol_ ];
         colids_ = new String[ ncol_ ];
+        int nUseCol = 0;
         for ( int icol = 0; icol < ncol_; icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
             colids_[ icol ] = info.toString();
@@ -54,7 +56,11 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
             if ( colStores_[ icol ] == null ) {
                 logger_.warning( "Can't serialize column " + info );
             }
+            else {
+                nUseCol++;
+            }
         }
+        FitsConstants.checkColumnCount( nUseCol );
 
         /* Store the table data into these storage objects. */
         boolean ok = false;

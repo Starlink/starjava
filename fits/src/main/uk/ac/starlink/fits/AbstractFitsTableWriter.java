@@ -49,9 +49,6 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
-    /** Hard limit for FITS table columns (TTYPE1000 has too many chars). */
-    private static final int MAX_FITS_COLUMNS = 999;
-
     /**
      * Constructor.
      *
@@ -147,12 +144,6 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     public void writeTableHDU( StarTable table, FitsTableSerializer fitser,
                                DataOutput out ) throws IOException {
-        int ncol = table.getColumnCount();
-        if ( ncol > MAX_FITS_COLUMNS ) {
-            throw new IOException( "Column count " + ncol
-                                 + " exceeds FITS limit of "
-                                 + MAX_FITS_COLUMNS );
-        }
         try {
             Header hdr = fitser.getHeader();
             addMetadata( hdr );
@@ -167,9 +158,13 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
 
     /**
      * Provides a suitable serializer for a given table.
+     * Note this should throw an IOException if it can be determined that
+     * the submitted table cannot be written by this writer, for instance
+     * if it has too many columns.
      *
      * @param   table  table to serialize
      * @return  FITS serializer
+     * @throws  IOException  if the table can't be written
      */
     protected abstract FitsTableSerializer createSerializer( StarTable table )
             throws IOException;

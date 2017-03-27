@@ -65,6 +65,9 @@ public class FitsConstants {
     /** Standard size of a FITS block in bytes. */
     public static final int FITS_BLOCK = 2880;
 
+    /** Maximum number of columns in standard FITS BINTABLE extension. */
+    public static final int MAX_NCOLSTD = 999;
+
     private static final String[] extensions = new String[] {
         ".fits", ".fit", ".fts",
         ".FITS", ".FIT", ".FTS",
@@ -369,6 +372,28 @@ public class FitsConstants {
                             value );
         }
         hdr.addValue( key, value, comment );
+    }
+
+    /**
+     * Checks that a table with the given number of columns can be written.
+     * If the column count is not exceeded, nothing happens,
+     * but if there are too many columns an informative IOException
+     * is thrown.
+     *
+     * @param  ncol   number of columns to write
+     * @throws   IOException  if there are too many columns
+     */
+    public static void checkColumnCount( int ncol ) throws IOException {
+        if ( ncol > MAX_NCOLSTD ) { 
+            String msg = new StringBuffer()
+                .append( "Too many columns " ) 
+                .append( ncol )
+                .append( " > " ) 
+                .append( MAX_NCOLSTD )
+                .append( " (FITS standard hard limit)" )
+                .toString();
+            throw new IOException( msg );
+        }   
     }
 
     private static long getRawSize( Header hdr ) {

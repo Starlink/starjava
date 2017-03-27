@@ -53,6 +53,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      * @param  table  the table to be written
      * @param  allowSignedByte  if true, bytes written as FITS signed bytes
      *         (TZERO=-128), if false bytes written as signed shorts
+     * @throws IOException if it won't be possible to write the given table
      */
     public StandardFitsTableSerializer( StarTable table,
                                         boolean allowSignedByte )
@@ -66,6 +67,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      * Byte-type columns are written using some default policy.
      *
      * @param  table  the table to be written
+     * @throws IOException if it won't be possible to write the given table
      */
     public StandardFitsTableSerializer( StarTable table ) throws IOException {
         this( table, true );
@@ -78,6 +80,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      * Calls {@link #createColumnWriter}.
      *
      * @param  table  table to be written
+     * @throws IOException if it won't be possible to write the given table
      */
     final void init( StarTable table ) throws IOException {
         if ( this.table != null ) {
@@ -277,6 +280,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
          * and log a message. */
         colWriters = new ColumnWriter[ ncol ];
         int rbytes = 0;
+        int nUseCol = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
             if ( useCols[ icol ] ) {
                 ColumnInfo cinfo = colInfos[ icol ];
@@ -291,9 +295,15 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                     logger.warning( "Ignoring column " + cinfo.getName() +
                                     " - don't know how to write to FITS" );
                 }
+                else {
+                    nUseCol++;
+                }
                 colWriters[ icol ] = writer;
             }
         }
+
+        /* Check column count is permissible. */
+        FitsConstants.checkColumnCount( nUseCol );
     }
 
     /**
