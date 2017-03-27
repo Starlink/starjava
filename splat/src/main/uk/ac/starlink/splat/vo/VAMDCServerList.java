@@ -23,10 +23,4 @@ public class VAMDCServerList extends AbstractServerList {
         return configFile;
     }
 
-    @Override
-    public String getDefaultFile() {
-        // TODO Auto-generated method stub
-        return defaultFile;
-    }
-
 }

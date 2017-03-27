@@ -12,8 +12,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-
 import uk.ac.starlink.table.gui.StarJTable;
+
 
 
 public class LinesResultsPanel extends ResultsPanel {
@@ -115,11 +115,11 @@ public class LinesResultsPanel extends ResultsPanel {
     protected void displaySpectra( boolean selected, boolean display,
             StarJTable table, int row )
     {
-      StarJTable currentTable = getCurrentTable(table);      
+      //StarJTable currentTable = this.getCurrentTable(table);      
       if (selected)
-        slQueryBrowser.displayLineSelection(currentTable);
+        slQueryBrowser.displayLineSelection(table);
       else
-        slQueryBrowser.displayLines( currentTable.getStarTable() );          
+        slQueryBrowser.displayLines( table.getStarTable() );          
     }
     
     public class LineAction extends AbstractAction
