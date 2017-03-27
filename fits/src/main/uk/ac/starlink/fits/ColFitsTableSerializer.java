@@ -136,7 +136,10 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             ColumnStore colStore = colStores_[ icol ];
             if ( colStore != null ) {
-                colStore.addHeaderInfo( hdr, ++jcol );
+                jcol++;
+                BintableColumnHeader colhead =
+                    BintableColumnHeader.createStandardHeader( jcol );
+                colStore.addHeaderInfo( hdr, colhead, jcol );
             }
         }
         return hdr;
@@ -213,22 +216,26 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
 
     private static String getCardValue( ColumnStore colStore, String tcard ) {
         Header hdr = new Header();
-        try {
-            int icol = 99;
-            Level level = logger_.getLevel();
+        int icol = 99;
+        BintableColumnHeader colhead =
+            BintableColumnHeader.createStandardHeader( icol );
 
-            /* Avoid unwanted logging messages that might occur in case of
-             * truncated card values. */
-            logger_.setLevel( Level.SEVERE );
-            colStore.addHeaderInfo( hdr, icol );
-            logger_.setLevel( level );
-            String key = tcard + icol;
-            return hdr.containsKey( key )
-                 ? hdr.findCard( key ).getValue().trim()
-                 : null;
+        /* Avoid unwanted logging messages that might occur in case of
+         * truncated card values. */
+        Level level = logger_.getLevel();
+        logger_.setLevel( Level.SEVERE );
+        try {
+            colStore.addHeaderInfo( hdr, colhead, icol );
         }
         catch ( HeaderCardException e ) {
             throw new AssertionError( e );
         }
+        finally {
+            logger_.setLevel( level );
+        }
+        String key = colhead.getKeyName( tcard );
+        return hdr.containsKey( key )
+             ? hdr.findCard( key ).getValue().trim()
+             : null;
     }
 }

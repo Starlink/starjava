@@ -55,9 +55,11 @@ interface ColumnStore {
      * which describes the column data which is output by {@link #streamData}.
      *
      * @param  hdr   header to modify
+     * @param  colhead   header key handler for column
      * @param  icol  index (1-based) of the column represented by this store
      */
-    void addHeaderInfo( Header hdr, int icol ) throws HeaderCardException;
+    void addHeaderInfo( Header hdr, BintableColumnHeader colhead, int icol )
+            throws HeaderCardException;
 
     /**
      * Releases any resources associated with this object.
