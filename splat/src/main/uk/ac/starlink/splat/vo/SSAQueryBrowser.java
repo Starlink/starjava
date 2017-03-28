@@ -586,6 +586,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         
         if (!found) {
             StarTable table = serverPanel.queryRegistryWhenServersNotFound();  
+	    serverPanel.updateServers(table);
             serverPanel.setServerList(new SSAServerList(table));            
         }
     }
