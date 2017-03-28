@@ -92,21 +92,27 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
         valReaders_ = new ValueReader[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             int jcol = icol + 1;
+            BintableColumnHeader colhead =
+                BintableColumnHeader.createStandardHeader( jcol );
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
 
             /* Format character and length. */
-            String tform = cards.getStringValue( "TFORM" + jcol ).trim();
+            String tform = colhead.getStringValue( cards, "TFORM" ).trim();
+            if ( tform == null ) {
+                throw new TableFormatException( "Missing column format header "
+                                              + colhead.getKeyName( "TFORM" ) );
+            }
             char formatChar = tform.charAt( tform.length() - 1 );
 
             /* Use a special value if we have byte values offset by 128
              * (which allows one to represent signed bytes as unigned ones). */
             if ( formatChar == 'B' &&
-                 ( cards.containsKey( "TZERO" + jcol )
-                   && cards.getDoubleValue( "TZERO" + jcol ).doubleValue()
-                                                            == -128.0 ) &&
-                 ( ! cards.containsKey( "TSCALE" + jcol )
-                   || cards.getDoubleValue( "TSCALE" + jcol ).doubleValue()
-                                                             == 1.0 ) ) {
+                 ( colhead.containsKey( cards, "TZERO" )
+                   && colhead.getDoubleValue( cards, "TZERO" ).doubleValue()
+                                                              == -128.0 ) &&
+                 ( ! colhead.containsKey( cards, "TSCALE" )
+                   || colhead.getDoubleValue( cards, "TSCALE" ).doubleValue()
+                                                               == 1.0 ) ) {
                 formatChar = 'b';
             }
 
@@ -116,19 +122,23 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
                     Long.parseLong( tform.substring( 0, tform.length() - 1 ) );
             }
             catch ( NumberFormatException e ) {
-                throw new TableFormatException( "Bad TFORM " + tform );
+                throw new TableFormatException( "Bad "
+                                              + colhead.getKeyName( "TFORM" )
+                                              + " '" + tform + '"' );
             }
 
             /* Row count and item shape. */
-            String tdims = cards.getStringValue( "TDIM" + jcol );
+            String tdims = colhead.getStringValue( cards, "TDIM" );
             long[] dims = parseTdim( tdims );
             if ( dims == null ) {
-                logger_.info( "No TDIM" + jcol
+                logger_.info( "No " + colhead.getKeyName( "TDIM" )
                             + "; assume (1," + nitem + ")" );
                 dims = new long[] { 1, nitem };
             }
             if ( multiply( dims ) != nitem ) {
-                throw new TableFormatException( "TDIM doesn't match TFORM" );
+                throw new TableFormatException( colhead.getKeyName( "TDIM" )
+                                              + " doesn't match "
+                                              + colhead.getKeyName( "TFORM" ) );
             }
             int[] itemShape = new int[ dims.length - 1 ];
             for ( int i = 0; i < dims.length - 1; i++ ) {
@@ -145,29 +155,26 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
             }
 
             /* Null value. */
-            String blankKey = "TNULL" + jcol;
-            Long blank = cards.containsKey( blankKey )
-                       ? cards.getLongValue( blankKey )
-                       : null;
+            Long blank = colhead.getLongValue( cards, "TNULL" );
 
             /* Informational metadata. */
-            String ttype = cards.getStringValue( "TTYPE" + jcol );
+            String ttype = colhead.getStringValue( cards, "TTYPE" );
             if ( ttype != null ) {
                 cinfo.setName( ttype );
             }
-            String tunit = cards.getStringValue( "TUNIT" + jcol );
+            String tunit = colhead.getStringValue( cards, "TUNIT" );
             if ( tunit != null ) {
                 cinfo.setUnitString( tunit );
             }
-            String tcomm = cards.getStringValue( "TCOMM" + jcol );
+            String tcomm = colhead.getStringValue( cards, "TCOMM" );
             if ( tcomm != null ) {
                 cinfo.setDescription( tcomm );
             }
-            String tucd = cards.getStringValue( "TUCD" + jcol );
+            String tucd = colhead.getStringValue( cards, "TUCD" );
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
             }
-            String tutype = cards.getStringValue( "TUTYP" + jcol );
+            String tutype = colhead.getStringValue( cards, "TUTYP" );
             if ( tutype != null ) {
                 cinfo.setUtype( tutype );
             }
