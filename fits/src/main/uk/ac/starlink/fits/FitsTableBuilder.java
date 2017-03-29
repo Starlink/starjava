@@ -283,7 +283,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             AsciiTable tdata = new AsciiTable( hdr );
             tdata.read( in );
             tdata.getData();
-            TableHDU thdu = new AsciiTableHDU( hdr, (Data) tdata );
+            TableHDU thdu = new AsciiTableHDU( hdr, tdata );
             Tables.streamStarTable( new FitsStarTable( thdu ), sink );
             return true;
         }
@@ -431,7 +431,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             AsciiTable tdata = new AsciiTable( hdr );
             tdata.read( strm );
             tdata.getData();
-            TableHDU thdu = new AsciiTableHDU( hdr, (Data) tdata );
+            TableHDU thdu = new AsciiTableHDU( hdr, tdata );
             return new TableResult( new FitsStarTable( thdu ), afterpos );
         }
 
