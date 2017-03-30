@@ -11,14 +11,16 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.ContentCoding;
 
 /**
- * TapServiceFinder implementation that uses the IVOA registry
- * along with "auxiliary" labelling of tableset resources.
- * This is (an early version of) the scheme proposed by
- * Markus Demleitner's "Discovering Data Collections within Services"
- * IVOA Note.
- * 
+ * TapServiceFinder implementation that uses the IVOA Registry
+ * along with an "auxiliary" labelling of tableset resources.
+ * This is a version of the scheme proposed by Markus Demleitner's
+ * IVOA Note <em>"Discovering Data Collections Within Services"</em>,
+ * version 1.1.
+ *
  * @author   Mark Taylor
  * @since    6 Aug 2015
+ * @see  <a href="http://www.ivoa.net/documents/Notes/DataCollect/"
+ *          >Discovering Data Collections Within Services</a>
  */
 public class AuxServiceFinder implements TapServiceFinder {
 
@@ -50,6 +52,8 @@ public class AuxServiceFinder implements TapServiceFinder {
     }
 
     public Service[] readAllServices() throws IOException {
+
+        /* Identify columns to be extracted from RegTAP query. */
         final String IVOID;
         final String NAME;
         final String TITLE;
@@ -64,43 +68,66 @@ public class AuxServiceFinder implements TapServiceFinder {
             URL = "access_url",
             NTABLE = "ntable",
         };
+
+        /* Assemble a query that returns the ivoid of all known TAP services
+         * (easy) along with the number of tables in each one (harder).
+         * The first subquery identifies all the registered TAP services
+         * along with their service metadata.
+         * The second subquery counts the tables associated with each
+         * TAP access_url.  The two are then joined on access_url.
+         * access_url is not defined or documented as a key in this context,
+         * but it is expected to be in practice unique per TAP service.
+         * A LEFT OUTER JOIN is used so that TAP services for which
+         * no auxiliary tables are registered still show up in the results;
+         * they end up with a null value for table count.
+         * The second subquery has to use a further nested subquery so
+         * we can use a SELECT DISTINCT to avoid getting multiple rows
+         * per table (which may be associated with multiple
+         * capabilities/interfaces). */
         String adql = new StringBuffer()
             .append( "SELECT" )
+            .append( "\n  " )
             .append( GlotsServiceFinder.commaJoin( colNames ) )
-            .append( " FROM" )
-            .append( " (SELECT" )
-            .append( GlotsServiceFinder
-                    .commaJoin( new String[] { IVOID, NAME, TITLE,
-                                               DESCRIP, URL } ) )
-            .append( " FROM rr.resource" )
-            .append( " NATURAL JOIN rr.capability" )
-            .append( " NATURAL JOIN rr.interface" )
-            .append( " WHERE standard_id = 'ivo://ivoa.net/std/tap'" )
-            .append( " AND intf_type = 'vs:paramhttp'" )
-            .append( ") AS serv" )
-            .append( " JOIN" )
-            .append( " (SELECT service_id, COUNT(*) AS ntable" )
-            .append( " FROM" )
-            .append( " (SELECT DISTINCT" )
-            .append( " related_id AS service_id, ivoid, table_index" )
-            .append( " FROM rr.relationship" )
-            .append( " NATURAL JOIN rr.capability" )
-            .append( " NATURAL JOIN rr.interface" )
-            .append( " NATURAL JOIN rr.res_table" )
-            .append( " WHERE relationship_type = 'served-by'" )
-            .append( " AND standard_id = 'ivo://ivoa.net/std/tap#aux'" )
-            .append( " AND intf_type = 'vs:paramhttp'" )
-            .append( ") AS s" )
-            .append( " GROUP BY service_id" )
-            .append( ") AS aux" )
-            .append( " ON aux.service_id = serv.ivoid" )
+            .append( "\nFROM (" )
+            .append( "\n   SELECT DISTINCT" )
+            .append( "\n     " )
+            .append( GlotsServiceFinder.commaJoin( new String[] {
+                         IVOID, NAME, TITLE, DESCRIP, URL,
+                     } ) )
+            .append( "\n   FROM rr.resource" )
+            .append( "\n   NATURAL JOIN rr.capability" )
+            .append( "\n   NATURAL JOIN rr.interface" )
+            .append( "\n   WHERE" )
+            .append( "\n      standard_id = 'ivo://ivoa.net/std/tap'" )
+            .append( "\n) AS serv" )
+            .append( "\nLEFT OUTER JOIN (" )
+            .append( "\n   SELECT" )
+            .append( "\n      access_url, COUNT(*) AS ntable" )
+            .append( "\n   FROM (" )
+            .append( "\n      SELECT DISTINCT" )
+            .append( "\n         table_name, access_url" )
+            .append( "\n      FROM rr.res_table" )
+            .append( "\n      NATURAL JOIN rr.capability" )
+            .append( "\n      NATURAL JOIN rr.interface" )
+            .append( "\n      WHERE" )
+            .append( "\n        standard_id LIKE 'ivo://ivoa.net/std/tap%'" )
+            .append( "\n   ) AS caps" )
+            .append( "\n   GROUP BY access_url" )
+            .append( "\n) AS tcount" )
+            .append( "\nUSING (access_url)" )
+            .append( "\nORDER BY ntable DESC" )
             .toString();
-        logger_.info( "TAP Query: " + adql );
+
+        /* Execute this query and turn the result into a list of Service
+         * objects. */
+        logAdql( adql );
         TapQuery tq = new TapQuery( regtapEndpointSet_, adql, null );
         final List<Service> serviceList = new ArrayList<Service>();
         try {
+            final int[] nrow = new int[ 1 ];
             boolean isTrunc = tq.executeSync( new TableSink() {
                 public void acceptRow( Object[] row ) {
+                    nrow[ 0 ]++;
                     Map<String,String> valueMap =
                         GlotsServiceFinder.toValueMap( colNames, row );
                     final String id = valueMap.get( IVOID );
@@ -110,7 +137,7 @@ public class AuxServiceFinder implements TapServiceFinder {
                     final String url = valueMap.get( URL );
                     String ntableStr = valueMap.get( NTABLE );
                     int nt = -1;
-                    if ( ntableStr != null ) {
+                    if ( ntableStr != null && ntableStr.matches( "[0-9]+" ) ) {
                         try {
                             nt = Integer.parseInt( ntableStr );
                         }
@@ -145,6 +172,7 @@ public class AuxServiceFinder implements TapServiceFinder {
                 public void endRows() {
                 }
             }, coding_ );
+            logRows( isTrunc, nrow[ 0 ] );
         }
         catch ( SAXException e ) {
             throw (IOException)
@@ -156,6 +184,8 @@ public class AuxServiceFinder implements TapServiceFinder {
 
     public Table[] readSelectedTables( Constraint constraint )
             throws IOException {
+
+        /* Make sense of submitted constraints. */
         String[] words = constraint.getKeywords();
         boolean isAnd = constraint.isAndKeywords();
         List<Target> tTargets = new ArrayList<Target>();
@@ -168,56 +198,77 @@ public class AuxServiceFinder implements TapServiceFinder {
         if ( tTargets.size() == 0 ) {
             return new Table[ 0 ];
         }
-        final String SERVICE_ID; 
+
+        /* Identify columns to be extracted from RegTAP query. */
+        final String SERVICE_ID;
         final String NAME;
         final String DESCRIP;
         final String[] colNames = {
-            SERVICE_ID = "related_id",
+            SERVICE_ID = "ivoid",
             NAME = "table_name",
             DESCRIP = "table_description",
         };
 
-        /* This query doesn't bother checking that the related_id resource
-         * is in fact a TAP service (standard_id='ivo://ivoa.net/std/tap').
-         * It could do, but it's likely that most/all services it recovers
-         * will be, and if any are recoved that are not, they will be
-         * ignored by later processing anyway, since the results of this
-         * query get matched up with the results of the readAllServices
-         * query, which are so constrained, anyway. */
+        /* Assemble the ADQL query that returns tables of interest
+         * along with the ivoids of their corresponding TAP services.
+         * The main part of this query (the first subquery) selects the
+         * tables from rr.res_table that match the stated metadata
+         * constraints, and that also correspond to a TAP service.
+         * The standardId matching will match either
+         * "ivo://ivoa.net/std/tap" (resource is a TAP service) or
+         * "ivo://ivoa.net/std/tap#aux" (resource points to a TAP service).
+         * The second subquery acquires the ivoid for these table resources
+         * by joining on access_url.
+         * access_url is not defined or documented as a key in this context,
+         * but it is expected to be in practice unique per TAP service. */
         StringBuffer sbuf = new StringBuffer()
             .append( "SELECT" )
-            .append( " DISTINCT" )
+            .append( "\n  " ) 
             .append( GlotsServiceFinder.commaJoin( colNames ) )
-            .append( " FROM rr.relationship" )
-            .append( " NATURAL JOIN rr.capability" )
-            .append( " NATURAL JOIN rr.interface" )
-            .append( " NATURAL JOIN rr.res_table" )
-            .append( " WHERE relationship_type = 'served-by'" )
-            .append( " AND standard_id = 'ivo://ivoa.net/std/tap#aux'" )
-            .append( " AND intf_type = 'vs:paramhttp'" )
-            .append( " AND" )
-            .append( " (" );
+            .append( "\nFROM (" )
+            .append( "\n   SELECT DISTINCT" )
+            .append( "\n      table_name, table_description, access_url" )
+            .append( "\n   FROM rr.res_table" )
+            .append( "\n   NATURAL JOIN rr.capability" )
+            .append( "\n   NATURAL JOIN rr.interface" )
+            .append( "\n   WHERE standard_id LIKE 'ivo://ivoa.net/std/tap%'" )
+            .append( "\n     AND (" );
         for ( int iw = 0; iw < words.length; iw++ ) {
+            sbuf.append( "\n      " )
+                .append( iw == 0 ? "    "
+                                 : ( isAnd ? "AND " : " OR " ) )
+                .append( "(" );
             String word = words[ iw ];
-            if ( iw > 0 ) {
-                sbuf.append( isAnd ? " AND" : " OR" );
-            }
-            sbuf.append( " (" );
             for ( int it = 0; it < tTargets.size(); it++ ) {
                 if ( it > 0 ) {
-                    sbuf.append( " OR " );
+                    sbuf.append( " OR\n           " );
                 }
                 sbuf.append( getAdqlTest( word, tTargets.get( it ) ) );
             }
             sbuf.append( ")" );
         }
-        sbuf.append( " )" );
-        logger_.info( "TAP Query: " + sbuf );
-        TapQuery tq = new TapQuery( regtapEndpointSet_, sbuf.toString(), null );
+        sbuf.append( "\n     )" )
+            .append( "\n) AS tbl" )
+            .append( "\nJOIN (" )
+            .append( "\n   SELECT DISTINCT" )
+            .append( "\n      ivoid, access_url" )
+            .append( "\n   FROM rr.resource" )
+            .append( "\n   NATURAL JOIN rr.capability" )
+            .append( "\n   NATURAL JOIN rr.interface" )
+            .append( "\n   WHERE standard_id = 'ivo://ivoa.net/std/tap'" )
+            .append( "\n) AS serv" )
+            .append( "\nUSING (access_url)" );
+        String adql = sbuf.toString();
+
+        /* Execute the TAP query and turn it into a list of Table objects. */ 
+        logAdql( adql );
+        TapQuery tq = new TapQuery( regtapEndpointSet_, adql, null );
         final List<Table> tableList = new ArrayList<Table>();
         try {
+            final int[] nrow = new int[ 1 ];
             boolean isTrunc = tq.executeSync( new TableSink() {
                 public void acceptRow( Object[] row ) {
+                    nrow[ 0 ]++;
                     Map<String,String> valueMap =
                         GlotsServiceFinder.toValueMap( colNames, row );
                     final String serviceId = valueMap.get( SERVICE_ID );
@@ -240,6 +291,7 @@ public class AuxServiceFinder implements TapServiceFinder {
                 public void endRows() {
                 }
             }, coding_ );
+            logRows( isTrunc, nrow[ 0 ] );
         }
         catch ( SAXException e ) {
             throw (IOException)
@@ -266,8 +318,8 @@ public class AuxServiceFinder implements TapServiceFinder {
                 .append( ", " )
                 .append( syntax_.characterLiteral( keyword ) )
                 .append( ")" )
-                .toString(); 
-        }   
+                .toString();
+        }
         else {
             return new StringBuffer()
                 .append( "1=ivo_nocasematch(" )
@@ -276,6 +328,31 @@ public class AuxServiceFinder implements TapServiceFinder {
                 .append( syntax_.characterLiteral( "%" + keyword + "%" ) )
                 .append( ")" )
                 .toString();
+        }
+    }
+
+    /**
+     * Reports a multi-line ADQL string through the logging system.
+     *
+     * @param   adql  aux query
+     */
+    private void logAdql( String adql ) {
+        logger_.info( "Aux RegTAP query: " + adql.replaceAll( "\\s+", " " ) );
+        logger_.config( "Aux RegTAP query:\n" + adql );
+    }
+
+    /**
+     * Reports the result of a TAP query through the logging system.
+     *
+     * @param  isTrunc  true if result was truncated, faise if complete
+     * @param  nrow   number of rows received
+     */
+    private void logRows( boolean isTrunc, int nrow ) {
+        if ( isTrunc ) {
+            logger_.warning( "Result truncated at " + nrow + " rows" );
+        }
+        else {
+            logger_.info( "Received " + nrow + " rows" );
         }
     }
 }

@@ -24178,6 +24178,8 @@ introduced since the last version:
     <li>Fix bug when saving tables generated from plots
         (e.g. SkyDensity HEALPix maps) that sometimes saved data
         from the wrong plot.</li>
+    <li>Updated experimental <label>TAP|Service Discovery|Reg Prototype</label> 
+        menu option to match v1.1 of Data Discovery Note.</li>
     </ul>
     </p></dd>
 
