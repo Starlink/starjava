@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
+import uk.ac.starlink.ttools.plot2.layer.SkyCorrelationCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SkyDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyGridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyVectorCoordSet;
@@ -65,6 +66,9 @@ public class SkyPlotType implements PlotType {
                                              true ),
             MultiPointForm.createEllipseForm( "SkyEllipse",
                                               new SkyEllipseCoordSet(), true ),
+            MultiPointForm
+               .createEllipseForm( "SkyCorr",
+                                   new SkyCorrelationCoordSet( true ), false ),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
         };
