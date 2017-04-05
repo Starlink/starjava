@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
+import uk.ac.starlink.ttools.plot2.layer.PlaneCorrelationCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.PlaneEllipseCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
@@ -87,6 +88,9 @@ public class PlanePlotType implements PlotType {
                              StyleKeys.ERROR_SHAPE_2D ),
             MultiPointForm
            .createEllipseForm( "XYEllipse", new PlaneEllipseCoordSet(), true ),
+            MultiPointForm
+           .createEllipseForm( "XYCorr", new PlaneCorrelationCoordSet(),
+                               false ),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
         };
