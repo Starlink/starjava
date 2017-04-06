@@ -3188,9 +3188,19 @@ to define <ref id="subsets">row subsets</ref>
     matches(SECTOR, "[XYZ] Alpha")
 </verbatim></p></dd>
 
-<dt>Combining subsets</dt>
+<dt>Subset intersection</dt>
 <dd><p><verbatim>
-    (&subset.id.char;1 &amp;&amp; &subset.id.char;2) &amp;&amp; ! &subset.id.char;3
+    &subset.id.char;1 &amp;&amp; &subset.id.char;2
+</verbatim></p></dd>
+
+<dt>Subset union</dt>
+<dd><p><verbatim>
+    &subset.id.char;1 || &subset.id.char;2
+</verbatim></p></dd>
+
+<dt>Other subset combinations</dt>
+<dd><p><verbatim>
+    (in_cluster &amp;&amp; has_photometry) || ! &subset.id.char;6
 </verbatim></p></dd>
 
 <dt>Test for non-blank value</dt>
