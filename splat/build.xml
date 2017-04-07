@@ -346,6 +346,7 @@
   <property name="extra.class.path" value=""/>
   <path id="local.classpath" path="${extra.class.path}"/>
 
+
   <!-- Unification of all classpaths using extra, built, installed order-->
   <path id="classpath">
     <path refid="local.classpath"/>
@@ -778,7 +779,9 @@ JNI libraries not built (NDF library not installed in ${stardev})"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
-      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+      <fileset dir="${dist.lib}" 
+		includes="**/*.jar **/*.zip"
+		excludes="contrib/*" />
     </signjar>
 
   </target>
