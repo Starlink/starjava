@@ -20,7 +20,16 @@ public abstract class Rotation {
         public Rotation invert() {
             return this;
         }
+        public double[] getMatrix() {
+            return new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+        }
     };
+
+    /**
+     * Protected no-arg constructor of abstract class.
+     */
+    protected Rotation() {
+    }
 
     /**
      * Rotates a 3-vector in place.
@@ -35,6 +44,13 @@ public abstract class Rotation {
      * @return   inverse rotation
      */
     public abstract Rotation invert();
+
+    /**
+     * Returns the 9-element matrix defining this rotation.
+     *
+     * @return  9-element rotation matrix
+     */
+    public abstract double[] getMatrix();
 
     /**
      * Indicates whether the rotation between two sky systems is known
@@ -116,6 +132,10 @@ public abstract class Rotation {
 
         public Rotation invert() {
             return new MatrixRotation( Matrices.invert( rotmat_ ) );
+        }
+
+        public double[] getMatrix() {
+            return rotmat_.clone();
         }
 
         @Override
