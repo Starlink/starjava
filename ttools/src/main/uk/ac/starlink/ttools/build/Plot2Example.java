@@ -1122,6 +1122,13 @@ public class Plot2Example {
                 "*layer1=function", "*fexpr1=sin(x)/x", "*thick1=3", null,
                 "xmin=0", "xmax=30", "ymin=-0.25", "ymax=0.25",
             } ),
+            new Plot2Example( "layer-skygrid", c, PlotTask.SKY,
+                              new String[] {
+                "xpix=500", "ypix=250", "projection=aitoff", null,
+                "*viewsys=ecliptic", null,
+                "*layer1=skygrid", "*gridsys1=galactic",
+                "*gridcolor1=HotPink", "*labelpos1=none",
+            } ),
             createShadingExample( "flat", c, new String[ 0 ] ),
             createShadingExample( "auto", c, new String[ 0 ] ),
             createShadingExample( "transparent", c, new String[ 0 ] ),

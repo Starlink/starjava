@@ -27,6 +27,7 @@
   <!ENTITY FIG.plot2-layer-mark2 'plot2-layer-mark2.png'>
   <!ENTITY FIG.plot2-layer-link2 'plot2-layer-link2.png'>
   <!ENTITY FIG.plot2-layer-function 'plot2-layer-function.png'>
+  <!ENTITY FIG.plot2-layer-skygrid 'plot2-layer-skygrid.png'>
   <!ENTITY FIG.plot2-shading-flat 'plot2-shading-flat.png'>
   <!ENTITY FIG.plot2-shading-auto 'plot2-shading-auto.png'>
   <!ENTITY FIG.plot2-shading-transparent 'plot2-shading-transparent.png'>
