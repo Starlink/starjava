@@ -148,6 +148,17 @@ public abstract class LayerControlAction extends BasicAction {
                 }
             };
         }
+        else if ( cgrp.getPositionCount() == 0 &&
+                  cgrp.getExtraCoords().length == 0 ) {
+            return new LayerControlAction( plotter, stack ) {
+                public LayerControl createLayerControl() {
+                    Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
+                    Configger configger = baseConfigger.layerConfigger( zs0 );
+                    Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
+                    return new DatalessLayerControl( plotter, zsel, configger );
+                }
+            };
+        }
 
         /* Not great - no options for miscellaneous plotters with both
          * positional and non-positional coordinates.  Could be done if
