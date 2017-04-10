@@ -233,13 +233,33 @@ public class SkySurface implements Surface {
     }
 
     /**
-     * Attempts to constructs a GridLiner object which can
-     * draw grid lines on this plot.
-     * The work is done by classes from the SkyView package.
+     * Attempts to construct a GridLiner object which can
+     * draw default grid lines on this plot.
      *
      * @return   gridliner, or null on failure
      */
     private GridLiner createGridder() {
+        return createGridder( null, sexagesimal_, crowd_ );
+    }
+
+    /**
+     * Attempts to construct a GridLiner object to draw grid lines on
+     * this plot.
+     *
+     * <p>The work is done by classes from the SkyView package.
+     *
+     * @param  rotation   additional rotation to apply to sky system
+     *                    before grid lines are plotted;
+     *                    may be null for no additional rotation
+     * @param  sexagesimal  true for sexagesimal labels, false for decimal
+     * @param  crowd   tick mark crowding factor, 1 is normal
+     * @return   gridliner, or null on failure
+     */
+    public GridLiner createGridder( Rotation rotation, boolean sexagesimal,
+                                    double crowd ) {
+        double[] rotmat = rotation == null
+                        ? rotmat_
+                        : Matrices.mmMult( rotmat_, rotation.getMatrix() );
         if ( projection_ instanceof SkyviewProjection ) {
             Projecter projecter =
                 ((SkyviewProjection) projection_).getSkyviewProjecter();
@@ -247,7 +267,7 @@ public class SkySurface implements Surface {
                                         gZoom_, 0, 0, -gZoom_ );
             Rotater rotater;
             try {
-                rotater = new Rotater( Matrices.toPal( rotmat_ ) );
+                rotater = new Rotater( Matrices.toPal( rotmat ) );
             }
             catch ( TransformationException e ) {
                 assert false;
@@ -258,8 +278,7 @@ public class SkySurface implements Surface {
                 return null;
             }
             GridLiner gl = new GridLiner( plotBounds, rotater, projecter,
-                                          scaler, sexagesimal_,
-                                          crowd_, crowd_ );
+                                          scaler, sexagesimal, crowd, crowd );
             try {
                 gl.grid();
                 return gl;
