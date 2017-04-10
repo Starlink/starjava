@@ -37,6 +37,7 @@ public class ResourceIcon {
         PLOT_LABEL = readIcon( "plot-label.png" ),
         PLOT_SPECTRO = readIcon( "plot-spectro.png" ),
         PLOT_HEALPIX = readIcon( "plot-healpix.png" ),
+        PLOT_SKYGRID = readIcon( "plot-skygrid.png" ),
         FORM_HISTOGRAM = readIcon( "form-histogram.png" ),
         FORM_KDE = readIcon( "form-kde.png" ),
         FORM_KNN = readIcon( "form-knn.png" ),
