@@ -134,6 +134,7 @@
   <!ENTITY FIG.SpectrogramLayerControl '&figs;SpectrogramLayerControl.png'>
   <!ENTITY FIG.SpectrogramLayerControl_data
            '&figs;SpectrogramLayerControl_data.png'>
+  <!ENTITY FIG.LayerControl_skygrid '&figs;LayerControl_skygrid.png'>
   <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.png'>
   <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.png'>
   <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.png'>
@@ -283,6 +284,9 @@
   <!ENTITY CONTROL.healpix
            '&IMG.PLOT_HEALPIX;
             <ref id="HealpixLayerControl">Healpix Layer Control</ref>'>
+  <!ENTITY CONTROL.skygrid
+           '&IMG.PLOT_SKYGRID;
+            <ref id="LayerControl_skygrid">SkyGrid Layer Control</ref>'>
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
   <!ENTITY FORM.sizexy '&IMG.FORM_SIZEXY; <ref id="form-sizexy">SizeXY</ref>'>
@@ -8544,6 +8548,64 @@ that appears in the legend.  Options are:
 
 </subsubsubsect>
 
+<subsubsubsect id="LayerControl_skygrid">
+<subhead><title>SkyGrid Layer Control</title></subhead>
+
+<p>The <label>SkyGrid</label> layer control (&IMG.PLOT_SKYGRID;)
+is available from the <ref id="SkyPlotWindow">Sky Plot Window</ref>,
+and plots an additional axis grid on the celestial sphere.
+This can be overlaid on the default sky axis grid
+so that axes for multiple sky coordinate systems
+are simultaneously visible. 
+</p>
+
+<p>Note that some of the configuration items for this plot layer,
+such as grid line antialiasing and the decimal/sexagesimal flag,
+are inherited from the values set for the main sky plot grid
+in the <ref id="SkyAxisControl">Sky Axes Control</ref>.
+</p>
+
+<figure>
+<caption>
+<px>Sky plot with no data, but an additional Galactic sky axis
+grid plotted over the default equatorial grid.
+</px></caption>
+<figureimage src="&FIG.LayerControl_skygrid;"/>
+</figure>
+
+<p>This control has only one tab, <label>Style</label>,
+with the following fields:
+<dl>
+<dt>Sky System</dt>
+<dd><p>Selects the sky system
+    (Equatorial, Galactic, Supergalactic or Ecliptic)
+    whose coordinates the plotted grid lines should represent.
+    Note this is assessed relative to the <label>View Sky System</label>
+    selected in the <ref id="SkyAxisControl">Sky Axes Control</ref>.
+    If the value here is the same as the View Sky System
+    (by default Equatorial)
+    the grid used by this layer will be the same as the default axis grid.
+    </p></dd>
+<dt>Grid Color</dt>
+<dd><p>Selects the colour with which grid lines will be drawn.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Determines how transparent the grid lines will be.
+    </p></dd>
+<dt>Label Position</dt>
+<dd><p>Determines whether and how the numeric labels will be placed
+    along the grid lines.  Currently only two options,
+    <label>Internal</label> and <label>None</label>.
+    </p></dd>
+<dt>Grid Crowding</dt>
+<dd><p>Use the slider to control how closely packed grid lines are
+    on the axes.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="ShapeForm">
@@ -11503,6 +11565,7 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.link2;</li>
     </ul></li>
 <li>&CONTROL.healpix;</li>
+<li>&CONTROL.skygrid;</li>
 </ul>
 </p>
 
@@ -24200,6 +24263,8 @@ introduced since the last version:
         <label>Position Angle</label>
         parameters were always interpreted in
         the View, rather than the Data, sky system.</li>
+    <li>New <ref id="LayerControl_skygrid">SkyGrid Layer Control</ref>
+        can draw multiple sky system coordinate axis grids on sky plot.</li>
     </ul>
     </p></dd>
 

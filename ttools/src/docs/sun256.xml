@@ -11077,6 +11077,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Previously the <code>dlat</code>/<code>dlon</code>/<code>posang</code>
         parameters were always interpreted in
         the view, rather than the data, sky coordinate system.</li>
+    <li>New plot layer type <ref id="layer-skygrid">skygrid</ref>
+        can draw multiple sky system coordinate axis grids on sky plot.</li>
     </ul>
     </p></dd>
 
