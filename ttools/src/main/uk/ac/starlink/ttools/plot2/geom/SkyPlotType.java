@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyDensityPlotter;
+import uk.ac.starlink.ttools.plot2.layer.SkyGridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SkyEllipseCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
@@ -75,6 +76,7 @@ public class SkyPlotType implements PlotType {
             new ContourPlotter(),
             new SkyDensityPlotter( true, true ),
             new HealpixPlotter( true ),
+            new SkyGridPlotter(),
         } ) );
         return list.toArray( new Plotter[ 0 ] );
     }
