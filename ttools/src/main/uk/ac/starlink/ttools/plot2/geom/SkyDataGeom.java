@@ -53,6 +53,22 @@ public abstract class SkyDataGeom implements DataGeom {
         return SKY_COORD.readSkyCoord( tseq, ic, dpos );
     }
 
+    /**
+     * Rotates a 3-vector in place from this geom's data coordinate system
+     * to its view coordinate system.
+     *
+     * @param  dpos  (x,y,z) vector to be rotated in place
+     */
+    public abstract void rotate( double[] dpos );
+
+    /**
+     * Rotates a 3-vector in place from this geom's view coordinate system
+     * to its data coordinate system.
+     *
+     * @param  dpos  (x,y,z) vector to be rotated in place
+     */
+    public abstract void unrotate( double[] dpos );
+
     public abstract int hashCode();
 
     public abstract boolean equals( Object other );
@@ -93,6 +109,12 @@ public abstract class SkyDataGeom implements DataGeom {
             super( variantName );
         }
 
+        public void rotate( double[] dpos ) {
+        }
+
+        public void unrotate( double[] dpos ) {
+        }
+
         @Override
         public int hashCode() {
             int code = UnitSkyDataGeom.class.hashCode();
@@ -117,6 +139,7 @@ public abstract class SkyDataGeom implements DataGeom {
      */
     private static class RotateSkyDataGeom extends SkyDataGeom {
         private final Rotation rotation_;
+        private final Rotation inverseRotation_;
 
         /**
          * Constructor.
@@ -127,6 +150,7 @@ public abstract class SkyDataGeom implements DataGeom {
         RotateSkyDataGeom( String variantName, Rotation rotation ) {
             super( variantName );
             rotation_ = rotation;
+            inverseRotation_ = rotation.invert();
         }
 
         public boolean readDataPos( TupleSequence tseq, int ic,
@@ -138,6 +162,14 @@ public abstract class SkyDataGeom implements DataGeom {
             else {
                 return false;
             }
+        }
+
+        public void rotate( double[] dpos ) {
+            rotation_.rotate( dpos );
+        }
+
+        public void unrotate( double[] dpos ) {
+            inverseRotation_.rotate( dpos );
         }
 
         @Override
