@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -65,8 +66,8 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, double[] xyz0,
-                               double[][] xyzExtras ) {
+    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+                               double[] xyz0, double[][] xyzExtras ) {
         double ar =
             Math.toRadians( AR_COORD.readDoubleCoord( tseq, icol ) );
         double br =

@@ -285,8 +285,8 @@ public class MultiPointForm implements ShapeForm {
                                         Paper paper ) {
                     if ( geom.readDataPos( tseq, 0, dpos0 ) &&
                          surface.dataToGraphics( dpos0, true, gpos0 ) &&
-                         extraCoordSet_.readPoints( tseq, icExtra, dpos0,
-                                                    dposExtras ) ) {
+                         extraCoordSet_.readPoints( tseq, icExtra, geom,
+                                                    dpos0, dposExtras ) ) {
                         int[] xoffs = new int[ nextra ];
                         int[] yoffs = new int[ nextra ];
                         offsetter.calculateOffsets( dpos0, gpos0, dposExtras,
@@ -318,8 +318,8 @@ public class MultiPointForm implements ShapeForm {
                                         Paper paper ) {
                     if ( geom.readDataPos( tseq, 0, dpos0 ) &&
                          surface.dataToGraphicZ( dpos0, true, gpos0, zloc ) &&
-                         extraCoordSet_.readPoints( tseq, icExtra, dpos0,
-                                                    dposExtras ) ) {
+                         extraCoordSet_.readPoints( tseq, icExtra, geom,
+                                                    dpos0, dposExtras ) ) {
                         double dz0 = zloc[ 0 ];
                         int[] xoffs = new int[ nextra ];
                         int[] yoffs = new int[ nextra ];
@@ -547,8 +547,8 @@ public class MultiPointForm implements ShapeForm {
                              surface.dataToGraphics( dpos0, scaleFromVisible_,
                                                      gpos0 ) &&
                              PlotUtil.isPointFinite( gpos0 ) &&
-                             extraCoordSet.readPoints( tseq, icExtra, dpos0,
-                                                       dposExtras ) ) {
+                             extraCoordSet.readPoints( tseq, icExtra, geom,
+                                                       dpos0, dposExtras ) ) {
                             for ( int ie = 0; ie < nextra; ie++ ) {
                                 if ( surface
                                     .dataToGraphicsOffset( dpos0, gpos0,

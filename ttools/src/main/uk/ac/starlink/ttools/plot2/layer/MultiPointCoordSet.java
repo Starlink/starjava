@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
@@ -38,11 +39,13 @@ public interface MultiPointCoordSet {
      * @param  tseq  tuple sequence, positioned at the row of interest
      * @param  icol   index of column in the sequence corresponding to
      *                the first of the coordinates in this set
+     * @param  geom   converter between tuplesequence values and
+     *                data space coordinates; may not be required
      * @param  dpos0  nDataDim-element array giving central data position
      * @param  dposExtras   [nPointCount][nDataDim]-shaped array into which
      *                      the non-central data positions will be written
      * @return  true iff the conversion was successful
      */
-    boolean readPoints( TupleSequence tseq, int icol, double[] dpos0,
-                        double[][] dposExtras );
+    boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+                        double[] dpos0, double[][] dposExtras );
 }

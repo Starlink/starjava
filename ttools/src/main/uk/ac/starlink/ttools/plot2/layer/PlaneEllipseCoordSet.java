@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -63,8 +64,8 @@ public class PlaneEllipseCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, double[] xy0,
-                               double[][] xyExtras ) {
+    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+                               double[] xy0, double[][] xyExtras ) {
         double ar = AR_COORD.readDoubleCoord( tseq, icol );
         double br = BR_COORD.readDoubleCoord( tseq, icol + 1 );
         double posang = POSANG_COORD.readDoubleCoord( tseq, icol + 2 );
