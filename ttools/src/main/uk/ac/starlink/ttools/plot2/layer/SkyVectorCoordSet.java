@@ -5,6 +5,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 
 /**
  * MultiPointCoordSet for vectors on the sky.
@@ -86,7 +87,8 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
             }
             double eta = dLat;
             double[] xyz1 = xyzExtras[ 0 ];
-            new TangentPlaneTransformer( xyz0 ).displace( xi, eta, xyz1 );
+            new TangentPlaneTransformer( xyz0, (SkyDataGeom) geom )
+               .displace( xi, eta, xyz1 );
             return true;
         }
     }

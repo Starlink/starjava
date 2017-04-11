@@ -5,6 +5,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 
 /**
  * MultiPointCoordSet for ellipses on a sphere.
@@ -112,7 +113,8 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
             return false;
         }
         else {
-            TangentPlaneTransformer trans = new TangentPlaneTransformer( xyz0 );
+            TangentPlaneTransformer trans =
+                new TangentPlaneTransformer( xyz0, (SkyDataGeom) geom );
             trans.displace( -ax, -ay, xyzExtras[ 0 ] );
             trans.displace( +ax, +ay, xyzExtras[ 1 ] );
             trans.displace( -bx, -by, xyzExtras[ 2 ] );

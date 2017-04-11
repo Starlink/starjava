@@ -24190,6 +24190,16 @@ introduced since the last version:
         from the wrong plot.</li>
     <li>Updated experimental <label>TAP|Service Discovery|Reg Prototype</label> 
         menu option to match v1.1 of Data Discovery Note.</li>
+    <li>Fix misfeature in
+        <ref id="form-skyvector">SkyVector</ref> and
+        <ref id="form-skyellipse">SkyEllipse</ref> plot forms;
+        these now preserve orientation on the sky even when
+        the View and Data Sky Systems differ.
+        Previously the
+        <label>Delta Longitude/Latitude</label> and
+        <label>Position Angle</label>
+        parameters were always interpreted in
+        the View, rather than the Data, sky system.</li>
     </ul>
     </p></dd>
 

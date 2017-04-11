@@ -11069,6 +11069,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add position angle calculation functions
         <code>posAngRadians</code> and <code>posAngDegrees</code>
         to expression language.</li>
+    <li>Fix misfeature in
+        <ref id="layer-skyvector">skyvector</ref> and
+        <ref id="layer-skyellipse">skyellipse</ref> plot layers;
+        these now preserve orientation on the sky even when
+        <code>viewsys</code> differs from <code>datasys</code>.
+        Previously the <code>dlat</code>/<code>dlon</code>/<code>posang</code>
+        parameters were always interpreted in
+        the view, rather than the data, sky coordinate system.</li>
     </ul>
     </p></dd>
 

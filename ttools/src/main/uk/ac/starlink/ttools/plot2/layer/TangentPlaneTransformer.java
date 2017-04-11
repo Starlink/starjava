@@ -22,16 +22,6 @@ public class TangentPlaneTransformer {
     private final SkyDataGeom geom_;
 
     /**
-     * Constructs an instance without rotation.
-     *
-     * @param  xyz0  normalised 3D coordinates
-     *               at the centre of tangent plane
-     */
-    public TangentPlaneTransformer( double[] xyz0 ) {
-        this( xyz0, SkyDataGeom.GENERIC );
-    }
-
-    /**
      * Constructs a transformer for the tangent plane centred at a given
      * normalised vector.
      *
