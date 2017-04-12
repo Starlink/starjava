@@ -970,16 +970,20 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                 DataLinkParams dlp = dataLinkFrame.getServerParams(server);
                 for (int s=0; s< dlp.getServiceCount(); s++) {
                     for (String key : dlp.getQueryParamsNames(s)) {
-                        String [] value = dlp.getQueryParamsValue(s, key);
-                        if (value != null && value.length > 0) {
-
+                        String [] values = dlp.getQueryParamsValue(s, key);
+                        if (values != null && values.length > 0) {
+                            String value=values[0];
+                            if (values.length==2 && (!values[0].isEmpty()||!values[1].isEmpty()) ) //if any of the values is not empty
+                                value+=" "+values[1];
                             try {//
                                 if (! key.equals("IDSource") && ! (key.equals("AccessURL"))) {
-                                    if (value.length==2) {
-                                        dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0]+" "+value[1], "UTF-8");
-                                    } else {
-                                        dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0], "UTF-8");
-                                    }                                     
+                                  //  if (values.length==2) {
+                                  //      dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0]+" "+value[1], "UTF-8");
+                                  //  } else {
+                                  //      dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0], "UTF-8");
+                                  //  } 
+                                    if (!value.isEmpty())
+                                        dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                 }
 
                             } catch (UnsupportedEncodingException e) {
