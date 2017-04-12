@@ -5,6 +5,8 @@
   <!ENTITY FIG.plot2-layer-xyerror 'plot2-layer-xyerror.png'>
   <!ENTITY FIG.plot2-layer-xyellipse 'plot2-layer-xyellipse.png'>
   <!ENTITY FIG.plot2-layer-skyellipse 'plot2-layer-skyellipse.png'>
+  <!ENTITY FIG.plot2-layer-xycorr 'plot2-layer-xycorr.png'>
+  <!ENTITY FIG.plot2-layer-skycorr 'plot2-layer-skycorr.png'>
   <!ENTITY FIG.plot2-layer-line 'plot2-layer-line.png'>
   <!ENTITY FIG.plot2-layer-linearfit 'plot2-layer-linearfit.png'>
   <!ENTITY FIG.plot2-layer-label 'plot2-layer-label.png'>
