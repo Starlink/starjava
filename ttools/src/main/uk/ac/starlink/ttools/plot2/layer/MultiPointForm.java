@@ -169,6 +169,7 @@ public class MultiPointForm implements ShapeForm {
      * central position.
      *
      * @param  name  form name
+     * @param  icon  icon for form
      * @param  extraCoordSet  3-element coord set containing major/minor
      *                        radius (order not significant) and
      *                        position angle in degrees
@@ -176,7 +177,7 @@ public class MultiPointForm implements ShapeForm {
      * @return  new vector form instance
      */
     public static MultiPointForm
-                  createEllipseForm( String name,
+                  createEllipseForm( String name, Icon icon,
                                      MultiPointCoordSet extraCoordSet,
                                      boolean canScale ) {
         String descrip = PlotUtil.concatLines( new String[] {
@@ -186,7 +187,7 @@ public class MultiPointForm implements ShapeForm {
             "an optional rotation angle.",
             "</p>",
         } );
-        return new MultiPointForm( name, ResourceIcon.FORM_ELLIPSE,
+        return new MultiPointForm( name, icon,
                                    descrip, extraCoordSet, canScale,
                                    StyleKeys.ELLIPSE_SHAPE );
     }

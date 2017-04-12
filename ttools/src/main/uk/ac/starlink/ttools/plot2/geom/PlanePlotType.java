@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -87,10 +88,11 @@ public class PlanePlotType implements PlotType {
                             .createAllAxesErrorCoordSet( axisNames_ ),
                              StyleKeys.ERROR_SHAPE_2D ),
             MultiPointForm
-           .createEllipseForm( "XYEllipse", new PlaneEllipseCoordSet(), true ),
+           .createEllipseForm( "XYEllipse", ResourceIcon.FORM_XYELLIPSE,
+                               new PlaneEllipseCoordSet(), true ),
             MultiPointForm
-           .createEllipseForm( "XYCorr", new PlaneCorrelationCoordSet(),
-                               false ),
+           .createEllipseForm( "XYCorr", ResourceIcon.FORM_ELLIPSE_CORR,
+                               new PlaneCorrelationCoordSet(), false ),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
         };

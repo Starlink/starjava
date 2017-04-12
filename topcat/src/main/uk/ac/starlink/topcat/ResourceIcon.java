@@ -705,7 +705,10 @@ public class ResourceIcon implements Icon {
         putMap( nameMap, "ADD_FORM_SIZE", toAddIcon( TTRI.FORM_SIZE ) );
         putMap( nameMap, "ADD_FORM_VECTOR", toAddIcon( TTRI.FORM_VECTOR ) );
         putMap( nameMap, "ADD_FORM_ERROR", toAddIcon( TTRI.FORM_ERROR ) );
-        putMap( nameMap, "ADD_FORM_ELLIPSE", toAddIcon( TTRI.FORM_ELLIPSE ) );
+        putMap( nameMap, "ADD_FORM_XYELLIPSE",
+                         toAddIcon( TTRI.FORM_XYELLIPSE ) );
+        putMap( nameMap, "ADD_FORM_SKYELLIPSE",
+                         toAddIcon( TTRI.FORM_SKYELLIPSE ) );
         putMap( nameMap, "ADD_PLOT_LINE", toAddIcon( TTRI.PLOT_LINE ) );
         putMap( nameMap, "ADD_FORM_LINEARFIT",
                          toAddIcon( TTRI.FORM_LINEARFIT ) );

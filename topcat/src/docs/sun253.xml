@@ -295,9 +295,9 @@
   <!ENTITY FORM.skyvector '&IMG.FORM_VECTOR;
                           <ref id="form-skyvector">SkyVector</ref>'>
   <!ENTITY FORM.error '&IMG.FORM_ERROR; <ref id="form-error">Error Bars</ref>'>
-  <!ENTITY FORM.xyellipse '&IMG.FORM_ELLIPSE;
+  <!ENTITY FORM.xyellipse '&IMG.FORM_XYELLIPSE;
                           <ref id="form-xyellipse">XYEllipse</ref>'>
-  <!ENTITY FORM.skyellipse '&IMG.FORM_ELLIPSE;
+  <!ENTITY FORM.skyellipse '&IMG.FORM_SKYELLIPSE;
                            <ref id="form-skyellipse">SkyEllipse</ref>'>
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
   <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
@@ -9002,7 +9002,7 @@ see the <ref id="form-xyellipse">XYEllipse</ref> form).
 <subsubsubsect id="form-xyellipse">
 <subhead><title>Ellipse Form</title></subhead>
 
-<p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
+<p>The <label>Ellipse</label> form (&IMG.FORM_XYELLIPSE;)
 draws an ellipse (or rectangle, triangle, or other similar figure) defined by 
 major and minor radii and an optional rotation angle.
 </p>
@@ -9062,7 +9062,7 @@ major and minor radii and an optional rotation angle.
 <subsubsubsect id="form-skyellipse">
 <subhead><title>SkyEllipse Form</title></subhead>
 
-<p>The <label>SkyEllipse</label> (&IMG.FORM_ELLIPSE;)
+<p>The <label>SkyEllipse</label> (&IMG.FORM_SKYELLIPSE;)
 draws an ellipse (or rectangle, triangle, or other similar figure)
 on the celestial sphere defined by
 major and minor radii and an optional rotation angle.
