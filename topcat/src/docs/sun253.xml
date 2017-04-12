@@ -168,6 +168,8 @@
   <!ENTITY FIG.form_error '&figs;form_error.png'>
   <!ENTITY FIG.form_xyellipse '&figs;form_xyellipse.png'>
   <!ENTITY FIG.form_skyellipse '&figs;form_skyellipse.png'>
+  <!ENTITY FIG.form_xycorr '&figs;form_xycorr.png'>
+  <!ENTITY FIG.form_skycorr '&figs;form_skycorr.png'>
   <!ENTITY FIG.form_line '&figs;form_line.png'>
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.png'>
   <!ENTITY FIG.form_quantile '&figs;form_quantile.png'>
@@ -238,6 +240,8 @@
   <!ENTITY FIG.plot2-layer-xyerror '&figs;plot2-layer-xyerror.png'>
   <!ENTITY FIG.plot2-layer-xyellipse '&figs;plot2-layer-xyellipse.png'>
   <!ENTITY FIG.plot2-layer-skyellipse '&figs;plot2-layer-skyellipse.png'>
+  <!ENTITY FIG.plot2-layer-xycorr '&figs;plot2-layer-xycorr.png'>
+  <!ENTITY FIG.plot2-layer-skycorr '&figs;plot2-layer-skycorr.png'>
   <!ENTITY FIG.plot2-layer-line '&figs;plot2-layer-line.png'>
   <!ENTITY FIG.plot2-layer-linearfit '&figs;plot2-layer-linearfit.png'>
   <!ENTITY FIG.plot2-layer-quantile '&figs;plot2-layer-quantile.png'>
@@ -299,6 +303,10 @@
                           <ref id="form-xyellipse">XYEllipse</ref>'>
   <!ENTITY FORM.skyellipse '&IMG.FORM_SKYELLIPSE;
                            <ref id="form-skyellipse">SkyEllipse</ref>'>
+  <!ENTITY FORM.xycorr '&IMG.FORM_ELLIPSE_CORR;
+                       <ref id="form-xycorr">XYCorr</ref>'>
+  <!ENTITY FORM.skycorr '&IMG.FORM_ELLIPSE_CORR;
+                        <ref id="form-skycorr">SkyCorr</ref>'>
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
   <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
                           <ref id="form-linearfit">Linear Fit</ref>'>
@@ -8957,7 +8965,8 @@ Cartesian plot.
 The shape of the error "bars" is quite configurable, including
 (for 2- and 3-d errors) ellipses, rectangles etc, aligned with the axes
 (for rotated ellipses and rectangles,
-see the <ref id="form-xyellipse">XYEllipse</ref> form).
+see the <ref id="form-xyellipse">XYEllipse</ref> and
+        <ref id="form-xycorr">XYCorr</ref> forms).
 </p>
 
 <figure>
@@ -9000,11 +9009,14 @@ see the <ref id="form-xyellipse">XYEllipse</ref> form).
 </subsubsubsect>
 
 <subsubsubsect id="form-xyellipse">
-<subhead><title>Ellipse Form</title></subhead>
+<subhead><title>XYEllipse Form</title></subhead>
 
-<p>The <label>Ellipse</label> form (&IMG.FORM_XYELLIPSE;)
-draws an ellipse (or rectangle, triangle, or other similar figure) defined by 
-major and minor radii and an optional rotation angle.
+<p>The <label>XYEllipse</label> form (&IMG.FORM_XYELLIPSE;)
+plots an ellipse (or rectangle, triangle, or other similar figure)
+defined by two principal radii and an optional angle of rotation,
+the so-called position angle.
+This angle, if specified, is in degrees and gives the angle
+counterclockwise from the horizontal axis to the first principal radius. 
 </p>
 
 <figure>
@@ -9013,7 +9025,7 @@ major and minor radii and an optional rotation angle.
 </figure>
 
 <figure>
-<caption><px>Ellipse form configuration panel</px></caption>
+<caption><px>XYEllipse form configuration panel</px></caption>
 <figureimage src="&FIG.form_xyellipse;"/>
 </figure>
 
@@ -9062,10 +9074,13 @@ major and minor radii and an optional rotation angle.
 <subsubsubsect id="form-skyellipse">
 <subhead><title>SkyEllipse Form</title></subhead>
 
-<p>The <label>SkyEllipse</label> (&IMG.FORM_SKYELLIPSE;)
-draws an ellipse (or rectangle, triangle, or other similar figure)
-on the celestial sphere defined by
-major and minor radii and an optional rotation angle.
+<p>The <label>SkyEllipse</label> (&IMG.FORM_SKYELLIPSE;) form
+plots an ellipse (or rectangle, triangle, or other similar figure)
+defined by two principal radii and an optional angle of rotation,
+the so-called position angle.
+This angle, if specified, is in degrees and gives the angle
+from the North pole towards the direction of increasing longitude
+on the longitude axis.
 </p>
 
 <figure>
@@ -9112,6 +9127,140 @@ major and minor radii and an optional rotation angle.
     If unselected, then the default position of the Scale slider corresponds
     to the actual values in degrees given by the submitted ellipse
     radii coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-xycorr">
+<subhead><title>XYCorr Form</title></subhead>
+
+<p>The <label>XYCorr</label> (&IMG.FORM_ELLIPSE_CORR;) form
+plots an error ellipse (or rectangle or other similar figure)
+defined by errors in the X and Y directions,
+and a correlation between the two errors.
+</p>
+
+<p>The supplied correlation is a dimensionless value in the range -1..+1
+and is equal to the covariance divided by the product
+of the X and Y errors. The covariance matrix is thus:
+<verbatim>
+   [  xerr*xerr         xerr*yerr*xycorr  ]
+   [  xerr*yerr*xycorr  yerr*yerr         ]
+</verbatim>
+</p>
+
+<p>This plot type is suitable for use with the
+<code>&lt;x&gt;_error</code> and
+<code>&lt;x&gt;_&lt;y&gt;_corr</code>
+columns in the <em>Gaia</em> source catalogue. 
+</p>
+
+<figure>
+<caption><px>Example XYCorr plot</px></caption>
+<figureimage src="&FIG.plot2-layer-xycorr;"/>
+</figure>
+
+<figure>
+<caption><px>XYCorr form configuration panel</px></caption>
+<figureimage src="&FIG.form_xycorr;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>X/Y Error</dt>
+<dd><p>The error along the horizontal and vertical directions,
+    as column names or expressions.
+    </p></dd>
+<dt>XY Correlation</dt>
+<dd><p>Correlation beteween the errors in the horizontal and vertical
+    directions.
+    This is a dimensionless quantity in the range -1..+1,
+    and is equivalent to the covariance divided by the product
+    of the X and Y error values themselves.
+    It corresponds to the <code>x_y_corr</code> values
+    supplied in the <em>Gaia</em> source catalogue. 
+    </p></dd>
+<dt>Ellipse</dt>
+<dd><p>Ellipse graphical representation, selected from a range of options
+    (includes also rectangles, crosses etc).
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-skycorr">
+<subhead><title>SkyCorr Form</title></subhead>
+
+<p>The <label>SkyCorr</label> (&IMG.FORM_ELLIPSE_CORR;) form
+plots an error ellipse (or rectangle or other similar figure)
+on the sky defined by errors in the longitude and latitude directions,
+and a correlation between the two errors.
+</p>
+
+<p>The error in longitude is considered to be premultiplied
+by the cosine of the latitude,
+i.e. both errors correspond to angular distances along a great circle. 
+</p>
+
+<p>The supplied correlation is a dimensionless value in the range -1..+1
+and is equal to the covariance divided by the product
+of the lon and lat errors.
+The covariance matrix is thus: 
+<verbatim>
+   [  lonerr*lonerr       lonerr*laterr*corr  ]
+   [  lonerr*laterr*corr  laterr*laterr       ]
+</verbatim>
+</p>
+
+<p>This plot type is suitable for use with the
+<code>ra_error</code>, <code>dec_error</code> and <code>ra_dec_corr</code>
+columns in the <em>Gaia</em> source catalogue.
+Note however that Gaia positional errors are generally quoted
+in milli-arseconds (mas),
+while this plotter requires lon/lat errors in degrees,
+so to plot true error ellipses
+it is necessary to divide the Gaia error values by 3.6e6.
+In most plots, Gaia position errors are much too tiny to see!
+</p>
+
+<figure>
+<caption><px>Example SkyCorr plot</px></caption>
+<figureimage src="&FIG.plot2-layer-skycorr;"/>
+</figure>
+
+<figure>
+<caption><px>SkyCorr form configuration panel</px></caption>
+<figureimage src="&FIG.form_skycorr;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Longitude error</dt>
+<dd><p>Error in longitude in degrees, multiplied by the cosine of the latitude.
+    </p></dd>
+<dt>Latitude error</dt>
+<dd><p>Error in latitude in degrees.
+    </p></dd>
+<dt>Lon-Lat correlation</dt>
+<dd><p>Correlation between the errors in longitude and latitude.
+    This is a dimensionless quantity in the range -1..+1,
+    and is equivalent to the covariance divided by the product
+    of the Longitude and Latitude error values themselves.
+    It corresponds to the <code>ra_dec_corr</code> value
+    supplied in the <em>Gaia</em> source catalogue. 
+    </p></dd>
+<dt>Ellipse</dt>
+<dd><p>Ellipse graphical representation, selected from a range of options
+    (includes also rectangles, crosses etc).
     </p></dd>
 </dl>
 </p>
@@ -11258,6 +11407,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
     <li>&FORM.xyellipse;</li>
+    <li>&FORM.xycorr;</li>
     <li>&FORM.line;</li>
     <li>&FORM.linearfit;</li>
     <li>&FORM.label;</li>
@@ -11555,6 +11705,7 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.sizexy;</li>
     <li>&FORM.skyvector;</li>
     <li>&FORM.skyellipse;</li>
+    <li>&FORM.skycorr;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     <li>&FORM.skydensity;</li>
@@ -24265,6 +24416,10 @@ introduced since the last version:
         the View, rather than the Data, sky system.</li>
     <li>New <ref id="LayerControl_skygrid">SkyGrid Layer Control</ref>
         can draw multiple sky system coordinate axis grids on sky plot.</li>
+    <li>New plot forms
+        <ref id="form-xycorr">XYCorr</ref> and
+        <ref id="form-skycorr">SkyCorr</ref> for error ellipses rotated
+        as specified by Gaia-style correlation values.</li>
     </ul>
     </p></dd>
 
