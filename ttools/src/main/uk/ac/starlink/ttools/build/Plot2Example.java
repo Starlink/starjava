@@ -41,6 +41,7 @@ import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.PictureImageIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
+import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -327,14 +328,23 @@ public class Plot2Example {
                 Pair pair = toPair( param );
                 String key = pair.key_;
                 String value = pair.value_;
-                if ( map.containsKey( key ) ) {
-                    throw new IllegalArgumentException( "Multiple values "
-                                                      + "for key " + key );
-                }
                 StarTable table = context.getTable( value );
                 final Object item;
                 if ( table != null ) {
                     item = table;
+                }
+                else if ( map.containsKey( key ) ) {
+                    if ( key.startsWith( "cmd" ) ||
+                         key.startsWith( "icmd" ) ) {
+                        item = ((String) map.get( key ))
+                             + new FilterParameter( "dummy" )
+                                  .getValueSeparator()
+                             + value;
+                    }
+                    else {
+                        throw new IllegalArgumentException( "Multiple values "
+                                                          + "for key " + key );
+                    }
                 }
                 else {
                     item = value;
