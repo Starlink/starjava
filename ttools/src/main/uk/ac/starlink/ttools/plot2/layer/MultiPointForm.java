@@ -165,34 +165,6 @@ public class MultiPointForm implements ShapeForm {
     }
 
     /**
-     * Returns a MultiPointForm instance for drawing ellipses around the
-     * central position.
-     *
-     * @param  name  form name
-     * @param  icon  icon for form
-     * @param  extraCoordSet  3-element coord set containing major/minor
-     *                        radius (order not significant) and
-     *                        position angle in degrees
-     * @param  canScale  whether to offer vector size scaling
-     * @return  new vector form instance
-     */
-    public static MultiPointForm
-                  createEllipseForm( String name, Icon icon,
-                                     MultiPointCoordSet extraCoordSet,
-                                     boolean canScale ) {
-        String descrip = PlotUtil.concatLines( new String[] {
-            "<p>Plots an ellipse (or rectangle, triangle,",
-            "or other similar figure)",
-            "defined by two principal radii and",
-            "an optional rotation angle.",
-            "</p>",
-        } );
-        return new MultiPointForm( name, icon,
-                                   descrip, extraCoordSet, canScale,
-                                   StyleKeys.ELLIPSE_SHAPE );
-    }
-
-    /**
      * Returns a MultiPointForm for drawing error bars.
      *
      * @param  name  form name

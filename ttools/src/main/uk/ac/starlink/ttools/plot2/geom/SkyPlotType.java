@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.plot2.geom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -65,12 +64,8 @@ public class SkyPlotType implements PlotType {
             MultiPointForm
                .createVectorForm( "SkyVector", new SkyVectorCoordSet( true ),
                                   true ),
-            MultiPointForm
-               .createEllipseForm( "SkyEllipse", ResourceIcon.FORM_SKYELLIPSE, 
-                                   new SkyEllipseCoordSet(), true ),
-            MultiPointForm
-               .createEllipseForm( "SkyCorr", ResourceIcon.FORM_ELLIPSE_CORR,
-                                   new SkyCorrelationCoordSet( true ), false ),
+            SkyEllipseCoordSet.createForm(),
+            SkyCorrelationCoordSet.createForm(),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
         };

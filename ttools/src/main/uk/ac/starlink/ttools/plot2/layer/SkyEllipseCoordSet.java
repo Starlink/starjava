@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -121,5 +124,29 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
             trans.displace( +bx, +by, xyzExtras[ 3 ] );
             return true;
         }
+    }
+
+    /**
+     * Creates a MultiPointForm that can plot ellipses on the sky,
+     * corresponding to this coordset.
+     *
+     * @return  new form
+     */ 
+    public static MultiPointForm createForm() {
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots an ellipse (or rectangle, triangle,",
+            "or other similar figure)",
+            "defined by two principal radii and",
+            "an optional angle of rotation,",
+            "the so-called position angle.",
+            "This angle, if specified, is in degrees and",
+            "gives the angle from the North pole towards the",
+            "direction of increasing longitude on the longitude axis.",
+            "</p>",
+        } );
+        boolean canScale = true;
+        return new MultiPointForm( "SkyEllipse", ResourceIcon.FORM_SKYELLIPSE,
+                                   descrip, new SkyEllipseCoordSet(),
+                                   canScale, StyleKeys.ELLIPSE_SHAPE );
     }
 }

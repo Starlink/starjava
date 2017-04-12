@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -123,5 +126,61 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
         trans.displace( -rbx, -rby, xyzExtras[ 2 ] );
         trans.displace( +rbx, +rby, xyzExtras[ 3 ] );
         return true;
+    }
+
+    /**
+     * Creates a MultiPointForm that can plot ellipses on the sky,
+     * corresponding to this coordset.
+     *
+     * @return  new form
+     */ 
+    public static MultiPointForm createForm() {
+        boolean preMultCosLat = true;
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots an error ellipse",
+            "(or rectangle or other similar figure)",
+            "on the sky",
+            "defined by errors in the longitude and latitude directions,",
+            "and a correlation between the two errors.",
+            "</p>",
+            "<p>The error in longitude",
+            ( preMultCosLat ? "is" : "is not" ),
+            "considered to be premultiplied by the cosine of the latitude"
+            + ( preMultCosLat ? ( ", i.e. both errors correspond to "
+                                + " angular distances"
+                                + " along a great circle." )
+                              : "." ),
+            "</p>",
+            "<p>The supplied correlation is a dimensionless value",
+            "in the range -1..+1",
+            "and is equal to the covariance divided by the product of the",
+            "lon and lat errors.",
+            "The covariance matrix is thus:",
+            "<verbatim>",
+            "    [  lonerr*lonerr       lonerr*laterr*corr  ]",
+            "    [  lonerr*laterr*corr  laterr*laterr       ]",
+            "</verbatim>",
+            "</p>",
+        } );
+        if ( preMultCosLat ) {
+            descrip += PlotUtil.concatLines( new String[] {
+                "<p>This plot type is suitable for use with the",
+                "<code>ra_error</code>, <code>dec_error</code> and",
+                "<code>ra_dec_corr</code> columns",
+                "in the <em>Gaia</em> source catalogue.",
+                "<strong>Note however</strong> that Gaia positional errors",
+                "are generally quoted in milli-arseconds (mas)",
+                "while this plotter requires lon/lat errors in degrees,",
+                "so to plot true error ellipses it is necessary to divide",
+                "the Gaia error values by 3.6e6.",
+                "In most plots, Gaia position errors are much too tiny to see!",
+                "</p>",
+            } );
+        }
+        boolean canScale = false;
+        return new MultiPointForm( "SkyCorr", ResourceIcon.FORM_ELLIPSE_CORR,
+                                   descrip,
+                                   new SkyCorrelationCoordSet( preMultCosLat ),
+                                   canScale, StyleKeys.ELLIPSE_SHAPE );
     }
 }

@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -181,5 +184,40 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
         ra[ 1 ] = rya;
         rb[ 0 ] = rxb;
         rb[ 1 ] = ryb;
+    }
+
+    /**
+     * Creates a MultiPointForm that can plot ellipses on the plane,
+     * corresponding to this coordset.
+     *
+     * @return  new form
+     */ 
+    public static MultiPointForm createForm() {
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots an error ellipse",
+            "(or rectangle or other similar figure)",
+            "defined by errors in the X and Y directions,",
+            "and a correlation between the two errors.",
+            "</p>",
+            "<p>The supplied correlation is a dimensionless value",
+            "in the range -1..+1",
+            "and is equal to the covariance divided by the product of the",
+            "X and Y errors.",
+            "The covariance matrix is thus:",
+            "<verbatim>",
+            "    [  xerr*xerr         xerr*yerr*xycorr  ]",
+            "    [  xerr*yerr*xycorr  yerr*yerr         ]",
+            "</verbatim>",
+            "</p>",
+            "<p>This plot type is suitable for use with the",
+            "<code>&lt;x&gt;_error</code> and",
+            "<code>&lt;x&gt;_&lt;y&gt;_corr</code> columns",
+            "in the <em>Gaia</em> source catalogue.",
+            "</p>",
+        } );
+        boolean canScale = false;
+        return new MultiPointForm( "XYCorr", ResourceIcon.FORM_ELLIPSE_CORR,
+                                   descrip, new PlaneCorrelationCoordSet(),
+                                   canScale, StyleKeys.ELLIPSE_SHAPE );
     }
 }
