@@ -576,8 +576,9 @@ public class CachedDataStoreFactory implements DataStoreFactory {
     private static class CachedTupleSequence implements TupleSequence {
 
         private final int ncol_;
-        private final CachedSequence maskSeq_;
-        private final CachedSequence[] colSeqs_;
+        private final long nrow_;
+        private final CachedReader maskRdr_;
+        private final CachedReader[] colRdrs_;
         private long irow_ = -1;
 
         /**
@@ -588,20 +589,17 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          */
         CachedTupleSequence( CachedColumn mask, CachedColumn[] cols ) {
             ncol_ = cols.length;
-            maskSeq_ = mask.createSequence();
-            colSeqs_ = new CachedSequence[ ncol_ ];
+            nrow_ = mask.getRowCount();
+            maskRdr_ = mask.createReader();
+            colRdrs_ = new CachedReader[ ncol_ ];
             for ( int ic = 0; ic < ncol_; ic++ ) {
-                colSeqs_[ ic ] = cols[ ic ].createSequence();
+                colRdrs_[ ic ] = cols[ ic ].createReader();
             }
         }
 
         public boolean next() {
-            while ( maskSeq_.next() ) {
-                irow_++;
-                for ( int ic = 0; ic < ncol_; ic++ ) {
-                    colSeqs_[ ic ].next();
-                }
-                if ( maskSeq_.getBooleanValue() ) {
+            while ( ++irow_ < nrow_ ) {
+                if ( maskRdr_.getBooleanValue( irow_ ) ) {
                     return true;
                 }
             }
@@ -613,19 +611,19 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         }
 
         public Object getObjectValue( int icol ) {
-            return colSeqs_[ icol ].getObjectValue();
+            return colRdrs_[ icol ].getObjectValue( irow_ );
         }
 
         public double getDoubleValue( int icol ) {
-            return colSeqs_[ icol ].getDoubleValue();
+            return colRdrs_[ icol ].getDoubleValue( irow_ );
         }
 
         public int getIntValue( int icol ) {
-            return colSeqs_[ icol ].getIntValue();
+            return colRdrs_[ icol ].getIntValue( irow_ );
         }
 
         public boolean getBooleanValue( int icol ) {
-            return colSeqs_[ icol ].getBooleanValue();
+            return colRdrs_[ icol ].getBooleanValue( irow_ );
         }
     }
 }

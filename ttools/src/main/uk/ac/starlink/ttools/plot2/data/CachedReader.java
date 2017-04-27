@@ -1,9 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 /**
- * Iterator over stored values.
- * The pointer is advanced to the next value in the sequence by calling
- * {@link #next}.
+ * Accessor for stored values.
  * Although several data type accessor methods are provided,
  * in general for a given instance of this class only one of these will
  * give a non-error return (the same one for all rows); it is therefore
@@ -15,49 +13,48 @@ package uk.ac.starlink.ttools.plot2.data;
  * This non-type-safe arrangement is used so that primitive objects can
  * be accessed from this interface.
  *
+ * <p>Attempting to access a value with an index out of range for this
+ * reader will also result in undefined behaviour.
+ *
  * @author   Mark Taylor
- * @since    4 Feb 2013
+ * @since    25 Apr 2017
  */
-public interface CachedSequence {
+public interface CachedReader {
 
     /**
-     * Advance to the next item in the sequence (the next row).
-     * Must be called before every access, including the first one.
-     *
-     * @return   true iff another value is available from this sequence
-     */
-    boolean next();
-
-    /**
-     * Retrieve the current value of this sequence as an object.
+     * Retrieve the value at a given index as an object.
      * Note it is permitted for the same instance to be returned each time,
      * if the object is mutable it may have different values each time
      * (for instance an array with different contents for each row).
      * Therefore the state or contents of the returned object must
      * not be relied on to stay the same between calls to this method.
      *
+     * @param   ix  value index
      * @return  value
      */
-    Object getObjectValue();
+    Object getObjectValue( long ix );
 
     /**
      * Retrieve the current value of this sequence as a floating point number.
      *
+     * @param   ix  value index
      * @return   value
      */
-    double getDoubleValue();
+    double getDoubleValue( long ix );
 
     /**
      * Retrieve the current value of this sequence as an integer.
      *
+     * @param   ix  value index
      * @return   value
      */
-    int getIntValue();
+    int getIntValue( long ix );
 
     /**
      * Retrieve the current value of this sequence as a boolean value.
      *
+     * @param   ix  value index
      * @return   value
      */
-    boolean getBooleanValue();
+    boolean getBooleanValue( long ix );
 }

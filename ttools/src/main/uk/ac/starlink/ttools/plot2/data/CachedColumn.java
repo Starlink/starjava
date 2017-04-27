@@ -7,7 +7,7 @@ package uk.ac.starlink.ttools.plot2.data;
  * <ul>
  * <li>Call {@link #add} zero or more times
  * <li>Call {@link #endAdd}
- * <li>Call {@link #createSequence}
+ * <li>Call {@link #createReader} zero or more times
  * </ul>
  *
  * @author   Mark Taylor
@@ -25,15 +25,22 @@ public interface CachedColumn {
     void add( Object value );
 
     /**
-     * Indicates that no more calls to {@link #endAdd} will be made
+     * Indicates that no more calls to {@link #add} will be made
      */
     void endAdd();
 
     /**
-     * Returns an object which is capable of supplying in order all the
-     * values that were added to this object.
+     * Returns the number of values added so far.
+     *
+     * @return  value count
+     */
+    long getRowCount();
+
+    /**
+     * Returns an object which is capable of accessing the values that were
+     * added to this object.
      *
      * @return   cached data sequence
      */
-    CachedSequence createSequence(); 
+    CachedReader createReader(); 
 }
