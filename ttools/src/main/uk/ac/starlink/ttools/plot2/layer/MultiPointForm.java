@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -254,11 +255,11 @@ public class MultiPointForm implements ShapeForm {
             double scale = scale_ * getBaseScale( surface, auxRanges );
             final Offsetter offsetter = createOffsetter( surface, scale );
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    if ( geom.readDataPos( tseq, 0, dpos0 ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos0 ) &&
                          surface.dataToGraphics( dpos0, true, gpos0 ) &&
-                         extraCoordSet_.readPoints( tseq, icExtra, geom,
+                         extraCoordSet_.readPoints( tuple, icExtra, geom,
                                                     dpos0, dposExtras ) ) {
                         int[] xoffs = new int[ nextra ];
                         int[] yoffs = new int[ nextra ];
@@ -287,11 +288,11 @@ public class MultiPointForm implements ShapeForm {
             double scale = scale_ * getBaseScale( surface, auxRanges );
             final Offsetter offsetter = createOffsetter( surface, scale );
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    if ( geom.readDataPos( tseq, 0, dpos0 ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos0 ) &&
                          surface.dataToGraphicZ( dpos0, true, gpos0, zloc ) &&
-                         extraCoordSet_.readPoints( tseq, icExtra, geom,
+                         extraCoordSet_.readPoints( tuple, icExtra, geom,
                                                     dpos0, dposExtras ) ) {
                         double dz0 = zloc[ 0 ];
                         int[] xoffs = new int[ nextra ];

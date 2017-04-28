@@ -48,6 +48,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
@@ -1191,8 +1192,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 lastScale_ = Float.NaN;
             }
 
-            public Color readColor( TupleSequence tseq ) {
-                double auxVal = SHADE_COORD.readDoubleCoord( tseq, icShade_ );
+            public Color readColor( Tuple tuple ) {
+                double auxVal = SHADE_COORD.readDoubleCoord( tuple, icShade_ );
                 float scaleVal = (float) scaler_.scaleValue( auxVal );
 
                 /* If null input return special null output value. */
@@ -1971,13 +1972,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     private interface ColorKit {
 
         /**
-         * Acquires a colour appropriate for the current element of
-         * a given tuple sequence.
+         * Acquires a colour appropriate for a given tuple.
          *
-         * @param  tseq  tuple sequence positioned at the row of interest
+         * @param  tuple  tuple
          * @return  plotting colour, or null to omit point
          */
-        Color readColor( TupleSequence tseq );
+        Color readColor( Tuple tuple );
     }
 
     /**

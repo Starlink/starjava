@@ -19,7 +19,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.Coord;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
@@ -193,15 +193,15 @@ public class PairLinkForm implements ShapeForm {
             final int npc = geom.getPosCoords().length;
             final Rectangle bounds = surface.getPlotBounds();
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
 
                     /* Paint the line if any part of it falls within the
                      * plot bounds. */
-                    if ( geom.readDataPos( tseq, 0, dpos1 ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos1 ) &&
                          surface.dataToGraphics( dpos1, false, gp1 ) &&
                          PlotUtil.isPointFinite( gp1 ) &&
-                         geom.readDataPos( tseq, npc, dpos2 ) &&
+                         geom.readDataPos( tuple, npc, dpos2 ) &&
                          surface.dataToGraphics( dpos2, false, gp2 ) &&
                          PlotUtil.isPointFinite( gp2 ) ) {
                         PlotUtil.quantisePoint( gp1, gp1i );
@@ -232,7 +232,7 @@ public class PairLinkForm implements ShapeForm {
             final double[] dz2 = new double[ 1 ];
             final int npc = geom.getPosCoords().length;
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
 
                     /* Paint the line if either end falls within the plot
@@ -243,8 +243,8 @@ public class PairLinkForm implements ShapeForm {
                      * It's not really the right thing to do, but it's
                      * not too bad.  Additional work would be required
                      * as well to truncate it at the cube face. */
-                    if ( geom.readDataPos( tseq, 0, dpos1 ) &&
-                         geom.readDataPos( tseq, npc, dpos2 ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos1 ) &&
+                         geom.readDataPos( tuple, npc, dpos2 ) &&
                          ( surface.inRange( dpos1 ) ||
                            surface.inRange( dpos2 ) ) &&
                          surface.dataToGraphicZ( dpos1, false, gp1, dz1 ) &&

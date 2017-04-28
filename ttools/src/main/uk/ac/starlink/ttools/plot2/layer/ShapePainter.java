@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 
 /**
@@ -21,13 +21,9 @@ public interface ShapePainter {
      * Otherwise, it should use the defaults for the graphics context
      * on which it's painting.
      *
-     * <p>Note, iteration over the supplied tuple sequence is done
-     * outside of this method, this method should only examine the
-     * values as the current position, not call its <code>next</code> method.
-     *
-     * @param  tseq  tuple sequence positioned at the row of interest
+     * @param  tuple  tuple
      * @param  color  colour, or null for default
      * @param  paper  graphics destination
      */
-    void paintPoint( TupleSequence tseq, Color color, Paper paper );
+    void paintPoint( Tuple tuple, Color color, Paper paper );
 }

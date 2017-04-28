@@ -31,24 +31,23 @@ public abstract class FloatingArrayCoord extends SingleCoord {
     }
 
     /**
-     * Reads an array value from an appropriate column in the current row
-     * of a given TupleSequence.
+     * Reads an array value from an appropriate column in a given tuple.
      *
-     * @param  tseq  sequence positioned at a row
-     * @param  icol  index of column in sequence corresponding to this Coord
-     * @return  value of floating array colun at the current sequence row
+     * @param  tuple  tuple
+     * @param  icol  index of field in tuple corresponding to this Coord
+     * @return  value of floating array field
      */
-    public abstract double[] readArrayCoord( TupleSequence tseq, int icol );
+    public abstract double[] readArrayCoord( Tuple tuple, int icol );
 
     /**
-     * Returns the length of an array value at an appropriate column in the
-     * current row of a given TupleSequence.
+     * Returns the length of an array value at an appropriate column
+     * in a given Tuple.
      *
-     * @param  tseq  sequence positioned at a row
-     * @param  icol  index of column in sequence corresponding to this Coord
+     * @param  tuple  tuple
+     * @param  icol  index of column in tuple corresponding to this Coord
      * @return   array length
      */
-    public abstract int getArrayCoordLength( TupleSequence tseq, int icol );
+    public abstract int getArrayCoordLength( Tuple tuple, int icol );
 
     /**
      * Returns a list of the classes which can be used as single user
@@ -133,12 +132,12 @@ public abstract class FloatingArrayCoord extends SingleCoord {
                     return da;
                 }
 
-                public int getArrayCoordLength( TupleSequence tseq, int icol ) {
-                    return ((double[]) tseq.getObjectValue( icol )).length;
+                public int getArrayCoordLength( Tuple tuple, int icol ) {
+                    return ((double[]) tuple.getObjectValue( icol )).length;
                 }
  
-                public double[] readArrayCoord( TupleSequence tseq, int icol ) {
-                    double[] dval = (double[]) tseq.getObjectValue( icol );
+                public double[] readArrayCoord( Tuple tuple, int icol ) {
+                    double[] dval = (double[]) tuple.getObjectValue( icol );
                     return dval;
                 }
             };
@@ -200,12 +199,12 @@ public abstract class FloatingArrayCoord extends SingleCoord {
                     return fa;
                 }
 
-                public int getArrayCoordLength( TupleSequence tseq, int icol ) {
-                    return ((float[]) tseq.getObjectValue( icol )).length;
+                public int getArrayCoordLength( Tuple tuple, int icol ) {
+                    return ((float[]) tuple.getObjectValue( icol )).length;
                 }
 
-                public double[] readArrayCoord( TupleSequence tseq, int icol ) {
-                    float[] fval = (float[]) tseq.getObjectValue( icol );
+                public double[] readArrayCoord( Tuple tuple, int icol ) {
+                    float[] fval = (float[]) tuple.getObjectValue( icol );
                     int n = fval.length;
                     double[] dval = new double[ n ];
                     for ( int i = 0; i < n; i++ ) {

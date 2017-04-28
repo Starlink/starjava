@@ -4,7 +4,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * MultiPointCoordSet for vectors in Cartesian data coordinates.
@@ -48,12 +48,12 @@ public class CartesianVectorCoordSet implements MultiPointCoordSet {
         return 1;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
                                double[] xy0, double[][] xyExtras ) {
         double[] xy1 = xyExtras[ 0 ];
         for ( int idim = 0; idim < ndim_; idim++ ) {
             double delta = componentCoords_[ idim ]
-                          .readDoubleCoord( tseq, icol + idim );
+                          .readDoubleCoord( tuple, icol + idim );
             if ( Double.isNaN( delta ) ) {
                 return false;
             }

@@ -28,7 +28,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
@@ -411,9 +411,9 @@ public abstract class MarkForm implements ShapeForm {
             final double[] dpos = new double[ surface.getDataDimCount() ];
             final Point2D.Double gp = new Point2D.Double();
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    if ( geom.readDataPos( tseq, 0, dpos ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos ) &&
                          surface.dataToGraphics( dpos, true, gp ) ) {
                         paperType.placeGlyph( paper, gp.x, gp.y,
                                               glyph_, color );
@@ -430,9 +430,9 @@ public abstract class MarkForm implements ShapeForm {
             final Point2D.Double gp = new Point2D.Double();
             final double[] dz = new double[ 1 ];
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    if ( geom.readDataPos( tseq, 0, dpos ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos ) &&
                          surface.dataToGraphicZ( dpos, true, gp, dz ) ) {
                         paperType.placeGlyph( paper, gp.x, gp.y, dz[ 0 ],
                                               glyph_, color );
@@ -490,10 +490,10 @@ public abstract class MarkForm implements ShapeForm {
             final Point2D.Double gp = new Point2D.Double();
             final int npc = geom.getPosCoords().length;
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
                     for ( int ip = 0; ip < npos_; ip++ ) {
-                        if ( geom.readDataPos( tseq, ip * npc, dpos ) &&
+                        if ( geom.readDataPos( tuple, ip * npc, dpos ) &&
                              surface.dataToGraphics( dpos, true, gp ) ) {
                             paperType.placeGlyph( paper, gp.x, gp.y, glyph_,
                                                   color );
@@ -512,10 +512,10 @@ public abstract class MarkForm implements ShapeForm {
             final double[] dz = new double[ 1 ];
             final int npc = geom.getPosCoords().length;
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
                     for ( int ip = 0; ip < npos_; ip++ ) {
-                        if ( geom.readDataPos( tseq, ip * npc, dpos ) &&
+                        if ( geom.readDataPos( tuple, ip * npc, dpos ) &&
                              surface.dataToGraphicZ( dpos, true, gp, dz ) ) {
                             paperType.placeGlyph( paper, gp.x, gp.y, dz[ 0 ],
                                                   glyph_, color );

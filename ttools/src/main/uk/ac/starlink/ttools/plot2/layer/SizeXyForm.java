@@ -21,7 +21,7 @@ import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
@@ -271,14 +271,14 @@ public class SizeXyForm implements ShapeForm {
             final short xmax = strunc( bounds.width * 2 );
             final short ymax = strunc( bounds.height * 2 );
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    if ( geom.readDataPos( tseq, 0, dpos ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos ) &&
                          surface.dataToGraphics( dpos, true, gpos ) ) {
                         double xsize =
-                            XSIZE_COORD.readDoubleCoord( tseq, icxSize );
+                            XSIZE_COORD.readDoubleCoord( tuple, icxSize );
                         double ysize =
-                            YSIZE_COORD.readDoubleCoord( tseq, icySize );
+                            YSIZE_COORD.readDoubleCoord( tuple, icySize );
                         if ( PlotUtil.isFinite( xsize ) &&
                              PlotUtil.isFinite( ysize ) ) {
                             short ixsize = sround( xsize * xscale, xmax );
@@ -309,14 +309,14 @@ public class SizeXyForm implements ShapeForm {
             final short xmax = strunc( bounds.width * 2 );
             final short ymax = strunc( bounds.height * 2 );
             return new ShapePainter() {
-                public void paintPoint( TupleSequence tseq, Color color,
+                public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    if ( geom.readDataPos( tseq, 0, dpos ) &&
+                    if ( geom.readDataPos( tuple, 0, dpos ) &&
                          surface.dataToGraphicZ( dpos, true, gpos, zloc ) ) {
                         double xsize =
-                            XSIZE_COORD.readDoubleCoord( tseq, icxSize );
+                            XSIZE_COORD.readDoubleCoord( tuple, icxSize );
                         double ysize =
-                            YSIZE_COORD.readDoubleCoord( tseq, icySize );
+                            YSIZE_COORD.readDoubleCoord( tuple, icySize );
                         if ( PlotUtil.isFinite( xsize ) &&
                              PlotUtil.isFinite( ysize ) ) {
                             double dz = zloc[ 0 ];

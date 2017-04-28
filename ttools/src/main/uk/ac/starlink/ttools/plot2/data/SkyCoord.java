@@ -52,16 +52,15 @@ public abstract class SkyCoord implements Coord {
 
     /**
      * Reads a sky vector value from an appropriate column in the current row
-     * of a given TupleSequence.
+     * of a given Tuple.
      *
-     * @param   tseq  sequence positioned at a row
-     * @param  icol   index of column in sequence corresponding to this Coord
+     * @param   tuple  tuple
+     * @param  icol   index of field in tuple corresponding to this Coord
      * @param  v3   3-element vector into which the (x,y,z) sky position
      *              will be written
      * @return   true iff a valid position has been successfully read
      */
-    public abstract boolean readSkyCoord( TupleSequence tseq, int icol,
-                                          double[] v3 );
+    public abstract boolean readSkyCoord( Tuple tuple, int icol, double[] v3 );
 
     /**
      * Factory method to create an instance of this class.
@@ -130,9 +129,8 @@ public abstract class SkyCoord implements Coord {
             return variant_.inputToDouble3( values );
         }
 
-        public boolean readSkyCoord( TupleSequence tseq, int icol,
-                                     double[] v3 ) {
-            double[] dval = (double[]) tseq.getObjectValue( icol );
+        public boolean readSkyCoord( Tuple tuple, int icol, double[] v3 ) {
+            double[] dval = (double[]) tuple.getObjectValue( icol );
             if ( Double.isNaN( dval[ 0 ] ) ) {
                 return false;
             }
@@ -173,9 +171,8 @@ public abstract class SkyCoord implements Coord {
             };
         }
 
-        public boolean readSkyCoord( TupleSequence tseq, int icol,
-                                     double[] v3 ) {
-            float[] fval = (float[]) tseq.getObjectValue( icol );
+        public boolean readSkyCoord( Tuple tuple, int icol, double[] v3 ) {
+            float[] fval = (float[]) tuple.getObjectValue( icol );
             if ( Float.isNaN( fval[ 0 ] ) ) {
                 return false;
             }
@@ -228,9 +225,8 @@ public abstract class SkyCoord implements Coord {
             }
         }
 
-        public boolean readSkyCoord( TupleSequence tseq, int icol,
-                                     double[] v3 ) {
-            int[] ival = (int[]) tseq.getObjectValue( icol );
+        public boolean readSkyCoord( Tuple tuple, int icol, double[] v3 ) {
+            int[] ival = (int[]) tuple.getObjectValue( icol );
             int ix = ival[ 0 ];
             int iy = ival[ 1 ];
             int iz = ival[ 2 ];

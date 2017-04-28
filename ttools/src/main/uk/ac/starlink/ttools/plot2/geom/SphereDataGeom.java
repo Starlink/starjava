@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * Defines positional data coordinates used by an isotropic spherical
@@ -46,7 +46,7 @@ public class SphereDataGeom implements DataGeom {
         return new Coord[] { SPHERE_COORD };
     }
 
-    public boolean readDataPos( TupleSequence tseq, int ic, double[] dpos ) {
-        return SPHERE_COORD.readSkyCoord( tseq, ic, dpos );
+    public boolean readDataPos( Tuple tuple, int ic, double[] dpos ) {
+        return SPHERE_COORD.readSkyCoord( tuple, ic, dpos );
     }
 }

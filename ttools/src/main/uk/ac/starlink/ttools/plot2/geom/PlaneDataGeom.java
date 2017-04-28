@@ -4,7 +4,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * Defines positional data coordinates used by a 2-D Cartesian plot.
@@ -56,9 +56,9 @@ public class PlaneDataGeom implements DataGeom {
         return new Coord[] { X_COORD, Y_COORD };
     }
 
-    public boolean readDataPos( TupleSequence tseq, int ic, double[] dpos ) {
-        double x = X_COORD.readDoubleCoord( tseq, ic++ );
-        double y = Y_COORD.readDoubleCoord( tseq, ic++ );
+    public boolean readDataPos( Tuple tuple, int ic, double[] dpos ) {
+        double x = X_COORD.readDoubleCoord( tuple, ic++ );
+        double y = Y_COORD.readDoubleCoord( tuple, ic++ );
         if ( Double.isNaN( x ) || Double.isNaN( y ) ) {
             return false;
         }

@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * Defines positional data coordinates used by a sky plot.
@@ -49,8 +49,8 @@ public abstract class SkyDataGeom implements DataGeom {
         return new Coord[] { SKY_COORD };
     }
 
-    public boolean readDataPos( TupleSequence tseq, int ic, double[] dpos ) {
-        return SKY_COORD.readSkyCoord( tseq, ic, dpos );
+    public boolean readDataPos( Tuple tuple, int ic, double[] dpos ) {
+        return SKY_COORD.readSkyCoord( tuple, ic, dpos );
     }
 
     /**
@@ -153,9 +153,8 @@ public abstract class SkyDataGeom implements DataGeom {
             inverseRotation_ = rotation.invert();
         }
 
-        public boolean readDataPos( TupleSequence tseq, int ic,
-                                    double[] dpos ) {
-            if ( super.readDataPos( tseq, ic, dpos ) ) {
+        public boolean readDataPos( Tuple tuple, int ic, double[] dpos ) {
+            if ( super.readDataPos( tuple, ic, dpos ) ) {
                 rotation_.rotate( dpos );
                 return true;
             }

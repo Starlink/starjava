@@ -62,15 +62,15 @@ public class FloatingCoord extends SingleCoord {
     }
 
     /**
-     * Reads a floating point value from an appropriate column
-     * in the current row of a given TupleSequence.
+     * Reads a floating point value from an appropriate field
+     * in a given Tuple.
      *
-     * @param  tseq  sequence positioned at a row
-     * @param  icol  index of column in sequence corresponding to this Coord
-     * @return  value of floating point column at the current sequence row
+     * @param  tuple  tuple
+     * @param  icol  index of column in tuple corresponding to this Coord
+     * @return  value of floating point field
      */
-    public double readDoubleCoord( TupleSequence tseq, int icol ) {
-        return tseq.getDoubleValue( icol );
+    public double readDoubleCoord( Tuple tuple, int icol ) {
+        return tuple.getDoubleValue( icol );
     }
 
     /**

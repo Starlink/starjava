@@ -26,15 +26,14 @@ public class StringCoord extends SingleCoord {
     }
 
     /**
-     * Reads a String value from an appropriate column in the current row
-     * of a given TupleSequence.
+     * Reads a String value from an appropriate field of a given Tuple.
      *
-     * @param  tseq  sequence positioned at a row
-     * @param  icol  index of column in sequence corresponding to this Coord
-     * @return  value of string column at the current sequence row
+     * @param  tuple  tuple
+     * @param  icol  index of field in tuple corresponding to this Coord
+     * @return  value of string field
      */
-    public String readStringCoord( TupleSequence tseq, int icol ) {
-        Object o = tseq.getObjectValue( icol );
+    public String readStringCoord( Tuple tuple, int icol ) {
+        Object o = tuple.getObjectValue( icol );
         return o == null ? null : o.toString();
     }
 }

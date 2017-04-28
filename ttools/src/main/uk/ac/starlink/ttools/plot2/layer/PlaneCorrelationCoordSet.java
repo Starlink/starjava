@@ -7,7 +7,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * MultiPointCoordSet for 2-d ellipses defined by coordinate errors
@@ -67,17 +67,17 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
                                double[] xy0, double[][] xyExtras ) {
 
         /* Read error and correlation values from data. */
-        double xerr = XERR_COORD.readDoubleCoord( tseq, icol + 0 );
-        double yerr = YERR_COORD.readDoubleCoord( tseq, icol + 1 );
+        double xerr = XERR_COORD.readDoubleCoord( tuple, icol + 0 );
+        double yerr = YERR_COORD.readDoubleCoord( tuple, icol + 1 );
         if ( Double.isNaN( xerr ) || Double.isNaN( yerr ) ||
              ( xerr == 0 && yerr == 0 ) ) {
             return false;
         }
-        double xycorr = XYCORR_COORD.readDoubleCoord( tseq, icol + 2 );
+        double xycorr = XYCORR_COORD.readDoubleCoord( tuple, icol + 2 );
         if ( Double.isNaN( xycorr ) ) {
             return false;
         }

@@ -7,7 +7,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 
 /**
@@ -82,19 +82,19 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
                                double[] xyz0, double[][] xyzExtras ) {
 
         /* Read error and correlation values from data. */
         double aerrRaw =
-            Math.toRadians( aerrCoord_.readDoubleCoord( tseq, icol + 0 ) );
+            Math.toRadians( aerrCoord_.readDoubleCoord( tuple, icol + 0 ) );
         double derr =
-            Math.toRadians( derrCoord_.readDoubleCoord( tseq, icol + 1 ) );
+            Math.toRadians( derrCoord_.readDoubleCoord( tuple, icol + 1 ) );
         if ( Double.isNaN( aerrRaw ) || Double.isNaN( derr ) ||
              ( aerrRaw == 0 && derr == 0 ) ) {
             return false;
         }
-        double corr = corrCoord_.readDoubleCoord( tseq, icol + 2 );
+        double corr = corrCoord_.readDoubleCoord( tuple, icol + 2 );
         if ( Double.isNaN( corr ) ) {
             return false;
         }

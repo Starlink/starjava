@@ -7,7 +7,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 
 /**
@@ -70,14 +70,14 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
                                double[] xyz0, double[][] xyzExtras ) {
         double ar =
-            Math.toRadians( AR_COORD.readDoubleCoord( tseq, icol ) );
+            Math.toRadians( AR_COORD.readDoubleCoord( tuple, icol ) );
         double br =
-            Math.toRadians( BR_COORD.readDoubleCoord( tseq, icol + 1 ) );
+            Math.toRadians( BR_COORD.readDoubleCoord( tuple, icol + 1 ) );
         double posang =
-            Math.toRadians( POSANG_COORD.readDoubleCoord( tseq, icol + 2 ) );
+            Math.toRadians( POSANG_COORD.readDoubleCoord( tuple, icol + 2 ) );
         boolean aNan = Double.isNaN( ar );
         boolean bNan = Double.isNaN( br );
         if ( aNan && bNan ) {

@@ -1,11 +1,10 @@
 package uk.ac.starlink.ttools.plot2;
 
 import uk.ac.starlink.ttools.plot2.data.Coord;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
- * Translates the coordinates found in a TupleSequence to data space
- * coordinates.
+ * Translates the coordinates found in a Tuple to data space coordinates.
  * It also contains metadata about the coordinates to assist
  * in generating a UI to acquire them.
  *
@@ -45,10 +44,9 @@ public interface DataGeom {
     boolean hasPosition();
 
     /**
-     * Determines the positional coordinates in data space
-     * for the current row of a supplied tuple sequence.
+     * Determines the positional coordinates in data space for a supplied tuple.
      *
-     * <p>A parameter supplies the index of the column in the tuple
+     * <p>A parameter supplies the index of the field in the tuple
      * at which the positional coordinate(s) can be found.
      * Each position is represented by {@link #getPosCoords} columns of
      * the tuple.
@@ -58,17 +56,16 @@ public interface DataGeom {
      * icol=N*getPosCoords().
      *
      * <p>An array of (at least) {@link #getDataDimCount} elements is
-     * supplied, and on success the data space coordinate values of the
-     * row of interest is written into it.
+     * supplied, and on success the data space coordinate values
+     * are written into it.
      *
-     * @param   tseq   coordinate row sequence,
-     *                 positioned at the row of interest
-     * @param   icol   column index in <code>tseq</code> at which the
+     * @param   tuple  coordinate tuple
+     * @param   icol   column index in <code>tuple</code> at which the
      *                 positional information starts
      * @param   dpos   array into which data space coordinates are written
      * @return  true  iff conversion was successful
      */
-    boolean readDataPos( TupleSequence tseq, int icol, double[] dpos );
+    boolean readDataPos( Tuple tuple, int icol, double[] dpos );
 
     /**
      * Returns a label for this DataGeom.

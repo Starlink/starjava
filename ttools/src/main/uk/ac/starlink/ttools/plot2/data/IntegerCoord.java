@@ -32,15 +32,15 @@ public class IntegerCoord extends SingleCoord {
     }
 
     /**
-     * Reads an integer value from an appropriate column
-     * in the current row of a given TupleSequence.
+     * Reads an integer value from an appropriate field
+     * in a given Tuple.
      *
-     * @param  tseq  sequence positioned at a row
-     * @param  icol  index of column in sequence corresponding to this Coord
-     * @return  value of integer column at the current sequence row
+     * @param  tuple  tuple
+     * @param  icol  index of field in tuple corresponding to this Coord
+     * @return  value of integer field
      */
-    public int readIntCoord( TupleSequence tseq, int icol ) {
-        return tseq.getIntValue( icol );
+    public int readIntCoord( Tuple tuple, int icol ) {
+        return tuple.getIntValue( icol );
     }
 
     /**

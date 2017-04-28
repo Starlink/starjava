@@ -6,7 +6,7 @@ import java.util.List;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * DataGeom implementation that reads positions corresponding to some,
@@ -73,10 +73,10 @@ public class SliceDataGeom implements DataGeom {
         return posCoords_;
     }
 
-    public boolean readDataPos( TupleSequence tseq, int ic, double[] dpos ) {
+    public boolean readDataPos( Tuple tuple, int ic, double[] dpos ) {
         for ( int i = 0; i < dataDimCount_; i++ ) {
             if ( sliceFlags_[ i ] ) {
-                double d = sliceCoords_[ i ].readDoubleCoord( tseq, ic++ );
+                double d = sliceCoords_[ i ].readDoubleCoord( tuple, ic++ );
                 if ( Double.isNaN( d ) ) {
                     return false;
                 }

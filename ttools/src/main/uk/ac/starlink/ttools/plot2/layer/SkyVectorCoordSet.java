@@ -4,7 +4,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 
 /**
@@ -63,12 +63,12 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
         return 1;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
                                double[] xyz0, double[][] xyzExtras ) {
         double dLon =
-            Math.toRadians( dlonCoord_.readDoubleCoord( tseq, icol ) );
+            Math.toRadians( dlonCoord_.readDoubleCoord( tuple, icol ) );
         double dLat =
-            Math.toRadians( dlatCoord_.readDoubleCoord( tseq, icol + 1 ) );
+            Math.toRadians( dlatCoord_.readDoubleCoord( tuple, icol + 1 ) );
         if ( Double.isNaN( dLon ) || Double.isNaN( dLat ) ) {
             return false;
         }

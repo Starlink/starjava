@@ -4,7 +4,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * MultiPointCoordSet for bidirectional errors in Cartesian data coordinates.
@@ -89,7 +89,7 @@ public class CartesianErrorCoordSet implements MultiPointCoordSet {
         return nErrDim_ * 2;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
                                double[] dpos0, double[][] dposExtras ) {
         boolean hasErrors = false;
         for ( int jdim = 0; jdim < nErrDim_; jdim++ ) {
@@ -97,9 +97,9 @@ public class CartesianErrorCoordSet implements MultiPointCoordSet {
             int pIndex = jdim * 2 + 0;
             int mIndex = jdim * 2 + 1;
             double pErr = pCoords_[ jdim ]
-                         .readDoubleCoord( tseq, icol + pIndex );
+                         .readDoubleCoord( tuple, icol + pIndex );
             double mErr = mCoords_[ jdim ]
-                         .readDoubleCoord( tseq, icol + mIndex );
+                         .readDoubleCoord( tuple, icol + mIndex );
             if ( Double.isNaN( mErr ) ) {
                 mErr = pErr;
             }

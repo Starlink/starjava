@@ -10,9 +10,9 @@ import uk.ac.starlink.table.DomainMapper;
  * two representations.
  *
  * <p>An implementation of this class defines an additional
- * <code>read*Coord(TupleSequence,int)</code> method which is able to
- * read appropriate coordinate values from a suitable column of a
- * {@link TupleSequence}.  That behaviour is not enforced or defined in this
+ * <code>read*Coord(Tuple,int)</code> method which is able to
+ * read appropriate coordinate values from a suitable field of a
+ * {@link Tuple}.  That behaviour is not enforced or defined in this
  * interface using generic types, partly in order to allow use of
  * primitive types and eliminate unnecessary use of wrapper classes.
  *

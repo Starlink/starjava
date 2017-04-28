@@ -7,7 +7,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * MultiPointCoordSet for ellipses on a plane.
@@ -67,11 +67,11 @@ public class PlaneEllipseCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( TupleSequence tseq, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
                                double[] xy0, double[][] xyExtras ) {
-        double ar = AR_COORD.readDoubleCoord( tseq, icol );
-        double br = BR_COORD.readDoubleCoord( tseq, icol + 1 );
-        double posang = POSANG_COORD.readDoubleCoord( tseq, icol + 2 );
+        double ar = AR_COORD.readDoubleCoord( tuple, icol );
+        double br = BR_COORD.readDoubleCoord( tuple, icol + 1 );
+        double posang = POSANG_COORD.readDoubleCoord( tuple, icol + 2 );
         boolean aNan = Double.isNaN( ar );
         boolean bNan = Double.isNaN( br );
         if ( aNan && bNan ) {

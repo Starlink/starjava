@@ -4,7 +4,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * Defines positional data coordinates used by a 2-D time plot.
@@ -60,9 +60,9 @@ public class TimeDataGeom implements DataGeom {
         return new Coord[] { T_COORD, Y_COORD };
     }
 
-    public boolean readDataPos( TupleSequence tseq, int ic, double[] dpos ) {
-        double t = T_COORD.readDoubleCoord( tseq, ic++ );
-        double y = Y_COORD.readDoubleCoord( tseq, ic++ );
+    public boolean readDataPos( Tuple tuple, int ic, double[] dpos ) {
+        double t = T_COORD.readDoubleCoord( tuple, ic++ );
+        double y = Y_COORD.readDoubleCoord( tuple, ic++ );
         if ( Double.isNaN( t ) || Double.isNaN( y ) ) {
             return false;
         }

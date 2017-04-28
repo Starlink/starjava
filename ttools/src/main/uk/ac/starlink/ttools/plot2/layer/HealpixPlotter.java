@@ -46,6 +46,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.IntegerCoord;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
@@ -225,13 +226,14 @@ public class HealpixPlotter
             IndexReader rdr =
                   dataSpec.isCoordBlank( icHealpix_ )
                 ? new IndexReader() {
-                      public long getHealpixIndex( TupleSequence tseq ) {
-                          return tseq.getRowIndex();
+                      public long getHealpixIndex( Tuple tuple ) {
+                          return tuple.getRowIndex();
                       }
                   }
                 : new IndexReader() {
-                      public long getHealpixIndex( TupleSequence tseq ) {
-                          return HEALPIX_COORD.readIntCoord( tseq, icHealpix_ );
+                      public long getHealpixIndex( Tuple tuple ) {
+                          return HEALPIX_COORD.readIntCoord( tuple,
+                                                             icHealpix_ );
                       }
                   };
             return new BinsHealpixLayer( geom, dataSpec, style,
@@ -774,12 +776,11 @@ public class HealpixPlotter
     private interface IndexReader {
 
         /**
-         * Acquires the HEALPix index corresponding to the current row of
-         * a tuple sequence.
+         * Acquires the HEALPix index corresponding to a tuple.
          *
-         * @param  tseq  tuple sequence positioned at row of interest
-         * @param  healpix index at current sequence position
+         * @param  tuple  tuple
+         * @return  healpix index
          */
-        long getHealpixIndex( TupleSequence tseq );
+        long getHealpixIndex( Tuple tuple );
     }
 }
