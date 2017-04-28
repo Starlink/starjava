@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.func;
 
+import java.util.Locale;
 import java.util.Random;
 import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.pal.mjDate;
@@ -14,6 +15,7 @@ public class TimesTest extends TestCase {
 
     public TimesTest( String name ) {
         super( name );
+        Locale.setDefault(Locale.ROOT);
     }
 
     public void testFixed() {
