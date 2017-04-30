@@ -24420,6 +24420,9 @@ introduced since the last version:
         <ref id="form-xycorr">XYCorr</ref> and
         <ref id="form-skycorr">SkyCorr</ref> for error ellipses rotated
         as specified by Gaia-style correlation values.</li>
+    <li>Fix bug in Statistics Window table export/import actions;
+        it was failing if the Sum statistic was included in the presence of
+        boolean columns.</li>
     </ul>
     </p></dd>
 

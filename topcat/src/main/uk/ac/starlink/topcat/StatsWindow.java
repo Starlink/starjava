@@ -440,7 +440,7 @@ public class StatsWindow extends AuxWindow {
                     return new Double( lastCalc_.sums[ jcol ] );
                 }
                 else if ( lastCalc_.isBoolean[ jcol ] ) {
-                    return new Long( lastCalc_.ntrues[ jcol ] );
+                    return new Double( lastCalc_.ntrues[ jcol ] );
                 }
                 else {
                     return null;
