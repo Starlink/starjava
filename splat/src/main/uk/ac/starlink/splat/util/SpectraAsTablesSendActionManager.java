@@ -274,7 +274,7 @@ public abstract class SpectraAsTablesSendActionManager
 	                        	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
 	                        }
 	    				}
-	    				List<SpecData> sp = SpecDataFactory.getInstance().get( p.getSpectrum(), p.getType() );
+	    				List<SpecData> sp = SpecDataFactory.getInstance().get( p.getSpectrum(), p.getType(), p.getObjectType() );
     					for (SpecData s : sp) {
     						spectra.add(s);
     						spectraUrls.put(s, p.getSpectrum());

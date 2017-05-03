@@ -66,6 +66,7 @@ import uk.ac.starlink.splat.util.ConstrainedList.ConstraintType;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
@@ -260,9 +261,9 @@ public class SpecDataFactory
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
-    public List<SpecData> get( String specspec, int type ) 
+    public List<SpecData> get( String specspec, int type, ObjectTypeEnum objectType ) 
     		throws SplatException {
-    	List<SpecData> spectra = getAll(specspec, type);
+    	List<SpecData> spectra = getAll(specspec, type, objectType);
     	
     	if (spectra != null && !spectra.isEmpty())
     	//	return spectra.get(0);
@@ -287,7 +288,7 @@ public class SpecDataFactory
      */
     public SpecData get1( String specspec, int type ) 
             throws SplatException {
-        List<SpecData> spectra = getAll(specspec, type);
+        List<SpecData> spectra = getAll(specspec, type, null); //TODO !!!!!!!!!!
         
         if (spectra != null && !spectra.isEmpty())
           return spectra.get(0);
@@ -311,7 +312,7 @@ public class SpecDataFactory
      *             specify a spectrum that can be accessed.
      */
 
-    public List<SpecData> getAll( String specspec, int type )
+    public List<SpecData> getAll( String specspec, int type, ObjectTypeEnum objectType )
         throws SplatException
     {
     	List<SpecData> specDataList = new ConstrainedList<SpecData>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
@@ -343,7 +344,7 @@ public class SpecDataFactory
                      else 
                          type = mimeToSPLATType(dlp.getQueryContentType(0)); 
                   // got the datalink information, do it all again with the new url
-                     return getAll(dlp.getQueryAccessURL(0), type);
+                     return getAll(dlp.getQueryAccessURL(0), type, objectType);
                  } catch (IOException e) {
                      throw new SplatException(e);
                  }
@@ -419,6 +420,7 @@ public class SpecDataFactory
             }
             
             for (SpecDataImpl impl : impls) {
+                impl.setObjectType(objectType);
             	specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
             }
             
@@ -562,9 +564,7 @@ public class SpecDataFactory
      *                  opened (i.e. file.fits, file.sdf,
      *                  file.fits[2], file.more.ext_1 etc.).
      *                  
-     * @param specspec the specification of the spectrum to be
-     *                  opened (i.e. file.fits, file.sdf,
-     *                  file.fits[2], file.more.ext_1 etc.).
+     * @param format the format of the spectrum
      *
      *  @return the SpecData object created from the given
      *          specification.
@@ -594,7 +594,7 @@ public class SpecDataFactory
      *                  opened (i.e. file.fits, file.sdf,
      *                  file.fits[2], file.more.ext_1 etc.).
      *                  
-     * @param specspec the specification of the spectrum to be
+     * @param format the specification of the spectrum to be
      *                  opened (i.e. file.fits, file.sdf,
      *                  file.fits[2], file.more.ext_1 etc.).
      *
@@ -672,6 +672,7 @@ public class SpecDataFactory
             throwReport( specspec, false, format);
         }
         for (SpecDataImpl impl : impls) {
+            
         	spectra.add(makeSpecDataFromImpl( impl, isRemote, specurl ));
         }
         //return makeSpecDataFromImpl( impl, isRemote, specurl );
@@ -819,6 +820,7 @@ public class SpecDataFactory
                             }
                         }// if i==1
                     } else { 
+                        Header header = ((FITSSpecDataImpl)impl).getFitsHeaders();
                         impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
                                 ((FITSSpecDataImpl)impl).getFitsHeaders());
                     } // not SDFITS
@@ -1848,9 +1850,15 @@ public class SpecDataFactory
         String utype = null;
         SpecData specData = null;
         VOStarTable table = null;
+        String productType = null;
+        
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
-            if ( "RESOURCE".equals( tagName ) ) {
+            if ( "VODML".equals( tagName ) ) {
+                VODMLElement  dml = new VODMLElement(resource[i]);
+                 productType = dml.getDataProductType();               
+            }
+            else if ( "RESOURCE".equals( tagName ) ) {
               //  String resourceType = resource[i].getAttribute("type");
              //   if (resourceType.equalsIgnoreCase("results"))
               //      throw new SplatException("results table");
@@ -1861,13 +1869,20 @@ public class SpecDataFactory
                 for ( int j = 0; j < child.length; j++ ) {
                     tagName = child[j].getTagName();
                     if ( "TABLE".equals( tagName ) ) {
-                        utype = child[j].getAttribute( "utype" );                                               
+                        utype = child[j].getAttribute( "utype" );  
+                        //child[j].setAttribute("dataproducttype", productType);
                                 try {
                                     table = new VOStarTable( (TableElement) child[j] );
                                
                                 if ( table.getRowCount() == 0 )
                                     throw new SplatException( "The table is empty: "+specspec);
-                                specData = new SpecData( new TableSpecDataImpl(table) );
+                           
+                                TableSpecDataImpl impl = new TableSpecDataImpl(table);
+                                if (productType.equalsIgnoreCase("TIMESERIES"))
+                                    impl.setObjectType(ObjectTypeEnum.TIMESERIES);
+                                specData = new SpecData( impl );
+                                
+                                
                                // specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
                                 specList.add( specData );
                                 } catch (IOException e) {

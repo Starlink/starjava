@@ -2122,7 +2122,7 @@ public class SplatBrowser
         else {           
                
             try {
-                List<SpecData> spectra = specDataFactory.getAll( name, usertype );
+                List<SpecData> spectra = specDataFactory.getAll( name, usertype, null );
                 if (spectra != null) {
                     for (SpecData spectrum : spectra) {
                         addSpectrum( spectrum );
@@ -2173,10 +2173,11 @@ public class SplatBrowser
 //                if (spectra[i].getObjectType() == null) {
 //                	spectra[i].setObjectType(props.getObjectType());
 //                }
+                props.apply( spectra[i] ); // warning - moved this line BEFORE addSpectrum (it was after). See if it affects something
                 addSpectrum( spectra[i] );
                 if (str != null && str.startsWith("order"))
                     props.setShortName(shortname+" ["+str+"]");
-                props.apply( spectra[i] );
+                //props.apply( spectra[i] );
                 
                 System.out.println("and146: SED or TABLE #" + i);
             }
@@ -2205,15 +2206,16 @@ public class SplatBrowser
                         	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
                         }
                     } 
-                    spectra = specDataFactory.get( props.getSpectrum(), props.getType() ); ///!!! IF it's a list???
+                    spectra = specDataFactory.get( props.getSpectrum(), props.getType(), props.getObjectType() ); ///!!! IF it's a list???
                     for (int s=0; s < spectra.size(); s++ ){
                         spectrum=spectra.get(s);
                         String sname = spectrum.getShortName();
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
 //                        spectrum.setObjectType(props.getObjectType());
+                        props.apply( spectrum ); // need to test if moving this line before addSpectrum affects somethg
                         addSpectrum( spectrum );
-                        props.apply( spectrum );
+                       // props.apply( spectrum );
                         
                     }
                 //}
@@ -2232,8 +2234,9 @@ public class SplatBrowser
                 if ( props.getType() == SpecDataFactory.FITS || se.getType() == SpecDataFactory.FITS) {
                     SpecData spectra[] = specDataFactory.expandFITSSED( specpath, se.getRows() );
                     for ( int i = 0; i < spectra.length; i++ ) {
+                        props.apply( spectra[i] ); // !!!!!!!
                         addSpectrum( spectra[i] );
-                        props.apply( spectra[i] );
+                       // props.apply( spectra[i] );
                     }
                 } 
                 //   }

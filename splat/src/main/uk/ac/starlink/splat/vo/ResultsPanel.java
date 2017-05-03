@@ -848,6 +848,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             int specstopcol=-1;
             int ucdcol=-1;
             int timecol=-1;
+            int timestartcol=-1;
+            int timestopcol=-1;
             int timeunitscol=-1;
             
             ColumnInfo colInfo;
@@ -887,6 +889,14 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         }
                         else if ( colName.endsWith( "em_max" ) ) {
                             specstopcol = k;
+                        }
+                        else if ( colName.endsWith( "t_min" ) ) {
+                            timestartcol = k;
+                        }
+                        else if ( colName.endsWith( "t_max" ) ) {
+                            timestopcol = k;
+                        }  if ( colName.endsWith("dataproduct_type") ) {
+                            producttypecol = k;
                         }
                     }
                 }
@@ -950,7 +960,13 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         }
                         else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
                             specstopcol = k;
+                        }                        
+                        else if ( utype.endsWith( "char.timeAxis.coverage.bounds.start" ) ) {
+                            timestartcol = k;
                         }
+                        else if ( utype.endsWith( "char.timeAxis.coverage.bounds.stop" ) ) {
+                            timestopcol = k;
+                        }    
 
                     }
                     if (colInfo.getName().contains("ssa_producttype"))
@@ -1055,7 +1071,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                 if ( specaxiscol != -1 ) {
                                     value = (String)rseq.getCell(specaxiscol).toString();
                                     props.setCoordColumn( value );
-                                }
+                                } 
                                 if ( fluxaxiscol != -1 ) {
                                     value = (String)rseq.getCell(fluxaxiscol).toString();
                                     props.setDataColumn( value );
