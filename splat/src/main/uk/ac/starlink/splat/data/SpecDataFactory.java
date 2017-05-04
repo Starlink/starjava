@@ -353,7 +353,7 @@ public class SpecDataFactory
              if (remotetype != GUESS && remotetype != NOT_SUPPORTED)
                  type = remotetype;
               
-             if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {               
+             if ( ( /*type != TABLE &&*/ type != HDX ) || ( type == GUESS ) ) {               
                 PathParser pathParser = remoteToLocalFile( namer.getURL(), type ); 
                 specspec = pathParser.ndfname();
              }

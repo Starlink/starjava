@@ -211,7 +211,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                                        value = options[i];
                                    }
                                }
-                               dlp.setFormat(value);
+                               dlp.setDefaultFormat(value);
                            }
                        } 
                        else  {
@@ -344,6 +344,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                 if (c instanceof JComboBox) {
                     JComboBox cb = (JComboBox) c;
                     String name = cb.getName();
+                   
                     // if ( cb.getSelectedItem().toString().length() > 0)
                   
                 }

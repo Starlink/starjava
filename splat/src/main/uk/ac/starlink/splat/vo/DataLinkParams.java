@@ -243,6 +243,10 @@ public class DataLinkParams {
         return null;
     }
 
+    public String  getQueryFormat() {   
+           return getQueryFormat(0);
+      
+    }
     
     public String  getQueryFormat(int queryIndex) {   
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
@@ -276,12 +280,13 @@ public class DataLinkParams {
                 srv.setQueryParam(paramName, min, max);        
    }
     
-    public void setFormat(String format) {
+    
+    public void setDefaultFormat(String format) {
         this.format=format;
     }
-    public String getFormat() {
-        return this.format;
-    }
+   // public String getFormat() {
+  //      return this.format;
+  //  }
     
     
    
