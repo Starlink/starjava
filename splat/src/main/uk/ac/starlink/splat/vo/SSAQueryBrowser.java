@@ -458,21 +458,26 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * @uml.associationEnd  
      */
     protected SkycatCatalog nedCatalogue = null;
-
+    protected String nedUrl=null;
     /**
      * SIMBAD name resolver catalogue
      * @uml.property  name="simbadCatalogue"
      * @uml.associationEnd  
      */
     protected SkycatCatalog simbadCatalogue = null;
-
+    protected String simbadURL=null;
     /**
      * The current name resolver, if using Skycat method
      * @uml.property  name="resolverCatalogue"
      * @uml.associationEnd  
      */
-    protected SkycatCatalog resolverCatalogue = null;
-
+    
+    protected String sesameURL=ResolverInfo.SESAME_URL;
+    protected String sesameURLMirror="http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/-ox2?";
+    
+    protected String resolverURL=sesameURL;
+    
+  
     /**
      * The proxy server dialog
      * @uml.property  name="proxyWindow"
@@ -578,6 +583,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             this.serverList=new SSAServerList(null);        
             found=false;
         }
+        
         initUI();
         this.pack();
         this.setVisible(true);
@@ -589,6 +595,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
 	    serverPanel.updateServers(table);
             serverPanel.setServerList(new SSAServerList(table));            
         }
+       
     }
 
     public SSAPAuthenticator getAuthenticator() {
@@ -726,7 +733,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                 "proxy..." );
         optionsMenu.add( proxyAction );
 
- 
+        
      //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
         resolverMenu.setMnemonic( KeyEvent.VK_R );
@@ -736,29 +743,23 @@ implements ActionListener, DocumentListener, PropertyChangeListener
 
         JRadioButtonMenuItem jrbmi = new JRadioButtonMenuItem();
         resolverMenu.add( jrbmi );
-        jrbmi.setSelected( false );
-        bg.add( jrbmi );
-        jrbmi.setAction( new ResolverAction( "SIMBAD via CADC",
-                simbadCatalogue ) );
-        jrbmi.setToolTipText( "SIMBAD service served by CADC" );
-
-        jrbmi = new JRadioButtonMenuItem();
-        resolverMenu.add( jrbmi );
-        jrbmi.setSelected( false );
-        bg.add( jrbmi );
-        jrbmi.setAction( new ResolverAction( "NED via ESO", nedCatalogue ) );
-        jrbmi.setToolTipText( "NED catalogue served by ESO" );
-
-        jrbmi = new JRadioButtonMenuItem();
-        resolverMenu.add( jrbmi );
         jrbmi.setSelected( true );
         bg.add( jrbmi );
-        jrbmi.setAction( new ResolverAction( "CDS Sesame", null  ) );
+        jrbmi.setAction( new ResolverAction( "CDS Sesame", sesameURL  ) );
        
         jrbmi.setToolTipText
         ( "CDS Sesame service queries SIMBAD, NED and Vizier" );
+        
+        jrbmi = new JRadioButtonMenuItem();
+        resolverMenu.add( jrbmi );
+        jrbmi.setSelected( false );
+        bg.add( jrbmi );
+        jrbmi.setAction( new ResolverAction( "CDS Sesame Mirror", sesameURLMirror  ) );
+       
+        jrbmi.setToolTipText
+        ( "Mirror of CDS Sesame servive" );
 
-        resolverCatalogue = null;
+        
         //  Create a menu for inter-client communications.
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
@@ -1257,6 +1258,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         if ( name != null && name.length() > 0 ) {
 
             QueryArgs qargs = null;
+            /*
             if ( resolverCatalogue != null ) {
                 //  Skycat resolver.
                 qargs = new BasicQueryArgs( resolverCatalogue );
@@ -1265,7 +1267,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                 name = name.replaceAll( " ", "%20" );
                 qargs.setId( name );
             }
+            */
             final QueryArgs queryArgs = qargs;
+          
             final String objectName = name;
 
             Thread thread = new Thread( "Name server" )
@@ -1274,8 +1278,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                 {
                     try {
                         if ( queryArgs == null ) {
+                           
                             ResolverInfo info =
-                                    ResolverInfo.resolve( objectName );
+                                    ResolverInfo.resolve( objectName, resolverURL );
                             WorldCoords coords =
                                     new WorldCoords( info.getRaDegrees(),
                                             info.getDecDegrees() );
@@ -1286,7 +1291,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                             nameField.setForeground(Color.black);
                             //isLookup=false;
                          //   queryLine.setPosition(radec[0], radec[1]);
-                        }
+                        }/*
                         else {
                             QueryResult r =
                                     resolverCatalogue.query( queryArgs );
@@ -1303,7 +1308,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                            //         queryLine.setPosition(radec[0], radec[1]);
                                 }
                             }
-                        }
+                        }*/
                     }
                     catch (Exception e) {
                         ErrorDialog.showError( null, e );
@@ -1318,36 +1323,8 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         }
     }
 
-    /**
-     * Setup the default name servers (SIMBAD and NED) to use to resolve
-     * astronomical object names. Note these are just those used in JSky.
-     * A better implementation should reuse the JSky classes.
-     * <p>
-     * XXX refactor these into an XML file external to the application.
-     * Maybe switch to the CDS Sesame webservice.
-     */
-    private void setDefaultNameServers()
-    {
-        Properties p1 = new Properties();
-        p1.setProperty( "serv_type", "namesvr" );
-        p1.setProperty( "long_name", "SIMBAD Names via CADC" );
-        p1.setProperty( "short_name", "simbad_ns@cadc" );
-        p1.setProperty
-        ( "url",
-                "http://cadcwww.dao.nrc.ca/cadcbin/sim-server?&o=%id" );
-        SkycatConfigEntry entry = new SkycatConfigEntry( p1 );
-        simbadCatalogue = new SkycatCatalog( entry );
-
-        Properties p2 = new Properties();
-        p2.setProperty( "serv_type", "namesvr" );
-        p2.setProperty( "long_name", "NED Names" );
-        p2.setProperty( "short_name", "ned@eso" );
-        p2.setProperty
-        ( "url",
-                "http://archive.eso.org/skycat/servers/ned-server?&o=%id" );
-        entry = new SkycatConfigEntry( p2 );
-        nedCatalogue = new SkycatCatalog( entry );
-    }
+ 
+        
 
     /**
      * Perform the query to all the currently selected servers.
@@ -2605,15 +2582,16 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     class ResolverAction
     extends AbstractAction
     {
-        SkycatCatalog resolver = null;
-        public ResolverAction( String name, SkycatCatalog resolver )
+        String resolver = null;
+        public ResolverAction( String name, String  urlstring )
         {
             super( name );
-            this.resolver = resolver;
+            this.resolver = urlstring;
         }
         public void actionPerformed( ActionEvent e )
         {
-            resolverCatalogue = resolver;
+            //resolverCatalogue = resolver;
+            resolverURL=resolver;
         }
     }
 
