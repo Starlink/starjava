@@ -176,7 +176,8 @@ public abstract class AbstractSpecDataImpl
     protected SpecDataImpl parentImpl = null;
     
     private ObjectTypeEnum objectType;
-
+    private String timeSystem;
+    
     /**
      * Reference to another SpecDataImpl that is a "parent" of this
      * instance. This facility is provided so that data formats that
@@ -254,6 +255,16 @@ public abstract class AbstractSpecDataImpl
     @Override
     public void setObjectType(ObjectTypeEnum objectType) {
     	this.objectType = objectType;
+    }
+    
+    @Override
+    public String getTimeSystem() {
+        return this.timeSystem;
+    } 
+    
+    @Override
+    public void setTimeSystem(String ts) {
+        this.timeSystem = ts;
     }
 }
 

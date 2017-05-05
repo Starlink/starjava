@@ -1922,6 +1922,10 @@ public class SpecData
                 xPos = tPos;
                 tPos = null;
 
+                if (impl.getObjectType()==ObjectTypeEnum.TIMESERIES ) {
+                    FrameSet frameSet = astJ.getRef();
+                    frameSet.setC("System", impl.getTimeSystem());
+                }
                 //  Set the apparent data units, if possible.
                 convertToApparentDataUnits();
 
@@ -1936,6 +1940,7 @@ public class SpecData
             catch (Exception e) {
                 throw new SplatException( e );
             }
+            
         }
     }
 

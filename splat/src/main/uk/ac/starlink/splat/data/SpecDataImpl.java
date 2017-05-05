@@ -200,4 +200,23 @@ public interface SpecDataImpl
      * @param objectType
      */
     public void setObjectType(ObjectTypeEnum objectType);
+    
+    /**
+     * Getter for object type that identifies timeseries time system
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * @return
+     */
+    public String getTimeSystem();
+    
+    /**
+     * /**
+     * Setter for object type that identifies timeseries time system
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     
+     * @param timeSystem
+     */
+    public void setTimeSystem(String timeSystem );
+    
+
+    
 }

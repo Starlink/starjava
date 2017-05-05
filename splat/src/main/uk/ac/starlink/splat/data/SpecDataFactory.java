@@ -1846,17 +1846,20 @@ public class SpecDataFactory
         }
 
         VOElement[] resource = root.getChildren();
+    
         String tagName = null;
         String utype = null;
         SpecData specData = null;
         VOStarTable table = null;
         String productType = null;
+        String timeSystem = null;
         
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
             if ( "VODML".equals( tagName ) ) {
-                VODMLElement  dml = new VODMLElement(resource[i]);
-                 productType = dml.getDataProductType();               
+                VODMLReader  dml = new VODMLReader(resource[i]);
+                productType = dml.getDataProductType(); 
+                timeSystem = dml.getTimeFrameKindParameter();
             }
             else if ( "RESOURCE".equals( tagName ) ) {
               //  String resourceType = resource[i].getAttribute("type");
@@ -1878,8 +1881,10 @@ public class SpecDataFactory
                                     throw new SplatException( "The table is empty: "+specspec);
                            
                                 TableSpecDataImpl impl = new TableSpecDataImpl(table);
-                                if (productType.equalsIgnoreCase("TIMESERIES"))
+                                if (productType.equalsIgnoreCase("TIMESERIES")) {
                                     impl.setObjectType(ObjectTypeEnum.TIMESERIES);
+                                    impl.setTimeSystem(timeSystem);
+                                }
                                 specData = new SpecData( impl );
                                 
                                 
