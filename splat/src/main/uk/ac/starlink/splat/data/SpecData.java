@@ -1923,8 +1923,11 @@ public class SpecData
                 tPos = null;
 
                 if (impl.getObjectType()==ObjectTypeEnum.TIMESERIES ) {
-                    FrameSet frameSet = astJ.getRef();
-                    frameSet.setC("System", impl.getTimeSystem());
+                    String ts = impl.getTimeSystem();
+                    if (ts != null && ! ts.isEmpty()) {
+                        FrameSet frameSet = astJ.getRef();
+                        frameSet.setC("System", impl.getTimeSystem());
+                    }
                 }
                 //  Set the apparent data units, if possible.
                 convertToApparentDataUnits();

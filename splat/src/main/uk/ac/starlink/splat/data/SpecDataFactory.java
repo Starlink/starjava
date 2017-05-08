@@ -1851,8 +1851,8 @@ public class SpecDataFactory
         String utype = null;
         SpecData specData = null;
         VOStarTable table = null;
-        String productType = null;
-        String timeSystem = null;
+        String productType = "";
+        String timeSystem = "";
         
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
@@ -1883,7 +1883,8 @@ public class SpecDataFactory
                                 TableSpecDataImpl impl = new TableSpecDataImpl(table);
                                 if (productType.equalsIgnoreCase("TIMESERIES")) {
                                     impl.setObjectType(ObjectTypeEnum.TIMESERIES);
-                                    impl.setTimeSystem(timeSystem);
+                                    if (timeSystem != null && ! timeSystem.isEmpty() )
+                                        impl.setTimeSystem(timeSystem);
                                 }
                                 specData = new SpecData( impl );
                                 
