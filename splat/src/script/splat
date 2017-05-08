@@ -111,7 +111,7 @@ defines="$defines \
 # icon for Mac
 showIcon="";
 if $macos; then
-showIcon="-Xdock:icon=$SPLAT_DIR/../../etc/icons/splat.png";
+showIcon="-Xdock:icon=$SPLAT_DIR/../../etc/splat/icons/splat.ico";
 fi
 
 #  Locate the "starjava" command. This should be in ".." or on the 

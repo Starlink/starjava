@@ -1,4 +1,9 @@
 1 Starlink SPLAT news.
+   3.12
+   ====
+   -  initial timeseries support: detection and handling of timeseries
+   -  several corrections
+
    3.11-6
    ======
    - no more need for builtin server list. If no previously saved list found, ask user to query the registry. (ssap,obscore)
