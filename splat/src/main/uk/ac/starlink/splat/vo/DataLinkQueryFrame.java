@@ -8,6 +8,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeSupport;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -236,10 +237,10 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                    } else {
                        
                        c.gridx=1;
-                       c.gridwidth=1;
+                       c.gridwidth=1;                 
                        c.weightx=0.0;
                        if ( xtype != null && xtype.equalsIgnoreCase("interval") && arraysize != null && arraysize[0]!=1) {
-                          
+                           c.weightx=1.0;
                            IntervalField interval = new IntervalField();                           
                            interval.setName(paramName);
                            if (paramValue.length == 2) {
@@ -270,17 +271,19 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        }
                        
                        VOElement constraint = values.getChildByName("MIN"); 
-                       String min=constraint.getAttribute("value");
-                       constraint = values.getChildByName("MAX");
-                       String max=constraint.getAttribute("value"); 
+                       String min=numberformat( constraint.getAttribute("value") );
+                     
+                       constraint = values.getChildByName("MAX");                      
+                       String max=numberformat(constraint.getAttribute("value")); 
+                                            
                        String info="";
                        if (min != null || max != null) 
-                           info = "["+min+".."+max+"]";
+                           info = String.format("["+min+".."+max+"]");
                        if ( unit != null && !unit.isEmpty())
                            info += "   "+unit;
                    
                        JLabel infoLabel = new JLabel(info);
-                     
+                       c.weightx=1.0;
                        c.gridx=2;
                        servicePanel.add(infoLabel, c);
                        
@@ -293,8 +296,19 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
            }// for
            
     } // addToUI
-
+    
+    private String numberformat(String s) {
+        
+        
+        DecimalFormat df = new DecimalFormat("#.##E0");
+        Double d = Double.parseDouble(s);
        
+        if (d % 1.0 != 0) 
+                return df.format(d);        
+        else 
+            return s;
+    }
+    
     public String  getIDSource(String server) {
          return  servers.get(server).getIdSource();
     }
