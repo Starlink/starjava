@@ -179,7 +179,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
    
    }
 
-   public void makeQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element) {
+   public void makeQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String stage ) {
 
        resultsPanel.removeAllResults();
        ServerPopupTable currentTable=null;
@@ -208,7 +208,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
            if (linesQuery.isSLAPSelected()) 
                queryString = makeSlapQuery(ranges, lambdas, element, currentTable.getAccessURL(row));
            else
-               queryString= makeVamdcQuery(ranges, lambdas, element, currentTable.getAccessURL(row));
+               queryString= makeVamdcQuery(ranges, lambdas, element, stage, currentTable.getAccessURL(row));
 
            Logger.info(this, "query= "+queryString);
            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
@@ -257,7 +257,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
 
    }
 
-   private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String accessURL) {
+   private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String stage, String accessURL) {
 
 
        final String query = accessURL+"sync?LANG=VSS2&REQUEST=doQuery&FORMAT=XSAMS&QUERY=";
@@ -283,6 +283,10 @@ public class LineBrowser extends JFrame implements  MouseListener {
        }
        if (! element.isEmpty()) {
            request += and+"( AtomSymbol = \'"+element+  "\' )";
+           and=" AND ";
+       }
+       if (! stage.isEmpty()) {
+           request += and+"( IonCharge = \'"+stage+  "\' )";
        }
 
        try {
