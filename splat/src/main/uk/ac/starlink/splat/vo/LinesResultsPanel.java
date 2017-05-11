@@ -44,7 +44,7 @@ public class LinesResultsPanel extends ResultsPanel {
         displaySelectedButton.addActionListener( this );
         displaySelectedButton.setMargin(new Insets(1, 10, 1, 10));  
         displaySelectedButton.setToolTipText
-        ( "display all lines selected" );
+        ( "display all selected lines" );
         controlPanel.add( displaySelectedButton,gbcontrol );
 
 
@@ -115,11 +115,14 @@ public class LinesResultsPanel extends ResultsPanel {
     protected void displaySpectra( boolean selected, boolean display,
             StarJTable table, int row )
     {
-      //StarJTable currentTable = this.getCurrentTable(table);      
+          
+      JScrollPane pane = (JScrollPane) resultsPane.getSelectedComponent();
+      StarPopupTable currentTable = (StarPopupTable) pane.getViewport().getView();
+      
       if (selected)
-        slQueryBrowser.displayLineSelection(table);
+        slQueryBrowser.displayLineSelection(currentTable);
       else
-        slQueryBrowser.displayLines( table.getStarTable() );          
+        slQueryBrowser.displayLines( currentTable.getStarTable() );          
     }
     
     public class LineAction extends AbstractAction
@@ -138,7 +141,7 @@ public class LinesResultsPanel extends ResultsPanel {
             else if (e.getActionCommand().startsWith("Display selected")) {
                slQueryBrowser.displayLineSelection(table);          
             }   
-            else if (e.getActionCommand().equals("Display all lines")) {
+            else if (e.getActionCommand().startsWith("Display all lines")) {
                slQueryBrowser.displayLines( table.getStarTable() );
             }   
             else if (e.getActionCommand().contains("colour")) {

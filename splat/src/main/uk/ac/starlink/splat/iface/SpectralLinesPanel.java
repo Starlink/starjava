@@ -281,7 +281,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
             }
         }
    
-        browser.makeQuery(ranges, lambdas, getElementSymbol());       
+        browser.makeQuery(ranges, lambdas, getElementSymbol(), getStage());       
     }
     
     
@@ -350,6 +350,13 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
 
     public String getElementSymbol() {
         return elementField.getText();
+    }
+
+    public String getStage() {
+        int stage = stageCombo.getSelectedIndex();
+        if (stage==0)
+            return "";
+        return Integer.toString( stageCombo.getSelectedIndex() -1);
     }
 
 
