@@ -249,7 +249,7 @@ public class DataLinkParams {
     }
     
     public String  getQueryFormat(int queryIndex) {  
-        if ( ! service.get(queryIndex).hasParam("FORMAT")) 
+        if ( ! service.get(queryIndex).hasQueryParam("FORMAT")) 
             return null;
        
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
