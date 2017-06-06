@@ -11083,6 +11083,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-xycorr">XYCorr</ref> and
         <ref id="layer-skycorr">SkyCorr</ref> for error ellipses rotated
         as specified by Gaia-style correlation values.</li>
+    <li>Fix filename generation error for <code>plot2*</code> command
+        animation output (wrong number of digits if frame count
+        was an exact power of 10).</li>
     </ul>
     </p></dd>
 

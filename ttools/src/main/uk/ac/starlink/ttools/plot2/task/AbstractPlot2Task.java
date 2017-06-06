@@ -783,7 +783,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 numpos = baseOut.length() - 1;
             }
             StringBuffer frameOut = new StringBuffer( baseOut );
-            int ndigit = nrow > 0 ? (int) Math.ceil( Math.log10( nrow ) )
+            int ndigit = nrow > 0 ? (int) Math.ceil( Math.log10( nrow + 1 ) )
                                   : 3;
             String snum = "-" + Strings.padWithZeros( irow + 1, ndigit );
             frameOut.insert( numpos, snum );
