@@ -11086,6 +11086,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix filename generation error for <code>plot2*</code> command
         animation output (wrong number of digits if frame count
         was an exact power of 10).</li>
+    <li>Taplint: downgrade type mismatch error <code>E_QTYP</code>
+        to warning <code>W_QTYP</code> in view of TAP-1.0 Erratum #3.</li>
     </ul>
     </p></dd>
 

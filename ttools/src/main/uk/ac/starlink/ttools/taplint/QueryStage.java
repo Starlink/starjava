@@ -565,10 +565,14 @@ public class QueryStage implements Stage {
                 String rType =
                     (String) cinfo.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
                                                      String.class );
+
+                /* Note the data type checking is only advisory,
+                 * since as clarified by TAP 1.0 Erratum #3,
+                 * TAP/ADQL has no type system. */
                 if ( ! CompareMetadataStage
                       .compatibleDataTypes( qType, rType ) ) {
                     String msg = new StringBuffer()
-                       .append( "Query/result column type mismatch " )
+                       .append( "Query/result column type possible mismatch " )
                        .append( "for column " )
                        .append( columnId )
                        .append( "; " )
@@ -578,7 +582,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( FixedCode.E_QTYP, msg );
+                    reporter_.report( FixedCode.W_QTYP, msg );
                 }
             }
         }

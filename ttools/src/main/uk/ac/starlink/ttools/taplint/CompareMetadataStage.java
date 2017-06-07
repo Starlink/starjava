@@ -128,8 +128,14 @@ public class CompareMetadataStage implements Stage {
             ColumnMeta cm2 = cmMap2.get( cname );
             Checker checker =
                 new Checker( reporter, "Column", tableName + ":" + cname );
+
+            /* Check for apparent data type mismatches.
+             * Note this is only advisory, since as clarified by
+             * TAP 1.0 Erratum #3, TAP/ADQL has no type system. */
             checker.checkDataTypes( FixedCode.W_CTYP,
                                     cm1.getDataType(), cm2.getDataType() );
+
+            /* Check other metadata items. */
             checker.check( "UCD", FixedCode.W_CUCD,
                            cm1.getUcd(), cm2.getUcd() );
             checker.check( "Utype", FixedCode.W_CUTP,
@@ -235,6 +241,12 @@ public class CompareMetadataStage implements Stage {
      * Datatypes may be either VOTable or TAP/adql type.
      * See VODataService v1.1 section 3.5.3 and TAP v1.0 section 2.5.
      * The logic is somewhat sloppy.
+     *
+     * <p>Note however that, as clarified by TAP 1.0 Erratum #3,
+     * TAP/ADQL has no type system, so any comparison involving the types
+     * listed in TAP v1.0 section 2.5 cannot be normative.
+     * So any report issued on failure of this test should only be
+     * a Warning and not an Error.
      *
      * @param  dt1  first data type
      * @param  dt2  second data type
@@ -418,7 +430,7 @@ public class CompareMetadataStage implements Stage {
         void checkDataTypes( ReportCode code, String dt1, String dt2 ) {
             if ( ! compatibleDataTypes( dt1, dt2 ) ) {
                 String msg = new StringBuffer()
-                    .append( "Incompatible datatypes for " )
+                    .append( "Possibly incompatible datatypes for " )
                     .append( objectType_ )
                     .append( " " )
                     .append( objectName_ )
