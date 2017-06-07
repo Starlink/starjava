@@ -3,7 +3,9 @@ package uk.ac.starlink.gbin;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.table.AbstractStarTable;
@@ -212,5 +214,60 @@ public abstract class GbinStarTable extends AbstractStarTable {
      */
     ItemReader[] getItemReaders() {
         return itemReaders_;
+    }
+
+    /**
+     * Returns a table instance based on a collection of gaia objects.
+     * The returned table is not random access.
+     *
+     * <p>A random-access implementation is possible, but trying to
+     * implement <code>getCell</code> efficiently would be a bit fiddly
+     * because of the way that column values are extracted.
+     *
+     * @param  profile  configures how Gaia objects will be mapped to columns
+     * @param  gobjClazz   class of all objects representing rows
+     * @param  collection of typed objects, one for each table row
+     * @return   sequential-access table based on array of gaia objects
+     */
+    public static <T> GbinStarTable
+            createCollectionTable( GbinTableProfile profile,
+                                   Class<T> gobjClazz,
+                                   final Collection<? extends T> gobjList ) {
+        return new GbinStarTable( profile, gobjClazz ) {
+            public long getRowCount() {
+                return gobjList.size();
+            }
+            public RowSequence getRowSequence() {
+                final Iterator<?> it = gobjList.iterator();
+                final Map<ItemReader,Object> itemMap =
+                    new HashMap<ItemReader,Object>();
+                final ItemReader[] itemReaders = getItemReaders();
+                final int ncol = itemReaders.length;
+                return new RowSequence() {
+                    public boolean next() {
+                        itemMap.clear();
+                        if ( it.hasNext() ) {
+                            itemMap.put( ItemReader.ROOT, it.next() );
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                    public Object getCell( int icol ) throws IOException {
+                        return itemReaders[ icol ].readItem( itemMap );
+                    }
+                    public Object[] getRow() throws IOException {
+                        Object[] row = new Object[ ncol ];
+                        for ( int ic = 0; ic < ncol; ic++ ) {
+                            row[ ic ] = itemReaders[ ic ].readItem( itemMap );
+                        }
+                        return row;
+                    }
+                    public void close() {
+                    }
+                };
+            }
+        };
     }
 }
