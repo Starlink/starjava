@@ -20,6 +20,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.TapQuery;
@@ -348,14 +349,35 @@ public class TapMapper implements TableMapper {
      * @return   upload name parameter
      */
     private static Parameter createUploadNameParameter( String label ) {
-        StringParameter upnameParam = new StringParameter( "upname" + label );
+        StringParameter upnameParam = new StringParameter( "upname" + label ) {
+            @Override
+            public String stringToObject( Environment env, String inval )
+                    throws ParameterValueException {
+                if ( AdqlSyntax.SQL92_IDENTIFIER_REGEX
+                               .matcher( inval ).matches() ) {
+                    return inval;
+                }
+                else {
+                    String msg = new StringBuffer()
+                        .append( '"' )
+                        .append( inval )
+                        .append( '"' )
+                        .append( " is not an ADQL identifier" )
+                        .toString();
+                    throw new ParameterValueException( this, msg );
+                }
+            }
+        };
         upnameParam.setPrompt( "Label for uploaded table #" + label );
-        upnameParam.setUsage( "<label>" );
+        upnameParam.setUsage( "<adql-identifier>" );
         upnameParam.setDescription( new String[] {
             "<p>Identifier to use in server-side expressions for uploaded",
             "table #" + label + ".",
             "In ADQL expressions, the table should be referred to as",
             "\"<code>TAP_UPLOAD.&lt;label&gt;</code>\".",
+            "</p>",
+            "<p>The value must syntactically be an ADQL identifier",
+            "(<code>[A-Za-z][A-Za-z0-9_]*</code>).",
             "</p>",
         } );
         upnameParam.setStringDefault( "up" + label );
