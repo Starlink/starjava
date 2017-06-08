@@ -337,7 +337,8 @@ public abstract class VersionDetail {
                 return new ElementHandler() {
                     public void startElement() {
                         super.startElement();
-                        info( "COOSYS is deprecated at VOTable 1.2" );
+                        info( "COOSYS is deprecated at VOTable 1.2"
+                            + " (though reprieved at 1.3)" );
                     }
                 };
             }
@@ -369,7 +370,7 @@ public abstract class VersionDetail {
         }
 
         protected ElementHandler createElementHandler( String name ) {
-            ElementHandler handler = V12.createElementHandler( name );
+            ElementHandler handler = V11.createElementHandler( name );
             if ( handler != null ) {
                 return handler;
             }

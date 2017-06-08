@@ -11088,6 +11088,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         was an exact power of 10).</li>
     <li>Taplint: downgrade type mismatch error <code>E_QTYP</code>
         to warning <code>W_QTYP</code> in view of TAP-1.0 Erratum #3.</li>
+    <li>The <code>COOSYS</code> element is now passed without a deprecation
+        warning in VOTable 1.3 documents by
+        the <code>taplint</code> and <code>votlint</code> validators,
+        in view of VOTable-1.3 Erratum #1.
+        The warning is still issued for VOTable 1.2 documents,
+        but the text is toned down.</li>
     </ul>
     </p></dd>
 
