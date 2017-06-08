@@ -24,10 +24,7 @@ public class FieldRefElement extends VOElement {
      * @return  referent FIELD
      */
     public FieldElement getField() {
-        Element ref = getOwnerDocument()
-                     .getElementById( getAttribute( "ref" ) );
-        return ref instanceof FieldElement ? (FieldElement) ref
-                                           : null;
+        return (FieldElement) getReferencedElement( "ref", "FIELD" );
     }
 
     /**
