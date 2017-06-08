@@ -9,6 +9,12 @@ targetNamespace="http://www.ivoa.net/xml/TAPRegExt/v1.0"
 elementFormDefault="unqualified" 
 attributeFormDefault="unqualified" 
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<!-- Erratum-type change without change in namespace of version, 2016-07-27:
+dataModel/@ivo-id is now derived xs:anyURI.   See 
+https://volute.g-vo.org/svn/trunk/projects/registry/tapregext-erratum1
+for details. -->
+
   <xs:annotation>
     <xs:appinfo>
       <vm:schemaName>TAPRegExt</vm:schemaName>
@@ -157,9 +163,6 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <xs:simpleContent>
       <xs:extension base="xs:token"> 
-        <!-- TAPRegExt Erratum #1 changes the type in the following
-         !   line from "vr:IdentifierURI" to "xs:anyURI"
-         !-->
         <xs:attribute name="ivo-id" type="xs:anyURI" use="required">
           <xs:annotation>
             <xs:documentation>
