@@ -212,6 +212,15 @@ public class FieldElement extends VOElement {
         return null;
     }
 
+    /**
+     * Returns the COOSYS element corresponding to this field, if any.
+     *
+     * @return   referenced element with tagname COOSYS, or null
+     */
+    public VOElement getCoosys() {
+        return getReferencedElement( "ref", "COOSYS" );
+    }
+
     public String toString() {
         String str = getHandle();
         StringBuffer sbuf = new StringBuffer( str );
