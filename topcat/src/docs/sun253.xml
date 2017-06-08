@@ -24426,6 +24426,11 @@ introduced since the last version:
     <li>Slight changes to the FITS-plus output handler VOTable formatting
         in the primary HDU; now uses default output VOTable version
         rather than VOTable 1.1.</li>
+    <li>For VOTable columns that reference <code>COOSYS</code> elements,
+        the relevant information is now visible
+        (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
+         <code>CoosysEquinox</code>)
+        in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     </ul>
     </p></dd>
 

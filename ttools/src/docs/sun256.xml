@@ -11097,6 +11097,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Slight changes to the FITS-plus output handler VOTable formatting
         in the primary HDU; now uses default output VOTable version
         rather than VOTable 1.1.</li>
+    <li>For VOTable columns that reference <code>COOSYS</code> elements,
+        the relevant information is now accessible as column auxiliary metadata
+        (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
+         <code>CoosysEquinox</code>)
+        e.g. using the <ref id="meta"><code>meta</code></ref> filter.</li>
     </ul>
     </p></dd>
 

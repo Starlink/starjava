@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 import java.net.URL;
 import javax.xml.transform.dom.DOMSource;
 import org.xml.sax.SAXException;
+import org.w3c.dom.NodeList;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StoragePolicy;
@@ -41,6 +43,16 @@ public class VOTableTest extends TestCase {
         assertEquals( "myJ2000", coosys.getID() );
         assertEquals( "", coosys.getAttribute( "nope" ) );
 
+        NodeList fieldList = vot.getElementsByVOTagName( "FIELD" );
+        assertEquals( 4, fieldList.getLength() );
+        FieldElement raEl = (FieldElement) fieldList.item( 1 );
+        FieldElement decEl = (FieldElement) fieldList.item( 2 );
+        assertEquals( "RA", raEl.getAttribute( "name" ) );
+        assertEquals( "Dec", decEl.getAttribute( "name" ) );
+        VOElement coosysEl = (VOElement) raEl.getCoosys();
+        assertEquals( "COOSYS", coosysEl.getVOTagName() );
+        assertEquals( "2000.", coosysEl.getAttribute( "epoch" ) );
+
         VOElement res = vot.getChildByName( "RESOURCE" );
         ParamElement param = (ParamElement) res.getChildByName( "PARAM" );
         String pdesc = param.getDescription();
@@ -63,6 +75,21 @@ public class VOTableTest extends TestCase {
             VOStarTable stab = new VOStarTable( tab );
             assertEquals( tab.getNrows(), stab.getRowCount() );
             assertEquals( tab.getFields().length, stab.getColumnCount() );
+
+            ColumnInfo raInfo = stab.getColumnInfo( 1 );
+            ColumnInfo decInfo = stab.getColumnInfo( 2 );
+            assertEquals( "RA", raInfo.getName() );
+            assertEquals( "Dec", decInfo.getName() );
+            assertEquals( "deg", raInfo.getUnitString() );
+            assertEquals( "POS_EQ_DEC", decInfo.getUCD() );
+            assertEquals( "2000.",
+                          raInfo.getAuxDatumValue( VOStarTable
+                                                  .COOSYS_EPOCH_INFO,
+                                                   String.class ) );
+            assertEquals( "2000.",
+                          decInfo.getAuxDatumByName( "CoosysEpoch" )
+                                 .getValue() );
+
             RowSequence rseq = stab.getRowSequence();
             RowSequence rstep = tab.getData().getRowSequence();
             List rows = new ArrayList();

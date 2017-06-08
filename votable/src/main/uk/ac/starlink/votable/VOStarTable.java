@@ -98,12 +98,25 @@ public class VOStarTable extends AbstractStarTable {
     public final static ValueInfo DATATYPE_INFO = new DefaultValueInfo(
         "Datatype", String.class, "VOTable data type name" );
 
+    /** ValueInfo for COOSYS <tt>system</tt> attribute. */
+    public final static ValueInfo COOSYS_SYSTEM_INFO = new DefaultValueInfo(
+        "CoosysSystem", String.class, "Sky coordinate system name from COOSYS");
+  
+    /** ValueInfo for COOSYS <tt>epoch</tt> attribute. */
+    public final static ValueInfo COOSYS_EPOCH_INFO = new DefaultValueInfo(
+        "CoosysEpoch", String.class, "Sky epoch from COOSYS" );
+
+    /** ValueInfo for COOSYS <tt>equinox</tt> attribute. */
+    public final static ValueInfo COOSYS_EQUINOX_INFO = new DefaultValueInfo(
+        "CoosysEquinox", String.class, "Sky equinox from COOSYS" );
+
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
     private final static ValueInfo ubyteInfo = Tables.UBYTE_FLAG_INFO;
 
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        ID_INFO, DATATYPE_INFO, nullInfo, XTYPE_INFO, ubyteInfo,
-        WIDTH_INFO, PRECISION_INFO, REF_INFO, TYPE_INFO,
+        DATATYPE_INFO, nullInfo, XTYPE_INFO,
+        COOSYS_SYSTEM_INFO, COOSYS_EPOCH_INFO, COOSYS_EQUINOX_INFO,
+        ubyteInfo, WIDTH_INFO, PRECISION_INFO, ID_INFO, REF_INFO, TYPE_INFO,
     } );
 
     /**
@@ -222,6 +235,25 @@ public class VOStarTable extends AbstractStarTable {
                 if ( field.hasAttribute( "xtype" ) ) {
                     xtype = field.getAttribute( "xtype" );
                     auxdata.add( new DescribedValue( XTYPE_INFO, xtype ) );
+                }
+
+                VOElement coosys = field.getCoosys();
+                if ( coosys != null ) {
+                    if ( coosys.hasAttribute( "system" ) ) {
+                        String system = coosys.getAttribute( "system" );
+                        auxdata.add( new DescribedValue( COOSYS_SYSTEM_INFO,
+                                                         system ) );
+                    }
+                    if ( coosys.hasAttribute( "epoch" ) ) {
+                        String epoch = coosys.getAttribute( "epoch" );
+                        auxdata.add( new DescribedValue( COOSYS_EPOCH_INFO,
+                                                         epoch ) );
+                    }
+                    if ( coosys.hasAttribute( "equinox" ) ) {
+                        String equinox = coosys.getAttribute( "equinox" );
+                        auxdata.add( new DescribedValue( COOSYS_EQUINOX_INFO,
+                                                         equinox ) );
+                    }
                 }
 
                 if ( field.hasAttribute( "ref" ) ) {
