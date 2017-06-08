@@ -3,6 +3,7 @@ package uk.ac.starlink.votable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -36,6 +37,8 @@ import uk.ac.starlink.votable.dom.DelegatingElement;
 public class VOElement extends DelegatingElement {
 
     private final int iseq_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
      * Constructs a VOElement from a DOM element.
@@ -277,6 +280,44 @@ public class VOElement extends DelegatingElement {
      */
     public int getElementSequence() {
         return iseq_;
+    }
+
+    /**
+     * Returns an element from the same document whose ID-typed attribute
+     * matches the value of a given (reference) attribute of this element.
+     * The result is constrained to have a particular tag name;
+     * if no such element exists, null is returned.
+     *
+     * @param  refAtt   name of referencing attribute of this element
+     * @param  votagname  the unqualified element name in the VOTable
+     *         namespace required (such as "TABLE")
+     * @return   element with required tag name, or null
+     */
+    public VOElement getReferencedElement( String refAtt, String votagname ) {
+        if ( hasAttribute( refAtt ) ) {
+            String ref = getAttribute( refAtt );
+            Document doc = getOwnerDocument();
+            if ( ref != null && ref.trim().length() > 0 && doc != null ) {
+                Element refEl = doc.getElementById( ref );
+                if ( refEl instanceof VOElement &&
+                     votagname.equals( getVOTagName( refEl ) ) ) {
+                    return (VOElement) refEl;
+                }
+                else if ( refEl == null ) {
+                    String msg = new StringBuffer()
+                        .append( "Failed to find element referenced from <" )
+                        .append( getTagName() )
+                        .append( " " )
+                        .append( refAtt )
+                        .append( "='" )
+                        .append( ref )
+                        .append( "'/>" )
+                        .toString();
+                    logger_.warning( msg );
+                }
+            }
+        }
+        return null;
     }
 
     /**
