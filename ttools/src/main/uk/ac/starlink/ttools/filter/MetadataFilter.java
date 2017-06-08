@@ -134,7 +134,14 @@ public class MetadataFilter extends BasicFilter {
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) {
                 MapGroup group = metadataMapGroup( base );
-                group.setKeyOrder( Arrays.asList( DEFAULT_INFOS ) );
+                List<ValueInfo> seq = new ArrayList<ValueInfo>();
+                seq.addAll( Arrays.asList( DEFAULT_INFOS ) );
+                for ( Object aux : base.getColumnAuxDataInfos() ) {
+                    if ( aux instanceof ValueInfo ) {
+                        seq.add( (ValueInfo) aux );
+                    }
+                }
+                group.setKeyOrder( seq );
                 group.setKnownKeys( Arrays.asList( getKeys( group, items ) ) );
                 AbstractStarTable table = new ValueInfoMapGroupTable( group );
                 table.setParameters( base.getParameters() );
