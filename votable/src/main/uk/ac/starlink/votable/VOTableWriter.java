@@ -43,6 +43,11 @@ import uk.ac.starlink.util.IOUtils;
  *     <code>Short</code> or <code>short[]</code>, the data will be written 
  *     with <code>datatype="unsignedByte"</code> instead of
  *     (signed 16-bit) <code>"short"</code>.</li>
+ * <li>Various of the <code>*_INFO</code> items defined in the
+ *     {@link uk.ac.starlink.votable.VOStarTable} class;
+ *     this has the effect that VOTable column attributes read in from
+ *     a VOTable will be passed through if the same table is written
+ *     out to a VOTable (or VOTable-based format like FITS-plus).</li>
  * </ul>
  *
  * @author   Mark Taylor (Starlink)
