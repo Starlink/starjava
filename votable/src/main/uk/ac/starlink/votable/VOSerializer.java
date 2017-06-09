@@ -449,12 +449,10 @@ public abstract class VOSerializer {
      * @param  atts  Map of name,value pairs
      * @return  a string of name="value" assignments
      */
-    private static String formatAttributes( Map atts ) {
+    private static String formatAttributes( Map<String,String> atts ) {
         StringBuffer sbuf = new StringBuffer();
-        for ( Iterator it = new TreeSet( atts.keySet() ).iterator();
-              it.hasNext(); ) {
-            String attname = (String) it.next();
-            String attval = (String) atts.get( attname );
+        for ( String attname : new TreeSet<String>( atts.keySet() ) ) {
+            String attval = atts.get( attname );
             sbuf.append( formatAttribute( attname, attval ) );
         }
         return sbuf.toString();
@@ -468,7 +466,8 @@ public abstract class VOSerializer {
      * @param  writer    destination stream
      */
     private static void writeFieldElement( BufferedWriter writer,
-                                           String content, Map attributes )
+                                           String content,
+                                           Map<String,String> attributes )
             throws IOException {
         writer.write( "<FIELD" + formatAttributes( attributes ) );
         if ( content != null && content.length() > 0 ) {
@@ -696,7 +695,7 @@ public abstract class VOSerializer {
             Encoder encoder = encoders[ icol ];
             if ( encoder != null ) {
                 String content = encoder.getFieldContent();
-                Map atts = encoder.getFieldAttributes();
+                Map<String,String> atts = encoder.getFieldAttributes();
                 writeFieldElement( writer, content, atts );
             }
             else {
@@ -978,7 +977,7 @@ public abstract class VOSerializer {
                         Encoder.getEncoder( getTable().getColumnInfo( icol ),
                                             true, false );
                     String content = encoder.getFieldContent();
-                    Map atts = encoder.getFieldAttributes();
+                    Map<String,String> atts = encoder.getFieldAttributes();
 
                     /* Modify the datatype attribute to match what the FITS
                      * serializer will write. */
