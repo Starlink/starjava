@@ -38,6 +38,7 @@ import uk.ac.starlink.table.TableSequence;
  */
 public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
 
+    private VOTableVersion votVersion_;
     private static String XML_ENCODING = "UTF-8";
     private static Logger logger =
         Logger.getLogger( "uk.ac.starlink.votable" );
@@ -49,6 +50,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      */
     protected VOTableFitsTableWriter( String formatName ) {
         super( formatName );
+        votVersion_ = VOTableVersion.getDefaultVersion();
     }
 
     public void writeStarTables( TableSequence tableSeq, OutputStream out )
@@ -58,12 +60,11 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
          * This does have negative implications for scalability
          * (can't stream one table at a time), but it's necessary
          * to write the header. */
-        List tableList = new ArrayList();
+        List<StarTable> tableList = new ArrayList<StarTable>();
         for ( StarTable table; ( table = tableSeq.nextTable() ) != null; ) {
             tableList.add( table );
         }
-        StarTable[] tables =
-            (StarTable[]) tableList.toArray( new StarTable[ 0 ] );
+        StarTable[] tables = tableList.toArray( new StarTable[ 0 ] );
         int ntable = tables.length;
         FitsTableSerializer[] fitsers = new FitsTableSerializer[ ntable ];
         for ( int i = 0; i < ntable; i++ ) {
@@ -84,6 +85,16 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
 
         /* Tidy up. */
         dout.flush();
+    }
+
+    /**
+     * Sets the version of the VOTable standard to use for encoding metadata
+     * in the primary HDU.
+     *
+     * @param   votVersion   VOTable version to use
+     */
+    public void setVotableVersion( VOTableVersion votVersion ) {
+        votVersion_ = votVersion;
     }
 
     /**
@@ -146,21 +157,20 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         /* Turn it into a BufferedWriter. */
         BufferedWriter writer = new BufferedWriter( textWriter );
 
+        /* Get an object that knows how to write a VOTable document. */
+        VOTableWriter votWriter =
+            new VOTableWriter( (DataFormat) null, false, votVersion_ );
+
         /* Output preamble. */
-        writer.write( "<?xml version='1.0' encoding='" + XML_ENCODING + "'?>" );
-        writer.newLine();
-        writer.write( "<VOTABLE version='1.1'>" );
-        writer.newLine();
-        writer.write( "<!--" );
-        writer.newLine();
-        writer.write( " !  VOTable written by " +
-                      VOSerializer.formatText( this.getClass().getName() ) );
-        writer.newLine();
-        writer.write( " !  Describes BINTABLE extensions in following HDUs" );
-        writer.newLine();
-        writer.write( " !-->" );
-        writer.newLine();
-        writer.write( "<RESOURCE>" );
+        votWriter.writePreTableXML( writer );
+        String comment = new StringBuffer()
+            .append( "<!-- " )
+            .append( "Describes BINTABLE extensions in the following " )
+            .append( ntable == 1 ? "HDU" : ( ntable + " HDUs" ) )
+            .append( "." )
+            .append( "-->" )
+            .toString();
+        writer.write( comment );
         writer.newLine();
 
         /* Output table elements containing the metadata with the help of
@@ -170,31 +180,14 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
             FitsTableSerializer fitser = fitsers[ i ];
             VOSerializer voser =
                 VOSerializer.makeFitsSerializer( tables[ i ], fitsers[ i ] );
-            writer.write( "<TABLE" );
-            String tname = table.getName();
-            if ( tname != null && tname.trim().length() > 0 ) {
-                writer.write( voser.formatAttribute( "name", tname.trim() ) );
-            }
-            long nrow = fitser.getRowCount();
-            if ( nrow > 0 ) {
-                writer.write( voser.formatAttribute( "nrows",
-                                                     Long.toString( nrow ) ) );
-            }
-            writer.write( ">" );
-            writer.newLine();
-            voser.writeDescription( writer );
-            voser.writeParams( writer );
-            voser.writeFields( writer );
+            voser.writePreDataXML( writer );
             writer.write( "<!-- Dummy VOTable - no DATA element -->" );
             writer.newLine();
-            writer.write( "</TABLE>" );
-            writer.newLine();
+            voser.writePostDataXML( writer );
         }
 
         /* Output trailing tags and flush. */
-        writer.write( "</RESOURCE>" );
-        writer.newLine();
-        writer.write( "</VOTABLE>" );
+        votWriter.writePostTableXML( writer );
         writer.flush();
 
         /* Get a byte array containing the VOTable text. */

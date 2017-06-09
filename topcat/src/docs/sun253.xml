@@ -24423,6 +24423,9 @@ introduced since the last version:
     <li>Fix bug in Statistics Window table export/import actions;
         it was failing if the Sum statistic was included in the presence of
         boolean columns.</li>
+    <li>Slight changes to the FITS-plus output handler VOTable formatting
+        in the primary HDU; now uses default output VOTable version
+        rather than VOTable 1.1.</li>
     </ul>
     </p></dd>
 
