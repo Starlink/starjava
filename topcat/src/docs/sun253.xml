@@ -24431,6 +24431,11 @@ introduced since the last version:
         (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
          <code>CoosysEquinox</code>)
         in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+    <li>Any columns referencing <code>COOSYS</code> elements 
+        read from VOTable-based formats (VOTable or FITS-plus) 
+        will now be written out to VOTable-based formats with
+        equivalent COOSYS references included.  
+        Currently not table parameters though.</li>
     </ul>
     </p></dd>
 

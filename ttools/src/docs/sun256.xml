@@ -11102,6 +11102,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
          <code>CoosysEquinox</code>)
         e.g. using the <ref id="meta"><code>meta</code></ref> filter.</li>
+    <li>Any columns referencing <code>COOSYS</code> elements
+        read from VOTable-based formats (VOTable or FITS-plus)
+        will now be written out to VOTable-based formats with
+        equivalent COOSYS references included.
+        Currently not table parameters though.</li>
     </ul>
     </p></dd>
 

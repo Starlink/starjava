@@ -9,10 +9,13 @@ import java.io.Writer;
 import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
@@ -43,14 +46,17 @@ import uk.ac.starlink.util.IntList;
  * @author   Mark Taylor (Starlink)
  */
 public abstract class VOSerializer {
+
     private final StarTable table_;
     private final DataFormat format_;
     private final List paramList_;
     private final String ucd_;
     private final String utype_;
     private final String description_;
+    final Map<Coosys,String> coosysMap_;
 
     final static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
+    private static final AtomicLong idSeq_ = new AtomicLong();
 
     /**
      * Constructs a new serializer which can write a given StarTable.
@@ -99,6 +105,36 @@ public abstract class VOSerializer {
         description_ = description;
         ucd_ = ucd;
         utype_ = utype;
+
+        /* Get a base identifier that can be used to prepend to XML ID values.
+         * As long as this is unique per output XML document,
+         * ID namespace clashes can be avoided.
+         * We do it here by incrementing a static variable.
+         * That is not absolutely 100% bulletproof, but it will give
+         * a value that's unique per JVM, so as long as you're not using
+         * multiple JVMs to put together a single VOTable document,
+         * (or, more likely, combining generated XML with unedited XML
+         * pulled in from a previously generated VOTable document)
+         * you should be OK.
+         * It would be possible to make this approach more robust
+         * by initialising the idSeq_ variable with some kind of
+         * pseudo-random value. */
+        String baseId = "t" + Long.toString( idSeq_.incrementAndGet() );
+
+        /* Prepare COOSYS elements.  Identify the materially different
+         * COOSYS elements that will be required, and store them as keys
+         * in a map, with values that are newly constructed but
+         * unique-per-JVM identifiers, for later use. */
+        coosysMap_ = new LinkedHashMap<Coosys,String>();
+        int ncol = table.getColumnCount();
+        int ics = 0;
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            Coosys coosys = Coosys.getCoosys( table.getColumnInfo( ic ) );
+            if ( coosys != null && ! coosysMap_.containsKey( coosys ) ) {
+                String id = baseId + "-coosys-" + ++ics;
+                coosysMap_.put( coosys, id );
+            }
+        }
     }
 
     /**
@@ -236,11 +272,18 @@ public abstract class VOSerializer {
             if ( encoder != null ) {
                 String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
+                Map<String,String> attMap = new LinkedHashMap<String,String>();
 
+                /* Note that in practice, the COOSYS elements will not be
+                 * used here, since at present the ValueInfo object
+                 * defining the PARAM, unlike ColumnInfo objects defining
+                 * FIELDs, does not have the aux metadata items
+                 * required for storing COOSYS metadata.  This is probably
+                 * a STIL design fault. */
+                attMap.putAll( getFieldAttributes( encoder, coosysMap_ ) );
+                attMap.put( "value", valtext );
                 writer.write( "<PARAM" );
-                writer.write( formatAttributes( encoder
-                                               .getFieldAttributes() ) );
-                writer.write( formatAttribute( "value", valtext ) );
+                writer.write( formatAttributes( attMap ) );
                 if ( content.length() > 0 ) {
                     writer.write( ">" );
                     writer.write( content );
@@ -297,10 +340,31 @@ public abstract class VOSerializer {
     /**
      * Outputs the TABLE element start tag and all of its content before
      * the DATA element.
+     * Other items legal where a TABLE can appear may be prepended
+     * if required.
      *
      * @param   writer  output stream
      */
     public void writePreDataXML( BufferedWriter writer ) throws IOException {
+
+        /* If we have COOSYS elements, write them.  The schema constrains
+         * where these are allowed to go.  Although in some cases they
+         * can go on their own before a TABLE element, depending on what
+         * comes before that might not be allowed.  It's always safe
+         * (at least in VOTable 1.2+, though not 1.1) to wrap them
+         * in their own RESOURCE at the same level as a TABLE. */
+        if ( coosysMap_.size() > 0 ) {
+            writer.write( "<RESOURCE>" );
+            writer.newLine();
+            for ( Map.Entry<Coosys,String> entry : coosysMap_.entrySet() ) {
+                Coosys coosys = entry.getKey();
+                String id = entry.getValue();
+                writer.write( "  " + coosys.toXml( id ) );
+                writer.newLine();
+            }
+            writer.write( "</RESOURCE>" );
+            writer.newLine();
+        }
 
         /* Output TABLE element start tag. */
         writer.write( "<TABLE" );
@@ -349,7 +413,6 @@ public abstract class VOSerializer {
         writer.write( "</TABLE>" );
         writer.newLine();
     }
-
 
     /**
      * Turns a name,value pair into an attribute assignment suitable for
@@ -685,9 +748,12 @@ public abstract class VOSerializer {
      *
      * @param  encoders  the list of encoders (some may be null)
      * @param  table   the table being serialized
+     * @param  coosysMap  Coosys-&gt;ID map for COOSYS elements
+     *                    that will be available
      * @param  writer  destination stream
      */
     private static void outputFields( Encoder[] encoders, StarTable table,
+                                      Map<Coosys,String> coosysMap,
                                       BufferedWriter writer )
             throws IOException {
         int ncol = encoders.length;
@@ -695,7 +761,8 @@ public abstract class VOSerializer {
             Encoder encoder = encoders[ icol ];
             if ( encoder != null ) {
                 String content = encoder.getFieldContent();
-                Map<String,String> atts = encoder.getFieldAttributes();
+                Map<String,String> atts =
+                    getFieldAttributes( encoder, coosysMap );
                 writeFieldElement( writer, content, atts );
             }
             else {
@@ -719,7 +786,7 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), writer );
+            outputFields( encoders, getTable(), coosysMap_, writer );
         }
      
         public void writeInlineDataElement( BufferedWriter writer )
@@ -865,7 +932,7 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), writer );
+            outputFields( encoders, getTable(), coosysMap_, writer );
         }
 
         public void streamData( DataOutput out ) throws IOException {
@@ -900,7 +967,7 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), writer );
+            outputFields( encoders, getTable(), coosysMap_, writer );
         }
 
         public void streamData( DataOutput out ) throws IOException {
@@ -977,7 +1044,8 @@ public abstract class VOSerializer {
                         Encoder.getEncoder( getTable().getColumnInfo( icol ),
                                             true, false );
                     String content = encoder.getFieldContent();
-                    Map<String,String> atts = encoder.getFieldAttributes();
+                    Map<String,String> atts =
+                        getFieldAttributes( encoder, coosysMap_ );
 
                     /* Modify the datatype attribute to match what the FITS
                      * serializer will write. */
@@ -1073,6 +1141,122 @@ public abstract class VOSerializer {
         }
         public void write(int b) throws IOException {
             writer.write( b );
+        }
+    }
+
+    /**
+     * Returns the attributes required for a FIELD parameter given the
+     * Encoder being used to write the column in question.
+     *
+     * @param  encoder   encoder to write FIELD data
+     * @param  csmap    Coosys-&gt;ID map for COOSYS elements that will be
+     *                  available in the output document
+     * @return   map of FIELD attribute name-&gt;value pairs
+     */
+    private static Map<String,String>
+            getFieldAttributes( Encoder encoder, Map<Coosys,String> csmap ) {
+
+        /* Query encoder for basic items. */
+        Map<String,String> map = encoder.getFieldAttributes();
+
+        /* Add a ref attribute pointing to a COOSYS element if one
+         * that matches the requirements of the element in question
+         * has been provided.  Note this relies on the fact that
+         * the Coosys class has suitable equality semantics. */
+        ValueInfo info = encoder.getInfo();
+        if ( info instanceof ColumnInfo && csmap != null ) {
+            Coosys coosys = Coosys.getCoosys( (ColumnInfo) info );
+            if ( coosys != null ) {
+                String csid = csmap.get( coosys );
+                if ( csid != null ) {
+                    map.put( "ref", csid );
+                }
+            }
+        }
+        return map;
+    }
+
+    /**
+     * Represents a COOSYS element.
+     * The implementation is just a very thin wrapper round a
+     * name-&gt;value attribute map.
+     * The equals and hashMap methods are implemented such that
+     * instances with the same attribute values will evaluate as equal.
+     */
+    private static class Coosys {
+        private final Map<String,String> attMap_;
+
+        /**
+         * Constructor.
+         *
+         * @param   attMap  attribute name-&gt;value map,
+         *                  <em>excluding</em> the ID attribute
+         */
+        private Coosys( Map<String,String> attMap ) {
+            attMap_ = Collections.unmodifiableMap( attMap );
+        }
+
+        /**
+         * Returns the XML serialization of this object as a COOSYS element.
+         *
+         * @param   id  value of ID attribute
+         * @return  COOSYS element serialization
+         */
+        public String toXml( String id ) {
+            return new StringBuffer()
+                  .append( "<COOSYS" )
+                  .append( formatAttribute( "ID", id ) )
+                  .append( formatAttributes( attMap_ ) )
+                  .append( "/>" )
+                  .toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return attMap_.hashCode();
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof Coosys ) {
+                Coosys other = (Coosys) o;
+                return this.attMap_.equals( other.attMap_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        /**
+         * Returns the Coosys object corresponding to a given ColumnInfo,
+         * if COOSYS metadata is present.
+         *
+         * @param  cinfo  column metadata
+         * @retun   coosys object, or null if none required
+         */
+        public static Coosys getCoosys( ColumnInfo cinfo ) {
+            Map<String,String> map = new LinkedHashMap<String,String>();
+            addAtt( map, cinfo, VOStarTable.COOSYS_SYSTEM_INFO, "system" );
+            addAtt( map, cinfo, VOStarTable.COOSYS_EPOCH_INFO, "epoch" );
+            addAtt( map, cinfo, VOStarTable.COOSYS_EQUINOX_INFO, "equinox" );
+            return map.size() > 0 ? new Coosys( map ) : null;
+        }
+
+        /**
+         * Utility method to add an item to the coosys attribute map
+         * given column metadata.
+         *
+         * @param  map    attribute map to augment
+         * @param  cinfo  column metadata
+         * @param  key    column info aux metadata key for a String item
+         * @param  attname  name of entry in attribute map
+         */
+        private static void addAtt( Map<String,String> map, ColumnInfo cinfo,
+                                    ValueInfo key, String attname ) {
+            String value = (String) cinfo.getAuxDatumValue( key, String.class );
+            if ( value != null && value.trim().length() > 0 ) {
+                map.put( attname, value );
+            }
         }
     }
 }

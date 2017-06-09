@@ -43,7 +43,11 @@ import uk.ac.starlink.util.IOUtils;
  *     <code>Short</code> or <code>short[]</code>, the data will be written 
  *     with <code>datatype="unsignedByte"</code> instead of
  *     (signed 16-bit) <code>"short"</code>.</li>
- * <li>Various of the <code>*_INFO</code> items defined in the
+ * <li>The <code>COOSYS_*_INFO</code> items defined in the
+ *     {@link uk.ac.starlink.votable.VOStarTable} class;
+ *     suitable COOSYS elements will be written and referenced as required
+ *     to honour these items.</li>
+ * <li>Various other of the <code>*_INFO</code> items defined in the
  *     {@link uk.ac.starlink.votable.VOStarTable} class;
  *     this has the effect that VOTable column attributes read in from
  *     a VOTable will be passed through if the same table is written
