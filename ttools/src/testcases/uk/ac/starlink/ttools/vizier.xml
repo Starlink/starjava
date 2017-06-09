@@ -10,7 +10,12 @@
 
 <DEFINITIONS>
   <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
+
+  <!-- Two missing COOSYS's added below to avoid warnings during tests. -->
+  <COOSYS ID="B1900"/>
+  <COOSYS ID="B1950"/>
 </DEFINITIONS>
+
 
 
 <!-- Parameters used for the Query:
