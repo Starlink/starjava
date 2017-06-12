@@ -226,7 +226,7 @@ public abstract class GbinStarTable extends AbstractStarTable {
      *
      * @param  profile  configures how Gaia objects will be mapped to columns
      * @param  gobjClazz   class of all objects representing rows
-     * @param  collection of typed objects, one for each table row
+     * @param  gobjList  collection of typed objects, one for each table row
      * @return   sequential-access table based on array of gaia objects
      */
     public static <T> GbinStarTable
