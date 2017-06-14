@@ -525,9 +525,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                      * the fixed icon here. */
                     else {
                         Icon plot = executor.createPlotIcon( dataStore );
-                        long start = System.currentTimeMillis();
                         painter.paintPicture( PlotUtil.toPicture( plot ) );
-                        PlotUtil.logTimeFromStart( logger_, "Plot", start );
                     }
                 }
             };
@@ -2486,6 +2484,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             public void paintIcon( Component c, Graphics g, int x, int y ) {
                 g.translate( x, y );
                 Shape clip = g.getClip();
+                long planMillis = 0;
+                long paintMillis = 0;
                 for ( int iz = 0; iz < nz; iz++ ) {
                     ZoneContent content = contents[ iz ];
                     PlotLayer[] layers = content.getLayers();
@@ -2509,12 +2509,18 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                          ! clip.intersects( surface.getPlotBounds() ) ) {
                         layers = new PlotLayer[ 0 ];
                     }
+                    long planStart = System.currentTimeMillis();
                     Icon zicon =
                         PlotUtil
                        .createPlotIcon( placer, layers, auxRangeList.get( iz ),
                                         dataStore, paperType, cached, planSet );
+                    planMillis += System.currentTimeMillis() - planStart;
+                    long paintStart = System.currentTimeMillis();
                     zicon.paintIcon( c, g, 0, 0 );
+                    paintMillis += System.currentTimeMillis() - paintStart;
                 }
+                PlotUtil.logTimeElapsed( logger_, "Plan", planMillis );
+                PlotUtil.logTimeElapsed( logger_, "Paint", paintMillis );
                 g.translate( -x, -y );
             }
         };

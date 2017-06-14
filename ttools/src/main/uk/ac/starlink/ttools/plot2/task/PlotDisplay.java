@@ -365,7 +365,7 @@ public class PlotDisplay<P,A> extends JComponent {
         gang_ = gang;
 
         /* Create plot icons. */
-        long cacheStart = System.currentTimeMillis();
+        long planStart = System.currentTimeMillis();
         for ( int iz = 0; iz < nz_; iz++ ) {
             Zone<P,A> zone = zones_[ iz ];
             if ( zone.icon_ == null ) {
@@ -397,7 +397,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                              cacheImage_, zone.plans_ );
             }
         }
-        PlotUtil.logTimeFromStart( logger_, "Cache", cacheStart );
+        PlotUtil.logTimeFromStart( logger_, "Plan", planStart );
 
         /* Paint the image to this component. */
         long paintStart = System.currentTimeMillis();

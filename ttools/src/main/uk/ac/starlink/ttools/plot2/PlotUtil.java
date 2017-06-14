@@ -610,7 +610,6 @@ public class PlotUtil {
         if ( storedPlans != null ) {
             knownPlans.addAll( storedPlans );
         }
-        long t1 = System.currentTimeMillis();
         for ( int il = 0; il < nl; il++ ) {
             drawings[ il ] = layers[ il ]
                             .createDrawing( surface, auxRanges, paperType );
@@ -618,7 +617,6 @@ public class PlotUtil {
                                                         dataStore );
             knownPlans.add( plans[ il ] );
         }
-        PlotUtil.logTimeFromStart( logger_, "Plans", t1 );
         if ( storedPlans != null ) {
             storedPlans.clear();
             storedPlans.addAll( new HashSet<Object>( Arrays.asList( plans ) ) );
