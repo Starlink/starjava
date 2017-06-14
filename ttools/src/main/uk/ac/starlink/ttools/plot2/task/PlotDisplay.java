@@ -397,7 +397,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                              cacheImage_, zone.plans_ );
             }
         }
-        PlotUtil.logTime( logger_, "Cache", cacheStart );
+        PlotUtil.logTimeFromStart( logger_, "Cache", cacheStart );
 
         /* Paint the image to this component. */
         long paintStart = System.currentTimeMillis();
@@ -411,7 +411,7 @@ public class PlotDisplay<P,A> extends JComponent {
         if ( navDecoration_ != null ) {
             navDecoration_.paintDecoration( g );
         }
-        PlotUtil.logTime( logger_, "Paint", paintStart );
+        PlotUtil.logTimeFromStart( logger_, "Paint", paintStart );
     }
 
     /**
@@ -653,7 +653,7 @@ public class PlotDisplay<P,A> extends JComponent {
         Range[] ranges = surfFact.useRanges( profile, config )
                        ? surfFact.readRanges( profile, layers, dataStore )
                        : null;
-        PlotUtil.logTime( logger_, "Range", t0 );
+        PlotUtil.logTimeFromStart( logger_, "Range", t0 );
 
         /* Work out the initial aspect using config. */
         A aspect = surfFact.createAspect( profile, config, ranges );
@@ -730,7 +730,7 @@ public class PlotDisplay<P,A> extends JComponent {
                            : null;
             aspects[ iz ] = surfFact.createAspect( profile, config, ranges );
         }
-        PlotUtil.logTime( logger_, "Range", t0 );
+        PlotUtil.logTimeFromStart( logger_, "Range", t0 );
  
         /* Construct and return display. */
         return new PlotDisplay<P,A>( ganger, surfFact, nz, contents,
@@ -787,7 +787,7 @@ public class PlotDisplay<P,A> extends JComponent {
         Map<AuxScale,Range> auxDataRanges =
             AuxScale.calculateAuxRanges( calcScales, layers, surface, plans,
                                          dataStore );
-        PlotUtil.logTime( logger_, "AuxRange", start );
+        PlotUtil.logTimeFromStart( logger_, "AuxRange", start );
 
         /* Combine all the gathered information to acquire actual
          * data ranges for the plot. */

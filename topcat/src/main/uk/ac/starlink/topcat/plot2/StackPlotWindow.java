@@ -1322,7 +1322,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                         return null;
                     }
                 }
-                PlotUtil.logTime( logger_, "Count", start );
+                PlotUtil.logTimeFromStart( logger_, "Count", start );
                 return TopcatUtils.formatLong( count ) + " / "
                      + TopcatUtils.formatLong( total );
             }
@@ -1407,7 +1407,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                         return null;
                     }
                 }
-                PlotUtil.logTime( logger_, "Subset", start );
+                PlotUtil.logTimeFromStart( logger_, "Subset", start );
                 return maskMap;
             }
         } );

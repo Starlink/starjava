@@ -183,22 +183,37 @@ public class PlotUtil {
     }
 
     /**
-     * Writes message through the logging system
-     * about the time a named step has taken.
+     * Writes a message through the logging system
+     * about the supplied elapsed time a named step has taken.
+     * If the elapsed time is zero, nothing is logged.
+     *
+     * @param  logger   log message destination
+     * @param  phase  name of step to log time of
+     * @param  elapsed   elapsed time to report (generally milliseconds)
+     */
+    public static void logTimeElapsed( Logger logger, String phase,
+                                       long elapsed ) {
+        if ( elapsed > 0 ) {
+            logger.info( phase + " time: " + elapsed );
+        }
+    }
+
+    /**
+     * Writes a message through the logging system
+     * about the elapsed time a named step has taken given a start time.
      * The elapsed time is presumed to be the time between the supplied
      * time and the time when this method is called.
-     * If the elapsed time is zero, nothing is logged.
+     * If the elapsed time is zero (to the nearest millisecond),
+     * nothing is logged.
      *
      * @param  logger   log message destination
      * @param  phase  name of step to log time of
      * @param  start   start {@link java.lang.System#currentTimeMillis
      *                              currentTimeMillis}
      */
-    public static void logTime( Logger logger, String phase, long start ) {
-        long time = System.currentTimeMillis() - start;
-        if ( time > 0 ) {
-            logger.info( phase + " time: " + time );
-        }
+    public static void logTimeFromStart( Logger logger, String phase,
+                                         long start ) {
+        logTimeElapsed( logger, phase, System.currentTimeMillis() - start );
     }
 
     /**
@@ -603,7 +618,7 @@ public class PlotUtil {
                                                         dataStore );
             knownPlans.add( plans[ il ] );
         }
-        PlotUtil.logTime( logger_, "Plans", t1 );
+        PlotUtil.logTimeFromStart( logger_, "Plans", t1 );
         if ( storedPlans != null ) {
             storedPlans.clear();
             storedPlans.addAll( new HashSet<Object>( Arrays.asList( plans ) ) );

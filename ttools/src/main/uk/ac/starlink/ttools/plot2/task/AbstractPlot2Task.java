@@ -527,7 +527,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         Icon plot = executor.createPlotIcon( dataStore );
                         long start = System.currentTimeMillis();
                         painter.paintPicture( PlotUtil.toPicture( plot ) );
-                        PlotUtil.logTime( logger_, "Plot", start );
+                        PlotUtil.logTimeFromStart( logger_, "Plot", start );
                     }
                 }
             };
@@ -651,7 +651,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         long start = System.currentTimeMillis();
                         Icon plot = executor.createPlotIcon( dstore );
                         painter.paintPicture( PlotUtil.toPicture( plot ) );
-                        PlotUtil.logTime( logger_, "Plot " + outName, start );
+                        PlotUtil.logTimeFromStart( logger_, "Plot " + outName,
+                                                   start );
                         return null;
                     }
                 } );
@@ -1227,7 +1228,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 long t0 = System.currentTimeMillis();
                 DataStore store =
                     storeFact.readDataStore( dataSpecs, prevStore );
-                PlotUtil.logTime( logger_, "Data", t0 );
+                PlotUtil.logTimeFromStart( logger_, "Data", t0 );
                 return store;
             }
 
@@ -2467,7 +2468,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 shadeAxes[ iz ] = shadeFact.createShadeAxis( shadeRange );
             }
         }
-        PlotUtil.logTime( logger_, "Range", start );
+        PlotUtil.logTimeFromStart( logger_, "Range", start );
 
         /* Work out plot bounds. */
         final Gang gang =

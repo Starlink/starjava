@@ -1172,7 +1172,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             /* Do a dummy plot using that data store. */
             if ( createWorkings( countStore, rowStep, null, -1 ) != null ) {
-                PlotUtil.logTime( logger_, "CountProgress", cStart );
+                PlotUtil.logTimeFromStart( logger_, "CountProgress", cStart );
 
                 /* If successful, interrogate the data store for the number
                  * of tuples that [would have] got read. */
@@ -1215,7 +1215,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 long startData = System.currentTimeMillis();
                 DataStore dataStore =
                     storeFact_.readDataStore( dataSpecs, oldDataStore );
-                PlotUtil.logTime( logger_, "Data", startData );
+                PlotUtil.logTimeFromStart( logger_, "Data", startData );
                 return dataStore;
             }
         }
@@ -1318,7 +1318,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 aspects[ iz ] = aspect;
                 geomRanges[ iz ] = gRanges;
             }
-            PlotUtil.logTime( logger_, "Range", startRange );
+            PlotUtil.logTimeFromStart( logger_, "Range", startRange );
             aspects = ganger_.adjustAspects( aspects, -1 );
 
             /* Collect previously calculated plans, which may be able to
@@ -1446,7 +1446,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 auxDataRangeMaps[ iz ] = auxDataRangeMap;
                 auxClipRangeMaps[ iz ] = auxClipRangeMap;
             }
-            PlotUtil.logTime( logger_, "AuxRange", startAux );
+            PlotUtil.logTimeFromStart( logger_, "AuxRange", startAux );
 
             /* Now we have enough information for the actual gang geometry. */
             if ( gang == null ) {
@@ -1598,10 +1598,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 }
                 zoneWorks[ iz ] = zoneWork;
             }
-            long now = System.currentTimeMillis();
-            PlotUtil.logTime( logger_, "Plan", now - planMillis );
-            PlotUtil.logTime( logger_, "Paint", now - paintMillis );
-            long plotMillis = now - startPlot;
+            PlotUtil.logTimeElapsed( logger_, "Plan", planMillis );
+            PlotUtil.logTimeElapsed( logger_, "Paint", paintMillis );
+            long plotMillis = System.currentTimeMillis() - startPlot;
 
             /* Construct and return an object containing the workings
              * for all zones, unless it's exactly the same as last time,
