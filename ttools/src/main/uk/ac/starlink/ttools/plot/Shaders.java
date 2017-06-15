@@ -516,21 +516,43 @@ public class Shaders {
      * @param  name   name
      * @param  color0  colour corresponding to parameter value 0
      * @param  color1  colour corresponding to parameter value 1
+     * @return  shader
      */
-    public static Shader createInterpolationShader( final String name,
+    public static Shader createInterpolationShader( String name,
                                                     Color color0,
                                                     Color color1 ) {
         final float[] rgba0 = color0.getRGBComponents( null );
         final float[] rgba1 = color1.getRGBComponents( null );
-        return new BasicShader( name ) {
+
+        /* Optimisation, since calculations are simpler for two colours.
+         * This still benefits from the equality semantics of
+         * InterpolationShader though. */
+        return new InterpolationShader( name, new Color[] { color0, color1 } ) {
+            @Override
             public void adjustRgba( float[] rgba, float value ) {
-                for ( int i = 0; i < 3; i++ ) {
+                for ( int i = 0; i < 4; i++ ) {
                     float f0 = rgba0[ i ];
                     float f1 = rgba1[ i ];
                     rgba[ i ] = f0 + ( f1 - f0 ) * value;
                 }
             }
         };
+    }
+
+    /**
+     * Constructs a shader which interpolates between a sequence of colours.
+     * The shading is defined by a sequence of linear segments.
+     *
+     * @param  name   name
+     * @param  colors  sequence of colours; value 0 corresponds to the
+     *                 first colour and value 1 corresponds to the last
+     * @return  shader
+     */
+    public static Shader createInterpolationShader( final String name,
+                                                    Color[] colors ) {
+        return colors.length == 2
+             ? createInterpolationShader( name, colors[ 0 ], colors[ 1 ] )
+             : new InterpolationShader( name, colors );
     }
 
     /**
@@ -939,6 +961,72 @@ public class Shaders {
             if ( o instanceof FadeShader ) {
                 FadeShader other = (FadeShader) o;
                 return Arrays.equals( this.fadeRgba_, other.fadeRgba_ );
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Shader implementation that fades between a list of colours
+     * using linear interpolation between each pair.
+     */
+    private static class InterpolationShader extends BasicShader {
+        private final float[][] rgbas_;
+        private final int nRange_;
+        private final float fRange_;
+        private final float[] rgbaMax_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  shader name
+         * @param  colors   list of colours; value 0 corresponds to first one,
+         *                  value 1 corresponds to last
+         */
+        InterpolationShader( String name, Color[] colors ) {
+            super( name );
+            int nc = colors.length;
+            nRange_ = nc - 1;
+            fRange_ = 1f / nRange_;
+            rgbas_ = new float[ nc ][];
+            for ( int ic = 0; ic < nc; ic++ ) {
+                rgbas_[ ic ] = colors[ ic ].getRGBComponents( null );
+            }
+            rgbaMax_ = rgbas_[ nc - 1 ];
+        }
+
+        public void adjustRgba( float[] rgba, float value ) {
+            if ( value >= 1 ) {
+                for ( int i = 0; i < 4; i++ ) {
+                    rgba[ i ] = rgbaMax_[ i ];
+                }
+            }
+            else {
+                int ic0 = (int) ( nRange_ * value );
+                int ic1 = ic0 + 1;
+                float v = nRange_ * ( value % fRange_ );
+                float[] rgba0 = rgbas_[ ic0 ];
+                float[] rgba1 = rgbas_[ ic1 ];
+                for ( int i = 0; i < 4; i++ ) {
+                    float f0 = rgba0[ i ];
+                    float f1 = rgba1[ i ];
+                    rgba[ i ] = f0 + ( f1 - f0 ) * v;
+                }
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.deepHashCode( rgbas_ );
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof InterpolationShader ) {
+                InterpolationShader other = (InterpolationShader) o;
+                return Arrays.deepEquals( this.rgbas_, other.rgbas_ );
             }
             else {
                 return false;
