@@ -11107,6 +11107,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         will now be written out to VOTable-based formats with
         equivalent COOSYS references included.
         Currently not table parameters though.</li>
+    <li>Colour map parameters
+        (<code>auxmap</code>, <code>densemapN</code> etc)
+        for the <code>plot2*</code> commands
+        will now accept custom colour maps that interpolate between
+        a list of named colours,
+        e.g. "<code>HotPink-yellow-SkyBlue</code>".</li>
     </ul>
     </p></dd>
 

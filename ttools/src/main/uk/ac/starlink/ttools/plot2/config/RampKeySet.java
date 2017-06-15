@@ -59,18 +59,14 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         }
         shaderList.addAll( Arrays.asList( Shaders.getCustomShaders() ) );
 
-        shaderKey_ = new ShaderConfigKey(
-            new ConfigMeta( axname + "map", axName + " Shader" )
-           .setShortDescription( "Color map for " + axName + " shading" )
-           .setXmlDescription( new String[] {
-                "<p>Color map used for",
-                axName,
-                "axis shading.",
-                "</p>",
-            } )
-            , shaderList.toArray( new Shader[ 0 ] ), shaderList.get( 0 )
-        ).appendShaderDescription()
-         .setOptionUsage();
+        ConfigMeta shaderMeta = 
+            ShaderConfigKey
+           .createAxisMeta( axname + "map", axName + " Shader", axName );
+        shaderKey_ =
+            new ShaderConfigKey( shaderMeta,
+                                 shaderList.toArray( new Shader[ 0 ] ),
+                                 shaderList.get( 0 ) )
+           .appendShaderDescription();
         keyList.add( shaderKey_ );
 
         ConfigMeta shadeclipMeta =
