@@ -1716,6 +1716,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         S style;
         try {
             style = splotter.createStyle( config );
+            assert style.equals( splotter.createStyle( config ) );
         }
         catch ( ConfigException e ) {
             throw new UsageException( e.getConfigKey().getMeta().getShortName()
