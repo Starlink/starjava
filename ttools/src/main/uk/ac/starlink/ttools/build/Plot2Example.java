@@ -1186,10 +1186,10 @@ public class Plot2Example {
                 "*densemap1=viridis",
             } ),
             createShadingExample( "aux", c, new String[] {
-                "*aux1=z",
+                "*aux1=z", "*auxmap=plasma",
             } ),
             createShadingExample( "weighted", c, new String[] {
-                "*weight1=z",
+                "*weight1=z", "*auxmap=plasma",
             } ),
         };
     }
