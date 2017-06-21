@@ -14,6 +14,7 @@ import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
@@ -544,9 +545,8 @@ public class ColumnDataComboBoxModel
             model_ = model;
             parent_ = parent;
             base_ = new JComboBox().getEditor();
-            Component editor = base_.getEditorComponent();
-            okColor_ = editor.getForeground();
-            errColor_ = Color.GRAY;
+            okColor_ = UIManager.getColor( "ComboBox.foreground" );
+            errColor_ = UIManager.getColor( "ComboBox.disabledForeground" );
         }
 
         public void setItem( Object obj ) {
