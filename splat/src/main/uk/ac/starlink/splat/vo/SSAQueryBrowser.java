@@ -578,10 +578,11 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         metaPanel = new SSAMetadataPanel();
         metaPanel.addPropertyChangeListener(this);
 
-        Boolean found=true;
+       
         if (serverList==null) {
-            this.serverList=new SSAServerList(null);        
-            found=false;
+            SSAServerTable tmp = new SSAServerTable();
+            StarTable table = tmp.queryRegistryWhenServersNotFound();  
+            this.serverList=new SSAServerList(table);        
         }
         
         initUI();
@@ -589,13 +590,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         this.setVisible(true);
         initMenusAndToolbar();
         initFrame(); 
-        
-        if (!found) {
-            StarTable table = serverPanel.queryRegistryWhenServersNotFound();  
-	    serverPanel.updateServers(table);
-            serverPanel.setServerList(new SSAServerList(table));            
-        }
-       
+               
     }
 
     public SSAPAuthenticator getAuthenticator() {
@@ -1403,7 +1398,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         SSAPRegResource server = null;
         while( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
-            if (server != null )
+            if (server != null ) {
                 try {
                     
                     if (serverPanel.isServerSelected(server.getShortName())) {
@@ -1433,6 +1428,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                     ErrorDialog.showError( this, "Exception", npe );
                     npe.printStackTrace();
                 }
+            }
 
         }//while
 
@@ -1884,7 +1880,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     {
         try {
             SSAQueryBrowser b =
-                    new SSAQueryBrowser( new SSAServerList(), null );
+                    new SSAQueryBrowser( new SSAServerList(true), null );
             b.pack();
             b.setVisible( true );
         }
@@ -2230,8 +2226,10 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         Iterator srv=serverList.getIterator();
         while ( srv.hasNext() ) {    
             SSAPRegResource server = (SSAPRegResource) srv.next();
-            if (serverPanel.isServerSelected(server.getShortName())) {
+            if ( server != null  ) {
+                if (serverPanel.isServerSelected(server.getShortName())) {
                     metaPanel.addParams((ArrayList<MetadataInputParameter>) server.getMetadata());
+                }
             }
         }            
         metaPanel.setVisible(true);
@@ -2291,14 +2289,15 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         while( i.hasNext() ) {
 
             final SSAPRegResource server = (SSAPRegResource) i.next();
-            final ProgressPanel metadataProgressPanel = new ProgressPanel( "Querying: " + server.getShortName());
-            metadataProgressFrame.addProgressPanel( metadataProgressPanel );
-            //final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(server, workQueue);
-            final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(workQueue, server, metadataProgressPanel);
-            queryWorker.start();
-            final MetadataProcessWorker processWorker  = new MetadataProcessWorker(workQueue);           
-            processWorker.start();
-
+            if (server != null ) {
+                 ProgressPanel metadataProgressPanel = new ProgressPanel( "Querying: " + server.getShortName());
+                 metadataProgressFrame.addProgressPanel( metadataProgressPanel );
+                 //final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(server, workQueue);
+                   final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(workQueue, server, metadataProgressPanel);
+                   queryWorker.start();
+                   final MetadataProcessWorker processWorker  = new MetadataProcessWorker(workQueue);           
+                   processWorker.start();
+            }
         }// while
 
     } // customParameters

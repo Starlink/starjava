@@ -121,6 +121,14 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
     /**
      * Create an instance.
      */
+    public SSAServerTable()
+    {
+        super();
+    }  
+    
+    /**
+     * Create an instance.
+     */
     public SSAServerTable( SSAServerList list )
     {
         super(list);
@@ -312,7 +320,6 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
                 
         StarTable table = null;
         try {
-                 
             table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.SSAP), new StarTableFactory() );
          }
         catch ( IOException e ) {

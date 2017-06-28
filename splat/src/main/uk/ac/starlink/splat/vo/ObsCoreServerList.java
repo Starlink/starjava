@@ -10,6 +10,7 @@ public class ObsCoreServerList extends AbstractServerList {
 
     public ObsCoreServerList() throws SplatException {
         super();
+        restoreKnownServers();
     }
     
     public ObsCoreServerList(StarTable table) {

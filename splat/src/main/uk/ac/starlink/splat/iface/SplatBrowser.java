@@ -1932,7 +1932,7 @@ public class SplatBrowser
     {
         if ( ssapBrowser == null ) {
             try {
-                ssapBrowser = new SSAQueryBrowser( new SSAServerList(), this );
+                ssapBrowser = new SSAQueryBrowser( new SSAServerList(true), this );
                 authenticator = ssapBrowser.getAuthenticator();
             }
             catch (SplatException e) {

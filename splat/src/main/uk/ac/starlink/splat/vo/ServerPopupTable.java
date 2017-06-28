@@ -64,6 +64,15 @@ import uk.ac.starlink.table.StarTable;
                                  "data source", "creation type", "stantardid", "version", "subjects"};//, "tags"};
 
 
+     public ServerPopupTable() {
+         super();       
+         try {
+            serverList=new SSAServerList(false);
+        } catch (SplatException e) {
+            // 
+        }            
+     }
+
      public ServerPopupTable(AbstractServerList list) {
          super();       
          serverList=list;
@@ -71,7 +80,6 @@ import uk.ac.starlink.table.StarTable;
          sortTableAlphabetically();
              
      }
-
     /* 
      * Populate 
      * fills the table with the values of serverList
@@ -86,44 +94,46 @@ import uk.ac.starlink.table.StarTable;
         model.setColumnIdentifiers(headers);
         
         Iterator<?>  i =  serverList.getIterator();
-
+        
         
         while( i.hasNext()) {
+
             SSAPRegResource server= (SSAPRegResource) i.next(); 
-          
-            SSAPRegCapability caps[] = server.getCapabilities();
-            String[] tablerow = new String[headers.length];
-            
-            String name = server.getShortName(); 
-            if ( name == null )
-                name = server.getTitle();
-            else {
-                name = name.trim();
-                if (name.isEmpty()) { // actually shortname should not be empty, but there are empty shortnames...
+            if (server != null) {
+                SSAPRegCapability caps[] = server.getCapabilities();
+                String[] tablerow = new String[headers.length];
+
+                String name = server.getShortName(); 
+                if ( name == null )
                     name = server.getTitle();
+                else {
                     name = name.trim();
+                    if (name.isEmpty()) { // actually shortname should not be empty, but there are empty shortnames...
+                        name = server.getTitle();
+                        name = name.trim();
+                    }
                 }
+
+                tablerow[SHORTNAME_INDEX] = name;
+                tablerow[TITLE_INDEX] = server.getTitle();
+                tablerow[IDENTIFIER_INDEX] = server.getIdentifier();
+                tablerow[PUBLISHER_INDEX] = server.getPublisher();
+                tablerow[CONTACT_INDEX] =server.getContact();//.replace('<', ' ').replace('>',' ');
+                tablerow[REFURL_INDEX] = server.getReferenceUrl();
+
+                tablerow[WAVEBAND_INDEX] = stringJoin(server.getWaveband());
+                tablerow[CONTTYPE_INDEX] = server.getContentType();
+                tablerow[SUBJECTS_INDEX] =  stringJoin(server.getSubjects());
+                SSAPRegCapability cap = caps[0]; 
+                tablerow[ACCESSURL_INDEX] = cap.getAccessUrl();
+                tablerow[DESCRIPTION_INDEX] = cap.getDescription(); 
+                tablerow[DATASOURCE_INDEX] = cap.getDataSource(); 
+                tablerow[CREATIONTYPE_INDEX] = cap.getCreationType();
+                tablerow[STDID_INDEX] = cap.getStandardId(); 
+                tablerow[VERSION_INDEX] = cap.getVersion();
+
+                model.addRow(tablerow);    
             }
-                      
-            tablerow[SHORTNAME_INDEX] = name;
-            tablerow[TITLE_INDEX] = server.getTitle();
-            tablerow[IDENTIFIER_INDEX] = server.getIdentifier();
-            tablerow[PUBLISHER_INDEX] = server.getPublisher();
-            tablerow[CONTACT_INDEX] =server.getContact();//.replace('<', ' ').replace('>',' ');
-            tablerow[REFURL_INDEX] = server.getReferenceUrl();
-            
-            tablerow[WAVEBAND_INDEX] = stringJoin(server.getWaveband());
-            tablerow[CONTTYPE_INDEX] = server.getContentType();
-            tablerow[SUBJECTS_INDEX] =  stringJoin(server.getSubjects());
-            SSAPRegCapability cap = caps[0]; 
-            tablerow[ACCESSURL_INDEX] = cap.getAccessUrl();
-            tablerow[DESCRIPTION_INDEX] = cap.getDescription(); 
-            tablerow[DATASOURCE_INDEX] = cap.getDataSource(); 
-            tablerow[CREATIONTYPE_INDEX] = cap.getCreationType();
-            tablerow[STDID_INDEX] = cap.getStandardId(); 
-            tablerow[VERSION_INDEX] = cap.getVersion();
-          
-            model.addRow(tablerow);          
         }
                
         this.setModel(model);

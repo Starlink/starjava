@@ -108,6 +108,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
        // tagsFile = getTagsFilename();
         serviceType = getServiceType();        
         serverTags = new ServerTags(getTagsFilename());
+        serverTable = new ServerPopupTable();
        //tagsMap = new HashMap<String,ArrayList<String>>();
        // serverTagsMap = new HashMap<String,ArrayList<String>>();     
         
@@ -339,7 +340,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         
 
         //  Add action to just delete all servers.
-        DeleteAction deleteAction = new DeleteAction( "Delete all" );
+      //  DeleteAction deleteAction = new DeleteAction( "Delete all" );
         
         //  Add action to manually add a new server to the list
         AddNewAction addNewAction = new AddNewAction( "Add New Server" );
@@ -353,8 +354,8 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         gbc.gridx=1;
         botActionBar.add(addServerButton, gbc);
  //       optionsMenu.add( deleteAction );
-        JButton deleteButton = new JButton( deleteAction );
-        deleteButton.setToolTipText( "Delete all servers from current list" );
+    //    JButton deleteButton = new JButton( deleteAction );
+    //    deleteButton.setToolTipText( "Delete all servers from current list" );
 
         //  Finish action bars.
           gbc.gridx=0;
@@ -532,11 +533,11 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     /**
      *  Remove all servers.
      */
-    protected void deleteServers()
-    {
-        serverTable.removeAll();
-      
-    }
+  //  protected void deleteServers()
+ //   {
+ //       serverTable.get();
+ //     
+ //   }
  
     /**
      * Initialise the window to insert a new server to the list.
@@ -1062,7 +1063,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     /**
      * Inner class defining action for deleting all known servers.
      */
-    @SuppressWarnings("serial")
+/*    @SuppressWarnings("serial")
     protected class DeleteAction
         extends AbstractAction
     {
@@ -1075,7 +1076,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
             deleteServers();
         }
     }
-    
+  */  
     /**
      * Inner class defining action for adding a new server to the list
      */

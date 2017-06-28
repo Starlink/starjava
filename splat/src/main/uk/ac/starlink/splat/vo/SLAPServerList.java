@@ -10,6 +10,7 @@ public class SLAPServerList extends AbstractServerList {
 
     public SLAPServerList() throws SplatException {
         super();
+        restoreKnownServers();
     }
     public SLAPServerList(StarTable table)  
     {    

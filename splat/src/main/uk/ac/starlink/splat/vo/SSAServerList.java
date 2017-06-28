@@ -28,7 +28,7 @@ import uk.ac.starlink.table.StarTable;
  */
 public class SSAServerList extends AbstractServerList
 {
-    private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
+   // private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
    
  //   private HashMap<String, Boolean> selectionList = new HashMap<String, Boolean>();
     private static final String oldconfigFile = "SSAPServerListV3.xml";
@@ -36,10 +36,12 @@ public class SSAServerList extends AbstractServerList
  //   private  static final String defaultFile = "serverlist.xml";
     
 
-    public SSAServerList()
+    public SSAServerList(boolean restore)
         throws SplatException
     {
         super();
+        if (restore)
+            restoreKnownServers();
     }
     
     public SSAServerList(StarTable table)  //throws SplatException

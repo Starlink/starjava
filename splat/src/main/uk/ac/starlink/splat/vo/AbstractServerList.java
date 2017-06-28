@@ -46,8 +46,6 @@ public abstract class AbstractServerList {
     protected AbstractServerList()
             throws SplatException
     {
-        restoreKnownServers();
-        
     }
 
 
@@ -168,10 +166,13 @@ public abstract class AbstractServerList {
         if (shortname != null)
             shortname = shortname.trim();
         else shortname = server.getTitle();
-        SSAPRegResource resource = serverList.get(shortname);
-        if (resource != null && ! resource.getIdentifier().equals( server.getIdentifier()) ) { // there could be more than one service with same shortname
-            shortname=shortname+"+";
-            server.setShortName(shortname);
+        SSAPRegResource resource = serverList.get(shortname); 
+        if (resource != null ) { // check if there is already a resource with same shortname
+            String ident = resource.getIdentifier();    
+            if (ident != null && ident.equals( server.getIdentifier()) ) { // same identifier (other capability)     
+                shortname=shortname+"+";
+                server.setShortName(shortname);
+            }
         }
         serverList.put( shortname, server );
         if ( save ) {
@@ -216,7 +217,8 @@ public abstract class AbstractServerList {
      */
     public Iterator<SSAPRegResource> getIterator()
     {
-        return serverList.values().iterator();
+        
+        return (Iterator<SSAPRegResource>) serverList.values().iterator();
     }
 
     /**
@@ -395,7 +397,8 @@ public abstract class AbstractServerList {
         while ( true ) {
             try {
                 server = (SSAPRegResource) decoder.readObject();
-                addServer(server, false);
+                if (server != null)
+                    addServer(server, false);
 
                 // serverList.put( name, server );
                 //selectionList.put(name, true );
@@ -463,13 +466,15 @@ public abstract class AbstractServerList {
 
         while ( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
-            try {
-                SSAPRegResource resource = new SSAPRegResource( server );
-                encoder.writeObject( resource );
-                //   encoder.writeObject( resource.getMetadata());
-            }
-            catch (Exception e) {
-                e.printStackTrace();
+            if (server != null) {
+                try {
+                    SSAPRegResource resource = new SSAPRegResource( server );
+                    encoder.writeObject( resource );
+                    //   encoder.writeObject( resource.getMetadata());
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         encoder.close();

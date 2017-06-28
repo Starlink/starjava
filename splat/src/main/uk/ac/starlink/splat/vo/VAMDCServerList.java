@@ -11,6 +11,7 @@ public class VAMDCServerList extends AbstractServerList {
 
     public VAMDCServerList( ) throws SplatException  {
         super();
+        restoreKnownServers();
     }
     
     public VAMDCServerList(StarTable table )  {
