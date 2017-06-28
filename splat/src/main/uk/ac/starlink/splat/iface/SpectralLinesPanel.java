@@ -1,6 +1,7 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -29,6 +30,7 @@ import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.LineIDTableSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
+import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.LineBrowser;
@@ -163,11 +165,12 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
         setBorder(BorderFactory.createEtchedBorder() );
         //  List of regions of spectrum where to search for lines.
       
-        rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu );
+        rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu, Color.LIGHT_GRAY, true ); 
        // rangeList.setPreferredSize(new Dimension(380,150));
         rangePanel = new JPanel();
         rangePanel.add(rangeList, BorderLayout.PAGE_START);    
         rangeList.setPreferredSize(new Dimension(320,120));
+      
        
         JPanel elementQueryPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc1 = new GridBagConstraints();
