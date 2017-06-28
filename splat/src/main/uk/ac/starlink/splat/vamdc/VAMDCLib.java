@@ -1,6 +1,7 @@
 package uk.ac.starlink.splat.vamdc;
 
 import java.beans.IntrospectionException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.ArrayList;
@@ -112,26 +113,34 @@ public class VAMDCLib {
      */
     public StarTable getResultStarTable(String query, InputStream inps ) throws Exception { 
          
+       // if (  inps.available()  > 0)
+       //     throw new IOException( "Empty results");
         ArrayList<SpectralLine> lines = new ArrayList<SpectralLine>();
-        XSAMSParser  xsams;
+        XSAMSParser  xsams = null;
         try {
             xsams = new XSAMSParser(inps); 
-            inps.close();
+            
         } catch (JAXBException e) {
-            Logger.info(this, "JAXBException: "+e.getMessage());
-            e.printStackTrace();
+          //  Logger.info(this, "JAXBException: "+e.getMessage());
+           // e.printStackTrace();
+            inps.close();
             throw e;
-            //return null;
         }
         catch (Exception e) {
             Logger.info(this, "Exception: "+e.getMessage());
-            e.printStackTrace();
+           // e.printStackTrace();
+            inps.close();
             throw e;
-            //return null;
         }
-        lines = xsams.getSpectralLines();
-        if (lines == null || lines.isEmpty())
+        inps.close();
+        
+        if (xsams == null )
             return null;
+        
+        lines = xsams.getSpectralLines();
+        if ( lines.isEmpty())
+            return null;
+        
         VoTableTranslator votable = new VoTableTranslator(lines, query);
         
         return makeStarTable(votable, lines);
