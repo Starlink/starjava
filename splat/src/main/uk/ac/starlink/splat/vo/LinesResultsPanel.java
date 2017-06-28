@@ -20,6 +20,7 @@ public class LinesResultsPanel extends ResultsPanel {
 
     private JButton changeColourButton=null;
     LineBrowser slQueryBrowser=null;
+    private JButton removeLinesButton;
     
     public LinesResultsPanel(LineBrowser browser) {
             super();
@@ -77,6 +78,15 @@ public class LinesResultsPanel extends ResultsPanel {
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
         
+        removeLinesButton = new JButton( "<html>Remove<BR>lines</html>" );
+        removeLinesButton.addActionListener(new LineAction());
+        removeLinesButton.setMargin(new Insets(1,10,1,10));  
+        removeLinesButton.setToolTipText
+        ( "remove lines from plot" );
+     //   controlPanel2.add( deselectAllButton );
+        gbcontrol.gridx=6;
+        controlPanel.add( removeLinesButton , gbcontrol);
+        
         changeColourButton = new JButton( "<html>Change<BR> colour </html>" );
         changeColourButton.addActionListener(new LineAction());
         changeColourButton.setMargin(new Insets(1,10,1,10));  
@@ -84,7 +94,7 @@ public class LinesResultsPanel extends ResultsPanel {
         ( "Change lines colours (random)" );
      //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=5;
-        controlPanel.add( deselectAllButton , gbcontrol);
+      //  controlPanel.add( deselectAllButton , gbcontrol);
         
         return controlPanel;
     }
@@ -129,6 +139,14 @@ public class LinesResultsPanel extends ResultsPanel {
     {
         
         public void actionPerformed( ActionEvent e) {
+           
+            // button actions
+            if (e.getSource() == removeLinesButton) {
+                    slQueryBrowser.removeLinesFromPlot( );
+                    return;
+            }
+            
+            // popup menu actions
             JMenuItem jmi  = (JMenuItem) e.getSource();
             JPopupMenu jpm = (JPopupMenu) jmi.getParent();
             StarPopupTable table = (StarPopupTable) jpm.getInvoker();
@@ -143,7 +161,7 @@ public class LinesResultsPanel extends ResultsPanel {
             }   
             else if (e.getActionCommand().startsWith("Display all lines")) {
                slQueryBrowser.displayLines( table.getStarTable() );
-            }   
+            }  
             else if (e.getActionCommand().contains("colour")) {
                // slQueryBrowser.changecolour( table.getStarTable() );//!!! implement colour change
              }   
