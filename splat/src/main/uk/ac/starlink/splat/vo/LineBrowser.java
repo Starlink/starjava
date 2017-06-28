@@ -282,7 +282,8 @@ public class LineBrowser extends JFrame implements  MouseListener {
            and=" AND ";
        }
        if (! element.isEmpty()) {
-           request += and+"( AtomSymbol = \'"+element+  "\' )";
+           request += and+"(( AtomSymbol = \'"+element+  "\' )";
+           request += " or ( MoleculeStoichiometricFormula = \'"+element+  "\' ))";
            and=" AND ";
        }
        if (! stage.isEmpty()) {
@@ -348,11 +349,13 @@ public class LineBrowser extends JFrame implements  MouseListener {
             queryURL = new URL(query);
             con = queryURL.openConnection();
         } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Logger.info(this, "Malformed query URL");
+            progressPanel.logMessage("Error");
+            return;
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Logger.info(this, "IO Exception when creating query URL");
+            progressPanel.logMessage("Error");
+            return;
         }
         
         if ( con instanceof HttpURLConnection ) {
@@ -360,10 +363,11 @@ public class LineBrowser extends JFrame implements  MouseListener {
             try {
                 code = ((HttpURLConnection)con).getResponseCode();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Logger.info(this, e.getMessage());
+                return;
             }
 
+            
             if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
                     code == HttpURLConnection.HTTP_MOVED_TEMP ||
                     code == HttpURLConnection.HTTP_SEE_OTHER ) {
@@ -374,15 +378,26 @@ public class LineBrowser extends JFrame implements  MouseListener {
                     newurl = new URL(newloc);
                     con = newurl.openConnection();
                 } catch (MalformedURLException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Logger.info(this, "Malformed query URL");
+                    progressPanel.logMessage("Error");
+                    return;
+                   
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Logger.info(this, "IO Exception when creating query URL");
+                    progressPanel.logMessage("Error");
+                  
+                    return;
                 }
+            }
+            if ( code == HttpURLConnection.HTTP_NO_CONTENT) {
+                Logger.info(this, "Query returned no content");
+                progressPanel.logMessage("NO CONTENT");
+                return;
             }
 
         }
+       
+
 
         StarTable startable = null;
         con.setConnectTimeout(10 * 1000); // 10 seconds
@@ -408,7 +423,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
             progressPanel.logMessage(msg);
             
         }
-      
+        
         if ( startable != null &&  startable.getRowCount() > 0 ) {
             StarPopupTable ptable = new StarPopupTable( startable, true );         
                  
@@ -529,6 +544,12 @@ public class LineBrowser extends JFrame implements  MouseListener {
  */ 
     public PlotControl getPlot() {
         return this.plot;
+    }
+
+    public void removeLinesFromPlot() {
+        if (currentLines != null) {
+            plot.removeSpectrum(currentLines);
+        }       
     }
 
  
