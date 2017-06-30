@@ -4,7 +4,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
@@ -547,7 +549,7 @@ public abstract class BintableStarTable extends AbstractStarTable
      */
     private static class RandomBintableStarTable extends BintableStarTable {
         private final InputFactory inputFact_;
-        private final BasicInput randomInput_;
+        private final BasicInputThreadLocal randomInputThreadLocal_;
         private final int rowLength_;
         private final int[] colOffsets_;
 
@@ -568,7 +570,8 @@ public abstract class BintableStarTable extends AbstractStarTable
             }
             rowLength_ = getRowLength();
             colOffsets_ = getColumnOffsets();
-            randomInput_ = inputFact.createInput( false );
+            randomInputThreadLocal_ =
+                new BasicInputThreadLocal( inputFact, false );
         }
 
         public boolean isRandom() {
@@ -576,17 +579,15 @@ public abstract class BintableStarTable extends AbstractStarTable
         }
 
         public Object getCell( long lrow, int icol ) throws IOException {
-            synchronized ( randomInput_ ) {
-                randomInput_.seek( lrow * rowLength_ + colOffsets_[ icol ] );
-                return readCell( randomInput_, icol );
-            }
+            BasicInput randomInput = randomInputThreadLocal_.get();
+            randomInput.seek( lrow * rowLength_ + colOffsets_[ icol ] );
+            return readCell( randomInput, icol );
         }
 
         public Object[] getRow( long lrow ) throws IOException {
-            synchronized ( randomInput_ ) {
-                randomInput_.seek( lrow * rowLength_ );
-                return readRow( randomInput_ );
-            }
+            BasicInput randomInput = randomInputThreadLocal_.get();
+            randomInput.seek( lrow * rowLength_ );
+            return readRow( randomInput );
         }
 
         public RowSequence getRowSequence() throws IOException {
@@ -624,7 +625,7 @@ public abstract class BintableStarTable extends AbstractStarTable
         }
 
         public void close() throws IOException {
-            randomInput_.close();
+            randomInputThreadLocal_.close();
             inputFact_.close();
         }
     }
