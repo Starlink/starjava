@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
@@ -645,14 +647,19 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
      */
     public static StarTableWriter[] getStarTableWriters() {
         VOTableVersion version = VOTableVersion.getDefaultVersion();
-        DataFormat binFormat = version.allowBinary2() ? DataFormat.BINARY2
-                                                      : DataFormat.BINARY;
-        return new StarTableWriter[] {
-            new VOTableWriter( DataFormat.TABLEDATA, true ),
-            new VOTableWriter( binFormat, true ),
-            new VOTableWriter( DataFormat.FITS, false ),
-            new VOTableWriter( binFormat, false ),
-            new VOTableWriter( DataFormat.FITS, true ),
-        };
+        List<StarTableWriter> wlist = new ArrayList<StarTableWriter>();
+        wlist.add( new VOTableWriter( DataFormat.TABLEDATA, true, version ) );
+        wlist.add( new VOTableWriter( DataFormat.BINARY, true, version ) );
+        if ( version.allowBinary2() ) {
+           wlist.add( new VOTableWriter( DataFormat.BINARY2, true, version ) );
+        }
+        wlist.add( new VOTableWriter( DataFormat.FITS, false, version ) );
+        wlist.add( new VOTableWriter( DataFormat.BINARY, false, version ) );
+        if ( version.allowBinary2() ) {
+            wlist.add( new VOTableWriter( DataFormat.BINARY2, false,
+                                          version ) );
+        }
+        wlist.add( new VOTableWriter( DataFormat.FITS, true ) );
+        return wlist.toArray( new StarTableWriter[ 0 ] );
     }
 }
