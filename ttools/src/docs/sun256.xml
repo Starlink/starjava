@@ -1058,7 +1058,7 @@ on the command line is equivalent to having the following in your
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>",
     "<code>1.2</code>" or "<code>1.3</code>".
-    By default, version 1.2 VOTables are written.
+    By default, version 1.3 VOTables are written.
     </p></dd>
 
 </dl>
@@ -2120,16 +2120,32 @@ Matching is case-insensitive.
 <dt><code>votable-binary-inline</code></dt>
 <dd><p>VOTable document with BINARY-encoded data inline within a 
     <code>STREAM</code> element.
-    If VOTable 1.3 output is in force
-    (see <code>votable.version</code> system property),
-    <code>votable-binary2-inline</code> is provided instead.</p></dd>
+    </p></dd>
 
 <dt><code>votable-binary-href</code></dt>
 <dd><p>VOTable document with BINARY-encoded data in a separate file
     (only if not writing to a stream).
-    If VOTable 1.3 output is in force
-    (see <code>votable.version</code> system property),
-    <code>votable-binary2-href</code> is provided instead.</p></dd>
+    </p></dd>
+
+<dt><code>votable-binary2-inline</code></dt>
+<dd><p>VOTable document with BINARY2-encoded data inline within a
+    <code>STREAM</code> element.
+    This option is only available if VOTable output version is
+    VOTable 1.3 or later.
+    VOTable 1.3 is the default;
+    see the <code>votable.version</code>
+    <ref id="sysProperties">system property</ref>.
+    </p></dd>
+
+<dt><code>votable-binary2-href</code></dt>
+<dd><p>VOTable document with BINARY-encoded data in a separate file
+    (only if not writing to a stream).
+    This option is only available if VOTable output version is
+    VOTable 1.3 or later.
+    VOTable 1.3 is the default;
+    see the <code>votable.version</code>
+    <ref id="sysProperties">system property</ref>.
+    </p></dd>
 
 <dt><code>votable-fits-href</code></dt>
 <dd><p>VOTable document with FITS-encoded data in a separate file
@@ -11113,6 +11129,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         will now accept custom colour maps that interpolate between
         a list of named colours,
         e.g. "<code>HotPink-yellow-SkyBlue</code>".</li>
+    <li>The default version for output VOTables is now VOTable 1.3.
+        New output formats <code>votable-binary2-inline</code> and
+        <code>votable-binary2-href</code> are now offered alongside
+        the five previously available VOTable variants.</li>
     </ul>
     </p></dd>
 

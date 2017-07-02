@@ -1685,9 +1685,20 @@ the table data (DATA element) is written:
 <dd><p>BINARY element containing base64-encoded data within the document
     </p></dd>
 
+<dt>votable-binary2-inline</dt>
+<dd><p>BINARY2 element containing base64-encoded data within the document.
+    Not available for VOTable version 1.2 or earlier.
+    </p></dd>
+
 <dt>votable-fits-href</dt>
 <dd><p>FITS element containing a reference to an external newly-written FITS
     file (with a name derived from that of the VOTable document)
+    </p></dd>
+
+<dt>votable-binary2-href</dt>
+<dd><p>BINARY2 element containing a reference to an external newly-written
+    binary file (with a name derived from that of the VOTable document)
+    Not available for VOTable version 1.2 or earlier.
     </p></dd>
 
 <dt>votable-binary-href</dt>
@@ -1706,9 +1717,6 @@ They can all be read by the
 <ref id="inVotable">VOTable input handler</ref>.
 </p>
 
-<p>If VOTable 1.3 output is in force, the <code>*-binary-*</code>
-options will be replaced by <code>*-binary2-*</code>.
-</p>
 
 </subsubsubsect>
 
@@ -4562,7 +4570,7 @@ The following ones have special significance within TOPCAT:
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>", 
     "<code>1.2</code>" or "<code>1.3</code>".
-    By default, version 1.2 VOTables are written.
+    By default, version 1.3 VOTables are written.
     </p></dd>
 
 </dl>
@@ -24436,6 +24444,10 @@ introduced since the last version:
         will now be written out to VOTable-based formats with
         equivalent COOSYS references included.  
         Currently not table parameters though.</li>
+    <li>The default version for output VOTables is now VOTable 1.3.
+        New output formats <code>votable-binary2-inline</code> and
+        <code>votable-binary2-href</code> are now offered alongside
+        the five previously available VOTable variants.</li>
     </ul>
     </p></dd>
 
