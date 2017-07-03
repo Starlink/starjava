@@ -86,7 +86,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     
     protected void initUI()
     {
-        this.setSize(460, 230);
+        this.setSize(500, 230);
         okImage = new ImageIcon( ImageHolder.class.getResource( "OK.gif" ) );
         notOkImage = new ImageIcon( ImageHolder.class.getResource( "notOK.gif" ) );
 
