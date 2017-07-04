@@ -108,10 +108,9 @@ defines="$defines \
 
 # icon for Mac
 showIcon="";
-if [[ $OSTYPE == darwin* ]]; then
-showIcon="-Xdock:icon=$SPLAT_DIR/../../etc/icons/splat.png";
-fi
-
+case "$OSTYPE" in
+  darwin*) showIcon="-Xdock:icon=$SPLAT_DIR/../../etc/icons/splat.png";;
+esac
 
 #  Locate the "starjava" command. This should be in ".." or on the 
 #  PATH. "starjava" also defines the LD_LIBRARY_PATH to locate the
