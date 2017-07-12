@@ -11133,6 +11133,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         New output formats <code>votable-binary2-inline</code> and
         <code>votable-binary2-href</code> are now offered alongside
         the five previously available VOTable variants.</li>
+    <li>Taplint no longer issues a warning about DataModel references
+        that do not match the <code>vr:IdentifierURI</code> type;
+        this follows TAPRegExt Erratum #1.</li>
     </ul>
     </p></dd>
 
