@@ -51,4 +51,28 @@ public class PaddingParameter extends Parameter<Padding> {
         }
         return new Padding( ivals[ 0 ], ivals[ 1 ], ivals[ 2 ], ivals[ 3 ] );
     }
+
+    @Override
+    public String objectToString( Environment env, Padding padding ) {
+        String spad = new StringBuffer()
+            .append( toString( padding.getTop() ) )
+            .append( "," )
+            .append( toString( padding.getLeft() ) )
+            .append( "," )
+            .append( toString( padding.getBottom() ) )
+            .append( "," )
+            .append( toString( padding.getRight() ) )
+            .toString();
+        return spad.equals( ",,," ) ? null : spad;
+    }
+
+    /**
+     * Turns an Integer into a string.
+     *
+     * @param  value  value to convert
+     * @return   string value of integer, or empty string for null
+     */
+    private static String toString( Integer value ) {
+        return value == null ? "" : value.toString();
+    }
 }
