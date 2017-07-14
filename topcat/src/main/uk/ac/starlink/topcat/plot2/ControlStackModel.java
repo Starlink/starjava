@@ -115,7 +115,7 @@ public class ControlStackModel extends AbstractListModel {
                 LayerControl lc = (LayerControl) control;
                 if ( ! activeOnly ||
                      ( isControlActive( lc ) &&
-                       lc.getPlotLayers().length > 0 ) ) {
+                       lc.getLayers().length > 0 ) ) {
                     list.add( lc );
                 }
             }

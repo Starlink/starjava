@@ -728,8 +728,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         List<PlotLayer> layerList = new ArrayList<PlotLayer>();
         LayerControl[] controls = stackModel_.getLayerControls( activeOnly );
         for ( int ic = 0; ic < controls.length; ic++ ) {
-            PlotLayer[] layers = controls[ ic ].getPlotLayers();
-            layerList.addAll( Arrays.asList( layers ) );
+            for ( TopcatLayer tcLayer : controls[ ic ].getLayers() ) {
+                layerList.add( tcLayer.getPlotLayer() );
+            }
         }
         return layerList.toArray( new PlotLayer[ 0 ] );
     }
@@ -789,7 +790,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             List<PlotLayer> layerList = new ArrayList<PlotLayer>();
             List<LegendEntry> legList = new ArrayList<LegendEntry>();
             for ( LayerControl control : controls ) {
-                layerList.addAll( Arrays.asList( control.getPlotLayers() ) );
+                for ( TopcatLayer tcLayer : control.getLayers() ) {
+                    layerList.add( tcLayer.getPlotLayer() );
+                }
                 legList.addAll( Arrays.asList( control.getLegendEntries() ) );
             }
             final PlotLayer[] layers = layerList.toArray( new PlotLayer[ 0 ] );

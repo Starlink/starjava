@@ -20,7 +20,7 @@ public interface LayerControl extends Control {
      *
      * @return  layers
      */
-    PlotLayer[] getPlotLayers();
+    TopcatLayer[] getLayers();
 
     /**
      * Returns legend entries associated with this control.

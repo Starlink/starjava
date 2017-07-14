@@ -185,15 +185,15 @@ public abstract class FormLayerControl
      */
     protected abstract boolean isControlActive( FormControl fc );
 
-    public PlotLayer[] getPlotLayers() {
+    public TopcatLayer[] getLayers() {
         RowSubset[] subsets = subStack_.getSelectedSubsets();
         GuiCoordContent[] posContents = posCoordPanel_.getContents();
         if ( tcModel_ == null || posContents == null || subsets == null ) {
-            return new PlotLayer[ 0 ];
+            return new TopcatLayer[ 0 ];
         }
         DataGeom geom = posCoordPanel_.getDataGeom();
         FormControl[] fcs = getActiveFormControls();
-        List<PlotLayer> layerList = new ArrayList<PlotLayer>();
+        List<TopcatLayer> layerList = new ArrayList<TopcatLayer>();
         for ( int is = 0; is < subsets.length; is++ ) {
             RowSubset subset = subsets[ is ];
             for ( int ifc = 0; ifc < fcs.length; ifc++ ) {
@@ -206,12 +206,12 @@ public abstract class FormLayerControl
                         new GuiDataSpec( tcModel_, subset, contents );
                     PlotLayer layer = fc.createLayer( geom, dspec, subset );
                     if ( layer != null ) {
-                        layerList.add( layer );
+                        layerList.add( new TopcatLayer( layer ) );
                     }
                 }
             }
         }
-        return layerList.toArray( new PlotLayer[ 0 ] );
+        return layerList.toArray( new TopcatLayer[ 0 ] );
     }
 
     public LegendEntry[] getLegendEntries() {
@@ -219,7 +219,7 @@ public abstract class FormLayerControl
             return new LegendEntry[ 0 ];
         }
         Map<RowSubset,List<Style>> rsetStyles =
-            getStylesBySubset( getPlotLayers() );
+            getStylesBySubset( getLayers() );
         List<LegendEntry> entries = new ArrayList<LegendEntry>();
         for ( RowSubset rset : rsetStyles.keySet() ) {
             Style[] styles = rsetStyles.get( rset ).toArray( new Style[ 0 ] );
@@ -322,15 +322,15 @@ public abstract class FormLayerControl
      * Returns all those style objects associated with a given RowSubset
      * for a given list of plot layers.
      *
-     * @param    layers  plot layers
+     * @param    tcLayers   layers
      * @return   ordered RowSubset->Styles map
      */
     private static Map<RowSubset,List<Style>>
-                   getStylesBySubset( PlotLayer[] layers ) {
+                   getStylesBySubset( TopcatLayer[] tcLayers ) {
         Map<RowSubset,List<Style>> map =
             new LinkedHashMap<RowSubset,List<Style>>();
-        for ( int il = 0; il < layers.length; il++ ) {
-            PlotLayer layer = layers[ il ];
+        for ( TopcatLayer tcLayer : tcLayers ) {
+            PlotLayer layer = tcLayer.getPlotLayer();
             DataSpec dspec = layer.getDataSpec();
             if ( dspec != null ) {
                 Object mask = dspec.getMaskId();

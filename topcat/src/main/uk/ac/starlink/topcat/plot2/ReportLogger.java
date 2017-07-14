@@ -61,7 +61,8 @@ public class ReportLogger {
             /* Only attempt any work for those map entries that correspond
              * to plot layers this object's control has issued. */
             Set<String> rstrings = new HashSet<String>();
-            for ( PlotLayer layer : control_.getPlotLayers() ) {
+            for ( TopcatLayer tcLayer : control_.getLayers() ) {
+                PlotLayer layer = tcLayer.getPlotLayer();
                 if ( layer.getPlotter().hasReports() ) {
                     ReportMap report =
                         reports.get( LayerId.createLayerId( layer ) );

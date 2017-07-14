@@ -48,14 +48,16 @@ public class DatalessLayerControl extends ConfigControl
         }
     }
 
-    public PlotLayer[] getPlotLayers() {
+    public TopcatLayer[] getLayers() {
         DataGeom geom = null;
         DataSpec dataSpec = null;
         ConfigMap config = baseConfigger_.getConfig();
         config.putAll( getConfig() );
         PlotLayer layer =
             styler_.createLayer( plotter_, geom, dataSpec, config );
-        return layer == null ? new PlotLayer[ 0 ] : new PlotLayer[] { layer };
+        return layer == null
+             ? new TopcatLayer[ 0 ]
+             : new TopcatLayer[] { new TopcatLayer( layer ) };
     }
 
     public LegendEntry[] getLegendEntries() {

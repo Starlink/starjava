@@ -206,9 +206,10 @@ public class ShaderControl extends ConfigControl {
     private static PlotLayer getFirstAuxLayer( LayerControl[] layerControls,
                                                AuxScale scale ) {
         for ( LayerControl control : layerControls ) {
-            for ( PlotLayer layer : control.getPlotLayers() ) {
-                if ( layer.getAuxRangers().containsKey( scale ) ) {
-                    return layer;
+            for ( TopcatLayer tcLayer : control.getLayers() ) {
+                PlotLayer plotLayer = tcLayer.getPlotLayer();
+                if ( plotLayer.getAuxRangers().containsKey( scale ) ) {
+                    return plotLayer;
                 }
             }
         }

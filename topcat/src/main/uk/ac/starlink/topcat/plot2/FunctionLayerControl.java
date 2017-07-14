@@ -89,10 +89,12 @@ public class FunctionLayerControl extends ConfigControl
         }
     }
 
-    public PlotLayer[] getPlotLayers() {
+    public TopcatLayer[] getLayers() {
         PlotLayer layer =
             plotter_.createLayer( null, null, getFunctionStyle( getConfig() ) );
-        return layer == null ? new PlotLayer[ 0 ] : new PlotLayer[] { layer };
+        return layer == null
+             ? new TopcatLayer[ 0 ]
+             : new TopcatLayer[] { new TopcatLayer( layer ) };
     }
 
     public LegendEntry[] getLegendEntries() {
@@ -110,8 +112,10 @@ public class FunctionLayerControl extends ConfigControl
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {
-        PlotLayer[] layers = getPlotLayers();
-        PlotLayer layer = layers.length == 1 ? layers[ 0 ] : null;
+        TopcatLayer[] tcLayers = getLayers();
+        PlotLayer layer = tcLayers.length == 1
+                        ? tcLayers[ 0 ].getPlotLayer()
+                        : null;
         if ( layer != null ) {
             ReportMap report = reports.get( LayerId.createLayerId( layer ) );
             if ( report != null ) {

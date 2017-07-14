@@ -126,11 +126,11 @@ public class BasicCoordLayerControl extends ConfigControl
         return tcModel_ == null ? "<no table>" : tcModel_.toString();
     }
 
-    public PlotLayer[] getPlotLayers() {
+    public TopcatLayer[] getLayers() {
         RowSubset subset = (RowSubset) subsetSelector_.getSelectedItem();
         GuiCoordContent[] coordContents = coordPanel_.getContents();
         if ( tcModel_ == null || coordContents == null || subset == null ) {
-            return new PlotLayer[ 0 ];
+            return new TopcatLayer[ 0 ];
         }
         DataGeom geom = coordPanel_.getDataGeom();
         DataSpec dataSpec = new GuiDataSpec( tcModel_, subset, coordContents );
@@ -138,7 +138,9 @@ public class BasicCoordLayerControl extends ConfigControl
         config.putAll( baseConfigger_.getConfig() );
         PlotLayer layer =
             styler_.createLayer( plotter_, geom, dataSpec, config );
-        return layer == null ? new PlotLayer[ 0 ] : new PlotLayer[] { layer };
+        return layer == null
+             ? new TopcatLayer[ 0 ]
+             : new TopcatLayer[] { new TopcatLayer( layer ) };
     }
 
     public String getCoordLabel( String userCoordName ) {
@@ -162,8 +164,10 @@ public class BasicCoordLayerControl extends ConfigControl
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {
-        PlotLayer[] layers = getPlotLayers();
-        PlotLayer layer = layers.length == 1 ? layers[ 0 ] : null;
+        TopcatLayer[] tcLayers = getLayers();
+        PlotLayer layer = tcLayers.length == 1
+                        ? tcLayers[ 0 ].getPlotLayer()
+                        : null;
         if ( layer != null ) {
             ReportMap report = reports.get( LayerId.createLayerId( layer ) );
             if ( report != null ) {

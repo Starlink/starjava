@@ -52,9 +52,9 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
      * @return  style or null
      */
     private Style getLegendStyle() {
-        PlotLayer[] layers = getPlotLayers();
-        if ( layers.length == 1 ) {
-            return layers[ 0 ].getStyle();
+        TopcatLayer[] tcLayers = getLayers();
+        if ( tcLayers.length == 1 ) {
+            return tcLayers[ 0 ].getPlotLayer().getStyle();
         }
         return null;
     }
