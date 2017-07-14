@@ -683,11 +683,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * Returns the bounds to use for the plot icon.
      * This includes axis decorations etc, but excludes component insets.
      *
-     * @param  plotPos   plot position including explicit settings
+     * @param  plotpos   plot position including explicit settings
      *                   for external dimensions (padding not used here)
      * @return   plot drawing bounds
      */
-    private Rectangle getOuterBounds( PlotPosition plotpos ) {
+    public Rectangle getOuterBounds( PlotPosition plotpos ) {
         Integer xpix = plotpos.getWidth();
         Integer ypix = plotpos.getHeight();
         Insets insets = getInsets();

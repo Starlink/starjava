@@ -96,6 +96,15 @@ public class MultiController<C> {
     }
 
     /**
+     * Returns this controller's config manager.
+     *
+     * @return  configger   manages global and per-zone axis config items
+     */
+    public MultiConfigger getConfigger() {
+        return configger_;
+    }
+
+    /**
      * Sets the list of zone obects that are to be visible in the current
      * state of the GUI.
      *

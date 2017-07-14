@@ -40,8 +40,7 @@ public class FrameControl extends ConfigControl {
         /* Title tab. */
         titleSpecifier_ =
             new ConfigSpecifier( new ConfigKey[] { TITLE_KEY, TITLE_VIS_KEY } );
-        addControlTab( "Title", titleSpecifier_.getComponent(), true );
-        titleSpecifier_.addActionListener( getActionForwarder() );
+        addSpecifierTab( "Title", titleSpecifier_ );
     }
 
     /**
