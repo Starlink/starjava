@@ -239,9 +239,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
          * value as text does not include spurious (and ugly) precision.
          * We do it by formatting the value using a pixel-sized value delta,
          * and turning that formatted value back into a number. */
-        int npix = slider_.getOrientation() == JSlider.HORIZONTAL
-                 ? slider_.getWidth()
-                 : slider_.getHeight();
+        int npix = getSliderPixels();
         if ( npix > 10 ) {
             int iPixStep = ( slider_.getMaximum() - slider_.getMinimum() )
                          / npix;
@@ -258,6 +256,22 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
 
         /* If something went wrong, it's OK to use the exact value. */
         return d0;
+    }
+
+    /**
+     * Returns the extent in pixels of the slider, or at least a
+     * reasonable guess.
+     *
+     * @return   reasonable value for slider extent in pixels
+     */
+    private int getSliderPixels() {
+        int npix = slider_.getOrientation() == JSlider.HORIZONTAL
+                 ? slider_.getWidth()
+                 : slider_.getHeight();
+
+        /* If the reported value is zero, it's probably because it hasn't
+         * been posted yet.  In that case use a plausible default. */
+        return npix == 0 ? 200 : npix;
     }
 
     /**
