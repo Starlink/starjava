@@ -312,7 +312,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "If multiple layers have the same label,",
             "they will contribute to the same entry in the legend,",
             "with style icons plotted over each other.",
-            "The value of this parameter is a sequence of layer suffixes,",
+            "The value of this parameter is a comma-separated sequence",
+            "of layer suffixes,",
             "which determines the order in which the legend entries appear.",
             "Layers with suffixes missing from this list",
             "do not show up in the legend at all.",
@@ -606,6 +607,84 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 };
             }
         }
+    }
+
+    /**
+     * Returns the parameter for assigning the external horizontal
+     * extent of the plot.
+     *
+     * @return  xpix parameter
+     */
+    public Parameter<Integer> getXpixParameter() {
+        return xpixParam_;
+    }
+
+    /**
+     * Returns the parameter for assigning the external vertical
+     * extent of the plot.
+     *
+     * @return  ypix parameter
+     */
+    public Parameter<Integer> getYpixParameter() {
+        return ypixParam_;
+    }
+
+    /**
+     * Returns the parameter for determining the sequence of layers
+     * appearing in the plot.
+     *
+     * @return  sequence parameter
+     */
+    public Parameter<String[]> getSequenceParameter() {
+        return seqParam_;
+    }
+
+    /**
+     * Returns the parameter for indicating whether the legend will be visible.
+     *
+     * @return  legend visible parameter
+     */
+    public Parameter<Boolean> getLegendParameter() {
+        return legendParam_;
+    }
+
+    /**
+     * Returns the parameter for indicating whether the legend border will
+     * be visible.
+     *
+     * @return  legend border parameter
+     */
+    public Parameter<Boolean> getLegendBorderParameter() {
+        return legborderParam_;
+    }
+
+    /**
+     * Returns the parameter for indicating whether the legend background
+     * will be opaque.
+     *
+     * @return  legend opaque parameter
+     */
+    public Parameter<Boolean> getLegendOpaqueParameter() {
+        return legopaqueParam_;
+    }
+
+    /**
+     * Returns the parameter for determining the sequence and inclusion
+     * of layers in the legend.
+     *
+     * @return  legend sequence parameter
+     */
+    public Parameter<String[]> getLegendSequenceParameter() {
+        return legseqParam_;
+    }
+
+    /**
+     * Returns the parameter for assigning the plot external padding.
+     *
+     * @return  padding parameter
+     */
+    public Parameter<Padding> getPaddingParameter() {
+        return paddingParam_;
     }
 
     /**
@@ -2046,7 +2125,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix, or either null or empty string for all zones
      * @return  parameter to get plot title for zone
      */
-    private Parameter<String> createTitleParameter( String suffix ) {
+    public Parameter<String> createTitleParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
@@ -2073,7 +2152,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   suffix  zone suffix
      * @return   parameter
      */
-    private StringParameter createAuxLabelParameter( String suffix ) {
+    public StringParameter createAuxLabelParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
@@ -2103,7 +2182,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix
      * @return   parameter
      */
-    private BooleanParameter createAuxVisibleParameter( String suffix ) {
+    public BooleanParameter createAuxVisibleParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
@@ -2136,7 +2215,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix
      * @return   parameter
      */
-    private DoubleParameter createAuxCrowdParameter( String suffix ) {
+    public DoubleParameter createAuxCrowdParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
@@ -2173,7 +2252,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix
      * @return  parameter
      */
-    private IntegerParameter createAuxWidthParameter( String suffix ) {
+    public IntegerParameter createAuxWidthParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
@@ -2200,8 +2279,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffix  zone suffix, or either null or empty string for all zones
      * @return   parameter to get legend position for zone
      */
-    private DoubleArrayParameter
-            createLegendPositionParameter( String suffix ) {
+    public DoubleArrayParameter createLegendPositionParameter( String suffix ) {
         if ( "".equals( suffix ) ) {
             suffix = null;
         }
@@ -2390,7 +2468,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @return   paint mode parameter
      */
-    private static PaintModeParameter createPaintModeParameter() {
+    public static PaintModeParameter createPaintModeParameter() {
         return new PaintModeParameter( "omode", EXPORTERS );
     }
 

@@ -104,6 +104,15 @@ public class TypedPlot2Task extends AbstractPlot2Task {
               createDefaultPlotContext( plotType, SingleGanger.FACTORY ) );
     }
 
+    /**
+     * Returns the plot type.
+     *
+     * @return  plotType;
+     */
+    public PlotType getPlotType() {
+        return plotType_;
+    }
+
     public String getPurpose() {
         return "Draws a " + plotType_.toString() + " plot";
     }
