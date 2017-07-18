@@ -24448,6 +24448,8 @@ introduced since the last version:
         New output formats <code>votable-binary2-inline</code> and
         <code>votable-binary2-href</code> are now offered alongside
         the five previously available VOTable variants.</li>
+    <li>TAP Examples display line now copes better with long and multi-line
+        names from service-provided examples.</li>
     </ul>
     </p></dd>
 

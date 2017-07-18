@@ -70,6 +70,7 @@ public class TapExampleLine extends JPanel {
         titleLabel_.setText( groupName == null ? null : groupName + ": " );
         titleLabel_.setEnabled( example != null );
         nameField_.setText( example == null ? null : example.getName() );
+        nameField_.setCaretPosition( 0 );
         nameField_.setToolTipText( example == null ? null
                                                    : example.getDescription() );
         boolean hasInfo = example != null && example.getInfoUrl() != null;

@@ -118,7 +118,10 @@ public class DaliExampleReader {
         final String idAtt = exEl.getAttribute( "id" );
         final String resourceAtt = exEl.getAttribute( "resource" );
         final URL exUrl = new URL( docUrl, "#" + idAtt );
-        final String name = getPropertyText( exEl, "name" );
+        String name0 = getPropertyText( exEl, "name" );
+        final String name = name0 == null
+                          ? null
+                          : name0.trim().replaceAll( "\\s+", " " );
         final String capability = getPropertyText( exEl, "capability" );
         String paramPath =
             ".//*[@property='generic-parameter' and @typeof='keyval']";
