@@ -125,7 +125,7 @@ public class HemisphereProjection implements Projection {
 
     public SkyAspect createAspect( boolean reflect, double[] r3,
                                    double radiusRad, Range[] ranges ) {
-        return new SkyAspect( this, reflect );
+        return new SkyAspect( SkyAspect.unitMatrix( reflect ), 1, 0, 0 );
     }
 
     /**

@@ -681,7 +681,7 @@ public class SkySurface implements Surface {
     public SkyAspect flatPan( Point2D pos0, Point2D pos1 ) {
         double xoff1 = xoff_ + ( pos1.getX() - pos0.getX() ) / gScale_;
         double yoff1 = yoff_ + ( pos1.getY() - pos0.getY() ) / gScale_;
-        return createAspect( projection_, rotmat_, zoom_, xoff1, yoff1 );
+        return createAspect( rotmat_, zoom_, xoff1, yoff1 );
     }
 
     /**
@@ -696,7 +696,7 @@ public class SkySurface implements Surface {
         double zoom1 = zoom_ * factor;
         double xoff1 = xoff_ + ( pos.getX() - gXoff_ ) / gZoom_ * dz;
         double yoff1 = yoff_ + ( pos.getY() - gYoff_ ) / gZoom_ * dz;
-        return createAspect( projection_, rotmat_, zoom1, xoff1, yoff1 );
+        return createAspect( rotmat_, zoom1, xoff1, yoff1 );
     }
 
     /**
@@ -715,7 +715,7 @@ public class SkySurface implements Surface {
                                                graphicsToProjected( pos1 ) );
         return rotmat1 == null
              ? flatPan( pos0, pos1 )
-             : createAspect( projection_, rotmat1, zoom_, xoff_, yoff_ );
+             : createAspect( rotmat1, zoom_, xoff_, yoff_ );
     }
 
     /**
@@ -737,7 +737,7 @@ public class SkySurface implements Surface {
         double[] rotmat1 = projection_.projRotate( rotmat_, ppos0, ppos1 );
         return rotmat1 == null
              ? flatZoom( pos, factor )
-             : createAspect( projection_, rotmat1, zoom1, xoff_, yoff_ );
+             : createAspect( rotmat1, zoom1, xoff_, yoff_ );
     }
 
     /**
@@ -757,12 +757,12 @@ public class SkySurface implements Surface {
         Point2D.Double ppos1 = graphicsToProjected( surfCenter );
         double[] rotmat1 = projection_.projRotate( rotmat_, ppos0, ppos1 );
         if ( rotmat1 != null ) {
-            return createAspect( projection_, rotmat1, zoom1, xoff_, yoff_ );
+            return createAspect( rotmat1, zoom1, xoff_, yoff_ );
         }
         else {
             double xoff1 = - ppos0.x * zoom1;
             double yoff1 =   ppos0.y * zoom1;
-            return createAspect( projection_, rotmat_, zoom1, xoff1, yoff1 );
+            return createAspect( rotmat_, zoom1, xoff1, yoff1 );
         }
     }
 
@@ -847,7 +847,6 @@ public class SkySurface implements Surface {
      * This method contains an assertion that the returned aspect has
      * the same reflection state as this one.
      *
-     * @param  projection  sky projection
      * @param  rotmat  9-element rotation matrix
      * @param  zoom    zoom factor; 1 means the sky is approximately
      *                 the same size as plot bounds
@@ -856,8 +855,8 @@ public class SkySurface implements Surface {
      * @param  yoff  y offset of plot centre from plot bounds centre
      *               in dimensionless units; 0 is centred
      */
-    private SkyAspect createAspect( Projection proj, double[] rotmat,
-                                    double zoom, double xoff, double yoff ) {
+    private SkyAspect createAspect( double[] rotmat, double zoom,
+                                    double xoff, double yoff ) {
 
         /* Check that the reflection status of the returned aspect is the
          * same as that for this surface's aspect.  Although that's not an
@@ -867,6 +866,6 @@ public class SkySurface implements Surface {
          * same value for the aspect represented by this surface and the
          * one being generated. */
         assert Matrices.det( rotmat_ ) * Matrices.det( rotmat ) >= 0;
-        return new SkyAspect( proj, rotmat, zoom, xoff, yoff );
+        return new SkyAspect( rotmat, zoom, xoff, yoff );
     }
 }

@@ -176,7 +176,7 @@ public class SkySurfaceFactory
 
     public Surface createSurface( Rectangle plotBounds, Profile p,
                                   SkyAspect aspect ) {
-        return new SkySurface( plotBounds, aspect.getProjection(),
+        return new SkySurface( plotBounds, p.getProjection(),
                                aspect.getRotation(), aspect.getZoom(),
                                aspect.getOffsetX(), aspect.getOffsetY(),
                                p.viewSystem_, p.axisLabeller_,
@@ -303,7 +303,12 @@ public class SkySurfaceFactory
      */
     private static ConfigKey<Projection> createProjectionKey() {
         ConfigMeta meta = new ConfigMeta( "projection", "Projection" );
-        Projection[] projs = SkyAspect.getProjections();
+        Projection[] projections = new Projection[] {
+            // new HemisphereProjection(),  // toy projection, inferior to Sin
+            SinProjection.INSTANCE,
+            SkyviewProjection.AIT,
+            SkyviewProjection.CAR1,
+        };
         meta.setShortDescription( "Sky coordinate projection" );
         meta.setXmlDescription( new String[] {
             "<p>Sky projection used to display the plot.",
@@ -311,7 +316,7 @@ public class SkySurfaceFactory
         } );
         OptionConfigKey<Projection> key =
                 new OptionConfigKey<Projection>( meta, Projection.class,
-                                                 projs ) {
+                                                 projections ) {
             public String valueToString( Projection proj ) {
                 return proj.getProjectionName().toLowerCase();
             }

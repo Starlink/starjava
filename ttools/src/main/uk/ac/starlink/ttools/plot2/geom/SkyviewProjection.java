@@ -137,16 +137,23 @@ public class SkyviewProjection implements Projection {
 
     public SkyAspect createAspect( boolean reflect, double[] r3,
                                    double radiusRad, Range[] ranges ) {
+        final double zoom;
+        final double xoff;
+        final double yoff;
         Point2D.Double dpos = new Point2D.Double();
         if ( r3 != null &&
              project( r3[ 0 ], r3[ 1 ], r3[ 2 ], dpos ) ) {
-            double zoom = Math.PI / radiusRad;
-            return new SkyAspect( this, SkyAspect.unitMatrix( reflect ),
-                                  zoom, dpos.x * zoom, dpos.y * zoom );
+            zoom = Math.PI / radiusRad;
+            xoff = dpos.x * zoom;
+            yoff = dpos.y * zoom;
         }
         else {
-            return new SkyAspect( this, reflect );
+            zoom = 1;
+            xoff = 0;
+            yoff = 0;
         }
+        double[] rotmat = SkyAspect.unitMatrix( reflect );
+        return new SkyAspect( rotmat, zoom, xoff, yoff );
     }
 
     /**

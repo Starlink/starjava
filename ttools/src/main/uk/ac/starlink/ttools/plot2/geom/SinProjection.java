@@ -124,7 +124,7 @@ public class SinProjection extends SkyviewProjection {
         if ( isFovSpecified( r3, radiusRad ) ) {
             double[] rotmat = rotateToCenter( r3, reflect );
             double zoom = 1.0 / Math.sin( Math.min( Math.PI / 2, radiusRad ) );
-            return new SkyAspect( this, rotmat, zoom, 0, 0 );
+            return new SkyAspect( rotmat, zoom, 0, 0 );
         }
 
         /* Otherwise, if we have range information, use that. */
@@ -162,7 +162,7 @@ public class SinProjection extends SkyviewProjection {
 
                     /* Return an aspect based on the rotation and zoom
                      * we've determined. */
-                    return new SkyAspect( this, crot, zoom, 0, 0 );
+                    return new SkyAspect( crot, zoom, 0, 0 );
                 }
             }
         }
@@ -181,7 +181,7 @@ public class SinProjection extends SkyviewProjection {
     private SkyAspect getDefaultAspect( boolean reflect ) {
         double[] rot = verticalRotate( Math.toRadians( -15 ),
                                        Math.toRadians( -10 ), reflect );
-        return new SkyAspect( this, rot, 1, 0, 0 );
+        return new SkyAspect( rot, 1, 0, 0 );
     }
 
     /**
