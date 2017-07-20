@@ -90,11 +90,17 @@ public class FunctionLayerControl extends ConfigControl
     }
 
     public TopcatLayer[] getLayers() {
-        PlotLayer layer =
-            plotter_.createLayer( null, null, getFunctionStyle( getConfig() ) );
-        return layer == null
+        ConfigMap config = getConfig();
+        PlotLayer plotLayer =
+            plotter_.createLayer( null, null, getFunctionStyle( config ) );
+        LegendEntry[] legents = getLegendEntries();
+        String leglabel = legents.length > 0
+                        ? legents[ 0 ].getLabel()
+                        : null;
+        return plotLayer == null
              ? new TopcatLayer[ 0 ]
-             : new TopcatLayer[] { new TopcatLayer( layer ) };
+             : new TopcatLayer[] { new TopcatLayer( plotLayer, config,
+                                                    leglabel ) };
     }
 
     public LegendEntry[] getLegendEntries() {

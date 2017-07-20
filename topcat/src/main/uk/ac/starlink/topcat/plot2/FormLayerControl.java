@@ -192,10 +192,12 @@ public abstract class FormLayerControl
             return new TopcatLayer[ 0 ];
         }
         DataGeom geom = posCoordPanel_.getDataGeom();
+        ConfigMap coordConfig = posCoordPanel_.getConfig();
         FormControl[] fcs = getActiveFormControls();
         List<TopcatLayer> layerList = new ArrayList<TopcatLayer>();
         for ( int is = 0; is < subsets.length; is++ ) {
             RowSubset subset = subsets[ is ];
+            String leglabel = getLegendLabel( subset );
             for ( int ifc = 0; ifc < fcs.length; ifc++ ) {
                 FormControl fc = fcs[ ifc ];
                 GuiCoordContent[] extraContents = fc.getExtraCoordContents();
@@ -204,9 +206,16 @@ public abstract class FormLayerControl
                         PlotUtil.arrayConcat( posContents, extraContents );
                     DataSpec dspec =
                         new GuiDataSpec( tcModel_, subset, contents );
-                    PlotLayer layer = fc.createLayer( geom, dspec, subset );
-                    if ( layer != null ) {
-                        layerList.add( new TopcatLayer( layer ) );
+                    PlotLayer plotLayer = fc.createLayer( geom, dspec, subset );
+                    if ( plotLayer != null ) {
+                        ConfigMap config = new ConfigMap();
+                        config.putAll( coordConfig );
+                        config.putAll( fc.getExtraConfig() );
+                        config.putAll( fc.getStylePanel().getConfig( subset ) );
+                        TopcatLayer layer =
+                            new TopcatLayer( plotLayer, config, leglabel,
+                                             tcModel_, contents, subset );
+                        layerList.add( layer );
                     }
                 }
             }
@@ -223,20 +232,39 @@ public abstract class FormLayerControl
         List<LegendEntry> entries = new ArrayList<LegendEntry>();
         for ( RowSubset rset : rsetStyles.keySet() ) {
             Style[] styles = rsetStyles.get( rset ).toArray( new Style[ 0 ] );
-            ConfigMap config =
-                subsetManager_.getConfigger( rset ).getConfig();
-            boolean show = config.get( StyleKeys.SHOW_LABEL );
-            if ( show ) {
-                String label = config.get( StyleKeys.LABEL );
-                if ( label == null || label.trim().length() == 0 ) {
-                    label = tcModel_.getID() + ": " + rset.getName();
-                }
+            String label = getLegendLabel( rset );
+            if ( label != null ) {
                 LegendEntry entry = new LegendEntry( label, styles );
                 assert entry.equals( new LegendEntry( label, styles ) );
                 entries.add( entry );
             }
         }
         return entries.toArray( new LegendEntry[ 0 ] );
+    }
+
+    /**
+     * Returns the label to use in the legend for a given row subset
+     * controlled by this control.  Null means the item should not appear
+     * in the legend.
+     *
+     * @param  rset  row subset
+     * @return  legend label, or null if absent from legend
+     */
+    private String getLegendLabel( RowSubset rset ) {
+        if ( rset == null ) {
+            return null;
+        }
+        ConfigMap config = subsetManager_.getConfigger( rset ).getConfig();
+        boolean show = config.get( StyleKeys.SHOW_LABEL );
+        if ( show ) {
+            String label = config.get( StyleKeys.LABEL );
+            return label == null || label.trim().length() == 0
+                 ? tcModel_.getID() + ": " + rset.getName()
+                 : label;
+        }
+        else {
+            return null;
+        }
     }
 
     public Specifier<ZoneId> getZoneSpecifier() {

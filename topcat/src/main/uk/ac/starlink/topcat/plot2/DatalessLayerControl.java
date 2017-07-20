@@ -53,11 +53,11 @@ public class DatalessLayerControl extends ConfigControl
         DataSpec dataSpec = null;
         ConfigMap config = baseConfigger_.getConfig();
         config.putAll( getConfig() );
-        PlotLayer layer =
+        PlotLayer plotLayer =
             styler_.createLayer( plotter_, geom, dataSpec, config );
-        return layer == null
+        return plotLayer == null
              ? new TopcatLayer[ 0 ]
-             : new TopcatLayer[] { new TopcatLayer( layer ) };
+             : new TopcatLayer[] { new TopcatLayer( plotLayer, config, null ) };
     }
 
     public LegendEntry[] getLegendEntries() {

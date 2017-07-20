@@ -136,11 +136,15 @@ public class BasicCoordLayerControl extends ConfigControl
         DataSpec dataSpec = new GuiDataSpec( tcModel_, subset, coordContents );
         ConfigMap config = getConfig();
         config.putAll( baseConfigger_.getConfig() );
-        PlotLayer layer =
+        config.putAll( coordPanel_.getConfig() );
+        PlotLayer plotLayer =
             styler_.createLayer( plotter_, geom, dataSpec, config );
-        return layer == null
+        return plotLayer == null
              ? new TopcatLayer[ 0 ]
-             : new TopcatLayer[] { new TopcatLayer( layer ) };
+             : new TopcatLayer[] {
+                   new TopcatLayer( plotLayer, config, null, tcModel_,
+                                    coordContents, subset ),
+               };
     }
 
     public String getCoordLabel( String userCoordName ) {

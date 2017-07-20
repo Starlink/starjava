@@ -20,6 +20,7 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -144,6 +145,15 @@ public class CoordPanel {
      */
     public ConfigSpecifier getConfigSpecifier() {
         return cspec_;
+    }
+
+    /**
+     * Returns the config map associated with this panel.
+     *
+     * @return   result of <code>getConfigSpecifier().getSpecifiedValue()</code>
+     */
+    public ConfigMap getConfig() {
+        return cspec_.getSpecifiedValue();
     }
 
     /**
