@@ -330,14 +330,14 @@ spectrum from a plot. The first thing to do is select a spectrum in the
 this shows its properties in the
 \labelitem{Properties of current spectra:}
 side of the browser window, including which views
-are being made (\ie\ which plots are displaying it). 
+are being made (\ie\ which plots are displaying it).
 
 If you click on one of the displayed
 spectra on a plot, the respective entry in the \labelitem{Global list of
-spectra:} will be highlighted. By clicking on 
+spectra:} will be highlighted. By clicking on
 an entry at the \labelitem{Global list of
 spectra:}, the respective plotted spectrum will
-blink a few times (if it's plotted). 
+blink a few times (if it's plotted).
 
 To add or remove
 a spectrum from a plot you need to click on the square shown in the
@@ -495,9 +495,9 @@ in the following figure:
  The toolbar region has a series of buttons that act as short-cuts to
  many of the functions found in the main menus. Here's a quick break
  down of what they do:
- \begin{itemize}
+ \begin{itemize}[label={}]
 
-  \item[\inline{openfile}] Create an open file dialogue. You can use this
+  \item[] \inline{openfile} Create an open file dialogue. You can use this
   to browse any local files and select a list of them for opening. When
   opened they are added to the global list and displayed in a new plot
   (unless you untick the \labelitem{Display} control). You may open files
@@ -505,18 +505,18 @@ in the following figure:
   Normally the type of a spectrum is determined using the file extension,
   but using this dialogue you can select a type, or ask that it be guessed.
 
-  \item[\inline{location}] Download and display a spectrum from the Internet.
+  \item[] \inline{location} Download and display a spectrum from the Internet.
   If you have a URL for a spectrum to view then use this simple dialog.
 
-  \item[\inline{ssap}] Query any known Simple Spectral Access Protocol (SSAP)
+  \item[] \inline{ssap} Query any known Simple Spectral Access Protocol (SSAP)
   servers about spectra that they hold on a region of the sky and download
   these to \SPLAT. This tool provides access to the Virtual Observatory.
-  
-   \item[\inline{obscore}] Query any known Observation Data Model Core (ObsCore)
+
+   \item[] \inline{obscore} Query any known Observation Data Model Core (ObsCore)
   spectral services using the Table Access Protocoll (TAP)  and download
   these to \SPLAT. This tool provides access to the Virtual Observatory.
 
-  \item[\inline{browse}] Browse a hierarchy of files. This dialogue can be used
+  \item[]\inline{browse} Browse a hierarchy of files. This dialogue can be used
   like the open file dialogue to choose a file containing a spectrum, but,
   it also allows you to look inside a file for any displayable components.
   This is useful for FITS files that contain extensions (spectral or table
@@ -527,38 +527,38 @@ in the following figure:
 
   \clippedmainfigure{treeview}
 
-  \item[\inline{reopen}] Re-open the selected spectra. If the files containing
+  \item[] \inline{reopen} Re-open the selected spectra. If the files containing
   your spectra change on disk you can select them in the global list get them
   opened. Note that not all spectra are backed by a suitable disk-file, these
   types will be ignored.
 
-  \item[\inline{savefile}] Create a save file dialogue. Using this you can
+  \item[] \inline{savefile} Create a save file dialogue. Using this you can
   save a spectrum to disk-file. There are no restrictions on which file
   format you can save to, but information may be lost for certain types
   (\ie\ TEXT format).
 
-  \item[\inline{remove}] Remove the currently selected spectra from the
+  \item[] \inline{remove} Remove the currently selected spectra from the
   global list. This does not modify disk files. Spectra that are only
   resident in memory will be lost, without warning.
 
-  \item[\inline{display}] Display the currently selected spectra in
+  \item[] \inline{display} Display the currently selected spectra in
   plots. Each of the selected spectra is displayed in a plot of its
   own. A similar effect is obtained by double-clicking a spectrum in the
   global list.
 
-  \item[\inline{multidisplay}] Display all the currently selected
+  \item[] \inline{multidisplay} Display all the currently selected
   spectra in a single plot. Use this when you want to compare spectra.
 
-  \item[\inline{animate}] Open a window to control the animation of some
+  \item[] \inline{animate} Open a window to control the animation of some
   of the spectra. Using this window you can also create a JPEG or PNG
   sequence of the animation.
 
-  \item[\inline{table}] View and possibly modify the coordinates and
+  \item[] \inline{table} View and possibly modify the coordinates and
   data values of the selected spectra. This shows an editable table of
   values. It is also possible to make global changes using
   algebraic expressions to convert or create new values.
 
-  \item[\inline{xunits}] Open a window to set or remap the coordinate
+  \item[] \inline{xunits} Open a window to set or remap the coordinate
   systems of any of the spectra. A variety of systems can be used
   covering wavelength, frequency, energy and velocity. Unit
   information can be used to align spectra in a plot (so you can
@@ -566,28 +566,28 @@ in the following figure:
   energy and frequency or even heliocentric and topocentric rest frames
   \etc).
 
-  \item[\inline{yunits}] Open a window to set the data units of any spectra.
+  \item[] \inline{yunits} Open a window to set the data units of any spectra.
   This can be useful when just setting the units displayed in a plot, but
   can also be used to convert spectra between flux systems when they are
   drawn (making them correctly aligned).
 
-  \item[\inline{fits}] View the FITS headers of any selected spectra.
+  \item[] \inline{fits} View the FITS headers of any selected spectra.
   A window displaying the headers will be opened for each of the selected
   spectra. Note that only 1D FITS and NDFs will generally have FITS headers
   other types, including FITS tables, will not.
 
-  \item[\inline{rainbow}] Change the colour of \hitext{all} the spectra
+  \item[] \inline{rainbow} Change the colour of \hitext{all} the spectra
   in the global list. Each time you press this button a new random seed
   is used to generate a different sequence of colours, so keep pressing
   until you see a sequence you like.
 
-  \item[\inline{binarymath}] Perform simple maths (add, subtract, divide
+  \item[] \inline{binarymath} Perform simple maths (add, subtract, divide
   and multiply) between pairs of spectra.
 
-  \item[\inline{unarymaths}] Perform simple maths using a spectrum and a
+  \item[] \inline{unarymaths} Perform simple maths using a spectrum and a
   constant (add, subtract, divide and multiply).
 
-  \item[\inline{help}] Access the on-line help system.
+  \item[] \inline{help} Access the on-line help system.
 
 \end{itemize}
 
@@ -797,7 +797,7 @@ the display area.\\
 
  \begin{itemize}
 
-  \item[\inline{print}] Print a copy of the display area to an installed
+  \item \inline{print} Print a copy of the display area to an installed
   printer or to a file. The output produced fits the output page format using
   the current aspect ratio of the display area, so if you're zoomed by a large
   factor then you'll get an output page that has a very small height. If you
@@ -810,12 +810,12 @@ the display area.\\
 
   \clippedmainfigure{printoutput}
 
-  \item[\inline{postscriptprint}] Same as the print option, except, this only
+  \item[] \inline{postscriptprint} Same as the print option, except, this only
   offers to write a postscript file and doesn't rely on having any printers
   installed on the local machine. The output can be in encapsulated form
   for inclusion in other documents.
 
-  \item[\inline{jpegpng}] Make a JPEG or PNG image version of the display
+  \item[] \inline{jpegpng} Make a JPEG or PNG image version of the display
   area. Again the file produced fits the output graphic using the current
   aspect ratio of the display area. The default is to produce an image
   with a pixel-to-pixel correspondence to what you see on the screen
@@ -825,21 +825,21 @@ the display area.\\
   lines drawn in the image select this plotting option first using the plot
   configuration window).
 
-  \item[\inline{fitwidth}] Make spectra fit the display area width.  Use this
+  \item[] \inline{fitwidth} Make spectra fit the display area width.  Use this
   to quickly return to an unzoomed coordinate state and to match the X axis
   width when you resize the plot window.
 
-  \item[\inline{fitheight}] Make spectra fit the display area height.  Use
+  \item[] \inline{fitheight} Make spectra fit the display area height.  Use
   this to quickly return to an unzoomed data value state and to match the Y
   axis height when you resize the plot window.
 
-  \item[\inline{panner}] Show the `panner' window. You can use this to
+  \item[] \inline{panner} Show the `panner' window. You can use this to
   see a view of the whole extent of the currently displayed spectra
   (shown at the same aspect ratio as the display area). This also
   features a red rectangle that shows the extent of the display area,
   this can be moved to change the display area view.
 
-  \item[\inline{config}] Show the plot configuration window. This
+  \item[] \inline{config} Show the plot configuration window. This
   contains many controls for setting the display area data limits,
   changing the plot title and axis labels, drawing grid lines,
   defining how many ticks to display, changing the amount of space
@@ -847,49 +847,49 @@ the display area.\\
   draw text or text and lines using anti-aliasing. It also offers
   facilities to save these settings for future restoration.
 
-  \item[\inline{cutter}] Create a new spectrum (on the global list)
+  \item[] \inline{cutter} Create a new spectrum (on the global list)
   that contains only the visible parts of the current spectrum. You
   can then display this new spectrum in this or a new plot. The new
   spectrum is given the name \hitext{Cut <n> of <current\_shortname>}.
   This facility is useful to create printouts of just parts of a
   spectrum and to speed up processing of very large spectra.
 
-  \item[\inline{regioncutter}] Show the region cutter window. This
+  \item[] \inline{regioncutter} Show the region cutter window. This
   window allows you to graphically define which regions you'd like to
   cut, delete or replace by linear interpolation in the current spectrum.
 
-  \item[\inline{fitback}] Show the toolbox for fitting a polynomial to
+  \item[] \inline{fitback} Show the toolbox for fitting a polynomial to
   defined regions of the current spectrum. This is used to define
   backgrounds prior to line fitting, or for subtracting and dividing
   backgrounds from spectra.
 
-  \item[\inline{interpolate}] Show the toolbox for taking an interpolated
+  \item[] \inline{interpolate} Show the toolbox for taking an interpolated
   curve (\ie\ a spline drawn on the plot using the features of the
   \labelitem{Graphics} menu) and creating a spectrum from it.
 
-  \item[\inline{fitline}] Show the toolbox for fitting emission and absorption
+  \item[] \inline{fitline} Show the toolbox for fitting emission and absorption
   lines. This measures the line position and equivalent width as well as
   fitting Gaussian, Lorentzian and Voigt profiles to selected wavelength
   ranges of the current spectrum. Remember to define a polynomial background
   before using this tool or have your data processed for fitting.
 
-  \item[\inline{filter}] Show the toolbox for filtering the current
+  \item[] \inline{filter} Show the toolbox for filtering the current
   spectrum. The filters offered are simple ones like the average and
   median over a windowed area, plus more complex ones like smoothing
   using any of the known line shapes and denoising using wavelet
   transformations.
 
-  \item[\inline{units}] Show the toolbox for selecting new coordinates or
+  \item[] \inline{units} Show the toolbox for selecting new coordinates or
   data units for the current spectrum (and therefore plot).
 
-  \item[\inline{flip}] Show the toolbox for flipping, shifting or redshifting
+  \item[] \inline{flip} Show the toolbox for flipping, shifting or redshifting
   editable spectra shown in the plot. Also allows you create an editable copy
   of the current spectrum.
 
-  \item[\inline{sigma}] Show the toolbox for determining statistics (mean,
+  \item[] \inline{sigma} Show the toolbox for determining statistics (mean,
   standard deviation, \etc) of the whole or parts of the current spectrum.
 
-  \item[\inline{stacker}] Show the toolbox for apply an offsets to the
+  \item[] \inline{stacker} Show the toolbox for apply an offsets to the
   displayed spectra so they can be viewed more easily or shown in some order,
   for instance time of observation.
 
@@ -1082,16 +1082,16 @@ points these are completed using a double click on the last point.
 In the \menuitem{Drawing mode} menu the currently available figure types are:
 \begin{quote}
 \begin{itemize}
-  \item[\inline{line}] a straight line,
-  \item[\inline{rectangle}] a rectangle,
-  \item[\inline{ellipse}] an ellipse,
-  \item[\inline{polyline}] a poly line (last point not connected to first),
-  \item[\inline{polygon}] a polygon (last point connected to first),
-  \item[\inline{freehand}] freehand curve,
-  \item[\inline{text}] a text string,
-  \item[\inline{curve}] an interpolated curve (splines and special spectral
+  \item[]\inline{line} a straight line,
+  \item[]\inline{rectangle} a rectangle,
+  \item[]\inline{ellipse} an ellipse,
+  \item[]\inline{polyline} a poly line (last point not connected to first),
+  \item[]\inline{polygon} a polygon (last point connected to first),
+  \item[]\inline{freehand} freehand curve,
+  \item[]\inline{text} a text string,
+  \item[]\inline{curve} an interpolated curve (splines and special spectral
                         shapes),
-  \item[\inline{xrange}] a rectangle which only moves along X (indicates a
+  \item[]\inline{xrange} a rectangle which only moves along X (indicates a
                          range of coordinates).
 \end{itemize}
 \end{quote}
@@ -1099,8 +1099,8 @@ In the \menuitem{Drawing mode} menu the currently available figure types are:
 There are also two special modes:
 \begin{quote}
 \begin{itemize}
-  \item[\inline{select}] select figure,
-  \item[\inline{edit}] edit figure.
+  \item[]\inline{select} select figure,
+  \item[]\inline{edit} edit figure.
 \end{itemize}
 \end{quote}
 When the mode is select (this is usually the default state), clicking on a
@@ -1230,13 +1230,13 @@ You can select one or more servers from the \labelitem{SSAP Servers} list by cli
 on them.
 It's  also possible to select a subset of servers based on their given metadata. Selection can be
 made according to data source (observation or theory data), and waveband.
-It's also possible to add tags to one or more servers,  so only the tagged servers will be 
+It's also possible to add tags to one or more servers,  so only the tagged servers will be
 queried if the tag is selected.
 When right-clicking on a server in the \labelitem{SSAP Servers} list you get a popup menu
-containing options  to tag,  to remove, or to see information on the service.   
+containing options  to tag,  to remove, or to see information on the service.
 To add a new SSAP server, which is currently unknown to the VO, to the current
 server list, click on the \labelitem{Add New Server} button. A new window will open where
-the information about the new server can be filled in.  The \labelitem{Query registry} 
+the information about the new server can be filled in.  The \labelitem{Query registry}
 allows you to query a VO registry for a list of all the SSAP servers it
 has registered.
 
@@ -1259,7 +1259,7 @@ to include by setting just a lower limit).
 The \labelitem{Time} entries define either a time that should match the
 time the spectra where taken, or a range in which they should match (again
 not all servers support this option).
-The \labelitem{MAXREC} field will define the maximum number of spectra that will 
+The \labelitem{MAXREC} field will define the maximum number of spectra that will
 be retrieved from each selected service.
 The file format, wavelength and flux calibration options can also be chosen.
 If the value is "None", the query will not contain these parameters.
@@ -1275,13 +1275,13 @@ Once you have identified the region to search or object press the green
 these queries it may be necessary for you to tell \SPLAT\ about your local
 web-proxy server (this is the same as that you use in your Internet browser),
 select the \submenuitem{Options}{Configure proxy...} item to do this.
- 
+
 
 \subheading {Query results}
 
 Once the SSAP query is complete lists of spectra that the servers hold will be
 shown in the \labelitem{Query results:} region. There is a tab of results for
-each server.  If no tab has been created for a selected server, then the server 
+each server.  If no tab has been created for a selected server, then the server
 has no spectra for the selected region or is not available at the moment.
 
 When right-clicking on a spectra, a popup menu will appear. From this menu you can
@@ -1367,7 +1367,7 @@ and there are no optional parameters, as all parameters can be queried using TAP
 
 \subheading{Simple Search}
 The simple search interface uses the same parameters as the SSAP cone search, with the same
-functionality. 
+functionality.
 
 \mainfigure{obscoresimple}
 
@@ -1375,15 +1375,15 @@ functionality.
 The ADQL search is more flexible and more powerful than the simple cone search.
 The main part is a text area, which can be edited. The beginning of the query
 \begin{verbatim}
-SELECT TOP 10000 * from ivoa.Obscore WHERE dataproduct_type='spectrum' 
+SELECT TOP 10000 * from ivoa.Obscore WHERE dataproduct_type='spectrum'
 \end{verbatim}
-will get the first 10000 spectra from the selected servers. The TOP value may be changed to 
-another value, if necessary. This query should be then refined or completed, either by choosing the 
+will get the first 10000 spectra from the selected servers. The TOP value may be changed to
+another value, if necessary. This query should be then refined or completed, either by choosing the
 parameters and expressions from the options provided (which will create a simple query) or
 by editing directly the  the text area.  Please refer to the ObsCore standard for the available parameters.
 (http://www.ivoa.net/documents/ObsCore/).
 \mainfigure{obscoreadql}
-The example below shows a query for spectra including 6500 angstroms, spectral resolution better than 15 angstroms, spatial 
+The example below shows a query for spectra including 6500 angstroms, spectral resolution better than 15 angstroms, spatial
 resolution better than 2 arcseconds FWHM, and exposure time longer that 3600 seconds:
 \begin{verbatim}
 SELECT * from ivoa.Obscore
@@ -3536,7 +3536,7 @@ it.
 \newpage
 \section{Using SAMP to exchange spectra\label{interop}\xlabel{interop}}
 
-\SPLAT\ can communicate with other desktop tools using 
+\SPLAT\ can communicate with other desktop tools using
 \htmladdnormallinkfoot{SAMP}{http://www.ivoa.net/samp/}
 (Simple Applications Messaging Protocol).
 
@@ -3653,9 +3653,9 @@ also funded by the
 and more recently by it's successor organisation the
 \htmladdnormallink{Science and Technology Facilities Council}{http://www.scitech.ac.uk}.
 
-Further development has been done by the 
-\htmladdnormallink{German Astrophysical Virtual Observatory  (GAVO)} {http://www.g-vo.org} team at the 
-\htmladdnormallink{Zentrum f\"ur Astronomie Heidelberg} {http://www.zah.uni-heidelberg.de}. 
+Further development has been done by the
+\htmladdnormallink{German Astrophysical Virtual Observatory  (GAVO)} {http://www.g-vo.org} team at the
+\htmladdnormallink{Zentrum f\"ur Astronomie Heidelberg} {http://www.zah.uni-heidelberg.de}.
 GAVO is funded through the Verbundforschung of the German Ministry for Research (BMBF).
 
 When using this software for research please consider citing it in your papers. The main

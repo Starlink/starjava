@@ -51,11 +51,11 @@ echo "Created JavaHelp archives"
 
 #  Normal docs. Note remove files that change trivially to stop
 #  unneccesary updates.
-star2html -c "$COPYRIGHT" sun243.tex
+star2html sun243.tex
 tar cf sun243.htx_tar sun243.htx
 gzip -f -9 sun243.htx_tar
 
-star2html -c "$COPYRIGHT" programming.tex
+star2html programming.tex
 tar cf programming.htx_tar programming.htx
 gzip -f -9 programming.htx_tar
 
