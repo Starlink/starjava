@@ -1,10 +1,10 @@
 package uk.ac.starlink.topcat.plot2;
 
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Subrange;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
 /**
  * Supplies information about the content and configuration
@@ -34,7 +34,7 @@ public interface ZoneDef<P,A> {
      *
      * @return   plot layer array
      */
-    PlotLayer[] getLayers();
+    TopcatLayer[] getLayers();
 
     /**
      * Returns the legend icon associated with this zone, if any.
@@ -87,4 +87,14 @@ public interface ZoneDef<P,A> {
      * @return  true for log aux scaling, false for linear
      */
     boolean isShadeLog();
+
+    /**
+     * Returns the user configuration object for per-zone configuration.
+     * Note that much of this information will be redundant with the
+     * other items specified here, but it may be required for reconstructing
+     * the instructions that led to this zone definition.
+     *
+     * @return  per-zone configuration items
+     */
+    ConfigMap getConfig();
 }

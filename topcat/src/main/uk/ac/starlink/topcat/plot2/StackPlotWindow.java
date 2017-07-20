@@ -122,6 +122,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlManager controlManager_;
     private final MultiAxisController<P,A> multiAxisController_;
     private final MultiController<ShaderControl> multiShaderControl_;
+    private final MultiConfigger[] zoneConfiggers_;
     private final ToggleButtonModel showProgressModel_;
     private final LegendControl legendControl_;
     private final FrameControl frameControl_;
@@ -241,12 +242,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
-            new PlotPanel<P,A>( storeFact, surfFact_, gangerFact, zonesFact,
-                                posFact, plotType.getPaperTypeSelector(),
+            new PlotPanel<P,A>( plotType_, storeFact, surfFact_,
+                                gangerFact, zonesFact, posFact,
+                                plotType.getPaperTypeSelector(),
                                 compositor, sketchModel_,
                                 placeProgressBar().getModel(),
                                 showProgressModel_, axisLockModel_,
                                 auxLockModel_ );
+
+        /* Prepare options to display the text of a STILTS command
+         * corresponding to the current plot. */
+        zoneConfiggers_ = new MultiConfigger[] {
+            configger,
+            multiAxisController_.getConfigger(),
+            multiShaderControl_.getConfigger(),
+        };
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
          * that might change the plot appearance.  Each of these controls
@@ -788,15 +798,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
               getLayerControlsByZone().entrySet() ) {
             final ZoneId zid = entry.getKey();
             LayerControl[] controls = entry.getValue();
-            List<PlotLayer> layerList = new ArrayList<PlotLayer>();
+            List<TopcatLayer> layerList = new ArrayList<TopcatLayer>();
             List<LegendEntry> legList = new ArrayList<LegendEntry>();
             for ( LayerControl control : controls ) {
-                for ( TopcatLayer tcLayer : control.getLayers() ) {
-                    layerList.add( tcLayer.getPlotLayer() );
-                }
+                layerList.addAll( Arrays.asList( control.getLayers() ) );
                 legList.addAll( Arrays.asList( control.getLegendEntries() ) );
             }
-            final PlotLayer[] layers = layerList.toArray( new PlotLayer[ 0 ] );
+            final TopcatLayer[] layers =
+                layerList.toArray( new TopcatLayer[ 0 ] );
             final LegendIcon legend =
                 legendControl_
                .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ),
@@ -812,6 +821,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             final Range shadeFixRange = shaderControl.getFixRange();
             final Subrange shadeSubrange = shaderControl.getSubrange();
             final boolean isShadeLog = shaderControl.isLog();
+            final ConfigMap config = new ConfigMap();
+            for ( MultiConfigger zc : zoneConfiggers_ ) {
+                config.putAll( zc.getZoneConfig( zid ) );
+            }
             zdefs.add( new ZoneDef<P,A>() {
                 public ZoneId getZoneId() {
                     return zid;
@@ -819,7 +832,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 public AxisController<P,A> getAxisController() {
                     return axisController;
                 }
-                public PlotLayer[] getLayers() {
+                public TopcatLayer[] getLayers() {
                     return layers;
                 }
                 public LegendIcon getLegend() {
@@ -842,6 +855,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 }
                 public boolean isShadeLog() {
                     return isShadeLog;
+                }
+                public ConfigMap getConfig() {
+                    return config;
                 }
             } );
         }
@@ -1632,7 +1648,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param  layers  plot layers
      * @return   true iff any uses an aux colour shader
      */
-    private static boolean hasShadedLayers( PlotLayer[] layers ) {
+    public static boolean hasShadedLayers( PlotLayer[] layers ) {
         for ( int il = 0; il < layers.length; il++ ) {
             if ( layers[ il ].getAuxRangers().keySet()
                                              .contains( AuxScale.COLOR ) ) {
