@@ -22,6 +22,7 @@
   <mapID target="plot-window"                url="xref_plot_window"/>
   <mapID target="ssa-window"                 url="xref_ssap_window"/>
   <mapID target="obscore-window"             url="xref_obscore_window"/>
+  <mapID target="lines_browser"              url="xref_lines_browser"/>
   <mapID target="animation-window"           url="xref_animation_window"/>
   <mapID target="viewer"                     url="xref_view_modify_window"/>
   <mapID target="specxcoord-window"          url="xref_spectral_coords_window"/>
