@@ -48,14 +48,16 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TimeMap_timeAdd(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    const char *cvt;
+   int nargs;
    double *args;
    if ( jniastCheckNotNull( env, jCvt ) ) {
       cvt = jniastGetUTF( env, jCvt );
+      nargs = jArgs ? ((int) (*env)->GetArrayLength( env, jArgs )) : 0;
       args = jniastCopyDoubleArray( env, jArgs, 16 );
 
       /* Call the AST function to do the work. */
       THASTCALL( jniastList( 1, pointer.AstObject ),
-         astTimeAdd( pointer.TimeMap, cvt, args );
+         astTimeAdd( pointer.TimeMap, cvt, nargs, args );
       )
    
       ALWAYS(
