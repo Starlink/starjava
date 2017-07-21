@@ -707,8 +707,25 @@ public class AstTest extends TestCase {
         }
 
         /* What happens if we supply an array that's too short? */
-        tmap.timeAdd( "BEPTOMJD", null );
-        tmap.timeAdd( "MJDTOJD", new double[] { 0. } );
+        boolean raised = false;
+        try {
+            tmap.timeAdd( "BEPTOMJD", null );
+        }
+        catch ( AstException e ) {
+            raised = true;
+            assertEquals( AstException.AST__TIMIN, e.getStatus() );
+        }
+        assertTrue(raised);
+
+        raised = false;
+        try {
+            tmap.timeAdd( "MJDTOJD", new double[] { 0. } );
+        }
+        catch ( AstException e ) {
+            raised = true;
+            assertEquals( AstException.AST__TIMIN, e.getStatus() );
+        }
+        assertTrue(raised);
     }
 
     public void testTimeFrame() {
@@ -978,7 +995,7 @@ public class AstTest extends TestCase {
         assertEquals( 1.0, lambda, 0.01 );
 
         // unit
-        smap.specAdd( "WVtoFR", new double[ 25 ] );
+        smap.specAdd( "WVtoFR", new double[ 0 ] );
         double a1 = 23.;
         double a2 = smap.tran1( 1, new double[] { a1 }, true )[ 0 ];
         assertEquals( a1, a2, 1e-8 );

@@ -49,14 +49,16 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_add(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    const char *cvt;
+   int nargs;
    double *args;
 
    if ( jniastCheckNotNull( env, jCvt ) ) {
       cvt = jniastGetUTF( env, jCvt );
+      nargs = jArgs ? ((int) (*env)->GetArrayLength( env, jArgs )) : 0;
       args = jniastCopyDoubleArray( env, jArgs, 16 );
 
       THASTCALL( jniastList( 1, pointer.AstObject ),
-         astSlaAdd( pointer.SlaMap, cvt, args );
+         astSlaAdd( pointer.SlaMap, cvt, nargs, args );
       )
 
       jniastReleaseUTF( env, jCvt, cvt );

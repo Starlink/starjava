@@ -52,11 +52,14 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecMap_specAdd(
    AstPointer pointer = jniastGetPointerField( env, this );
    int ncopy;
    const char *cvt;
+   int nargs;
    double *args;
 
    /* Get a C string from the java string. */
    if ( jniastCheckNotNull( env, jCvt ) ) {
       cvt = jniastGetUTF( env, jCvt );
+
+      nargs = jArgs ? ((int) (*env)->GetArrayLength( env, jArgs )) : 0;
 
       /* Copy the args array into a buffer.  Use a buffer which is as big
        * as astSpecMap might attempt to read, rather than one matching 
@@ -66,7 +69,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecMap_specAdd(
 
       /* Call the AST function to do the work. */
       THASTCALL( jniastList( 1, pointer.AstObject ),
-         astSpecAdd( pointer.SpecMap, cvt, args );
+         astSpecAdd( pointer.SpecMap, cvt, nargs, args );
       )
 
       /* Release resources. */
