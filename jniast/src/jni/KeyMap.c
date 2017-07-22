@@ -502,7 +502,7 @@ JNIEXPORT Xjtype##Array JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1##Xletter(
    Xjtype##Array jResult = NULL; \
    Xtype *result; \
  \
-   ENSURE_SAME_TYPE(Xtype,Xjtype) \
+   ENSURE_SAME_TYPE_NONVOID(Xtype,Xjtype,NULL) \
  \
    if ( jniastCheckNotNull( env, jKey ) ) { \
       key = jniastGetUTF( env, jKey ); \

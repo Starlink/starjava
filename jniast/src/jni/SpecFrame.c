@@ -47,7 +47,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_SpecFrame_getRefPos(
    double lat;
    jdoubleArray result = NULL;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,NULL)
 
    /* Get the AstFrame object. */
    if ( jFrm == NULL ) {

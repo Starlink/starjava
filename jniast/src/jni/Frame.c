@@ -56,7 +56,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_angle(
    int naxes;
    jdouble result;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,AST__BAD)
 
    /* Check our arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
@@ -108,7 +108,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axAngle(
    int naxes;
    jdouble result;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,AST__BAD)
    
    /* Check our arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
@@ -191,7 +191,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_intersect(
    jdoubleArray jCross = NULL;
    double *cross = NULL;
 
-   ENSURE_SAME_TYPE(jdouble,double)
+   ENSURE_SAME_TYPE_NONVOID(jdouble,double,NULL)
 
    if ( jniastCheckArrayLength( env, jA1, 2 ) &&
         jniastCheckArrayLength( env, jA2, 2 ) &&
@@ -261,7 +261,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_distance(
    jdouble dist;
    int naxes;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,AST__BAD)
 
    /* Check the arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
@@ -402,7 +402,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_offset(
    double *point3 = NULL;
    int naxes;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,NULL)
 
    /* Check the arguments look OK. */
    naxes = jniastGetNaxes( env, pointer.Frame );
@@ -459,7 +459,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_offset2(
    const double *point1 = NULL;
    double *point2 = NULL;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,AST__BAD)
 
    /* Check the jPoint2 array is large enough to hold the data we will
     * write into it. */
@@ -538,7 +538,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_pickAxes(
    AstMapping *map;
    AstFrame *newframe;
 
-   ENSURE_SAME_TYPE(int,jint)
+   ENSURE_SAME_TYPE_NONVOID(int,jint,NULL)
 
    /* Check the arguments look OK. */
    if ( jniastCheckNotNull( env, jAxes ) &&
@@ -591,7 +591,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_resolve(
    jdoubleArray jD = NULL;
    int naxes;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,NULL)
 
    /* Check arguments. */
    naxes = jniastGetNaxes( env, pointer.Frame );

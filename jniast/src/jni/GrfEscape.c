@@ -49,7 +49,7 @@ JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_grf_GrfEscape_findEscape(
    jint *results;
    int found;
 
-   ENSURE_SAME_TYPE(int,jint)
+   ENSURE_SAME_TYPE_NONVOID(int,jint,JNI_FALSE)
    
    if ( jniastCheckNotNull( env, jText ) &&
         jniastCheckArrayLength( env, jResults, 3 ) ) {
