@@ -37,7 +37,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Region_getRegionBounds(
    double *ubnds;
    int naxes;
 
-   ENSURE_SAME_TYPE(double,jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double,jdouble,NULL)
 
    naxes = jniastGetNaxes( env, pointer.Frame );
    if ( naxes > 0 && 
@@ -87,7 +87,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Region_getRegionPoints(
    int ok;
    int i;
 
-   ENSURE_SAME_TYPE(double, jdouble)
+   ENSURE_SAME_TYPE_NONVOID(double, jdouble, NULL)
 
    THASTCALL( jniastList( 1, pointer.AstObject ),
       astGetRegionPoints( pointer.Region, 0, 0, &npoint, (double *) NULL );
@@ -243,8 +243,8 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_mask##Xletter( \
    int i; \
    jint result; \
  \
-   ENSURE_SAME_TYPE(Xtype,Xjtype) \
-   ENSURE_SAME_TYPE(int,jint) \
+   ENSURE_SAME_TYPE_NONVOID(Xtype,Xjtype,0) \
+   ENSURE_SAME_TYPE_NONVOID(int,jint,0) \
  \
    map = jMap ? jniastGetPointerField( env, jMap ).Mapping \
               : NULL; \

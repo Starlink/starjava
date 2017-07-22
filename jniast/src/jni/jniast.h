@@ -356,6 +356,9 @@ JNIEnv *jniastGetEnv();
 #define ENSURE_SAME_TYPE(Xtype1,Xtype2) { \
    if ( ! jniastCheckSameType( env, Xtype1, Xtype2 ) ) return; \
 }
+#define ENSURE_SAME_TYPE_NONVOID(Xtype1,Xtype2,Xrv) { \
+   if ( ! jniastCheckSameType( env, Xtype1, Xtype2 ) ) return (Xrv); \
+}
 
 #endif  /* JNIAST_DEFINED */
 
