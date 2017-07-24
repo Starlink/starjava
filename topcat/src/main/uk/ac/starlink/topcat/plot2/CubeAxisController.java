@@ -82,6 +82,7 @@ public class CubeAxisController
         final ConfigKey<?>[] viewKeys = new ConfigKey<?>[] {
             CubeSurfaceFactory.PHI_KEY,
             CubeSurfaceFactory.THETA_KEY,
+            CubeSurfaceFactory.PSI_KEY,
             CubeSurfaceFactory.ZOOM_KEY,
             CubeSurfaceFactory.XOFF_KEY,
             CubeSurfaceFactory.YOFF_KEY,
@@ -92,7 +93,6 @@ public class CubeAxisController
                 ConfigMap c = super.getSpecifiedValue();
                 CubeAspect asp = oldAspect_;
                 if ( asp != null ) {
-                    c.put( CubeSurfaceFactory.ROTMAT_KEY, asp.getRotation() );
                     c.put( CubeSurfaceFactory.ZOOM_KEY, asp.getZoom() );
                     c.put( CubeSurfaceFactory.XOFF_KEY, asp.getOffsetX() );
                     c.put( CubeSurfaceFactory.YOFF_KEY, asp.getOffsetY() );
