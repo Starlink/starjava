@@ -131,6 +131,7 @@ public class SkySurfaceFactory
         DoubleConfigKey.createTextKey(
             new ConfigMeta( LON_NAME, "Central Longitude" )
            .setShortDescription( "Longitude of plot centre" )
+           .setStringUsage( "<degrees>" )
            .setXmlDescription( new String[] {
                 "<p>Longitude of the central position of the plot",
                 "in decimal degrees.",
@@ -147,6 +148,7 @@ public class SkySurfaceFactory
         DoubleConfigKey.createTextKey(
             new ConfigMeta( LAT_NAME, "Central Latitude" )
            .setShortDescription( "Latitude of plot centre" )
+           .setStringUsage( "<degrees>" )
            .setXmlDescription( new String[] {
                 "<p>Latitude of the central position of the plot",
                 "in decimal degrees.",
@@ -163,6 +165,7 @@ public class SkySurfaceFactory
         DoubleConfigKey.createTextKey(
             new ConfigMeta( FOV_RADIUS_NAME, "Radius" )
            .setShortDescription( "Field of view radius in degrees" )
+           .setStringUsage( "<degrees>" )
            .setXmlDescription( new String[] {
                 "<p>Approximate radius of the plot field of view in degrees.",
                 "Only used if <code>" + LON_NAME + "</code>",
