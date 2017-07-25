@@ -42,8 +42,8 @@ public class ShadeAxis {
      * @param  captioner   text rendering object
      * @param  crowding   1 for normal tick density, lower for fewer labels,
      *                    higher for more
-     * @param  rampWidth  preferred number of pixels in the lateral
-     *                    for the direction of the ramp icon;
+     * @param  rampWidth  preferred number of pixels in the lateral direction
+     *                    for the the ramp icon;
      *                    this value is not used by this class, but this
      *                    class serves as a useful place to keep it
      */
@@ -106,6 +106,43 @@ public class ShadeAxis {
      */
     public int getRampWidth() {
         return rampWidth_;
+    }
+
+    /**
+     * Returns the minimum data value represented on this axis.
+     *
+     * @return   data lower limit
+     */
+    public double getDataLow() {
+        return dlo_;
+    }
+
+    /**
+     * Returns the maximum data value represented on this axis.
+     *
+     * @return   data upper limit
+     */
+    public double getDataHigh() {
+        return dhi_;
+    }
+
+    /**
+     * Returns the text label for this axis.
+     *
+     * @return  axis label
+     */
+    public String getLabel() {
+        return label_;
+    }
+
+    /**
+     * Returns the crowding factor for this axis.
+     *
+     * @return   1 for normal tick density, lower for fewer labels,
+     *           higher for more
+     */
+    public double getCrowding() {
+        return crowding_;
     }
 
     /**
