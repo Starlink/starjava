@@ -24,6 +24,7 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
@@ -918,6 +919,59 @@ public class PlotUtil {
                  ? Long.toString( (long) Math.round( value ) )
                  : formatNumber( value, "0.0", ndp );
         }
+    }
+
+    /**
+     * Rounds a number to a decimal round value.
+     * The number of decimal places is determined by the size of
+     * a supplied value, epsilon.
+     * When turned into a string, the final digit should be about
+     * the same size as epsilon.   Given decimal-&gt;binary conversions
+     * and uncertain behaviour of library stringification methods like
+     * Double.toDouble() this isn't bulletproof and may require some
+     * adjustment, but it seems to work as desired most of the time.
+     *
+     * @param   x  input value
+     * @param  epsilon  indicates desired rounding amount
+     * @return  output value, presumably destined for stringification
+     */
+    public static double roundNumber( double x, double epsilon ) {
+        if ( Double.isNaN( x ) ) {
+            return x;
+        }
+        else {
+            try {
+                return Double.parseDouble( formatNumber( x, epsilon ) );
+            }
+            catch ( NumberFormatException e ) {
+                assert false : formatNumber( x, epsilon ) + " -> " + e;
+                return x;
+            }
+        }
+    }
+
+    /**
+     * Utility method to set a minimum/maximum config key pair
+     * to a given pair of minimum/maximum values.
+     * This handles suitable rounding for presentation.
+     *
+     * @param   minKey  config key for minimum value
+     * @param   maxKey  config key for maximum value
+     * @param   min     minimum value
+     * @param   max     maximum value
+     * @param   npix    number of pixels (quanta) between min and max;
+     *                  this is used to determine at what level of
+     *                  precision to round the config values
+     */
+    public static ConfigMap configLimits( ConfigKey<Double> minKey,
+                                          ConfigKey<Double> maxKey,
+                                          double min, double max,
+                                          int npix ) {
+        double epsilon = ( max - min ) / npix;
+        ConfigMap config = new ConfigMap();
+        config.put( minKey, roundNumber( min, epsilon ) );
+        config.put( maxKey, roundNumber( max, epsilon ) );
+        return config;
     }
 
     /**
