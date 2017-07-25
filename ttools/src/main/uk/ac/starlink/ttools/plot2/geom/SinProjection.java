@@ -1,11 +1,13 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.ttools.func.Arrays;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Sine (orthographic) projection.
@@ -173,15 +175,50 @@ public class SinProjection extends SkyviewProjection {
         }
     }
 
+    public SkyFov getFov( SkySurface surf ) {
+        if ( isDefaultAspect( surf ) ) {
+            return null;
+        }
+        else {
+            double[] rotmat = surf.getRotation();
+            double zoom = surf.getZoom();
+            double[] center = Matrices.mvMult( Matrices.invert( rotmat ), RX );
+            double[] lonLat = surf.getRoundedLonLatDegrees( center );
+            double rdeg = Math.toDegrees( Math.asin( 1.0 / zoom ) );
+            Rectangle bounds = surf.getPlotBounds();
+            int npix = Math.max( bounds.width, bounds.height );
+            double radiusDeg =
+                PlotUtil.roundNumber( rdeg, rdeg / ( 10. * npix ) );
+            return new SkyFov( lonLat[ 0 ], lonLat[ 1 ], radiusDeg );
+        }
+    }
+
     /**
      * Returns the default view for this projection. 
      *
      * @param  reflect  whether longitude runs right to left
+     * @return  default aspect
      */
-    private SkyAspect getDefaultAspect( boolean reflect ) {
+    private static SkyAspect getDefaultAspect( boolean reflect ) {
         double[] rot = verticalRotate( Math.toRadians( -15 ),
                                        Math.toRadians( -10 ), reflect );
         return new SkyAspect( rot, 1, 0, 0 );
+    }
+
+    /**
+     * Indicates whether a given sky surface using this projection
+     * is displayed in the default aspect.
+     *
+     * @param   surf   surface using SinProjection
+     * @return  true  iff surf is using the default aspect
+     */
+    private static boolean isDefaultAspect( SkySurface surf ) {
+        double[] rotmat = surf.getRotation();
+        SkyAspect dflt = getDefaultAspect( isReflected( rotmat ) );
+        return surf.getZoom() == dflt.getZoom()
+            && surf.getOffsetX() == dflt.getOffsetX()
+            && surf.getOffsetY() == dflt.getOffsetY()
+            && java.util.Arrays.equals( rotmat, dflt.getRotation() );
     }
 
     /**

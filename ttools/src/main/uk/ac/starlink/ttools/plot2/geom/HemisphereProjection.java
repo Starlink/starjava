@@ -1,11 +1,13 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Toy projection class that provides a rotatable sphere.
@@ -126,6 +128,19 @@ public class HemisphereProjection implements Projection {
     public SkyAspect createAspect( boolean reflect, double[] r3,
                                    double radiusRad, Range[] ranges ) {
         return new SkyAspect( SkyAspect.unitMatrix( reflect ), 1, 0, 0 );
+    }
+
+    public SkyFov getFov( SkySurface surf ) {
+        double[] rotmat = surf.getRotation();
+        double zoom = surf.getZoom();
+        double[] center = Matrices.mvMult( Matrices.invert( rotmat ),
+                                           new double[] { 1, 0, 0 } );
+        double[] lonLat = surf.getRoundedLonLatDegrees( center );
+        double rdeg = Math.toDegrees( Math.asin( 1.0 / zoom ) );
+        Rectangle bounds = surf.getPlotBounds();
+        int npix = Math.max( bounds.width, bounds.height );
+        double radiusDeg = PlotUtil.roundNumber( rdeg, rdeg / ( 10. * npix ) );
+        return new SkyFov( lonLat[ 0 ], lonLat[ 1 ], radiusDeg );
     }
 
     /**

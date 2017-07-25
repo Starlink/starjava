@@ -135,4 +135,17 @@ public interface Projection {
      */
     SkyAspect createAspect( boolean reflect, double[] r3, double radiusRad,
                             Range[] vxyzRanges );
+
+    /**
+     * Returns the field of view represented by this aspect.
+     * This is a best estimate, it may be approximate depending on
+     * the projection geometry.  If the field of view is the default
+     * for this projection, then null should be returned.
+     * Null may also be returned if for some reason no field of
+     * view can be determined.
+     *
+     * @param   surf   sky surface, which must be set up using this projection
+     * @return  field of view, or null
+     */
+    SkyFov getFov( SkySurface surf );
 }

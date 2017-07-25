@@ -233,6 +233,54 @@ public class SkySurface implements Surface {
     }
 
     /**
+     * Returns the projection used by this sky surface.
+     *
+     * @return  projection
+     */
+    public Projection getProjection() {
+        return projection_;
+    }
+
+    /**
+     * Returns the rotation matrix corresponding to this view of the sky.
+     *
+     * @return  9-element rotation matrix
+     */
+    public double[] getRotation() {
+        return rotmat_;
+    }
+
+    /**
+     * Returns the zoom factor; 1 means the sky is approximately the
+     * same size as the plot bounds.
+     *
+     * @return  zoom factor
+     */
+    public double getZoom() {
+        return zoom_;
+    }
+
+    /**
+     * Returns the dimensionless X offset of the plot centre from the
+     * plot bounds centre.
+     *
+     * @return  dimensionless X offset
+     */
+    public double getOffsetX() {
+        return xoff_;
+    }
+
+    /**
+     * Returns the dimensionless Y offset of the plot centre from the
+     * plot bounds centre.
+     *
+     * @return  dimensionless Y offset
+     */
+    public double getOffsetY() {
+        return yoff_;
+    }
+
+    /**
      * Attempts to construct a GridLiner object which can
      * draw default grid lines on this plot.
      *
@@ -484,6 +532,35 @@ public class SkySurface implements Surface {
         }
         return sexagesimal_ ? formatPositionSex( lonRad, latRad, pixRad )
                             : formatPositionDec( lonRad, latRad, pixRad );
+    }
+
+    /**
+     * Returns the approximate sky longitude and latitude coordinates
+     * of a given sperical position vector.
+     * They are rounded to an appropriate decimal precision
+     * for presentation to the user.
+     *
+     * @param  r3  3-element direction cosine vector
+     * @return  2-element (longitude,latitude) array giving approximate
+     *          (rounded) coordinates of the given spherical position
+     *          in degrees
+     */
+    double[] getRoundedLonLatDegrees( double[] r3 ) {
+        double pixRad = 2.0 * Math.PI / gZoom_;
+        double x = r3[ 0 ];
+        double y = r3[ 1 ];
+        double z = r3[ 2 ];
+        double latRad = Math.PI * 0.5 - Math.acos( z );
+        double lonRad = Math.atan2( y, x );
+        while ( lonRad < 0 ) {
+            lonRad += 2 * Math.PI;
+        }
+        double degFact = 180. / Math.PI;
+        double degEpsilon = degFact * pixRad * 0.1;
+        return new double[] {
+            PlotUtil.roundNumber( degFact * lonRad, degEpsilon ),
+            PlotUtil.roundNumber( degFact * latRad, degEpsilon ),
+        };
     }
 
     /**

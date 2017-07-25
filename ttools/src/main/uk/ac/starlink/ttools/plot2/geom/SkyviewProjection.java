@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
@@ -13,6 +14,7 @@ import skyview.geometry.projecter.Car;
 import skyview.geometry.projecter.Stg;
 import skyview.geometry.projecter.Tan;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Projection implementation based on classes from the Skyview package.
@@ -154,6 +156,29 @@ public class SkyviewProjection implements Projection {
         }
         double[] rotmat = SkyAspect.unitMatrix( reflect );
         return new SkyAspect( rotmat, zoom, xoff, yoff );
+    }
+
+    public SkyFov getFov( SkySurface surf ) {
+        if ( surf.getZoom() == 1 &&
+             surf.getOffsetX() == 0 && surf.getOffsetY() == 0 ) {
+            return null;
+        }
+        Rectangle bounds = surf.getPlotBounds();
+        int npix = Math.max( bounds.width, bounds.height );
+        Point2D.Double gpos =
+            new Point2D.Double( bounds.x + bounds.width / 2,
+                                bounds.y + bounds.height / 2 );
+        double[] r3 = surf.graphicsToData( gpos, null );
+        if ( r3 != null ) {
+            double[] lonLat = surf.getRoundedLonLatDegrees( r3 );
+            double rdeg = 180. / surf.getZoom();
+            double radiusDeg =
+                PlotUtil.roundNumber( rdeg, rdeg / ( 10 * npix ) );
+            return new SkyFov( lonLat[ 0 ], lonLat[ 1 ], radiusDeg );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
