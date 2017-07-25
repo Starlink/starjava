@@ -390,6 +390,12 @@ public class CubeSurfaceFactory
                                rotmat, zoom, xoff, yoff );
     }
 
+    public ConfigMap getAspectConfig( Surface surface ) {
+        return surface instanceof CubeSurface
+             ? ((CubeSurface) surface).getAspectConfig( isIso_ )
+             : new ConfigMap();
+    }
+
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
         boolean[] logFlags = profile.getLogFlags();

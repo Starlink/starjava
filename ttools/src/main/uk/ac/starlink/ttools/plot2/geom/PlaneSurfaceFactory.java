@@ -229,6 +229,12 @@ public class PlaneSurfaceFactory
         }
     }
 
+    public ConfigMap getAspectConfig( Surface surf ) {
+        return surf instanceof PlaneSurface
+             ? ((PlaneSurface) surf).getAspectConfig()
+             : new ConfigMap();
+    }
+
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
         boolean[] logFlags = profile.getLogFlags();

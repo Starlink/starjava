@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
 /**
  * Surface implementation for 3-d plotting.
@@ -427,6 +428,61 @@ public class CubeSurface implements Surface {
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
             g2.setClip( clip0 );
         }
+    }
+
+    /**
+     * Returns approximate config to recreate this surface's aspect.
+     *
+     * @param  isIso  true for isotropic mode, false for anisotropic
+     * @return  approximate aspect config
+     */
+    ConfigMap getAspectConfig( boolean isIso ) {
+        int npix = Math.max( gxhi_ - gxlo_, gyhi_ - gylo_ );
+        ConfigMap config = new ConfigMap();
+        double xlo = dlos_[ 0 ];
+        double ylo = dlos_[ 1 ];
+        double zlo = dlos_[ 2 ];
+        double xhi = dhis_[ 0 ];
+        double yhi = dhis_[ 1 ];
+        double zhi = dhis_[ 2 ];
+        if ( isIso ) {
+            double xr = xhi - xlo;
+            double yr = yhi - ylo;
+            double zr = zhi - zlo;
+            config.put( CubeSurfaceFactory.XC_KEY,
+                        PlotUtil.roundNumber( .5 * ( xlo + xhi ), xr / npix ) );
+            config.put( CubeSurfaceFactory.YC_KEY,
+                        PlotUtil.roundNumber( .5 * ( ylo + yhi ), yr / npix ) );
+            config.put( CubeSurfaceFactory.ZC_KEY,
+                        PlotUtil.roundNumber( .5 * ( zlo + zhi ), zr / npix ) );
+            config.put( CubeSurfaceFactory.SCALE_KEY, ( xr + yr + zr ) / 3.0 );
+        }
+        else {
+            config.putAll( PlotUtil
+                          .configLimits( CubeSurfaceFactory.XMIN_KEY,
+                                         CubeSurfaceFactory.XMAX_KEY,
+                                         xlo, xhi, npix ) );
+            config.putAll( PlotUtil
+                          .configLimits( CubeSurfaceFactory.YMIN_KEY,
+                                         CubeSurfaceFactory.YMAX_KEY,
+                                         ylo, yhi, npix ) );
+            config.putAll( PlotUtil
+                          .configLimits( CubeSurfaceFactory.ZMIN_KEY,
+                                         CubeSurfaceFactory.ZMAX_KEY,
+                                         zlo, zhi, npix ) );
+        }
+        config.put( CubeSurfaceFactory.ZOOM_KEY, new Double( zoom_ ) );
+        config.put( CubeSurfaceFactory.XOFF_KEY, new Double( xoff_ ) );
+        config.put( CubeSurfaceFactory.YOFF_KEY, new Double( yoff_ ) );
+        double[] eulers = CubeSurfaceFactory.rotationToEulerDegrees( rotmat_ );
+        double degEpsilon = 0.01;
+        config.put( CubeSurfaceFactory.PHI_KEY,
+                    PlotUtil.roundNumber( eulers[ 0 ], degEpsilon ) );
+        config.put( CubeSurfaceFactory.THETA_KEY,
+                    PlotUtil.roundNumber( eulers[ 1 ], degEpsilon ) );
+        config.put( CubeSurfaceFactory.PSI_KEY,
+                    PlotUtil.roundNumber( eulers[ 2 ], degEpsilon ) );
+        return config;
     }
 
     /**

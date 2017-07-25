@@ -277,6 +277,20 @@ public class SkySurfaceFactory
                                   ranges );
     }
 
+    public ConfigMap getAspectConfig( Surface surf ) {
+        ConfigMap config = new ConfigMap();
+        if ( surf instanceof SkySurface ) {
+            SkySurface ssurf = (SkySurface) surf;
+            SkyFov fov = ssurf.getProjection().getFov( ssurf );
+            if ( fov != null ) {
+                config.put( LON_KEY, new Double( fov.getLonDeg() ) );
+                config.put( LAT_KEY, new Double( fov.getLatDeg() ) );
+                config.put( FOV_RADIUS_KEY, new Double( fov.getRadiusDeg() ) );
+            }
+        }
+        return config;
+    }
+
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
         PointCloud pointCloud =

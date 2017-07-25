@@ -112,6 +112,29 @@ public interface SurfaceFactory<P,A> {
     A createAspect( P profile, ConfigMap aspectConfig, Range[] ranges );
 
     /**
+     * Returns a ConfigMap that corresponds to the configuration of
+     * the given surface, which must have been created by this factory.
+     * The intention is that supplying the returned config items to
+     * this object's {@link #createAspect createAspect} method with
+     * the right profile should come up with approximately the same
+     * surface, preferably without reference to any supplied ranges.
+     *
+     * <p>The returned config items should be optimised for presentation
+     * to the user, so that for instance decimal values are reported
+     * to a reasonable level of precision.  Because of this, and
+     * perhaps for other reasons related to implementation,
+     * a surface resulting from feeding the returned config back to this
+     * factory may not be identical to the supplied surface,
+     * so round-tripping is not guaranteed to be exact.
+     *
+     * @param   surface   plot surface; if it was not created by this factory,
+     *                    behaviour is undefined
+     * @return   config map populated with items that should approximately
+     *           reproduce the supplied surface
+     */
+    ConfigMap getAspectConfig( Surface surface );
+
+    /**
      * Returns the configuration keys that may be used to configure
      * a navigator for use with this surface factory.
      * The returned keys are used in the map supplied to the

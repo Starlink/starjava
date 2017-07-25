@@ -15,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
 /**
  * Surface implementation for time-series plotting.
@@ -211,6 +212,27 @@ public class TimeSurface implements Surface, PlanarSurface {
     }
 
     /**
+     * Returns approximate config to recreate this surface's aspect.
+     *
+     * @return   approximate aspect config
+     */
+    ConfigMap getAspectConfig() {
+        ConfigMap config = new ConfigMap();
+        double timeEpsilon = 0.1 * ( dthi_ - dtlo_ ) / ( gxhi_ - gxlo_ );
+        TimeFormat tfmt = dthi_ - dtlo_ > 365 * 24 * 3600
+                                        ? TimeFormat.DECIMAL_YEAR
+                                        : TimeFormat.ISO8601;
+        config.put( TimeSurfaceFactory.TMIN_KEY,
+                    new Double( roundTime( dtlo_, tfmt, timeEpsilon ) ) );
+        config.put( TimeSurfaceFactory.TMAX_KEY,
+                    new Double( roundTime( dthi_, tfmt, timeEpsilon ) ) );
+        config.putAll( PlotUtil.configLimits( TimeSurfaceFactory.YMIN_KEY,
+                                              TimeSurfaceFactory.YMAX_KEY,
+                                              dylo_, dyhi_, gyhi_ - gylo_ ) );
+        return config;
+    }
+
+    /**
      * Returns a plot aspect representing a view of this surface zoomed
      * in some or all dimensions around the given central position.
      *
@@ -348,6 +370,25 @@ public class TimeSurface implements Surface, PlanarSurface {
         }
         else {
             return false;
+        }
+    }
+
+    /**
+     * Attempts format-sensitive rounding of a time value to a given level
+     * of precision.
+     *
+     * @param  tval   time value in unix seconds
+     * @param  tfmt   time format in which the value is to look rounded
+     * @param  tepsilon   small value corresponding roughly to rounding amount
+     * @return  rounded value near tval
+     */
+    private static double roundTime( double tval, TimeFormat tfmt,
+                                     double tepsilon ) {
+        try {
+            return tfmt.parseTime( tfmt.formatTime( tval, tepsilon ) );
+        }
+        catch ( RuntimeException e ) {
+            return tval;
         }
     }
 

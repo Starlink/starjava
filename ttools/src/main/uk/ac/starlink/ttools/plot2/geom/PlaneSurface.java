@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.Ticker;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
 /**
  * Surface implementation for flat 2-d plotting.
@@ -192,6 +193,22 @@ public class PlaneSurface implements Surface, PlanarSurface {
             /* Restore. */
             g2.setColor( color0 );
         }
+    }
+
+    /**
+     * Returns approximate config to recreate this surface's aspect.
+     *
+     * @return  approximate aspect config
+     */
+    ConfigMap getAspectConfig() {
+        ConfigMap config = new ConfigMap();
+        config.putAll( PlotUtil.configLimits( PlaneSurfaceFactory.XMIN_KEY,
+                                              PlaneSurfaceFactory.XMAX_KEY,
+                                              dxlo_, dxhi_, gxhi_ - gxlo_ ) );
+        config.putAll( PlotUtil.configLimits( PlaneSurfaceFactory.YMIN_KEY,
+                                              PlaneSurfaceFactory.YMAX_KEY,
+                                              dylo_, dyhi_, gyhi_ - gylo_ ) );
+        return config;
     }
 
     public double[][] getDataLimits() {

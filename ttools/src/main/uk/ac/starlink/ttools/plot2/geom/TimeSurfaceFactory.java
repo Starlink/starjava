@@ -203,6 +203,12 @@ public class TimeSurfaceFactory
         }
     }
 
+    public ConfigMap getAspectConfig( Surface surf ) {
+        return surf instanceof TimeSurface
+             ? ((TimeSurface) surf).getAspectConfig()
+             : new ConfigMap();
+    }
+
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
         boolean[] logFlags = new boolean[] { false, profile.getYLog() };
