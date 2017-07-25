@@ -102,6 +102,17 @@ public abstract class TimeFormat {
     public abstract String formatTime( double unixSec, double secPrecision );
 
     /**
+     * Turns a formatted time string into the equivalent value in
+     * unix seconds.  This is the inverse of {@link #formatTime formatTime}.
+     *
+     * @param  timeStr   formatted time value
+     * @return   time in unix seconds
+     * @throws   NumberFormatException   if timeStr cannot be parsed to a time
+     *                                   in this format
+     */
+    public abstract double parseTime( String timeStr );
+
+    /**
      * Returns an object for generating ticks to label the time axis.
      *
      * @return  tick calculator
@@ -286,6 +297,10 @@ public abstract class TimeFormat {
             }
         }
 
+        public double parseTime( String timeStr ) {
+            return toUnixSeconds( Double.parseDouble( timeStr ) );
+        }
+
         public Ticker getTicker() {
             return ticker_;
         }
@@ -345,6 +360,21 @@ public abstract class TimeFormat {
             else {
                 return txt;
             }
+        }
+
+        public double parseTime( String timeStr ) {
+            final double mjd;
+            try {
+                mjd = Times.isoToMjd( timeStr );
+            }
+            catch ( NumberFormatException e ) {
+                throw e;
+            }
+            catch ( RuntimeException e ) {
+                throw (NumberFormatException)
+                      new NumberFormatException().initCause( e );
+            }
+            return Times.mjdToUnixMillis( mjd ) * 0.001;
         }
 
         public Ticker getTicker() {
