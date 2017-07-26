@@ -83,6 +83,36 @@ public class SkySurfaceFactory
        .setOptionUsage()
        .addOptionsXml();
 
+    /**
+     * Config key for the sky system used for supplying data.
+     * Note this is not used by SkySurfaceFactory, but client UI code
+     * may find it useful in conjunction with {@link #VIEWSYS_KEY}. */
+    public static final ConfigKey<SkySys> DATASYS_KEY =
+        new SkySysConfigKey(
+            new ConfigMeta( "datasys", "Data Sky System" )
+           .setShortDescription( "Sky coordinate system for supplied data" )
+           .setXmlDescription( new String[] {
+                "<p>The sky system used to interpret",
+                "supplied data longitude and latitude coordinate values.",
+                "</p>",
+                "<p>Choice of this value goes along with the",
+                "<code>" + VIEWSYS_KEY.getMeta().getShortName() + "</code>",
+                "value which specifies the view sky system.",
+                "If neither the view nor data system is specified,",
+                "plotting is carried out in a generic sky system",
+                "assumed the same between the data and the view.",
+                "But if any layers have a supplied data sky system,",
+                "there must be an explicitly or implicitly supplied",
+                "view sky system into which the data input coordinates",
+                "will be transformed.",
+                "If not supplied explicitly, the data system defaults",
+                "to the same value as the view system.",
+                "</p>",
+            } )
+            , false )
+       .setOptionUsage()
+       .addOptionsXml();
+
     /** Config key to determine whether grid lines are drawn. */
     public static final ConfigKey<Boolean> GRID_KEY =
         new BooleanConfigKey(

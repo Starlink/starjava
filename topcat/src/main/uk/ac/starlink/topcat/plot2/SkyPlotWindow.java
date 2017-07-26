@@ -15,9 +15,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
-import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
-import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.geom.SkyAspect;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
@@ -34,8 +32,7 @@ public class SkyPlotWindow
        extends StackPlotWindow<SkySurfaceFactory.Profile,SkyAspect> {
     private static final SkyPlotType PLOT_TYPE = SkyPlotType.getInstance();
     private static final ConfigKey<SkySys> DATASYS_KEY =
-        new SkySysConfigKey( new ConfigMeta( "datasys", "Data Sky System" ),
-                             false );
+        SkySurfaceFactory.DATASYS_KEY;
 
     /**
      * Constructor.
