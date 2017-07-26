@@ -127,6 +127,16 @@ public class ConfigParameter<T> extends Parameter<T> {
     }
 
     /**
+     * Sets the typed default value for this parameter.
+     *
+     * @param  dflt  typed default value
+     */
+    public void setDefaultOption( T dflt ) {
+        setStringDefault( dflt == null ? null
+                                       : key_.valueToString( dflt ) );
+    }
+
+    /**
      * Returns a layer-indexed config parameter with a given layer suffix.
      * The name is constructed from the key name followed by the suffix.
      *
