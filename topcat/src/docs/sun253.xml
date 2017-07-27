@@ -24450,6 +24450,9 @@ introduced since the last version:
         the five previously available VOTable variants.</li>
     <li>TAP Examples display line now copes better with long and multi-line
         names from service-provided examples.</li>
+    <li>TAP examples are now picked up from the <code>/examples</code>
+        document using more lenient rules
+        (no requirements for a containing <code>vocab</code> attribute).</li>
     </ul>
     </p></dd>
 

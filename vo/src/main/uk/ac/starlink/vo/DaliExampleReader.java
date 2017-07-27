@@ -93,11 +93,17 @@ public class DaliExampleReader {
                  .initCause( e );
         }
 
-        /* I think it should be @vocab='ivo://ivoa.net/std/DALI-examples',
-         * but sometimes it seems to have a trailing '#'. */
-        String exPath =
-              "//*[starts-with(@vocab,'ivo://ivoa.net/std/DALI-examples')]"
-            + "//*[@typeof='example']";
+        /* Earlier versions of this class required that the @typeof='example'
+         * element occurred in the scope of an element with a suitable
+         * @vocab attribute.  But the requirement on the content of that
+         * vocab is really a mess: the TAP Implementation Note,
+         * DALI 1.0 and DALI 1.1 all say different things, and at time
+         * of writing most known services have something else again.
+         * Following discussion with Markus Demleitner, we now just ignore
+         * the RDFa vocab altogether, and pick up anything marked with a
+         * @typeof='example' attribute.  This is very likely to do the
+         * right thing. */
+        String exPath = "//*[@typeof='example']";
         List<DaliExample> list = new ArrayList<DaliExample>();
         for ( Element exampleEl :
               findElements( doc.getDocumentElement(), exPath ) ) {
