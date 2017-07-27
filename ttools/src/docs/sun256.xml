@@ -11136,6 +11136,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Taplint no longer issues a warning about DataModel references
         that do not match the <code>vr:IdentifierURI</code> type;
         this follows TAPRegExt Erratum #1.</li>
+    <li>Modify taplint Examples document @vocab attribute testing in the
+        light of DALI 1.1.</li>
     </ul>
     </p></dd>
 

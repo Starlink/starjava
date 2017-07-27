@@ -170,6 +170,7 @@ public enum FixedCode implements ReportCode {
     W_DSUC( "Non-error return from duff query" ),
     W_EX00( "No examples in examples document" ),
     W_EXUL( "Undeclared query language" ),
+    W_EXVC( "Potentially problematic examples RDFa vocab attribute" ),
     W_EXVL( "Example query does not validate" ),
     W_FKUN( "Keys content" ),
     W_FLUN( "Key columns content" ),
