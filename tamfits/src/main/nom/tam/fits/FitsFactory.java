@@ -15,7 +15,12 @@ package nom.tam.fits;
 public class FitsFactory {
     
     private static boolean useAsciiTables = true;
-    private static boolean useHierarch = false;
+
+    // MBT (28-JUL-2017): change default from false to true.
+    // This is required for HIERARCH-based wide fits processing
+    // (see uk.ac.starlink.fits.WideFits).  If that gets backed out of,
+    // this could be set back to its factory setting (false).
+    private static boolean useHierarch = true;
     
     /** Indicate whether ASCII tables should be used
      *  where feasible.

@@ -24453,6 +24453,11 @@ introduced since the last version:
     <li>TAP examples are now picked up from the <code>/examples</code>
         document using more lenient rules
         (no requirements for a containing <code>vocab</code> attribute).</li>
+    <li>FITS keywords using the ESO
+        <webref url="https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html"
+                >HIERARCH</webref>
+        convention are now picked up rather than ignored when reading
+        FITS tables.</li>
     </ul>
     </p></dd>
 

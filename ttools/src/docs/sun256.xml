@@ -11138,6 +11138,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         this follows TAPRegExt Erratum #1.</li>
     <li>Modify taplint Examples document @vocab attribute testing in the
         light of DALI 1.1.</li>
+    <li>FITS keywords using the ESO
+        <webref url="https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html"
+                >HIERARCH</webref>
+        convention are now picked up rather than ignored when reading
+        FITS tables.</li>
     </ul>
     </p></dd>
 
