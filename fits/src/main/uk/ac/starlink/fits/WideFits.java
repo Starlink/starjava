@@ -35,8 +35,9 @@ public interface WideFits {
     /** Maximum number of standard columns, imposed by FITS standard (999). */
     public static final int MAX_NCOLSTD = 999;
 
-    /** Default WideFits instance; currently null. */
-    public static final WideFits DEFAULT = null;
+    /** Default WideFits instance; currently TFORMaaa using column 999. */
+    public static final WideFits DEFAULT =
+        AbstractWideFits.createAlphaWideFits( 999 );
 
     /**
      * Returns the index of the column used (if any) by this specification

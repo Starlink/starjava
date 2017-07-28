@@ -11143,6 +11143,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
                 >HIERARCH</webref>
         convention are now picked up rather than ignored when reading
         FITS tables.</li>
+    <li>It is now possible to write and re-read tables with &gt;999
+        columns to FITS or colfits format.  The new limit is 18574 columns.
+        This uses a non-standard convention; software that is not aware
+        of the convention (e.g. CFITSIO or earlier STILTS versions)
+        will only be able to use the first 998 columns of tables written
+        in this way.</li>
     </ul>
     </p></dd>
 

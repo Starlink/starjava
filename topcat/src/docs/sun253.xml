@@ -1624,6 +1624,17 @@ and not worry about which of these variants is being used - if
 <code>fits-plus</code> is being used you just get some hidden benefits.
 </p>
 
+<p>The FITS standard only supports BINTABLE extensions with a maximum
+of 999 columns.  In TOPCAT versions up to v4.4, attempting to write
+a wider table to FITS format would fail.  In later versions, a
+non-standard convention is used so that tables with up to 18574
+columns can be written and re-read.
+Note however that if software unaware of this convention
+(e.g. CFITSIO or earlier versions of TOPCAT) is used
+to read such tables it will only see the first 998 columns written
+as intended, plus a column 999 containing an undescribed byte buffer.
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="outColfits">
@@ -24458,6 +24469,12 @@ introduced since the last version:
                 >HIERARCH</webref>
         convention are now picked up rather than ignored when reading
         FITS tables.</li>
+    <li>It is now possible to write and re-read tables with &gt;999 
+        columns to FITS or colfits format.  The new limit is 18574 columns.
+        This uses a non-standard convention; software that is not aware
+        of the convention (e.g. CFITSIO or earlier STILTS versions)
+        will only be able to use the first 998 columns of tables written
+        in this way.</li>
     </ul>
     </p></dd>
 
