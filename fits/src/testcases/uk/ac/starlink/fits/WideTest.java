@@ -60,6 +60,10 @@ public class WideTest extends TestCase {
                       AbstractWideFits.createAlphaWideFits( 999 ).toString() );
         assertEquals( "alpha23",
                       AbstractWideFits.createAlphaWideFits( 23 ).toString() );
+        assertEquals( "hierarch",
+                  AbstractWideFits.createHierarchWideFits( 999 ).toString() );
+        assertEquals( "hierarch55",
+                  AbstractWideFits.createHierarchWideFits( 55 ).toString() );
     }
 
     public void testReadWrite() throws IOException {
@@ -68,6 +72,8 @@ public class WideTest extends TestCase {
             WideFits.DEFAULT,
             AbstractWideFits.createAlphaWideFits( 9 ),
             AbstractWideFits.createAlphaWideFits( 6 ),
+            AbstractWideFits.createHierarchWideFits( 6 ),
+            AbstractWideFits.createHierarchWideFits( 9 ),
         };
         for ( WideFits wide : wides ) {
             exerciseReadWrite( new FitsTableWriter( "fits", true, wide ),
@@ -118,6 +124,7 @@ public class WideTest extends TestCase {
 
         WideFits[] wides = {
             AbstractWideFits.createAlphaWideFits( iExtCol ),
+            AbstractWideFits.createHierarchWideFits( iExtCol ),
         };
         for ( WideFits wide : wides ) {
             StarTableWriter writer = new FitsTableWriter( "fits", true, wide );

@@ -76,14 +76,15 @@ Convention:
       It MUST be present with an integer value equal to N_TOT.
 
  - Metadata for each extended column is encoded with keywords
-      of the form XXXXXaaa, where XXXXX are the same keyword roots
-      as used for normal BINTABLE extensions, and aaa is a 3-digit
-      value in base 26 using the characters 'A' (0 in base 26) to
-      'Z' (25 in base 26), and giving the 1-based data column index
-      minus 999.  The sequence aaa MUST be exactly three characters
-      long (leading 'A's are required).  Thus the formats for data
-      columns 999, 1000, 1001, etc are declared with the keywords
-      TFORMAAA, TFORMAAB, TFORMAAC etc.
+      of the form HIERARCH XT XXXXXnnnnn, where XXXXX
+      are the same keyword roots as used for normal BINTABLE extensions,
+      and nnnnn is a decimal number written as usual (no leading zeros,
+      as many digits are required).  Thus the formats for data
+      columns 999, 1000, 1001 etc are declared with the keywords
+      HIERARCH XT TFORM999, HIERARCH XT TFORM1000, HIERARCH XT TFORM1001
+      etc.  Note this uses the ESO HIERARCH convention described at
+      https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html.
+      The "name space" token has been chosen as "XT" (extended table).
 
  - This convention MUST NOT be used for N_TOT<=999.
 
@@ -93,9 +94,6 @@ data and metadata beyond the 999-column limit.
 Readers unaware of this convention will see 998 columns in their
 intended form, and an additional (possibly large) column 999
 which contains byte data but which cannot be easily interpreted.
-
-This convention can therefore allow encoding of tables with data
-column counts N_TOT up to 998+26^3 = 18574.
 
 An example header might look like this:
 
@@ -122,6 +120,57 @@ An example header might look like this:
    TUNIT998= 'counts/s'           /  units for column 998
    TTYPE999= 'XT_MORECOLS'        /  label for column 999
    TFORM999= '813I    '           /  format for column 999
+   HIERARCH XT TTYPE999         = 'var_min_u_2' / label for column 999
+   HIERARCH XT TFORM999         = 'D' / format for column 999
+   HIERARCH XT TUNIT999         = 'counts/s' / units for column 999
+   HIERARCH XT TTYPE1000        = 'var_prob_h_2' / label for column 1000
+   HIERARCH XT TFORM1000        = 'D' / format for column 1000
+    ...
+   HIERARCH XT TTYPE1203        = 'var_prob_w_2' / label for column 1203
+   HIERARCH XT TFORM1203        = 'D' / format for column 1203
+   HIERARCH XT TTYPE1204        = 'var_sigma_w_2' / label for column 1204
+   HIERARCH XT TFORM1204        = 'D' / format for column 1204
+   HIERARCH XT TUNIT1204        = 'counts/s' / units for column 1204
+   END
+
+This general approach was suggested by William Pence on the FITSBITS
+list in June 2012
+(https://listmgr.nrao.edu/pipermail/fitsbits/2012-June/002367.html),
+and by Francois-Xavier Pineau (CDS) in private conversation in 2016.
+The details have been filled in by Mark Taylor (Bristol).
+
+It was discussed in some detail on the FITSBITS list in July 2017
+(https://listmgr.nrao.edu/pipermail/fitsbits/2017-July/002967.html)
+
+
+--------------------------------------------------------------------
+
+Note: a previous variant of this convention was proposed in which
+the metadata for the extended columns was declared by extending
+the numbering scheme using three-digit base-26 representations.
+It was identical to the above, except that:
+
+ - Metadata for each extended column is encoded with keywords
+      of the form XXXXXaaa, where XXXXX are the same keyword roots
+      as used for normal BINTABLE extensions, and aaa is a 3-digit
+      value in base 26 using the characters 'A' (0 in base 26) to
+      'Z' (25 in base 26), and giving the 1-based data column index
+      minus 999.  The sequence aaa MUST be exactly three characters
+      long (leading 'A's are required).  Thus the formats for data
+      columns 999, 1000, 1001, etc are declared with the keywords
+      TFORMAAA, TFORMAAB, TFORMAAC etc.
+
+This convention can therefore allow encoding of tables with data
+column counts N_TOT up to 998+26^3 = 18574.
+
+In that case the header looks identical to the previous example up
+to TFORM999, but the remaining entries differ:
+
+   TTYPE998= 'var_min_s_2'        /  label for column 998
+   TFORM998= 'D       '           /  format for column 998
+   TUNIT998= 'counts/s'           /  units for column 998
+   TTYPE999= 'XT_MORECOLS'        /  label for column 999
+   TFORM999= '813I    '           /  format for column 999
    TTYPEAAA= 'var_min_u_2'        /  label for column 999
    TFORMAAA= 'D       '           /  format for column 999
    TUNITAAA= 'counts/s'           /  units for column 999
@@ -135,10 +184,6 @@ An example header might look like this:
    TUNITAHX= 'counts/s'           /  units for column 1204
    END
 
-This general approach was suggested by William Pence on the FITSBITS
-list in June 2012
-(https://listmgr.nrao.edu/pipermail/fitsbits/2012-June/002367.html),
-and by Francois-Xavier Pineau (CDS) in private conversation in 2016.
-The details have been filled in by Mark Taylor (Bristol).
-(F-X favours a different mechanism for encoding the extended
-column metadata).
+This variant was generally less favoured than the HIERARCH_based
+one by participants in the FITSBITS discussion.
+

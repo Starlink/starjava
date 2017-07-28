@@ -1,6 +1,7 @@
 package uk.ac.starlink.fits;
 
 import java.util.logging.Logger;
+import nom.tam.fits.FitsFactory;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 
@@ -198,6 +199,19 @@ public abstract class AbstractWideFits implements WideFits {
     }
 
     /**
+     * Returns a WideFits instance that uses headers of the form
+     * HIERARCH XT TFORMnnnnn, using the ESO HIERARCH convention.
+     *
+     * @param  icolContainer  1-based index of container column
+     *                        used for storing extended column data;
+     *                        usually 999
+     * @return  WideFits implementation
+     */
+    public static WideFits createHierarchWideFits( int icolContainer ) {
+        return new HierarchWideFits( icolContainer );
+    }
+
+    /**
      * Utility method to write a log message indicating that this
      * convention is being used to write a FITS file.
      *
@@ -293,6 +307,69 @@ public abstract class AbstractWideFits implements WideFits {
             else {
                 String msg = "Out of range (0-" + ( max - 1 ) + "): " + ix;
                 throw new NumberFormatException( msg );
+            }
+        }
+    }
+
+    /**
+     * WideFits implementation based on the non-standard HIERARCH convention.
+     */
+    static class HierarchWideFits extends AbstractWideFits {
+
+        public static final String NAMESPACE = "XT";
+
+        /**
+         * Constructor.
+         *
+         * @param  icolContainer  1-based index of container column
+         *                        used for storing extended column data
+         */
+        public HierarchWideFits( int icolContainer ) {
+            super( icolContainer, Integer.MAX_VALUE, "hierarch" );
+        }
+
+        public BintableColumnHeader createExtendedHeader( int icolContainer,
+                                                          final int jcol ) {
+            return new BintableColumnHeader() {
+                public String getKeyName( String stdName ) {
+                    return new StringBuffer()
+                        .append( "HIERARCH" )
+                        .append( "." )
+                        .append( NAMESPACE )
+                        .append( "." )
+                        .append( stdName )
+                        .append( jcol )
+                        .toString();
+                }
+            };
+        }
+
+        @Override
+        public void addExtensionHeader( Header hdr, int ncolExt ) {
+            checkHasHierarch( false );
+            super.addExtensionHeader( hdr, ncolExt );
+        }
+
+        @Override
+        public int getExtendedColumnCount( HeaderCards cards, int ncolStd ) {
+            int ncolExt = super.getExtendedColumnCount( cards, ncolStd );
+            if ( ncolExt > ncolStd ) {
+                checkHasHierarch( true );
+            }
+            return ncolExt;
+        }
+
+        /**
+         * Check that the FITS HIERARCH convention is in operation.
+         * If not, complain about it or something.
+         *
+         * @param  isRead  true for read, false for write
+         */
+        private void checkHasHierarch( boolean isRead ) {
+            if ( ! FitsFactory.getUseHierarch() ) {
+                logger_.severe( "FitsFactory.useHierarch=false: "
+                              + "HIERARCH-based wide FITS table convention "
+                              + ( isRead ? "read" : "write" ) + " will fail!" );
             }
         }
     }
