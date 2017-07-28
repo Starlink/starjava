@@ -25,6 +25,7 @@ import uk.ac.starlink.table.WrapperStarTable;
  */
 public class ColFitsTableSerializer implements FitsTableSerializer {
 
+    private final WideFits wide_;
     private final ColumnStore[] colStores_;
     private final String[] colids_;
     private final int ncol_;
@@ -37,10 +38,13 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
      * Constructor.
      *
      * @param   table  table to serialize
+     * @param   wide   convention for representing over-wide tables;
+     *                 null to avoid this convention
      * @throws IOException if it won't be possible to write the given table
      */
-    public ColFitsTableSerializer( StarTable table )
+    public ColFitsTableSerializer( StarTable table, WideFits wide )
             throws IOException {
+        wide_ = wide;
 
         /* Prepare an array of column storage objects which know how to do
          * serial storage/retrieval of the data in a table column. */
@@ -60,7 +64,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
                 nUseCol++;
             }
         }
-        FitsConstants.checkColumnCount( nUseCol );
+        FitsConstants.checkColumnCount( wide, nUseCol );
 
         /* Store the table data into these storage objects. */
         boolean ok = false;
@@ -110,14 +114,28 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
 
         /* Work out the length of the single table row. */
         long size = 0L; 
+        long extSize = 0L;
         int nUseCol = 0;
         for ( int icol = 0; icol < ncol_; icol++ ) {
             ColumnStore colStore = colStores_[ icol ];
             if ( colStore != null ) {
                 nUseCol++;
-                size += colStore.getDataLength();
+                long leng = colStore.getDataLength();
+                size += leng;
+                if ( wide_ != null &&
+                     nUseCol >= wide_.getContainerColumnIndex() ) {
+                    extSize += leng;
+                }
             }
         }
+
+        /* Work out the number of standard and extended columns.
+         * This won't fail because of checks carried out in constructor. */
+        int nStdCol =
+              wide_ != null && nUseCol > wide_.getContainerColumnIndex()
+            ? wide_.getContainerColumnIndex()
+            : nUseCol;
+        boolean hasExtCol = nUseCol > nStdCol;
 
         /* Write the standard part of the FITS header. */
         Header hdr = new Header();
@@ -128,12 +146,18 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         hdr.addValue( "NAXIS2", 1, "single-row table" );
         hdr.addValue( "PCOUNT", 0, "size of special data area" );
         hdr.addValue( "GCOUNT", 1, "one data group" );
-        hdr.addValue( "TFIELDS", nUseCol, "number of columns" );
+        hdr.addValue( "TFIELDS", nStdCol, "number of columns" );
 
         /* Add EXTNAME record containing table name. */
         if ( tname_ != null && tname_.trim().length() > 0 ) {
             FitsConstants
            .addTrimmedValue( hdr, "EXTNAME", tname_, "table name" );
+        }
+
+        /* Add extended column header information if applicable. */
+        if ( hasExtCol ) {
+            wide_.addExtensionHeader( hdr, nUseCol );
+            AbstractWideFits.logWideWrite( logger_, nStdCol, nUseCol ); 
         }
 
         /* Ask each ColumnStore to add header cards describing the data
@@ -143,8 +167,13 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
             ColumnStore colStore = colStores_[ icol ];
             if ( colStore != null ) {
                 jcol++;
+                if ( hasExtCol && jcol == nStdCol ) {
+                    wide_.addContainerColumnHeader( hdr, extSize, nrow_ );
+                }
                 BintableColumnHeader colhead =
-                    BintableColumnHeader.createStandardHeader( jcol );
+                      hasExtCol && jcol >= nStdCol
+                    ? wide_.createExtendedHeader( nStdCol, jcol )
+                    : BintableColumnHeader.createStandardHeader( jcol );
                 colStore.addHeaderInfo( hdr, colhead, jcol );
             }
         }

@@ -331,7 +331,8 @@ public class ColumnReaderTest extends TestCase {
 
         /* Write to a FITS file. */
         BufferedDataOutputStream fout = new BufferedDataOutputStream( out );
-        FitsTableSerializer ser = new StandardFitsTableSerializer( table );
+        FitsTableSerializer ser =
+            new StandardFitsTableSerializer( table, true, (WideFits) null );
         FitsConstants.writeEmptyPrimary( fout );
         Header hdr = ser.getHeader();
 

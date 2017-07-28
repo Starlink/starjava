@@ -17,12 +17,14 @@ import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.fits.AbstractWideFits;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.ColFitsTableWriter;
 import uk.ac.starlink.fits.ColFitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.VariableFitsTableWriter;
+import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.storage.AdaptiveByteStore;
 import uk.ac.starlink.table.storage.ByteStoreRowStore;
 import uk.ac.starlink.table.storage.FileByteStore;
@@ -66,6 +68,10 @@ public class FormatsTest extends TableCase {
     private static final String FUNNY_UNITS = "\"'<a&b>'\"";
     private static final DescribedValue UBYTE_AUXDATUM =
         new DescribedValue( Tables.UBYTE_FLAG_INFO, Boolean.TRUE );
+    private static final WideFits[] wides_ = {
+          null,
+          WideFits.DEFAULT,
+    };
 
     static {
         MATRIX_INFO.setShape( new int[] { 2, -1 } );
@@ -346,59 +352,75 @@ public class FormatsTest extends TableCase {
     }
 
     public void testFits() throws IOException {
-        StarTableWriter writer = new FitsTableWriter();
+        for ( WideFits wide : wides_ ) {
+            exerciseFits( wide );
+        }
+    }
+
+    private void exerciseFits( WideFits wide ) throws IOException {
+        boolean allowSignedByte = true;
+        StarTableWriter writer =
+            new FitsTableWriter( "fits", allowSignedByte, wide );
         File loc = getTempFile( "t.fits" );
         StarTable t1 = table;
         writer.writeStarTable( t1, loc.toString(), sto );
-        StarTable t2 = new StarTableFactory()
-                      .makeStarTable( loc.toString() );
+        StarTable t2 = new FitsTableBuilder( wide )
+                      .makeStarTable( new FileDataSource( loc ), true,
+                                      StoragePolicy.PREFER_MEMORY );
         assertTrue( t2 instanceof BintableStarTable );
         checkStarTable( t2 );
 
         assertFitsTableEquals( t1, t2, false, false );
         assertFitsTableEquals( t1, t2, false, false );
-        StarTable t3 = new StarTableFactory( false )
-                      .makeStarTable( loc.toURI().toURL().toString() );
-        assertTrue( t3 instanceof BintableStarTable );
-        assertTrue( ! t3.isRandom() );
-        checkStarTable( t3 );
-        assertFitsTableEquals( t1, t3, false, true );
-        assertFitsTableEquals( t1, t3, false, true );
+        if ( wide == null || wide == WideFits.DEFAULT ) {
+            StarTable t3 = new StarTableFactory( false )
+                          .makeStarTable( loc.toURI().toURL().toString() );
+            assertTrue( t3 instanceof BintableStarTable );
+            assertTrue( ! t3.isRandom() );
+            checkStarTable( t3 );
+            assertFitsTableEquals( t1, t3, false, true );
+            assertFitsTableEquals( t1, t3, false, true );
 
-        StarTable t4 = new StarTableFactory( false )
-                      .makeStarTable( "file:" + loc );
-        assertTrue( t4 instanceof BintableStarTable );
-        assertTrue( ! t4.isRandom() );
-        checkStarTable( t4 );
-        assertFitsTableEquals( t1, t4, false, true );
+            StarTable t4 = new StarTableFactory( false )
+                          .makeStarTable( "file:" + loc );
+            assertTrue( t4 instanceof BintableStarTable );
+            assertTrue( ! t4.isRandom() );
+            checkStarTable( t4 );
+            assertFitsTableEquals( t1, t4, false, true );
 
-        StarTable t5 = new StarTableFactory( true )
-                      .makeStarTable( "file:" + loc );
-        assertTrue( t5.isRandom() );
-        checkStarTable( t5 );
-        assertFitsTableEquals( t1, t5, false, false );
+            StarTable t5 = new StarTableFactory( true )
+                          .makeStarTable( "file:" + loc );
+            assertTrue( t5.isRandom() );
+            checkStarTable( t5 );
+            assertFitsTableEquals( t1, t5, false, false );
 
-        // assertTableEquals( t3, t4 );
+            // assertTableEquals( t3, t4 );
 
-        String name = "Dobbin";
-        t2.setName( name );
-        t3.setName( name );
-        assertEquals( "Dobbin", t2.getName() );
-        assertEquals( "Dobbin", t3.getName() );
-        assertTableEquals( t2, t3 );
+            String name = "Dobbin";
+            t2.setName( name );
+            t3.setName( name );
+            assertEquals( "Dobbin", t2.getName() );
+            assertEquals( "Dobbin", t3.getName() );
+            assertTableEquals( t2, t3 );
+        }
     }
 
     public void testVarFits() throws IOException {
-        exerciseVarFits( false );
-        exerciseVarFits( true );
+        for ( WideFits wide : wides_ ) {
+            exerciseVarFits( false, wide );
+            exerciseVarFits( true, wide );
+        }
     }
 
-    private void exerciseVarFits( boolean isLong ) throws IOException {
+    private void exerciseVarFits( boolean isLong, WideFits wide )
+            throws IOException {
         File loc = getTempFile( "tv.fits" );
         StarTable t1 = table;
-        new VariableFitsTableWriter( isLong, true )
+        new VariableFitsTableWriter( Boolean.valueOf( isLong ), true, wide )
            .writeStarTable( t1, loc.toString(), sto );
-        StarTable t2 = new StarTableFactory().makeStarTable( loc.toString() );
+        StarTable t2 = new FitsTableBuilder( wide )
+                      .makeStarTable( new FileDataSource( loc ), true,
+                                      StoragePolicy.PREFER_MEMORY );
         int ncol = t2.getColumnCount();
         int nvar = 0;
         for ( int ic = 0; ic < ncol; ic++ ) {
@@ -423,22 +445,33 @@ public class FormatsTest extends TableCase {
     }
 
     public void testReadWrite() throws IOException {
-        exerciseReadWrite( new FitsTableWriter(),
-                           new FitsTableBuilder(), "fits" );
-        exerciseReadWrite( new FitsPlusTableWriter(),
-                           new FitsPlusTableBuilder(), "fits" );
-        exerciseReadWrite( new ColFitsTableWriter(),
-                           new ColFitsTableBuilder(), "fits" );
-        exerciseReadWrite( new ColFitsPlusTableWriter(),
-                           new ColFitsPlusTableBuilder(), "votable" );
-        exerciseReadWrite( new VariableFitsTableWriter( false, true ),
-                           new FitsTableBuilder(), "fitsv" );
-        exerciseReadWrite( new VariableFitsTableWriter( false, false ),
-                           new FitsTableBuilder(), "fitsv" );
-        exerciseReadWrite( new VariableFitsTableWriter( true, true ),
-                           new FitsTableBuilder(), "fitsv" );
-        exerciseReadWrite( new VariableFitsTableWriter( true, false ),
-                           new FitsTableBuilder(), "fitsv" );
+        for ( WideFits wide : wides_ ) {
+            exerciseReadWrite( new FitsTableWriter( "fits", true, wide ),
+                               new FitsTableBuilder( wide ), "fits" );
+            exerciseReadWrite( new FitsTableWriter( "fits", false, wide ),
+                               new FitsTableBuilder( wide ), "fits" );
+            exerciseReadWrite( new FitsPlusTableWriter( "fits-plus", wide ),
+                               new FitsPlusTableBuilder( wide ), "fits" );
+            exerciseReadWrite( new ColFitsTableWriter( "colfits", wide ),
+                               new ColFitsTableBuilder( wide ), "fits" );
+            exerciseReadWrite(
+                new ColFitsPlusTableWriter( "colfits-plus", wide ),
+                new ColFitsPlusTableBuilder( wide ), "votable" );
+    
+            exerciseReadWrite(
+                new VariableFitsTableWriter( Boolean.FALSE, true, wide ),
+                new FitsTableBuilder( wide ), "fitsv" );
+            exerciseReadWrite(
+                new VariableFitsTableWriter( Boolean.FALSE, false, wide ),
+                new FitsTableBuilder( wide ), "fitsv" );
+    
+            exerciseReadWrite(
+                new VariableFitsTableWriter( Boolean.TRUE, true, wide ),
+                new FitsTableBuilder( wide ), "fitsv" );
+            exerciseReadWrite(
+                new VariableFitsTableWriter( Boolean.TRUE, false, wide ),
+                new FitsTableBuilder( wide ), "fitsv" );
+        }
         exerciseReadWrite( new VOTableWriter(),
                            new VOTableBuilder(), "votable" );
         exerciseReadWrite( new AsciiTableWriter(),
@@ -449,7 +482,6 @@ public class FormatsTest extends TableCase {
                            new IpacTableBuilder(), "ipac" );
         exerciseReadWrite( new TstTableWriter(),
                            new TstTableBuilder(), "text" );
-                    
     }
 
     public void exerciseReadWrite( StarTableWriter writer,
@@ -549,11 +581,17 @@ public class FormatsTest extends TableCase {
     }
 
     public void testColFits() throws IOException {
-        StarTableWriter writer = new ColFitsTableWriter();
+        for ( WideFits wide : wides_ ) {
+            exerciseColFits( wide );
+        }
+    }
+
+    private void exerciseColFits( WideFits wide ) throws IOException {
+        StarTableWriter writer = new ColFitsTableWriter( "colfits", wide );
         File loc = getTempFile( "t.colfits" );
         StarTable t1 = table;
         writer.writeStarTable( t1, loc.toString(), sto );
-        StarTable t2 = new ColFitsTableBuilder()
+        StarTable t2 = new ColFitsTableBuilder( wide )
                       .makeStarTable( new FileDataSource( loc ), false, null );
         assertEquals( "uk.ac.starlink.fits.ColFitsStarTable",
                       t2.getClass().getName() );

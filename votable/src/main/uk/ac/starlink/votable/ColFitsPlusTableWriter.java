@@ -5,6 +5,7 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.fits.ColFitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableSerializer;
+import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -27,8 +28,25 @@ import uk.ac.starlink.table.StarTable;
  */
 public class ColFitsPlusTableWriter extends VOTableFitsTableWriter {
 
+    private final WideFits wide_;
+
+    /**
+     * Default constructor.
+     */
     public ColFitsPlusTableWriter() {
-        super( "colfits-plus" );
+        this( "colfits-plus", WideFits.DEFAULT );
+    }
+
+    /**
+     * Custom constructor.
+     *
+     * @param   name   writer name
+     * @param   wide   convention for representing over-wide tables;
+     *                 null to avoid this convention
+     */
+    public ColFitsPlusTableWriter( String name, WideFits wide ) {
+        super( name );
+        wide_ = wide;
     }
 
     public boolean looksLikeFile( String location ) {
@@ -55,6 +73,6 @@ public class ColFitsPlusTableWriter extends VOTableFitsTableWriter {
 
     protected FitsTableSerializer createSerializer( StarTable table )
             throws IOException {
-        return new ColFitsTableSerializer( table );
+        return new ColFitsTableSerializer( table, wide_ );
     }
 }

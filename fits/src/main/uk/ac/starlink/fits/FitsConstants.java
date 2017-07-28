@@ -380,20 +380,38 @@ public class FitsConstants {
      * but if there are too many columns an informative IOException
      * is thrown.
      *
+     * @param  wide   extended column convention
+     *                - may be null for FITS standard behaviour only
      * @param  ncol   number of columns to write
      * @throws   IOException  if there are too many columns
      */
-    public static void checkColumnCount( int ncol ) throws IOException {
-        if ( ncol > MAX_NCOLSTD ) { 
-            String msg = new StringBuffer()
-                .append( "Too many columns " ) 
-                .append( ncol )
-                .append( " > " ) 
-                .append( MAX_NCOLSTD )
-                .append( " (FITS standard hard limit)" )
-                .toString();
-            throw new IOException( msg );
-        }   
+    public static void checkColumnCount( WideFits wide, int ncol )
+            throws IOException {
+        if ( wide == null ) {
+            if ( ncol > MAX_NCOLSTD ) { 
+                String msg = new StringBuffer()
+                    .append( "Too many columns " ) 
+                    .append( ncol )
+                    .append( " > " ) 
+                    .append( MAX_NCOLSTD )
+                    .append( " (FITS standard hard limit)" )
+                    .toString();
+                throw new IOException( msg );
+            }   
+        }
+        else {
+            int nmax = wide.getExtColumnMax();
+            if ( ncol > nmax ) {
+                String msg = new StringBuffer()
+                    .append( "Too many column " )
+                    .append( ncol )
+                    .append( " > " )
+                    .append( nmax )
+                    .append( " (limit of extended column convention" )
+                    .toString();
+                throw new IOException( msg );
+            }
+        }
     }
 
     private static long getRawSize( Header hdr ) {

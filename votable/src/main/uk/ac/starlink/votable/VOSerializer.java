@@ -21,6 +21,7 @@ import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
+import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -668,7 +669,8 @@ public abstract class VOSerializer {
         }
         else if ( dataFormat == DataFormat.FITS ) {
             return new FITSVOSerializer(
-                table, new StandardFitsTableSerializer( table, false ) );
+                table, new StandardFitsTableSerializer( table, false,
+                                                        (WideFits) null ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
             return new BinaryVOSerializer( table, magicNulls );

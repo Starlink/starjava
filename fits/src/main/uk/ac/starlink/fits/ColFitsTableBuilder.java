@@ -32,6 +32,25 @@ import uk.ac.starlink.util.DataSource;
  */
 public class ColFitsTableBuilder implements TableBuilder {
 
+    private final WideFits wide_;
+
+    /**
+     * Default constructor.
+     */
+    public ColFitsTableBuilder() {
+        this( WideFits.DEFAULT );
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
+     */
+    public ColFitsTableBuilder( WideFits wide ) {
+        wide_ = wide;
+    }
+
     public String getFormatName() {
         return "colfits-basic";
     }
@@ -72,6 +91,6 @@ public class ColFitsTableBuilder implements TableBuilder {
             in.close();
         }
 
-        return new ColFitsStarTable( datsrc, hdr, pos, false );
+        return new ColFitsStarTable( datsrc, hdr, pos, false, wide_ );
     }
 }

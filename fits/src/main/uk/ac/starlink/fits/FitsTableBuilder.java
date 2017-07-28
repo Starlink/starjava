@@ -48,6 +48,25 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
+    private final WideFits wide_;
+
+    /**
+     * Default constructor.
+     */
+    public FitsTableBuilder() {
+        this( WideFits.DEFAULT );
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
+     */
+    public FitsTableBuilder( WideFits wide ) {
+        wide_ = wide;
+    }
+
     /**
      * Returns "FITS".
      */
@@ -118,7 +137,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                     try {
                         pos[ 0 ] += FitsConstants.skipHDUs( strm, ihdu );
                         table = attemptReadTable( strm, wantRandom, datsrc,
-                                                  pos );
+                                                  wide_, pos );
                     }
                     catch ( EOFException e ) {
                         throw new IOException( "Fell off end of file "
@@ -130,7 +149,8 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                  * string (EXTNAME and EXTVER headers, see FITS standard). */
                 else {
                     try {
-                        table = findNamedTable( strm, datsrc, spos, pos );
+                        table = findNamedTable( strm, datsrc, spos, wide_,
+                                                pos );
                     }
                     catch ( EOFException e ) {
                         throw new IOException( "No extension found with "
@@ -158,7 +178,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                 try {
                     while ( true ) {
                         table = attemptReadTable( strm, wantRandom,
-                                                  datsrc, pos );
+                                                  datsrc, wide_, pos );
                         if ( table != null ) {
                             if ( table.getName() == null ) {
                                 table.setName( datsrc.getName() );
@@ -197,7 +217,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
-        MultiLoadWorker loadWorker = new MultiLoadWorker( datsrc );
+        MultiLoadWorker loadWorker = new MultiLoadWorker( datsrc, wide_ );
         loadWorker.start();
         return loadWorker.getTableSequence();
     }
@@ -276,7 +296,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         String xtension = hdr.getStringValue( "XTENSION" );
         if ( "BINTABLE".equals( xtension ) ) {
             BasicInput input = InputFactory.createSequentialInput( in );
-            BintableStarTable.streamStarTable( hdr, input, sink );
+            BintableStarTable.streamStarTable( hdr, input, wide_, sink );
             return true;
         }
         else if ( "TABLE".equals( xtension ) ) {
@@ -308,6 +328,8 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      * @param  datsrc  a DataSource which can supply the data 
      *         in <tt>strm</tt>
      * @param  name  target extension name or name-version
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
      *         at which <tt>strm</tt> is positioned -
      *         it's an array so it can be updated by this routine (sorry)
@@ -315,7 +337,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      */
     public static StarTable findNamedTable( ArrayDataInput strm,
                                             DataSource datsrc, String name,
-                                            long[] pos )
+                                            WideFits wide, long[] pos )
             throws FitsException, IOException {
         while ( true ) {
             Header hdr = new Header();
@@ -325,7 +347,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             pos[ 0 ] += headsize + datasize;
             if ( headerName( hdr, name ) ) {
                 TableResult tres =
-                    attemptReadTableData( strm, datsrc, datpos, hdr );
+                    attemptReadTableData( strm, datsrc, datpos, hdr, wide );
                 assert pos[ 0 ] == tres.afterPos_;
                 return tres.table_;
             }
@@ -352,6 +374,8 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      * @param  wantRandom  whether a random-access table is preferred
      * @param  datsrc  a DataSource which can supply the data 
      *         in <tt>strm</tt>
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
      *         at which <tt>strm</tt> is positioned -
      *         it's an array so it can be updated by this routine (sorry)
@@ -360,9 +384,10 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      */
     public static StarTable attemptReadTable( ArrayDataInput strm,
                                               boolean wantRandom, 
-                                              DataSource datsrc, long[] pos )
+                                              DataSource datsrc,
+                                              WideFits wide, long[] pos )
             throws FitsException, IOException {
-        TableResult tres = attemptReadTable( strm, datsrc, pos[ 0 ] );
+        TableResult tres = attemptReadTable( strm, datsrc, wide, pos[ 0 ] );
         pos[ 0 ] = tres.afterPos_;
         return tres.table_;
     }
@@ -378,19 +403,22 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      *          (before the header)
      * @param   datsrc  a DataSource which can supply the data
      *          in <code>strm</code>
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      * @param   pos  the position in <code>datsrc</code> at which 
      *          <code>strm</code> is positioned
      * @return  an object which may contain a table and other information
      */
     private static TableResult attemptReadTable( ArrayDataInput strm,
-                                                 DataSource datsrc, long pos )
+                                                 DataSource datsrc,
+                                                 WideFits wide, long pos )
            throws FitsException, IOException {
 
         /* Read the header. */
         Header hdr = new Header();
         int headsize = FitsConstants.readHeader( hdr, strm );
         long datpos = pos + headsize;
-        return attemptReadTableData( strm, datsrc, datpos, hdr );
+        return attemptReadTableData( strm, datsrc, datpos, hdr, wide );
     }
 
     /**
@@ -407,11 +435,14 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      * @param   datpos  offset into the file at which the stream is
      *          currently positioned
      * @param   hdr  populated header describing the upcoming data
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      * @return  an object which may contain a table and other information
      */
     private static TableResult attemptReadTableData( ArrayDataInput strm,
                                                      DataSource datsrc,
-                                                     long datpos, Header hdr )
+                                                     long datpos, Header hdr,
+                                                     WideFits wide )
             throws FitsException, IOException {
         long datasize = FitsConstants.getDataSize( hdr );
         long afterpos = datpos + datasize;
@@ -421,7 +452,8 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         if ( "BINTABLE".equals( xtension ) ) {
             InputFactory inFact =
                 InputFactory.createFactory( datsrc, datpos, datasize );
-            StarTable table = BintableStarTable.createTable( hdr, inFact );
+            StarTable table =
+                BintableStarTable.createTable( hdr, inFact, wide );
             IOUtils.skipBytes( strm, datasize );
             return new TableResult( table, afterpos );
         }
@@ -537,17 +569,21 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      */
     private static class MultiLoadWorker extends Thread {
         private final DataSource datsrc_;
+        private final WideFits wide_;
         private final QueueTableSequence tqueue_;
 
         /**
          * Constructor.
          *
          * @param  datsrc  data source containing FITS table
+         * @param   wide  convention for representing extended columns;
+         *                use null to avoid use of extended columns
          */
-        MultiLoadWorker( DataSource datsrc ) {
+        MultiLoadWorker( DataSource datsrc, WideFits wide ) {
             super( "FITS multi table loader" );
             setDaemon( true );
             datsrc_ = datsrc;
+            wide_ = wide;
             tqueue_ = new QueueTableSequence();
         }
 
@@ -585,7 +621,8 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                 long pos = 0L;
                 boolean done = false;
                 for ( int ihdu = 0; ! done ; ihdu++ ) {
-                    TableResult tres = attemptReadTable( in, datsrc_, pos );
+                    TableResult tres =
+                        attemptReadTable( in, datsrc_, wide_, pos );
                     StarTable table = tres.table_;
                     pos = tres.afterPos_;
                     if ( table != null ) {

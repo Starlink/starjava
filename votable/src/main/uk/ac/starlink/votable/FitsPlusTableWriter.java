@@ -5,6 +5,7 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
+import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
 
@@ -36,8 +37,25 @@ import uk.ac.starlink.table.StarTableWriter;
  */
 public class FitsPlusTableWriter extends VOTableFitsTableWriter {
 
+    private final WideFits wide_;
+
+    /**
+     * Default constructor.
+     */
     public FitsPlusTableWriter() {
-        super( "fits-plus" );
+        this( "fits-plus", WideFits.DEFAULT );
+    }
+
+    /**
+     * Custom constructor.
+     *
+     * @param   name   writer name
+     * @param   wide   convention for representing over-wide tables;
+     *                 null to avoid this convention
+     */
+    public FitsPlusTableWriter( String name, WideFits wide ) {
+        super( name );
+        wide_ = wide;
     }
 
     /**
@@ -74,7 +92,7 @@ public class FitsPlusTableWriter extends VOTableFitsTableWriter {
 
     protected FitsTableSerializer createSerializer( StarTable table ) 
             throws IOException {
-        return new StandardFitsTableSerializer( table, false );
+        return new StandardFitsTableSerializer( table, false, wide_ );
     }
 
     /**

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import uk.ac.starlink.table.AbstractStarTable;
@@ -90,14 +91,20 @@ public abstract class BintableStarTable extends AbstractStarTable
     /** BigInteger equal to 2^63 (== Long.MAX_VALUE + 1). */
     static final BigInteger TWO63 = BigInteger.ONE.shiftLeft( 63 );
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.fits" );
+
     /**
      * Constructor.
      *
      * @param   hdr   FITS header cards
      * @param   isRandom  true if the data access will be random-access,
      *                    false for sequential-only
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      */
-    protected BintableStarTable( Header hdr, boolean isRandom )
+    protected BintableStarTable( Header hdr, boolean isRandom,
+                                 WideFits wide )
             throws FitsException {
         HeaderCards cards = new HeaderCards( hdr );
 
@@ -107,8 +114,16 @@ public abstract class BintableStarTable extends AbstractStarTable
         }
 
         /* Get Table characteristics. */
-        ncol_ = cards.getIntValue( "TFIELDS" ).intValue();
         nrow_ = cards.getLongValue( "NAXIS2" ).intValue();
+        int ncolStd = cards.getIntValue( "TFIELDS" ).intValue();
+        ncol_ = wide != null
+              ? wide.getExtendedColumnCount( cards, ncolStd )
+              : ncolStd;
+        boolean hasExtCol = ncol_ > ncolStd;
+        if ( hasExtCol ) {
+            assert wide != null;
+            AbstractWideFits.logWideRead( logger_, ncolStd, ncol_ );
+        }
 
         /* Record heap start if available. */
         final long heapOffset;
@@ -127,7 +142,9 @@ public abstract class BintableStarTable extends AbstractStarTable
         for ( int icol = 0; icol < ncol_; icol++ ) {
             int jcol = icol + 1;
             BintableColumnHeader colhead =
-                BintableColumnHeader.createStandardHeader( jcol );
+                  hasExtCol && jcol >= ncolStd
+                ? wide.createExtendedHeader( ncolStd, jcol )
+                : BintableColumnHeader.createStandardHeader( jcol );
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
             List auxdata = cinfo.getAuxData();
             colInfos_[ icol ] = cinfo;
@@ -321,11 +338,20 @@ public abstract class BintableStarTable extends AbstractStarTable
             colOffsets_[ icol ] = leng;
             leng += colReaders_[ icol ].getLength();
         }
-        rowLength_ = leng;
-        int nax1 = cards.getIntValue( "NAXIS1" ).intValue();
-        if ( rowLength_ != nax1 ) {
-            throw new FitsException( "Got wrong row length: " + nax1 +
-                                     " != " + rowLength_ );
+
+        /* Set the row length in bytes. */
+        rowLength_ = cards.getIntValue( "NAXIS1" ).intValue();
+
+        /* Check it against the sum of column lengths, unless we are
+         * using extended lengths, in which case they are not guaranteed
+         * to match.  In this case it would be a good idea to validate
+         * using the extension container column's declared length,
+         * but it's not very easy to do here. */
+        if ( ! hasExtCol ) {
+            if ( rowLength_ != leng ) {
+                throw new FitsException( "Got wrong row length: " + rowLength_ +
+                                         " != " + leng );
+            }
         }
 
         /* Get table name. */
@@ -412,15 +438,18 @@ public abstract class BintableStarTable extends AbstractStarTable
      * @param  hdr  FITS header cards
      * @param  inputFact  factory for access to the data part of the
      *                    HDU representing a FITS BINTABLE extension
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      * @return  StarTable instance; it will be random-access according to
      *                    whether the input factory is
      */
     public static BintableStarTable createTable( Header hdr,
-                                                 InputFactory inputFact )
+                                                 InputFactory inputFact,
+                                                 WideFits wide )
             throws IOException, FitsException {
         return inputFact.isRandom()
-             ? new RandomBintableStarTable( hdr, inputFact )
-             : new SequentialBintableStarTable( hdr, inputFact );
+             ? new RandomBintableStarTable( hdr, inputFact, wide )
+             : new SequentialBintableStarTable( hdr, inputFact, wide );
     }
 
     /**
@@ -430,10 +459,12 @@ public abstract class BintableStarTable extends AbstractStarTable
      * @param   hdr  FITS header object describing the BINTABLE extension
      * @param   input   input stream positioned at the start of the
      *                  data part of the BINTABLE extension
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      * @param   sink   destination for the table
      */
     public static void streamStarTable( Header hdr, BasicInput input,
-                                        TableSink sink )
+                                        WideFits wide, TableSink sink )
             throws FitsException, IOException {
         InputFactory dummyFact = new InputFactory() {
             public boolean isRandom() {
@@ -446,7 +477,7 @@ public abstract class BintableStarTable extends AbstractStarTable
             }
         };
         BintableStarTable meta =
-            new SequentialBintableStarTable( hdr, dummyFact );
+            new SequentialBintableStarTable( hdr, dummyFact, wide );
         sink.acceptMetadata( meta );
         long nrow = meta.getRowCount();
         for ( long i = 0; i < nrow; i++ ) {
@@ -473,10 +504,13 @@ public abstract class BintableStarTable extends AbstractStarTable
          * @param   hdr  FITS header object describing the BINTABLE extension
          * @param   inputFact   creates input streams positioned at the start
          *                      of thedata part of the BINTABLE extension
+         * @param   wide  convention for representing extended columns;
+         *                use null to avoid use of extended columns
          */
-        public SequentialBintableStarTable( Header hdr, InputFactory inputFact )
+        public SequentialBintableStarTable( Header hdr, InputFactory inputFact,
+                                            WideFits wide )
                 throws FitsException {
-            super( hdr, false );
+            super( hdr, false, wide );
             inputFact_ = inputFact;
         }
 
@@ -565,10 +599,13 @@ public abstract class BintableStarTable extends AbstractStarTable
          * @param   inputFact   creates input streams positioned at the start
          *                      of thedata part of the BINTABLE extension;
          *                      must be random-access
+         * @param   wide  convention for representing extended columns;
+         *                use null to avoid use of extended columns
          */
-        RandomBintableStarTable( Header hdr, InputFactory inputFact )
+        RandomBintableStarTable( Header hdr, InputFactory inputFact,
+                                 WideFits wide )
                 throws IOException, FitsException {
-            super( hdr, true );
+            super( hdr, true, wide );
             inputFact_ = inputFact;
             if ( ! inputFact.isRandom() ) {
                 throw new IllegalArgumentException( "not random" );

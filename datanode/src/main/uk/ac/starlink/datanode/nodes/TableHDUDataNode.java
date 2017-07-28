@@ -17,6 +17,7 @@ import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsStarTable;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.InputFactory;
+import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -192,7 +193,8 @@ public class TableHDUDataNode extends HDUDataNode {
             IOUtils.skipBytes( strm, datasize );
             InputFactory inFact =
                 InputFactory.createFactory( datsrc, datpos, datasize );
-            return BintableStarTable.createTable( hdr, inFact );
+            return BintableStarTable.createTable( hdr, inFact,
+                                                  WideFits.DEFAULT );
         }
 
         /* If it's a TABLE HDU (ASCII table), make a FitsStarTable. */

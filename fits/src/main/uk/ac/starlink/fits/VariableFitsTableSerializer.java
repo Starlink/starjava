@@ -38,13 +38,15 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
      * @param  storagePolicy  policy for acquiring byte array scratch buffers
      * @param  allowSignedByte  if true, bytes written as FITS signed bytes
      *         (TZERO=-128), if false bytes written as signed shorts
+     * @param   wide   convention for representing over-wide tables;
+     *                 null to avoid this convention
      * @throws IOException if it won't be possible to write the given table
      */
     public VariableFitsTableSerializer( StarTable table,
                                         StoragePolicy storagePolicy,
-                                        boolean allowSignedByte )
+                                        boolean allowSignedByte, WideFits wide )
             throws IOException {
-        super( allowSignedByte );
+        super( allowSignedByte, wide );
         storagePolicy_ = storagePolicy;
         allowSignedByte_ = allowSignedByte;
         init( table );

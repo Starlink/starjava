@@ -53,9 +53,11 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
      *          data part of the HDU
      * @param   force  true to make a table if we possibly can,
      *                 false to reject if it doesn't look very much like one
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
      */
     public ColFitsStarTable( DataSource datsrc, Header hdr, long dataPos,
-                             boolean force )
+                             boolean force, WideFits wide )
             throws IOException {
         HeaderCards cards = new HeaderCards( hdr );
 
@@ -70,7 +72,15 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
         }
 
         /* Find the number of columns. */
-        ncol_ = cards.getIntValue( "TFIELDS" ).intValue();
+        int ncolStd = cards.getIntValue( "TFIELDS" ).intValue();
+        ncol_ = wide == null
+              ? ncolStd
+              : wide.getExtendedColumnCount( cards, ncolStd );
+        boolean hasExtCol = ncol_ > ncolStd;
+        if ( hasExtCol ) {
+            assert wide != null;
+            AbstractWideFits.logWideRead( logger_, ncolStd, ncol_ );
+        }
 
         /* Nasty hack.
          * LDAC is a somewhat eccentric FITS variant that has a single-cell
@@ -93,7 +103,9 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             int jcol = icol + 1;
             BintableColumnHeader colhead =
-                BintableColumnHeader.createStandardHeader( jcol );
+                  hasExtCol && jcol >= ncolStd
+                ? wide.createExtendedHeader( ncolStd, jcol )
+                : BintableColumnHeader.createStandardHeader( jcol );
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
 
             /* Format character and length. */

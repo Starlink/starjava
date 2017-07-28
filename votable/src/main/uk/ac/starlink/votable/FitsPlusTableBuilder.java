@@ -21,6 +21,7 @@ import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.InputFactory;
+import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.QueueTableSequence;
@@ -58,7 +59,25 @@ import uk.ac.starlink.util.IOUtils;
  */
 public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
 
+    private final WideFits wide_;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
+
+    /**
+     * Default constructor.
+     */
+    public FitsPlusTableBuilder() {
+        this( WideFits.DEFAULT );
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
+     */
+    public FitsPlusTableBuilder( WideFits wide ) {
+        wide_ = wide;
+    }
 
     public String getFormatName() {
         return "FITS-plus";
@@ -93,7 +112,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
             /* Now get the StarTable from the next HDU. */
             StarTable starTable =
                 FitsTableBuilder.attemptReadTable( strm, wantRandom,
-                                                   datsrc, pos );
+                                                   datsrc, wide_, pos );
             if ( starTable == null ) {
                 throw new TableFormatException( "No BINTABLE HDU found" );
             }
@@ -131,7 +150,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
         }
 
         /* Return an iterator over the tables in the data source. */
-        MultiLoadWorker loadWorker = new MultiLoadWorker( datsrc );
+        MultiLoadWorker loadWorker = new MultiLoadWorker( datsrc, wide_ );
         loadWorker.start();
         return loadWorker.getTableSequence();
     }
@@ -175,7 +194,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
             Header hdr = new Header();
             FitsConstants.readHeader( hdr, strm );
             BasicInput input = InputFactory.createSequentialInput( strm );
-            BintableStarTable.streamStarTable( hdr, input, wsink );
+            BintableStarTable.streamStarTable( hdr, input, wide_, wsink );
         }
         catch ( FitsException e ) {
             throw new TableFormatException( e.getMessage(), e );
@@ -466,17 +485,20 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
      */
     private static class MultiLoadWorker extends Thread {
         private final DataSource datsrc_;
+        private final WideFits wide_;
         private final QueueTableSequence tqueue_;
 
         /**
          * Constructor.
          *
          * @param   datsrc  data source
+         * @param   wide   oversize fits file implementation - null for no wide
          */
-        MultiLoadWorker( DataSource datsrc ) {
+        MultiLoadWorker( DataSource datsrc, WideFits wide ) {
             super( "FITS-plus multi table loader" );
             setDaemon( true );
             datsrc_ = datsrc;
+            wide_ = wide;
             tqueue_ = new QueueTableSequence();
         }
 
@@ -534,7 +556,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                 InputFactory inFact =
                     InputFactory.createFactory( datsrc_, datpos, datasize );
                 StarTable dataTable =
-                    BintableStarTable.createTable( hdr, inFact );
+                    BintableStarTable.createTable( hdr, inFact, wide_ );
 
                 /* Combine the data from the BINTABLE with the header from
                  * the VOTable to create an output table. */

@@ -13,6 +13,7 @@ import nom.tam.util.BufferedDataInputStream;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.ColFitsStarTable;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -42,8 +43,27 @@ import uk.ac.starlink.util.IOUtils;
  */
 public class ColFitsPlusTableBuilder implements TableBuilder {
 
+    private final WideFits wide_;
+
     private static final ColFitsPlusTableWriter writer_ =
         new ColFitsPlusTableWriter();
+
+    /**
+     * Default constructor.
+     */
+    public ColFitsPlusTableBuilder() {
+        this( WideFits.DEFAULT );
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
+     */
+    public ColFitsPlusTableBuilder( WideFits wide ) {
+        wide_ = wide;
+    }
 
     public String getFormatName() {
         return "colfits-plus";
@@ -99,7 +119,7 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
 
         /* Get the table itself from the next HDU. */
         StarTable tableData =
-            new ColFitsStarTable( datsrc, hdr, dataPos, false );
+            new ColFitsStarTable( datsrc, hdr, dataPos, false, wide_ );
 
         /* If we got a TABLE element, combine the metadata from that and
          * the data from the FITS table to provide the output table. */

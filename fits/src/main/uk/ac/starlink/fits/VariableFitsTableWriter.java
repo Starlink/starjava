@@ -25,45 +25,34 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
 
     private final Boolean longIndexing_;
     private final boolean allowSignedByte_;
+    private final WideFits wide_;
     private StoragePolicy storagePolicy_;
 
     /**
-     * Constructs a writer which chooses sensibly between using 'P' and 'Q'
-     * format.  'Q' (64-bit) indexing is only used if the heap is going to
-     * be larger than 2^31 bytes.
+     * Constructs a writer with default characteristics.
+     * It chooses sensibly between using 'P' and 'Q' format.
      */
     public VariableFitsTableWriter() {
-        this( null, true );
+        this( null, true, WideFits.DEFAULT );
     }
 
     /**
-     * Constructs a writer forcing use of either 'P' or 'Q' format for
-     * variable-length array columns.
-     *
-     * @param  longIndexing  true for 'Q' (64-bit) indexing into the heap,
-     *                      false for 'P' (32-bit) indexing into the heap
-     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
-     *          (TZERO=-128), if false bytes written as signed shorts
-     */
-    public VariableFitsTableWriter( boolean longIndexing,
-                                    boolean allowSignedByte ) {
-        this( Boolean.valueOf( longIndexing ), allowSignedByte );
-    }
-
-    /**
-     * Private constructor.
+     * Constructs a writer with custom characteristics.
      *
      * @param  longIndexing  TRUE for 'Q' (64-bit) indexing into the heap,
      *                      FALSE for 'P' (32-bit) indexing into the heap,
      *                       null to make a sensible choice
      * @param   allowSignedByte  if true, bytes written as FITS signed bytes
      *          (TZERO=-128), if false bytes written as signed shorts
+     * @param   wide   convention for representing over-wide tables;
+     *                 null to avoid this convention
      */
-    private VariableFitsTableWriter( Boolean longIndexing,
-                                     boolean allowSignedByte ) {
+    public VariableFitsTableWriter( Boolean longIndexing,
+                                    boolean allowSignedByte, WideFits wide ) {
         super( "fits-var" );
         longIndexing_ = longIndexing;
         allowSignedByte_ = allowSignedByte;
+        wide_ = wide;
         storagePolicy_ = StoragePolicy.getDefaultPolicy();
     }
 
@@ -90,7 +79,7 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
             throws IOException {
         VariableFitsTableSerializer fitser =
             new VariableFitsTableSerializer( table, storagePolicy_,
-                                             allowSignedByte_ );
+                                             allowSignedByte_, wide_ );
         if ( longIndexing_ != null ) {
             fitser.set64BitMode( longIndexing_.booleanValue() );
         }

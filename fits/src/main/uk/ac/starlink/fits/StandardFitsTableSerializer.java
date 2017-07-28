@@ -28,6 +28,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
     private final boolean allowSignedByte;
+    private final WideFits wide;
     private StarTable table;
     private ColumnWriter[] colWriters;
     private ColumnInfo[] colInfos;
@@ -38,9 +39,12 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      *
      * @param   allowSignedByte  if true, bytes written as FITS signed bytes
      *          (TZERO=-128), if false bytes written as signed shorts
+     * @param   wide   convention for representing over-wide tables;
+     *                 null to avoid this convention
      */
-    StandardFitsTableSerializer( boolean allowSignedByte ) {
+    StandardFitsTableSerializer( boolean allowSignedByte, WideFits wide ) {
         this.allowSignedByte = allowSignedByte;
+        this.wide = wide;
     }
 
     /**
@@ -53,24 +57,15 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      * @param  table  the table to be written
      * @param  allowSignedByte  if true, bytes written as FITS signed bytes
      *         (TZERO=-128), if false bytes written as signed shorts
+     * @param   wide   convention for representing over-wide tables;
+     *                 null to avoid this convention
      * @throws IOException if it won't be possible to write the given table
      */
     public StandardFitsTableSerializer( StarTable table,
-                                        boolean allowSignedByte )
+                                        boolean allowSignedByte, WideFits wide )
             throws IOException {
-        this( allowSignedByte );
+        this( allowSignedByte, wide );
         init( table );
-    }
-
-    /**
-     * Constructs a serializer which will be able to write a given StarTable.
-     * Byte-type columns are written using some default policy.
-     *
-     * @param  table  the table to be written
-     * @throws IOException if it won't be possible to write the given table
-     */
-    public StandardFitsTableSerializer( StarTable table ) throws IOException {
-        this( table, true );
     }
 
     /**
@@ -80,7 +75,8 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      * Calls {@link #createColumnWriter}.
      *
      * @param  table  table to be written
-     * @throws IOException if it won't be possible to write the given table
+     * @throws IOException if it won't be possible to write the given table,
+     *                       for instance if it has too many columns
      */
     final void init( StarTable table ) throws IOException {
         if ( this.table != null ) {
@@ -303,7 +299,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         }
 
         /* Check column count is permissible. */
-        FitsConstants.checkColumnCount( nUseCol );
+        FitsConstants.checkColumnCount( wide, nUseCol );
     }
 
     /**
@@ -321,15 +317,30 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
         /* Work out the dimensions in columns and bytes of the table. */
         int rowLength = 0;
+        int extLength = 0;
         int nUseCol = 0;
         int ncol = table.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnWriter writer = colWriters[ icol ];
             if ( writer != null ) {
                 nUseCol++;
-                rowLength += writer.getLength();
+                int leng = writer.getLength();
+                rowLength += leng;
+                if ( wide != null &&
+                     nUseCol >= wide.getContainerColumnIndex() ) {
+                    extLength += leng;
+                }
             }
         }
+
+        /* Work out the number of standard and extended columns.
+         * We know it is actually possible to write the given number of
+         * columns using the current wide value, because of a check carried
+         * out during initialisation. */
+        int nStdCol = wide != null && nUseCol > wide.getContainerColumnIndex()
+                    ? wide.getContainerColumnIndex()
+                    : nUseCol;
+        boolean hasExtCol = nUseCol > nStdCol;
 
         /* Prepare a FITS header block. */
         Header hdr = new Header();
@@ -342,7 +353,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         hdr.addValue( "NAXIS2", rowCount, "number of rows in table" );
         hdr.addValue( "PCOUNT", 0, "size of special data area" );
         hdr.addValue( "GCOUNT", 1, "one data group" );
-        hdr.addValue( "TFIELDS", nUseCol, "number of columns" );
+        hdr.addValue( "TFIELDS", nStdCol, "number of columns" );
 
         /* Add EXTNAME record containing table name. */
         String tname = table.getName();
@@ -351,14 +362,25 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
            .addTrimmedValue( hdr, "EXTNAME", tname, "table name" );
         }
 
+        /* Add extended column header information if applicable. */
+        if ( hasExtCol ) {
+            wide.addExtensionHeader( hdr, nUseCol );
+            AbstractWideFits.logWideWrite( logger, nStdCol, nUseCol );
+        }
+
         /* Add HDU metadata describing columns. */
         int jcol = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnWriter colwriter = colWriters[ icol ];
             if ( colwriter != null ) {
                 jcol++;
+                if ( hasExtCol && jcol == nStdCol ) {
+                    wide.addContainerColumnHeader( hdr, extLength, 0 );
+                }
                 BintableColumnHeader colhead =
-                    BintableColumnHeader.createStandardHeader( jcol );
+                      hasExtCol && jcol >= nStdCol
+                    ? wide.createExtendedHeader( nStdCol, jcol )
+                    : BintableColumnHeader.createStandardHeader( jcol );
                 addHeader( hdr, colhead, colInfos[ icol ], colwriter, jcol );
             }
         }
