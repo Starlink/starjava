@@ -54,7 +54,7 @@ public class WideTest extends TestCase {
     }
 
     public void testName() {
-        assertEquals( "alpha",
+        assertEquals( "hierarch",
                       WideFits.DEFAULT.toString() );
         assertEquals( "alpha",
                       AbstractWideFits.createAlphaWideFits( 999 ).toString() );

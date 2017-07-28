@@ -37,7 +37,7 @@ public interface WideFits {
 
     /** Default WideFits instance; currently TFORMaaa using column 999. */
     public static final WideFits DEFAULT =
-        AbstractWideFits.createAlphaWideFits( 999 );
+        AbstractWideFits.createHierarchWideFits( 999 );
 
     /**
      * Returns the index of the column used (if any) by this specification
