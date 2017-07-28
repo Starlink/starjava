@@ -71,6 +71,7 @@ public class FormatsTest extends TableCase {
     private static final WideFits[] wides_ = {
           null,
           WideFits.DEFAULT,
+          AbstractWideFits.createAlphaWideFits( 9 ),
     };
 
     static {

@@ -75,8 +75,15 @@ Convention:
  - Keyword XT_NCOL indicates the total number of data columns encoded.
       It MUST be present with an integer value equal to N_TOT.
 
- - Metadata for each extended column is encoded with keywords,
-      somehow or other.  That detail remains to be defined.
+ - Metadata for each extended column is encoded with keywords
+      of the form XXXXXaaa, where XXXXX are the same keyword roots
+      as used for normal BINTABLE extensions, and aaa is a 3-digit
+      value in base 26 using the characters 'A' (0 in base 26) to
+      'Z' (25 in base 26), and giving the 1-based data column index
+      minus 999.  The sequence aaa MUST be exactly three characters
+      long (leading 'A's are required).  Thus the formats for data
+      columns 999, 1000, 1001, etc are declared with the keywords
+      TFORMAAA, TFORMAAB, TFORMAAC etc.
 
  - This convention MUST NOT be used for N_TOT<=999.
 
@@ -88,7 +95,7 @@ intended form, and an additional (possibly large) column 999
 which contains byte data but which cannot be easily interpreted.
 
 This convention can therefore allow encoding of tables with data
-column counts N_TOT beyond 999.
+column counts N_TOT up to 998+26^3 = 18574.
 
 An example header might look like this:
 
@@ -115,10 +122,23 @@ An example header might look like this:
    TUNIT998= 'counts/s'           /  units for column 998
    TTYPE999= 'XT_MORECOLS'        /  label for column 999
    TFORM999= '813I    '           /  format for column 999
-   <... some way to represent TFORM values etc for late columns ...>
+   TTYPEAAA= 'var_min_u_2'        /  label for column 999
+   TFORMAAA= 'D       '           /  format for column 999
+   TUNITAAA= 'counts/s'           /  units for column 999
+   TTYPEAAB= 'var_prob_h_2'       /  label for column 1000
+   TFORMAAB= 'D       '           /  format for column 1000
+    ...
+   TTYPEAHW= 'var_prob_w_2'       /  label for column 1203
+   TFORMAHW= 'D       '           /  format for column 1203
+   TTYPEAHX= 'var_sigma_w_2'      /  label for column 1204
+   TFORMAHX= 'D       '           /  format for column 1204
+   TUNITAHX= 'counts/s'           /  units for column 1204
    END
 
 This general approach was suggested by William Pence on the FITSBITS
 list in June 2012
 (https://listmgr.nrao.edu/pipermail/fitsbits/2012-June/002367.html),
 and by Francois-Xavier Pineau (CDS) in private conversation in 2016.
+The details have been filled in by Mark Taylor (Bristol).
+(F-X favours a different mechanism for encoding the extended
+column metadata).

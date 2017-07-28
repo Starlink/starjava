@@ -28,10 +28,44 @@ public class WideTest extends TestCase {
               .setLevel( Level.WARNING );
     }
 
+    public void testBase26() {
+        AbstractWideFits.AlphaWideFits alphaWide =
+            new AbstractWideFits.AlphaWideFits( 999 );
+        assertEquals( "AAA", alphaWide.encodeInteger( 0 ) );
+        assertEquals( "AAB", alphaWide.encodeInteger( 1 ) );
+        assertEquals( "ABA", alphaWide.encodeInteger( 26 ) );
+        assertEquals( "ZZZ", alphaWide.encodeInteger( 26 * 26 * 26 - 1 ) );
+        try {
+            alphaWide.encodeInteger( 26 * 26 * 26 );
+            fail();
+        }
+        catch ( NumberFormatException e ) {
+        }
+        try {
+            alphaWide.encodeInteger( -1 );
+            fail();
+        }
+        catch ( NumberFormatException e ) {
+        }
+
+        for ( int i = 0; i < 26 * 26 * 26; i++ ) {
+            assertEquals( i, decodeInteger( alphaWide.encodeInteger( i ) ) );
+        }
+    }
+
+    public void testName() {
+        assertEquals( "alpha",
+                      AbstractWideFits.createAlphaWideFits( 999 ).toString() );
+        assertEquals( "alpha23",
+                      AbstractWideFits.createAlphaWideFits( 23 ).toString() );
+    }
+
     public void testReadWrite() throws IOException {
         WideFits[] wides = {
             null,
             WideFits.DEFAULT,
+            AbstractWideFits.createAlphaWideFits( 9 ),
+            AbstractWideFits.createAlphaWideFits( 6 ),
         };
         for ( WideFits wide : wides ) {
             exerciseReadWrite( new FitsTableWriter( "fits", true, wide ),
@@ -81,6 +115,7 @@ public class WideTest extends TestCase {
         assertTrue( ncol > 10 );
 
         WideFits[] wides = {
+            AbstractWideFits.createAlphaWideFits( iExtCol ),
         };
         for ( WideFits wide : wides ) {
             StarTableWriter writer = new FitsTableWriter( "fits", true, wide );

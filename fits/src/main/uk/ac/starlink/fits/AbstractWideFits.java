@@ -185,6 +185,19 @@ public abstract class AbstractWideFits implements WideFits {
     }
 
     /**
+     * Returns a WideFits instance that uses normal TFORMaaa headers
+     * where aaa is a 3-digit base-26 integer (each digit is [A-Z]).
+     *
+     * @param  icolContainer  1-based index of container column
+     *                        used for storing extended column data;
+     *                        usually 999
+     * @return  WideFits implementation
+     */
+    public static WideFits createAlphaWideFits( int icolContainer ) {
+        return new AlphaWideFits( icolContainer );
+    }
+
+    /**
      * Utility method to write a log message indicating that this
      * convention is being used to write a FITS file.
      *
@@ -212,6 +225,75 @@ public abstract class AbstractWideFits implements WideFits {
         if ( nAllcol > nStdcol ) {
             logger.info( "Using non-standard extended column convention "
                        + "for columns " + nStdcol + "-" + nAllcol );
+        }
+    }
+
+    /**
+     * WideFits implementation based on using 3-digit base-26 numbers
+     * to label extended columns in normal 8-character FITS keywords.
+     */
+    static class AlphaWideFits extends AbstractWideFits {
+
+        /** First digit used for extended column indexing. */
+        private static final char DIGIT0 = 'A';
+
+        /** Number of digits used for extended column indexing.
+         * This is the base used for the index value encoding.
+         * All characters in the range DIGIT0..NDIGIT must be legal FITS
+         * keyword characters, and must not be decimal digits. */
+        private static final int NDIGIT = 26;
+
+        /**
+         * Constructor.
+         *
+         * @param  icolContainer  1-based index of container column
+         *                        used for storing extended column data
+         */
+        public AlphaWideFits( int icolContainer ) {
+            super( icolContainer,
+                   icolContainer - 1 + NDIGIT * NDIGIT * NDIGIT,
+                   "alpha" );
+        }
+
+        public BintableColumnHeader createExtendedHeader( int icolContainer,
+                                                          int jcol ) {
+            final String jcolStr = encodeInteger( jcol - icolContainer );
+            return new BintableColumnHeader() {
+                public String getKeyName( String stdName ) {
+                    return stdName + jcolStr;
+                }
+            };
+        }
+
+        /**
+         * Encodes an integer so it can be used as an extended column index.
+         * This uses base 26, with the digits A-Z.
+         *
+         * <p>This must give a unique result of not more than 3 characters
+         * for each input value in the allowed range,
+         * which is legal for inclusion in a FITS keyword,
+         * and which is not capable of interpretation as a decimal integer.
+         *
+         * @param  ix  input value in range 0&lt;ix&lt;17576
+         * @return   string representation in base 26
+         * @throws  NumberFormatException if input value is out of range
+         */
+        public String encodeInteger( int ix ) {
+            int base = NDIGIT;
+            int max = base * base * base;
+            if ( ix >= 0 && ix < max ) {
+                char[] digits = new char[ 3 ];
+                int j = ix;
+                for ( int k = 0; k < 3; k++ ) {
+                    digits[ 2 - k ] = (char) ( DIGIT0 + ( j % base ) );
+                    j = j / base;
+                }
+                return new String( digits );
+            }
+            else {
+                String msg = "Out of range (0-" + ( max - 1 ) + "): " + ix;
+                throw new NumberFormatException( msg );
+            }
         }
     }
 }
