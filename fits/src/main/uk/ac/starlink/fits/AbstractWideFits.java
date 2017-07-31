@@ -176,6 +176,9 @@ public abstract class AbstractWideFits implements WideFits {
                            + " - no extended columns" );
             return ncolStd;
         }
+        for ( String tkey : new String[] { "TTYPE", "TFORM", "TCOMM" } ) {
+            cards.useKey( tkey + icolContainer );
+        }
         logger_.config( "Located extended columns in wide FITS file" );
         return ncolExt;
     }
