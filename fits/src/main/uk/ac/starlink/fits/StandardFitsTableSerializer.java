@@ -401,6 +401,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                             int jcol )
             throws HeaderCardException {
         String forcol = " for column " + jcol;
+        int keyleng = colhead.getKeyName( "TUTYP" ).length();
+        int maxStringValueLength =
+            80 - Math.max( 8, colhead.getKeyName( "TUTYP" ).length() ) - 2 - 2;
 
         /* Name. */
         String name = colinfo.getName();
@@ -466,7 +469,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* UCD (non-standard). */
         String ucd = colinfo.getUCD();
         if ( ucd != null && ucd.trim().length() > 0 &&
-             ucd.length() < 68 ) {
+             ucd.length() <= maxStringValueLength ) {
             try {
                 hdr.addValue( colhead.getKeyName( "TUCD" ), ucd, null );
             }
@@ -477,8 +480,8 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
         /* Utype (non-standard). */
         String utype = colinfo.getUtype();
-        if ( utype != null && utype.trim().length() > 0
-                           && utype.trim().length() < 68 ) {
+        if ( utype != null && utype.trim().length() > 0 &&
+             utype.length() <= maxStringValueLength ) {
             try {
                 hdr.addValue( colhead.getKeyName( "TUTYP" ), utype, null );
             }
