@@ -189,6 +189,9 @@ public abstract class AbstractWideFits implements WideFits {
      * Returns a WideFits instance that uses normal TFORMaaa headers
      * where aaa is a 3-digit base-26 integer (each digit is [A-Z]).
      *
+     * <p><strong>Note:</strong> this implementation is a historical relic.
+     * It could be removed if its maintenance becomes problematic.
+     *
      * @param  icolContainer  1-based index of container column
      *                        used for storing extended column data;
      *                        usually 999
@@ -245,6 +248,9 @@ public abstract class AbstractWideFits implements WideFits {
     /**
      * WideFits implementation based on using 3-digit base-26 numbers
      * to label extended columns in normal 8-character FITS keywords.
+     *
+     * <p><strong>Note:</strong> this implementation is a historical relic.
+     * It could be removed if its maintenance becomes problematic.
      */
     static class AlphaWideFits extends AbstractWideFits {
 

@@ -28,6 +28,7 @@ public class WideTest extends TestCase {
               .setLevel( Level.WARNING );
     }
 
+    // AlphaWideFits is a historical relic - this test could be removed
     public void testBase26() {
         AbstractWideFits.AlphaWideFits alphaWide =
             new AbstractWideFits.AlphaWideFits( 999 );
@@ -56,6 +57,7 @@ public class WideTest extends TestCase {
     public void testName() {
         assertEquals( "hierarch",
                       WideFits.DEFAULT.toString() );
+        // AlphaWideFits is a historical relic - these tests could be removed
         assertEquals( "alpha",
                       AbstractWideFits.createAlphaWideFits( 999 ).toString() );
         assertEquals( "alpha23",
@@ -67,11 +69,12 @@ public class WideTest extends TestCase {
     }
 
     public void testReadWrite() throws IOException {
+        // AlphaWideFits is a historical relic
         WideFits[] wides = {
             null,
             WideFits.DEFAULT,
-            AbstractWideFits.createAlphaWideFits( 9 ),
-            AbstractWideFits.createAlphaWideFits( 6 ),
+            AbstractWideFits.createAlphaWideFits( 9 ),  // could be removed
+            AbstractWideFits.createAlphaWideFits( 6 ),  // could be removed
             AbstractWideFits.createHierarchWideFits( 6 ),
             AbstractWideFits.createHierarchWideFits( 9 ),
         };
@@ -123,7 +126,7 @@ public class WideTest extends TestCase {
         assertTrue( ncol > 10 );
 
         WideFits[] wides = {
-            AbstractWideFits.createAlphaWideFits( iExtCol ),
+            AbstractWideFits.createAlphaWideFits( iExtCol ), // could be rm'd
             AbstractWideFits.createHierarchWideFits( iExtCol ),
         };
         for ( WideFits wide : wides ) {
