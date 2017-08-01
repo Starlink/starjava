@@ -660,11 +660,8 @@ public abstract class ErrorRenderer {
                 g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                  RenderingHints.VALUE_ANTIALIAS_ON );
-            Shape clip = g2.getClip();
-            g2.setClip( x, y, width_, height_ );
             renderer_.drawErrors( g2, x + width_ / 2, y + height_ / 2,
                                   xoffs_, yoffs_ );
-            g2.setClip( clip );
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aaHint );
         }
 
@@ -727,8 +724,7 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
-            drawErrors( g, x, y, xoffs, yoffs, g.getClipBounds(), 
-                        lines_, capper_, false );
+            drawErrors( g, x, y, xoffs, yoffs, lines_, capper_, false );
         }
 
         /**
@@ -739,7 +735,6 @@ public abstract class ErrorRenderer {
          * @param  y  data point Y coordinate
          * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
          * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
-         * @param  clip   bounds of output
          * @param  lines  whether to draw lines
          * @param  capper   cap drawing object, if any
          * @param  willCover  true if the ends of the radial lines will 
@@ -747,14 +742,15 @@ public abstract class ErrorRenderer {
          *                    (affects line capping)
          */
         public static void drawErrors( Graphics g, int x, int y,
-                                       int[] xoffs, int[] yoffs, Rectangle clip,
+                                       int[] xoffs, int[] yoffs,
                                        boolean lines, Capper capper,
                                        boolean willCover ) {
             Graphics2D g2 = (Graphics2D) g;
             Stroke oldStroke = g2.getStroke();
             g2.setStroke( capper != null || willCover ? CAP_BUTT : CAP_ROUND );
-            int xmax = clip.width + 1;
-            int ymax = clip.height + 1;
+            Rectangle bounds = g2.getDeviceConfiguration().getBounds();
+            int xmax = bounds.width;
+            int ymax = bounds.height;
             int np = xoffs.length;
             for ( int ip = 0; ip < np; ip++ ) {
                 int xoff = xoffs[ ip ];
@@ -764,7 +760,8 @@ public abstract class ErrorRenderer {
                 if ( xoff != 0 || yoff != 0 ) {
 
                     /* If the end coordinate is definitely outside the graphics
-                     * clip, shrink the line to something about the right size.
+                     * bounds, shrink the line to something about the right
+                     * size.
                      * This is here to defend against the case in which the
                      * error bound is way off the screen - trying to draw a 
                      * kilometre long line can have adverse effects on some
@@ -986,7 +983,8 @@ public abstract class ErrorRenderer {
             Graphics2D g2 = (Graphics2D) g;
             Stroke stroke0 = g2.getStroke();
             g2.setStroke( stroke_ );
-            double dmax = 4 * Math.max( clip.width, clip.height );
+            Rectangle bounds = g2.getDeviceConfiguration().getBounds();
+            double dmax = Math.max( bounds.width, bounds.height );
             int np = xoffs.length;
             for ( int ip = 0; ip < np; ip++ ) {
                 double dx = xoffs[ ip ];
@@ -1095,8 +1093,9 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y,
                                 int[] xoffs, int[] yoffs ) {
-            Rectangle clip = g.getClipBounds();
-            int dmax = 4 * Math.max( clip.width, clip.height );
+            Rectangle bounds =
+                ((Graphics2D) g).getDeviceConfiguration().getBounds();
+            int dmax = Math.max( bounds.width, bounds.height );
             boolean ok = true;
             for ( int ip = 0; ip < 4 && ok; ip++ ) {
                 ok = ok && Math.abs( xoffs[ ip ] ) < dmax
@@ -1404,9 +1403,8 @@ public abstract class ErrorRenderer {
              * graphics system attempting to fill an ellipse with a 
              * kilometre semi-major axis.  This may result in some 
              * distortions for ellipses - too bad. */
-            Rectangle clip = g.getClipBounds();
-            int maxcoord = Math.max( Math.max( clip.width, clip.height ) * 3,
-                                     2000 );
+            Rectangle bounds = g2.getDeviceConfiguration().getBounds();
+            int maxcoord = Math.max( bounds.width, bounds.height );
             boolean clipped = false;
             for ( int ioff = 0; ioff < noff && ! clipped; ioff++ ) {
                 int xoff = xoffs[ ioff ];
@@ -1497,7 +1495,7 @@ public abstract class ErrorRenderer {
 
             /* Draw crosshair if required. */
             if ( withLines_ ) {
-                CappedLine.drawErrors( g, x, y, xoffs, yoffs, clip, true, null,
+                CappedLine.drawErrors( g, x, y, xoffs, yoffs, true, null,
                                        true );
             }
         }
