@@ -148,8 +148,9 @@ public class PlaneEllipseCoordSet implements MultiPointCoordSet {
             "</p>",
         } );
         boolean canScale = true;
-        return new MultiPointForm( "XYEllipse", ResourceIcon.FORM_XYELLIPSE,
-                                   descrip, new PlaneEllipseCoordSet(),
-                                   canScale, StyleKeys.ELLIPSE_SHAPE );
+        return MultiPointForm
+              .createDefaultForm( "XYEllipse", ResourceIcon.FORM_XYELLIPSE,
+                                  descrip, new PlaneEllipseCoordSet(),
+                                  StyleKeys.ELLIPSE_SHAPE, canScale );
     }
 }

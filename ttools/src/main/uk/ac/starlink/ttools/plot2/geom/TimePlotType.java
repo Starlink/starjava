@@ -62,10 +62,11 @@ public class TimePlotType implements PlotType {
             "</p>",
         } );
         MultiPointForm errorForm =
-            new MultiPointForm( "YError", ResourceIcon.FORM_ERROR1, descrip,
-                                CartesianErrorCoordSet
-                               .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
-                                false, StyleKeys.ERROR_SHAPE_1D );
+            MultiPointForm
+           .createDefaultForm( "YError", ResourceIcon.FORM_ERROR1, descrip,
+                               CartesianErrorCoordSet
+                              .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
+                               StyleKeys.ERROR_SHAPE_1D, false );
         ShapeForm[] modeForms = new ShapeForm[] { MarkForm.SINGLE };
         List<Plotter> plotters = new ArrayList<Plotter>();
         plotters.addAll( Arrays

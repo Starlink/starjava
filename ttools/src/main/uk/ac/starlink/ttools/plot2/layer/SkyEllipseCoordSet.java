@@ -145,8 +145,9 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
             "</p>",
         } );
         boolean canScale = true;
-        return new MultiPointForm( "SkyEllipse", ResourceIcon.FORM_SKYELLIPSE,
-                                   descrip, new SkyEllipseCoordSet(),
-                                   canScale, StyleKeys.ELLIPSE_SHAPE );
+        return MultiPointForm
+              .createDefaultForm( "SkyEllipse", ResourceIcon.FORM_SKYELLIPSE,
+                                  descrip, new SkyEllipseCoordSet(),
+                                  StyleKeys.ELLIPSE_SHAPE, canScale );
     }
 }

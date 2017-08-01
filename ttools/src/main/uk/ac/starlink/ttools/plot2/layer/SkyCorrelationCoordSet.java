@@ -178,9 +178,10 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
             } );
         }
         boolean canScale = false;
-        return new MultiPointForm( "SkyCorr", ResourceIcon.FORM_ELLIPSE_CORR,
-                                   descrip,
-                                   new SkyCorrelationCoordSet( preMultCosLat ),
-                                   canScale, StyleKeys.ELLIPSE_SHAPE );
+        return MultiPointForm
+              .createDefaultForm( "SkyCorr", ResourceIcon.FORM_ELLIPSE_CORR,
+                                  descrip,
+                                  new SkyCorrelationCoordSet( preMultCosLat ),
+                                  StyleKeys.ELLIPSE_SHAPE, canScale );
     }
 }

@@ -51,14 +51,14 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
  * @author   Mark Taylor
  * @since    18 Feb 2013
  */
-public class MultiPointForm implements ShapeForm {
+public abstract class MultiPointForm implements ShapeForm {
 
     private final String name_;
     private final Icon icon_;
     private final String description_;
     private final MultiPointCoordSet extraCoordSet_;
-    private final boolean canScale_;
     private final MultiPointConfigKey rendererKey_;
+    private final ConfigKey[] otherKeys_;
 
     /**
      * Constructor.
@@ -68,23 +68,44 @@ public class MultiPointForm implements ShapeForm {
      * @param  description  XML description
      * @param  extraCoordSet  defines the extra positional coordinates 
      *                        used to plot multipoint shapes
-     * @param  canScale  true if a configuration option to scale the shapes
-     *                   should be supplied
      * @param  rendererKey  config key for the renderer; provides option to
      *                      vary the shape, but any renderer specified by it
      *                      must be expecting data corresponding to the
      *                      <code>extraCoordSet</code> parameter
+     * @param  otherKeys    additional config keys
      */
     public MultiPointForm( String name, Icon icon, String description,
-                           MultiPointCoordSet extraCoordSet, boolean canScale,
-                           MultiPointConfigKey rendererKey ) {
+                           MultiPointCoordSet extraCoordSet,
+                           MultiPointConfigKey rendererKey,
+                           ConfigKey[] otherKeys ) {
         name_ = name;
         icon_ = icon;
         description_ = description;
         extraCoordSet_ = extraCoordSet;
-        canScale_ = canScale;
         rendererKey_ = rendererKey;
+        otherKeys_ = otherKeys;
     }
+
+    /**
+     * Returns a fixed constant by which to scale all (autoscaled or not
+     * autoscaled) offset values before plotting.
+     *
+     * @param  config  config map
+     * @return  constant scaling factor
+     */
+    protected abstract double getScaleFactor( ConfigMap config );
+
+    /**
+     * Indicates whether autoscaling should be applied.
+     * If true, before plotting is carried out a scan of all the
+     * data values is performed to determine the range of values,
+     * and the supplied offsets are scaled accordingly,
+     * so that the largest ones are a reasonable size on the screen.
+     *
+     * @param  config  config map
+     * @return   true for autoscaling false to use raw values
+     */
+    protected abstract boolean isAutoscale( ConfigMap config );
 
     public int getPositionCount() {
         return 1;
@@ -109,18 +130,15 @@ public class MultiPointForm implements ShapeForm {
     public ConfigKey[] getConfigKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( rendererKey_ );
-        if ( canScale_ ) {
-            list.add( StyleKeys.SCALE );
-            list.add( StyleKeys.AUTOSCALE );
-        }
+        list.addAll( Arrays.asList( otherKeys_ ) );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         ErrorRenderer renderer = config.get( rendererKey_ );
         ErrorMode[] errorModes = rendererKey_.getErrorModes();
-        double scale = canScale_ ? config.get( StyleKeys.SCALE ) : 1;
-        boolean isAutoscale = canScale_ && config.get( StyleKeys.AUTOSCALE );
+        double scale = getScaleFactor( config );
+        boolean isAutoscale = isAutoscale( config );
         return new MultiPointOutliner( renderer, errorModes, scale,
                                        isAutoscale );
     }
@@ -146,23 +164,27 @@ public class MultiPointForm implements ShapeForm {
             "The plotted markers are typically little arrows,",
             "but there are other options.",
             "</p>",
-            "<p>In some cases such delta values may be",
-            "the actual magnitude required for the plot,",
-            "but often the vector data represents a value",
-            "which has a different magnitude or is in different units",
-            "to the positional data.",
-            "As a convenience for this case, the plotter can optionally",
-            "scale the magnitudes of all the vectors",
-            "to make them a sensible size,",
-            "so by default the largest ones are a few tens of pixels long.",
-            "This auto-scaling is in operation by default,",
-            "but it can be turned off or adjusted with the scaling and",
-            "auto-scaling options.",
-            "</p>",
         } );
-        return new MultiPointForm( name, ResourceIcon.FORM_VECTOR,
-                                   descrip, extraCoordSet, canScale,
-                                   StyleKeys.VECTOR_SHAPE );
+        if ( canScale ) {
+            descrip += PlotUtil.concatLines( new String[] {
+                "<p>In some cases such delta values may be",
+                "the actual magnitude required for the plot,",
+                "but often the vector data represents a value",
+                "which has a different magnitude or is in different units",
+                "to the positional data.",
+                "As a convenience for this case, the plotter can optionally",
+                "scale the magnitudes of all the vectors",
+                "to make them a sensible size,",
+                "so by default the largest ones are a few tens of pixels long.",
+                "This auto-scaling is in operation by default,",
+                "but it can be turned off or adjusted with the scaling and",
+                "auto-scaling options.",
+                "</p>",
+            } );
+        }
+        return createDefaultForm( name, ResourceIcon.FORM_VECTOR, descrip,
+                                  extraCoordSet, StyleKeys.VECTOR_SHAPE,
+                                  canScale );
     }
 
     /**
@@ -185,8 +207,57 @@ public class MultiPointForm implements ShapeForm {
             "ellipses, rectangles etc aligned with the axes.",
             "</p>",
         } );
-        return new MultiPointForm( name, ResourceIcon.FORM_ERROR, descrip,
-                                   extraCoordSet, false, rendererKey );
+        return createDefaultForm( name, ResourceIcon.FORM_ERROR, descrip,
+                                  extraCoordSet, rendererKey, false );
+    }
+
+    /**
+     * Returns a new MultiPointForm with scaling in one of two default
+     * configurations, depending on the value of the supplied canScale
+     * parameter.  If true, then the StyleKeys SCALE and AUTOSCALE keys
+     * are used to configure scaling, and if false, no scaling is provided.
+     *
+     * @param  name   shapeform name
+     * @param  icon   shapeform icon
+     * @param  description  XML description
+     * @param  extraCoordSet  defines the extra positional coordinates 
+     *                        used to plot multipoint shapes
+     * @param  rendererKey  config key for the renderer; provides option to
+     *                      vary the shape, but any renderer specified by it
+     *                      must be expecting data corresponding to the
+     *                      <code>extraCoordSet</code> parameter
+     * @param  canScale   true for standard scaling configuration,
+     *                    false for no scaling
+     */
+    public static MultiPointForm
+            createDefaultForm( String name, Icon icon, String description, 
+                               MultiPointCoordSet extraCoordSet,
+                               MultiPointConfigKey rendererKey,
+                               boolean canScale ) {
+        if ( canScale ) {
+            return new MultiPointForm( name, icon, description, extraCoordSet,
+                                       rendererKey, new ConfigKey[] {
+                                           StyleKeys.SCALE, StyleKeys.AUTOSCALE,
+                                       } ) {
+                protected double getScaleFactor( ConfigMap config ) {
+                    return config.get( StyleKeys.SCALE );
+                }
+                protected boolean isAutoscale( ConfigMap config ) {
+                    return config.get( StyleKeys.AUTOSCALE );
+                }
+            };
+        }
+        else {
+            return new MultiPointForm( name, icon, description, extraCoordSet,
+                                       rendererKey, new ConfigKey[ 0 ] ) {
+                protected double getScaleFactor( ConfigMap config ) {
+                    return 1;
+                }
+                protected boolean isAutoscale( ConfigMap config ) {
+                    return false;
+                }
+            };
+        }
     }
 
     /**

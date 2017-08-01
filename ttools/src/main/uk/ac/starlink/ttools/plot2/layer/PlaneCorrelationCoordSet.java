@@ -216,8 +216,9 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
             "</p>",
         } );
         boolean canScale = false;
-        return new MultiPointForm( "XYCorr", ResourceIcon.FORM_ELLIPSE_CORR,
-                                   descrip, new PlaneCorrelationCoordSet(),
-                                   canScale, StyleKeys.ELLIPSE_SHAPE );
+        return MultiPointForm
+              .createDefaultForm( "XYCorr", ResourceIcon.FORM_ELLIPSE_CORR,
+                                  descrip, new PlaneCorrelationCoordSet(),
+                                  StyleKeys.ELLIPSE_SHAPE, canScale );
     }
 }
