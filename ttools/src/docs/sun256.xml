@@ -11106,9 +11106,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         the view, rather than the data, sky coordinate system.</li>
     <li>New plot layer type <ref id="layer-skygrid">skygrid</ref>
         can draw multiple sky system coordinate axis grids on sky plot.</li>
-    <li>New plot forms
-        <ref id="layer-xycorr">XYCorr</ref> and
-        <ref id="layer-skycorr">SkyCorr</ref> for error ellipses rotated
+    <li>New plot layer types
+        <ref id="layer-xycorr">xycorr</ref> and
+        <ref id="layer-skycorr">skycorr</ref> for error ellipses rotated
         as specified by Gaia-style correlation values.</li>
     <li>Fix filename generation error for <code>plot2*</code> command
         animation output (wrong number of digits if frame count
