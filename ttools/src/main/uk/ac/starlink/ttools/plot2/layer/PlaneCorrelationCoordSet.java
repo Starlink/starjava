@@ -215,7 +215,7 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
             "in the <em>Gaia</em> source catalogue.",
             "</p>",
         } );
-        boolean canScale = false;
+        boolean canScale = true;
         return MultiPointForm
               .createDefaultForm( "XYCorr", ResourceIcon.FORM_ELLIPSE_CORR,
                                   descrip, new PlaneCorrelationCoordSet(),
