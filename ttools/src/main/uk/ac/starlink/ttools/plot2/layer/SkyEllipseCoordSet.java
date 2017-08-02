@@ -22,20 +22,20 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
     private static final FloatingCoord AR_COORD =
         FloatingCoord.createCoord(
             new InputMeta( "ra", "Primary Radius" )  // is "ra" a bad name?
-           .setShortDescription( "Ellipse first principal radius in degrees" )
-           .setValueUsage( "deg" )
+           .setShortDescription( "Ellipse first principal radius" )
            .setXmlDescription( new String[] {
-                "<p>Ellipse first principal radius in degrees.",
+                "<p>Ellipse first principal radius.",
+                SkyMultiPointForm.getCoordUnitText(),
                 "</p>",
             } )
         , true );
     private static final FloatingCoord BR_COORD =
         FloatingCoord.createCoord(
             new InputMeta( "rb", "Secondary Radius" )
-           .setShortDescription( "Ellipse second principal radius in degrees" )
-           .setValueUsage( "deg" )
+           .setShortDescription( "Ellipse second principal radius" )
            .setXmlDescription( new String[] {
-                "<p>Ellipse second principal radius in degrees.",
+                "<p>Ellipse second principal radius.",
+                SkyMultiPointForm.getCoordUnitText(),
                 "If this value is blank, the two radii will be assumed equal,",
                 "i.e. the ellipses will be circles.",
                 "</p>",
@@ -143,11 +143,13 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
             "gives the angle from the North pole towards the",
             "direction of increasing longitude on the longitude axis.",
             "</p>",
+            SkyMultiPointForm
+           .getScalingDescription( new FloatingCoord[] { AR_COORD, BR_COORD },
+                                   "ellipse" ),
         } );
-        boolean canScale = true;
-        return MultiPointForm
-              .createDefaultForm( "SkyEllipse", ResourceIcon.FORM_SKYELLIPSE,
-                                  descrip, new SkyEllipseCoordSet(),
-                                  StyleKeys.ELLIPSE_SHAPE, canScale );
+        return new SkyMultiPointForm( "SkyEllipse",
+                                      ResourceIcon.FORM_SKYELLIPSE, descrip,
+                                      new SkyEllipseCoordSet(),
+                                      StyleKeys.ELLIPSE_SHAPE );
     }
 }

@@ -36,27 +36,26 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
         preMultCosLat_ = preMultCosLat;
         aerrCoord_ = FloatingCoord.createCoord(
             new InputMeta( "lonerr", "Longitude error" )
-           .setShortDescription( "Error in longitude in degrees"
+           .setShortDescription( "Error in longitude"
                                + ( preMultCosLat ? "" : "NOT " )
                                + "premultiplied by cos(lat)" )
            .setXmlDescription( new String[] {
                 "<p>Error in the longitude coordinate.",
-                "The supplied value is an angle in degrees, and",
+                "The supplied value",
                 "<strong>" + ( preMultCosLat ? "is" : "is not" ) + "</strong>",
                 "considered to be premultiplied by cos(Latitude).",
+                SkyMultiPointForm.getCoordUnitText(),
                 "</p>",
             } )
-           .setValueUsage( "deg" )
         , true );
         derrCoord_ = FloatingCoord.createCoord(
             new InputMeta( "laterr", "Latitude error" )
-           .setShortDescription( "Error in latitude in degrees" )
+           .setShortDescription( "Error in latitude" )
            .setXmlDescription( new String[] {
                 "<p>Error in the latitude coordinate.",
-                "The supplied value is an angle in degrees.",
+                SkyMultiPointForm.getCoordUnitText(),
                 "</p>",
             } )
-           .setValueUsage( "deg" )
         , true );
         corrCoord_ = FloatingCoord.createCoord(
             new InputMeta( "corr", "Lon-Lat Correlation" )
@@ -135,7 +134,7 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
      * @return  new form
      */ 
     public static MultiPointForm createForm() {
-        boolean preMultCosLat = true;
+        SkyCorrelationCoordSet coordSet = new SkyCorrelationCoordSet( true );
         String descrip = PlotUtil.concatLines( new String[] {
             "<p>Plots an error ellipse",
             "(or rectangle or other similar figure)",
@@ -144,12 +143,12 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
             "and a correlation between the two errors.",
             "</p>",
             "<p>The error in longitude",
-            ( preMultCosLat ? "is" : "is not" ),
+            ( coordSet.preMultCosLat_ ? "is" : "is not" ),
             "considered to be premultiplied by the cosine of the latitude"
-            + ( preMultCosLat ? ( ", i.e. both errors correspond to "
-                                + " angular distances"
-                                + " along a great circle." )
-                              : "." ),
+            + ( coordSet.preMultCosLat_ ? ( ", i.e. both errors correspond to "
+                                          + " angular distances"
+                                          + " along a great circle." )
+                                          : "." ),
             "</p>",
             "<p>The supplied correlation is a dimensionless value",
             "in the range -1..+1",
@@ -161,27 +160,28 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
             "    [  lonerr*laterr*corr  laterr*laterr       ]",
             "</verbatim>",
             "</p>",
+            SkyMultiPointForm
+           .getScalingDescription( new FloatingCoord[] { coordSet.aerrCoord_,
+                                                         coordSet.derrCoord_ },
+                                   "ellipse" ),
         } );
-        if ( preMultCosLat ) {
+        if ( coordSet.preMultCosLat_ ) {
             descrip += PlotUtil.concatLines( new String[] {
                 "<p>This plot type is suitable for use with the",
                 "<code>ra_error</code>, <code>dec_error</code> and",
                 "<code>ra_dec_corr</code> columns",
                 "in the <em>Gaia</em> source catalogue.",
-                "<strong>Note however</strong> that Gaia positional errors",
-                "are generally quoted in milli-arseconds (mas)",
-                "while this plotter requires lon/lat errors in degrees,",
-                "so to plot true error ellipses it is necessary to divide",
-                "the Gaia error values by 3.6e6.",
-                "In most plots, Gaia position errors are much too tiny to see!",
+                "Note that Gaia positional errors are generally quoted",
+                "in milli-arcseconds, so you should set",
+                "<code>" + SkyMultiPointForm.UNIT_KEY.getMeta().getShortName()
+                         + "=" + AngleUnit.MAS.getName() + "</code>.",
+                "Note also that in most plots Gaia positional errors",
+                "are much too small to see!",
                 "</p>",
             } );
         }
-        boolean canScale = false;
-        return MultiPointForm
-              .createDefaultForm( "SkyCorr", ResourceIcon.FORM_ELLIPSE_CORR,
-                                  descrip,
-                                  new SkyCorrelationCoordSet( preMultCosLat ),
-                                  StyleKeys.ELLIPSE_SHAPE, canScale );
+        return new SkyMultiPointForm( "SkyCorr", ResourceIcon.FORM_ELLIPSE_CORR,
+                                      descrip, coordSet,
+                                      StyleKeys.ELLIPSE_SHAPE );
     }
 }

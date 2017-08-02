@@ -11160,6 +11160,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         of the convention (e.g. CFITSIO or earlier STILTS versions)
         will only be able to use the first 998 columns of tables written
         in this way.</li>
+    <li>Replace parameter <code>autoscale</code> with <code>unit</code> in
+        <ref id="layer-skyvector"><code>skyvector</code></ref> and
+        <ref id="layer-skyellipse"><code>skyellipse</code></ref>
+        plot layers.</li>
     </ul>
     </p></dd>
 

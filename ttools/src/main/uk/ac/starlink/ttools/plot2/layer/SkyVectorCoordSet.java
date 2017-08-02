@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -35,12 +38,12 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
            .setXmlDescription( new String[] {
                 "<p>Change in the longitude coordinate represented by",
                 "the plotted vector.",
-                "The supplied value is an angle in degrees, and",
+                "The supplied value",
                 "<strong>" + ( preMultCosLat ? "is" : "is not" ) + "</strong>",
                 "considered to be premultiplied by cos(Latitude).",
+                SkyMultiPointForm.getCoordUnitText(),
                 "</p>",
             } )
-           .setValueUsage( "deg" )
         , true );
         dlatCoord_ = FloatingCoord.createCoord(
             new InputMeta( "dlat", "Delta Latitude" )
@@ -48,10 +51,9 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
            .setXmlDescription( new String[] {
                 "<p>Change in the latitude coordinate represented by",
                 "the plotted vector.",
-                "The supplied value is an angle in degrees.",
+                SkyMultiPointForm.getCoordUnitText(),
                 "</p>",
             } )
-           .setValueUsage( "deg" )
         , true );
     }
 
@@ -91,5 +93,29 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
                .displace( xi, eta, xyz1 );
             return true;
         }
+    }
+
+    /**
+     * Creates a MultiPointform that can plot vectors on the sky,
+     * corresponding to this coordset.
+     *
+     * @return  new form
+     */
+    public static MultiPointForm createForm() {
+        SkyVectorCoordSet coordSet = new SkyVectorCoordSet( true );
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots directed lines from the data position",
+            "given delta values for the coordinates",
+            "The plotted markers are typically little arrows,",
+            "but there are other options.",
+            "</p>",
+            SkyMultiPointForm
+           .getScalingDescription( new FloatingCoord[] { coordSet.dlonCoord_,
+                                                         coordSet.dlatCoord_ },
+                                   "vector" ),
+        } );
+        return new SkyMultiPointForm( "SkyVector", ResourceIcon.FORM_VECTOR,
+                                      descrip, coordSet,
+                                      StyleKeys.VECTOR_SHAPE );
     }
 }

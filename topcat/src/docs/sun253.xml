@@ -24486,6 +24486,9 @@ introduced since the last version:
         of the convention (e.g. CFITSIO or earlier STILTS versions)
         will only be able to use the first 998 columns of tables written
         in this way.</li>
+    <li>Replace option <label>autoscale</label> with <label>unit</label> in
+        <ref id="form-skyvector">SkyVector</ref> and
+        <ref id="form-skyellipse">SkyEllipse</ref> sky plot forms.</li>
     </ul>
     </p></dd>
 
