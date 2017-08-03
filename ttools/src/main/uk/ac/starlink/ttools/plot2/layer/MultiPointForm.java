@@ -166,25 +166,42 @@ public abstract class MultiPointForm implements ShapeForm {
             "</p>",
         } );
         if ( canScale ) {
-            descrip += PlotUtil.concatLines( new String[] {
-                "<p>In some cases such delta values may be",
-                "the actual magnitude required for the plot,",
-                "but often the vector data represents a value",
-                "which has a different magnitude or is in different units",
-                "to the positional data.",
-                "As a convenience for this case, the plotter can optionally",
-                "scale the magnitudes of all the vectors",
-                "to make them a sensible size,",
-                "so by default the largest ones are a few tens of pixels long.",
-                "This auto-scaling is in operation by default,",
-                "but it can be turned off or adjusted with the scaling and",
-                "auto-scaling options.",
-                "</p>",
-            } );
+            descrip += getDefaultScalingDescription( "vector" );
         }
         return createDefaultForm( name, ResourceIcon.FORM_VECTOR, descrip,
                                   extraCoordSet, StyleKeys.VECTOR_SHAPE,
                                   canScale );
+    }
+
+    /**
+     * Returns XML text suitable for inclusion in a MultiPointForm description
+     * explaining how the scaling of marker sizes is controlled.
+     * This corresponds to the behaviour of the
+     * {@link #createDefaultForm createDefaultForm} method.
+     *
+     * @param   shapename   human-readable name of the shape being plotted
+     *                      by this form
+     * @return  description text &lt;p&gt; element
+     */
+    public static String getDefaultScalingDescription( String shapename ) {
+        return PlotUtil.concatLines( new String[] {
+            "<p>In some cases the supplied data values",
+            "give the actual extents in data coordinates",
+            "for the plotted " + shapename + "s",
+            "but sometimes the data is on a different scale",
+            "or in different units to the positional coordinates.",
+            "As a convenience for this case, the plotter can optionally",
+            "scale the magnitudes of all the " + shapename + "s",
+            "to make them a reasonable size on the plot,",
+            "so by default the largest ones are a few tens of pixels long.",
+            "This auto-scaling is in operation by default,",
+            "but it can be turned off or adjusted with the",
+            "<code>" + StyleKeys.AUTOSCALE.getMeta().getShortName() + "</code>",
+            "and",
+            "<code>" + StyleKeys.SCALE.getMeta().getShortName() + "</code>",
+            "options.",
+            "</p>",
+        } );
     }
 
     /**

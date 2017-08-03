@@ -193,6 +193,7 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
      * @return  new form
      */ 
     public static MultiPointForm createForm() {
+        boolean canScale = true;
         String descrip = PlotUtil.concatLines( new String[] {
             "<p>Plots an error ellipse",
             "(or rectangle or other similar figure)",
@@ -209,13 +210,15 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
             "    [  xerr*yerr*xycorr  yerr*yerr         ]",
             "</verbatim>",
             "</p>",
+            ( canScale ? MultiPointForm
+                        .getDefaultScalingDescription( "ellipse" )
+                       : "" ),
             "<p>This plot type is suitable for use with the",
             "<code>&lt;x&gt;_error</code> and",
             "<code>&lt;x&gt;_&lt;y&gt;_corr</code> columns",
             "in the <em>Gaia</em> source catalogue.",
             "</p>",
         } );
-        boolean canScale = true;
         return MultiPointForm
               .createDefaultForm( "XYCorr", ResourceIcon.FORM_ELLIPSE_CORR,
                                   descrip, new PlaneCorrelationCoordSet(),
