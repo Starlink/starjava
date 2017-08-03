@@ -3078,7 +3078,7 @@ name clashes are a possibility.
 
 </subsect>
 
-<subsect>
+<subsect id="instanceMethods">
 <subhead><title>Instance Methods</title></subhead>
 
 <p>There is another category of functions which can be used apart from
@@ -3178,9 +3178,20 @@ define values for one of the axes in a plot.
     psfCounts[2]
 </verbatim></p></dd>
 
+<dt>Converting spectral type to numeric value
+    (e.g. "L3.5" -&gt; 23.5, "M7" -&gt; 17)</dt>
+<dd><p><verbatim>
+   "MLT".indexOf(spType.charAt(0)) * 10 + parseDouble(substring(spType,1)) + 10
+</verbatim>
+Note this uses a couple of Java
+<webref url="&URL.J2SE_DOCS;/api/java/lang/String.html">String</webref>
+instance methods (<ref id="instanceMethods"/>)
+which are not explicitly documented in this section.
+</p></dd>
+
 </dl>
 
-and here are some examples of boolean expressions that could be used
+Here are some examples of boolean expressions that could be used
 to define <ref id="subsets">row subsets</ref>
 (or to create boolean synthetic columns):
 
