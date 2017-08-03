@@ -505,7 +505,7 @@ public class StyleKeys {
                 "<code>" + SCALE_NAME + "</code> parameter.",
                 "</p>",
             } )
-        , Boolean.TRUE );
+        , Boolean.FALSE );
 
     /** Config key for autoscale flag for markers in pixel space. */
     public static final ConfigKey<Boolean> AUTOSCALE_PIX =

@@ -7181,8 +7181,10 @@ contains the following actions (repeated in the menus):
     <ref id="form-sizexy">SizeXY</ref>,
     <ref id="form-vector">Vector</ref>,
     <ref id="form-skyvector">SkyVector</ref>,
-    <ref id="form-xyellipse">Ellipse</ref> and
-    <ref id="form-skyellipse">SkyEllipse</ref>.
+    <ref id="form-xyellipse">Ellipse</ref>,
+    <ref id="form-skyellipse">SkyEllipse</ref>,
+    <ref id="form-xycorr">XYCorr</ref> and
+    <ref id="form-skycorr">SkyCorr</ref>.
     </p></dd>
 
 <dt>&IMG.SKETCH; Sketch Frames</dt>
@@ -8866,10 +8868,10 @@ other options.
 </p>
 
 <p>In some cases such delta values may be the actual magnitude required
-for the plot, but more often the vector data represents a value which
+for the plot, but often the vector data represents a value which
 has a different magnitude or is in different units to the positional data.
 As a convenience for this case, the plotter can optionally
-(and does by default) scale the magnitudes of all the vectors to make
+scale the magnitudes of all the vectors to make
 them a sensible size (so the largest ones are a few tens of pixels long).
 This scaling can be adjusted or turned off using the
 <label>Scale</label> and <label>Auto Scale</label> options below.
@@ -8928,11 +8930,11 @@ other options.
 </p>
 
 <p>In some cases such delta values may be the actual magnitude required
-for the plot, but more often the vector data represents a value which
+for the plot, but often the vector data represents a value which
 has a different magnitude or is in different units to the positional data
 (for instance proper motions).
 As a convenience for this case, the plotter can optionally
-(and does by default) scale the magnitudes of all the vectors to make
+scale the magnitudes of all the vectors to make
 them a sensible size (so the largest ones are a few tens of pixels long).
 This scaling can be adjusted or turned off using the
 <label>Scale</label> and <label>Auto Scale</label> options below.
@@ -24489,6 +24491,17 @@ introduced since the last version:
     <li>Replace option <label>autoscale</label> with <label>unit</label> in
         <ref id="form-skyvector">SkyVector</ref> and
         <ref id="form-skyellipse">SkyEllipse</ref> sky plot forms.</li>
+    <li>Change autoscaling defaults for plot forms
+        <ref id="form-vector">Vector</ref>,
+        <ref id="form-skyvector">SkyVector</ref>,
+        <ref id="form-xyellipse">XYEllipse</ref>,
+        <ref id="form-skyellipse">SkyEllipse</ref>;
+        autoscaling is now turned <em>off</em> by default.
+        Apologies for this change in behaviour,
+        but it's better for consistency with new layers
+        <ref id="form-xycorr">XYCorr</ref> and
+        <ref id="form-skycorr">SkyCorr</ref>,
+        and presents less danger of misinterpreted plots.</li>
     </ul>
     </p></dd>
 

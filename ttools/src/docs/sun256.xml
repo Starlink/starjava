@@ -11164,6 +11164,18 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-skyvector"><code>skyvector</code></ref> and
         <ref id="layer-skyellipse"><code>skyellipse</code></ref>
         plot layers.</li>
+    <li>Change autoscaling defaults for plot layer types
+        <ref id="layer-xyvector"><code>xyvector</code></ref>,
+        <ref id="layer-xyzvector"><code>xyzvector</code></ref>,
+        <ref id="layer-skyvector"><code>skyvector</code></ref>,
+        <ref id="layer-xyellipse"><code>xyellipse</code></ref>,
+        <ref id="layer-skyellipse"><code>skyellipse</code></ref>;
+        autoscaling is now turned <em>off</em> by default.
+        Apologies for this change to behaviour,
+        but it's better for consistency with new layers
+        <ref id="layer-xycorr"><code>xycorr</code></ref> and
+        <ref id="layer-skycorr"><code>skycorr</code></ref>,
+        and presents less danger of misinterpreted plots.</li>
     </ul>
     </p></dd>
 

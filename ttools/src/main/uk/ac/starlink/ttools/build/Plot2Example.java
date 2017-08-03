@@ -913,7 +913,8 @@ public class Plot2Example {
             new Plot2Example( "layer-xyvector", c, PlotTask.PLANE,
                               new String[] {
                 "*layer1=xyvector", "*in1=" + TName.GAVO2, null,
-                "*x1=x", "*y1=y", "*xdelta1=velX", "*ydelta1=velY", null,
+                "*x1=x", "*y1=y", "*xdelta1=velX", "*ydelta1=velY",
+                "*autoscale1=true", null,
                 "xmin=9", "xmax=11", "ymin=12", "ymax=13.5",
             } ),
             new Plot2Example( "layer-xyerror", c, PlotTask.PLANE, new String[] {
@@ -1091,7 +1092,8 @@ public class Plot2Example {
                               new String[] {
                 "*in=" + TName.GAVO2, null,
                 "*x=x", "*y=y", "*z=z",
-                "*xdelta=velX", "*ydelta=velY", "*zdelta=velZ", null,
+                "*xdelta=velX", "*ydelta=velY", "*zdelta=velZ",
+                "*autoscale=true", null,
                 "*color=BlueViolet", "*scale=1.5", null,
                 "*layer1=xyzvector", "*shading1=transparent", "*opaque1=5",
                 "*arrow1=medium_filled_dart", null,

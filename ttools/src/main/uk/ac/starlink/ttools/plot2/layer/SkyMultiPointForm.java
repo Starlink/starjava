@@ -157,8 +157,7 @@ public class SkyMultiPointForm extends MultiPointForm {
         meta.setXmlDescription( new String[] {
             "<p>Defines the units in which the angular extents are specified.",
             "Options are degrees, arcseconds etc.",
-            "If the special value <code>" + SCALED_OPT + "</code>",
-            "is given (which is the default),",
+            "If the special value <code>" + SCALED_OPT + "</code> is given",
             "then a non-physical scaling is applied to the",
             "input values to make the the largest " + shapename + "s",
             "appear at a reasonable size (a few tens of pixels)",
@@ -176,7 +175,7 @@ public class SkyMultiPointForm extends MultiPointForm {
         AngleUnit[] opts = optList.toArray( new AngleUnit[ 0 ] );
         OptionConfigKey<AngleUnit> key =
                 new OptionConfigKey<AngleUnit>( meta, AngleUnit.class, opts,
-                                                null ) {
+                                                AngleUnit.DEGREE ) {
             public String getXmlDescription( AngleUnit unit ) {
                 return unit == null
                      ? PlotUtil.concatLines( new String[] {

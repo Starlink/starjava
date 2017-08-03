@@ -194,12 +194,13 @@ public abstract class MultiPointForm implements ShapeForm {
             "scale the magnitudes of all the " + shapename + "s",
             "to make them a reasonable size on the plot,",
             "so by default the largest ones are a few tens of pixels long.",
-            "This auto-scaling is in operation by default,",
-            "but it can be turned off or adjusted with the",
+            "This auto-scaling is turned off by default,",
+            "but it can be activated with the",
             "<code>" + StyleKeys.AUTOSCALE.getMeta().getShortName() + "</code>",
-            "and",
+            "option.",
+            "Whether autoscaling is on or off, the",
             "<code>" + StyleKeys.SCALE.getMeta().getShortName() + "</code>",
-            "options.",
+            "option can be used to apply a fixed scaling factor.",
             "</p>",
         } );
     }
