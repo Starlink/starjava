@@ -51,28 +51,61 @@ public class PlanePlotType implements PlotType {
 
     private static final SurfaceFactory SURFACE_FACTORY =
         new PlaneSurfaceFactory();
-    private static final PlanePlotType INSTANCE = new PlanePlotType();
-    private final DataGeom[] dataGeoms_;
-    private final String[] axisNames_;
+    private static PlaneDataGeom DATAGEOM = PlaneDataGeom.INSTANCE;
+    private static final PlanePlotType INSTANCE =
+        new PlanePlotType( createDefaultPlotters() );
+    private final Plotter[] plotters_;
 
     /**
-     * Private constructor for singleton.
+     * Constructor.
+     *
+     * @param  plotters  available plotters for use with this plot type
      */
-    private PlanePlotType() {
-        dataGeoms_ = new DataGeom[] { PlaneDataGeom.INSTANCE };
-        Coord[] coords = dataGeoms_[ 0 ].getPosCoords();
-        axisNames_ = new String[ coords.length ];
-        for ( int i = 0; i < coords.length; i++ ) {
-            axisNames_[ i ] = ((FloatingCoord) coords[ i ])
-                             .getInput().getMeta().getLongName();
-        };
+    public PlanePlotType( Plotter[] plotters ) {
+        plotters_ = plotters;
     }
 
     public DataGeom[] getPointDataGeoms() {
-        return dataGeoms_;
+        return new DataGeom[] { DATAGEOM };
     }
 
     public Plotter[] getPlotters() {
+        return plotters_.clone();
+    }
+
+    public SurfaceFactory getSurfaceFactory() {
+        return SURFACE_FACTORY;
+    }
+
+    public PaperTypeSelector getPaperTypeSelector() {
+        return PaperTypeSelector.SELECTOR_2D;
+    }
+
+    public String toString() {
+        return "plane";
+    }
+
+    /**
+     * Returns the sole instance of this class.
+     *
+     * @return  singleton instance
+     */
+    public static PlanePlotType getInstance() {
+        return INSTANCE;
+    }
+
+    /**
+     * Assembles the list of plotters available to a normal plane plot window.
+     *
+     * @return  plane plotter list
+     */
+    private static Plotter[] createDefaultPlotters() {
+        Coord[] coords = DATAGEOM.getPosCoords();
+        String[] axisNames = new String[ coords.length ];
+        for ( int i = 0; i < coords.length; i++ ) {
+            axisNames[ i ] = ((FloatingCoord) coords[ i ])
+                            .getInput().getMeta().getLongName();
+        };
         List<Plotter> list = new ArrayList<Plotter>();
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
@@ -80,11 +113,11 @@ public class PlanePlotType implements PlotType {
             SizeXyForm.getInstance(),
             MultiPointForm
            .createVectorForm( "XYVector",
-                              new CartesianVectorCoordSet( axisNames_ ), true ),
+                              new CartesianVectorCoordSet( axisNames ), true ),
             MultiPointForm
            .createErrorForm( "XYError",
                              CartesianErrorCoordSet
-                            .createAllAxesErrorCoordSet( axisNames_ ),
+                            .createAllAxesErrorCoordSet( axisNames ),
                              StyleKeys.ERROR_SHAPE_2D ),
             PlaneEllipseCoordSet.createForm(),
             PlaneCorrelationCoordSet.createForm(),
@@ -112,26 +145,5 @@ public class PlanePlotType implements PlotType {
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );
-    }
-
-    public SurfaceFactory getSurfaceFactory() {
-        return SURFACE_FACTORY;
-    }
-
-    public PaperTypeSelector getPaperTypeSelector() {
-        return PaperTypeSelector.SELECTOR_2D;
-    }
-
-    public String toString() {
-        return "plane";
-    }
-
-    /**
-     * Returns the sole instance of this class.
-     *
-     * @return  singleton instance
-     */
-    public static PlanePlotType getInstance() {
-        return INSTANCE;
     }
 }
