@@ -28,7 +28,6 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -37,9 +36,9 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
-import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
@@ -53,7 +52,6 @@ import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
-import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
 
 /**
@@ -70,7 +68,8 @@ import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
 public class HistogramPlotWindow
              extends StackPlotWindow<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
-    private static final PlotType PLOT_TYPE = new HistogramPlotType();
+    private static final PlotType PLOT_TYPE =
+        new PlanePlotType( createHistogramPlotters() );
     private static final PlotTypeGui PLOT_GUI = new HistogramPlotTypeGui();
     private static final int BINS_TABLE_INTRO_NCOL = 2;
 
@@ -443,34 +442,21 @@ public class HistogramPlotWindow
     }
 
     /**
-     * Variant of PlanePlotType for histograms; has a different set of plotters.
+     * Assembles the list of plotters to be available in the histogram window.
+     *
+     * @return  histogram plotter list
      */
-    private static class HistogramPlotType implements PlotType {
-        private final PaperTypeSelector ptSelector_ =
-            PlanePlotType.getInstance().getPaperTypeSelector();
-        private final SurfaceFactory surfFact_ = new PlaneSurfaceFactory();
-        public PaperTypeSelector getPaperTypeSelector() {
-            return ptSelector_;
-        }
-        public DataGeom[] getPointDataGeoms() {
-            return new DataGeom[] { PlaneDataGeom.INSTANCE };
-        }
-        public SurfaceFactory getSurfaceFactory() {
-            return surfFact_;
-        }
-        public Plotter[] getPlotters() {
-            ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE;
-            return new Plotter[] {
-                new HistogramPlotter( PlaneDataGeom.X_COORD, true, normKey ),
-                new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
-                                               normKey ),
-                new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
-                                             normKey ),
-                new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
-                new Stats1Plotter( PlaneDataGeom.X_COORD, true, normKey ),
-                FunctionPlotter.PLANE,
-            };
-        }
+    private static Plotter[] createHistogramPlotters() {
+        FloatingCoord xCoord = PlaneDataGeom.X_COORD;
+        ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE;
+        return new Plotter[] {
+            new HistogramPlotter( xCoord, true, normKey ),
+            new FixedKernelDensityPlotter( xCoord, true, normKey ),
+            new KnnKernelDensityPlotter( xCoord, true, normKey ),
+            new DensogramPlotter( xCoord, true ),
+            new Stats1Plotter( xCoord, true, normKey ),
+            FunctionPlotter.PLANE,
+        };
     }
 
     /**
