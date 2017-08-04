@@ -16,6 +16,7 @@ import javax.swing.JComponent;
 import javax.swing.UIManager;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Interactive component that allows you to drag a little rectangle round
@@ -87,8 +88,8 @@ public class SquarePusher extends JComponent {
      */
     public void setPosition( float xpos, float ypos ) {
         if ( xpos != xpos_ || ypos != ypos_ ) {
-            xpos_ = xpos;
-            ypos_ = ypos;
+            xpos_ = (float) PlotUtil.roundNumber( xpos, 0.2 / getWidth() );
+            ypos_ = (float) PlotUtil.roundNumber( ypos, 0.2 / getHeight() );
             ActionEvent evt = new ActionEvent( this, 1, "Move" );
             for ( ActionListener listener : listenerList_ ) {
                 listener.actionPerformed( evt );
