@@ -549,7 +549,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * @uml.property  name="serverPanel"
      * @uml.associationEnd  
      */
-    private SSAServerTable serverPanel;
+    private SSAServerTable serverPanel = null;
     
    
     static ProgressPanelFrame progressFrame = null;
@@ -569,6 +569,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     {
         this.serverList = serverList;
         this.browser = browser;        
+        addPropertyChangeListener(this);
         
         authenticator = new SSAPAuthenticator();
         Authenticator.setDefault(authenticator);
@@ -577,14 +578,13 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                 
         metaPanel = new SSAMetadataPanel();
         metaPanel.addPropertyChangeListener(this);
-
-       
+      /* 
         if (serverList==null) {
             SSAServerTable tmp = new SSAServerTable();
             StarTable table = tmp.queryRegistryWhenServersNotFound();  
             this.serverList=new SSAServerList(table);        
         }
-        
+	*/
         initUI();
         this.pack();
         this.setVisible(true);
@@ -649,7 +649,15 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
         sp.setAlignmentY((float) 1.);
 
-        serverPanel=new SSAServerTable( serverList );
+        if (serverList==null) {
+            SSAServerTable tmp = new SSAServerTable();
+            StarTable table = tmp.queryRegistryWhenServersNotFound();  
+            this.serverList=new SSAServerList(table);        
+            serverPanel=new SSAServerTable( serverList );
+	    firePropertyChange("changeServerlist", false, true);
+	} else 
+	    serverPanel=new SSAServerTable( serverList );
+	
         serverPanel.addPropertyChangeListener(this);
         sp.add(serverPanel);
         return sp;
