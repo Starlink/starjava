@@ -1,4 +1,9 @@
 1 Starlink SPLAT news.
+   3.13
+   ====
+   - spectral lines query support from slap and vamdc services
+   - several fixes/improvements
+
    3.12
    ====
    -  initial timeseries support: detection and handling of timeseries
