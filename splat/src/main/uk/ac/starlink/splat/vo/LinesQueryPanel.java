@@ -60,7 +60,8 @@ public class LinesQueryPanel extends AbstractServerPanel  {
         gbcOptions.weighty=1;
         gbcOptions.gridx=0;
         gbcOptions.gridy=0;
-        queryPanel.add(new SpectralLinesPanel(browser),gbcOptions);
+	slPanel = new SpectralLinesPanel(browser);
+        queryPanel.add(slPanel,gbcOptions);
         gbcOptions.weighty=0;
         gbcOptions.weightx=0;
         gbcOptions.gridy=1;
@@ -83,13 +84,16 @@ public class LinesQueryPanel extends AbstractServerPanel  {
          servTabPanel.setTitleAt(SLAP_INDEX, "SLAP Services");
          servTabPanel.setTitleAt(VAMDC_INDEX, "VAMDC Services");     
          servTabPanel.setSelectedIndex(SLAP_INDEX);
+	 slPanel.deactivateStage(); // does not work for SLAP (yet)
          setServerTable(slapServices);
          servTabPanel.addChangeListener(new ChangeListener() {
              public void stateChanged(ChangeEvent e) {
                  if (isSLAPSelected()) {
                      setServerTable(slapServices);
+		     slPanel.deactivateStage(); // does not work for SLAP (yet)
                  } else {
                      setServerTable(vamdcServices);
+		     slPanel.activateStage();
                  }
              }
          });

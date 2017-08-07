@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -35,10 +36,14 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.LineBrowser;
 
+
 public class SpectralLinesPanel extends JPanel implements  ActionListener {
     /** UI preferences. */
     protected static Preferences prefs =
         Preferences.userNodeForPackage( SpectralLinesPanel.class );
+
+    /**  Logger. */
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.splat.iface.SpectralLinesPanel" );
 
     /**
      * Content pane of frame.
@@ -186,6 +191,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
         stageCombo.setPrototypeDisplayValue("XXX");
         stageCombo.setEditable(true);
         stageCombo.addActionListener(this);
+	stageCombo.setToolTipText("Ionization stage / ion charge. Not (yet) supported by SLAP)");
         stagePanel.add(stageLabel);
         stagePanel.add(stageCombo);
         gbc1.weightx=0.5;
@@ -265,6 +271,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
                 int msa = sd.getMostSignificantAxis();           
                 try {
                     FrameSet frameSet = sd.getFrameSet();       
+                    logger.info("system=WAVE,unit("+msa+")=m" );
                     frameSet.set( "system=WAVE,unit("+msa+")=m" );
                     sd.initialiseAst();
                 } catch (SplatException e) {
@@ -357,7 +364,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
 
     public String getStage() {
         int stage = stageCombo.getSelectedIndex();
-        if (stage==0)
+        if (stage==0 || !stageCombo.isEnabled())
             return "";
         return Integer.toString( stageCombo.getSelectedIndex() -1);
     }
@@ -385,7 +392,19 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
         }
     }
     
-  
+    /*
+     * Deactivate ion stage component
+     */
+    public void deactivateStage() {
+	stageCombo.setEnabled(false);
+    }  
+
+    /*
+     * Activate ion stage component
+     */
+    public void activateStage() {
+	stageCombo.setEnabled(true);
+    }  
 
 
     public void removeRanges() {
