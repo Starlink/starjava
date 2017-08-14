@@ -46,10 +46,10 @@ public class SSAQuery
     private String description = null;
 
     /** RA of the query */
-    private double queryRA = 0.0;
+    private Double queryRA = null;
 
     /** Dec of the query */
-    private double queryDec = 0.0;
+    private Double queryDec = null;
 
     /** name of the target object, used if RA or Dec are null */
     private String targetName = null;
@@ -360,7 +360,7 @@ public class SSAQuery
 
         //  Add basic search parameters, POS or TARGETNAME, FORMAT and SIZE.
         // TO DO this way you cannot search for objects in the position 0,0. Should be done in a more elegant way
-        if ( queryRA > 0.0 || queryDec > 0.0 ) {
+        if ( queryRA != null || queryDec != null ) {
             buffer.append( "&POS=" + queryRA + "," + queryDec );
         }
         else if ( targetName != null ) {
