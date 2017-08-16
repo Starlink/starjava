@@ -9,6 +9,7 @@ import java.net.URI;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
@@ -97,6 +98,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         jtab = new JTable( subsetsTableModel );
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( true );
+
+        /* Allow JTable sorting by clicking on column headers. */
+        new MetaColumnTableSorter( subsetsTableModel )
+           .install( jtab.getTableHeader() );
 
         /* Configure column widths and alignments. */
         TableColumnModel tcm = jtab.getColumnModel();
@@ -207,11 +212,16 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
          * are enabled/disabled. */
         ListSelectionListener selList = new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                int nsel = jtab.getSelectedRowCount();
+                int[] selected = jtab.getSelectedRows();
+                int nsel = selected.length;
                 boolean hasSelection = nsel > 0;
                 boolean hasUniqueSelection = nsel == 1;
-                removeAct.setEnabled( hasSelection && ! 
-                                      jtab.isRowSelected( 0 ) );
+                boolean isAllSelected = false;
+                for ( int i = 0; i < nsel; i++ ) {
+                    isAllSelected = isAllSelected
+                                 || toUnsortedIndex( selected[ i ] ) == 0;
+                }
+                removeAct.setEnabled( hasSelection && ! isAllSelected );
                 tocolAct.setEnabled( hasUniqueSelection );
                 invertAct.setEnabled( hasUniqueSelection );
                 highlightAct.setEnabled( hasUniqueSelection );
@@ -232,7 +242,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             public void modelChanged( TopcatEvent evt ) {
                 RowSubset rset = null;
                 if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
-                    rset = getSelectedSubset();
+                    rset = evt.getModel().getSelectedSubset();
                 }
                 else if ( evt.getCode() == TopcatEvent.SHOW_SUBSET ) {
                     rset = (RowSubset) evt.getDatum();
@@ -242,9 +252,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                     selectionModel.clearSelection();
                     ComboBoxModel tcSelModel = 
                         tcModel.getSubsetSelectionModel();
-                    for ( int i = 0; i < tcSelModel.getSize(); i++ ) {
-                        if ( tcSelModel.getElementAt( i ) == rset ) {
-                            selectionModel.addSelectionInterval( i, i );
+                    for ( int irow = 0; irow < subsetsTableModel.getRowCount();
+                          irow++ ) {
+                        if ( getSubset( toUnsortedIndex( irow ) ) == rset ) {
+                            selectionModel.addSelectionInterval( irow, irow );
                         }
                     }
                     selectionModel.setValueIsAdjusting( false );
@@ -445,13 +456,29 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     }
 
     /**
-     * Returns the subset at a given row of the displayed jtable.
+     * Returns the subset at a given row in the naturally ordered (unsorted)
+     * MetaColumnTableModel displayed in this window.
      *
-     * @param  irow  row index
+     * @param   irow  index into subsets list (unsorted table model)
      * @return  subset at <tt>irow</tt>
      */
     private RowSubset getSubset( int irow ) {
-        return (RowSubset) subsets.get( irow );
+        if ( irow < subsets.size() ) {
+            return (RowSubset) subsets.get( irow );
+        }
+
+        /* Hack - sometimes this method gets called with an out of
+         * range index following subset deletion.
+         * This is probably down to incorrect orchestration of
+         * events triggered by other events.  The problem is only
+         * transient, once the events have settled down it seems to
+         * get called with the right values.
+         * Rather than do the right thing and sort the events out,
+         * I am just returning some value here that will not cause
+         * an exception. */
+        else {
+            return RowSubset.ALL;
+        }
     }
 
     /**
@@ -461,14 +488,14 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      */
     public RowSubset getSelectedSubset() {
         int irow = jtab.getSelectedRow();
-        return irow >= 0 ? getSubset( irow ) : null;
+        return irow >= 0 ? getSubset( toUnsortedIndex( irow ) ) : null;
     }
 
     /**
      * Returns the subset ID string for the subset at a given position
      * in the subsets list (row in the presentation table).
      *
-     * @param   irow  index into subsets list
+     * @param   irow  index into subsets list (unsorted table model)
      * @return  subset ID string
      */
     private String getSubsetID( int irow ) {
@@ -480,7 +507,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      * Returns the subset name string for the subset at a given position
      * in the subsets list (row in the presentation table).
      *
-     * @param   irow  index into subsets list
+     * @param   irow  index into subsets list (unsorted table model)
      * @return  subset name
      */
     private String getSubsetName( int irow ) {
@@ -491,7 +518,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      * Returns the subset size string for the subset at a given position
      * in the subsets list (row in the presentation table).
      *
-     * @param   irow  index into subsets list
+     * @param   irow  index into subsets list (unsorted table model)
      * @return  subset count object (probably a Number or null)
      */
     private Object getSubsetSize( int irow ) {
@@ -518,6 +545,19 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         else {
             return count;
         }
+    }
+
+    /**
+     * Determines the row index in the naturally ordered (unsorted)
+     * MetaColumnTableModel displayed in this window corresponding to
+     * a given row in the JTable.  Some disentangling may be required
+     * if the table is currently sorted by one of the columns.
+     *
+     * @param   jrow   row index in displayed JTable
+     * @return  row index in unsorted table model
+     */
+    private int toUnsortedIndex( int jrow ) {
+        return subsetsTableModel.getListIndex( jrow );
     }
 
     /**
@@ -562,8 +602,12 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             }
 
             else if ( this == removeAct ) {
-                int[] irows = jtab.getSelectedRows();
+                int[] irows = jtab.getSelectedRows().clone();
                 for ( int i = 0; i < irows.length; i++ ) {
+                    irows[ i ] = toUnsortedIndex( irows[ i ] );
+                }
+                Arrays.sort( irows );
+                for ( int i = irows.length - 1; i >= 0; i-- ) {
                     subsets.remove( irows[ i ] );
                 }
             }
@@ -571,14 +615,14 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             else if ( this == tocolAct ) {
                 SyntheticColumnQueryWindow colwin =
                     new SyntheticColumnQueryWindow( tcModel, -1, parent );
-                int irow = jtab.getSelectedRow();
+                int irow = toUnsortedIndex( jtab.getSelectedRow() );
                 colwin.setExpression( getSubsetID( irow ) );
                 colwin.setName( getSubsetName( irow ) );
                 colwin.setVisible( true );
             }
 
             else if ( this == highlightAct ) {
-                int irow = jtab.getSelectedRow();
+                int irow = toUnsortedIndex( jtab.getSelectedRow() );
                 tcModel.showSubset( getSubset( irow ) );
             }
 
@@ -592,7 +636,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             }
 
             else if ( this == invertAct ) {
-                int irow = jtab.getSelectedRow();
+                int irow = toUnsortedIndex( jtab.getSelectedRow() );
                 subsets.add( new InverseRowSubset( getSubset( irow ) ) );
             }
 
@@ -745,5 +789,4 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             }
         }
     }
-
 }
