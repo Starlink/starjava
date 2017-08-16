@@ -27,7 +27,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TableColumnModelEvent;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -63,7 +62,7 @@ public class StatsWindow extends AuxWindow {
     private final JTable jtab_;
     private final JProgressBar progBar_;
     private final JComboBox subSelector_;
-    private final AbstractTableModel statsTableModel_;
+    private final MetaColumnTableModel statsTableModel_;
     private final BitSet hideColumns_ = new BitSet();
     private final Action recalcAct_;
     private StatsCalculator activeCalculator_;
@@ -147,6 +146,11 @@ public class StatsWindow extends AuxWindow {
                 }
             }
         } );
+
+        /* Allow JTable sorting by clicking on column headers. */
+        MetaColumnTableSorter sorter =
+            new MetaColumnTableSorter( statsTableModel_ );
+        sorter.install( jtab_.getTableHeader() );
 
         /* Construct and place a widget for selecting which subset to
          * present results for. */
@@ -358,6 +362,14 @@ public class StatsWindow extends AuxWindow {
         }
     }
 
+    /**
+     * Determines table column model index
+     * for a given row in the naturally ordered (unsorted)
+     * MetaColumnTableModel displayed in this window.
+     *
+     * @param  irow   row index in unsorted table model
+     * @return  TableColumnModel index
+     */
     private int getModelIndexFromRow( int irow ) {
         return columnModel_.getColumn( irow ).getModelIndex();
     }
@@ -394,7 +406,7 @@ public class StatsWindow extends AuxWindow {
      * Helper class which provides a TableModel view of this window's
      * most recently completed StatsCalculator object.
      */
-    private AbstractTableModel makeStatsTableModel() {
+    private MetaColumnTableModel makeStatsTableModel() {
 
         /* Assemble the list of statistical quantities the model knows
          * about.  Some of the following columns are hidden by default. */
