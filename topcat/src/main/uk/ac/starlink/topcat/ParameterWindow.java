@@ -48,11 +48,9 @@ public class ParameterWindow extends AuxWindow
     private Collection uneditableParams;
     private DescribedValue ncolParam;
     private DescribedValue nrowParam;
-    private MetaColumnTableModel metaTableModel;
+    private final MetaColumnTableModel metaTableModel;
     private final ListSelectionModel rowSelectionModel;
     private final Action removeAct;
-    private int ncolRowIndex;
-    private int nrowRowIndex;
     private final ParameterDetailPanel detailPanel;
 
     private static final ValueInfo NAME_INFO = 
@@ -149,8 +147,6 @@ public class ParameterWindow extends AuxWindow
                 configureRowCount();
             }
         } );
-        ncolRowIndex = params.indexOf( ncolParam );
-        nrowRowIndex = params.indexOf( nrowParam );
 
         /* Assemble a list of MetaColumns which hold information about
          * the columns in the JTable this component will display.
@@ -371,6 +367,10 @@ public class ParameterWindow extends AuxWindow
         rowSelectionModel.addListSelectionListener( this );
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
 
+        /* Allow JTable sorting by clicking on column headers. */
+        new MetaColumnTableSorter( metaTableModel )
+           .install( jtab.getTableHeader() );
+
         /* Customise the JTable's column model to provide control over 
          * which columns are displayed. */
         MetaColumnModel metaColumnModel =
@@ -400,7 +400,7 @@ public class ParameterWindow extends AuxWindow
 
         /* Action for adding a parameter. */
         Action addAct = new BasicAction( "New Parameter", ResourceIcon.ADD,
-                                  "Add a new parameter" ) {
+                                         "Add a new parameter" ) {
             public void actionPerformed( ActionEvent evt ) {
                 ParameterWindow paramWindow = ParameterWindow.this;
                 new ParameterQueryWindow( paramWindow.tcModel, paramWindow )
@@ -419,7 +419,8 @@ public class ParameterWindow extends AuxWindow
                       irow <= rowSelectionModel.getMaxSelectionIndex();
                       irow++ ) {
                     if ( rowSelectionModel.isSelectedIndex( irow ) ) {
-                        DescribedValue dval = getParam( irow );
+                        DescribedValue dval =
+                            getParam( toUnsortedIndex( irow ) );
                         if ( tcm.getDataModel().getParameters()
                                                .contains( dval ) ) {
                             removals.add( dval );
@@ -474,14 +475,45 @@ public class ParameterWindow extends AuxWindow
         return ! uneditableParams.contains( getParam( irow ) );
     }
 
+    /**
+     * Determines the row index in the naturally ordered (unsorted)
+     * MetaColumnTableModel displayed in this window corresponding to
+     * a given row in the JTable.  Some disentangling may be required
+     * if the JTable is currently sorted by one of the columns.
+     *
+     * @param   jrow   row index in displayed JTable
+     * @return  row index in unsorted table model
+     */
+    private int toUnsortedIndex( int jrow ) {
+        return metaTableModel.getListIndex( jrow );
+    }
+
     private void configureColumnCount() {
         ncolParam.setValue( new Integer( columnModel.getColumnCount() ) );
-        metaTableModel.fireTableRowsUpdated( ncolRowIndex, ncolRowIndex );
+        int ixRow = getJTableRowIndex( ncolParam );
+        metaTableModel.fireTableRowsUpdated( ixRow, ixRow );
     }
 
     private void configureRowCount() {
         nrowParam.setValue( new Long( (long) viewModel.getRowCount() ) );
-        metaTableModel.fireTableRowsUpdated( nrowRowIndex, nrowRowIndex );
+        int ixRow = getJTableRowIndex( nrowParam );
+        metaTableModel.fireTableRowsUpdated( ixRow, ixRow );
+    }
+
+    /**
+     * Returns the index of the row in the displayed JTable (possibly sorted)
+     * that is currently displaying a given parameter.
+     *
+     * @param  dval  table parameter value
+     * @return   row index in displayed table, or -1 if not found
+     */
+    private int getJTableRowIndex( DescribedValue dval ) {
+        for ( int i = 0; i < metaTableModel.getRowCount(); i++ ) {
+            if ( dval.equals( params.get( toUnsortedIndex( i ) ) ) ) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -505,14 +537,16 @@ public class ParameterWindow extends AuxWindow
             for ( int i = rowSelectionModel.getMinSelectionIndex();
                   i <= rowSelectionModel.getMaxSelectionIndex(); i++ ) {
                 if ( rowSelectionModel.isSelectedIndex( i ) ) {
-                    active = active && ! params.isPseudoParam( index );
+                    active = active &&
+                           ! params.isPseudoParam( toUnsortedIndex( index ) );
                 }
             }
             removeAct.setEnabled( active );
             detailPanel.setItem( index,
                                  (DescribedValue)
-                                 ( index >= 0 ? params.get( index )
-                                              : null ) );
+                                 ( index >= 0
+                                   ? params.get( toUnsortedIndex( index ) )
+                                   : null ) );
         }
     }
 
@@ -538,9 +572,25 @@ public class ParameterWindow extends AuxWindow
         }
 
         public Object get( int index ) {
-            return isPseudoParam( index ) 
-                 ? pseudoParams.get( index )
-                 : normalParams.get( index - pseudoParams.size() );
+            if ( isPseudoParam( index ) ) {
+                return pseudoParams.get( index );
+            }
+            else if ( index - pseudoParams.size() < normalParams.size() ) {
+                return normalParams.get( index - pseudoParams.size() );
+            }
+
+            /* Hack - sometimes this method gets called with an out of
+             * range index following parameter deletion.
+             * This is probably down to incorrect orchestration of
+             * events triggered by other events.  The problem is only
+             * transient, once the events have settled down it seems to
+             * get called with the right values.
+             * Rather than do the right thing and sort the events out,
+             * I am just returning some value here that will not cause
+             * an exception. */
+            else {
+                return pseudoParams.get( 0 );
+            }
         }
 
         public boolean isPseudoParam( int index ) {
