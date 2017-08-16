@@ -881,9 +881,13 @@ public class ColumnInfoWindow extends AuxWindow {
             final Cursor headCursor;
             if ( isDrag ) {
                 headCursor = null;
-                int i =
-                    1 + columnList.indexOf( columnModel .getColumn( kFrom_ ) );
-                selModel_.setSelectionInterval( i, i );
+                final int i =
+                    1 + columnList.indexOf( columnModel.getColumn( kFrom_ ) );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        selModel_.setSelectionInterval( i, i );
+                    }
+                } );
             }
             else {
                 int i = rowHead_.rowAtPoint( evt.getPoint() );
