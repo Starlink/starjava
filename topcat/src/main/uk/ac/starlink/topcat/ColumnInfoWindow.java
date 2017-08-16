@@ -95,6 +95,25 @@ public class ColumnInfoWindow extends AuxWindow {
          * Each column represents an item of metadata in the data table. */
         List metas = new ArrayList();
 
+        /* Add index column. */
+        metas.add( new MetaColumn( "Index", Integer.class ) {
+            public Object getValue( int irow ) {
+                if ( irow == 0 ) {
+                    return null;
+                }
+                else {
+                    TableColumn tcol = getColumnFromRow( irow );
+                    int ncol = columnModel.getColumnCount();
+                    for ( int ic = 0; ic < ncol; ic++ ) {
+                        if ( columnModel.getColumn( ic ).equals( tcol ) ) {
+                            return new Integer( ic + 1 );
+                        }
+                    }
+                    return null;
+                }
+            }
+        } );
+
         /* Add active column. */
         metas.add( new MetaColumn( "Visible", Boolean.class ) {
             public Object getValue( int irow ) {
