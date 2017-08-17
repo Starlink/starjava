@@ -756,6 +756,55 @@ various <ref id="plot2">plotting</ref>
 <p>You can define a Row Subset in one of the following ways:
 
 <dl>
+
+<dt>Defining an algebraic expression</dt>
+<dd><p>From the <ref id="SubsetWindow">Subset Window</ref> using the
+    <label>Add New Subset</label> (&IMG.ADD;) button will pop up 
+    the <ref id="SyntheticSubsetQueryWindow">Algebraic Subset Window</ref>
+    which allows you to define a new subset using an algebraic expression
+    based on the values of the cells in each row.
+    The format of such expressions is described in <ref id="jel"/>.
+    The Subsets Window also provides some variants on this option
+    for convenience, like selecting
+    the first <m>N</m> (&IMG.HEAD;),
+    last <m>N</m> (&IMG.TAIL;),
+    or every <m>N</m><sup>th</sup> (&IMG.SAMPLE;) rows,
+    or the complement (&IMG.INVERT;) of an existing subset.
+    </p></dd>
+
+<dt>Selected plotted points</dt>
+<dd><p>In most of the <ref id="plot2">plotting</ref>
+    (and <ref id="GraphicsWindow">old-style plotting</ref>)
+    windows you can use the <label>Draw Subset Region</label> 
+    (&IMG.BLOB_SUBSET;) button in some of the plotting windows.
+    This allows you 
+    to trace out with the mouse a region or regions of any shape, 
+    creating a new subset containing only those rows represented by 
+    the points within those regions.
+    </p></dd>
+
+<dt>Visible plotted points</dt>
+<dd><p>Most of the plot windows also provide a
+    <label>New Subset From Visible</label>
+    (&IMG.VISIBLE_SUBSET; or &IMG.RANGE_SUBSET;)
+    option; if you navigate (pan/zoom) to a view containing only
+    the rows of interest, this action creates a subset containing
+    only those points in that current field of view.
+    </p></dd>
+
+<dt>Classifying by value</dt>
+<dd><p>The <ref id="ClassifyWindow">Column Classification Window</ref>
+    lets you define multiple mutually exclusive subsets based on
+    the value in a given column (or other algebraic expression).
+    </p></dd>
+
+<dt>Boolean columns</dt>
+<dd><p>Any column which has a boolean (true/false) type value can be used
+    as a subset; rows in which it has a true value are in the subset
+    and others are not.  Any boolean column in a table is made available
+    as a row subset with the same name when the table is imported.
+    </p></dd>
+
 <dt>Selecting rows in the browser</dt>
 <dd><p>You can select a single row in the 
     <ref id="TableViewerWindow">Data Window</ref> by
@@ -767,52 +816,11 @@ various <ref id="plot2">plotting</ref>
     <label>Subset From Unselected Rows</label> (&IMG.EXCLUDE_ROWS;)
     buttons to create a new subset based
     on the set of highlighted rows or their complement.
-    </p>
-
-    <p>Combining this with <ref id="order">sorting</ref> 
+    Combining this with <ref id="order">sorting</ref> 
     the rows in the table can be useful; 
     if you do a Sort Up on a given column and then drag out the
     top few rows of the table you can easily create a subset consisting
     of the highest values of a given column.
-    </p></dd>
-
-<dt>Defining an algebraic expression</dt>
-<dd><p>From the <ref id="SubsetWindow">Subset Window</ref> using the
-    <label>Add New Subset</label> (&IMG.ADD;) button will pop up 
-    the <ref id="SyntheticSubsetQueryWindow">Algebraic Subset Window</ref>
-    which allows you to define a new subset using an algebraic expression
-    based on the values of the cells in each row.
-    The format of such expressions is described in <ref id="jel"/>.
-    </p></dd>
-
-<dt>Visible plotted points</dt>
-<dd><p>In some of the <ref id="plot2">plotting</ref>
-    (and <ref id="GraphicsWindow">old-style plotting</ref>)
-    windows you can plot columns
-    against each other, and subsequently zoom in and out using the
-    mouse.  If you zoom to display only some of the plotted points and
-    then use the <label>New Subset From Visible</label> 
-    (&IMG.VISIBLE_SUBSET; or &IMG.RANGE_SUBSET;)
-    button then a new subset will be
-    created containing only rows represented by points in the field of
-    view of the plot at the time.
-    </p></dd>
-
-<dt>Selected plotted points</dt>
-<dd><p>For more control over which plotted points are to be included in
-    a subset, you can use the <label>Draw Subset Region</label> 
-    (&IMG.BLOB_SUBSET;) button in some of the plotting windows.
-    This allows you 
-    to trace out with the mouse a region or regions of any shape, 
-    creating a new subset containing only those rows represented by 
-    the points within those regions.
-    </p></dd>
-
-<dt>Boolean columns</dt>
-<dd><p>Any column which has a boolean (true/false) type value can be used
-    as a subset; rows in which it has a true value are in the subset
-    and others are not.  Any boolean column in a table is made available
-    as a row subset with the same name when the table is imported.
     </p></dd>
 
 </dl>
