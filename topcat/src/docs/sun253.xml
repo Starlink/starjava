@@ -918,13 +918,16 @@ revealing) existing columns, and changing their order.  The
 current state of which columns are present and visible and what order 
 they are in is collectively known as the <label>Column Set</label>,
 and affects the <ref id="apparent">Apparent Table</ref>.
-The current Column Set is always reflected in the order in which 
-columns are displayed in the <ref id="TableViewerWindow">Data Window</ref>
+The current Column Set is always reflected in the
+columns displayed in the <ref id="TableViewerWindow">Data Window</ref>
 and <ref id="StatsWindow">Statistics Window</ref>.
 The <ref id="ColumnInfoWindow">Columns Window</ref> shows all the
-known columns, including hidden ones, in Column Set order;
-whether they are currently visible is indicated by the (leftmost)
-"Visible" column.
+known columns, including hidden ones;
+whether they are currently visible is indicated by the checkbox in the
+<label>Visible</label> column.
+By default, the <label>Columns Window</label> and
+<label>Statistics Window</label> also reflect the current column set order,
+though there are options to change this view.
 </p>
 
 <p>You can affect the current Column Set in the following ways:
@@ -932,7 +935,7 @@ whether they are currently visible is indicated by the (leftmost)
 
 <dt>Hide/Reveal columns</dt>
 <dd><p>In the Columns Window you can toggle columns between hidden and
-    visible by clicking on their box in the <label>Visible</label> column.
+    visible by clicking on their checkbox in the <label>Visible</label> column.
     To make a group of columns hidden or visible at once,
     select the corresponding rows (drag the mouse over them to select
     a contiguous group; hold the Control button down to add
@@ -960,7 +963,8 @@ whether they are currently visible is indicated by the (leftmost)
     <ref id="JTable">JTable</ref>).
     Alternatively, you can drag the rows in the
     <ref id="ColumnInfoWindow">Columns Window</ref> by grabbing the
-    grey row header (numbered cell at the left) and dragging it up or down.
+    grey row header (numbered cell at the left) and dragging it up or down
+    (though note that may not work if the JTable is currently sorted).
     Either of these affects the Column Set, as you can see by looking
     at one window while moving columns in the other.
     </p></dd>
@@ -5227,13 +5231,14 @@ used provides a common look and feel.
     </p></dd>
 
 <dt>Sort rows</dt>
-<dd><p>In some, but not all cases, you may see a little up or down arrow
-    in one of the column headers.  This indicates that the rows of the
-    table have been sorted according to the values in that column.
-    If you click on another column header, the rows will be re-sorted
-    according to the values in that column.  Clicking again on the same
-    column reverses the sort order.
-    This feature is only available for certain displayed JTables.
+<dd><p>In some cases you can sort the entries in a JTable
+    by clicking on the header of the column you want to sort by.
+    A sorted column displays a little up or down arrow in the header.
+    Clicking once sorts up, clicking again on the same header sorts down,
+    and clicking a third time restores the natural ordering.
+    This feature is available for most, but not all displayed JTables.
+    Note also that some columns do not define a sort order;
+    clicking on the header of such a row has no effect.
     </p></dd>
 </dl>
 </p>
@@ -6035,14 +6040,17 @@ will change the order of columns in the table's
 <ref id="columns">Column Set</ref> and hence the Apparent Table.
 </p>
 
-<p>If you have table with very many columns it can be difficult to
+<p>If you have a table with very many columns it can be difficult to
 scroll the display sideways so that a column you are interested in
 is in view.  In this case, you can go to the 
 <ref id="ColumnInfoWindow">Columns Window</ref> and click on the
-description of the column you are after in the display there.
-This will have the effect of scrolling the Data Window sideways
+description of the required column in the display there.
+This has the effect of scrolling the Data Window sideways
 so that your selected column is visible in the centre of the display
 here.
+To make it easier to find the required column in the Columns Window
+you can sort the items by column Name, UCD, Units etc first
+by clicking on the relevant header.
 </p>
 
 <p>The following buttons are available in the toolbar:
@@ -6183,6 +6191,11 @@ from the display - in this case the <label>Display</label> menu can be
 used to reveal it.
 </p>
 
+<p>You can interact with this JTable in the usual ways,
+for instance dragging columns sideways, changing their widths,
+and sorting the entries by clicking on the headings.
+</p>
+
 <p>You can edit some parameter values and descriptions by double-clicking
 on them as usual.  
 </p>
@@ -6233,14 +6246,14 @@ button when the chosen table is selected in the
 <p>The display may take a little bit
 of getting used to, since each <var>column</var> in the main data table
 is represented by a <var>row</var> in the JTable displayed here.
-The order and widths of the columns of JTable widget can be
+The order and widths of the columns of the JTable widget can be
 changed in the same way as those for the
 <ref id="TableViewerWindow">Data Window</ref> JTable,
 but this has no effect on the data.
 </p>
 
-<p>The leftmost column, labelled "Visible", contains a checkbox in
-each row (one for each column of the data table).
+<p>The column on the left labelled <label>Visible</label>
+contains a checkbox in each row (one for each column of the data table).
 Initially, these are all ticked.
 By clicking on those boxes, you can toggle them between ticked and
 unticked.  When unticked, the column in question will become hidden.
@@ -6272,6 +6285,16 @@ Categories can be made to appear and disappear however by using the
 <label>Display</label> menu.
 The metadata items are as follows:
 <dl>
+
+<dt>Index</dt>
+<dd><p>The index of the column in the current
+    <ref id="columns" plaintextref="yes">Column Set</ref>.
+    The column with value "1" here will be the leftmost one
+    in the <ref id="TableViewerWindow">Data window</ref> etc.
+    This value is blank for hidden columns.
+    Sorting on this column (by clicking its header) will show all
+    the visible table columns in order at the top of the display.
+    </p></dd>
 
 <dt>Visible</dt>
 <dd><p>Indicates whether the column is part of the Apparent Table.
@@ -6347,14 +6370,38 @@ There may be other items in the list specific to the table in question.
 double-clicking on them as usual.
 </p>
 
-<p>The order in which the rows are presented is determined
-by the table's current <ref id="columns" plaintextref="yes">Column Set</ref>.
-You can change the position of a column in the order by dragging the 
-grey number cell at the left of the corresponding row up or down;
-note this is only possible for currently visible columns
-(ones with the Visible checkbox ticked).
-Another way to change this order is to drag the column headers left or right
+<p>By default, the order in which the rows are displayed is
+determined by the table's current
+<ref id="columns" plaintextref="yes">Column Set</ref>.
+However, you can change the display order in this window by
+clicking on the column headers (in the same way as for some other JTables).
+The little up arrow at the top left of the scrolled JTable display
+indicates that the display is in its "natural" (Column Set) order,
+but by clicking on headers you can sort by column name, units UCD etc.
+Clicking sorts up, clicking again sorts down, and a third time
+(or clicking on the top left) restores natural order.
+</p>
+
+<p>You can change the order of the columns in the
+<label>Column Set</label> by dragging the 
+grey number cell at the left of the corresponding row up or down.
+Note however this is only possible for non-hidden columns,
+and it <strong>only</strong> works if this JTable is
+currently displayed either in its <em>natural</em> order or sorted by
+the <label>Index</label> column (see above) -
+dragging rows wouldn't have any effect if some other sort order was active.
+An alternative way to change Column Set order
+is to drag the column headers left or right
 in the <ref id="TableViewerWindow">Data Window</ref>.
+</p>
+
+<p>A good way to find a column in the 
+<ref id="TableViewerWindow">Data window</ref> if your table is too
+wide to do it by browsing is to sort the table in this window
+on some suitable item (e.g. Name, Units, UCD), scroll to the
+column of interest, and then click on it;
+that causes the view in the <label>Data Window</label> to scroll
+sideways so that the selected column is visible.
 </p>
 
 <p>The following buttons are available in the toolbar:
@@ -6472,8 +6519,13 @@ button when the chosen table is selected in the
 </p>
 
 <p>The subsets are displayed in a <ref id="JTable">JTable</ref>
-widget with a row for each subset.  The columns of the JTable
-are as follows:
+widget with a row for each subset.
+You can interact with this JTable in the usual ways,
+for instance dragging columns sideways, changing their widths,
+and sorting the entries by clicking on the headings.
+</p>
+
+<p>The columns of the JTable are as follows:
 <dl>
 <dt>&subset.id.char;ID</dt>
 <dd><p>A unique and unchanging identifier for the subset, which consists of
@@ -6658,7 +6710,14 @@ button when the chosen table is selected in the
 column in the main table, and a column for each of a number of
 statistical quantities calculated on <ref id="subsets">some or all</ref> of
 the values in the data table column corresponding to that grid row.
-The following columns are shown by default:
+</p>
+
+<p>You can interact with this JTable in the usual ways,
+for instance dragging columns sideways, changing their widths,
+and sorting the entries by clicking on the headings.
+</p>
+
+<p>The following columns are shown by default:
 <dl>
 <dt>Name</dt>
 <dd><p>The name of the column in the main table represented by this grid row.
@@ -24510,6 +24569,13 @@ introduced since the last version:
         <ref id="form-xycorr">XYCorr</ref> and
         <ref id="form-skycorr">SkyCorr</ref>,
         and presents less danger of misinterpreted plots.</li>
+    <li>Add click-header-to-sort action for a number of
+        displayed <ref id="JTable">JTables</ref>: the
+        <ref id="ColumnInfoWindow">Columns</ref>,
+        <ref id="StatsWindow">Statistics</ref>,
+        <ref id="ParameterWindow">Parameters</ref> and
+        <ref id="SubsetWindow">Subsets</ref> windows.
+        This makes it easier to deal with very wide tables.</li>
     </ul>
     </p></dd>
 
