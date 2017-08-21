@@ -72,8 +72,11 @@ public abstract class AbstractServerList {
      *
      * @param table star table containing service resource information
      */
-
     public void addNewServers(StarTable table ) {
+	addNewServers( table, null );
+    }
+
+    protected void addNewServersToServerList(StarTable table ) {
 
         if ( table == null ) 
             return;
@@ -137,7 +140,7 @@ public abstract class AbstractServerList {
         } else {
             serverList.clear();
         }
-        addNewServers(table);
+        addNewServersToServerList(table);
 
     }
 
