@@ -364,7 +364,8 @@ public class ColumnInfoWindow extends AuxWindow {
                 return columnList.size() + 1;
             }
             public boolean isCellEditable( int irow, int icol ) {
-                return irow > 0 && super.isCellEditable( irow, icol );
+                return toUnsortedIndex( irow ) > 0
+                    && super.isCellEditable( irow, icol );
             }
         };
 
