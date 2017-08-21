@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.12"/>
+  <property name="version" value="3.13"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -780,8 +780,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" 
-		includes="**/*.jar **/*.zip"
-		excludes="contrib/*" />
+		includes="**/*.jar **/*.zip" />
     </signjar>
 
   </target>
@@ -839,7 +838,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
        </security>
        <resources>
          <j2se version="1.5+"/>
-         <fileset dir="${dist.lib}" includes="splat/*.jar splat/*.zip"/>
+         <fileset dir="${dist.lib}" includes="splat/*.jar splat/*.zip contrib/*.jar"/>
          <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="ASTGUI" href="astgui.jnlp"/>
          <extension name="NDX" href="ndx.jnlp"/>
