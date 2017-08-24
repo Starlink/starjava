@@ -152,6 +152,11 @@ public class SSAQuery
         this.queryRA = queryRA;
         this.queryDec = queryDec;
     }
+    public void setNoPosition(  )
+    {
+        this.queryRA = null;
+        this.queryDec = null;
+    }
 
     /**
      * Set the position used for the query. The values are in sexigesimal
@@ -165,9 +170,8 @@ public class SSAQuery
             setPosition( hms.getVal() * 15.0, dms.getVal() );
         }
         else {
-            //  Null values, may be using targetName. Set some out of bounds
-            //  values to raise an error if these are used.
-            setPosition( -1.0, -91.0 );
+            //  Null values, may be using targetName.
+            setNoPosition();
         }
     }
 
