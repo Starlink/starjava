@@ -380,7 +380,7 @@ public class SpectrumIO
         protected String idSource;
         protected String dataLinkRequest;
         protected String dataLinkFormat;
-        protected ObjectTypeEnum objectType;
+        protected ObjectTypeEnum objectType = ObjectTypeEnum.SPECTRUM; // default value
 
         protected String serverURL;
 
@@ -422,7 +422,7 @@ public class SpectrumIO
                     dataUnits, coordUnits,
                     dataColumn, coordColumn,
                     errorColumn, sourceType, idsrc, idValue, 
-                    null );
+                    ObjectTypeEnum.SPECTRUM );
         }
         
         public Props( String spectrum, int type, String shortName,

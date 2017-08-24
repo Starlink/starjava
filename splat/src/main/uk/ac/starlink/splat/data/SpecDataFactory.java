@@ -1962,7 +1962,7 @@ public class SpecDataFactory
     public static ObjectTypeEnum productTypeToObjectType(String type) {
     	ObjectTypeEnum objectType = ObjectTypeEnum.SPECTRUM;
     	
-    	if (type != null && type.toLowerCase().trim().startsWith("timeseries/")); {
+    	if (type != null && type.toLowerCase().trim().startsWith("timeseries/")) {
     		objectType = ObjectTypeEnum.TIMESERIES;
     	}
 //    	System.out.println("and146: mimeToObjectType: " + objectType);
