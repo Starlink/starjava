@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat;
 
-import java.awt.HeadlessException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,22 +37,12 @@ public class CodecTest extends TableCase {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
         codec_ = TopcatCodec.getInstance();
-        ControlWindow cwin;
-        try {
-            cwin = ControlWindow.getInstance();
-        }
-        catch ( HeadlessException e ) {
-            cwin = null;
-        }
-        controlWindow_ = cwin;
+        controlWindow_ = null;
         tWriter_ = new VOTableWriter();
         tReader_ = new VOTableBuilder();
     }
 
     public void testCodec() throws IOException {
-        if ( controlWindow_ == null ) {
-            System.err.println( "headless: no codec test" );
-        }
         StarTable[] demoTables = Driver.getDemoTables();
         int nt = demoTables.length;
         TopcatModel[] tcModels = new TopcatModel[ nt ];
