@@ -661,21 +661,6 @@ public class TopcatModel {
     }
 
     /**
-     * Returns a unique ID string for the given table column, which
-     * should be one of the columns in this object's dataModel
-     * (though not necessarily its columnModel).  The id will consist
-     * of a '$' sign followed by an integer.
-     *
-     * @param   cinfo column metadata
-     * @return  ID string
-     */
-    public String getColumnID( ColumnInfo cinfo ) {
-        return cinfo.getAuxDatum( TopcatUtils.COLID_INFO )
-                    .getValue()
-                    .toString();
-    }
-
-    /**
      * Appends a new column to the existing table at a given column index.
      * This method appends a column to the dataModel, fixes the
      * TableColumnModel to put it in at the right place, and

@@ -9,9 +9,8 @@ import uk.ac.starlink.table.StarTable;
  */
 public class BooleanColumnRowSubset extends RowSubset {
 
-    private StarTable startab;
-    private int icol;
-    private ColumnInfo colinfo;
+    private final StarTable startab_;
+    private final int icol_;
 
     /**
      * Constructs a row subset from a given StarTable and column index.
@@ -23,18 +22,18 @@ public class BooleanColumnRowSubset extends RowSubset {
      */
     public BooleanColumnRowSubset( StarTable startab, int icol ) {
         super( startab.getColumnInfo( icol ).getName() );
-        this.startab = startab;
-        this.icol = icol;
-        this.colinfo = startab.getColumnInfo( icol );
+        startab_ = startab;
+        icol_ = icol;
+        ColumnInfo colinfo = startab.getColumnInfo( icol );
         if ( colinfo.getContentClass() != Boolean.class ) {
-            throw new IllegalArgumentException( "Column " + colinfo 
+            throw new IllegalArgumentException( "Column " + colinfo
                                               + " is not boolean" );
         }
     }
 
     public boolean isIncluded( long lrow ) {
         try {
-            Object cellValue = startab.getCell( lrow, icol );
+            Object cellValue = startab_.getCell( lrow, icol_ );
             return Boolean.TRUE.equals( cellValue );
         }
         catch ( IOException e ) {
@@ -42,7 +41,22 @@ public class BooleanColumnRowSubset extends RowSubset {
         }
     }
 
-    public ColumnInfo getColumnInfo() {
-        return colinfo;
+    /**
+     * Returns the table from whose column this subset is based.
+     *
+     * @return  table
+     */
+    public StarTable getTable() {
+        return startab_;
+    }
+
+    /**
+     * Returns the index of the column in the table on which this
+     * subset's contents are based.
+     *
+     * @return  column index
+     */
+    public int getColumnIndex() {
+        return icol_;
     }
 }

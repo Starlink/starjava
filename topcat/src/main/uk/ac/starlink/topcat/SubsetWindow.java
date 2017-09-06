@@ -430,9 +430,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
                 if ( rset instanceof BooleanColumnRowSubset ) {
-                    ColumnInfo cinfo = ((BooleanColumnRowSubset) rset)
-                                      .getColumnInfo();
-                    return " " + tcModel.getColumnID( cinfo );
+                    return Character.toString( TopcatJELRowReader
+                                              .COLUMN_ID_CHAR )
+                         + Integer.toString( ((BooleanColumnRowSubset) rset)
+                                            .getColumnIndex() + 1 );
                 }
                 else {
                     return null;
