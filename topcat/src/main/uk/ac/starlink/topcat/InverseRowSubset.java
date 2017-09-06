@@ -7,7 +7,7 @@ package uk.ac.starlink.topcat;
  * @since    26 Mar 2004
  */
 public class InverseRowSubset extends RowSubset {
-    private final RowSubset base;
+    private final RowSubset base_;
     private static final String INVERT_PREFIX = "not_";
 
     /**
@@ -17,11 +17,20 @@ public class InverseRowSubset extends RowSubset {
      */
     public InverseRowSubset( RowSubset base ) {
         super( invertName( base.getName() ) );
-        this.base = base;
+        base_ = base;
     }
 
     public boolean isIncluded( long lrow ) {
-        return ! base.isIncluded( lrow );
+        return ! base_.isIncluded( lrow );
+    }
+
+    /**
+     * Returns the subset on which this one is based.
+     *
+     * @return  complement of this subset
+     */
+    public RowSubset getInvertedSubset() {
+        return base_;
     }
 
     /**
