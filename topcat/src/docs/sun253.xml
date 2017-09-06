@@ -16423,7 +16423,8 @@ be saved, though you can save information about subset membership
 by creating new boolean columns based on subsets
 using the "To Column" button (&IMG.TO_COLUMN;) from the
 <ref id="SubsetWindow">Subsets Window</ref>.
-Alternatively you could use the Session Save option described below.
+Alternatively you could use the <ref id="sessionSave">Session Save</ref>
+option described below.
 </p>
 
 </subsubsubsect>
@@ -16454,7 +16455,7 @@ which row subset and ordering will be saved.
 
 </subsubsubsect>
 
-<subsubsubsect>
+<subsubsubsect id="sessionSave">
 <subhead><title>Session</title></subhead>
 
 <p>The <label>Session</label> save option allows you to save much 
@@ -16499,13 +16500,26 @@ quite like the table you saved, but with some additional data and metadata.
 </p>
 
 <p>Note however that the reloaded state is not identical to that before saving.
-One important difference is that columns and row subsets 
-which were defined algebraically are saved and restored as fixed values,
-so it is no longer possible to edit the expressions.
-Another is that only state belonging to tables is saved, so that
-for instance plots will not be restored.
-Table activation actions are not saved either.
+Only state belonging to tables is saved, so that
+for instance the state of Plot and Match windows will not be restored,
+and table activation actions are not saved either.
 It is possible that some of this may be changed in future releases.
+</p>
+
+<p>The session save format has changed after TOPCAT version 4.4.
+Up to v4.4, columns and row subsets that had been defined
+algebraically were saved as fixed values, so the expressions
+were lost and it was no longer possible to edit them
+following a session save/load.
+After v4.4, the expressions themselves are saved and reloaded,
+which means the state is preserved better after a session save/load cycle,
+and may also result in smaller saved files.
+Later versions should be able to load sessions saved by earlier
+versions, but not vice versa.
+This also means that if you try to load a later-format session
+into a non-TOPCAT reader, the algebraically-defined columns will
+not appear, but session-saving is not recommended for use with
+other table applications in any case.
 </p>
 
 </subsubsubsect>
@@ -24589,6 +24603,12 @@ introduced since the last version:
         missed associations when crossmatching in these regions,
         but tests appear to indicate that no such errors would 
         actually have resulted.</li>
+    <li>Saving and loading <ref id="sessionSave">sessions</ref> 
+        now preserves algebraic expressions used to define columns and
+        row subsets (previously only the fixed values were saved and
+        the expressions were lost and could not be edited on reload).
+        Note that sessions saved by this version cannot be loaded by
+        older versions (though the other way round is OK).</li>
     </ul>
     </p></dd>
 

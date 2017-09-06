@@ -53,7 +53,8 @@ public class TopcatUtils {
 
     static final TopcatCodec DFLT_SESSION_ENCODER;
     static final TopcatCodec[] SESSION_DECODERS = new TopcatCodec[] {
-        DFLT_SESSION_ENCODER = new TopcatCodec1(),
+        DFLT_SESSION_ENCODER = new TopcatCodec2(),
+        new TopcatCodec1(),
     };
 
     public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
