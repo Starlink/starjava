@@ -27,7 +27,6 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class SessionSavePanel extends SavePanel {
 
-    private final TopcatCodec codec_;
     private final TopcatModelSelectionTable tSelector_;
     private final TableModelListener tableListener_;
     private TableSaveChooser saveChooser_;
@@ -37,7 +36,6 @@ public class SessionSavePanel extends SavePanel {
      */
     public SessionSavePanel() {
         super( "Session", new DefaultComboBoxModel( createFormatList() ) );
-        codec_ = TopcatCodec.getInstance();
         tSelector_ = new TopcatModelSelectionTable( "Save", true );
 
         /* Listener to ensure that chooser enabledness is set right. */
@@ -71,7 +69,7 @@ public class SessionSavePanel extends SavePanel {
         TopcatModel[] tcModels = tSelector_.getSelectedTables();
         StarTable[] tables = new StarTable[ tcModels.length ];
         for ( int i = 0; i < tcModels.length; i++ ) {
-            tables[ i ] = codec_.encode( tcModels[ i ] );
+            tables[ i ] = TopcatUtils.encodeSession( tcModels[ i ] );
         }
         return tables;
     }

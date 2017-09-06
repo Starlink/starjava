@@ -51,6 +51,11 @@ public class TopcatUtils {
     private static Map statusMap_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
+    static final TopcatCodec DFLT_SESSION_ENCODER;
+    static final TopcatCodec[] SESSION_DECODERS = new TopcatCodec[] {
+        DFLT_SESSION_ENCODER = new TopcatCodec1(),
+    };
+
     public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
     public static String DEMO_TABLE = "6dfgs_mini.xml.bz2";
     public static String DEMO_NODES = "demo_list";
@@ -582,6 +587,41 @@ public class TopcatUtils {
         if ( opt == JOptionPane.OK_OPTION && name != null ) {
             tcModel.addSubset( new BitsRowSubset( name, matchMask ) );
         }
+    }
+
+    /**
+     * Encodes a TopcatModel as a StarTable including per-table session
+     * information, suitable for serialization.
+     *
+     * @param  tcModel   model
+     * @return   table
+     */
+    public static StarTable encodeSession( TopcatModel tcModel ) {
+        StarTable table = DFLT_SESSION_ENCODER.encode( tcModel );
+        assert DFLT_SESSION_ENCODER.isEncoded( table );
+        return table;
+    }
+
+    /**
+     * Attempts to unpack a StarTable into a TopcatModel containing
+     * per-table application session information.
+     * For this to work it must have been written using one of
+     * the TopcatCodec formats that this application is aware of.
+     * If not, null is returned.
+     *
+     * @param  table  encoded table
+     * @param  location  table location string
+     * @param  controlWindow  control window, or null if necessary
+     * @return   topcat model, or null
+     */
+    public static TopcatModel decodeSession( StarTable table, String location,
+                                             ControlWindow controlWindow ) {
+        for ( TopcatCodec codec : SESSION_DECODERS ) {
+            if ( codec.isEncoded( table ) ) {
+                return codec.decode( table, location, controlWindow );
+            }
+        }
+        return null;
     }
 
     /**
