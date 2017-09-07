@@ -24579,6 +24579,16 @@ introduced since the last version:
     <li>If a table is received from SAMP with a <code>table-id</code> that
         has already been seen, it will not be loaded
         (a SAMP error response is returned).</li>
+    <li>Update PixTools to 2017-09-06 version
+        (https://github.com/kuropat/eag-HEALPix,
+         <code>447a7be073876dba32</code>).
+        This fixes a bug in 
+        <ref id="Tilings"><code>healpixRingIndex</code></ref> that could give
+        the wrong value for small values of longitude near zero.
+        It seems possible that this might have led to very infrequent
+        missed associations when crossmatching in these regions,
+        but tests appear to indicate that no such errors would 
+        actually have resulted.</li>
     </ul>
     </p></dd>
 

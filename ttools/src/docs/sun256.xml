@@ -11176,6 +11176,18 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-xycorr"><code>xycorr</code></ref> and
         <ref id="layer-skycorr"><code>skycorr</code></ref>,
         and presents less danger of misinterpreted plots.</li>
+    <li>Update PixTools to 2017-09-06 version
+        (https://github.com/kuropat/eag-HEALPix,
+         <code>447a7be073876dba32</code>).
+        This fixes a bug in
+        <ref id="uk.ac.starlink.ttools.func.Tilings"
+             ><code>healpixRingIndex</code></ref> that could give
+        the wrong value for small values of longitude near zero
+        in the equatorial region.
+        It seems possible that this might have led to very infrequent
+        missed associations when crossmatching in these regions,
+        but tests appear to indicate that no such errors would
+        actually have resulted.</li>
     </ul>
     </p></dd>
 
