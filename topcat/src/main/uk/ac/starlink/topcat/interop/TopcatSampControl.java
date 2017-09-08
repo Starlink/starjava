@@ -633,6 +633,18 @@ public class TopcatSampControl {
                                 Message message, String msgId )
                 throws IOException {
 
+            /* Check we do not already have a table with the given table-id. */
+            String tableId = (String) message.getParam( "table-id" );
+            if ( tableId != null && idMap_.containsKey( tableId ) ) {
+                String errTxt = new StringBuffer()
+                    .append( "Duplicate table-id: " )
+                    .append( "table '" )
+                    .append( tableId )
+                    .append( "' has already been received" )
+                    .toString();
+                throw new IllegalArgumentException( errTxt );
+            }
+
             /* Get sender information. */
             final String senderName = getClientName( senderId );
             Client sender =

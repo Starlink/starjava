@@ -24576,6 +24576,9 @@ introduced since the last version:
         <ref id="ParameterWindow">Parameters</ref> and
         <ref id="SubsetWindow">Subsets</ref> windows.
         This makes it easier to deal with very wide tables.</li>
+    <li>If a table is received from SAMP with a <code>table-id</code> that
+        has already been seen, it will not be loaded
+        (a SAMP error response is returned).</li>
     </ul>
     </p></dd>
 
