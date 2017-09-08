@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.cone;
 
 import gov.fnal.eag.healpix.PixTools;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -122,6 +123,59 @@ public class SkyTilingTest extends TestCase {
                     new HtmTiling( level ).getPositionTile( ra, dec ),
                     Tilings.htmIndex( level, ra, dec ) );
             }
+        }
+    }
+
+    public void testPoints2() {
+        PixTools pt = new PixTools();
+        BitSet ringMap = new BitSet();
+        BitSet nestMap = new BitSet();
+        for ( int level = 0; level <= 2; level++ ) {
+            int npix = 12 * (int) Math.pow( 4, level );
+            int nside = 1 << level;
+            for ( long ipix = 0; ipix < npix; ipix++ ) {
+                long ipixNest = ipix;
+                long ipixRing = pt.nest2ring( nside, ipixNest );
+                assertEquals( ipixNest, pt.ring2nest( nside, ipixRing ) );
+                Vector3d pos = pt.pix2vect_nest( nside, ipix );
+                assertEquals( ipixNest, pt.vect2pix_nest( nside, pos ) );
+                assertEquals( ipixRing, pt.vect2pix_ring( nside, pos ) );
+                nestMap.set( (int) ipixNest );
+                ringMap.set( (int) ipixRing );
+            }
+            BitSet fullMap = new BitSet( npix );
+            fullMap.set( 0, npix );
+            assertEquals( fullMap, ringMap );
+            assertEquals( fullMap, nestMap );
+        }
+    }
+
+    /* Fails with PixTools versions before 2017-09-06. */
+    public void testPoint3() {
+        BitSet ringMap = new BitSet();
+        BitSet nestMap = new BitSet();
+        for ( int level = 0; level <= 2; level++ ) {
+            int npix = 12 * (int) Math.pow( 4, level );
+            int nside = 1 << level;
+            double resDeg = Tilings.healpixResolution( level );
+            for ( long ipix = 0; ipix < npix; ipix++ ) {
+                long ipixNest = ipix;
+                long ipixRing = Tilings.healpixNestToRing( level, ipixNest );
+                double lat = Tilings.healpixNestLat( level, ipixNest );
+                double lon = Tilings.healpixNestLon( level, ipixNest );
+                lat -= resDeg * 0.0001;
+                lon -= resDeg * 0.0001;
+                assertEquals( ipixNest,
+                              Tilings.healpixNestIndex( level, lon, lat ) );
+                assertEquals( Tilings.healpixRingIndex( level, lon, lat ),
+                              Tilings.healpixNestToRing( level, ipixNest ) );
+                nestMap.set( (int) ipixNest );
+                ringMap.set( (int) ipixRing );
+            }
+            BitSet fullMap = new BitSet( npix );
+            fullMap.set( 0, npix );
+            assertEquals( fullMap, ringMap );
+            assertEquals( fullMap, nestMap );
         }
     }
 
