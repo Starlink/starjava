@@ -19,6 +19,7 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
 
     private final Scheme scheme_;
     private HealpixBase healpixBase_;
+    private final int qdiscFactor_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.join" );
@@ -36,18 +37,23 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
      * Constructs a pixellator using either the RING or NESTED HEALPix scheme.
      *
      * @param  nested  false for RING sche, true for NESTED
+     * @param  qdiscFactor  resolution factor (<code>fact</code> parameter)
+     *                      at which <code>queryDiscInclusive</code>
+     *                      call is made; should be a power of 2 for nested,
+     *                      4 is apparently a 'typical choice'
      */
-    public JplHealpixSkyPixellator( boolean nested ) {
+    public JplHealpixSkyPixellator( boolean nested, int qdiscFactor ) {
         super( HealpixBase.order_max );
         assert HealpixBase.order_max == 29;
         scheme_ = nested ? Scheme.NESTED : Scheme.RING;
+        qdiscFactor_ = qdiscFactor;
     }
 
     /**
      * Constructs a pixellator using the default scheme (RING).
      */
     public JplHealpixSkyPixellator() {
-        this( false );
+        this( false, 4 );
     }
 
     public Object[] getPixels( double alpha, double delta, double radius ) {
@@ -59,7 +65,8 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
         Pointing pointing = new Pointing( theta, alpha );
         RangeSet rset;
         try {
-            rset = healpixBase_.queryDisc( pointing, radius );
+            rset = healpixBase_
+                  .queryDiscInclusive( pointing, radius, qdiscFactor_ );
         }
         catch ( Exception e ) {
             logger_.warning( "Healpix error for "
