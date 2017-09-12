@@ -86,6 +86,9 @@ public class DoubleArrayParameter extends Parameter<double[]> {
 
     public String objectToString( Environment env, double[] dvals )
             throws TaskException {
+        if ( dvals == null ) {
+            return null;
+        }
         if ( dvals.length != count_ ) {
             throw new TaskException( "Wrong length" );
         }
