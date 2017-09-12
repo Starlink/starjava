@@ -104,7 +104,7 @@ public class HistogramPlotWindow
                 importAct.setEnabled( hasData );
                 saveAct.setEnabled( hasData );
             }
-        } );
+        }, false );
         getToolBar().add( importAct );
         JMenu exportMenu = getExportMenu();
         exportMenu.addSeparator();

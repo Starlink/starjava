@@ -128,6 +128,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ToggleButtonModel axisLockModel_;
     private final ToggleButtonModel auxLockModel_;
     private final List<ChangeListener> changeListenerList_;
+    private final List<ChangeListener> graphicChangeListenerList_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private final Workings<A> dummyWorkings_;
@@ -208,6 +209,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         axisLockModel_ = axisLockModel;
         auxLockModel_ = auxLockModel;
         changeListenerList_ = new ArrayList<ChangeListener>();
+        graphicChangeListenerList_ = new ArrayList<ChangeListener>();
         plotExec_ = Executors.newSingleThreadExecutor();
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
                   ? Executors.newSingleThreadExecutor()
@@ -701,13 +703,21 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Adds a listener which will be messaged when the content of the
-     * displayed plot actually changes.
+     * Adds a listener which will be messaged when the displayed
+     * plot changes.  The <code>allChanges</code> parameter indicates
+     * what plot changes are of interest; if false, then only changes
+     * to the plot axes and layers will be notified, but if true
+     * then decoration changes (legend and navigation indicators)
+     * will trigger a notification as well.
      *
      * @param  listener   plot change listener
+     * @param  allChanges   true to get all changes,
+     *                      false for only substantial changes
      */
-    public void addChangeListener( ChangeListener listener ) {
-        changeListenerList_.add( listener );
+    public void addChangeListener( ChangeListener listener,
+                                   boolean allChanges ) {
+        ( allChanges ? graphicChangeListenerList_ : changeListenerList_ )
+        .add( listener );
     }
 
     /**
@@ -717,14 +727,23 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public void removeChangeListener( ChangeListener listener ) {
         changeListenerList_.remove( listener );
+        graphicChangeListenerList_.remove( listener );
     }
 
     /**
      * Messages change listeners.
+     *
+     * @param  plotChanged  true if the plot itself (surface or layers)
+     *                      has changed; false if only decorations have changed
      */
-    private void fireChangeEvent() {
+    private void fireChangeEvent( boolean plotChanged ) {
+        List<ChangeListener> listeners = new ArrayList<ChangeListener>();
+        listeners.addAll( graphicChangeListenerList_ );
+        if ( plotChanged ) {
+            listeners.addAll( changeListenerList_ );
+        }
         ChangeEvent evt = new ChangeEvent( this );
-        for ( ChangeListener listener : changeListenerList_ ) {
+        for ( ChangeListener listener : listeners ) {
             listener.stateChanged( evt );
         }
     }
@@ -2136,11 +2155,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                             zone.updateAxisController();
                         }
                         repaint();
-
-                        /* If the plot changed materially, notify listeners. */
-                        if ( plotChange ) {
-                            fireChangeEvent();
-                        }
+                        fireChangeEvent( plotChange );
                     }
                 } );
             }

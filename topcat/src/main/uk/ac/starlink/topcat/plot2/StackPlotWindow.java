@@ -316,7 +316,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             public void stateChanged( ChangeEvent evt ) {
                 plotChanged();
             }
-        } );
+        }, false );
 
         /* Prepare the action that allows the user to select the currently
          * visible points. */
