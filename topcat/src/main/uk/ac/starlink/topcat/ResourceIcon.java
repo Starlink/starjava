@@ -115,6 +115,7 @@ public class ResourceIcon implements Icon {
         CLEAR = makeIcon( "newdoc1.png" ),
         HIDE_WINDOWS = makeIcon( "hide1.png" ),
         SCROLLER = makeIcon( "scroll2.png" ),
+        STILTS = makeIcon( "stilts.png" ),
 
         /* Windows. */
         CONTROL = makeIcon( "controlw.png" ),
@@ -235,6 +236,7 @@ public class ResourceIcon implements Icon {
         CDSXMATCH = makeIcon( "xm3.png" ),
         HISTO_SAVE = makeIcon( "histo-save.png" ),
         HISTO_IMPORT = makeIcon( "histo-import.png" ),
+        WARNING = makeIcon( "warning_triangle.png" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.png" ),

@@ -8,6 +8,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -59,6 +60,7 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.topcat.WindowToggle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -250,13 +252,28 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                 showProgressModel_, axisLockModel_,
                                 auxLockModel_ );
 
-        /* Prepare options to display the text of a STILTS command
-         * corresponding to the current plot. */
         zoneConfiggers_ = new MultiConfigger[] {
-            configger,
+            configger, 
             multiAxisController_.getConfigger(),
             multiShaderControl_.getConfigger(),
         };
+
+        /* Prepare options to display the text of a STILTS command
+         * corresponding to the current plot. */
+        final boolean isMultiZone =
+            plotTypeGui_.getGangerFactory().isMultiZone();
+        ToggleButtonModel stiltsWindowToggle =
+                 new WindowToggle( "STILTS Command Window", ResourceIcon.STILTS,
+                                   "Display this information "
+                                 + "in a separate window" ) {
+            protected Window createWindow() {
+                return new StiltsDialog( StackPlotWindow.this, plotPanel_,
+                                         isMultiZone );
+            }
+        };
+        Control stiltsControl =
+            new StiltsControl( plotPanel_, isMultiZone, stiltsWindowToggle );
+        stackPanel_.addFixedControl( stiltsControl );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
          * that might change the plot appearance.  Each of these controls
@@ -547,6 +564,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( exportAction );
+        exportMenu_.add( stiltsWindowToggle.createMenuItem() );
         layerDataImportMenu_ = new JMenu( "Layer Data Import" );
         layerDataImportMenu_.setIcon( ResourceIcon.IMPORT );
         layerDataImportMenu_.setToolTipText( "Options to import table into "
