@@ -87,6 +87,16 @@ public class MapEnvironment implements TableEnvironment {
     }
 
     /**
+     * Returns the map object that contains the data for this environment.
+     * Modify it at your own risk.
+     *
+     * @return   content map
+     */
+    public Map getMap() {
+        return paramMap_;
+    }
+
+    /**
      * Returns a string which contains all the output written by the task
      * so far.
      *
