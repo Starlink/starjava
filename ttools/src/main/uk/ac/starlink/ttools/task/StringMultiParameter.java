@@ -46,4 +46,20 @@ public class StringMultiParameter extends Parameter<String[]>
     public String[] stringToObject( Environment env, String stringVal ) {
         return stringVal.split( new String( new char[] { valueSep_ } ) );
     }
+
+    @Override
+    public String objectToString( Environment env, String[] objVal )
+            throws TaskException {
+        if ( objVal == null ) {
+            return null;
+        }
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < objVal.length; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( valueSep_ );
+            }
+            sbuf.append( objVal[ i ] );
+        }
+        return sbuf.toString();
+    }
 }
