@@ -545,35 +545,47 @@ public class LineInvoker {
             e.printStackTrace( env.getErrorStream() );
         }
         else {
-            List<String> msgList = new ArrayList<String>();
-            for ( ; e != null; e = e.getCause() ) {
-                String msg = e.getMessage();
-                if ( msg == null ) {
-                    msg = e.toString();
-                }
-                int nm = msgList.size();
-                if ( nm == 0 || ! msg.equals( msgList.get( nm - 1 ) ) ) {
-                    msgList.add( msg );
-                }
-            }
-            String[] msgs = msgList.toArray( new String[ 0 ] );
-            StringBuffer sbuf = new StringBuffer();
-            sbuf.append( "Error: " );
-            for ( int im = 0; im < msgs.length; im++ ) {
-                if ( im > 0 ) {
-                    sbuf.append( '\n' );
-                    for ( int j = 0; j < im; j++ ) {
-                        sbuf.append( "    " );
-                    }
-                    sbuf.append( '(' );
-                }
-                sbuf.append( msgs[ im ] );
-            }
-            for ( int j = 1; j < msgs.length; j++ ) {
-                sbuf.append( ')' );
-            }
-            env.getErrorStream().println( sbuf.toString() );
+            env.getErrorStream().println( getStackSummary( e ) );
         }
+    }
+
+    /**
+     * Returns a truncated version of a stack trace for user consumption.
+     * This gives the error message for each throwable in the cause chain,
+     * but not line numbers etc.
+     *
+     * @param   error   exception to summarise
+     * @return   multiline text summary
+     */
+    public static String getStackSummary( Throwable error ) {
+        List<String> msgList = new ArrayList<String>();
+        for ( Throwable e = error ; e != null; e = e.getCause() ) {
+            String msg = e.getMessage();
+            if ( msg == null ) {
+                msg = e.toString();
+            }
+            int nm = msgList.size();
+            if ( nm == 0 || ! msg.equals( msgList.get( nm - 1 ) ) ) {
+                msgList.add( msg );
+            }
+        }
+        String[] msgs = msgList.toArray( new String[ 0 ] );
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "Error: " );
+        for ( int im = 0; im < msgs.length; im++ ) {
+            if ( im > 0 ) {
+                sbuf.append( '\n' );
+                for ( int j = 0; j < im; j++ ) {
+                    sbuf.append( "    " );
+                }
+                sbuf.append( '(' );
+            }
+            sbuf.append( msgs[ im ] );
+        }
+        for ( int j = 1; j < msgs.length; j++ ) {
+            sbuf.append( ')' );
+        }
+        return sbuf.toString();
     }
 
     /**
@@ -839,7 +851,7 @@ public class LineInvoker {
      * @param  unused   unused words
      * @return  warning lines
      */
-    private static String getUnusedWarning( String[] unused ) {
+    public static String getUnusedWarning( String[] unused ) {
         StringBuffer sbuf = new StringBuffer( "Unused arguments:" );
         for ( int i = 0; i < unused.length; i++ ) {
             sbuf.append( ' ' )
