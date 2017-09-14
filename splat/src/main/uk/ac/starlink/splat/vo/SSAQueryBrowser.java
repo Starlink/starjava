@@ -1923,11 +1923,13 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             decField.setText("");
             nameField.setText("");
             radiusField.setText(Double.toString(defaultRadius));//default value
+            maxRecField.setText("");
             lowerBandField.setText("");
             lowerTimeField.setText("");
             upperTimeField.setText("");
             queryLine = new SSAQuery("<SERVER>");
             queryLine.setRadius(defaultRadius);
+            queryLine.setMaxrec(0);
             updateQueryText();
 
             return;
@@ -2718,7 +2720,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
                     }
                     maxRecField.setForeground(Color.black);
                 }
-                if (maxRec > 0)
+                //if (maxRec > 0)
                     queryLine.setMaxrec(maxRec);
             }
             if (owner == raField || owner == decField ) {

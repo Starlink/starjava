@@ -193,7 +193,7 @@ public class SSAQuery
         this.queryRadius = queryRadius / 60.0;
     }
     /**
-     * Set the maximum numbre of records returned by the query
+     * Set the maximum number of records returned by the query
      */
     public void setMaxrec( int maxrec )
     {
