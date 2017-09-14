@@ -102,7 +102,7 @@ public class TimeConfigKey extends ConfigKey<Double> {
      * @return   formatted value (currently ISO-8601)
      */
     private String formatTime( double unixSec ) {
-        String ftime = new SimpleDateFormat( "yyyy-MM-dd'T'hh:mm:ss" )
+        String ftime = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
                       .format( new Date( (long) ( unixSec * 1000 ) ) );
         while ( ftime.endsWith( ":00" ) ) {
             ftime = ftime.substring( 0, ftime.length() - 3 );
