@@ -25,27 +25,28 @@ public class ResourceIcon {
     public static final Icon
 
         /* Icons. */
-        TLD_CONE = readIcon( "cone.gif" ),
-        TLD_SIA = readIcon( "sia.gif" ),
-        TLD_SSA = readIcon( "ssa.gif" ),
-        TLD_REGISTRY = readIcon( "registry.gif" ),
-        TLD_TAP = readIcon( "tap.gif" ),
-        ADQL_UNDO = readIcon( "undo.gif" ),
-        ADQL_REDO = readIcon( "redo.gif" ),
-        ADQL_ADDTAB = readIcon( "add_tab.gif" ),
-        ADQL_COPYTAB = readIcon( "copy_tab.gif" ),
-        ADQL_REMOVETAB = readIcon( "remove_tab.gif" ),
-        ADQL_TITLETAB = readIcon( "title_tab.gif" ),
-        ADQL_ERROR = readIcon( "error.gif" ),
-        ADQL_CLEAR = readIcon( "clear.gif" ),
-        ADQL_INSERTTABLE = readIcon( "insert_table.gif" ),
-        ADQL_INSERTCOLS = readIcon( "insert_columns.gif" ),
-        NODE_SERVICE = readIcon( "service_node.gif" ),
-        NODE_TABLE = readIcon( "table_node.gif" ),
-        EXTLINK = readIcon( "extlink.gif" ),
+        TLD_CONE = readIcon( "cone.png" ),
+        TLD_SIA = readIcon( "sia.png" ),
+        TLD_SSA = readIcon( "ssa.png" ),
+        TLD_REGISTRY = readIcon( "registry.png" ),
+        TLD_TAP = readIcon( "tap.png" ),
+        ADQL_UNDO = readIcon( "undo.png" ),
+        ADQL_REDO = readIcon( "redo.png" ),
+        ADQL_ADDTAB = readIcon( "add_tab.png" ),
+        ADQL_COPYTAB = readIcon( "copy_tab.png" ),
+        ADQL_REMOVETAB = readIcon( "remove_tab.png" ),
+        ADQL_TITLETAB = readIcon( "title_tab.png" ),
+        ADQL_ERROR = readIcon( "error.png" ),
+        ADQL_CLEAR = readIcon( "clear.png" ),
+        ADQL_INSERTTABLE = readIcon( "insert_table.png" ),
+        ADQL_INSERTCOLS = readIcon( "insert_columns.png" ),
+        NODE_SERVICE = readIcon( "service_node.png" ),
+        NODE_TABLE = readIcon( "table_node.png" ),
+        EXTLINK = readIcon( "extlink.png" ),
+        RELOAD = readIcon( "reload.png" ),
 
         /* Placeholder and terminator. */
-        VO_DOWHAT = readIcon( "burst.gif" );
+        VO_DOWHAT = readIcon( "burst.png" );
 
     /**
      * Private constructor prevents instantiation.

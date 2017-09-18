@@ -29,7 +29,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -240,9 +239,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                 }
             }
         };
-        reloadAct_.putValue( Action.SMALL_ICON,
-                             new ImageIcon( TapTableLoadDialog.class
-                                           .getResource( "reload.gif" ) ) );
+        reloadAct_.putValue( Action.SMALL_ICON, ResourceIcon.RELOAD );
         reloadAct_.putValue( Action.SHORT_DESCRIPTION,
               "Reload information displayed in this panel from the server; "
             + "exact behaviour depends on which panel is visible" );
