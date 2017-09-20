@@ -62,6 +62,33 @@ public class LegendIcon implements Icon {
         height_ = ( lineHeight_ + gap ) * entries_.length + gap;
     }
 
+    /**
+     * Returns this legend's captioner.
+     *
+     * @return captioner
+     */
+    public Captioner getCaptioner() {
+        return captioner_;
+    }
+
+    /**
+     * Indicates whether this legend has a border.
+     *
+     * @return  true for border, false for not
+     */
+    public boolean hasBorder() {
+        return border_;
+    }
+
+    /**
+     * Returns the background colour of this legend.
+     *
+     * @return  background colour
+     */
+    public Color getBackground() {
+        return bgColor_;
+    }
+
     public int getIconWidth() {
         return width_;
     }
