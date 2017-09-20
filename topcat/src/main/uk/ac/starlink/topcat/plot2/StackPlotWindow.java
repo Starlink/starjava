@@ -68,6 +68,7 @@ import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
+import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -796,7 +797,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 legList.addAll( Arrays.asList( control.getLegendEntries() ) );
             }
             final PlotLayer[] layers = layerList.toArray( new PlotLayer[ 0 ] );
-            final Icon legend =
+            final LegendIcon legend =
                 legendControl_
                .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ),
                                   zid );
@@ -821,7 +822,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 public PlotLayer[] getLayers() {
                     return layers;
                 }
-                public Icon getLegend() {
+                public LegendIcon getLegend() {
                     return legend;
                 }
                 public float[] getLegendPosition() {

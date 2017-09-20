@@ -1,8 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
-import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Subrange;
 
@@ -41,7 +41,7 @@ public interface ZoneDef<P,A> {
      *
      * @return  legend icon, or null
      */
-    Icon getLegend();
+    LegendIcon getLegend();
 
     /**
      * Returns an array indicating the fractional position of the legend

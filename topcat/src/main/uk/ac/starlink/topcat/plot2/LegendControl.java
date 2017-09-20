@@ -125,7 +125,7 @@ public class LegendControl extends TabberControl {
      * @param   zid      zone identifier for legend zone
      * @return  legend icon, or null if not visible
      */
-    public Icon createLegendIcon( LegendEntry[] entries, ZoneId zid ) {
+    public LegendIcon createLegendIcon( LegendEntry[] entries, ZoneId zid ) {
 
         /* Update visibility defaults based on how many entries the legend
          * would have - it's not very useful if it only has one entry.
