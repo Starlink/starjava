@@ -24609,6 +24609,8 @@ introduced since the last version:
         the expressions were lost and could not be edited on reload).
         Note that sessions saved by this version cannot be loaded by
         older versions (though the other way round is OK).</li>
+    <li>Long fields (&gt;10240 characters) in output CSV files
+        are no longer truncated.</li>
     </ul>
     </p></dd>
 

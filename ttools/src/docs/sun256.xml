@@ -11188,6 +11188,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         missed associations when crossmatching in these regions,
         but tests appear to indicate that no such errors would
         actually have resulted.</li>
+    <li>Long fields (&gt;10240 characters) in output CSV files
+        are no longer truncated.</li>
     </ul>
     </p></dd>
 

@@ -20,10 +20,8 @@ import uk.ac.starlink.table.Tables;
  */
 public class CsvTableWriter extends StreamStarTableWriter {
 
-    /** Longest field that will get written without truncation. */
-    private final static int MAX_CHARS = 10240;
-
     private boolean writeHeader_ = true;
+    private int maxFieldChars_ = Integer.MAX_VALUE;
 
     /**
      * Constructs a default CSV table writer.
@@ -62,6 +60,26 @@ public class CsvTableWriter extends StreamStarTableWriter {
      */
     public boolean getWriteHeader() {
         return writeHeader_;
+    }
+
+    /**
+     * Sets a limit on the number of characters that will be written
+     * in a single field.  Fields beyond this length will be truncated.
+     *
+     * @param  maxFieldChars  new limit
+     */
+    public void setMaxFieldChars( int maxFieldChars ) {
+        maxFieldChars_ = maxFieldChars;
+    }
+
+    /**
+     * Returns the limit on the number of characters that will be written
+     * in a single field.  Fields beyond this length will be truncated.
+     *
+     * @return  current limit
+     */
+    public int getMaxFieldChars() {
+        return maxFieldChars_;
     }
 
     /**
@@ -108,7 +126,8 @@ public class CsvTableWriter extends StreamStarTableWriter {
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     dataRow[ icol ] = cinfos[ icol ]
-                                     .formatValue( row[ icol ], MAX_CHARS );
+                                     .formatValue( row[ icol ],
+                                                   maxFieldChars_ );
                 }
                 writeRow( out, dataRow );
             }
