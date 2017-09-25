@@ -3162,7 +3162,7 @@ Global and Layer parameters are described separately in the following
 subsections.
 </p>
 
-<subsubsect>
+<subsubsect id="plot2-global-params">
 <subhead><title>Global Parameters</title></subhead>
 
 <p>The global plot parameters are documented in
@@ -3180,7 +3180,7 @@ explicitly.
 
 </subsubsect>
 
-<subsubsect>
+<subsubsect id="plot2-layer-params">
 <subhead><title>Layer Parameters</title></subhead>
 
 <p>The layer parameters come in groups, each specifying the

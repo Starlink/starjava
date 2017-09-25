@@ -230,6 +230,8 @@
   <!ENTITY FIG.plotmatch_dialog '&figs;plotmatch_dialog.png'>
   <!ENTITY FIG.SkyPlotWindow_plotmatch '&figs;SkyPlotWindow_plotmatch.png'>
   <!ENTITY FIG.CdsUploadMatchWindow '&figs;CdsUploadMatchWindow.png'>
+  <!ENTITY FIG.StiltsControl_command '&figs;StiltsControl_command.png'>
+  <!ENTITY FIG.StiltsControl_formatting '&figs;StiltsControl_formatting.png'>
 
   <!-- Example plots generated in stilts. -->
   <!ENTITY FIG.plot2-layer-mark '&figs;plot2-layer-mark.png'>
@@ -7025,6 +7027,11 @@ More may be introduced in future releases.
     grid display and colour, antialiasing, text label crowding limits etc etc.
     </p></dd>
 
+<dt>STILTS export</dt>
+<dd><p>The GUI can report the text for the STILTS command that would
+    reproduce the currently visible plot.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -7102,8 +7109,9 @@ adding and removing controls from the stack.
 <dd><p>These control the overall plot appearance.
     In the above figure, the fixed controls
     <label>Frame</label> (&IMG.FRAME_CONFIG;),
+    <label>Legend</label> (&IMG.LEGEND;),
     <label>Axes</label> (&IMG.AXIS_CONFIG;) and
-    <label>Legend</label> (&IMG.LEGEND;) are visible.
+    <label>STILTS</label> (&IMG.STILTS;) are visible.
     </p>
     <p>The different fixed controls are described in
     <ref id="plot2FixedControls"/>.
@@ -7293,20 +7301,32 @@ They also provide some additional options:
     the currently selected control.
     </p></dd>
 <dt>Export menu</dt>
-<dd><p>This menu provides the
-    <label>Export plot</label> (&IMG.IMAGE;) option which saves the
-    visible plot in an image format.
-    It also contains two sub-menus that may or may not contain options:
-    <label>Layer Data Import</label> (&IMG.IMPORT;) and
-    <label>Layer Data Save</label> (&IMG.SAVE;).
-    Some plotted layer types generate table data as part of their
-    calculations that can be exported separately.
-    If one of these layers is currently plotted, then options may
-    appear in these menus.
-    The <label>Import</label> options retrieve the table and add it
-    to the list of tables currently loaded in TOPCAT;
-    the <label>Save</label> options can write the data directly to disk
-    using some table format.
+<dd><p>This menu provides some options for exporting graphics and
+    data from the plot to external contexts:
+    <dl>
+    <dt>&IMG.IMAGE; Export Plot</dt>
+    <dd><p>Saves the visible plot in an image format;
+        see <ref id="plot2-export"/>.
+        </p></dd>
+    <dt>&IMG.STILTS; STILTS Command Window</dt>
+    <dd><p>Displays a command which can be executed from outside TOPCAT
+        to reproduce the currently visible plot;
+        see <ref id="StiltsControl"/>.
+        </p></dd>
+    <dt>&IMG.IMPORT; Layer Data Import</dt>
+    <dt>&IMG.SAVE; Layer Data Save</dt>
+    <dd><p>These two sub-menus may or may not contain options.
+        Some plotted layer types (for instance 1d or 2d histograms)
+        generate table data as part of their
+        calculations that can be exported separately.
+        If one of these layers is currently plotted, then options may
+        appear in these menus.
+        The <label>Import</label> options retrieve the table and add it
+        to the list of tables currently loaded in TOPCAT;
+        the <label>Save</label> options can write the data directly to disk
+        using one of the supported table formats.
+        </p></dd>
+    </dl>
     </p></dd>
 </dl>
 </p>
@@ -7770,7 +7790,7 @@ there are a few things to consider:
 <p>Fixed controls are those controls that appear at the top of
 the stack in the control panel, and do not have a checkbox or
 a drag handle.
-They are used to configure the overall appearance of the plot,
+They are used to configure or monitor the overall appearance of the plot,
 independent of any particular plot layer or data set.
 Those common to all plot types are described in the following subsections,
 though some plot types may also have their own.
@@ -7819,20 +7839,6 @@ and if the <label>Title Visible</label> checkbox is checked,
 then the given text will appear at the top of the plot.
 </p>
 
-</subsubsubsect>
-
-<subsubsubsect id="AxesControl">
-<subhead><title>Axes Control</title></subhead>
-
-<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;)
-has a number of tabs specific to the particular plot type.
-These tabs allow you to configure things like the axis ranges,
-linear/log axis scaling, axis labelling, grid drawing,
-details of the navigation controls and so on.
-The different plot types have axis controls that differ significantly
-from each other; the specific axis controls are described separately
-along with each plot type.
-</p>
 </subsubsubsect>
 
 <subsubsubsect id="LegendControl">
@@ -7888,6 +7894,327 @@ change the position of the legend inside the plot bounds.
 
 <p>Note the font used in the legend is currently controlled by the font from
 the <label>Axes</label> selector.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="AxesControl">
+<subhead><title>Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;)
+has a number of tabs specific to the particular plot type.
+These tabs allow you to configure things like the axis ranges,
+linear/log axis scaling, axis labelling, grid drawing,
+details of the navigation controls and so on.
+The different plot types have axis controls that differ significantly
+from each other, so the specific axis controls are described separately
+along with each plot type:
+<ul>
+<li><ref id="HistogramAxisControl" plaintextref="yes"
+            >Histogram axes control</ref></li>
+<li><ref id="PlaneAxisControl" plaintextref="yes"
+            >Plane plot axes control</ref></li>
+<li><ref id="SkyAxisControl" plaintextref="yes"
+            >Sky plot axes control</ref></li>
+<li><ref id="CubeAxisControl" plaintextref="yes"
+            >Cube plot axes control</ref></li>
+<li><ref id="SphereAxisControl" plaintextref="yes"
+            >Sphere plot axes control</ref></li>
+<li><ref id="TimeAxisControl" plaintextref="yes"
+            >Time plot axes control</ref></li>
+</ul>
+</p>
+</subsubsubsect>
+
+<subsubsubsect id="StiltsControl">
+<subhead><title>Stilts Control</title></subhead>
+
+<p>The <label>STILTS</label> control (&IMG.STILTS;)
+displays the command you would have to issue to the
+<webref url="http://www.starlink.ac.uk/stilts">STILTS</webref> package
+to reproduce the currently visible plot.
+The text is continuously updated to match the currently selected
+options, layers and navigation status.
+</p>
+
+<figure>
+<caption><px>STILTS control Command tab</px></caption>
+<figureimage src="&FIG.StiltsControl_command;"/>
+</figure>
+
+<p>Unlike the other fixed controls, this one does not provide
+any options to change the current plot, and if you just want to
+use TOPCAT interactively you don't need to use it at all.
+But if you want to be able to regenerate the current plot
+from the command line or a script without setting it up again
+from a GUI, for instance to generate publishable figures in a
+reproducible way, you may find it useful.
+</p>
+
+<p>STILTS is a command-line interface to all the functionality
+that TOPCAT provides from a Graphical User Interface.
+Any plot that can be displayed in TOPCAT can also be generated
+by providing the right parameters to one of the STILTS
+plotting commands.
+The STILTS user document provides a full 
+<docxref doc="sun256" loc="plot2">tutorial introduction</docxref>
+for these commands, as well as detailed documentation for
+each of the plotting commands
+(<docxref doc="sun256" loc="plot2plane"><code>plot2plane</code></docxref>,
+ <docxref doc="sun256" loc="plot2sky"><code>plot2sky</code></docxref>, ...)
+and many
+<docxref doc="sun256" loc="LayerType">examples</docxref>.
+However, there is a large number of parameters to configure,
+and the command line to reproduce a complex plot can be quite lengthy,
+so this control helps you to set up such plots by constructing
+the command line corresponding to what you can currently see.
+The text displayed in this panel can either be copied directly
+to reproduce a plot you have set up interactively, or it can 
+be used as a basis for later adjustments to some of the parameters.
+</p>
+
+<p>You can use this facility with very little understanding of
+the details of STILTS.
+You just need to copy the text
+(using the <label>Copy</label> button or however that's usually done
+on your OS)
+and paste it onto a system command line or into a script.
+Executing the resulting command should then pop up the current plot
+in a new window outside of TOPCAT.
+If it doesn't work, changing some of the <label>Formatting</label>
+options described below may help.
+To write the result to a graphics file instead of displaying it
+in a window, just add a parameter like <code>out=plot.png</code>
+to the end of the line.
+The available graphics output formats are listed
+in <ref id="plot2-export"/>.
+</p>
+
+<p>To understand the generated command and get a better idea of
+how to tweak the parameters to adjust the plot, you can consult
+the STILTS user document mentioned above.
+Just watching how the displayed command changes as you interact
+with the plot is another way to learn what does what.
+</p>
+
+<p>This display is available both as a
+<ref id="plot2FixedControls">Fixed Control</ref> and as a
+separate window.
+Both do the same thing, but the window may be convenient
+if you want to see the way the command text changes as you
+interact with the GUI in other parts of the fixed or layer controls.
+To pop up or hide the separate window display, you can either use the
+<label>Window</label> button at the bottom of the fixed control,
+or the <label>Export|STILTS Command Window</label> menu item.
+</p>
+
+<p>Some actions are available from buttons or menu items:
+<dl>
+<dt>Copy</dt>
+<dd><p>Copies the whole command into the system clipboard,
+    for convenience if you want to paste it into an editor or at
+    a shell prompt.  You can achieve the same thing using the
+    usual OS-specific gestures if you prefer, e.g. highlighting
+    all the text with the mouse.
+    </p></dd>
+    
+<dt>Test</dt>
+<dd><p>Attempts to execute the displayed command.
+    If successful the reproduced plot will pop up in a new window,
+    and should look the same as the one currently visible in the plot window.
+    This can help to detect some potential problems with the
+    displayed command line, but not all (see more discussion below).
+    </p></dd>
+
+<dt>Window</dt>
+<dd><p>Displays a separate window containing the information in this control
+    (or hides it if already displayed).
+    This can be convenient to see how the generated command line changes
+    as you interact with the GUI controls.
+    </p></dd>
+
+<dt>Error</dt>
+<dd><p>If TOPCAT detects some problem with the syntax of the displayed
+    command, this button is enabled and clicking it will show an error message.
+    This can happen if you are trying to refer to a non-algebraic
+    subset by name, or for other reasons including bugs in the code.
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>NOTE:</strong>
+The STILTS command displayed in this panel is <strong>not guaranteed</strong>
+to work from the command line.
+There are a few reasons for this.
+The STILTS command tries to name the tables you have loaded into TOPCAT.
+If they have straightforward filenames this will probably work,
+but if a plotted table is for example the result of a match operation
+carried out in the current session, it will not exist on disk yet
+so it can't be named on the command line.
+Similarly, using the names of columns or non-algebraic Row Subsets
+created during the current session may result in command lines
+that won't work as written,
+since those values don't exist in the input files.
+In this case you should prepare a table corresponding to the
+current TOPCAT state, save that, and edit the STILTS command to
+use the name of that file for input (or you can reload the file
+and do plots using that).  Subsets as such cannot be
+saved in this way, but you can achieve much the same thing by
+storing subset information in a boolean column
+using the <label>To Column</label> action (&IMG.TO_COLUMN;)
+from the <ref id="SubsetWindow">Subsets Window</ref>.
+Note STILTS does not understand TOPCAT's 
+<ref id="sessionSave">saved session</ref> format.
+Another thing that can cause trouble is quoted values
+in algebraic expressions, since STILTS quoting syntax
+does not always work well on the shell command line.
+There may also be bugs in the (rather complex) command-generation code
+that cause the command to fail or to generate a slightly different plot.
+Hopefully there are not too many of these,
+but if you find one please report it.
+</p>
+
+<p>An attempt is made to flag problems in the displayed command line.
+Constructions that are suspected or expected to cause trouble
+when executing it are highlighted in a different colour.
+If the command line itself seems to violate the plotting command syntax,
+the <label>Error</label> (&IMG.WARNING;) button will become enabled;
+clicking on it will display some indication of what's wrong.
+</p>
+
+<p>However, the best way to test whether a displayed command will work
+is to copy and paste it onto an actual command line and try to run it.
+If it works, the plot will show up in a new window.
+To export this into a graphic file, simply add or modify the
+<code>out</code> parameter (e.g. <code>out=tc-plot.pdf</code>).
+</p>
+
+<figure>
+<caption><px>STILTS control Formatting tab</px></caption>
+<figureimage src="&FIG.StiltsControl_formatting;"/>
+</figure>
+
+<p>The <label>Formatting</label> tab gives you various options to
+adjust how the generated STILTS command is displayed in the Command tab.
+In the popup window version of this display,
+these options are available as items in the <label>Formatting</label>
+<em>menu</em> instead.
+</p>
+
+<p>You may want to adjust these options for personal taste,
+or so the output works better with the
+command-line environment you're using.
+The basic format is intended to work with a Unix-like shell
+such as <code>bash</code>;
+in most cases the <code>name=value</code> settings should
+not be too sensitive to shell-specific syntax,
+but it may be useful for instance to change line ending characters.
+</p>
+
+<p>The available formatting options are:
+<dl>
+<dt>Invocation</dt>
+<dd><p>Determines how the <code>stilts</code> command itself is introduced.
+    Options are:
+    <ul>
+    <li><label>stilts</label>:
+        Just the word "<code>stilts</code>", which will work if a
+        command with that name is on the execution path.
+        </li>
+    <li><label>topcat</label>:
+        The expression "<code>topcat -stilts</code>", which will work
+        if the <code>topcat</code> command is on the path.
+        </li>
+    <li><label>Class-path</label>:
+        A longer expression based on the location of the java class files
+        that the currently running TOPCAT application is using.
+        This should work as along as a <code>java</code> executable
+        is on the path.
+        </li>
+    </ul>
+    </p></dd>
+<dt>Layer Suffixes</dt>
+<dd><p>Determines how the parameters associated with different plot layers
+    are labelled.
+    STILTS groups the parameters corresponding to a given plot
+    layer by using a common suffix, introduced by a parameter with the form
+    "<code>layer&lt;suffix&gt;=&lt;layer-type&gt;</code>"
+    (see <docxref doc="sun252" loc="plot2-layer-params"/>).
+    You can choose any form for these suffixes that does not interfere
+    with the non-suffix parts of the other parameters,
+    and this option allows you to choose how they are generated.
+    Options are:
+    <ul>
+    <li><label>_Numeric</label>: <code>_1</code>, <code>_2</code>, ...</li>
+    <li><label>_Alpha</label>: <code>_A</code>, <code>_B</code>, ...</li>
+    <li><label>_alpha</label>: <code>_a</code>, <code>_b</code>, ...</li>
+    <li><label>Numeric</label>: <code>1</code>, <code>2</code>, ...</li>
+    <li><label>Alpha</label>: <code>A</code>, <code>B</code>, ...</li>
+    </ul>
+    </p></dd>
+<dt>Zone Suffixes</dt>
+<dd><p>Determines how suffixes assigned to different plot zones are labelled.
+    Currently, plot zones are only used in the experimental
+    <ref id="TimePlotWindow">Time Plot Window</ref>, so this option
+    does not appear in most plot types.
+    The options are as described for the Layer Suffix selector above.
+    </p></dd>
+<dt>Table Names</dt>
+<dd><p>Determines how tables in TOPCAT are referenced in the generated
+    command line.
+    Options are:
+    <ul>
+    <li><label>Pathname</label>: Full pathname of the input table file,
+        where available.  Should be fairly robust for tables loaded 
+        from files.</li>
+    <li><label>Filename</label>: Tail of filename only (no directory name)
+        of the input table file, where available.
+        More compact than Pathname, and should work if the STILTS command is
+        executed in the directory in which all files exist.</li>
+    <li><label>Label</label>: User-assigned label for the table,
+        as shown in the <ref id="ControlWindow">Control Window</ref>.</li>
+    <li><label>TNum</label>: "<code>T</code>" followed by the table identifier.
+        The identifier is the small integer shown in the table list in the
+        Control Window.</li>
+    </ul>
+    </p></dd>
+<dt>Include Defaults</dt>
+<dd><p>Parameters in STILTS commands usually have default values,
+    and if the required values are equal to the defaults,
+    those can be omitted from the command line.
+    By default, parameters which take their default values are not
+    displayed in this window.
+    But if you set this checkbox true, even parameters taking their
+    default values are displayed as well.
+    Default-valued parameters are shown in a fainter colour than non-default
+    ones.
+    This may give you a better idea of the various options which are
+    available for the current plot.
+    </p></dd>
+<dt>Line Endings</dt>
+<dd><p>STILTS commands can be quite long and are usually displayed
+    over several screen lines.
+    This control configures how lines breaks are displayed.
+    Options are:
+    <ul>
+    <li><label>plain</label>: just a new line character terminates lines</li>
+    <li><label>backslash</label>: a backslash ("<code>\</code>")
+        is added at the end of each line;
+        suitable for <code>bash</code> and other Unix-like shells.</li>
+    <li><label>caret</label>: a caret ("<code>^</code>")
+        is added at the end of each line;
+        suitable for Windows CMD/.bat scripts.</li>
+    <li><label>backtick</label>: a backtick ("<code>`</code>")
+        is added at the end of each line;
+        suitable for Windows PowerShell</li>
+    <li><label>none</label>: the command is displayed as one long line</li>
+    </ul>
+    </p></dd>
+<dt>Indent</dt>
+<dd><p>Configures the amount of whitespace by which groups of related
+    lines are indented.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsubsect>
@@ -16446,7 +16773,7 @@ are displayed in this window as a reminder of what you're about to save.
 Information about Row Subsets themselves and hidden columns will not
 be saved, though you can save information about subset membership
 by creating new boolean columns based on subsets
-using the "To Column" button (&IMG.TO_COLUMN;) from the
+using the <label>To Column</label> button (&IMG.TO_COLUMN;) from the
 <ref id="SubsetWindow">Subsets Window</ref>.
 Alternatively you could use the <ref id="sessionSave">Session Save</ref>
 option described below.
@@ -24643,6 +24970,9 @@ introduced since the last version:
         <ref id="GavoTableLoadDialog">Virgo-Millennium Simulation Query</ref>
         window (which has been slightly renamed from the 
         <em>GAVO Millennium Run Query</em> window).</li>
+    <li>New <ref id="StiltsControl">STILLTS Control</ref> in plot windows.
+        This displays a STILTS plotting command that can regenerate the
+        currently visible plot.</li>
     </ul>
     </p></dd>
 
