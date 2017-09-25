@@ -636,7 +636,7 @@ public class AuxWindow extends JFrame {
      *
      * @return   logo bar
      */
-    private static Component getSponsorLogos() {
+    public static Component getSponsorLogos() {
         Box box = Box.createHorizontalBox();
         int igap = 20;
         box.add( Box.createHorizontalGlue() );
