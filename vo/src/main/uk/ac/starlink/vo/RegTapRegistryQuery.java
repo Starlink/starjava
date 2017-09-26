@@ -73,6 +73,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
     public static final String[] REGISTRIES = new String[] {
         GAVO_REG,
         STSCI_REG,
+        EUROVO_REG,
         ARI_REG,
         AIP_REG,
         PARIS_REG,

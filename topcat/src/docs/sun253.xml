@@ -24611,6 +24611,9 @@ introduced since the last version:
         older versions (though the other way round is OK).</li>
     <li>Long fields (&gt;10240 characters) in output CSV files
         are no longer truncated.</li>
+    <li>The Euro-VO RegTAP Registry is now included in
+        the hard-coded list of options in VO window
+        <ref id="RegistryPanel">registry selectors</ref>.</li>
     </ul>
     </p></dd>
 
