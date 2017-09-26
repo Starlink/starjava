@@ -58,10 +58,16 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
         "http://gavo.mpa-garching.mpg.de/Millennium";
     private static final String MYMILL_URL =
         "http://gavo.mpa-garching.mpg.de/MyMillennium";
+    private static final String VIRGO_URL =
+        "http://virgodb.dur.ac.uk:8080/MyMillennium";
+    private static final String EAGLE_URL =
+        "http://virgodb.dur.ac.uk:8080/Eagle";
     private static final String QUERY_TRAIL = "?action=doQuery&SQL=";
     private static final Database[] DATABASES = new Database[] {
         new Database( MILL_URL, MILL_URL + QUERY_TRAIL, false ),
         new Database( MYMILL_URL, MYMILL_URL + QUERY_TRAIL, true ),
+        new Database( VIRGO_URL, VIRGO_URL + QUERY_TRAIL, true ),
+        new Database( EAGLE_URL, EAGLE_URL + QUERY_TRAIL, true ),
     };
 
     private static final ValueInfo URL_INFO =
@@ -84,9 +90,9 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
      * pluggable load dialogue mechanism.
      */
     public GavoTableLoadDialog() {
-        super( "GAVO Millennium Run Query",
-               "Uses the GAVO service to query the " +
-               "Millennium Simulation Database" );
+        super( "Virgo-Millennium Simulation Query",
+               "Uses GAVO-like services to query databases of " +
+               "Millennium, VirgoDB, EAGLE simulations etc" );
         setIcon( ResourceIcon.GAVO );
     }
 

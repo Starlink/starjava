@@ -15507,7 +15507,7 @@ though others may be available in your installation.
 <li>&IMG.VIZIER;
     <ref id="VizierTableLoadDialog">VizieR Catalogue Service Query</ref></li>
 <li>&IMG.GAVO;
-    <ref id="GavoTableLoadDialog">GAVO Millennium Database Query</ref></li>
+    <ref id="GavoTableLoadDialog">Virgo-Millennium Simulation Query</ref></li>
 <li>&IMG.BASTI;
     <ref id="BaSTITableLoadDialog">BaSTI Theory Database Query</ref></li>
 </ul>
@@ -16116,10 +16116,11 @@ The original description of the VizieR service was published in
 </subsubsect>
 
 <subsubsect id="GavoTableLoadDialog">
-<subhead><title>GAVO Millennium Database Query</title></subhead>
+<subhead><title>Virgo-Millennium Simulation Query</title></subhead>
 
 <figure>
-<caption><px>GAVO load dialogue with an example query on the milli-Millennium
+<caption><px>Virgo-Millennium load dialogue
+         with an example query on the milli-Millennium
          database</px></caption>
 <figureimage src="&FIG.GavoTableLoadDialog;"/>
 </figure>
@@ -16127,12 +16128,16 @@ The original description of the VizieR service was published in
 <p>This dialogue, selected from the 
 <ref id="LoadWindow">Load Window</ref>'s toolbar
 button (&IMG.GAVO;) or the main <label>VO</label> menu,
-permits direct queries to the services provided by
+permits direct SQL queries to a family of services
+hosting cosmological simulation databases.
+These services were originally developed by 
 <webref url="http://www.g-vo.org/">GAVO</webref>,
-the German Astrophysical Virtual Observatory.
-The main databases of general interest available through these services
-are the <label>Millennium Simulation</label> results,
-documented at <webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>.
+the German Astrophysical Virtual Observatory,
+and hold results from the Millennium, Virgo and EAGLE simulations.
+Options are currently available to query services from
+<webref url="http://gavo.mpa-garching.mpg.de/Millennium/">MPA Garching</webref>
+and
+<webref url="http://virgodb.dur.ac.uk/">Durham</webref>.
 </p>
 
 <p>To make a query, fill in the fields as required:
@@ -16151,11 +16156,26 @@ documented at <webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>.
     <dt>Millennium
         (<code>http://gavo.mpa-garching.mpg.de/MyMillennium</code>)</dt>
     <dd><p>Full, protected simulation results database.  
-        The username and password must be filled in for these queries.
-        Registration is by application to GAVO.
+        The username and password must be filled in for these queries
+        (register by application to
+        <webref url="http://gavo.mpa-garching.mpg.de/Millennium/"
+                >GAVO</webref>).
+        </p></dd>
+    <dt>VirgoDB (<code>http://virgodb.dur.ac.uk:8080/MyMillennium</code>)</dt>
+    <dd><p>Durham galaxy formation catalogues.
+        Username and password required
+        (register by application to
+        <webref url="http://virgodb.dur.ac.uk/">Durham</webref>).
+        </p></dd>
+    <dt>EAGLE (<code>http://virgodb.dur.ac.uk:8080/Eagle</code>)</dt>
+    <dd><p>Durham Eagle database.
+        Username and password required
+        (register by application to
+        <webref url="http://virgodb.dur.ac.uk/">Durham</webref>).
         </p></dd>
     <dt>Other</dt>
-    <dd><p>Other GAVO-provided services can be accessed from this dialogue
+    <dd><p>Other services running the similar software
+        can be accessed from this dialogue
         by entering the relevant base URL here -- users of these services
         will know what they are.  They may or may not require a username and
         password.
@@ -16188,9 +16208,14 @@ If you select one of these the <label>SQL Query</label> panel will be
 filled in accordingly.
 </p>
 
-<p>Much more documentation, including tutorials and descriptions of the 
-database schemas, is available on the GAVO website, at
-<webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>.
+<p>Much more documentation,
+including tutorials, descriptions of the database schemas,
+and information about registering for use of the authenticated services,
+is available online.
+The MPA-Garching services are documented at
+<webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>,
+and the Durham services at
+<webref url="http://virgodb.dur.ac.uk/"/>.
 </p>
 
 </subsubsect>
@@ -24614,6 +24639,10 @@ introduced since the last version:
     <li>The Euro-VO RegTAP Registry is now included in
         the hard-coded list of options in VO window
         <ref id="RegistryPanel">registry selectors</ref>.</li>
+    <li>Added Durham Galaxy Formation Catalogue URLs to the
+        <ref id="GavoTableLoadDialog">Virgo-Millennium Simulation Query</ref>
+        window (which has been slightly renamed from the 
+        <em>GAVO Millennium Run Query</em> window).</li>
     </ul>
     </p></dd>
 
