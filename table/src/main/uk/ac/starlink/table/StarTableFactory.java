@@ -116,6 +116,7 @@ public class StarTableFactory {
     private JDBCHandler jdbcHandler_;
     private boolean requireRandom_;
     private StoragePolicy storagePolicy_;
+    private TablePreparation tablePrep_;
 
     /**
      * System property which can contain a list of {@link TableBuilder} classes
@@ -218,6 +219,7 @@ public class StarTableFactory {
         knownBuilders_ = new ArrayList( fact.knownBuilders_ );
         jdbcHandler_ = fact.jdbcHandler_;
         storagePolicy_ = fact.storagePolicy_;
+        tablePrep_ = fact.tablePrep_;
     }
 
     /**
@@ -344,6 +346,27 @@ public class StarTableFactory {
     }
 
     /**
+     * Sets a table preparation object that is invoked on each table
+     * created by this factory.  Any previous value is overwritten.
+     * Null is allowed.
+     *
+     * @param  tablePrep  new table preparation, or null
+     */
+    public void setPreparation( TablePreparation tablePrep ) {
+        tablePrep_ = tablePrep;
+    }
+
+    /**
+     * Returns the current table preparation object, if any.
+     * By default, null is returned.
+     *
+     * @return   table preparation, or null
+     */
+    public TablePreparation getPreparation() {
+        return tablePrep_;
+    }
+
+    /**
      * Returns a table based on a given table and guaranteed to have
      * random access.  If the original table <tt>table</tt> has random
      * access then it is returned, otherwise a new random access table
@@ -378,7 +401,7 @@ public class StarTableFactory {
                 StarTable startab = 
                     builder.makeStarTable( datsrc, requireRandom(),
                                            getStoragePolicy() );
-                startab = prepareTable( startab );
+                startab = prepareTable( startab, builder );
                 startab.setURL( datsrc.getURL() );
                 if ( startab.getName() == null ) {
                     startab.setName( datsrc.getName() );
@@ -432,17 +455,18 @@ public class StarTableFactory {
             TableBuilder builder = (TableBuilder) it.next();
             try {
                 if ( builder instanceof MultiTableBuilder ) {
+                    MultiTableBuilder mbuilder = (MultiTableBuilder) builder;
                     TableSequence tseq =
-                        ((MultiTableBuilder) builder)
+                        mbuilder
                        .makeStarTables( datsrc, getStoragePolicy() );
                     String nameBase = datsrc.getName() + "-";
-                    return prepareTableSequence( tseq, nameBase );
+                    return prepareTableSequence( tseq, nameBase, mbuilder );
                 }
                 else {
                     StarTable startab =
                         builder.makeStarTable( datsrc, requireRandom(),
                                                getStoragePolicy() );
-                    startab = prepareTable( startab );
+                    startab = prepareTable( startab, builder );
                     startab.setURL( datsrc.getURL() );
                     if ( startab.getName() == null ) {
                         startab.setName( datsrc.getName() );
@@ -495,8 +519,9 @@ public class StarTableFactory {
     public StarTable makeStarTable( String location )
             throws TableFormatException, IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            StarTable table = prepareTable( getJDBCHandler()
-                                           .makeStarTable( location, false ) );
+            StarTable table =
+                prepareTable( getJDBCHandler().makeStarTable( location, false ),
+                              null );
             return requireRandom() ? randomTable( table )
                                    : table;
         }
@@ -552,7 +577,7 @@ public class StarTableFactory {
         try {
             startab = builder.makeStarTable( datsrc, requireRandom(),
                                              getStoragePolicy() );
-            startab = prepareTable( startab );
+            startab = prepareTable( startab, builder );
         }
 
         /* If the table handler fails to load the table, rethrow the exception
@@ -613,17 +638,18 @@ public class StarTableFactory {
         StarTable[] startabs;
         try {
             if ( builder instanceof MultiTableBuilder ) {
+                MultiTableBuilder mbuilder = (MultiTableBuilder) builder;
                 TableSequence tseq = 
-                    ((MultiTableBuilder) builder)
+                    mbuilder
                    .makeStarTables( datsrc, getStoragePolicy() );
                 String nameBase = datsrc.getName() + "-";
-                return prepareTableSequence( tseq, nameBase );
+                return prepareTableSequence( tseq, nameBase, mbuilder );
             }
             else {
                 StarTable startab =
                     builder.makeStarTable( datsrc, requireRandom(),
                                            getStoragePolicy() );
-                startab = prepareTable( startab );
+                startab = prepareTable( startab, builder );
                 startab.setURL( datsrc.getURL() );
                 if ( startab.getName() == null ) {
                     startab.setName( datsrc.getName() );
@@ -704,8 +730,9 @@ public class StarTableFactory {
     public StarTable makeStarTable( String location, String handler )
             throws TableFormatException, IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            StarTable table = prepareTable( getJDBCHandler()
-                                           .makeStarTable( location, false ) );
+            StarTable table =
+                prepareTable( getJDBCHandler().makeStarTable( location, false ),
+                              null );
             return requireRandom() ? randomTable( table )
                                    : table;
         }
@@ -768,7 +795,7 @@ public class StarTableFactory {
         in = new BufferedInputStream( in );
         RowStore store = getStoragePolicy().makeRowStore();
         builder.streamStarTable( in, store, null );
-        return prepareTable( store.getStarTable() );
+        return prepareTable( store.getStarTable(), builder );
     }
 
     /**
@@ -966,11 +993,18 @@ public class StarTableFactory {
      * Currently what this does is to randomise it if it needs randomising.
      *
      * @param  startab  table to prepare
+     * @param  builder   table builder
      * @return  prepared table - may be <tt>startab</tt> or a new one
      */
-    private StarTable prepareTable( StarTable startab ) throws IOException {
-        return requireRandom() ? randomTable( startab )
-                               : startab;
+    private StarTable prepareTable( StarTable startab, TableBuilder builder )
+            throws IOException {
+        if ( requireRandom() ) {
+            startab = randomTable( startab );
+        }
+        if ( tablePrep_ != null ) {
+            startab = tablePrep_.prepareLoadedTable( startab, builder );
+        }
+        return startab;
     }
 
     /**
@@ -980,10 +1014,13 @@ public class StarTableFactory {
      *
      * @param  tseq  input sequence
      * @param  nameBase  stem of table name
+     * @param  builder   table builder
      * @return  output sequence
      */
-    private TableSequence prepareTableSequence( final TableSequence tseq,
-                                                final String nameBase ) {
+    private TableSequence
+            prepareTableSequence( final TableSequence tseq,
+                                  final String nameBase,
+                                  final MultiTableBuilder builder ) {
         return new TableSequence() {
             private int index;
             public StarTable nextTable() throws IOException {
@@ -993,7 +1030,7 @@ public class StarTableFactory {
                 }
                 else {
                     index++;
-                    table = prepareTable( table );
+                    table = prepareTable( table, builder );
                     if ( table.getName() == null ) {
                         table.setName( nameBase + index );
                     }
