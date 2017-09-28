@@ -247,6 +247,8 @@ public class ControlWindow extends AuxWindow
         super( "TOPCAT", null );
 
         /* Configure table factory. */
+        tabfact_.setPreparation( new TopcatPreparation( tabfact_
+                                                       .getPreparation() ) );
         tabfact_.getJDBCHandler()
                 .setAuthenticator( new TextModelsAuthenticator() );
         taboutput_.setJDBCHandler( tabfact_.getJDBCHandler() );

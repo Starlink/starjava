@@ -42,6 +42,7 @@ import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.ShapeIterator;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
@@ -79,6 +80,7 @@ public class TopcatModel {
     private final ToggleButtonModel rowSendModel_;
     private final Collection listeners_;
     private final Map columnSelectorMap_;
+    private final TableBuilder tableBuilder_;
     private SubsetConsumerDialog subsetConsumerDialog_;
     private final int id_;
     private final ControlWindow controlWindow_;
@@ -110,6 +112,12 @@ public class TopcatModel {
     protected TopcatModel( StarTable startab, String location,
                            ControlWindow controlWindow ) {
         controlWindow_ = controlWindow;
+
+        /* Pull out the information about the input table format that
+         * should have been stashed in the table's parametr list
+         * by the TopcatTableFactory.  Remove the relevant parameter from
+         * the list so that the rest of the application doesn't see it. */
+        tableBuilder_ = TopcatPreparation.removeFormatParameter( startab );
 
         /* Ensure that we have random access. */
         if ( ! startab.isRandom() && startab.getRowCount() != 0 ) {
@@ -280,6 +288,16 @@ public class TopcatModel {
      */
     public int getID() {
         return id_;
+    }
+
+    /**
+     * Returns the table builder object that originally loaded
+     * this model's table.
+     *
+     * @return   table origin input handler if known, or null
+     */
+    public TableBuilder getTableFormat() {
+        return tableBuilder_;
     }
 
     public String toString() {

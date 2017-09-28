@@ -193,7 +193,7 @@ public class Driver {
     private static void runMain( String[] args )
             throws SampException, IOException {
         VOElementFactory.STRICT_DEFAULT = false;
-        tabfact = new StarTableFactory( true );
+        tabfact = TopcatPreparation.createFactory();
         String cmdname;
         try {
             Loader.loadProperties();
@@ -579,7 +579,7 @@ public class Driver {
         int ntab = demoNames.length;
         if ( demoTables == null ) {
             demoTables = new StarTable[ ntab ];
-            StarTableFactory demoFactory = new StarTableFactory( true );
+            StarTableFactory demoFactory = TopcatPreparation.createFactory();
             for ( int i = 0; i < ntab; i++ ) {
                 final String demoName = demoNames[ i ];
                 try {
