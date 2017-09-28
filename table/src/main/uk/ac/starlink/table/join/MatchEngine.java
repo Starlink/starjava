@@ -113,7 +113,7 @@ public interface MatchEngine {
     /**
      * Returns a scale value for the match score.
      * The intention is that the result of
-     * {@link #matchScore(Object[],Object) matchScore}/{@link #getScoreScale}
+     * {@link #matchScore matchScore}/{@link #getScoreScale}
      * is of order unity, and is thus comparable between
      * different match engines.
      *

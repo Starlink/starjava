@@ -8,7 +8,7 @@ import uk.ac.starlink.table.StarTableFactory;
  * All its methods are called on the Event Dispatch Thread, and must be
  * called in sequence:
  * <ol>
- * <li>{@link #startSequence}<li>
+ * <li>{@link #startSequence}</li>
  * <li>{@link #setLabel}, {@link #loadSuccess}, {@link #loadFailure}
  *     (any number of times, in any order)</li>
  * <li>{@link #endSequence}</li>
