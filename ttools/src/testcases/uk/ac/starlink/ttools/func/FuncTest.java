@@ -56,6 +56,37 @@ public class FuncTest extends TestCase {
         assertEquals( 4, Arithmetic.round( 4.5 ) );
 
         assertEquals( 3.14f, Arithmetic.roundDecimal( Math.PI, 2 ) );
+
+        assertEquals( 3, Arithmetic.mod( 23, 10 ) );
+        assertEquals( 3, Arithmetic.mod( 23, -10 ) );
+        assertEquals( -3, -23 % 10 );
+        assertEquals( 7, Arithmetic.mod( -23, 10 ) );
+        assertEquals( 0, Arithmetic.mod( 320, 16 ) );
+        assertEquals( 0, Arithmetic.mod( -320, 16 ) );
+        assertEquals( 0.5, Arithmetic.mod( 5.5, 1.25 ) );
+
+        assertEquals( 0.5, Arithmetic.phase( 112.5, 25 ) );
+        assertEquals( 0.75, Arithmetic.phase( 7, 4 ) );
+        assertEquals( 0.8, Arithmetic.phase( -1000.5, 2.5 ) );
+        assertEquals( 0, Arithmetic.phase( -3300, 33 ) );
+
+        assertEquals( 0.5, Arithmetic.phase( 112.5, 25, 0 ) );
+        assertEquals( 0.03, Arithmetic.phase( 5003, 100, 0 ) );
+        assertEquals( 0.01, Arithmetic.phase( 5003, 100, 2 ) );
+        assertEquals( 0.99, Arithmetic.phase( 5003, 100, 4 ) );
+
+        assertEquals( 1.0, Arithmetic.phase( -8.6, 0.2, 0, 0.5 ),
+                      1e-9 );
+        assertEquals( 0.0, Arithmetic.phase( 8.6125, 0.2, 0.0125, -0.7 ),
+                      1e-9 );
+        assertEquals( -0.5, Arithmetic.phase( 8.6125, 0.2, 0.1125, -0.7 ),
+                      1e-9 );
+        assertEquals( 99.2, Arithmetic.phase( 23, 10, 1, 99 ) );
+    }
+
+    private static double maxtedPhase( double t, double period, double t0,
+                                       double phase0 ) {
+        return ((1 - phase0 + ((t-t0)/period % 1)) % 1) + phase0;
     }
 
     public void testList() {

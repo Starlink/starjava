@@ -25032,6 +25032,12 @@ introduced since the last version:
         positions specified in spherical polar coordinates.</li>
     <li>Upgrade JEL to v2.1.2: now you can use functions in the expression
         language that have the same name as table columns.</li>
+    <li>Add new <ref id="Arithmetic"><code>phase</code></ref> functions
+        to help with phase folding given a known period.
+        A new modulus function <ref id="Arithmetic"><code>mod</code></ref>,
+        whose output is always positive
+        (unlike the <code>%</code> operator)
+        is also added.</li>
     </ul>
     </p></dd>
 

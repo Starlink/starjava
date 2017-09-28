@@ -11243,6 +11243,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Small taplint update; required UCD for
         <code>obs_publisher_did</code>/<code>publisher_id</code> changed
         to match REC-ObsCore-1.1 (even though it's an illegal UCD1+).</li>
+    <li>Add new <ref id="uk.ac.starlink.ttools.func.Arithmetic"
+                     ><code>phase</code></ref> functions
+        to help with phase folding given a known period.
+        A new modulus function
+        <ref id="uk.ac.starlink.ttools.func.Arithmetic"
+             ><code>mod</code></ref>,
+        whose output is always positive
+        (unlike the <code>%</code> operator) is also added.</li>
     </ul>
     </p></dd>
 

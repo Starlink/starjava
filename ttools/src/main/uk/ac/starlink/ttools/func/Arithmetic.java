@@ -8,6 +8,8 @@ package uk.ac.starlink.ttools.func;
 /**
  * Standard arithmetic functions including things like rounding, 
  * sign manipulation, and maximum/minimum functions.
+ * Phase folding operations, and a convenient form of the modulus operation
+ * on which they are based, are also provided.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Sep 2004
@@ -215,5 +217,85 @@ public class Arithmetic {
         else {
             return Math.min( a, b );
         }
+    }
+
+    /**
+     * Returns the non-negative remainder of <code>a/b</code>.
+     * This is a modulo operation, but differs from the expression
+     * <code>a%b</code> in that the answer is always &gt;=0
+     * (as long as <code>b</code> is not zero).
+     *
+     * @example  <code>modulo(14, 5) = 4</code>
+     * @example  <code>modulo(-14, 5) = 1</code>
+     * @example  <code>modulo(2.75, 0.5) = 0.25</code>
+     *
+     * @param  a  dividend
+     * @param  b  divisor
+     * @return   non-negative remainder when
+     *           dividing <code>a</code> by <code>b</code>
+     */
+    public static double mod( double a, double b ) {
+        double mod = a % b;
+        return mod >= 0 ? mod : mod + Math.abs( b );
+    }
+
+    /**
+     * Returns the phase of a value within a period.
+     *
+     * <p>For positive period, the returned value is in the range [0,1).
+     *
+     * @example   <code>phase(7, 4) = 0.75</code>
+     * @example   <code>phase(-1000.5, 2.5) = 0.8</code>
+     * @example   <code>phase(-3300, 33) = 0</code>
+     *
+     * @param  t  value
+     * @param  period   folding period
+     * @return   mod(t,period)/period
+     */
+    public static double phase( double t, double period ) {
+        return mod( t, period ) / period;
+    }
+
+    /**
+     * Returns the phase of an offset value within a period.
+     * The reference value <code>t0</code> corresponds to phase zero.
+     *
+     * <p>For positive period, the returned value is in the range [0,1).
+     *
+     * @example  <code>phase(5003,100,0) = 0.03</code>
+     * @example  <code>phase(5003,100,2) = 0.01</code>
+     * @example  <code>phase(5003,100,4) = 0.99</code>
+     *
+     * @param  t  value
+     * @param  period   folding period
+     * @param  t0  reference value, corresponding to phase zero
+     * @return   phase(t-t0, period)
+     */
+    public static double phase( double t, double period, double t0 ) {
+        return mod( t - t0, period ) / period;
+    }
+
+    /**
+     * Returns the offset phase of an offset value within a period.
+     * The reference value <code>t0</code> corresponds to integer phase
+     * value, and the phase offset <code>phase0</code> determines the
+     * starting value for the phase range.
+     *
+     * <p>For positive period, the returned value is in the range
+     * [<code>phase0</code>,<code>phase0+1</code>).
+     *
+     * @example   <code>phase(23,10,1,99) = 99.2</code>
+     * @example   <code>phase(8.6125,0.2,0.0125,-0.3) = 0</code>
+     * @example   <code>phase(8.6125,0.2,0.1125,-0.7) = -0.5</code>
+     *
+     * @param  t  value
+     * @param  period   folding period
+     * @param  t0   reference value, corresponding to phase zero
+     * @param  phase0  offset for phase
+     * @return  offset phase
+     */
+    public static double phase( double t, double period, double t0,
+                                double phase0 ) {
+        return mod( t - t0 - phase0 * period, period ) / period + phase0; 
     }
 }
