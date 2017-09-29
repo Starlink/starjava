@@ -147,7 +147,7 @@ public class StiltsControl extends TabberControl {
             invokerSelector_ =
                 new JComboBox( StiltsInvoker.INVOKERS );
             invokerSelector_
-               .setSelectedItem( invokerSelector_.getItemAt( 0 ) );
+               .setSelectedItem( StiltsInvoker.TOPCAT );
             zoneSuffixSelector_ =
                 new JComboBox( StiltsPlotFormatter.ZONE_SUFFIXERS );
             zoneSuffixSelector_

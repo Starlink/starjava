@@ -81,7 +81,8 @@ public class StiltsDialog extends AuxDialog {
         /* Set up menu items to configure the command formatting. */
         invokerSelector_ =
             new MenuSelector<StiltsInvoker>( "Invocation",
-                                             StiltsInvoker.INVOKERS );
+                                             StiltsInvoker.INVOKERS,
+                                             StiltsInvoker.TOPCAT );
         zoneSuffixSelector_ =
             new MenuSelector<Suffixer>( "Zone Suffixes",
                                         StiltsPlotFormatter.ZONE_SUFFIXERS );

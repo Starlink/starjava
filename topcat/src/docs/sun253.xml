@@ -7973,6 +7973,19 @@ to reproduce a plot you have set up interactively, or it can
 be used as a basis for later adjustments to some of the parameters.
 </p>
 
+<p>TOPCAT itself contains the STILTS application, so you don't
+need to install any additional software to use it.
+You can run it by adding the "<code>-stilts</code>" flag
+to a topcat command, or on a Unix-like OS use the <code>stilts</code>
+script.  If you don't already have it, you can download 
+<webref url="http://www.starlink.ac.uk/stilts/stilts"
+                                ><code>stilts</code></webref>
+to the directory containing your TOPCAT jar file;
+see also <docxref doc="sun256" loc="invoke"/>.
+The <code>Invocation</code> formatting options described below
+can also help.
+</p>
+
 <p>You can use this facility with very little understanding of
 the details of STILTS.
 You just need to copy the text
@@ -7982,7 +7995,8 @@ and paste it onto a system command line or into a script.
 Executing the resulting command should then pop up the current plot
 in a new window outside of TOPCAT.
 If it doesn't work, changing some of the <label>Formatting</label>
-options described below may help.
+options described below
+(e.g. setting <em>Invocation</em> to <em>Class-path</em>) may help.
 To write the result to a graphics file instead of displaying it
 in a window, just add a parameter like <code>out=plot.png</code>
 to the end of the line.
