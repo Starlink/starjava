@@ -1640,8 +1640,10 @@ and not worry about which of these variants is being used - if
 
 <p>The FITS standard only supports BINTABLE extensions with a maximum
 of 999 columns.  In TOPCAT versions up to v4.4, attempting to write
-a wider table to FITS format would fail.  In later versions, a
-non-standard convention is used so that tables with up to 2^31
+a wider table to FITS format would fail.  In v4.5 and later, a
+non-standard convention
+(described in <docxref doc="sun252" loc="wideFits"/>)
+is used so that tables with up to 2^31
 columns can be written and re-read.
 Note however that if software unaware of this convention
 (e.g. CFITSIO or earlier versions of TOPCAT) is used
@@ -16872,17 +16874,17 @@ and table activation actions are not saved either.
 It is possible that some of this may be changed in future releases.
 </p>
 
-<p>The session save format has changed after TOPCAT version 4.4.
+<p>The session save format has changed at TOPCAT version 4.5.
 Up to v4.4, columns and row subsets that had been defined
 algebraically were saved as fixed values, so the expressions
 were lost and it was no longer possible to edit them
 following a session save/load.
-After v4.4, the expressions themselves are saved and reloaded,
+At v4.5, the expressions themselves are saved and reloaded,
 which means the state is preserved better after a session save/load cycle,
 and may also result in smaller saved files.
-Later versions should be able to load sessions saved by earlier
-versions, but not vice versa.
-This also means that if you try to load a later-format session
+Post-v4.5 versions of TOPCAT should be able to load sessions
+saved by pre-v4.5 versions, but not vice versa.
+This also means that if you try to load a v4.5-format session
 into a non-TOPCAT reader, the algebraically-defined columns will
 not appear, but session-saving is not recommended for use with
 other table applications in any case.
@@ -24873,121 +24875,148 @@ introduced since the last version:
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Fix bug in plot title placement.</li>
-    <li>Add position angle calculation functions
-        <code>posAngRadians</code> and <code>posAngDegrees</code>
-        to expression language.</li>
-    <li>Fix bug when saving tables generated from plots
-        (e.g. SkyDensity HEALPix maps) that sometimes saved data
-        from the wrong plot.</li>
-    <li>Updated experimental <label>TAP|Service Discovery|Reg Prototype</label> 
-        menu option to match v1.1 of Data Discovery Note.</li>
-    <li>Fix misfeature in
-        <ref id="form-skyvector">SkyVector</ref> and
-        <ref id="form-skyellipse">SkyEllipse</ref> plot forms;
-        these now preserve orientation on the sky even when
-        the View and Data Sky Systems differ.
-        Previously the
-        <label>Delta Longitude/Latitude</label> and
-        <label>Position Angle</label>
-        parameters were always interpreted in
-        the View, rather than the Data, sky system.</li>
-    <li>New <ref id="LayerControl_skygrid">SkyGrid Layer Control</ref>
-        can draw multiple sky system coordinate axis grids on sky plot.</li>
-    <li>New plot forms
-        <ref id="form-xycorr">XYCorr</ref> and
-        <ref id="form-skycorr">SkyCorr</ref> for error ellipses rotated
-        as specified by Gaia-style correlation values.</li>
-    <li>Fix bug in Statistics Window table export/import actions;
-        it was failing if the Sum statistic was included in the presence of
-        boolean columns.</li>
-    <li>Slight changes to the FITS-plus output handler VOTable formatting
-        in the primary HDU; now uses default output VOTable version
-        rather than VOTable 1.1.</li>
-    <li>For VOTable columns that reference <code>COOSYS</code> elements,
-        the relevant information is now visible
-        (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
-         <code>CoosysEquinox</code>)
-        in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
-    <li>Any columns referencing <code>COOSYS</code> elements 
-        read from VOTable-based formats (VOTable or FITS-plus) 
-        will now be written out to VOTable-based formats with
-        equivalent COOSYS references included.  
-        Currently not table parameters though.</li>
-    <li>The default version for output VOTables is now VOTable 1.3.
-        New output formats <code>votable-binary2-inline</code> and
-        <code>votable-binary2-href</code> are now offered alongside
-        the five previously available VOTable variants.</li>
-    <li>TAP Examples display line now copes better with long and multi-line
-        names from service-provided examples.</li>
-    <li>TAP examples are now picked up from the <code>/examples</code>
-        document using more lenient rules
-        (no requirements for a containing <code>vocab</code> attribute).</li>
-    <li>FITS keywords using the ESO
-        <webref url="https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html"
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="StiltsControl">STILTS Control</ref> in plot windows.
+            This displays a STILTS plotting command that can regenerate the
+            currently visible plot.</li>
+        <li>Saving and loading <ref id="sessionSave">sessions</ref> 
+            now preserves algebraic expressions used to define columns and
+            row subsets (previously only the fixed values were saved and
+            the expressions were lost and could not be edited on reload).
+            Note that sessions saved by this version cannot be loaded by
+            older versions (though the other way round is OK).</li>
+        <li>New <ref id="LayerControl_skygrid">SkyGrid Layer Control</ref>
+            can draw multiple sky system coordinate axis grids on sky plot.</li>
+        <li>New plot forms
+            <ref id="form-xycorr">XYCorr</ref> and
+            <ref id="form-skycorr">SkyCorr</ref> for error ellipses rotated
+            as specified by Gaia-style correlation values.</li>
+        <li>Add click-header-to-sort action for a number of
+            displayed <ref id="JTable">JTables</ref>: the
+            <ref id="ColumnInfoWindow">Columns</ref>,
+            <ref id="StatsWindow">Statistics</ref>,
+            <ref id="ParameterWindow">Parameters</ref> and
+            <ref id="SubsetWindow">Subsets</ref> windows.
+            This makes it easier to deal with very wide tables.</li>
+        <li>Add position angle calculation functions
+            <ref id="CoordsDegrees"><code>posAngDegrees</code></ref> and
+            <ref id="CoordsRadians"><code>posAngRadians</code></ref>
+            to expression language.</li>
+        </ul>
+        </p></dd>
+    <dt>Table I/O changes</dt>
+    <dd><p>
+        <ul>
+        <li>It is now possible to write and re-read tables with &gt;999 
+            columns to FITS or colfits format.  The new limit is 2^31 columns.
+            This uses a non-standard convention; software that is not aware
+            of the convention (e.g. CFITSIO or earlier STILTS versions)
+            will only be able to use the first 998 columns of tables written
+            in this way.</li>
+        <li>For VOTable columns that reference <code>COOSYS</code> elements,
+            the relevant information is now visible
+            (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
+             <code>CoosysEquinox</code>)
+            in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+        <li>Any columns referencing <code>COOSYS</code> elements 
+            read from VOTable-based formats (VOTable or FITS-plus) 
+            will now be written out to VOTable-based formats with
+            equivalent COOSYS references included.  
+            Currently not table parameters though.</li>
+        <li>The default version for output VOTables is now VOTable 1.3.
+            New output formats <code>votable-binary2-inline</code> and
+            <code>votable-binary2-href</code> are now offered alongside
+            the five previously available VOTable variants.</li>
+        <li>Slight changes to the FITS-plus output handler VOTable formatting
+            in the primary HDU; now uses default output VOTable version
+            rather than VOTable 1.1.</li>
+        <li>FITS keywords using the ESO
+            <webref
+                url="https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html"
                 >HIERARCH</webref>
-        convention are now picked up rather than ignored when reading
-        FITS tables.</li>
-    <li>It is now possible to write and re-read tables with &gt;999 
-        columns to FITS or colfits format.  The new limit is 2^31 columns.
-        This uses a non-standard convention; software that is not aware
-        of the convention (e.g. CFITSIO or earlier STILTS versions)
-        will only be able to use the first 998 columns of tables written
-        in this way.</li>
-    <li>Replace option <label>autoscale</label> with <label>unit</label> in
-        <ref id="form-skyvector">SkyVector</ref> and
-        <ref id="form-skyellipse">SkyEllipse</ref> sky plot forms.</li>
-    <li>Change autoscaling defaults for plot forms
-        <ref id="form-vector">Vector</ref>,
-        <ref id="form-skyvector">SkyVector</ref>,
-        <ref id="form-xyellipse">XYEllipse</ref>,
-        <ref id="form-skyellipse">SkyEllipse</ref>;
-        autoscaling is now turned <em>off</em> by default.
-        Apologies for this change in behaviour,
-        but it's better for consistency with new layers
-        <ref id="form-xycorr">XYCorr</ref> and
-        <ref id="form-skycorr">SkyCorr</ref>,
-        and presents less danger of misinterpreted plots.</li>
-    <li>Add click-header-to-sort action for a number of
-        displayed <ref id="JTable">JTables</ref>: the
-        <ref id="ColumnInfoWindow">Columns</ref>,
-        <ref id="StatsWindow">Statistics</ref>,
-        <ref id="ParameterWindow">Parameters</ref> and
-        <ref id="SubsetWindow">Subsets</ref> windows.
-        This makes it easier to deal with very wide tables.</li>
-    <li>If a table is received from SAMP with a <code>table-id</code> that
-        has already been seen, it will not be loaded
-        (a SAMP error response is returned).</li>
-    <li>Update PixTools to 2017-09-06 version
-        (https://github.com/kuropat/eag-HEALPix,
-         <code>447a7be073876dba32</code>).
-        This fixes a bug in 
-        <ref id="Tilings"><code>healpixRingIndex</code></ref> that could give
-        the wrong value for small values of longitude near zero.
-        It seems possible that this might have led to very infrequent
-        missed associations when crossmatching in these regions,
-        but tests appear to indicate that no such errors would 
-        actually have resulted.</li>
-    <li>Saving and loading <ref id="sessionSave">sessions</ref> 
-        now preserves algebraic expressions used to define columns and
-        row subsets (previously only the fixed values were saved and
-        the expressions were lost and could not be edited on reload).
-        Note that sessions saved by this version cannot be loaded by
-        older versions (though the other way round is OK).</li>
-    <li>Long fields (&gt;10240 characters) in output CSV files
-        are no longer truncated.</li>
-    <li>The Euro-VO RegTAP Registry is now included in
-        the hard-coded list of options in VO window
-        <ref id="RegistryPanel">registry selectors</ref>.</li>
-    <li>Added Durham Galaxy Formation Catalogue URLs to the
-        <ref id="GavoTableLoadDialog">Virgo-Millennium Simulation Query</ref>
-        window (which has been slightly renamed from the 
-        <em>GAVO Millennium Run Query</em> window).</li>
-    <li>New <ref id="StiltsControl">STILLTS Control</ref> in plot windows.
-        This displays a STILTS plotting command that can regenerate the
-        currently visible plot.</li>
-    </ul>
+             convention can now be read as table parameters 
+             rather than ignored when reading FITS tables.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and changes</dt>
+    <dd><p>
+        <ul>
+        <li>Added Durham Galaxy Formation Catalogue URLs to the
+            <ref id="GavoTableLoadDialog"
+                 >Virgo-Millennium Simulation Query</ref>
+            window (which has been slightly renamed from the 
+            <em>GAVO Millennium Run Query</em> window).</li>
+        <li>The Euro-VO RegTAP Registry is now included in
+            the hard-coded list of options in VO window
+            <ref id="RegistryPanel">registry selectors</ref>.</li>
+        <li>Updated experimental
+            <label>TAP|Service Discovery|Reg Prototype</label> 
+            menu option to match v1.1 of Data Discovery Note.</li>
+        <li>Replace option <label>autoscale</label> with <label>unit</label> in
+            <ref id="form-skyvector">SkyVector</ref> and
+            <ref id="form-skyellipse">SkyEllipse</ref> sky plot forms.</li>
+        <li>Change autoscaling defaults for plot forms
+            <ref id="form-vector">Vector</ref>,
+            <ref id="form-skyvector">SkyVector</ref>,
+            <ref id="form-xyellipse">XYEllipse</ref>,
+            <ref id="form-skyellipse">SkyEllipse</ref>;
+            autoscaling is now turned <em>off</em> by default.
+            Apologies for this change in behaviour,
+            but it's better for consistency with new layers
+            <ref id="form-xycorr">XYCorr</ref> and
+            <ref id="form-skycorr">SkyCorr</ref>,
+            and presents less danger of misinterpreted plots.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Update PixTools (HEALPix) library to 2017-09-06 version
+            (https://github.com/kuropat/eag-HEALPix,
+             <code>447a7be073876dba32</code>).
+            This fixes a bug in 
+            <ref id="Tilings"><code>healpixRingIndex</code></ref>
+            that could give
+            the wrong value for small values of longitude near zero.
+            It seems possible that this might have led to very infrequent
+            missed associations when crossmatching in these regions,
+            but tests appear to indicate that no such errors would 
+            actually have resulted.</li>
+        <li>Fix misfeature in
+            <ref id="form-skyvector">SkyVector</ref> and
+            <ref id="form-skyellipse">SkyEllipse</ref> plot forms;
+            these now preserve orientation on the sky even when
+            the View and Data Sky Systems differ.
+            Previously the
+            <label>Delta Longitude/Latitude</label> and
+            <label>Position Angle</label>
+            parameters were always interpreted in
+            the View, rather than the Data, sky system.</li>
+        <li>TAP examples are now picked up from the <code>/examples</code>
+            document using more lenient rules
+            (no requirements for a containing <code>vocab</code>
+            attribute).</li>
+        <li>TAP Examples display line now copes better with long and multi-line
+            names from service-provided examples.</li>
+        <li>Long fields (&gt;10240 characters) in output CSV files
+            are no longer truncated.</li>
+        <li>If a table is received from SAMP with a <code>table-id</code> that
+            has already been seen, it will not be loaded
+            (a SAMP error response is returned).</li>
+        <li>Fix bug in plot title placement.</li>
+        <li>Fix bug when saving tables generated from plots
+            (e.g. SkyDensity HEALPix maps) that sometimes saved data
+            from the wrong plot.</li>
+        <li>Fix bug in Statistics Window table export/import actions;
+            it was failing if the Sum statistic was included in the presence of
+            boolean columns.</li>
+        </ul>
+        </p></dd>
+
+    </dl>
     </p></dd>
 
 </dl>
