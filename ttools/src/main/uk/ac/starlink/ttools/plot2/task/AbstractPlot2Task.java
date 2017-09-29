@@ -104,6 +104,7 @@ import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.DoubleArrayParameter;
 import uk.ac.starlink.ttools.task.DynamicTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
+import uk.ac.starlink.ttools.task.InputFormatParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.StringMultiParameter;
 import uk.ac.starlink.ttools.task.TableProducer;
@@ -2037,15 +2038,45 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     private StarTable getInputTable( Environment env, String suffix )
             throws TaskException {
-        FilterParameter filterParam = new ParameterFinder<FilterParameter>() {
-            public FilterParameter createParameter( String sfix ) {
-                return createFilterParameter( sfix, null );
+
+        /* Get the basic input table from an InputTableParameter,
+         * which navigates suffixes in the usual way.
+         * But this has to be doctored so that its associated parameters
+         * (stream and format), that are used internally, also do
+         * suffix navigation. */
+        final InputFormatParameter fmtParam =
+                new ParameterFinder<InputFormatParameter>() {
+            public InputFormatParameter createParameter( String sfix ) {
+                return createTableParameter( sfix ).getFormatParameter();
+            }
+        }.getParameter( env, suffix );
+        final BooleanParameter streamParam =
+                new ParameterFinder<BooleanParameter>() {
+            public BooleanParameter createParameter( String sfix ) {
+                return createTableParameter( sfix ).getStreamParameter();
             }
         }.getParameter( env, suffix );
         InputTableParameter tableParam =
                 new ParameterFinder<InputTableParameter>() {
             public InputTableParameter createParameter( String sfix ) {
-                return createTableParameter( sfix );
+                return new InputTableParameter( createTableParameter( sfix )
+                                               .getName() ) {
+                    @Override
+                    public InputFormatParameter getFormatParameter() {
+                        return fmtParam;
+                    }
+                    @Override
+                    public BooleanParameter getStreamParameter() {
+                        return streamParam;
+                    }
+                };
+            }
+        }.getParameter( env, suffix );
+
+        /* Get the filter parameter. */
+        FilterParameter filterParam = new ParameterFinder<FilterParameter>() {
+            public FilterParameter createParameter( String sfix ) {
+                return createFilterParameter( sfix, null );
             }
         }.getParameter( env, suffix );
 
