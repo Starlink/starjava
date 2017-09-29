@@ -128,8 +128,8 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
      */
     protected StarTable makeTable( Environment env, String loc )
             throws TaskException {
-        String fmt = formatParam_.stringValue( env );
-        boolean stream = streamParam_.booleanValue( env );
+        String fmt = getFormatParameter().stringValue( env );
+        boolean stream = getStreamParameter().booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         try {
             if ( loc.equals( "-" ) ) {
@@ -170,8 +170,8 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
      */
     protected StarTable[] makeTables( Environment env, String loc )
             throws TaskException {
-        String fmt = formatParam_.stringValue( env );
-        boolean stream = streamParam_.booleanValue( env );
+        String fmt = getFormatParameter().stringValue( env );
+        boolean stream = getStreamParameter().booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         String streamWarning =
             "Can't currently stream multiple tables" +
@@ -186,7 +186,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
                 };
             }
             else {
-                if ( streamParam_.booleanValue( env ) ) {
+                if ( stream ) {
                     logger_.warning( streamWarning );
                 }
                 DataSource datsrc = DataSource.makeDataSource( loc );
@@ -224,7 +224,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
         if ( inFmt == null ||
              inFmt.equals( StarTableFactory.AUTO_HANDLER ) ) {
             String msg = "Must specify input format for streamed table";
-            throw new ParameterValueException( formatParam_, msg );
+            throw new ParameterValueException( getFormatParameter(), msg );
         }
         final TableBuilder tbuilder = tfact.getTableBuilder( inFmt );
         assert tbuilder != null;
