@@ -11089,108 +11089,135 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Fix bug in plot title placement.</li>
-    <li>The <code>charset</code> parameter of <code>votcopy</code>
-        now defaults to UTF-8 rather than the system default.</li>
-    <li>Add position angle calculation functions
-        <code>posAngRadians</code> and <code>posAngDegrees</code>
-        to expression language.</li>
-    <li>Fix misfeature in
-        <ref id="layer-skyvector">skyvector</ref> and
-        <ref id="layer-skyellipse">skyellipse</ref> plot layers;
-        these now preserve orientation on the sky even when
-        <code>viewsys</code> differs from <code>datasys</code>.
-        Previously the <code>dlat</code>/<code>dlon</code>/<code>posang</code>
-        parameters were always interpreted in
-        the view, rather than the data, sky coordinate system.</li>
-    <li>New plot layer type <ref id="layer-skygrid">skygrid</ref>
-        can draw multiple sky system coordinate axis grids on sky plot.</li>
-    <li>New plot layer types
-        <ref id="layer-xycorr">xycorr</ref> and
-        <ref id="layer-skycorr">skycorr</ref> for error ellipses rotated
-        as specified by Gaia-style correlation values.</li>
-    <li>Fix filename generation error for <code>plot2*</code> command
-        animation output (wrong number of digits if frame count
-        was an exact power of 10).</li>
-    <li>Taplint: downgrade type mismatch error <code>E_QTYP</code>
-        to warning <code>W_QTYP</code> in view of TAP-1.0 Erratum #3.</li>
-    <li>The <code>COOSYS</code> element is now passed without a deprecation
-        warning in VOTable 1.3 documents by
-        the <code>taplint</code> and <code>votlint</code> validators,
-        in view of VOTable-1.3 Erratum #1.
-        The warning is still issued for VOTable 1.2 documents,
-        but the text is toned down.</li>
-    <li>Slight changes to the FITS-plus output handler VOTable formatting
-        in the primary HDU; now uses default output VOTable version
-        rather than VOTable 1.1.</li>
-    <li>For VOTable columns that reference <code>COOSYS</code> elements,
-        the relevant information is now accessible as column auxiliary metadata
-        (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
-         <code>CoosysEquinox</code>)
-        e.g. using the <ref id="meta"><code>meta</code></ref> filter.</li>
-    <li>Any columns referencing <code>COOSYS</code> elements
-        read from VOTable-based formats (VOTable or FITS-plus)
-        will now be written out to VOTable-based formats with
-        equivalent COOSYS references included.
-        Currently not table parameters though.</li>
-    <li>Colour map parameters
-        (<code>auxmap</code>, <code>densemapN</code> etc)
-        for the <code>plot2*</code> commands
-        will now accept custom colour maps that interpolate between
-        a list of named colours,
-        e.g. "<code>HotPink-yellow-SkyBlue</code>".</li>
-    <li>The default version for output VOTables is now VOTable 1.3.
-        New output formats <code>votable-binary2-inline</code> and
-        <code>votable-binary2-href</code> are now offered alongside
-        the five previously available VOTable variants.</li>
-    <li>Taplint no longer issues a warning about DataModel references
-        that do not match the <code>vr:IdentifierURI</code> type;
-        this follows TAPRegExt Erratum #1.</li>
-    <li>Modify taplint Examples document @vocab attribute testing in the
-        light of DALI 1.1.</li>
-    <li>FITS keywords using the ESO
-        <webref url="https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html"
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>New plot layer types
+            <ref id="layer-xycorr">xycorr</ref> and
+            <ref id="layer-skycorr">skycorr</ref> for error ellipses rotated
+            as specified by Gaia-style correlation values.</li>
+        <li>New plot layer type <ref id="layer-skygrid">skygrid</ref>
+            can draw multiple sky system coordinate axis grids on sky plot.</li>
+        <li>Colour map parameters
+            (<code>auxmap</code>, <code>densemapN</code> etc)
+            for the plotting commands
+            will now accept custom colour maps that interpolate between
+            a list of named colours,
+            e.g. "<code>HotPink-yellow-SkyBlue</code>".</li>
+        <li>New position angle calculation functions
+            <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
+                 ><code>posAngRadians</code></ref>
+            and
+            <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
+                 ><code>posAngDegrees</code></ref>
+            added to expression language.</li>
+        </ul>
+        </p></dd>
+    <dt>Table I/O changes</dt>
+    <dd><p>
+        <ul>
+        <li>It is now possible to write and re-read tables with &gt;999
+            columns to FITS or colfits format.  The new limit is 2^31 columns.
+            This uses a non-standard convention; software that is not aware
+            of the convention (e.g. CFITSIO or earlier STILTS versions)
+            will only be able to use the first 998 columns of tables written
+            in this way.</li>
+        <li>For VOTable columns that reference <code>COOSYS</code> elements,
+            the relevant information is now accessible as
+            column auxiliary metadata
+            (<code>CoosysSystem</code>, <code>CoosysEpoch</code>,
+             <code>CoosysEquinox</code>)
+            e.g. using the <ref id="meta"><code>meta</code></ref> filter.</li>
+        <li>Any columns referencing <code>COOSYS</code> elements
+            read from VOTable-based formats (VOTable or FITS-plus)
+            will now be written out to VOTable-based formats with
+            equivalent COOSYS references included.
+            Currently not table parameters though.</li>
+        <li>The default version for output VOTables is now VOTable 1.3.
+            New output formats <code>votable-binary2-inline</code> and
+            <code>votable-binary2-href</code> are now offered alongside
+            the five previously available VOTable variants.</li>
+        <li>Slight changes to the FITS-plus output handler VOTable formatting
+            in the primary HDU; now uses default output VOTable version
+            rather than VOTable 1.1.</li>
+        <li>FITS keywords using the ESO
+            <webref
+                url="https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html"
                 >HIERARCH</webref>
-        convention are now picked up rather than ignored when reading
-        FITS tables.</li>
-    <li>It is now possible to write and re-read tables with &gt;999
-        columns to FITS or colfits format.  The new limit is 2^31 columns.
-        This uses a non-standard convention; software that is not aware
-        of the convention (e.g. CFITSIO or earlier STILTS versions)
-        will only be able to use the first 998 columns of tables written
-        in this way.</li>
-    <li>Replace parameter <code>autoscale</code> with <code>unit</code> in
-        <ref id="layer-skyvector"><code>skyvector</code></ref> and
-        <ref id="layer-skyellipse"><code>skyellipse</code></ref>
-        plot layers.</li>
-    <li>Change autoscaling defaults for plot layer types
-        <ref id="layer-xyvector"><code>xyvector</code></ref>,
-        <ref id="layer-xyzvector"><code>xyzvector</code></ref>,
-        <ref id="layer-skyvector"><code>skyvector</code></ref>,
-        <ref id="layer-xyellipse"><code>xyellipse</code></ref>,
-        <ref id="layer-skyellipse"><code>skyellipse</code></ref>;
-        autoscaling is now turned <em>off</em> by default.
-        Apologies for this change to behaviour,
-        but it's better for consistency with new layers
-        <ref id="layer-xycorr"><code>xycorr</code></ref> and
-        <ref id="layer-skycorr"><code>skycorr</code></ref>,
-        and presents less danger of misinterpreted plots.</li>
-    <li>Update PixTools to 2017-09-06 version
-        (https://github.com/kuropat/eag-HEALPix,
-         <code>447a7be073876dba32</code>).
-        This fixes a bug in
-        <ref id="uk.ac.starlink.ttools.func.Tilings"
-             ><code>healpixRingIndex</code></ref> that could give
-        the wrong value for small values of longitude near zero
-        in the equatorial region.
-        It seems possible that this might have led to very infrequent
-        missed associations when crossmatching in these regions,
-        but tests appear to indicate that no such errors would
-        actually have resulted.</li>
-    <li>Long fields (&gt;10240 characters) in output CSV files
-        are no longer truncated.</li>
-    </ul>
+            convention can now be read as table parameters
+            rather than ignored when reading FITS tables.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor behaviour changes</dt>
+    <dd><p>
+        <ul>
+        <li>The <code>charset</code> parameter of <code>votcopy</code>
+            now defaults to UTF-8 rather than the system default.</li>
+        <li>Replace parameter <code>autoscale</code> with <code>unit</code> in
+            <ref id="layer-skyvector"><code>skyvector</code></ref> and
+            <ref id="layer-skyellipse"><code>skyellipse</code></ref>
+            plot layers.</li>
+        <li>Change autoscaling defaults for plot layer types
+            <ref id="layer-xyvector"><code>xyvector</code></ref>,
+            <ref id="layer-xyzvector"><code>xyzvector</code></ref>,
+            <ref id="layer-skyvector"><code>skyvector</code></ref>,
+            <ref id="layer-xyellipse"><code>xyellipse</code></ref>,
+            <ref id="layer-skyellipse"><code>skyellipse</code></ref>;
+            autoscaling is now turned <em>off</em> by default.
+            Apologies for this change to behaviour,
+            but it's better for consistency with new layer types
+            <ref id="layer-xycorr"><code>xycorr</code></ref> and
+            <ref id="layer-skycorr"><code>skycorr</code></ref>,
+            and presents less danger of misinterpreted plots.</li>
+        <li>Taplint: downgrade type mismatch error <code>E_QTYP</code>
+            to warning <code>W_QTYP</code> in view of TAP-1.0 Erratum #3.</li>
+        <li>The <code>COOSYS</code> element is now passed without a deprecation
+            warning in VOTable 1.3 documents by
+            the <code>taplint</code> and <code>votlint</code> validators,
+            in view of VOTable-1.3 Erratum #1.
+            The warning is still issued for VOTable 1.2 documents,
+            but the text is toned down.</li>
+        <li>Taplint no longer issues a warning about DataModel references
+            that do not match the <code>vr:IdentifierURI</code> type;
+            this follows TAPRegExt Erratum #1.</li>
+        <li>Modify taplint Examples document @vocab attribute testing in the
+            light of DALI 1.1.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Update PixTools (HEALPix) library to 2017-09-06 version
+            (https://github.com/kuropat/eag-HEALPix,
+             <code>447a7be073876dba32</code>).
+            This fixes a bug in
+            <ref id="uk.ac.starlink.ttools.func.Tilings"
+                 ><code>healpixRingIndex</code></ref> that could give
+            the wrong value for small values of longitude near zero
+            in the equatorial region.
+            It seems possible that this might have led to very infrequent
+            missed associations when crossmatching in these regions,
+            but tests appear to indicate that no such errors would
+            actually have resulted.</li>
+        <li>Long fields (&gt;10240 characters) in output CSV files
+            are no longer truncated.</li>
+        <li>Fix misfeature in
+            <ref id="layer-skyvector">skyvector</ref> and
+            <ref id="layer-skyellipse">skyellipse</ref> plot layers;
+            these now preserve orientation on the sky even when
+            <code>viewsys</code> differs from <code>datasys</code>.
+            Previously the
+            <code>dlat</code>/<code>dlon</code>/<code>posang</code>
+            parameters were always interpreted in
+            the view, rather than the data, sky coordinate system.</li>
+        <li>Fix bug in plot title placement.</li>
+        <li>Fix filename generation error for plotting command
+            animation output (wrong number of digits if frame count
+            was an exact power of 10).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
