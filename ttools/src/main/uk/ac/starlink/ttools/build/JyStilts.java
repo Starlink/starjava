@@ -109,6 +109,7 @@ public class JyStilts {
         Class[] clazzes = IMPORT_CLASSES;
         List importList = new ArrayList();
         importList.add( "import jarray.array" );
+        importList.add( "from org.python.core.util import StringUtil" );
         for ( int ic = 0; ic < clazzes.length; ic++ ) {
             Class clazz = clazzes[ ic ];
             String clazzName = clazz.getName();
@@ -388,7 +389,7 @@ public class JyStilts {
                                     + "):",
             "    def __init__(self, file):",
             "        buf = file.read(-1)",
-            "        self._buffer = jarray.array(buf, 'b')",
+            "        self._buffer = StringUtil.toBytes(buf)",
             "        if hasattr(file, 'name'):",
             "            self.setName(file.name)",
             "    def getRawInputStream(self):",
