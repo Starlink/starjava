@@ -1473,7 +1473,7 @@ public abstract class ErrorRenderer {
             /* If the X and Y offsets are aligned along X and Y axes we
              * can do it easily. */
             else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                      xoffs[ 2 ] == 0 && xoffs[ 2 ] == 0 ) {
+                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
                 int xlo = Math.min( xoffs[ 0 ], xoffs[ 1 ] );
                 int xhi = Math.max( xoffs[ 0 ], xoffs[ 1 ] );
                 int ylo = Math.min( yoffs[ 2 ], yoffs[ 3 ] );
