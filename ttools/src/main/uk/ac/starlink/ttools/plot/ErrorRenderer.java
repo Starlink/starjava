@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -225,6 +226,7 @@ public abstract class ErrorRenderer {
     private static final int LEGEND_HEIGHT = 16;
     private static final int LEGEND_XPAD = 5;
     private static final int LEGEND_YPAD = 1;
+    private static final int DUMMY_SIZE = 10000;
 
     /**
      * Constructor.
@@ -483,6 +485,34 @@ public abstract class ErrorRenderer {
             rends[ ir ] = spherizeRenderer( rends[ ir ] );
         }
         return rends;
+    }
+
+    /**
+     * This is supposed to return the dimensions of the target plotting area.
+     * It is used to assess whether lines etc are (much) too long to make an
+     * attempt at plotting them, since attempting to plot lines that
+     * are several kilometers in length can make the graphics system grind
+     * to a halt.  So the returned value is not critical, and erring on
+     * the large side is preferred.
+     *
+     * @param  g  graphics context
+     * @return   approximate size of visible graphics canvas
+     */
+    private static Dimension getApproxGraphicsSize( Graphics2D g ) {
+
+        /* The right way to do this looks like to use the
+         * GraphicsConfiguration object associated with the graphics context.
+         * However, in the headless case, this sometimes has a dummy size
+         * (width=height=1).  That looks like a bug, but I'm not sure.
+         * In any case, try to work round it; if the size looks silly,
+         * return a spurious large value instead.
+         * This isn't great, since making it too large may result
+         * in poor performance, but if it's too small the graphics
+         * may come out a bit wrong.  Don't know what else to do though. */
+        Dimension size = g.getDeviceConfiguration().getBounds().getSize();
+        return size.width > 1 && size.height > 1
+             ? size
+             : new Dimension( DUMMY_SIZE, DUMMY_SIZE );
     }
 
     /**
@@ -748,9 +778,9 @@ public abstract class ErrorRenderer {
             Graphics2D g2 = (Graphics2D) g;
             Stroke oldStroke = g2.getStroke();
             g2.setStroke( capper != null || willCover ? CAP_BUTT : CAP_ROUND );
-            Rectangle bounds = g2.getDeviceConfiguration().getBounds();
-            int xmax = bounds.width;
-            int ymax = bounds.height;
+            Dimension size = getApproxGraphicsSize( g2 );
+            int xmax = size.width;
+            int ymax = size.height;
             int np = xoffs.length;
             for ( int ip = 0; ip < np; ip++ ) {
                 int xoff = xoffs[ ip ];
@@ -983,8 +1013,8 @@ public abstract class ErrorRenderer {
             Graphics2D g2 = (Graphics2D) g;
             Stroke stroke0 = g2.getStroke();
             g2.setStroke( stroke_ );
-            Rectangle bounds = g2.getDeviceConfiguration().getBounds();
-            double dmax = Math.max( bounds.width, bounds.height );
+            Dimension size = getApproxGraphicsSize( g2 );
+            double dmax = Math.max( size.width, size.height );
             int np = xoffs.length;
             for ( int ip = 0; ip < np; ip++ ) {
                 double dx = xoffs[ ip ];
@@ -1093,9 +1123,8 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y,
                                 int[] xoffs, int[] yoffs ) {
-            Rectangle bounds =
-                ((Graphics2D) g).getDeviceConfiguration().getBounds();
-            int dmax = Math.max( bounds.width, bounds.height );
+            Dimension size = getApproxGraphicsSize( (Graphics2D) g );
+            int dmax = Math.max( size.width, size.height );
             boolean ok = true;
             for ( int ip = 0; ip < 4 && ok; ip++ ) {
                 ok = ok && Math.abs( xoffs[ ip ] ) < dmax
@@ -1403,8 +1432,8 @@ public abstract class ErrorRenderer {
              * graphics system attempting to fill an ellipse with a 
              * kilometre semi-major axis.  This may result in some 
              * distortions for ellipses - too bad. */
-            Rectangle bounds = g2.getDeviceConfiguration().getBounds();
-            int maxcoord = Math.max( bounds.width, bounds.height );
+            Dimension size = getApproxGraphicsSize( g2 );
+            int maxcoord = Math.max( size.width, size.height );
             boolean clipped = false;
             for ( int ioff = 0; ioff < noff && ! clipped; ioff++ ) {
                 int xoff = xoffs[ ioff ];

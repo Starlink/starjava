@@ -11223,6 +11223,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix plot bug that sometimes caused error bars to come out very small
+        when exporting to a graphics file.
+        This was a regression bug (present in v3.1-1 but not v3.1).</li>
     </ul>
     </p></dd>
 
