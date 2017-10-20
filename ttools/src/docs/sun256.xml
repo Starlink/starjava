@@ -11227,6 +11227,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         when exporting to a graphics file.
         This was a regression bug (present in v3.1-1 but not v3.1).</li>
     <li>Fix another tiny error bar plotting bug too.</li>
+    <li>Add new functions
+        <ref id="uk.ac.starlink.ttools.func.Strings"><code>desigTo*</code></ref>
+        for extracting positions from IAU-style object designations
+        (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
     </ul>
     </p></dd>
 

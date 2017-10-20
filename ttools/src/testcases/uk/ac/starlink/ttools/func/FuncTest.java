@@ -502,6 +502,32 @@ public class FuncTest extends TestCase {
 
         assertEquals( "some text", Strings.trim( "  some text  " ) );
         assertEquals( "some text", Strings.trim( "some text" ) );
+
+        // These examples from sec 3.5.1 of IAU-endorsed document
+        // "Specifications concerning designations" at
+        // http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx
+        checkDesig( "14:26:48", "+69:50:00", "RX J1426.8+6950" );
+        checkDesig( "13:02:00", "-63:50:00", "PSR J1302-6350" );
+        checkDesig( "17:49:37", "-28:03:52", "PN G001.2-00.3" );
+
+        checkDesig( "00:48:00", "-42:42:00", "QSO J0048-427" );
+        checkDesig( "00:51:08", "-42:26:29", "QSO 004848-4242.8" );
+        checkDesig( "12:00:00", "+45:00:00", "PSR J120000.0+450000.0" );
+        checkDesig( "12:02:33", "+44:43:18", "PSR B120000.0+450000.0" );
+        checkDesig( "12:02:33", "+44:43:18", "PSR 120000.0+450000.0 (O-RLY)" );
+
+        assertEquals( null, Strings.desigToIcrs( "NGC 4993" ) );
+        assertTrue( Double.isNaN( Strings.desigToRa( "HIP Z190012-230210" ) ) );
+        assertTrue( Double.isNaN( Strings.desigToDec( "TYC J190012230210" ) ) );
+    }
+
+    private void checkDesig( String raSex, String decSex, String desig ) {
+        assertEquals( raSex,
+                      CoordsDegrees
+                     .degreesToHms( Strings.desigToRa( desig ) ) );
+        assertEquals( decSex,
+                      CoordsDegrees
+                     .degreesToDms( Strings.desigToDec( desig ) ) );
     }
 
     public void testCoordsRadians() {

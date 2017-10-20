@@ -25021,6 +25021,10 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Add new functions 
+        <ref id="Strings"><code>desigTo*</code></ref>
+        for extracting positions from IAU-style object designations
+        (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
     </ul>
     </p></dd>
 

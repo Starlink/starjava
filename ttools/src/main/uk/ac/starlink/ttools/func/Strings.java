@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.convert.SkySystem;
 
 /**
  * String manipulation and query functions.
@@ -21,6 +22,16 @@ import uk.ac.starlink.table.Tables;
 public class Strings {
 
     private static Map patterns = new HashMap();
+    private static final Pattern DESIG_REGEX = Pattern.compile(
+          "([A-Za-z0-9][\\w.-]+[ _])?"   // 1. acronym + separator
+        + "([BJG]?)"                     // 2. flag
+        + "([0-9]{2,})"                  // 3. longitude integer part
+        + "((?:[.][0-9]+)?)"             // 4. longitude fractional part
+        + "([+-])"                       // 5. latitude sign
+        + "([0-9]{2,})"                  // 6. latitude integer part
+        + "((?:[.][0-9]+)?)"             // 7. latitude fractional part
+        + "( [(][^)]*[)])?"              // 8. specifier
+    );
 
     /**
      * Private constructor prevents instantiation.
@@ -405,6 +416,243 @@ public class Strings {
             sval = new String( cbuf ) + sval;
         }
         return sval;
+    }
+
+    /**
+     * Attempts to determine the ICRS Right Ascension from
+     * an IAU-style designation such as "<code>2MASS J04355524+1630331</code>"
+     * following the specifications in the document
+     * <a href="http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx"
+     *         >http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx</a>.
+     *
+     * <p><strong>Note:</strong>
+     * this function should be used with considerable care.
+     * Such designators are intended for object identification
+     * and not for communicating sky positions,
+     * so that the resulting positions are likely to lack precision,
+     * and may be inaccurate.
+     * If positional information is available from other sources,
+     * it should almost certainly be used instead.
+     * But if there's no other choice, this may be used as a fallback.
+     *
+     * <p><strong>Note also</strong>
+     * that a designator with no coordsystem-specific flag character
+     * (a leading "<code>J</code>", "<code>B</code>" or "<code>G</code>")
+     * is considered to be B1950, <em>not</em> J2000.
+     *
+     * @example  <code>desigToRa("2MASS J04355524+1630331") = 60.98016</code>
+     * @example  <code>desigToRa("PSR J120000.0+450000.0") = 180</code>
+     * @example  <code>desigToDec("PSR B120000.0+450000.0") = 180.639096</code>
+     * @example  <code>desigToRa("PN G001.2-00.3") = 267.403</code>
+     * @example  <code>desigToRa("NGC 4993") = NaN</code>
+     *
+     * @param   designation   designation string in IAU format
+     * @return   ICRS right ascension in degreees,
+     *           or blank if no position can be decoded
+     */
+    public static double desigToRa( String designation ) {
+        double[] pos = desigToIcrs( designation );
+        return pos == null ? Double.NaN : pos[ 0 ];
+    }
+
+    /**
+     * Attempts to determine the ICRS Declination from
+     * an IAU-style designation such as "<code>2MASS J04355524+1630331</code>"
+     * following the specifications in the document
+     * <a href="http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx"
+     *         >http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx</a>.
+     *
+     * <p><strong>Note:</strong>
+     * this function should be used with considerable care.
+     * Such designators are intended for object identification
+     * and not for communicating sky positions,
+     * so that the resulting positions are likely to lack precision,
+     * and may be inaccurate.
+     * If positional information is available from other sources,
+     * it should almost certainly be used instead.
+     * But if there's no other choice, this may be used as a fallback.
+     *
+     * <p><strong>Note also</strong>
+     * that a designator with no coordsystem-specific flag character
+     * (a leading "<code>J</code>", "<code>B</code>" or "<code>G</code>")
+     * is considered to be B1950, <em>not</em> J2000.
+     *
+     * @example  <code>desigToDec("2MASS J04355524+1630331") = 16.50919</code>
+     * @example  <code>desigToDec("PSR J120000.0+450000.0") = 45</code>
+     * @example  <code>desigToDec("PSR B120000.0+450000.0") = 44.72167</code>
+     * @example  <code>desigToDec("PN G001.2-00.3") = -28.06457</code>
+     * @example  <code>desigToDec("NGC 4993") = NaN</code>
+     *
+     * @param   designation   designation string in IAU format
+     * @return   ICRS declination in degrees,
+     *           or blank if no position can be decoded
+     */
+    public static double desigToDec( String designation ) {
+        double[] pos = desigToIcrs( designation );
+        return pos == null ? Double.NaN : pos[ 1 ];
+    }
+
+    /**
+     * Attempts to decode
+     * an IAU-style designation such as "<code>2MASS J04355524+1630331</code>"
+     * to determine its sky position,
+     * following the specifications in the document
+     * <a href="http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx"
+     *         >http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx</a>.
+     *
+     * <p>Obviously, this only works where the <em>sequence</em> part
+     * of the designation takes one of the family of coordinate-based forms.
+     *
+     * <p><strong>Note:</strong>
+     * this function should be used with considerable care.
+     * Such designators are intended for object identification
+     * and not for communicating sky positions,
+     * so that the resulting positions are likely to lack precision,
+     * and may be inaccurate.
+     * If positional information is available from other sources,
+     * it should almost certainly be used instead.
+     * But if there's no other choice, this may be used as a fallback.
+     *
+     * <p><strong>Note also</strong>
+     * that a designator with no coordsystem-specific flag character
+     * (a leading "<code>J</code>", "<code>B</code>" or "<code>G</code>")
+     * is considered to be B1950, <em>not</em> J2000.
+     *
+     * @param   designation   designation string in IAU format
+     * @return  2-element array giving ICRS (RA,Dec) in degrees,
+     *          or <code>null</code> if no position can be decoded
+     */
+    public static double[] desigToIcrs( String designation ) {
+        Matcher matcher = DESIG_REGEX.matcher( designation );
+        if ( matcher.matches() ) {
+            String acronym = matcher.group( 1 );
+            String flag = matcher.group( 2 );
+            String lonInt = matcher.group( 3 );
+            String lonFrac = matcher.group( 4 );
+            String latSign = matcher.group( 5 );
+            String latInt = matcher.group( 6 );
+            String latFrac = matcher.group( 7 );
+            if ( "G".equals( flag ) ) {
+                final double l;
+                final double b;
+                try {
+                    l = Double.parseDouble( lonInt + lonFrac );
+                    b = Double.parseDouble( latSign + latInt + latFrac );
+                }
+                catch ( NumberFormatException e ) {
+                    assert false : "Regex should preclude this";
+                    return null;
+                }
+                double[] fk5rad =
+                    SkySystem.GALACTIC.toFK5( Math.toRadians( l ),
+                                              Math.toRadians( b ),
+                                              2000.0 );
+                double[] icrsRad =
+                    SkySystem.ICRS.fromFK5( fk5rad[ 0 ], fk5rad[ 1 ], 2000.0 );
+                return new double[] { Math.toDegrees( icrsRad[ 0 ] ),
+                                      Math.toDegrees( icrsRad[ 1 ] ) };
+            }
+            else if ( "B".equals( flag ) || "J".equals( flag ) ||
+                      flag.length() == 0 ) {
+                final double lonDeg;
+                final double latDeg;
+                try {
+                    lonDeg = desigTxtToDegrees( "", lonInt, lonFrac );
+                    latDeg = desigTxtToDegrees( latSign, latInt, latFrac );
+                }
+                catch ( RuntimeException e ) {
+                    assert false : "Regex should preclude this";
+                    return null;
+                }
+                if ( "J".equals( flag ) ) {
+                    return new double[] { lonDeg, latDeg };
+                }
+                else {
+                    double[] fk5rad =
+                        SkySystem.FK4.toFK5( Math.toRadians( lonDeg ),
+                                             Math.toRadians( latDeg ), 1950.0 );
+                    double[] icrsRad =
+                        SkySystem.ICRS.fromFK5( fk5rad[ 0 ], fk5rad[ 1 ],
+                                                2000.0 );
+                    return new double[] { Math.toDegrees( icrsRad[ 0 ] ),
+                                          Math.toDegrees( icrsRad[ 1 ] ) };
+                }
+            }
+            else {
+                assert false : "Regex should preclude this";
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Attempts to decode an IAU-designation-style sexagesimal coordinate
+     * string into an angle in degrees.
+     *
+     * <p>The sign <em>must</em> be "+" or "-" for a value whose sexagesimal
+     * representation is degrees-like and <em>must</em> be empty
+     * for a value whose sexagesimal representation is hours-like.
+     * 
+     * @param  txtSign  sign (for DMS) or empty string (for HMS)
+     * @param  txtInt   integer part of sexagesimal representation
+     * @param  txtFrac  fractional part of sexagesimal representation
+     * @return   angle value in degrees
+     * @see    <a href="http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx"
+     *            >Specifications concerning designations (IAU)</a>
+     */
+    private static double desigTxtToDegrees( String txtSign, String txtInt,
+                                             String txtFrac ) {
+        double factor;
+        if ( "".equals( txtSign ) ) {
+            factor = 15.0;
+        }
+        else if ( "+".equals( txtSign ) ) {
+            factor = 1.0;
+        }
+        else if ( "-".equals( txtSign ) ) {
+            factor = -1.0;
+        }
+        else {
+            assert false : "Regex should preclude this";
+            return Double.NaN;
+        }
+        int intlen = txtInt.length();
+        int fraclen = txtFrac.length();
+        double c1 = Double.parseDouble( txtInt.substring( 0, 2 ) );
+        final double c2;
+        if ( intlen == 2 && fraclen > 0 ) {
+            c2 = Double.parseDouble( txtFrac ) * 60.0;
+        }
+        else if ( intlen == 3 ) {
+            c2 = Integer.parseInt( txtInt.substring( 2, 3 ) ) * 6.0;
+        }
+        else if ( intlen >= 4 ) {
+            c2 = Integer.parseInt( txtInt.substring( 2, 4 ) );
+        }
+        else {
+            c2 = 0;
+        }
+        final double c3;
+        if ( intlen == 4 && fraclen > 0 ) {
+            c3 = Double.parseDouble( txtFrac ) * 60.0;
+        }
+        else if ( intlen == 5 ) {
+            c3 = Double.parseDouble( txtInt.substring( 4, 5 ) ) * 6.0;
+        }
+        else if ( intlen == 6 ) {
+            c3 = Double.parseDouble( txtInt.substring( 4, 6 ) + txtFrac );
+        }
+        else if ( intlen > 6 ) {
+            c3 = Double.parseDouble( txtInt.substring( 4, 6 ) + "."
+                                   + txtInt.substring( 6 ) );
+        }
+        else {
+            c3 = 0;
+        }
+        return factor * ( c1 + ( c2 + c3 / 60.0 ) / 60.0 );
     }
 
     /**
