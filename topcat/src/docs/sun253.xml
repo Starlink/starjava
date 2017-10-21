@@ -25025,6 +25025,11 @@ introduced since the last version:
         <ref id="Strings"><code>desigTo*</code></ref>
         for extracting positions from IAU-style object designations
         (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
+    <li>Add new functions
+        <ref id="CoordsDegrees"><code>polarDistanceDegrees</code></ref> and
+        <ref id="CoordsRadians"><code>polarDistanceRadians</code></ref>;
+        these calculate the distance in 3d space between two
+        positions specified in spherical polar coordinates.</li>
     </ul>
     </p></dd>
 

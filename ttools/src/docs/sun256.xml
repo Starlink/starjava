@@ -11231,6 +11231,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Strings"><code>desigTo*</code></ref>
         for extracting positions from IAU-style object designations
         (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
+    <li>Add new functions
+        <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
+             ><code>polarDistanceDegrees</code></ref> and
+        <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
+             ><code>polarDistanceRadians</code></ref>;
+        these calculate the distance in 3d space between two
+        positions specified in spherical polar coordinates.</li>
     </ul>
     </p></dd>
 

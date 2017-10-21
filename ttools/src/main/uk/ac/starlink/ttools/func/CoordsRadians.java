@@ -297,6 +297,38 @@ public class CoordsRadians {
     }
 
     /**
+     * Calculates the distance in three dimensional space
+     * between two points specified in spherical polar coordinates.
+     *
+     * @param   ra1      right ascension of point 1 in radians
+     * @param   dec1     declination of point1 in radians
+     * @param   radius1  distance from origin of point1
+     * @param   ra2      right ascension of point 2 in radians
+     * @param   dec2     declination of point2 in radians
+     * @param   radius2  distance from origin of point2
+     * @return  the linear distance between point1 and point2;
+     *          units are as for <code>radius1</code> and <code>radius2</code>
+     */
+    public static double
+            polarDistanceRadians( double ra1, double dec1, double radius1,
+                                  double ra2, double dec2, double radius2 ) {
+        double theta1 = 0.5 * Math.PI - dec1;
+        double theta2 = 0.5 * Math.PI - dec2;
+        double sd1 = Math.sin( theta1 );
+        double sd2 = Math.sin( theta2 );
+        double x1 = radius1 * Math.cos( ra1 ) * sd1;
+        double x2 = radius2 * Math.cos( ra2 ) * sd2;
+        double y1 = radius1 * Math.sin( ra1 ) * sd1;
+        double y2 = radius2 * Math.sin( ra2 ) * sd2;
+        double z1 = radius1 * Math.cos( theta1 );
+        double z2 = radius2 * Math.cos( theta2 );
+        double dx = x1 - x2;
+        double dy = y1 - y2;
+        double dz = z1 - z2;
+        return Math.sqrt( dx * dx + dy * dy + dz * dz );
+    }
+
+    /**
      * Converts hours to radians.
      *
      * @param  hours   angle in hours

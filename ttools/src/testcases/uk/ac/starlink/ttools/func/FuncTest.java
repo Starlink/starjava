@@ -550,6 +550,15 @@ public class FuncTest extends TestCase {
                       CoordsRadians.posAngRadians( 0.1, 0, -0.1, 0 ), TINY );
         assertEquals( 0.0, CoordsRadians.posAngRadians( 1, .2, 1, .3 ), TINY );
 
+        assertEquals( 2.0,
+                      CoordsDegrees.polarDistanceDegrees( 50.5, -29, 1,
+                                                          50.5, -29, 3 ),
+                      TINY );
+        assertEquals( 4.0,
+                      CoordsDegrees.polarDistanceDegrees(  23, +18.5, 2,
+                                                          203, -18.5, 2 ),
+                      TINY );
+
         double ra1 = 0.1;
         double dec1 = 1.2;
         double ra2 = 0.2;
