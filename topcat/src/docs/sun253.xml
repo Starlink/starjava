@@ -25030,6 +25030,8 @@ introduced since the last version:
         <ref id="CoordsRadians"><code>polarDistanceRadians</code></ref>;
         these calculate the distance in 3d space between two
         positions specified in spherical polar coordinates.</li>
+    <li>Upgrade JEL to v2.1.2: now you can use functions in the expression
+        language that have the same name as table columns.</li>
     </ul>
     </p></dd>
 
