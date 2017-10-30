@@ -95,6 +95,9 @@ public class TransposeFilter extends BasicFilter {
             super( base );
             base_ = base;
             jNameCol_ = jNameCol;
+            ColumnInfo nameInfo = jNameCol >= 0
+                                ? base.getColumnInfo( jNameCol )
+                                : null;
             nBaseCol_ = base.getColumnCount();
             nBaseRow_ = checkedLongToInt( base.getRowCount() );
 
@@ -122,7 +125,8 @@ public class TransposeFilter extends BasicFilter {
             for ( int iBaseRow = 0; iBaseRow < nBaseRow_; iBaseRow++ ) {
                 String colName = null;
                 if ( jNameCol_ >= 0 ) {
-                    colName = base_.getCell( iBaseRow, jNameCol_ ).toString();
+                    Object colNameObj = base_.getCell( iBaseRow, jNameCol_ );
+                    colName = nameInfo.formatValue( colNameObj, 32 );
                 }
                 if ( Tables.isBlank( colName ) ) {
                     colName = "col" + ( iBaseRow + 1 );
