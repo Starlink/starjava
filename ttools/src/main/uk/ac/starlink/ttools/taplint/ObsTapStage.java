@@ -567,11 +567,12 @@ public class ObsTapStage implements Stage {
                                   ReportCode code,
                                   String obsValue, String gotValue,
                                   boolean isCaseSensitive ) {
+            String badUcd = "meta.ref.uri;meta.curation";
             String vGot = String.valueOf( gotValue );
             String vObs = String.valueOf( obsValue );
             if ( isCaseSensitive ? ( ! vGot.equals( vObs ) )
                                  : ( ! vGot.equalsIgnoreCase( vObs ) ) ) {
-                String msg = new StringBuffer()
+                StringBuffer sbuf = new StringBuffer()
                     .append( "Wrong " )
                     .append( itemName )
                     .append( " in ObsCore column " )
@@ -579,9 +580,14 @@ public class ObsTapStage implements Stage {
                     .append( ": " )
                     .append( gotValue )
                     .append( " != " )
-                    .append( obsValue )
-                    .toString();
-                reporter_.report( code, msg );
+                    .append( obsValue );
+                if ( badUcd.equalsIgnoreCase( obsValue ) ) {
+                    sbuf.append( "; NOTE \"" )
+                        .append( badUcd )
+                        .append( "\" is bad UCD1+ syntax" )
+                        .append( " - ObsCore/UCD erratum required" );
+                }
+                reporter_.report( code, sbuf.toString() );
             }
         }
 
@@ -649,7 +655,7 @@ public class ObsTapStage implements Stage {
             new ObsCol( "obs_id", Type.VARCHAR,
                         "DataID.observationID", "meta.id" ),
             new ObsCol( "obs_publisher_did", Type.VARCHAR,
-                        "Curation.PublisherDID", "meta.ref.url;meta.curation" ),
+                        "Curation.PublisherDID", "meta.ref.uri;meta.curation" ),
             new ObsCol( "access_url", Type.CLOB,
                         "Access.Reference", "meta.ref.url" ),
             new ObsCol( "access_format", Type.VARCHAR,
@@ -712,6 +718,8 @@ public class ObsTapStage implements Stage {
                         "spect.resolution" ),
             new ObsCol( "o_ucd", Type.VARCHAR,
                         "Char.ObservableAxis.ucd", "meta.ucd" ),
+
+            // Note ObsCore 1.1 inconsistent on mandatoryness of pol_states.
             new ObsCol( "pol_states", Type.VARCHAR,
                         "Char.PolarizationAxis.stateList",
                         "meta.code;phys.polarization" ),
@@ -793,7 +801,7 @@ public class ObsTapStage implements Stage {
             new ObsCol( "obs_title", Type.VARCHAR,
                         "DataID.Title", "meta.title;obs" ),
             new ObsCol( "publisher_id", Type.VARCHAR,
-                        "Curation.PublisherID", "meta.ref.url;meta.curation" ),
+                        "Curation.PublisherID", "meta.ref.uri;meta.curation" ),
             new ObsCol( "bib_reference", Type.VARCHAR,
                         "Curation.Reference", "meta.bib.bibcode" ),
             new ObsCol( "data_rights", Type.VARCHAR,
