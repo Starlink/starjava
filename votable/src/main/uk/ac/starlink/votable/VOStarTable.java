@@ -280,7 +280,7 @@ public class VOStarTable extends AbstractStarTable {
 
         /* Lazily construct parameter list. */
         if ( ! doneParams ) {
-            List params = new ArrayList();
+            List<DescribedValue> params = new ArrayList<DescribedValue>();
 
             /* DESCRIPTION child. */
             String description = votable.getDescription();
@@ -348,6 +348,9 @@ public class VOStarTable extends AbstractStarTable {
                 }
             }
 
+            /* Post-process parameter list. */
+            adjustParams( params );
+
             /* Append this list to the superclass list. */
             synchronized ( this ) {
                 if ( ! doneParams ) {
@@ -382,6 +385,37 @@ public class VOStarTable extends AbstractStarTable {
         }
         else {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * Perform post-processing on the list of table parameters that
+     * has been acquired from the input VOTable document.
+     *
+     * <p>At present this strips out potentially huge numbers of
+     * uk.ac.starlink.topcat.plot2.TopcatLayer* INFO elements
+     * that were erroneously added by TOPCAT v4.5 when a table
+     * was plotted, thus trying to undo the mess that bug added.
+     * It is <em>conceivable</em> that this is behaviour could be
+     * unwanted, but (except for specific debugging purposes)
+     * very unlikely, so just do it rather than make it configurable.
+     *
+     * @param  params  mutable metadata item list to adjust in place
+     */
+    private static void adjustParams( List<DescribedValue> params ) {
+        int nTclayer = 0;
+        String tclayerPrefix = "uk.ac.starlink.topcat.plot2.TopcatLayer";
+        for ( Iterator<DescribedValue> it = params.iterator(); it.hasNext(); ) {
+            DescribedValue dval = it.next();
+            String dvname = dval.getInfo().getName();
+            if ( dvname != null && dvname.startsWith( tclayerPrefix ) ) {
+                nTclayer++;
+                it.remove();
+            }
+        }
+        if ( nTclayer > 0 ) {
+            logger_.warning( "Discarded " + nTclayer + " " + tclayerPrefix + "*"
+                           + " INFOs (added by TOPCAT v4.5 bug)" );
         }
     }
     

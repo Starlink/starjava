@@ -11251,6 +11251,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
              ><code>mod</code></ref>,
         whose output is always positive
         (unlike the <code>%</code> operator) is also added.</li>
+    <li>Add fix to discard on read any VOTable/FITS-plus table parameters
+        with names "<code>uk.ac.starlink.topcat.plot2.TopcatLayer*</code>".
+        These useless items were added in potentially large numbers when
+        saving plotted tables from TOPCAT v4.5 (TOPCAT bug).
+        A null <code>tpipe</code> operation at this version will therefore
+        purge these items.</li>
     </ul>
     </p></dd>
 

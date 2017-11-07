@@ -25042,7 +25042,10 @@ introduced since the last version:
         viewing plots added large numbers of table parameters with names
         "<code>uk.ac.starlink.topcat.plot2.TopcatLayer*</code>".
         This led to useless metadata bloat (lots of <code>INFO</code> elements)
-        when saving the table to VOTable or FITS-plus format.</li>
+        when saving the table to VOTable or FITS-plus format.
+        As well removing this bug, at this version any such metadata
+        is discarded when loading tables into TOPCAT,
+        so a load/save cycle with this version will get rid of it.</li>
     </ul>
     </p></dd>
 
