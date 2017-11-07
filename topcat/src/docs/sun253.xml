@@ -25020,35 +25020,47 @@ introduced since the last version:
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Add new functions 
-        <ref id="Strings"><code>desigTo*</code></ref>
-        for extracting positions from IAU-style object designations
-        (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
-    <li>Add new functions
-        <ref id="CoordsDegrees"><code>polarDistanceDegrees</code></ref> and
-        <ref id="CoordsRadians"><code>polarDistanceRadians</code></ref>;
-        these calculate the distance in 3d space between two
-        positions specified in spherical polar coordinates.</li>
-    <li>Upgrade JEL to v2.1.2: now you can use functions in the expression
-        language that have the same name as table columns.</li>
-    <li>Add new <ref id="Arithmetic"><code>phase</code></ref> functions
-        to help with phase folding given a known period.
-        A new modulus function <ref id="Arithmetic"><code>mod</code></ref>,
-        whose output is always positive
-        (unlike the <code>%</code> operator)
-        is also added.</li>
-    <li>Fix nasty bug introduced at v4.5 with STILTS integration;
-        viewing plots added large numbers of table parameters with names
-        "<code>uk.ac.starlink.topcat.plot2.TopcatLayer*</code>".
-        This led to useless metadata bloat (lots of <code>INFO</code> elements)
-        when saving the table to VOTable or FITS-plus format.
-        As well removing this bug, at this version any such metadata
-        is discarded when loading tables into TOPCAT,
-        so a load/save cycle with this version will get rid of it.</li>
-    <li>Modify the way that synthetic column expressions are
-        represented in column description metadata.</li>
-    </ul>
+    <dl>
+    <dt>New expression language functions</dt>
+    <dd><p>
+        <ul>
+        <li>New functions 
+            <ref id="Strings"><code>desigTo*</code></ref>
+            for extracting positions from IAU-style object designations
+            (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
+        <li>New functions
+            <ref id="CoordsDegrees"><code>polarDistanceDegrees</code></ref> and
+            <ref id="CoordsRadians"><code>polarDistanceRadians</code></ref>;
+            these calculate the distance in 3d space between two
+            positions specified in spherical polar coordinates.</li>
+        <li>New <ref id="Arithmetic"><code>phase</code></ref> functions
+            to help with phase folding given a known period.
+            A new modulus function <ref id="Arithmetic"><code>mod</code></ref>,
+            whose output is always positive
+            (unlike the <code>%</code> operator)
+            is also added.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes and workarounds</dt>
+    <dd><p>
+        <ul>
+        <li>Fix nasty bug introduced at v4.5 with STILTS integration;
+            viewing plots added large numbers of table parameters with names
+            "<code>uk.ac.starlink.topcat.plot2.TopcatLayer*</code>".
+            This led to useless metadata bloat
+            (potentially very many <code>INFO</code> elements)
+            when saving previously plotted tables
+            to VOTable or FITS-plus format.
+            As well removing this bug, at this version any such metadata
+            is discarded when loading tables into TOPCAT,
+            so a load/save cycle with this version will get rid of it.</li>
+        <li>Upgrade JEL to v2.1.2: now you can use functions in the expression
+            language that have the same name as table columns.</li>
+        <li>Modify the way that synthetic column expressions are
+            represented in column description metadata.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
