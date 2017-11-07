@@ -25,6 +25,7 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.MetaCopyStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -73,14 +74,6 @@ public class TopcatUtils {
                               String.class, "Unique column ID" );
 
     /**
-     * Column auxiliary metadata key identifying the description of
-     * columns which also have an expression (EXPR_INFO) entry.
-     */
-    public static final ValueInfo BASE_DESCRIPTION_INFO =
-        new DefaultValueInfo( "Base Description", String.class,
-                              "Description omitting expression" );
-
-    /**
      * Column auxiliary metadata key identifying the text string which
      * gives an expression for a synthetic column.
      */
@@ -114,47 +107,44 @@ public class TopcatUtils {
     }
 
     /**
-     * Returns the 'base description' of a column info.  This is the same
-     * as the description, except for synthetic columns, where it
-     * doesn't contain a respresentation of the algebraic expression.
+     * Returns the table represented by the current state of a given
+     * TopcatModel in a form suitable for persisting into one of the
+     * known serialization formats.
      *
-     * @param  info  column info
-     * @return  base description of <tt>colinfo</tt>
+     * <p>This basicaly uses {@link TopcatModel#getApparentStarTable},
+     * but may apply a few extra tweaks for a table that is known to be
+     * about to be saved.
+     *
+     * @param   tcModel   topcat model
+     * @return   saveable table
      */
-    public static String getBaseDescription( ColumnInfo info ) {
-        DescribedValue descValue = info.getAuxDatum( BASE_DESCRIPTION_INFO );
-        if ( descValue == null ) { 
-            return info.getDescription();
-        }
-        else {
-            Object desc = descValue.getValue();
-            return desc instanceof String ? (String) desc 
-                                          : info.getDescription();
-        }
-    }
+    public static StarTable getSaveTable( TopcatModel tcModel ) {
 
-    /**
-     * Sets the 'base description' of a column info.  This sets the
-     * future result of calls to {@link #getBaseDescription} and also
-     * the description string itself
-     * ({@link uk.ac.starlink.table.ColumnInfo#getDescription}).
-     *
-     * @param  info  column info to modify
-     * @param  desc  base description string (don't include expression text)
-     */
-    public static void setBaseDescription( ColumnInfo info, String desc ) {
-        DescribedValue descValue = info.getAuxDatum( BASE_DESCRIPTION_INFO );
-        if ( descValue == null ) {
-            info.setDescription( desc );
-        }
-        else {
-            descValue.setValue( desc );
-            String descrip = desc;
-            String expr = getExpression( info );
-            if ( expr != null && expr.trim().length() > 0 ) {
-                descrip += " (" + expr + ")";
+        /* Get the apparent table. */
+        StarTable table =
+            new MetaCopyStarTable( tcModel.getApparentStarTable() );
+
+        /* Identify synthetic columns, and adjust their column descriptions
+         * to include the expression that defines them.
+         * Before a table save (though not session save) operation is
+         * an appropriate time to do this, since the expression calculation
+         * behaviour will be lost following this serialization. */
+        int ncol = table.getColumnCount();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo cinfo = table.getColumnInfo( icol );
+            String expr =
+                (String) cinfo.getAuxDatumValue( EXPR_INFO, String.class );
+            if ( expr != null ) {
+                String desc0 = cinfo.getDescription();
+                String descrip = desc0 == null || desc0.trim().length() == 0
+                               ? "Expression: " + expr
+                               : desc0 + " (Expression: " + expr + ")";
+                cinfo.setDescription( descrip );
             }
         }
+
+        /* Return the result. */
+        return table;
     }
 
     /**

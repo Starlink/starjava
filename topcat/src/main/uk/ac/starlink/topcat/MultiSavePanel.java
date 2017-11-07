@@ -104,7 +104,7 @@ public class MultiSavePanel extends SavePanel {
         TopcatModel[] tcModels = tSelector_.getSelectedTables();
         StarTable[] tables = new StarTable[ tcModels.length ];
         for ( int i = 0; i < tcModels.length; i++ ) {
-            tables[ i ] = tcModels[ i ].getApparentStarTable();
+            tables[ i ] = TopcatUtils.getSaveTable( tcModels[ i ] );
         }
         return tables;
     }

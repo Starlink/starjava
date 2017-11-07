@@ -92,24 +92,6 @@ public class SyntheticColumn extends ColumnData {
         /* Store the value of the expression in the column metadata. */
         ValueInfo exprInfo = TopcatUtils.EXPR_INFO;
         colinfo.setAuxDatum( new DescribedValue( exprInfo, expression ) );
-        
-        /* We also want to store the information in the column's
-         * Description, since this gives a better chance of it being
-         * serialized when the table is saved.  To do this we stash 
-         * away the original value of the description in a new value 
-         * (BASE_DESCRIPTION) and append the expression to the base
-         * description.  We have to do it like this to prevent the
-         * expressions getting repeatedly added onto the end if they
-         * are changed. */
-        ValueInfo basedescInfo = TopcatUtils.BASE_DESCRIPTION_INFO;
-        DescribedValue basedescValue = colinfo.getAuxDatum( basedescInfo );
-        if ( basedescValue == null ) {
-            basedescValue = new DescribedValue( basedescInfo, 
-                                                colinfo.getDescription() );
-            colinfo.setAuxDatum( basedescValue );
-        }
-        colinfo.setDescription( basedescValue.getValue() + 
-                                " (" + expression + ")" );
     }
 
     public Object readValue( long lrow ) throws IOException {

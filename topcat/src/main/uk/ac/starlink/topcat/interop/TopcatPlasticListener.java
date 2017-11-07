@@ -39,6 +39,7 @@ import uk.ac.starlink.topcat.LoadingToken;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -209,7 +210,7 @@ public class TopcatPlasticListener extends HubManager {
             new BufferedOutputStream( new FileOutputStream( tmpfile ) );
         try {
             new VOTableWriter( DataFormat.TABLEDATA, true )
-               .writeStarTable( tcModel.getApparentStarTable(), ostrm );
+               .writeStarTable( TopcatUtils.getSaveTable( tcModel ), ostrm );
         }
         catch ( IOException e ) {
             tmpfile.delete();

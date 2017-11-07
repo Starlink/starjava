@@ -265,7 +265,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             String[] aliases = getUploadAliases( tcModel );
             for ( int ia = 0; ia < aliases.length; ia++ ) {
                 if ( upLabel.equalsIgnoreCase( aliases[ ia ] ) ) {
-                    return tcModel.getApparentStarTable();
+                    return TopcatUtils.getSaveTable( tcModel );
                 }
             }
         }

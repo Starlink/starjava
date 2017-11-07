@@ -344,7 +344,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
             };
         qwin.setColumnName( baseName );
         qwin.setUnit( baseInfo.getUnitString() );
-        qwin.setDescription( TopcatUtils.getBaseDescription( baseInfo ) );
+        qwin.setDescription( baseInfo.getDescription() );
         qwin.setUCD( baseInfo.getUCD() );
         DescribedValue colId = baseInfo.getAuxDatum( TopcatUtils.COLID_INFO );
         if ( colId != null ) {

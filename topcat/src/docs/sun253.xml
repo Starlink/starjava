@@ -25046,6 +25046,8 @@ introduced since the last version:
         As well removing this bug, at this version any such metadata
         is discarded when loading tables into TOPCAT,
         so a load/save cycle with this version will get rid of it.</li>
+    <li>Modify the way that synthetic column expressions are
+        represented in column description metadata.</li>
     </ul>
     </p></dd>
 

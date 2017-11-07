@@ -17,6 +17,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
  * Message handler for table pull messages.
@@ -66,7 +67,7 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
         /* Otherwise turn it into an HTTP resource and send its URL as a
          * response value. */
         else {
-            StarTable table = tcModel.getApparentStarTable();
+            StarTable table = TopcatUtils.getSaveTable( tcModel );
             String fname = "t" + index + getSuffix( twriter );
             ServerResource resource =
                 TableSendActionManager.createTableResource( table, twriter );

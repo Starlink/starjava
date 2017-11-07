@@ -284,20 +284,20 @@ public class ColumnInfoWindow extends AuxWindow {
             }
         } );
            
-        /* Add description column.  Note this actually views/sets the
-         * 'base description', which is like the description but for
-         * synthetic columns doesn't include the expression text.
-         * Access to base description is defined in the TopcatUtils class. */
+        /* Add description column. */
         metas.add( new MetaColumn( "Description", String.class ) {
             public Object getValue( int irow ) {
-                return TopcatUtils.getBaseDescription( getColumnInfo( irow ) );
+                return getColumnInfo( irow ).getDescription();
             }
             public boolean isEditable( int irow ) {
                 return irow > 0;
             }
             public void setValue( int irow, Object value ) {
-                String sval = (String) value;
-                TopcatUtils.setBaseDescription( getColumnInfo( irow ), sval );
+                String sval = value instanceof String &&
+                              ((String) value).trim().length() > 0
+                            ? (String) value
+                            : null;
+                getColumnInfo( irow ).setDescription( sval );
             }
         } );
 
@@ -349,7 +349,6 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Remove any from this list which we have already added explicitly
          * or otherwise don't want to show up. */
         auxInfos.remove( TopcatUtils.EXPR_INFO );
-        auxInfos.remove( TopcatUtils.BASE_DESCRIPTION_INFO );
         auxInfos.remove( TopcatUtils.COLID_INFO );
         
         /* Add all the remaining aux columns. */

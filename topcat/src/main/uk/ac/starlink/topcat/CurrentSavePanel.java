@@ -115,7 +115,7 @@ public class CurrentSavePanel extends SavePanel {
     }
 
     public StarTable[] getTables() {
-        return new StarTable[] { tcModel_.getApparentStarTable() };
+        return new StarTable[] { TopcatUtils.getSaveTable( tcModel_ ) };
     }
 
     public void setActiveChooser( TableSaveChooser chooser ) {

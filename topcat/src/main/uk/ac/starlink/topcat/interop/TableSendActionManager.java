@@ -21,6 +21,7 @@ import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -62,7 +63,7 @@ public class TableSendActionManager extends IndividualCallActionManager
         Sender sender = getSender( client );
         TopcatModel tcModel = controlWindow_.getCurrentModel();
         if ( sender != null && tcModel != null ) {
-            StarTable table = tcModel.getApparentStarTable();
+            StarTable table = TopcatUtils.getSaveTable( tcModel );
             String ident = Integer.toString( tcModel.getID() );
             String name = tcModel.getLabel();
             String sampId = sampControl_.getTableId( tcModel );

@@ -2016,8 +2016,9 @@ public class ControlWindow extends AuxWindow
             return ResourceIcon.TABLE;
         }
         protected Transferable createTransferable( JComponent comp ) {
-            return taboutput_.transferStarTable( getCurrentModel()
-                                                .getApparentStarTable() );
+            return taboutput_
+                  .transferStarTable( TopcatUtils
+                                     .getSaveTable( getCurrentModel() ) );
         }
         public boolean importData( JComponent comp, final Transferable trans ) {
 
