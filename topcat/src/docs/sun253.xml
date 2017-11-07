@@ -357,7 +357,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>29 September 2017</docdate>
+<docdate>7 November 2017</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -25018,8 +25018,11 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.5-1 (7 November 2017)</dt>
 <dd><p>
+    This is mainly a bugfix release,
+    because of the issue with metadata bloat listed below.
+    You are advised to update if you have v4.5.
     <dl>
     <dt>New expression language functions</dt>
     <dd><p>
