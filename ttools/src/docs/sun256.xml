@@ -11222,42 +11222,54 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Fix plot bug that sometimes caused error bars to come out very small
-        when exporting to a graphics file.
-        This was a regression bug (present in v3.1-1 but not v3.1).</li>
-    <li>Fix another tiny error bar plotting bug too.</li>
-    <li>Add new functions
-        <ref id="uk.ac.starlink.ttools.func.Strings"><code>desigTo*</code></ref>
-        for extracting positions from IAU-style object designations
-        (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
-    <li>Add new functions
-        <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
-             ><code>polarDistanceDegrees</code></ref> and
-        <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
-             ><code>polarDistanceRadians</code></ref>;
-        these calculate the distance in 3d space between two
-        positions specified in spherical polar coordinates.</li>
-    <li>Upgrade JEL to v2.1.2: now you can use functions in the expression
-        language that have the same name as table columns.</li>
-    <li>Small taplint update; required UCD for
-        <code>obs_publisher_did</code>/<code>publisher_id</code> changed
-        to match REC-ObsCore-1.1 (even though it's an illegal UCD1+).</li>
-    <li>Add new <ref id="uk.ac.starlink.ttools.func.Arithmetic"
-                     ><code>phase</code></ref> functions
-        to help with phase folding given a known period.
-        A new modulus function
-        <ref id="uk.ac.starlink.ttools.func.Arithmetic"
-             ><code>mod</code></ref>,
-        whose output is always positive
-        (unlike the <code>%</code> operator) is also added.</li>
-    <li>Add fix to discard on read any VOTable/FITS-plus table parameters
-        with names "<code>uk.ac.starlink.topcat.plot2.TopcatLayer*</code>".
-        These useless items were added in potentially large numbers when
-        saving plotted tables from TOPCAT v4.5 (TOPCAT bug).
-        A null <code>tpipe</code> operation at this version will therefore
-        purge these items.</li>
-    </ul>
+    <dl>
+    <dt>New expression language functions</dt>
+    <dd><p>
+        <ul>
+        <li>New functions
+            <ref id="uk.ac.starlink.ttools.func.Strings"
+                 ><code>desigTo*</code></ref>
+            for extracting positions from IAU-style object designations
+            (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
+        <li>New functions
+            <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
+                 ><code>polarDistanceDegrees</code></ref> and
+            <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
+                 ><code>polarDistanceRadians</code></ref>;
+            these calculate the distance in 3d space between two
+            positions specified in spherical polar coordinates.</li>
+        <li>New functions
+            <ref id="uk.ac.starlink.ttools.func.Arithmetic"
+                 ><code>phase</code></ref>
+            to help with phase folding given a known period.
+            A new modulus function
+            <ref id="uk.ac.starlink.ttools.func.Arithmetic"
+                 ><code>mod</code></ref>,
+            whose output is always positive
+            (unlike the <code>%</code> operator) is also added.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes and workarounds</dt>
+    <dd><p>
+        <ul>
+        <li>Upgrade JEL to v2.1.2: now you can use functions in the expression
+            language that have the same name as table columns.</li>
+        <li>Add fix to discard on read any VOTable/FITS-plus table parameters
+            with names "<code>uk.ac.starlink.topcat.plot2.TopcatLayer*</code>".
+            These useless items were added in potentially large numbers when
+            saving plotted tables from TOPCAT v4.5 (TOPCAT bug).
+            A null <code>tpipe</code> operation at this version will therefore
+            purge these items.</li>
+        <li>Fix plot bug that sometimes caused error bars to come out
+            very small when exporting to a graphics file.
+            This was a regression bug (present in v3.1-1 but not v3.1).</li>
+        <li>Fix another tiny error bar plotting bug too.</li>
+        <li>Small taplint update; required UCD for
+            <code>obs_publisher_did</code>/<code>publisher_id</code> changed
+            to match REC-ObsCore-1.1 (even though it's an illegal UCD1+).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
