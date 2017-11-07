@@ -25038,6 +25038,11 @@ introduced since the last version:
         whose output is always positive
         (unlike the <code>%</code> operator)
         is also added.</li>
+    <li>Fix nasty bug introduced at v4.5 with STILTS integration;
+        viewing plots added large numbers of table parameters with names
+        "<code>uk.ac.starlink.topcat.plot2.TopcatLayer*</code>".
+        This led to useless metadata bloat (lots of <code>INFO</code> elements)
+        when saving the table to VOTable or FITS-plus format.</li>
     </ul>
     </p></dd>
 

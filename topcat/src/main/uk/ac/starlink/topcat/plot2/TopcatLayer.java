@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.MetaCopyStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.topcat.BooleanColumnRowSubset;
 import uk.ac.starlink.topcat.InverseRowSubset;
 import uk.ac.starlink.topcat.RowSubset;
@@ -232,7 +232,7 @@ public class TopcatLayer {
         params.add( FILENAME_NAMER.createNameParam( filename ) );
         params.add( PATHNAME_NAMER.createNameParam( pathname ) );
         StarTable table =
-            new WrapperStarTable( tcModel.getViewModel().getSnapshot() );
+            new MetaCopyStarTable( tcModel.getViewModel().getSnapshot() );
         table.getParameters().addAll( params );
         return table;
     }
