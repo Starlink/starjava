@@ -57,6 +57,12 @@ public class BasicInputTest extends TestCase {
                                         new FileInputStream( file ) ) ) );
         exerciseInput( seqOffInput( off1,
                                     new BufferedFile( file.getPath() ) ) );
+        exerciseInput( new BufferedRandomInput( new RandomAccessFile( file,
+                                                                      "r" ),
+                                                off1 ) );
+        exerciseInput( new BufferedRandomInput( new RandomAccessFile( file,
+                                                                      "r" ),
+                                                off1, 29 ) );
         exerciseInput( new SimpleMappedInput( chan, off1, leng1, "test" ) );
         exerciseInput( BlockMappedInput
                       .createInput( chan, off1, leng1, "test", isiz + 3, 0 ) );

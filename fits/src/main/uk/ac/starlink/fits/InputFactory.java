@@ -10,8 +10,6 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
-import nom.tam.util.BufferedFile;
-import nom.tam.util.RandomAccess;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -155,13 +153,13 @@ public abstract class InputFactory implements Closeable {
             };
         }
         else {
-            logger_.info( "Will read as BufferedFile: " + file
+            logger_.info( "Will read as BufferedRandomInput: " + file
                         + " (avoid too much mapping on 32-bit OS" );
             return new AbstractInputFactory( true ) {
                 public BasicInput createInput( boolean isSeq )
                         throws IOException {
-                    BufferedFile bf = new BufferedFile( file.getPath(), "r" );
-                    return new RandomAccessInput( bf, offset );
+                    RandomAccessFile raf = new RandomAccessFile( file, "r" );
+                    return new BufferedRandomInput( raf, offset );
                 }
                 public void close() {
                 }
@@ -230,71 +228,6 @@ public abstract class InputFactory implements Closeable {
 
         public boolean isRandom() {
             return isRandom_;
-        }
-    }
-
-    /**
-     * Adaptor from RandomAccess object to BasicInput object.
-     */
-    private static class RandomAccessInput implements BasicInput {
-        private final RandomAccess stream_;
-        private final long offset_;
-
-        /**
-         * Constructor.
-         *
-         * @param  stream  input stream
-         * @param  offset  offset of data start
-         */
-        public RandomAccessInput( RandomAccess stream, long offset )
-                throws IOException {
-            stream_ = stream;
-            offset_ = offset;
-            stream_.seek( offset );
-        }
-
-        public byte readByte() throws IOException {
-            return stream_.readByte();
-        }
-
-        public short readShort() throws IOException {
-            return stream_.readShort();
-        }
-
-        public int readInt() throws IOException {
-            return stream_.readInt();
-        }
-
-        public long readLong() throws IOException {
-            return stream_.readLong();
-        }
-
-        public float readFloat() throws IOException {
-            return stream_.readFloat();
-        }
-
-        public double readDouble() throws IOException {
-            return stream_.readDouble();
-        }
-
-        public void skip( long nbytes ) throws IOException {
-            seek( getOffset() + nbytes );
-        }
-
-        public boolean isRandom() {
-            return true;
-        }
-
-        public void seek( long offset ) throws IOException {
-            stream_.seek( offset_ + offset );
-        }
-
-        public long getOffset() {
-            return stream_.getFilePointer() - offset_;
-        }
-
-        public void close() throws IOException {
-            stream_.close();
         }
     }
 }
