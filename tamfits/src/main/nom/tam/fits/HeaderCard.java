@@ -265,6 +265,20 @@ public class HeaderCard
 	    }
         }
     }
+
+    /** Creates a HeaderCard from a FITS card image.
+      * This just invokes the {@link HeaderCard(java.lang.String)} constructor.
+      * It is here to match a method with the same signature from
+      * later versions of nom.tam.fits (which lack the corresponding
+      * constructor).
+      *
+      * @param card the 80 character card image
+      */
+    // Added by MBT (09-NOV-2017)
+    public static HeaderCard create(String card)
+    {
+        return new HeaderCard(card);
+    }
     
     /** Process HIERARCH style cards...
      *  HIERARCH LEV1 LEV2 ...  value / comment
