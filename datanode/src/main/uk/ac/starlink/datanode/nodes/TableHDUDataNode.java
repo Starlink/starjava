@@ -6,7 +6,6 @@ import nom.tam.fits.AsciiTable;
 import nom.tam.fits.AsciiTableHDU;
 import nom.tam.fits.BinaryTable;
 import nom.tam.fits.BinaryTableHDU;
-import nom.tam.fits.Data;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
@@ -202,7 +201,7 @@ public class TableHDUDataNode extends HDUDataNode {
             AsciiTable tdata = new AsciiTable( hdr );
             tdata.read( strm );
             tdata.getData();
-            TableHDU thdu = new AsciiTableHDU( hdr, (Data) tdata );
+            TableHDU thdu = new AsciiTableHDU( hdr, tdata );
             return new FitsStarTable( thdu );
         }
 
