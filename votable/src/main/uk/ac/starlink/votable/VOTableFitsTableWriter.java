@@ -196,7 +196,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         int nbyte = textBytes.length;
 
         /* Prepare and write a FITS header describing the character data. */
-        Header hdr = new Header();
+        Header hdr = FitsConstants.createUnsortedHeader();
         hdr.addValue( "SIMPLE", true, "Standard FITS format" );
         hdr.addValue( "BITPIX", 8, "Character data" );
         hdr.addValue( "NAXIS", 1, "Text string" );

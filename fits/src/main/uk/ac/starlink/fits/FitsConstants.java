@@ -122,6 +122,25 @@ public class FitsConstants {
         return NDARRAY_ORIGIN + ( naxis + 1 );
     }
 
+    /**
+     * Creates a Header instance which does not perform any unsolicited
+     * reordering of the header cards.  Some versions of nom.tam.fits
+     * force the EXTEND keyword to go directly after the NAXISn keywords.
+     * That screws up specification of the FITS-plus magic number,
+     * which is expected to have VOTMETA directly after NAXISn.
+     * Headers created using this method will leave header cards in
+     * the order they are added.
+     *
+     * @return  new empty header
+     * @see <a href="https://github.com/nom-tam-fits/nom-tam-fits/issues/113"
+     *         >nom.tam.fits github discussion</a>
+     */
+    public static Header createUnsortedHeader() {
+        Header hdr = new Header();
+        hdr.setHeaderSorter( null );
+        return hdr;
+    }
+
     static int typeToBitpix( Type type ) {
         if ( type == Type.BYTE ) {
             return BasicHDU.BITPIX_BYTE;
