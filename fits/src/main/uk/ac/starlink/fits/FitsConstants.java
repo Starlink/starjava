@@ -115,6 +115,16 @@ public class FitsConstants {
     }
 
     /**
+     * Create a HeaderCard from a FITS card image.
+     *
+     * @param   cardImage  the 80 character card image
+     * @return  card object
+     */
+    public static HeaderCard createHeaderCard( String cardImage ) {
+        return HeaderCard.create( cardImage );
+    }
+
+    /**
      * Skips forward over a given number of HDUs in the supplied stream.
      * If it reaches the end of the stream, it throws an IOException
      * with a Cause of a TruncatedFileException.
