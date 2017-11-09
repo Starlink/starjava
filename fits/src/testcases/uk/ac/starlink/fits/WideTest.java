@@ -26,6 +26,7 @@ public class WideTest extends TestCase {
               .setLevel( Level.SEVERE );
         Logger.getLogger( "uk.ac.starlink.table" )
               .setLevel( Level.WARNING );
+        FitsConstants.configureHierarch();
     }
 
     // AlphaWideFits is a historical relic - this test could be removed

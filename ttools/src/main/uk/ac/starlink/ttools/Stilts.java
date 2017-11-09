@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
+import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.LineInvoker;
@@ -39,6 +40,7 @@ public class Stilts {
                                    "true" );
         PropertyAuthenticator.installInstance( true );
         URLUtils.installCustomHandlers();
+        FitsConstants.configureHierarch();
         LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
         int status = invoker.invoke( args );
         if ( status != 0 ) {

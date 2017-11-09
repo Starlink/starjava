@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
+import nom.tam.fits.FitsFactory;
 import nom.tam.fits.FitsUtil;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
@@ -68,6 +69,9 @@ public class FitsConstants {
     /** Maximum number of columns in standard FITS BINTABLE extension. */
     public static final int MAX_NCOLSTD = 999;
 
+    /** Whether HIERARCH convention is used; true by default. */
+    public static boolean REQUIRE_HIERARCH = true;
+
     private static final String[] extensions = new String[] {
         ".fits", ".fit", ".fts",
         ".FITS", ".FIT", ".FTS",
@@ -87,6 +91,31 @@ public class FitsConstants {
      */
     public static List defaultFitsExtensions() {
         return Collections.unmodifiableList( Arrays.asList( extensions ) );
+    }
+
+    /**
+     * Ensures that use of the HIERARCH convention when dealing with
+     * FITS headers is set to the state expected for STIL operation.
+     * If this involves changing the current setting, a warning is
+     * issued through the logging system.
+     *
+     * <p>The general idea is that this is only issued once per JVM.
+     * If other components are resetting the hierarch handling that
+     * might not be enough, but there's no mechanism to ensure that
+     * it stays set anyway.
+     *
+     * <p>The main reason this is necessary is that WideFits handling
+     * requires HIERARCH, but there is no per-call configuration of
+     * whether the convention is in use, so it has to be set on a
+     * global basis.
+     */
+    public static void configureHierarch() {
+        boolean isReq = REQUIRE_HIERARCH;
+        if ( FitsFactory.getUseHierarch() != isReq ) {
+            logger.info( "Resetting FITS use of HIERARCH convention "
+                       + ! isReq + " -> " + isReq );
+        }
+        FitsFactory.setUseHierarch( isReq );
     }
 
     static String originCardName( int naxis ) {

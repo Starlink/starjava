@@ -21,6 +21,7 @@ import uk.ac.starlink.fits.AbstractWideFits;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.ColFitsTableWriter;
 import uk.ac.starlink.fits.ColFitsTableBuilder;
+import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.VariableFitsTableWriter;
@@ -85,6 +86,8 @@ public class FormatsTest extends TableCase {
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
         Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
+
+        FitsConstants.configureHierarch();
     }
 
     private StarTable table;
