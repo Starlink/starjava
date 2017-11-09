@@ -184,7 +184,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
                                                        "stil.version", null ),
                           "Version of STIL software" );
             hdr.addValue( "STILCLAS", getClass().getName(),
-                          "Author class in STIL software" );
+                          "STIL Author class" );
         }
         catch ( HeaderCardException e ) {
             logger_.warning( "Trouble adding metadata header cards " + e );
