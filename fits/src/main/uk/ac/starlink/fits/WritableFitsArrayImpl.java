@@ -153,7 +153,7 @@ class WritableFitsArrayImpl implements ArrayImpl {
             }
 
             /* Add termination record. */
-            cardlist.add( new HeaderCard( "END" ) );
+            cardlist.add( FitsConstants.END_CARD );
         }
         catch( HeaderCardException e ) {
             throw (IOException) new IOException( e.getMessage() )

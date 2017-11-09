@@ -42,7 +42,7 @@ public class FitsConstants {
     public static final String NDARRAY_PREFIX = "NDA_";
 
     /** Image of end-of-header card. */
-    public static final HeaderCard END_CARD = new HeaderCard( 
+    public static final HeaderCard END_CARD = createHeaderCard(
         "END                                     " +
         "                                        " );
 
@@ -252,7 +252,7 @@ public class FitsConstants {
             }
 
             String cbuf = new String( buffer );
-            HeaderCard fcard = new HeaderCard( cbuf );
+            HeaderCard fcard = createHeaderCard( cbuf );
             if ( firstCard ) {
                 String key = fcard.getKey();
                 if ( key == null || 

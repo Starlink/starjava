@@ -440,7 +440,8 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                     cbuf[ ic ] = (char) ( buffer[ pos++ ] & 0xff );
                 }
                 try {
-                    HeaderCard card = new HeaderCard( new String( cbuf ) );
+                    HeaderCard card =
+                        FitsConstants.createHeaderCard( new String( cbuf ) );
                     ok = ok && cardOK( il, card );
                 }
                 catch ( FitsException e ) {

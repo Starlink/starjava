@@ -363,7 +363,8 @@ public class FitsNdxHandler
                 fchan.setEncoding( FitsConstants.WCS_ENCODING );
                 fchan.write( ndx.getAst() );
                 for ( Iterator it = fchan.iterator(); it.hasNext(); ) {
-                    cardlist.add( new HeaderCard( (String) it.next() ) );
+                    cardlist.add( FitsConstants
+                                 .createHeaderCard( (String) it.next() ) );
                 }
             }
             cards = (HeaderCard[]) cardlist.toArray( new HeaderCard[ 0 ] );
@@ -538,7 +539,7 @@ public class FitsNdxHandler
         if ( image.length() > 80 ) {
             image = image.substring( 0, 80 );
         }
-        return new HeaderCard( image );
+        return FitsConstants.createHeaderCard( image );
     }
 
     // implement HdxDocumentFactory
