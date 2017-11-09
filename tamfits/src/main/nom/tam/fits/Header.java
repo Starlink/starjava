@@ -1059,4 +1059,24 @@ public class Header implements FitsElement {
 	}
 	return iter;
     }
+
+    /** Matches a method introduced in v1.15.2 of nom.tam.fits,
+      * so this method can be called harmlessly in that or this version.
+      * This implementation may only be called with a null argument,
+      * in which case it's a no-op.
+      *
+      * @param  headerSorter  must be null
+      * @throws  IllegalArgumentException  for non-null headerSorter
+      */
+    // Added by MBT (09-NOV-2017)
+    public void setHeaderSorter( Comparator<String> headerSorter) {
+        if ( headerSorter == null ) {
+            // no-op
+        }
+        else {
+            throw new IllegalArgumentException( "Unsupported with non-null "
+                                              + "sorter at this version " 
+                                              + "of nom.tam.fits" );
+        }
+    }
 }
