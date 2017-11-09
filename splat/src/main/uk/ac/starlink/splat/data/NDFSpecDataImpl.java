@@ -187,7 +187,7 @@ public class NDFSpecDataImpl
             if ( headers != null ) {
                 String scard = headers.findKey( key );
                 if ( scard != null ) {
-                    HeaderCard card = new HeaderCard( scard );
+                    HeaderCard card = HeaderCard.create( scard );
                     if ( card != null ) {
                         return card.getValue();
                     }
@@ -212,7 +212,7 @@ public class NDFSpecDataImpl
                 Cursor iter = header.iterator();
                 HeaderCard card;
                 for ( int i = 0; i < size; i++ ) {
-                    card = new HeaderCard( theNDF.getFitsHeader( i ) );
+                    card = HeaderCard.create( theNDF.getFitsHeader( i ) );
                     if ( card.isKeyValuePair() ) {
                         iter.add( card.getKey(), card );
                     }

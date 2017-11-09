@@ -189,7 +189,7 @@ public class MEMSpecDataImpl
         if ( getFitsHeaders() != null ) {
             String scard = getFitsHeaders().findKey( prop );
             if ( scard != null ) {
-                HeaderCard card = new HeaderCard( scard );
+                HeaderCard card = HeaderCard.create( scard );
                 if ( card != null ) {
                     return card.getValue();
                 }

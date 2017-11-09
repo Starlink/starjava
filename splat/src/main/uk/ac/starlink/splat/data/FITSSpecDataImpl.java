@@ -202,7 +202,7 @@ public class FITSSpecDataImpl
             // All FITS keywords are uppercase.
             String scard = getFitsHeaders().findKey( key.toUpperCase() );
             if ( scard != null ) {
-                HeaderCard card = new HeaderCard( scard );
+                HeaderCard card = HeaderCard.create( scard );
                 if ( card != null ) {
                     return card.getValue();
                 }
@@ -371,7 +371,7 @@ public class FITSSpecDataImpl
                 scard = getFitsHeaders().findKey( "UNITS" );
             }
             if ( scard != null ) {
-                HeaderCard card = new HeaderCard( scard );
+                HeaderCard card = HeaderCard.create( scard );
                 if ( card != null ) {
                     setDataUnits( card.getValue() );
                 }
@@ -382,7 +382,7 @@ public class FITSSpecDataImpl
                 scard = getFitsHeaders().findKey( "OBJECT" );
             }
             if ( scard != null ) {
-                HeaderCard card = new HeaderCard( scard );
+                HeaderCard card = HeaderCard.create( scard );
                 if ( card != null ) {
                     setDataLabel( card.getValue() );
                 }
@@ -590,7 +590,7 @@ public class FITSSpecDataImpl
                 while ( ok ) {
                     buffer = chan.nextCard();
                     if ( buffer != null && ! "".equals( buffer ) ) {
-                        iter.add( new HeaderCard( buffer ) );
+                        iter.add( HeaderCard.create( buffer ) );
                     }
                     else {
                         ok = false;
@@ -606,7 +606,7 @@ public class FITSSpecDataImpl
                 while ( ok ) {
                     buffer = chan.nextCard();
                     if ( buffer != null && ! "".equals( buffer ) ) {
-                        card = new HeaderCard( buffer );
+                        card = HeaderCard.create( buffer );
                         key = card.getKey();
 
                         // Removes existing card and position either
