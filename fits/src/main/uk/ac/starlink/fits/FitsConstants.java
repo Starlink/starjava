@@ -238,7 +238,8 @@ public class FitsConstants {
                 while ( need > 0 ) {
                     int len = strm.read( buffer, 80 - need, need );
                     if ( len <= 0 ) {
-                        throw new TruncatedFileException();
+                        throw new TruncatedFileException( "Stream stopped"
+                                                        + " mid-card" );
                     }
                     need -= len;
                 }

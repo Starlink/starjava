@@ -30,6 +30,7 @@ public class MultiMappedFile extends AbstractArrayDataIO
     private final int blockBytes_;
     private final int nblock_;
     private int iblock_;
+    private long markPos_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
@@ -91,6 +92,21 @@ public class MultiMappedFile extends AbstractArrayDataIO
         return ns;
     }
 
+    public void skipAllBytes( long nskip ) throws IOException {
+        if ( nskip > 0 ) {
+            if ( nskip <= remaining() ) {
+                seek( getFilePointer() + nskip );
+            }
+            else {
+                throw new EOFException();
+            }
+        }
+    }
+
+    public void skipAllBytes( int toSkip ) throws IOException {
+        skipAllBytes( (long) toSkip );
+    }
+
     public long getFilePointer() {
         try {
             return (long) iblock_ * blockBytes_
@@ -103,7 +119,19 @@ public class MultiMappedFile extends AbstractArrayDataIO
 
     public int skipBytes( int toSkip ) throws IOException {
         return toInt( skip( (long) toSkip ) );
-    };
+    }
+
+    public boolean markSupported() {
+        return true;
+    }
+
+    public void mark( int readlimit ) {
+        markPos_ = getFilePointer();
+    }
+
+    public void reset() throws IOException {
+        seek( markPos_ );
+    }
 
     protected byte get() throws IOException {
         try {

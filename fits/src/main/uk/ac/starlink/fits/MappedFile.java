@@ -43,6 +43,7 @@ public class MappedFile extends AbstractArrayDataIO implements RandomAccess {
 
     private final ByteBuffer niobuf_;
     private int size_;
+    private long markPos_;
 
     /**
      * Constructs a MappedFile object from a byte buffer.
@@ -111,6 +112,35 @@ public class MappedFile extends AbstractArrayDataIO implements RandomAccess {
         nskip = Math.min( toSkip, niobuf_.remaining() );
         niobuf_.position( niobuf_.position() + nskip );
         return nskip;
+    }
+
+    public void skipAllBytes( long toSkip ) throws IOException {
+        if ( toSkip > 0 ) {
+            if ( toSkip <= niobuf_.remaining() ) {
+                int nskip = (int) toSkip;
+                assert nskip == toSkip;
+                niobuf_.position( niobuf_.position() + nskip );
+            }
+            else {
+                throw new EOFException();
+            }
+        }
+    }
+
+    public void skipAllBytes( int toSkip ) throws IOException {
+        skipAllBytes( (long) toSkip );
+    }
+
+    public boolean markSupported() {
+        return true;
+    }
+
+    public void mark( int readlimit ) {
+        markPos_ = getFilePointer();
+    }
+
+    public void reset() throws IOException {
+        seek( markPos_ );
     }
 
     protected byte get() throws IOException {

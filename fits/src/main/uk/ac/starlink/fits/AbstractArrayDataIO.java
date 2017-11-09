@@ -7,6 +7,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 import java.lang.reflect.Array;
+import java.util.logging.Logger;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.ArrayDataOutput;
 
@@ -48,6 +49,8 @@ import nom.tam.util.ArrayDataOutput;
  */
 public abstract class AbstractArrayDataIO
         implements ArrayDataInput, ArrayDataOutput {
+
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Reads one byte from the current position.
@@ -310,11 +313,29 @@ public abstract class AbstractArrayDataIO
     }
 
     public int readArray( Object o ) throws IOException {
-        int nread = 0;
+        long nread = readLArray( o );
+        if ( (int) nread == nread ) {
+            return (int) nread;
+        }
+        else {
+            String msg = new StringBuffer()
+                .append( "Read too many objects to report (" )
+                .append( nread )
+                .append( ">" )
+                .append( Integer.MAX_VALUE )
+                .append( ") - should use readLArray instead" )
+                .toString();
+            logger_.warning( msg );
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    public long readLArray( Object o ) throws IOException {
+        long nread = 0;
         return primitiveArrayRecurse( o, nread );
     }
 
-    private int primitiveArrayRecurse( Object o, int nread )
+    private long primitiveArrayRecurse( Object o, long nread )
             throws IOException {
         if ( o == null ) {
             return nread;
