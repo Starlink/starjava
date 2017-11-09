@@ -227,7 +227,7 @@ public class FITSTimeSeriesImpl extends TimeSeriesImpl
         if ( getFitsHeaders() != null ) {
             String scard = getFitsHeaders().findKey( key );
             if ( scard != null ) {
-                HeaderCard card = new HeaderCard( scard );
+                HeaderCard card = HeaderCard.create( scard );
                 if ( card != null ) {
                     return card.getValue();
                 }
@@ -355,7 +355,8 @@ public class FITSTimeSeriesImpl extends TimeSeriesImpl
             fitsref.addHDU(primary);
             
             debugManager.print( "\nPrimary HDU\n-----------"); 
-            primary.info();   
+            // primary.info();     // method unavailable in later nom.tam.fits
+            System.out.println( "[info not available]" );
           
             
             // BINARY TABLE
@@ -387,7 +388,8 @@ public class FITSTimeSeriesImpl extends TimeSeriesImpl
             
             debugManager.print( "\nHDU\n---");
             debugManager.print( "hdu.isHeader() = " + hdu.isHeader() + "\n");
-            hdu.info();
+            // hdu.info();   // method unavailable in later nom.tam.fits
+            System.out.println( "[info not available]" );
            
             // Add existing header cards
             Cursor hiter = getStandardIterator( primaryHeader );
@@ -474,7 +476,7 @@ public class FITSTimeSeriesImpl extends TimeSeriesImpl
             double bzero = hdurefs[hdunum].getBZero();
 
             //  Get the BLANK value, note if none present.
-            int blank = 0;
+            long blank = 0;
             boolean haveblank = true;
             
             try {
