@@ -648,7 +648,7 @@ public class FITSSpecDataImpl
             double bzero = hdurefs[hdunum].getBZero();
 
             //  Get the BLANK value, note if none present.
-            int blank = 0;
+            long blank = 0;
             boolean haveblank = true;
             try {
                 blank = hdurefs[hdunum].getBlankValue();
