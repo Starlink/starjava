@@ -103,18 +103,20 @@ public class CgiQuery {
         }
         sbuf_.append( name )
              .append( '=' );
-        for ( int i = 0; i < value.length(); i++ ) {
-            char c = value.charAt( i );
-            if ( QUERY_CHARS.indexOf( c ) >= 0 ) {
-                sbuf_.append( c );
-            }
-            else if ( c >= 0x10 && c <= 0x7f ) {
-                sbuf_.append( '%' )
-                     .append( Integer.toHexString( (int) c ) );
-            }
-            else {
-                throw new IllegalArgumentException( "Bad character in \"" +
-                                                    value + "\"" );
+        if ( value != null ) {
+            for ( int i = 0; i < value.length(); i++ ) {
+                char c = value.charAt( i );
+                if ( QUERY_CHARS.indexOf( c ) >= 0 ) {
+                    sbuf_.append( c );
+                }
+                else if ( c >= 0x10 && c <= 0x7f ) {
+                    sbuf_.append( '%' )
+                         .append( Integer.toHexString( (int) c ) );
+                }
+                else {
+                    throw new IllegalArgumentException( "Bad character in \"" +
+                                                        value + "\"" );
+                }
             }
         }
         return this;
