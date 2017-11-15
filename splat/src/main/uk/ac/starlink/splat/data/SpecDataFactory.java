@@ -15,6 +15,7 @@
  */
 package uk.ac.starlink.splat.data;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -1414,6 +1415,8 @@ public class SpecDataFactory
             is = connection.getInputStream();
             if (compressed)
                 is = new GZIPInputStream(is);
+ 	    else
+                is = unzipIfNecessary(is); // if service sends gzipped data without declaring it
         } catch (IOException e) {
             throw new SplatException( e );
         }
@@ -1424,8 +1427,8 @@ public class SpecDataFactory
 
         String stype = null;
       
-        int mimetype=mimeToSPLATType(conttype);
-        if (type == GUESS && mimetype != GUESS && mimetype != NOT_SUPPORTED)
+        int mimetype=mimeToSPLATType(conttype);	
+        if ((type == DEFAULT || type == GUESS) && mimetype != GUESS && mimetype != NOT_SUPPORTED)
            type=mimetype;
         
         //  Create a temporary file. Use a file extension based on the
@@ -1449,7 +1452,7 @@ public class SpecDataFactory
             }
             break;
             case TABLE: {
-                stype = ".tmp";
+                stype = ".xml";
             }
             break;
             case GUESS: {
@@ -1508,6 +1511,29 @@ public class SpecDataFactory
 
         return namer;
     }
+
+  private InputStream unzipIfNecessary(InputStream is) throws IOException {
+        BufferedInputStream bis = new BufferedInputStream( is ); 
+        bis.mark(0);
+        byte header[] = new byte[2];
+       
+        try {
+               header[0]=(byte) bis.read();
+               header[1]=(byte) bis.read();
+               byte magic1= (byte) GZIPInputStream.GZIP_MAGIC;
+               byte magic2 = (byte) (GZIPInputStream.GZIP_MAGIC >>> 8);
+               bis.reset();
+               
+            if ((header[0] ==  magic1)  && (header[1] == magic2)) {
+                return new GZIPInputStream( bis );
+            }           
+            bis.mark(0);
+        } catch (IOException e) {
+               return is;
+        }
+      
+        return bis;
+   }
 
     
     /*
@@ -2007,7 +2033,8 @@ public class SpecDataFactory
         else if ( simpleType.startsWith( "application/x-votable+xml" ) ||
                   simpleType.equals( "text/xml;x-votable" ) ||
                   simpleType.startsWith( "text/x-votable+xml" ) ||
-                  simpleType.equals( "xml" ) ) {
+      		  simpleType.equals( "xml" ) ||
+                  simpleType.startsWith("text/xml")) {
             
             // VOTABLE containing DataLink information
             if (simpleType.contains("content=datalink"))
