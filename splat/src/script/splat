@@ -70,7 +70,7 @@ esac
 # if you start getting out of memory errors. Decrease it for smaller 
 # footprint machines.
 if test -z "$SPLAT_MAXMEM"; then
-   SPLAT_MAXMEM=512m
+   SPLAT_MAXMEM=2048m
 fi
 
 # If NDF format conversion if switched on then pass this information into 
