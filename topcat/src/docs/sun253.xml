@@ -25069,6 +25069,7 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
     </ul>
     </p>
     </dd>

@@ -11275,6 +11275,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
     </ul>
     </p>
     </dd>
