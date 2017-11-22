@@ -38,6 +38,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.EndpointSet;
@@ -71,9 +72,11 @@ public class ExampleStage implements Stage {
     );
 
     // Permitted MIME type for examples document mandated by TAP 1.1 WD.
-    private static final ContentType CTYPE_XHTML =
-        new ContentType( new String[] { "text/html",
-                                        "application/xhtml+xml" } );
+    private static final ContentTypeOptions CTYPE_XHTML =
+        new ContentTypeOptions( new ContentType[] {
+            new ContentType( "text", "html" ),
+            new ContentType( "application", "xhtml+xml" ),
+        } );
 
     // The 'correct' value for the RDFa @vocab attribute is a real mess.
     // The values listed below have some claim to legitimacy.
@@ -207,7 +210,7 @@ public class ExampleStage implements Stage {
      * @return  DOM document or null
      */
     private static Document readXml( Reporter reporter, URL url,
-                                     ContentType reqType )
+                                     ContentTypeOptions reqType )
             throws SAXException, IOException {
         URLConnection conn = url.openConnection();
         conn.connect();

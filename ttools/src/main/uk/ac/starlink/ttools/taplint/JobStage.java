@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
@@ -48,10 +49,15 @@ public class JobStage implements Stage {
       + "([\\.,]\\d+(?!:))?)?(\\17[0-5]\\d([\\.,]\\d+)?)?"
       + "([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)?$"
     );
-    private static final ContentType CTYPE_PLAIN =
-        new ContentType( new String[] { "text/plain" } );
-    private static final ContentType CTYPE_XML =
-        new ContentType( new String[] { "text/xml", "application/xml" } );
+    private static final ContentTypeOptions CTYPE_PLAIN =
+        new ContentTypeOptions( new ContentType[] {
+            new ContentType( "text", "plain" ),
+        } );
+    private static final ContentTypeOptions CTYPE_XML =
+        new ContentTypeOptions( new ContentType[] {
+            new ContentType( "text", "xml" ),
+            new ContentType( "application", "xml" ),
+        } );
 
     /**
      * Constructor.
@@ -853,7 +859,7 @@ public class JobStage implements Stage {
          * @param  mustExist   true if non-existence should trigger error report
          * @return  content bytes, or null
          */
-        private byte[] readContent( URL url, ContentType reqType,
+        private byte[] readContent( URL url, ContentTypeOptions reqType,
                                     boolean mustExist ) {
             if ( url == null ) {
                 return null;
