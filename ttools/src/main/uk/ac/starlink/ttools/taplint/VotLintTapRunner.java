@@ -192,8 +192,8 @@ public abstract class VotLintTapRunner extends TapRunner {
     }
 
     /**
-     * Reads a TAP result VODocument from an input stream, checking it and
-     * reporting messages as appropriate.
+     * Reads a TAP result VODocument from an input stream,
+     * checking it and reporting messages as required.
      *
      * @param  reporter  validation message destination
      * @param  baseIn  VOTable input stream
@@ -201,6 +201,28 @@ public abstract class VotLintTapRunner extends TapRunner {
      */
     public VODocument readResultDocument( Reporter reporter,
                                           InputStream baseIn )
+            throws IOException, SAXException {
+        return readResultDocument( reporter, baseIn, doChecks_,
+                                   TAP_VOT_VERSION );
+    }
+
+    /**
+     * Utility method to read a VODocument from an input stream,
+     * checking it and reporting messages as required.
+     *
+     * @param  reporter  validation message destination
+     * @param  baseIn  VOTable input stream
+     * @param   doChecks  true to perform various checks on the result VOTable
+     *                    (including linting) and report them, false to be
+     *                    mostly silent and only report serious errors
+     * @param  minVotVersion  minimum required VOTable version;
+     *                        may be null if any will do
+     * @return VOTable-aware DOM
+     */
+    public static VODocument readResultDocument( Reporter reporter,
+                                                 InputStream baseIn,
+                                                 boolean doChecks,
+                                                 VOTableVersion minVotVersion )
             throws IOException, SAXException {
         final VOTableVersion version;
         BufferedInputStream in = new BufferedInputStream( baseIn );
@@ -217,11 +239,12 @@ public abstract class VotLintTapRunner extends TapRunner {
                 List<VOTableVersion> vlist =
                     new ArrayList<VOTableVersion>( vmap.values() );
                 version = vmap.get( versionString );
-                if ( vlist.indexOf( version )
-                     < vlist.indexOf( TAP_VOT_VERSION ) ) {
+                if ( minVotVersion != null &&
+                     vlist.indexOf( version )
+                     < vlist.indexOf( minVotVersion ) ) {
                     reporter.report( FixedCode.E_VVLO,
                                      "Declared VOTable version " + versionString
-                                   + "<" + TAP_VOT_VERSION );
+                                   + "<" + minVotVersion );
                 }
             }
             else {
@@ -240,7 +263,7 @@ public abstract class VotLintTapRunner extends TapRunner {
          * and may or may not generate logging messages through the
          * reporter as it progresses. */
         final XMLReader parser;
-        if ( doChecks_ ) {
+        if ( doChecks ) {
             ReporterVotLintContext vlContext =
                 new ReporterVotLintContext( version, reporter );
             parser = createParser( reporter, vlContext );
@@ -465,7 +488,8 @@ public abstract class VotLintTapRunner extends TapRunner {
      * @param  reporter  validation message destination
      * @return  basically configured SAX parser
      */
-    private XMLReader createParser( Reporter reporter ) throws SAXException {
+    private static XMLReader createParser( Reporter reporter )
+            throws SAXException {
         try {
             SAXParserFactory spfact = SAXParserFactory.newInstance();
             spfact.setValidating( false );
@@ -487,8 +511,8 @@ public abstract class VotLintTapRunner extends TapRunner {
      * @param  reporter   validation message destination
      * @param  vlContext  information about votlint config
      */
-    private XMLReader createParser( Reporter reporter,
-                                    VotLintContext vlContext )
+    private static XMLReader createParser( Reporter reporter,
+                                           VotLintContext vlContext )
             throws SAXException {
         XMLReader parser = createParser( reporter );
 
