@@ -1,4 +1,10 @@
 1 Starlink SPLAT news.
+   3.14beta
+   ========
+   - more support for DataLink
+   - DataLink support also in Obscore
+   - few bugfixes
+
    3.13
    ====
    - spectral lines query support from slap and vamdc services
