@@ -75,6 +75,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import org.xml.sax.SAXException;
+
 //import org.astrogrid.acr.InvalidArgumentException;
 
 
@@ -108,7 +110,8 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.VOTableBuilder;
 
-import uk.ac.starlink.splat.vo.DataLinkParams;
+
+import uk.ac.starlink.splat.vo.DataLinkResponse;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
@@ -2231,18 +2234,18 @@ public class SplatBrowser
                 List<SpecData> spectra;
                     if (props.getType() == SpecDataFactory.DATALINK) {
                         System.out.println("and146: datalink");
-                    	DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
-                        props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read 
+                    	DataLinkResponse dlparams = new DataLinkResponse(props.getSpectrum()); // get SODA Params
+                        props.setSpectrum(dlparams.getThisLink()); // get the accessURL for the first service read 
                         String stype = null;
                         if (props.getDataLinkFormat() != null ) { // see if user has changed the output format
                         	stype = props.getDataLinkFormat();
                         	props.setType(SpecDataFactory.mimeToSPLATType(stype));
                             //props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
                         }
-                        else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
+                        else if ( dlparams.getThisContentType() == null || dlparams.getThisContentType().isEmpty()) //if not, use contenttype
                             props.setType(SpecDataFactory.GUESS);
                         else { 
-                            stype = dlparams.getQueryContentType(0);
+                            stype = dlparams.getThisContentType();
                         	props.setType(SpecDataFactory.mimeToSPLATType(stype));
                         	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
                         }
@@ -2286,7 +2289,9 @@ public class SplatBrowser
                 //        else 
                 //                    throw new SplatException( se );
 
-            }
+            } catch (SAXException e) {
+            	throw new SplatException(e.getMessage());
+			}
         }
     }
 

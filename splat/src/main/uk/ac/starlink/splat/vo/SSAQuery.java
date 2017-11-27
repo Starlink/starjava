@@ -88,7 +88,7 @@ public class SSAQuery
    // private GetDataTable getDataTable = null;
     
     /** The DataLink input parameters  */
-    private DataLinkParams dataLinkParams = null;
+    private  DataLinkServices dataLinkParams = null;
 
     /** Extended Query with metadata parameters  */
     private String extendedQuery = "";
@@ -316,7 +316,7 @@ public class SSAQuery
     /**
      * Set the DataLink parameters
      */
-    public void setDataLinkParams( DataLinkParams dlparams )
+    public void setDataLinkServices(  DataLinkServices dlparams )
     {
         this.dataLinkParams = dlparams;
     }
@@ -324,7 +324,7 @@ public class SSAQuery
     /**
      * Get then DataLink parameters, if defined, if not return null.
      */
-    public DataLinkParams getDataLinkParams()
+    public  DataLinkServices getDataLinkServices()
     {
         return dataLinkParams;
     }

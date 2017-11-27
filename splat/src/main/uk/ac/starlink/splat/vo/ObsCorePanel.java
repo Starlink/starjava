@@ -51,7 +51,7 @@ import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.votable.VOStarTable;
 
 
-public class ObsCorePanel extends JFrame implements  PropertyChangeListener
+public class ObsCorePanel extends JFrame implements VOBrowser, PropertyChangeListener
 {
     
     //  Logger.
@@ -90,7 +90,9 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
     /** The current name resolver, if using Skycat method */
     protected SkycatCatalog resolverCatalogue = null;
 
-     
+    /** The icon for SODA services */
+    ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
+
     /**
      *  Results area
      */
@@ -106,6 +108,10 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
    
     /** The SpecDataFactory.*/
     private SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
+
+	private DataLinkServices datalinkParams;
+
+	private DataLinkQueryFrame dataLinkFrame;
     
     /** the authenticator for access control **/
     private static SSAPAuthenticator authenticator;
@@ -324,7 +330,7 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
     /**
      * Send a tap query to a service
      */   
-    void startQuery(String queryUrl, String shortname, String query, ProgressPanel progressPanel ) throws InterruptedException {
+    public void startQuery(String queryUrl, String shortname, String query, ProgressPanel progressPanel ) throws InterruptedException {
         logger.info( "Querying: " + queryUrl );
         progressPanel.logMessage( query );
         StarTable table = null;
@@ -332,7 +338,7 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
         // Execute query
          
         try {
-             table = doQuery( queryUrl, query);
+             table = (VOStarTable) doQuery( queryUrl, query);
         } catch (MalformedURLException e) {
             progressPanel.logMessage( e.getMessage() );
             logger.info( "Malformed URL "+queryUrl );
@@ -350,10 +356,43 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
             StarPopupTable jtable = new StarPopupTable(table, true);
             jtable.rearrangeObsCore();
             jtable.configureColumnWidths(200, jtable.getRowCount());
-
             jtable.addMouseListener( resultsPanel );
-            resultsPanel.addTab(shortname, jtable );
+           
+            if (datalinkParams != null ) { // if datalink/soda services are present, create a frame
+                    
+                    if ( dataLinkFrame == null ) {
+                         dataLinkFrame = new DataLinkQueryFrame();
+                    } 
+                   
+                    dataLinkFrame.addServer(shortname, datalinkParams);  // associate this datalink service information to the current server
+                   
+                    if (datalinkParams.hasDataLinkService()) {
+                    	 resultsPanel.enableDataLink(dataLinkFrame, false);
+                    	jtable.setDataLink();
+                    }
+                    if (datalinkParams.hasSodaService()) {
+                    	//dataLinkFrame.addServer(shortName, dataLinkParams);
+                    	 resultsPanel.enableDataLink(dataLinkFrame, true);
+                    	jtable.setSoda();
+                    	resultsPanel.addTab(shortname, cutImage, jtable );
+                    	
+                    } else {                    
+                    	resultsPanel.addTab(shortname, jtable );
+                    }
+                }
+                else {
+                    if  (dataLinkFrame != null && dataLinkFrame.getServerParams(shortname) != null )  // if table is read from a file, dataLinkFrame has already been set                         
+                        resultsPanel.addTab( shortname, cutImage, jtable );
+                    else 
+                        resultsPanel.addTab( shortname, jtable );
+                }
+
+          
+
+      
+          //  resultsPanel.addTab(shortname, jtable );
             progressPanel.logMessage( "Completed download" );
+            
             
         } else {
             progressPanel.logMessage( "No results returned" );
@@ -366,17 +405,21 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
         
     }    
  
-    StarTable doQuery(String queryUrl, String query)  throws IOException {
+    public StarTable doQuery(String queryUrl, String query)  throws IOException {
 
-        TapQuery tq;
+        TapQueryWithDatalink tq;
         StarTableFactory tfact = new StarTableFactory();
-        
+        datalinkParams = null;
         // Initializes TapQuery       
-        tq =  new TapQuery( new URL(queryUrl), query,  null );
+        tq =  new TapQueryWithDatalink( new URL(queryUrl), query,  null );
         // Executes query
-        return tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
+        StarTable table =  tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
+        datalinkParams = tq.getDatalinkServices();
+        return table;
     }
 
+    
+   
 
     /**
      * Event listener to trigger 
@@ -395,7 +438,7 @@ public class ObsCorePanel extends JFrame implements  PropertyChangeListener
      * @param propList  the list of spectra to be loaded, their data formats and metadata
      * @param display   boolean: if true display the spectra
      */
-    protected void displaySpectra( Props[] propList, boolean display)
+    public void displaySpectra( Props[] propList, boolean display)
     {
         browser.threadLoadSpectra( propList, display );
         browser.toFront();

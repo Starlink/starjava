@@ -36,7 +36,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -133,7 +132,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class SSAQueryBrowser
 extends JFrame
-implements ActionListener, DocumentListener, PropertyChangeListener
+implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 {
     // Logger.
     private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
@@ -476,6 +475,8 @@ implements ActionListener, DocumentListener, PropertyChangeListener
     protected String sesameURLMirror="http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/-ox2?";
     
     protected String resolverURL=sesameURL;
+    
+    double defaultRadius=10.0;
     
   
     /**
@@ -1539,7 +1540,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         //  formats.
         StarTable starTable = null;
 
-        DataLinkParams dataLinkParams = null;
+        DataLinkServices dataLinkParams = null;
       
         URL queryURL = null;
 
@@ -1601,9 +1602,9 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             starTable = DalResourceXMLFilter.getDalResultTable( voe );
             
             // if the VOTable contains datalink service definitions, add to the SSAQuery.
-            dataLinkParams = DalResourceXMLFilter.getDalGetServiceElement(voe); 
+            dataLinkParams =  DalResourceXMLFilter.getDalGetServiceElement(voe); 
             if (dataLinkParams != null) {
-                ssaQuery.setDataLinkParams( dataLinkParams );
+                ssaQuery.setDataLinkServices( dataLinkParams );
             }
 
           
@@ -1705,7 +1706,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         SSAQuery ssaQuery = null;
         StarPopupTable table = null;
         StarTable starTable = null;
-        DataLinkParams  dataLinkParams = null;
+         DataLinkServices  dataLinkParams = null;
         String shortName = null;
      
         //boolean hasParams = false;
@@ -1719,7 +1720,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             // !! assume for now that tables are sorted by pubdid - change later !!!!
             // make one line
         
-            dataLinkParams = ssaQuery.getDataLinkParams(); // get the data link services information
+            dataLinkParams = ssaQuery.getDataLinkServices(); // get the data link services information
             shortName = ssaQuery.getDescription();
             if ( starTable != null ) {
             String baseurl = ssaQuery.getBaseURL();
@@ -1752,16 +1753,27 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             if (  nrows > 0 ) {
                 table = new StarPopupTable( starTable, true );
                 table.rearrangeSSAP();
-                //table.removeduplicates();
+                table.makeUniquePubdid();
                
-                if (dataLinkParams != null) { // if datalink services are present, create a frame
+                if (dataLinkParams != null ) { // if datalink/soda services are present, create a frame
                     
                     if ( dataLinkFrame == null ) {
                          dataLinkFrame = new DataLinkQueryFrame();
                     } 
+                   
                     dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
                     resultsPanel.enableDataLink(dataLinkFrame);
-                    resultsPanel.addTab(shortName, cutImage, table );
+                    if (dataLinkParams.hasDataLinkService()) {
+                    	table.setDataLink();
+                    }
+                    if (dataLinkParams.hasSodaService()) {
+                    	//dataLinkFrame.addServer(shortName, dataLinkParams);
+                    	table.setSoda();
+                    	resultsPanel.addTab(shortName, cutImage, table );
+                    	
+                    } else {                    
+                    	resultsPanel.addTab(shortName, table );
+                    }
                 }
                 else {
                     if  (dataLinkFrame != null && dataLinkFrame.getServerParams(shortName) != null )  // if table is read from a file, dataLinkFrame has already been set                         
@@ -1819,7 +1831,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
      * selected parameter determines the behaviour of all or just the selected
      * spectra.
      */
-    protected void displaySpectra( Props[] propList, boolean display)
+    public void displaySpectra( Props[] propList, boolean display)
 
     {
 
@@ -1918,7 +1930,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         } 
         if ( source.equals( clearButton ) ) {
  
-            double defaultRadius=10.0;
+            
             raField.setText("");
             decField.setText("");
             nameField.setText("");
@@ -1928,7 +1940,11 @@ implements ActionListener, DocumentListener, PropertyChangeListener
             lowerTimeField.setText("");
             upperTimeField.setText("");
             queryLine = new SSAQuery("<SERVER>");
-            queryLine.setRadius(defaultRadius);
+            if (theoryQuery)
+            	queryLine.setRadius(-1); // setting radius < 0 will remove it from query            	
+            else 
+            	queryLine.setRadius(defaultRadius);
+            	
             queryLine.setMaxrec(0);
             updateQueryText();
 
@@ -2183,6 +2199,7 @@ implements ActionListener, DocumentListener, PropertyChangeListener
         raField.setVisible(true);
         decField.setVisible(true);
         radiusField.setVisible(true);
+        queryLine.setRadius(defaultRadius);
         for (JLabel l:observationLabels) {
             //l.setForeground(Color.gray);
             l.setVisible(true);
@@ -2199,6 +2216,8 @@ implements ActionListener, DocumentListener, PropertyChangeListener
        raField.setVisible(false);
        decField.setVisible(false);
        radiusField.setVisible(false);
+       queryLine.setNoPosition();
+       queryLine.setRadius(-1);// negative radius will remove it from line
        for (JLabel l:observationLabels) {
            //l.setForeground(Color.gray);
            l.setVisible(false);
@@ -2561,29 +2580,6 @@ implements ActionListener, DocumentListener, PropertyChangeListener
 
     }//processMetadata
     
-
-    //
-    // MouseListener interface. Double clicks display the clicked spectrum.
-    //
-    /*
-    public void mousePressed( MouseEvent e ) {}
-    public void mouseReleased( MouseEvent e ) {}
-    public void mouseEntered( MouseEvent e ) {}
-    public void mouseExited( MouseEvent e ) {}
-    public void mouseClicked( MouseEvent e )
-    {
-       
-        //requestFocusInWindow();
-     //   if (e.getSource().getClass() == StarTable.class ) {
-
-            if ( e.getClickCount() == 2 ) {
-                StarJTable table = (StarJTable) e.getSource();
-                Point p = e.getPoint();
-                int row = table.rowAtPoint( p );
-                displaySpectra( false, true, table, row );
-            }
-      //  }
-    }*/
 
     //
     //  Action for switching name resolvers.

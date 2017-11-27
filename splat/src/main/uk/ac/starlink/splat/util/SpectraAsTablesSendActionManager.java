@@ -36,7 +36,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
-import uk.ac.starlink.splat.vo.DataLinkParams;
+import uk.ac.starlink.splat.vo.DataLinkResponse;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.util.URLUtils;
 
@@ -258,18 +258,18 @@ public abstract class SpectraAsTablesSendActionManager
     			} else {
     				try {
 	    				if (p.getType() == SpecDataFactory.DATALINK) {
-	    					DataLinkParams dlparams = new DataLinkParams(p.getSpectrum());
-	                        p.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read
+	    					DataLinkResponse datalink = new DataLinkResponse(p.getSpectrum());
+	                        p.setSpectrum(datalink.getThisLink()); // get the accessURL for the first service read
 	                        String stype = null;
 	                        if (p.getDataLinkFormat() != null ) { // see if user has changed the output format
 	                        	stype = p.getDataLinkFormat();
 	                        	p.setType(SpecDataFactory.mimeToSPLATType(stype));
 	                            //props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
 	                        }
-	                        else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
+	                        else if ( datalink.getThisContentType() == null || datalink.getThisContentType().isEmpty()) //if not, use contenttype
 	                            p.setType(SpecDataFactory.GUESS);
 	                        else { 
-	                            stype = dlparams.getQueryContentType(0);
+	                            stype = datalink.getThisContentType();
 	                        	p.setType(SpecDataFactory.mimeToSPLATType(stype));
 	                        	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
 	                        }

@@ -201,19 +201,16 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
 
 
     /**
-     * Utility method which can return the single results table from a
-     * DAL-type response.  This is the single table within the RESOURCE
-     * element containing DataLink information.
-     * The QUERY_STATUS INFO element is checked; in case of ERROR, 
-     * an exception is thrown.
+     * Utility method which can return a list of datalink service elements read from a query results table 
+     * from a DAL-type response.  
      *
-     * @param   vofact  factory which can generate VOTable DOMs
-     * @param   inSrc   source of the SAX stream
-     * @return  result table, never null
+     * @param   VOElement voel VO table element 
+     * @param   boolean parse also the response table (the votable is a datalink response containing  a datalink table)
+     * @return  datalink parameters
      * @throws  IOException  in case of error, including an ERROR-valued
      *          QUERY_STATUS in the response, or no suitable table found
      */
-    public static DataLinkParams getDalGetServiceElement( VOElement voEl )
+    public static DataLinkServices getDalGetServiceElement( VOElement voEl, boolean dataLinkResponse )
             throws IOException {
 
        
@@ -229,16 +226,25 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
             return null;    // don't complain, as the presence of datalink services is not mandatory
         }
         
-        DataLinkParams dlParams = new DataLinkParams();
-        dlParams.setServiceElement( serviceEl);
+        DataLinkServices dlParams = new DataLinkServices(serviceEl);
         
-        for (int i=0; i< serviceEl.size(); i++) {
-            VOElement voel = serviceEl.get(i);
-           // VOElement groupEl = locateElement( serviceEl.get(i), "GROUP", "name", "inputParams" );
-            dlParams.addService(voel);
-        }
+      //  if (dataLinkResponse) {
+      //  	dlParams.addResponse(getDalResultTable( voEl ));
+        	
+       // }
+ 
         return dlParams;
     }
+    
+   
+  
+    
+    public static DataLinkServices getDalGetServiceElement( VOElement voEl )
+            throws IOException {
+    	return getDalGetServiceElement(voEl, false );
+    }
+
+    	
     
     /**
      * Utility method which can return the single results table from a

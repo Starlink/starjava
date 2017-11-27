@@ -8,6 +8,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import uk.ac.starlink.splat.iface.IntervalField;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.VOElement;
@@ -38,7 +40,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
 
     private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.DataLinkQueryFrame" );
 
-    HashMap< String, DataLinkParams > servers; // one entry for each datalink supporting server
+    private HashMap< String, DataLinkServices > servers; // one entry for each datalink or soda  supporting server
     /** The list of all dataLink parameters read from the servers as a hash map */
     /** List of all possible parameters **/
      private String currentServer = null; // HashMap for accessURL and idSourcem key=server!!
@@ -50,6 +52,8 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
    // private JScrollPane  dataLinkScroller; 
     private JButton submitButton;
     private JButton clearButton;
+    private JButton displayButton = null;
+    
     private ArrayList<Component> queryComponents;
     private JComboBox optbox;
 
@@ -62,18 +66,40 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     
     public DataLinkQueryFrame() {
         isActive = false;
-        servers = new HashMap< String, DataLinkParams >();    
+        servers = new HashMap< String, DataLinkServices >();    
+        queryComponents = new ArrayList<Component>();
+        
+        initUI();        
+    }
+    
+    public DataLinkQueryFrame( JButton display ) {
+    	displayButton= display;
+    	displayButton.setEnabled(false);
+    	
+        isActive = false;
+        servers = new HashMap< String, DataLinkServices >();    
         queryComponents = new ArrayList<Component>();
         
         initUI();        
     }
    
-    public void addServer( String server, DataLinkParams dlparams ) {
+    
+    public void addServer( String server, DataLinkServices dlparams ) {
       //  DataLinkParams dlp = servers.get(server);
       //  if (dlp == null) {          
             servers.put(server, dlparams);           
       //  }
     }
+    
+    public void addServer( String server, DataLinkServiceResource dlr ) {
+         DataLinkServices dlp = servers.get(server);
+         if (dlp == null) {      
+        	 dlp = new DataLinkServices(dlr);
+         }
+         
+         servers.put(server, dlp);           
+     
+      }
     
     protected void reset() // is it still needed? 
     {
@@ -124,6 +150,9 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
            // clearButton.setMargin(new Insets(2,10,2,10));  
             buttonsPanel.add(submitButton);
             
+            if (displayButton != null)
+            	buttonsPanel.add(displayButton);
+            
             okLabel = new JLabel();
             buttonsPanel.add(okLabel);
             
@@ -148,159 +177,184 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
            
     }
 
+    public void addToUI(String shortname, DataLinkServices dlp ) {
+    	
+    	  addToUI(shortname, dlp.getSodaService(), null);  
+    	
+    }
  
-    public void addToUI(String shortname, DataLinkParams dlp ) {
-   
-          
-              
+    public void addToUI(String shortname, DataLinkServiceResource service, JButton display ) {
+                 
            paramPanel.setLayout(new BoxLayout(paramPanel, BoxLayout.Y_AXIS));
            Border empty = BorderFactory.createEmptyBorder(); 
            paramPanel.setBorder(empty);
            paramPanel.setAlignmentY(CENTER_ALIGNMENT);
+           
+        
        
-           // for each service offered 
-           for (int service=0; service< dlp.getServiceCount(); service++ ) 
-           {
-               // get query parameters (defined in the GROUP element)
-               ParamElement[] params = dlp.getQueryParams(service);
-              
-               JPanel servicePanel = new JPanel();
-               servicePanel.setBorder(BorderFactory.createLineBorder(Color.gray));
-               servicePanel.setLayout(new GridBagLayout());
-               GridBagConstraints c = new GridBagConstraints();
-               c.fill = GridBagConstraints.HORIZONTAL;
-               int i=0;  
-               while ( i < params.length ) {
-                   
-                   c.gridx=0;
-                   c.gridy=i;
-                   c.gridwidth=1;
-                   c.weightx=0.5;
-                   String paramName = params[i].getName();
-                   JLabel paramLabel=new JLabel(paramName+" : ");
-                   servicePanel.add(paramLabel, c);
+               JPanel servicePanel = initServicePanel(service);               
 
-                   String description = params[i].getDescription();                  
-                   String value = params[i].getValue();
-                   String unit = params[i].getUnit();
-                   String xtype = params[i].getXtype();
-                   long[] arraysize = params[i].getArraysize();
-                   
-                   String[] paramValue=dlp.getQueryParamsValue(service, paramName);
-                   
-                   ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
-                   String [] options = null;
-                   
-                   if (values != null )
-                       options = values.getOptions();
-                   
-                  
-                   if ( options != null && options.length > 0 ) {
-                       optbox = new JComboBox(options);
-                       c.gridx=1;
-                       c.gridwidth=2;
-                       c.weightx=0.0;
-                       if (paramName.equals("FORMAT")) { // choose best format for SPLAT as default
-                  
-                           if (value != null && ! paramValue[0].isEmpty())
-                               value=paramValue[0];
-                           else {
-                               for (i=0;i<options.length; i++) {
-                                   if ( options[i].contains("application/x-votable")) {
-                                       value = options[i];
-                                   } else if ( value == null && options[i].contains("application/fits")) {
-                                       value = options[i];
-                                   }
-                               }
-                               dlp.setDefaultFormat(value);
-                           }
-                       } 
-                       else  {
-                           optbox.addItem("");
-                           if (value != null && ! paramValue[0].isEmpty())
-                               value=paramValue[0];
-                           else 
-                               value="";
-                       }
-                       optbox.setSelectedItem(value);
-                       optbox.setMaximumSize( optbox.getPreferredSize() );
-
-                       //   optbox.setName("gd:"+shortname+":"+paramName);
-                       optbox.setName(paramName);
-                       optbox.addActionListener(this);
-                       if (description.length() > 0)
-                           optbox.setToolTipText(description);
-                       
-                       servicePanel.add(optbox, c);
-                       queryComponents.add(optbox);
-
-                   } else {
-                       
-                       c.gridx=1;
-                       c.gridwidth=1;                 
-                       c.weightx=0.0;
-                       if ( xtype != null && xtype.equalsIgnoreCase("interval") && arraysize != null && arraysize[0]!=1) {
-                           c.weightx=1.0;
-                           IntervalField interval = new IntervalField();                           
-                           interval.setName(paramName);
-                           if (paramValue.length == 2) {
-                               interval.setInterval(paramValue[0], paramValue[1]);
-                           }
-                           servicePanel.add(interval, c);
-                           queryComponents.add(interval); 
-                         
-                            
-                       }
-                       else {
-                           
-                           JTextField paramField = new JTextField(8);
-
-                           if (description != null && description.length() > 0) {
-                               paramField.setToolTipText(description);
-                           }                           
-                           paramField.setName(paramName);
-                           paramField.addActionListener(this);
-                           paramField.getDocument().putProperty("owner", paramField); //set the owner
-                           paramField.getDocument().addDocumentListener(this);
-                           paramField.setText(paramValue[0]);
-                           Dimension size=new Dimension(paramField.getPreferredSize().width, paramField.getPreferredSize().height+5);
-                           paramField.setMinimumSize(size);
-                           paramField.setMaximumSize(size);
-                           servicePanel.add(paramField, c);
-                           queryComponents.add(paramField);
-                       }
-                       
-                       VOElement constraint = values.getChildByName("MIN"); 
-                       String min=numberformat( constraint.getAttribute("value") );
-                     
-                       constraint = values.getChildByName("MAX");                      
-                       String max=numberformat(constraint.getAttribute("value")); 
-                                            
-                       String info="";
-                       if (min != null || max != null) 
-                           info = String.format("["+min+".."+max+"]");
-                       if ( unit != null && !unit.isEmpty())
-                           info += "   "+unit;
-                   
-                       JLabel infoLabel = new JLabel(info);
-                       c.weightx=1.0;
-                       c.gridx=2;
-                       servicePanel.add(infoLabel, c);
-                       
-                   } // else      
-                   i++;
-               } //while
-               if ( /*servicePanel.getComponentCount()*/c.gridy > 0 ) { // !!!!! for the moment, add only parameters for visible query components!
+               if ( servicePanel.getComponentCount() > 0 ) { // !!!!! for the moment, add only parameters for visible query components!
                   paramPanel.add(servicePanel);
                }
-           }// for
+               currentServer = shortname;
+               
+           
            
     } // addToUI
+    
+	private JPanel initServicePanel(DataLinkServiceResource service) {
+
+
+		ParamElement[] sodaParams = service.getQueryParams();
+
+		JPanel servicePanel = new JPanel();
+
+		servicePanel.setBorder(BorderFactory.createLineBorder(Color.gray));
+		servicePanel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		int i=0;  
+		while ( i < sodaParams.length ) {
+
+			c.gridx=0;
+			c.gridy=i;
+			c.gridwidth=1;
+			c.weightx=0.5;
+			String paramName = sodaParams[i].getName();
+			JLabel paramLabel=new JLabel(paramName+" : ");
+			servicePanel.add(paramLabel, c);
+
+			String description = sodaParams[i].getDescription();                  
+			String value = sodaParams[i].getValue();
+			String unit = sodaParams[i].getUnit();
+			String xtype = sodaParams[i].getXtype();
+			long[] arraysize = sodaParams[i].getArraysize();
+
+			String[] paramValue=service.getQueryParamValue(paramName);
+
+			ValuesElement values = (ValuesElement) sodaParams[i].getChildByName("VALUES");
+			String [] options = null;
+
+			if (values != null )
+				options = values.getOptions();
+
+
+			if ( options != null && options.length > 0 ) {
+				JComboBox optbox = new JComboBox(options);
+				c.gridx=1;
+				c.gridwidth=2;
+				c.weightx=0.0;
+				if (paramName.equals("FORMAT")) { // choose best format for SPLAT as default
+
+					if (value != null && ! paramValue[0].isEmpty())
+						value=paramValue[0];
+					else {
+						for (i=0;i<options.length; i++) {
+							if ( options[i].contains("application/x-votable")) {
+								value = options[i];
+							} else if ( value == null && options[i].contains("application/fits")) {
+								value = options[i];
+							}
+						}
+						service.setDefaultFormat(value);
+					}
+				} 
+				else  {
+					optbox.addItem("");
+					if (value != null && ! paramValue[0].isEmpty())
+						value=paramValue[0];
+					else 
+						value="";
+				}
+				optbox.setSelectedItem(value);
+				optbox.setMaximumSize( optbox.getPreferredSize() );
+
+				//   optbox.setName("gd:"+shortname+":"+paramName);
+				optbox.setName(paramName);
+				optbox.addActionListener(this);
+				if (description.length() > 0)
+					optbox.setToolTipText(description);
+
+				servicePanel.add(optbox, c);
+				queryComponents.add(optbox);
+
+			} else if ( values != null ) {
+
+				c.gridx=1;
+				c.gridwidth=1;                 
+				c.weightx=0.0;
+				if ( xtype != null && xtype.equalsIgnoreCase("interval") && arraysize != null && arraysize[0]!=1) {
+					c.weightx=1.0;
+					IntervalField interval = new IntervalField();                           
+					interval.setName(paramName);
+					if (paramValue.length == 2) {
+						interval.setInterval(paramValue[0], paramValue[1]);
+					}
+					servicePanel.add(interval, c);
+					queryComponents.add(interval); 
+
+				}
+				else {
+
+					JTextField paramField = new JTextField(8);
+
+					if (description != null && description.length() > 0) {
+						paramField.setToolTipText(description);
+					}                           
+					paramField.setName(paramName);
+					paramField.addActionListener(this);
+					paramField.getDocument().putProperty("owner", paramField); //set the owner
+					paramField.getDocument().addDocumentListener(this);
+					paramField.setText(paramValue[0]);
+					Dimension size=new Dimension(paramField.getPreferredSize().width, paramField.getPreferredSize().height+5);
+					paramField.setMinimumSize(size);
+					paramField.setMaximumSize(size);
+					servicePanel.add(paramField, c);
+					queryComponents.add(paramField);
+				}
+
+				String min=null, max=null;
+				VOElement constraint = values.getChildByName("MIN"); 
+				try {
+				    min=numberformat( constraint.getAttribute("value") );
+				} catch (Exception e) {
+					// do nothing
+				}
+
+				constraint = values.getChildByName("MAX"); 
+				try {
+					max=numberformat(constraint.getAttribute("value")); 
+				} catch (Exception e) {
+					// do nothing
+				}
+
+				String info="";
+				if (min != null || max != null) 
+					info = String.format("["+min+".."+max+"]");
+				else if (min != null)
+					info = min;
+				else if (max != null)
+					info = max;
+				if ( unit != null && !unit.isEmpty())
+					info += "   "+unit;
+
+				JLabel infoLabel = new JLabel(info);
+				c.weightx=1.0;
+				c.gridx=2;
+				servicePanel.add(infoLabel, c);
+
+			} // else      
+			i++;
+		} //while
+		return servicePanel;
+	}
+
     
     private String numberformat(String s) {
         
         
-        DecimalFormat df = new DecimalFormat("#.##E0");
+        DecimalFormat df = new DecimalFormat("#.####E0");
         Double d = Double.parseDouble(s);
        
         if (d % 1.0 != 0) 
@@ -309,9 +363,15 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             return s;
     }
     
-    public String  getIDSource(String server) {
+    public String  getIdSource(String server) {
          return  servers.get(server).getIdSource();
     }
+    public String  getServiceID(String server) {
+        return  servers.get(server).getServiceId();
+   }
+    public String  getDataLinkLink(String server) {
+        return  servers.get(server).getDataLinkLink();
+   }
     
 
     public void actionPerformed(ActionEvent e) {
@@ -325,7 +385,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         okLabel.setIcon(null);
         if (source.equals(clearButton)) {
            
-            DataLinkParams serverparam = servers.get(currentServer);
+            //DataLinkServices serverparam = servers.get(currentServer);
 
 
             for (int i = 0; i < queryComponents.size(); i++) 
@@ -345,7 +405,10 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                 }
             }
             okLabel.setIcon(okImage);
+           
             setQueryParams();
+            if ( displayButton != null)
+            	displayButton.setEnabled(true);
             
             
         } else if (source.equals(submitButton)) {
@@ -379,12 +442,17 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
 
             if (ok) {
                 okLabel.setIcon(okImage);
+                if ( displayButton != null)
+                	displayButton.setEnabled(true);
                 setQueryParams();
             }
            
            
-            else 
+            else {
                 okLabel.setIcon(notOkImage);
+                if ( displayButton != null)
+                	displayButton.setEnabled(false);
+            }
             
         } 
         dataLinkPanel.updateUI();
@@ -392,7 +460,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     
     
     private void setQueryParams() {
-        DataLinkParams dlp = servers.get(currentServer);
+        DataLinkServices dlp = servers.get(currentServer);
         for (int i = 0; i < queryComponents.size(); i++) 
         {      
             Component c = queryComponents.get(i);
@@ -403,7 +471,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             }
             if (c instanceof JTextField) {
                 JTextField tf = (JTextField) c;
-                dlp.setQueryParam(name, (String) tf.getText());;
+                dlp.setQueryParam(name, (String) tf.getText());
             }
             if (c instanceof IntervalField) { // interval
                 IntervalField intp = (IntervalField) c;
@@ -433,7 +501,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     
 
     
-    public DataLinkParams getServerParams(String currentServer) {
+    public DataLinkServices getServerParams(String currentServer) {
         
         if (servers == null )
             return null;
@@ -474,7 +542,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         return (String[]) s.toArray(new String[s.size()]);
     }
 
-    
+ /*   
     class IntervalField extends JPanel {
         JTextField _lower;
         JTextField _upper;
@@ -540,5 +608,11 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         }
         
     }
+*/
+
+	public String getDataLinkIDField() {
+		// TODO Auto-generated method stub
+		return null;
+	}
     
 }

@@ -86,11 +86,13 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     protected JButton deselectVisibleButton;
     protected JButton deselectAllButton;
     private JToggleButton dataLinkButton;
-
+  
+   
 
     protected JPopupMenu popupMenu;
+    protected JPopupMenu popupMenuWithDataLink;
     
-    private JFrame browser;
+    private VOBrowser browser;
     private int datatype=-1;
     
     private static final int SSAP=0;
@@ -101,6 +103,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      * @uml.associationEnd  
      */
     private DataLinkQueryFrame dataLinkFrame = null;
+    private DataLinkLinksFrame dataLinkLinksFrame = null;
+    
     private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.ResultsPanel" );
 //    private HashMap <String,HashMap<String,String>> datalinkValues = new HashMap();
 
@@ -114,8 +118,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         if (browser.getClass().equals(SSAQueryBrowser.class))
             datatype=SSAP; 
         initComponents();
-        popupMenu = makeSpecPopup();
-        
+        popupMenu = makeSpecPopup(false);
+        popupMenuWithDataLink = makeSpecPopup(true);
     }
     
     
@@ -124,7 +128,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         datatype=OBSCORE;
  
         initComponents();
-        popupMenu = makeSpecPopup();       
+        popupMenu = makeSpecPopup(false);  
+        popupMenuWithDataLink = makeSpecPopup(true);
     }
 
     
@@ -145,7 +150,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         resultsPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if ( dataLinkEnabled ) {
-                   if (isDatalinkService(resultsPane.getSelectedIndex())) { // it's a datalink service
+                   if (isSodaService(resultsPane.getSelectedIndex())) { // it's a datalink service
 
                         if (dataLinkFrame != null && dataLinkEnabled) {
                             String server=resultsPane.getTitleAt(resultsPane.getSelectedIndex());
@@ -170,7 +175,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         add( controlPanel, gbc );
     }
     
-    private boolean isDatalinkService (int tabIndex ) {
+    private boolean isSodaService (int tabIndex ) {
         return resultsPane.getIconAt(tabIndex)!=null;
     }
     
@@ -255,9 +260,17 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     }
 
     
-    private JPopupMenu makeSpecPopup() {
+    private JPopupMenu makeSpecPopup(boolean datalink) {
         JPopupMenu popup = new JPopupMenu();
 
+       
+      
+        if ( datalink) {
+        	 JMenuItem datalinkMenuItem = new JMenuItem("Datalink");
+        	 datalinkMenuItem.addActionListener(new SpecPopupMenuAction());
+             popup.add(datalinkMenuItem);
+        }
+        
         JMenuItem dlMenuItem = new JMenuItem("Download");
         
         dlMenuItem.addActionListener(new SpecPopupMenuAction());
@@ -275,6 +288,9 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         
         return popup;
     }
+
+    
+   
 
     //
     // ActionListener interface.
@@ -329,6 +345,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
 
     }
     
+   
 
     /**
      * Get the main SPLAT browser to download and display spectra.
@@ -348,23 +365,53 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
       Props[] propList = prepareSpectra(selected, table, row);
       if (propList==null||propList.length==0)
           return;
-      if (datatype==SSAP)
-        ((SSAQueryBrowser) browser).displaySpectra(propList, display);
-      else if (datatype==OBSCORE)
-        ((ObsCorePanel) browser).displaySpectra(propList, display);
+     
+        browser.displaySpectra(propList, display);
+      
     }
-/*    
-    protected StarJTable  getCurrentTable(StarJTable table) 
-    {       
-        if (table == null) {
-            JScrollPane pane = (JScrollPane) resultsPane.getSelectedComponent();
-            return (StarJTable) pane.getViewport().getView();
-        } else {
-             return table;
-        }        
-    }
-*/
     
+    protected void processDataLink( StarPopupTable table, int row ) {
+   
+    	String server = resultsPane.getTitleAt(resultsPane.getSelectedIndex());
+    	DataLinkResponse dlp;
+    	
+    	String datalinkIDField = dataLinkFrame.getIdSource(server);
+    	String id = table.getDataLinkID(row, datalinkIDField);
+    	String datalinkurl = dataLinkFrame.getDataLinkLink(server);
+    	if (id != null && datalinkurl != null) {
+    		String query;
+    		
+			try {
+				query = datalinkurl+"?ID="+URLEncoder.encode(id,"UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				logger.warning("could not encode: "+e.getMessage());
+				query=datalinkurl+"?ID="+id;
+			}
+    		try {
+			  dlp= new  DataLinkResponse(query);
+			 
+			} catch (IOException e) {
+				logger.warning("could not open Datalink: "+e.getMessage());
+				logger.warning("query: "+query);
+			
+				e.printStackTrace();
+				return;
+			} catch (SAXException e) {
+				logger.warning("could not open Datalink: "+e.getMessage());
+				logger.warning("query: "+query);
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return;
+			}
+    		 if (dataLinkLinksFrame == null)				  
+    			 dataLinkLinksFrame = new DataLinkLinksFrame(dlp,  browser);
+    		 else dataLinkLinksFrame.changeContent(dlp);
+    		dataLinkLinksFrame.setVisible(true);
+    		
+    	}
+    	    	
+    }
+   
     /**
      * Deselect all spectra
      * <p>
@@ -457,7 +504,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      */
     protected void addTab(String shortName, StarPopupTable table)
     {
-        table.setComponentPopupMenu(popupMenu);
+    	if (table.hasDataLinkService())
+    		table.setComponentPopupMenu(popupMenuWithDataLink);
+    	else 
+    		table.setComponentPopupMenu(popupMenu);
+    	
         table.configureColumnWidths(200, table.getRowCount());
         JScrollPane resultScroller=new JScrollPane(table); 
         resultsPane.addTab(shortName, resultScroller );       
@@ -465,7 +516,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     
     protected void addTab(String shortName, StarPopupTable table, JPopupMenu popupmenu)
     {
-        table.setComponentPopupMenu(popupmenu);
+    	
+    	table.setComponentPopupMenu(popupmenu);
         table.configureColumnWidths(200, table.getRowCount());
         JScrollPane resultScroller=new JScrollPane(table); 
         resultsPane.addTab(shortName, resultScroller );       
@@ -473,7 +525,10 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
   
     protected void addTab(String shortName, ImageIcon icon, StarPopupTable table)
     {
-        table.setComponentPopupMenu(popupMenu);
+    	if (table.hasDataLinkService())
+    		table.setComponentPopupMenu(popupMenuWithDataLink);
+    	else 
+    		table.setComponentPopupMenu(popupMenu);
         table.configureColumnWidths(200, table.getRowCount());
         JScrollPane resultScroller=new JScrollPane(table); 
         resultsPane.addTab(shortName, icon, resultScroller );   
@@ -484,11 +539,21 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     }
     
     public void enableDataLink(DataLinkQueryFrame datalinkframe) {
+    	
         dataLinkButton.setEnabled(true);
         dataLinkButton.setVisible(true);
         dataLinkFrame=datalinkframe;
         
     }
+    public void enableDataLink(DataLinkQueryFrame datalinkframe, boolean showButton) {
+    	
+        dataLinkButton.setEnabled(showButton);
+        dataLinkButton.setVisible(showButton);
+        dataLinkFrame=datalinkframe;
+        
+    }
+    
+    
     
     /**
      *  Interactively get a file name and save current query results to it as
@@ -610,13 +675,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     
     protected void saveDataLinkParams( BufferedWriter writer ) throws IOException 
     {
+    	
+    	// TODO Review later
         
-        String [] servers = dataLinkFrame.getServers();
+/*        String [] servers = dataLinkFrame.getServers();
         for (int i=0;i<servers.length; i++) {
             DataLinkParams dlp = dataLinkFrame.getServerParams(servers[i]);
             if ( dlp.getServiceCount() > 0 )
                 dlp.writeParamToFile(writer, servers[i]);            
         } 
+        */
 
     }
 
@@ -692,11 +760,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                     }
                     else if (utype!= null && utype.equals("adhoc:service")) {
                         String name=resource[i].getAttribute("name");
-                        DataLinkParams dlp = new DataLinkParams(resource[i]);
+                         DataLinkServices dlp = new  DataLinkServices(resource[i]);
                         if ( newFrame == null ) {
                             newFrame = new DataLinkQueryFrame();
-                            if (datatype==SSAP)
-                                newFrame.addPropertyChangeListener("datalinkParamsChanged", (SSAQueryBrowser) this.browser);
+                           // if (datatype==SSAP)
+                           //     newFrame.addPropertyChangeListener("datalinkParamsChanged", (SSAQueryBrowser) this.browser);
                        } 
                        newFrame.addServer(name, dlp);  // associate this datalink service information to the current server
                        //datalinkValues.put(name, newFrame.getParams());
@@ -747,7 +815,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             //  Visit all the tabbed StarJTables.
             for (int i=0;i<resultsPane.getTabCount();i++) {              
                 JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
-                ArrayList<Props> tabspecs = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1, resultsPane.getTitleAt(i), isDatalinkService(i) );
+               
+                ArrayList<Props> tabspecs = extractSpectraFromTable(  (StarJTable) pane.getViewport().getView(), selected, -1, resultsPane.getTitleAt(i), isSodaService(i) );
                 if (tabspecs != null && tabspecs.size()>0)
                     specList.addAll(tabspecs);
             }
@@ -810,7 +879,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         
         String idSource = null;
         if ( dataLinkService && dataLinkEnabled  ) { 
-            idSource = dataLinkFrame.getIDSource(server);             
+            idSource = dataLinkFrame.getIdSource(server);             
         } 
                
         //  Check for a selection if required, otherwise we're using the given
@@ -929,45 +998,47 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         //  these work like the old-style scheme and appear in
                         //  the columns.
                         utype = utype.toLowerCase();
-                        if ( utype.endsWith( "access.reference" ) ) {
-                            linkcol = k;
+                        if (utype.startsWith("ssa:")) {
+                        	if ( utype.endsWith( "access.reference" ) ) {
+                        		linkcol = k;
+                        	}
+                        	else if ( utype.endsWith( "access.format" ) ) {
+                        		typecol = k;
+                        	}
+                        	else if ( utype.endsWith( "target.name" ) ) {
+                        		namecol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.spectralaxis.name" ) ) {
+                        		specaxiscol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.spectralaxis.unit" ) ) {
+                        		specunitscol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.fluxaxis.name" ) ) {
+                        		fluxaxiscol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.fluxaxis.accuracy.staterror" ) ) {
+                        		fluxerrorcol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.fluxaxis.unit" ) ) {
+                        		fluxunitscol = k;
+                        	}
+                        	else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
+                        		pubdidcol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
+                        		specstartcol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
+                        		specstopcol = k;
+                        	}                        
+                        	else if ( utype.endsWith( "char.timeAxis.coverage.bounds.start" ) ) {
+                        		timestartcol = k;
+                        	}
+                        	else if ( utype.endsWith( "char.timeAxis.coverage.bounds.stop" ) ) {
+                        		timestopcol = k;
+                        	}    
                         }
-                        else if ( utype.endsWith( "access.format" ) ) {
-                            typecol = k;
-                        }
-                        else if ( utype.endsWith( "target.name" ) ) {
-                            namecol = k;
-                        }
-                        else if ( utype.endsWith( "char.spectralaxis.name" ) ) {
-                            specaxiscol = k;
-                        }
-                        else if ( utype.endsWith( "char.spectralaxis.unit" ) ) {
-                            specunitscol = k;
-                        }
-                        else if ( utype.endsWith( "char.fluxaxis.name" ) ) {
-                            fluxaxiscol = k;
-                        }
-                        else if ( utype.endsWith( "char.fluxaxis.accuracy.staterror" ) ) {
-                            fluxerrorcol = k;
-                        }
-                        else if ( utype.endsWith( "char.fluxaxis.unit" ) ) {
-                            fluxunitscol = k;
-                        }
-                        else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
-                            pubdidcol = k;
-                        }
-                        else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
-                            specstartcol = k;
-                        }
-                        else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
-                            specstopcol = k;
-                        }                        
-                        else if ( utype.endsWith( "char.timeAxis.coverage.bounds.start" ) ) {
-                            timestartcol = k;
-                        }
-                        else if ( utype.endsWith( "char.timeAxis.coverage.bounds.stop" ) ) {
-                            timestopcol = k;
-                        }    
 
                     }
                     if (colInfo.getName().contains("ssa_producttype"))
@@ -984,32 +1055,12 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             //   if (datatype == SSAP && idsrccol != -1  && dataLinkQueryParams != null ) { // check if datalink parameters are present
             if ( dataLinkService && dataLinkEnabled && idsrccol != -1  ) { 
                 //  if ( ! dataLinkQueryParams.isEmpty() ) {    
-                DataLinkParams dlp = dataLinkFrame.getServerParams(server);
-                for (int s=0; s< dlp.getServiceCount(); s++) {
-                    for (String key : dlp.getQueryParamsNames(s)) {
-                        String [] values = dlp.getQueryParamsValue(s, key);
-                        if (values != null && values.length > 0) {
-                            String value=values[0];
-                            if (values.length==2 && (!values[0].isEmpty()||!values[1].isEmpty()) ) //if any of the values is not empty
-                                value+=" "+values[1];
-                            try {//
-                                if (! key.equals("IDSource") && ! (key.equals("AccessURL"))) {
-                                  //  if (values.length==2) {
-                                  //      dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0]+" "+value[1], "UTF-8");
-                                  //  } else {
-                                  //      dataLinkRequest+="&"+key+"="+URLEncoder.encode(value[0], "UTF-8");
-                                  //  } 
-                                    if (!value.isEmpty())
-                                        dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
-                                }
-
-                            } catch (UnsupportedEncodingException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            }                                     
-                        }
-                    }
-                }
+                 DataLinkServices dlp = dataLinkFrame.getServerParams(server);
+            //    for (int s=0; s< dlp.getServiceCount(); s++) {
+                DataLinkServiceResource soda = dlp.getSodaService();
+                dataLinkRequest= soda.getDataLinkRequest();
+                    
+              //  }
 
             }
 
@@ -1111,12 +1162,13 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                             if (idsrccol != -1  && dataLinkService && dataLinkEnabled) { 
 
                                 if (dataLinkFrame != null) { 
-                                    DataLinkParams dlp = dataLinkFrame.getServerParams(server);
+                                     DataLinkServices dlp = dataLinkFrame.getServerParams(server);
+                                    DataLinkServiceResource soda = dlp.getSodaService();
                                     props.setIdValue(rseq.getCell(idsrccol).toString());
                                     props.setIdSource(idSource);
                                     props.setDataLinkRequest(dataLinkRequest);
-                                    props.setServerURL(dlp.getAccessURL());
-                                    String format = dlp.getQueryFormat();
+                                    props.setServerURL(soda.getAccessURL());
+                                    String format = soda.getQueryFormat();
                                     if (format != null && format != "") {
                                         props.setDataLinkFormat(format);
                                         props.setType(SpecDataFactory.mimeToSPLATType( format ));
@@ -1204,13 +1256,15 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                 if (idsrccol != -1  && dataLinkEnabled && dataLinkService ) {  
 
                                     if (dataLinkFrame != null) { 
-                                        DataLinkParams dlp = dataLinkFrame.getServerParams(server);
+                                         DataLinkServices dlp = dataLinkFrame.getServerParams(server);
+                                        DataLinkServiceResource soda = dlp.getSodaService();
+
                                         props.setIdValue(rseq.getCell(idsrccol).toString());
                                         props.setIdSource(idSource);
                                         props.setDataLinkRequest(dataLinkRequest);
                                         // props.setServerURL(dataLinkQueryParam.get("AccessURL"));
-                                        props.setServerURL(dlp.getAccessURL());
-                                        String format = dlp.getQueryFormat();
+                                        props.setServerURL(soda.getAccessURL());
+                                        String format = soda.getQueryFormat();
                                         if (format != null && format != "") {
                                             props.setDataLinkFormat(format);
                                             props.setType(SpecDataFactory.mimeToSPLATType( format ) );
@@ -1280,6 +1334,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             StarPopupTable table = (StarPopupTable) jpm.getInvoker();
            
            int row = table.getPopupRow();
+           
+           table.setRowSelectionInterval(row, row);
           
             if (e.getActionCommand().equals("Info")) {
                 table.showInfo(row);
@@ -1289,7 +1345,10 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             }   
             else if (e.getActionCommand().equals("Download")) {
                 displaySpectra( false, false, (StarJTable) table, row );
-            }             
+            }  
+            else if (e.getActionCommand().equals("Datalink")) {
+                processDataLink(  table, row );
+            } 
         }
     }
 

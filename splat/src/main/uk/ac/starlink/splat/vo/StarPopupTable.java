@@ -4,7 +4,7 @@ import java.awt.BorderLayout;
 /**
  *  Extension of StarJTable that supports row popup menus,
  *  copying contents of a table cell to the clipboard
- *  and table column sorting
+ *  and table column sorting 
  *  
  * @author Margarida Castro Neves
  */
@@ -39,24 +39,33 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.RowSorter;
+import javax.swing.RowSorter.SortKey;
+import javax.swing.SortOrder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import jsky.util.Logger;
-
+import uk.ac.starlink.splat.iface.BasicStarPopupTable;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.TemporaryFileDataSource;
 
-public class StarPopupTable extends  StarJTable {
+public class StarPopupTable extends  BasicStarPopupTable  {
  
-    CopyListener copylistener = new CopyListener();
-    final KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false);
+  
     //final KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    
+    // tells if there are soda or datalink parameters associated to this results table
+	private boolean hasSodaService = false;
+	private boolean hasDatalinkService = false;
     
     public StarPopupTable() {
         super(true);
@@ -76,7 +85,7 @@ public class StarPopupTable extends  StarJTable {
     }
    
    private void initTable() {
-       registerKeyboardAction(copylistener, "Copy", stroke, JComponent.WHEN_FOCUSED); // allow copying cell content to clipboard
+      // registerKeyboardAction(copylistener, "Copy", stroke, JComponent.WHEN_FOCUSED); // allow copying cell content to clipboard
        setAutoCreateRowSorter(true); // allow sorting by column
    }
    
@@ -145,21 +154,105 @@ public class StarPopupTable extends  StarJTable {
     }
 
    
-   public Point getPopupLocation(MouseEvent event) {
-       setPopupTriggerLocation(event);     
-       return super.getPopupLocation(event);
-   }
+ 
    
-   protected void setPopupTriggerLocation(MouseEvent event) {
-       putClientProperty("popupTriggerLocation", 
-               event != null ? event.getPoint() : null);
-   }
+   /** 
+    * If the table has different rows with same pubdid (probably different formats of same spectrum) 
+    * put them to only one row with an option for different formats
+    **/
+   
+   public void makeUniquePubdid() {
 
-   public int getPopupRow () {
-       int row = rowAtPoint( (Point) getClientProperty("popupTriggerLocation") );
-       return convertRowIndexToModel(row);
+	   StarTable startable = this.getStarTable();
+	   int cols = startable.getColumnCount();
+	   int pubdidcol=-1;
+	   int formatcol=-1;
+	   
+	   
+	   // find the right column
+	   //
+	   for (int i=0;i<cols;i++) {
+		   // SSAP
+		   ColumnInfo ci =  startable.getColumnInfo(i);
+		   if (ci != null) {
+			   try { 
+				   if (ci.getUtype().endsWith("Curation.PublisherDID") ) {
+					   pubdidcol=i;
+				   }
+				   if (ci.getUtype().endsWith("access.format") ) {
+					   formatcol=i;
+				   }
+			   } catch( Exception e) {}
+			   // Obscore
+			   try { 
+				   
+				   if (ci.getName().endsWith("obs_publisher_did") ) {
+					   pubdidcol=i;
+				   }
+				   if (ci.getName().endsWith("access_format") ) {
+					   formatcol=i;
+				   }
+			   } catch( Exception e){}
+		   }
+	   }
+	   if (pubdidcol == -1 || formatcol == -1)
+		   return; // nothing can be done
+	   
+	   // sort by pubdid
+	   //
+	   
+	   TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(this.getModel());
+	   this.setRowSorter(sorter);
+	   List<RowSorter.SortKey> sortKeys = new ArrayList<SortKey>();
+	   sortKeys.add(new RowSorter.SortKey(pubdidcol, SortOrder.ASCENDING));	    
+	   sorter.setSortKeys(sortKeys);
+	   sorter.sort();
+	   int rowCount = this.getRowCount();
+	   // search for same pubdids
+	   String prevPubdid=(String) this.getValueAt(0, pubdidcol);
+	   String prevFormat=(String) this.getValueAt(0, formatcol);
+	   
+	   for(int i=1; i<rowCount;i++){
+		    String pubdid = (String) this.getValueAt(i, pubdidcol);
+		    String format = (String) this.getValueAt(i, formatcol);
+		    if (pubdid.equals(prevPubdid)) {
+		    	if (isPreferedFormat(format,prevFormat)) {
+		    		this.removeRowSelectionInterval(i-1, i-1);
+		    		prevFormat=format;
+		    	} else {
+		    		this.removeRowSelectionInterval(i, i);
+		    	}
+		    } else {
+		    	prevPubdid=pubdid;
+		    	prevFormat=format;
+		    }
+		}	   
    }
    
+
+   /** 
+    * Using a predefined preference order, returns
+    * 	true if format1 is prefered than format2
+    *   false otherwise
+    **/
+private boolean isPreferedFormat(String format1, String format2){
+	// list of preferred formats in descending order
+	 ArrayList<String> pref = new ArrayList<String>(Arrays.asList(
+             "votable", 
+             "fits"
+             ));
+	 int rank1=pref.size(), rank2=pref.size();
+	 for (int i=1;i<pref.size();i++) {
+		 if (format1.toLowerCase().contains(pref.get(i))) {
+			 rank1=i;
+		 }	
+		 if (format2.toLowerCase().contains(pref.get(i))) {
+			 rank2=i;
+		 }	
+	 }
+	 return (rank1<rank2);
+		 
+}
   
    
    /** 
@@ -284,32 +377,51 @@ public class StarPopupTable extends  StarJTable {
        }       
    }
    
- /**
-  *  copy cell content to clipboard
-  **/
-   
-   private void copyCell() {
-       int col = getSelectedColumn();
-       int row = getSelectedRow();
-       if (col != -1 && row != -1) {
-           Object value = getValueAt(row, col);
-           String cellContent="";
-           if (value != null) {
-               cellContent = value.toString();
-           }
 
-           final StringSelection selection = new StringSelection(cellContent);     
-           final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-           clipboard.setContents(selection, selection);
-           
-       }
+   public void setSoda() { // this table has soda services
+	   hasSodaService=true;
+	
    }
-  //Action to copy cell content to clipboard   
-  
-   class CopyListener implements ActionListener {
-       public void actionPerformed(ActionEvent event) {
-           copyCell();
-       }   
+   
+   public void setDataLink() { // this table has soda services
+	   hasDatalinkService=true;
+	
+   }
+
+   public  String getDataLinkID(int row, String field) { // get the datalink ID
+	   if (! hasDatalinkService) 
+		   return null;
+	   
+	   StarTable table = this.getStarTable();
+
+	   for (int i=0;i<table.getColumnCount();i++) {
+		   ColumnInfo ci =  table.getColumnInfo(i);
+		   List<DescribedValue> data = ci.getAuxData();
+		   for (DescribedValue dv:data) {
+			   String info = dv.getInfo().getName();
+			   if (info.equalsIgnoreCase("ID") || info.equalsIgnoreCase("VOTable ID")) {
+				   String val = dv.getValueAsString(field.length()+1);
+				   if (val.equals(field)) {
+					   try {
+						   return  (String) table.getCell(row, i);
+					   } catch (IOException e) {}							
+				   }    	    		   
+			   }    	    	  
+		   }
+	   }
+
+	   return null; 
+
+   }
+   
+   public boolean hasSodaService() { // this table has soda services
+	   return hasSodaService;
+	
+   }
+   
+   public boolean hasDataLinkService() { // this table has soda services
+	   return hasDatalinkService;
+	
    }
 
 }
