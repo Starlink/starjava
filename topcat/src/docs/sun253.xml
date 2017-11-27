@@ -25070,6 +25070,8 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
+    <li>Stop the right hand side of the subsets stack being obscured
+        by the scrollbar when there are too many subsets to see at once.</li>
     </ul>
     </p>
     </dd>
