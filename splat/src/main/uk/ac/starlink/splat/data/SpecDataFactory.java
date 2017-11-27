@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PushbackInputStream;
 import java.net.FileNameMap;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -37,12 +38,12 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import javax.activation.MimeType;
 
-
-
+import org.xml.sax.SAXException;
 
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
@@ -51,7 +52,8 @@ import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.DalResourceXMLFilter;
-import uk.ac.starlink.splat.vo.DataLinkParams;
+
+import uk.ac.starlink.splat.vo.DataLinkResponse;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 
 
@@ -337,18 +339,23 @@ public class SpecDataFactory
        
         if ( isRemote ) {
              int remotetype = checkMimeType(namer.getURL());
-             if (remotetype == DATALINK) { //if it's a datalink file, it has to be parsed and its information extracted
+             if (remotetype == DATALINK) { // if it's a datalink file, it has to be parsed and its information extracted
                  try {
-                     DataLinkParams dlp = new DataLinkParams(specspec);
-                     if ( dlp.getQueryContentType(0) == null || dlp.getQueryContentType(0).isEmpty()) //if not, use contenttype
-                         type = GUESS;
-                     else 
-                         type = mimeToSPLATType(dlp.getQueryContentType(0)); 
-                  // got the datalink information, do it all again with the new url
-                     return getAll(dlp.getQueryAccessURL(0), type, objectType);
+                     DataLinkResponse dlp = new DataLinkResponse(specspec);
+                     String thisLink= dlp.getThisLink();
+                    
+                    	 if ( dlp.getThisContentType() == null || dlp.getThisContentType().isEmpty()) //if not, use contenttype
+                    		 type = GUESS;
+                    	 else 
+                    		 type = mimeToSPLATType(dlp.getThisContentType()); 
+                    	 // got the datalink information, do it all again with the new url
+                    	 return getAll(thisLink, type, objectType);
+                     	
                  } catch (IOException e) {
                      throw new SplatException(e);
-                 }
+                 } catch (SAXException e) {
+                	 throw new SplatException(e);
+				}
              }
                  
              if (remotetype != GUESS && remotetype != NOT_SUPPORTED)
@@ -835,7 +842,7 @@ public class SpecDataFactory
                     se.setSpec(specspec);
                     logger.info(se.getMessage());
                     success=false;
-                    //throw se;
+                    throw se;
                 }
                 catch (Exception e) {
                     if (e.getMessage().contains("HDU "+ i +"TABLE is empty")) {
@@ -1388,35 +1395,27 @@ public class SpecDataFactory
             throws SplatException
     {
         PathParser namer = null;
-        boolean compressed = false;
         String remotetype = null;
-
-        //  Contact the resource.
-
         URLConnection connection=null;
         String conttype = "";
         
-        try {
-            connection = openConnection(url);
-            conttype=connection.getContentType();
-        } catch (IOException e) {
-            throw new SplatException( e );
-        }
-       
-        if (conttype==null) { // avoids NPE
-            conttype=""; 
-        }
-
-        compressed = ("gzip".equals(connection.getContentEncoding()) || conttype.contains("gzip"));
-        remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
-
         InputStream is;
+
+        //  Contact the resource.
+       
         try {
-            is = connection.getInputStream();
-            if (compressed)
-                is = new GZIPInputStream(is);
- 	    else
-                is = unzipIfNecessary(is); // if service sends gzipped data without declaring it
+        	connection = openConnection(url);
+        	
+            is =  connection.getInputStream();
+            conttype=connection.getContentType();
+            String contenc = connection.getContentEncoding();
+
+            boolean compressed = (contenc != null && contenc.contains("gzip") || (conttype != null && conttype.contains("gzip")));
+            remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
+            if (compressed) 
+            	is = new GZIPInputStream(is);
+           // else
+           // 	is = unzipIfNecessary(is); // if service sends gzipped data without declaring it
         } catch (IOException e) {
             throw new SplatException( e );
         }
@@ -1424,10 +1423,9 @@ public class SpecDataFactory
         //  And read it into a local file. Use the existing file extension
         //  if available and we're not guessing the type.
         namer = new PathParser( url.toString() );
-
         String stype = null;
       
-        int mimetype=mimeToSPLATType(conttype);	
+        int mimetype=mimeToSPLATType(conttype);
         if ((type == DEFAULT || type == GUESS) && mimetype != GUESS && mimetype != NOT_SUPPORTED)
            type=mimetype;
         
@@ -1470,6 +1468,7 @@ public class SpecDataFactory
                 }
             }
         }
+       
 
         try {          
             TemporaryFileDataSource datsrc = new TemporaryFileDataSource( is, url.toString(), "SPLAT", stype, null );
@@ -1504,7 +1503,6 @@ public class SpecDataFactory
                         " as it is empty" );
             }
 
-
         } catch (Exception e) {
             throw new SplatException( e );
         }
@@ -1512,29 +1510,28 @@ public class SpecDataFactory
         return namer;
     }
 
-  private InputStream unzipIfNecessary(InputStream is) throws IOException {
+    private InputStream unzipIfNecessary(InputStream is) throws IOException {
         BufferedInputStream bis = new BufferedInputStream( is ); 
         bis.mark(0);
         byte header[] = new byte[2];
        
         try {
-               header[0]=(byte) bis.read();
-               header[1]=(byte) bis.read();
-               byte magic1= (byte) GZIPInputStream.GZIP_MAGIC;
-               byte magic2 = (byte) (GZIPInputStream.GZIP_MAGIC >>> 8);
-               bis.reset();
-               
+        	header[0]=(byte) bis.read();
+        	header[1]=(byte) bis.read();
+        	byte magic1= (byte) GZIPInputStream.GZIP_MAGIC;
+        	byte magic2 = (byte) (GZIPInputStream.GZIP_MAGIC >>> 8);
+        	bis.reset();
+        	
             if ((header[0] ==  magic1)  && (header[1] == magic2)) {
-                return new GZIPInputStream( bis );
+            	 return new GZIPInputStream( bis );
             }           
             bis.mark(0);
         } catch (IOException e) {
-               return is;
+        	return is;
         }
       
         return bis;
    }
-
     
     /*
      * getRemoteType
@@ -2033,7 +2030,7 @@ public class SpecDataFactory
         else if ( simpleType.startsWith( "application/x-votable+xml" ) ||
                   simpleType.equals( "text/xml;x-votable" ) ||
                   simpleType.startsWith( "text/x-votable+xml" ) ||
-      		  simpleType.equals( "xml" ) ||
+                  simpleType.equals( "xml" ) ||
                   simpleType.startsWith("text/xml")) {
             
             // VOTABLE containing DataLink information
