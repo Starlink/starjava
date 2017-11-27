@@ -437,7 +437,7 @@ public class SplatRegistryQuery implements RegistryQuery {
             }
             SSAPRegResource resource = resMap_.get(ivoid);
 
-            if ( intfIndex != null ) {
+           // if ( intfIndex != null ) {
                
                // Integer ix = new Integer( intfIndex.intValue() );
               //  if ( ! resource.capMap.containsKey( ix ) ) {
@@ -452,7 +452,7 @@ public class SplatRegistryQuery implements RegistryQuery {
                     caps[0] = cap;
                     resource.setCapabilities(caps);
                 //}
-            }
+         //   }
         }
 
         /**
