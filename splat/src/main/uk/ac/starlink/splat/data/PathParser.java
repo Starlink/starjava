@@ -331,7 +331,7 @@ public class PathParser
                 type_ = name.substring( i1 );
             }
         } else {
-            type_ = ".sdf";
+            type_ = "";
         }
     }
 
@@ -420,7 +420,7 @@ public class PathParser
                 path_ = type_;
             }
         }
-        type_ = ".sdf";
+        type_ = "";
     }
 
     /**
@@ -475,7 +475,7 @@ public class PathParser
     /**
      *  Disk file type.
      */
-    protected String type_ = ".sdf";
+    protected String type_ = "";
 
     /**
      *  Test method.
