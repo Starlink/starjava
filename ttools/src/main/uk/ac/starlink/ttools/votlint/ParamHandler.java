@@ -42,9 +42,18 @@ public class ParamHandler extends ElementHandler {
      */
     public static class ValueChecker implements AttributeChecker {
         public void check( String attValue, ElementHandler handler ) {
-            ValueParser parser = ((ParamHandler) handler).getParser();
-            if ( parser != null ) {
-                parser.checkString( attValue );
+
+            /* Only check if the value is non-empty, since an empty string
+             * represents null which is always permitted.
+             * This is not explicitly allowed by the VOTable standard,
+             * but it is in line with at least the TD handling of
+             * VOTable 1.3.  And array-typed PARAMs with value="" are
+             * common in DataLink service descriptors. */
+            if ( attValue.length() > 0 ) {
+                ValueParser parser = ((ParamHandler) handler).getParser();
+                if ( parser != null ) {
+                    parser.checkString( attValue );
+                }
             }
         }
     }

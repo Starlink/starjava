@@ -11276,6 +11276,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dd><p>
     <ul>
     <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
+    <li><code>votlint</code> no longer considers an integer- or array-typed
+        <code>PARAM</code> element with attribute <code>value=""</code>
+        to be an error.</li>
     </ul>
     </p>
     </dd>
