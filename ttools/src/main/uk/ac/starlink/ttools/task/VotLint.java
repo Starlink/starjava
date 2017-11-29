@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -18,6 +19,8 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.votlint.DoctypeInterpolator;
+import uk.ac.starlink.ttools.votlint.PrintSaxMessager;
+import uk.ac.starlink.ttools.votlint.SaxMessager;
 import uk.ac.starlink.ttools.votlint.VersionDetector;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLinter;
@@ -133,8 +136,9 @@ public class VotLint implements Task {
                                      + outParam_.stringValue( env )
                                      + "\" for output: " + e.getMessage(), e );
         }
-        return new VotLintExecutable( in, version, validate, debug, sysid,
-                                      out );
+        int maxRepeat = 4;
+        SaxMessager messager = new PrintSaxMessager( out, debug, maxRepeat );
+        return new VotLintExecutable( in, version, validate, sysid, messager );
     }
 
     private class VotLintExecutable implements Executable {
@@ -142,19 +146,17 @@ public class VotLint implements Task {
         final InputStream baseIn_;
         final VOTableVersion forceVersion_;
         final boolean validate_;
-        final boolean debug_;
         final String sysid_;
-        final PrintStream out_;
+        final SaxMessager messager_;
 
         VotLintExecutable( InputStream in, VOTableVersion forceVersion,
-                           boolean validate, boolean debug, String sysid,
-                           PrintStream out ) {
+                           boolean validate, String sysid,
+                           SaxMessager messager ) {
             baseIn_ = in;
             forceVersion_ = forceVersion;
             validate_ = validate;
-            debug_ = debug;
             sysid_ = sysid;
-            out_ = out;
+            messager_ = messager;
         }
 
         public void execute() throws IOException, ExecutionException {
@@ -180,20 +182,21 @@ public class VotLint implements Task {
                     version = foundVersion;
                 }
                 else {
-                    VotLintContext preContext =
-                        new VotLintContext( null, validate_, debug_, out_ );
-                    preContext.info( "Unable to determine VOTable version"
-                                   + " from document" );
+                    Locator noloc = null;
+                    messager_.reportMessage( SaxMessager.Level.INFO,
+                                             "Unable to determine VOTable "
+                                           + "version from document", noloc );
                     version = VOTableVersion.getDefaultVersion();
-                    preContext.info( "Assuming VOTable v" + version
-                                   + " by default" );
+                    messager_.reportMessage( SaxMessager.Level.INFO,
+                                             "Assuming VOTable v" + version
+                                           + " by default", noloc );
                 }
             }
 
             /* Create a context. */
             assert version != null;
             final VotLintContext context =
-                new VotLintContext( version, validate_, debug_, out_ );
+                new VotLintContext( version, validate_, messager_ );
                
             /* Interpolate the VOTable DOCTYPE declaration if required. */
             final InputStream in;

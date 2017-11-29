@@ -24,6 +24,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.votlint.SaxMessager;
 import uk.ac.starlink.ttools.votlint.VersionDetector;
 import uk.ac.starlink.ttools.votlint.VotLintContentHandler;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
@@ -264,8 +265,9 @@ public abstract class VotLintTapRunner extends TapRunner {
          * reporter as it progresses. */
         final XMLReader parser;
         if ( doChecks ) {
-            ReporterVotLintContext vlContext =
-                new ReporterVotLintContext( version, reporter );
+            SaxMessager messager = new ReporterSaxMessager( reporter );
+            VotLintContext vlContext =
+                new VotLintContext( version, true, messager );
             parser = createParser( reporter, vlContext );
             ContentHandler vcHandler =
                     new MultiplexInvocationHandler<ContentHandler>(

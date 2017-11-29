@@ -25,7 +25,9 @@ public class VersionDetailTest extends TestCase {
     }
 
     private static VersionDetail getDetail( VOTableVersion version ) {
-        return VersionDetail
-              .getInstance( new VotLintContext( version, true, false, null ) );
+        VotLintContext context =
+            new VotLintContext( version, true,
+                                new PrintSaxMessager( null, false, 1 ) );
+        return VersionDetail.getInstance( context );
     }
 }

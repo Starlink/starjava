@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.votlint;
 
-import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -18,17 +17,12 @@ public class VotLintContext {
 
     private final VOTableVersion version_;
     private final boolean validate_;
-    private final boolean debug_;
-    private final PrintStream out_;
+    private final SaxMessager messager_;
     private final Map idMap_;
     private final Map refMap_;
-    private final Map msgMap_;
     private final Map namespaceMap_;
     private Locator locator_;
     private int errCount_;
-
-    /** Maximum number of identical error messages which will be logged. */
-    public final static int MAX_REPEAT = 4;
 
     /**
      * Constructor.
@@ -36,19 +30,15 @@ public class VotLintContext {
      * @param  version  version of VOTable for which the parse will be done
      * @param  validate  if true, validation will be performed against
      *                   the appropriate DTD/schema
-     * @param  debug  if true, a stack trace will be output with each
-     *                log message
-     * @param  out    output stream to which messages will be written
+     * @param  messager    destination for validation messages
      */
     public VotLintContext( VOTableVersion version, boolean validate,
-                           boolean debug, PrintStream out ) {
+                           SaxMessager messager ) {
         version_ = version;
         validate_ = validate;
-        debug_ = debug;
-        out_ = out;
+        messager_ = messager;
         idMap_ = new HashMap();
         refMap_ = new HashMap();
-        msgMap_ = new HashMap();
         namespaceMap_ = new HashMap();
     }
 
@@ -71,15 +61,6 @@ public class VotLintContext {
     }
 
     /**
-     * Returns whether we are in debug mode.
-     *
-     * @return   true if debugging output is on
-     */
-    public boolean isDebug() {
-        return debug_;
-    }
-
-    /**
      * Sets the SAX document locator for this parse.
      *
      * @param  locator   locator
@@ -95,15 +76,6 @@ public class VotLintContext {
      */
     public Locator getLocator() {
         return locator_;
-    }
-
-    /**
-     * Returns the output stream to which messages will be written.
-     *
-     * @return   output stream
-     */
-    public PrintStream getOutput() {
-        return out_;
     }
 
     /**
@@ -191,7 +163,7 @@ public class VotLintContext {
      * @param  msg  message
      */
     public void info( String msg ) {
-        message( "INFO", msg, null );
+        messager_.reportMessage( SaxMessager.Level.INFO, msg, locator_ );
     }
 
     /**
@@ -200,7 +172,7 @@ public class VotLintContext {
      * @param  msg  message
      */
     public void warning( String msg ) {
-        message( "WARNING", msg, null );
+        messager_.reportMessage( SaxMessager.Level.WARNING, msg, locator_ );
     }
 
     /**
@@ -210,75 +182,7 @@ public class VotLintContext {
      */
     public void error( String msg ) {
         errCount_++;
-        message( "ERROR", msg, null );
-    }
-
-    /**
-     * Dispatches a message to the user.  Context information, such as
-     * position in the parse and message severity, are output as well
-     * as the text itself.  Additionally an effort is made not to write
-     * the same message millions of times.  Either the <tt>msg</tt>
-     * or the <tt>e</tt> arguments, but not both, may be null.
-     *
-     * @param  type  indication of message severity
-     * @param  msg   specific message content
-     * @param  e     throwable associated with this message
-     */
-    public void message( String type, String msg, Throwable e ) {
-
-        /* Fill in the message from the throwable if necessary. */
-        if ( msg == null && e != null ) {
-            msg = e.getMessage();
-            if ( msg == null ) {
-                msg = e.toString();
-            }
-        }
-
-        /* See how many times (if any) we have output this same message 
-         * before now.  If it's more than a certain threshold, don't
-         * bother to do it again. */
-        int repeat = msgMap_.containsKey( msg )
-                   ? ((Integer) msgMap_.get( msg )).intValue()
-                   : 0;
-        msgMap_.put( msg, new Integer( repeat + 1 ) );
-        if ( repeat < MAX_REPEAT ) {
-
-            /* Construct the text to output. */
-            StringBuffer sbuf = new StringBuffer()
-                .append( type );
-            int il = -1;
-            int ic = -1;
-            if ( locator_ != null ) {
-                ic = locator_.getColumnNumber();
-                il = locator_.getLineNumber();
-            }
-            if ( il > 0 ) {
-                sbuf.append( " (l." )
-                    .append( il );
-                if ( ic > 0 ) {
-                    sbuf.append( ", c." )
-                        .append( ic );
-                }
-                sbuf.append( ")" );
-            }
-            sbuf.append( ": " )
-                .append( msg );
-            if ( repeat == MAX_REPEAT - 1 ) {
-                sbuf.append( " (more...)" );
-            }
-            String text = sbuf.toString();
-
-            /* Output the message. */
-            out_.println( text );
-            if ( debug_ ) {
-                if ( e == null ) {
-                    e = new VotLintException( msg );
-                    e.fillInStackTrace();
-                }
-                e.printStackTrace( out_ );
-                out_.println();
-            }
-        }
+        messager_.reportMessage( SaxMessager.Level.ERROR, msg, locator_ );
     }
 
     /**

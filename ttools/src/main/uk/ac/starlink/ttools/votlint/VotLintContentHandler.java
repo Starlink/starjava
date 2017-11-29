@@ -167,17 +167,29 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     // ErrorHandler implementation.
 
     public void warning( SAXParseException e ) {
-        context_.message( "WARN", null, e );
+        String msg = e.getMessage();
+        if ( msg == null ) {
+            msg = e.toString();
+        }
+        context_.warning( msg );
     }
 
     public void error( SAXParseException e ) {
         if ( ! isNamespaceError( e ) ) {
-            context_.message( "ERROR", null, e );
+            String msg = e.getMessage();
+            if ( msg == null ) {
+                msg = e.toString();
+            }
+            context_.error( msg );
         }
     }
 
     public void fatalError( SAXParseException e ) {
-        context_.message( "FATAL", null, e );
+        String msg = e.getMessage();
+        if ( msg == null ) {
+            msg = e.toString();
+        }
+        context_.error( msg );
     }
 
     /**

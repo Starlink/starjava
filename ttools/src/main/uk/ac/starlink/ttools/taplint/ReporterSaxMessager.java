@@ -1,17 +1,16 @@
 package uk.ac.starlink.ttools.taplint;
 
 import org.xml.sax.Locator;
-import uk.ac.starlink.ttools.votlint.VotLintContext;
-import uk.ac.starlink.votable.VOTableVersion;
+import uk.ac.starlink.ttools.votlint.SaxMessager;
 
 /**
- * VotLintContext implementation which delivers its output via
+ * SaxMessager implementation which delivers its output via
  * a TapLint-style reporter.
  *
  * @author   Mark Taylor
  * @since    10 Jun 2011
  */
-public class ReporterVotLintContext extends VotLintContext {
+public class ReporterSaxMessager implements SaxMessager {
 
     private final Reporter reporter_;
 
@@ -20,40 +19,18 @@ public class ReporterVotLintContext extends VotLintContext {
      *
      * @param  reporter   validation message destination
      */
-    public ReporterVotLintContext( VOTableVersion version, Reporter reporter ) {
-        super( version, true, false, null );
+    public ReporterSaxMessager( Reporter reporter ) {
         reporter_ = reporter;
     }
 
-    @Override
-    public void info( String msg ) {
-        report( ReportType.INFO, msg );
-    }
-
-    @Override
-    public void warning( String msg ) {
-        report( ReportType.WARNING, msg );
-    }
-
-    @Override
-    public void error( String msg ) {
-        report( ReportType.ERROR, msg );
-    }
-
-    /**
-     * Delivers validation messages to the reporter.
-     *
-     * @param  type  message type
-     * @param  msg   message text
-     */
-    private void report( ReportType type, String msg ) {
+    public void reportMessage( Level level, String msg, Locator locator ) {
+        ReportType type = getReportType( level );
         String label = "VO"
                      + AdhocCode.createLabelChars( type + ": " + msg,
                                                    AdhocCode.LABEL_LENGTH - 2 );
         ReportCode code = new AdhocCode( type, label );
         int il = -1;
         int ic = -1;
-        Locator locator = getLocator();
         if ( locator != null ) {
             ic = locator.getColumnNumber();
             il = locator.getLineNumber();
@@ -71,5 +48,25 @@ public class ReporterVotLintContext extends VotLintContext {
         sbuf.append( ": " )
             .append( msg );
         reporter_.report( code, sbuf.toString() );
+    }
+
+    /**
+     * Returns the ReportType corresponding to a given SaxMessager.Level.
+     *
+     * @param  level   level
+     * @return  report type
+     */
+    private ReportType getReportType( Level level ) {
+        switch ( level ) {
+            case INFO:
+                return ReportType.INFO;
+            case WARNING:
+                return ReportType.WARNING;
+            case ERROR:
+                return ReportType.ERROR;
+            default:
+                assert false;
+                return ReportType.FAILURE;
+        }
     }
 }
