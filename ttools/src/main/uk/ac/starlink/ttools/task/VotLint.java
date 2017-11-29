@@ -215,7 +215,7 @@ public class VotLint implements Task {
             /* Perform the parse. */
             try {
                 new VotLinter( context )
-                   .createParser( validate_ )
+                   .createParser()
                    .parse( sax );
             }
             catch ( SAXException e ) {

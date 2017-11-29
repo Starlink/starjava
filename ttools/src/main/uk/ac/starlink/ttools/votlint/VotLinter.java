@@ -34,10 +34,10 @@ public class VotLinter {
      * Constructs a linting parser.  Parsing a SAX stream with this
      * object will perform the lint.
      *
-     * @param    validate  whether you want a validating parser
      * @return   parser
      */
-    public XMLReader createParser( boolean validate ) throws SAXException {
+    public XMLReader createParser() throws SAXException {
+        boolean validate = context_.isValidating();
 
         /* Prepare for validation.  It works completely differently
          * for DTD and XSD. */
