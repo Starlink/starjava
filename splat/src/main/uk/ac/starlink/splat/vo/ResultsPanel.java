@@ -1037,11 +1037,14 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         	}
                         	else if ( utype.endsWith( "char.timeAxis.coverage.bounds.stop" ) ) {
                         		timestopcol = k;
-                        	}    
+                        	}  
+                        	else if ( utype.endsWith( "dataset.type" ) ) {
+                        		producttypecol = k;
+                        	}  
                         }
 
                     }
-                    if (colInfo.getName().contains("ssa_producttype"))
+                    if (colInfo.getName().contains("ssa_producttype") )
                         producttypecol = k;
                     if (colInfo.getName().equals("ssa_pubDID"))
                         pubdidcol = k;
