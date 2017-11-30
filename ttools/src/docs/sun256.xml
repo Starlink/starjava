@@ -11279,6 +11279,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li><code>votlint</code> no longer considers an integer- or array-typed
         <code>PARAM</code> element with attribute <code>value=""</code>
         to be an error.</li>
+    <li><code>taplint</code>'s VOTable validation now includes XML schema/DTD
+        validation as well as the custom VOTable checks.
+        It was always supposed to do this, but it seems that it didn't,
+        at least in recent versions.</li>
     </ul>
     </p>
     </dd>
