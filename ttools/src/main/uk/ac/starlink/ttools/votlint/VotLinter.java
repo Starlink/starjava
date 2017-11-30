@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.votlint;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.Schema;
@@ -31,12 +33,18 @@ public class VotLinter {
     }
 
     /**
-     * Constructs a linting parser.  Parsing a SAX stream with this
-     * object will perform the lint.
+     * Constructs a linting parser.
+     * Parsing a SAX stream with this object will perform the validation.
+     * A user-supplied content handler may additionally be supplied;
+     * if so, all SAX events will be fed to this handler as well as
+     * to the linting handlers.
      *
-     * @return   parser
+     * @param  userHandler  content handler that receives all SAX events,
+     *                      or null if only linting is required
+     * @return  parser
      */
-    public XMLReader createParser() throws SAXException {
+    public XMLReader createParser( ContentHandler userHandler )
+            throws SAXException {
         boolean validate = context_.isValidating();
 
         /* Prepare for validation.  It works completely differently
@@ -77,28 +85,39 @@ public class VotLinter {
             }
         }
 
-        /* Prepare the content and error handlers for the parse. */
+        /* Prepare the content and error handlers for the parse.
+         * We prepare a list of content handlers which will receive
+         * the events, and then multiplex the SAX stream to them. */
+        List<ContentHandler> contentHandlers = new ArrayList<ContentHandler>();
+
+        /* The custom validation and error handling is done by
+         * a VotLintContentHandler instance. */
         VotLintContentHandler lintHandler =
             new VotLintContentHandler( context_ );
-        final ContentHandler contentHandler;
+        contentHandlers.add( lintHandler );
 
-        /* If schema-validating, multiplex the SAX events to two handlers:
-         * the custom votlint handler itself, and a schema-validation one.
-         * Otherwise, just send them to the votlint handler. */
+        /* If schema-validating, add a schema-validation content handler. */
         if ( validate && schema != null ) {
             ValidatorHandler validHandler = schema.newValidatorHandler();
             validHandler.setErrorHandler( lintHandler );
             ContentHandler fixValidHandler =
                 new FudgeNamespaceContentHandler( validHandler, "VOTABLE",
                                                   version.getXmlNamespace() );
-            contentHandler =
-                new MultiplexInvocationHandler<ContentHandler>(
-                        new ContentHandler[] { fixValidHandler, lintHandler } )
-               .createMultiplexer( ContentHandler.class );
+            contentHandlers.add( fixValidHandler );
         }
-        else {
-            contentHandler = lintHandler;
+
+        /* If the user has supplied a content handler, add that one too. */
+        if ( userHandler != null ) {
+            contentHandlers.add( userHandler );
         }
+
+        /* Construct a single content handler that will multiplex the
+         * incoming SAX events to all the target handlers. */
+        ContentHandler[] cHandlers =
+            contentHandlers.toArray( new ContentHandler[ 0 ] );
+        ContentHandler contentHandler =
+            new MultiplexInvocationHandler<ContentHandler>( cHandlers )
+           .createMultiplexer( ContentHandler.class );
 
         /* Install the custom content handler and error handler. */
         parser.setContentHandler( contentHandler );
