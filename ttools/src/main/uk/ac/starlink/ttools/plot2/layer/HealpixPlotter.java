@@ -70,6 +70,11 @@ public class HealpixPlotter
     private final int icValue_;
 
     /** Maximum HEALPix level supported by this plotter. */
+    /* 13 is the largest value for which 32-bit pixel indices will suffice.
+     * Getting round that is not so hard, but some parts of the
+     * implementation are not efficient for finer grids, so other
+     * implementation work would have to be done to increase this value.
+     * In fact even at 13 performance is pretty poor at present. */
     public static final int MAX_LEVEL = 13;
 
     /** Coordinate for HEALPix index. */
@@ -259,7 +264,7 @@ public class HealpixPlotter
     private static int guessDataLevel( long nrow ) {
         if ( nrow > 0 ) {
             for ( int il = 0; il <= MAX_LEVEL; il++ ) {
-                long hprow = 12 * 1 << ( 2 * il );
+                long hprow = 12 * ( 1L << ( 2 * il ) );
 
                 /* If there are the same number of rows as healpix pixels,
                  * or the same plus an extra row for a blank index,
@@ -355,10 +360,10 @@ public class HealpixPlotter
     private static BinList createBinList( final Combiner combiner,
                                           int dataLevel, int viewLevel ) {
         int degrade = dataLevel - viewLevel;
-        long nbin = 12 * ( 1 << ( 2 * viewLevel ) );
+        long nbin = 12 * ( 1L << ( 2 * viewLevel ) );
         boolean isFew = nbin < 1e6;
         if ( Combiner.MEAN.equals( combiner ) ) {
-            final double factor = 1.0 / ( 1 << ( 2 * degrade ) );
+            final double factor = 1.0 / ( 1L << ( 2 * degrade ) );
             final BinList baseList =
                 isFew ? Combiner.SUM.createArrayBinList( (int) nbin )
                       : Combiner.SUM.createHashBinList( nbin );
