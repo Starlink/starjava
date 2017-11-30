@@ -63,6 +63,9 @@ public class PlotUtil {
         public int getIntValue( int icol ) {
             throw new IllegalStateException();
         }
+        public long getLongValue( int icol ) {
+            throw new IllegalStateException();
+        }
         public boolean getBooleanValue( int icol ) {
             throw new IllegalStateException();
         }

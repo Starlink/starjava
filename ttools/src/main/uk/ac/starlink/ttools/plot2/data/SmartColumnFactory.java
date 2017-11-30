@@ -62,6 +62,7 @@ public class SmartColumnFactory implements CachedColumnFactory {
         map.put( StorageType.BOOLEAN, immutableComparison );
         map.put( StorageType.DOUBLE, immutableComparison );
         map.put( StorageType.FLOAT, immutableComparison );
+        map.put( StorageType.LONG, immutableComparison );
         map.put( StorageType.INT, immutableComparison );
         map.put( StorageType.SHORT, immutableComparison );
         map.put( StorageType.BYTE, immutableComparison );
@@ -208,6 +209,7 @@ public class SmartColumnFactory implements CachedColumnFactory {
     private static class ConstantReader implements CachedReader {
         private final boolean booleanValue_;
         private final int intValue_;
+        private final long longValue_;
         private final double doubleValue_;
         private final Object objectValue_;
 
@@ -220,13 +222,15 @@ public class SmartColumnFactory implements CachedColumnFactory {
             if ( col1.getRowCount() > 0 ) {
                 CachedReader constRdr = col1.createReader();
                 booleanValue_ = constRdr.getBooleanValue( 0 );
-                intValue_ = constRdr. getIntValue( 0 );
+                intValue_ = constRdr.getIntValue( 0 );
+                longValue_ = constRdr.getLongValue( 0 );
                 doubleValue_ = constRdr.getDoubleValue( 0 );
                 objectValue_ = constRdr.getObjectValue( 0 );
             }
             else {
                 booleanValue_ = false;
                 intValue_ = Integer.MIN_VALUE;
+                longValue_ = Long.MIN_VALUE;
                 doubleValue_ = Double.NaN;
                 objectValue_ = null;
             }
@@ -238,6 +242,10 @@ public class SmartColumnFactory implements CachedColumnFactory {
 
         public int getIntValue( long ix ) {
             return intValue_;
+        }
+
+        public long getLongValue( long ix ) {
+            return longValue_;
         }
 
         public double getDoubleValue( long ix ) {

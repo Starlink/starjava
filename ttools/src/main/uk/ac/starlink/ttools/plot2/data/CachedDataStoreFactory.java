@@ -622,6 +622,10 @@ public class CachedDataStoreFactory implements DataStoreFactory {
             return colRdrs_[ icol ].getIntValue( irow_ );
         }
 
+        public long getLongValue( int icol ) {
+            return colRdrs_[ icol ].getLongValue( irow_ );
+        }
+
         public boolean getBooleanValue( int icol ) {
             return colRdrs_[ icol ].getBooleanValue( irow_ );
         }

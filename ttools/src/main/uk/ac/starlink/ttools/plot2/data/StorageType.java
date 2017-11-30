@@ -28,6 +28,9 @@ public enum StorageType {
     /** Single precision type.  Output type is {@link java.lang.Float}. */
     FLOAT,
 
+    /** Long integer type.  Output type is {@link java.lang.Long}. */
+    LONG,
+
     /** Integer type.  Output type is {@link java.lang.Integer}. */
     INT,
 

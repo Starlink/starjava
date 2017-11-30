@@ -48,6 +48,9 @@ public class StepDataStore implements DataStore {
             public int getIntValue( int icol ) {
                 return baseSeq.getIntValue( icol );
             }
+            public long getLongValue( int icol ) {
+                return baseSeq.getLongValue( icol );
+            }
             public boolean getBooleanValue( int icol ) {
                 return baseSeq.getBooleanValue( icol );
             }

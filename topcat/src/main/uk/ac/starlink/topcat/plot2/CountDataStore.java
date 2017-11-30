@@ -100,6 +100,10 @@ public class CountDataStore implements DataStore {
             return base_.getIntValue( icol );
         }
 
+        public long getLongValue( int icol ) {
+            return base_.getLongValue( icol );
+        }
+
         public double getDoubleValue( int icol ) {
             return base_.getDoubleValue( icol );
         }

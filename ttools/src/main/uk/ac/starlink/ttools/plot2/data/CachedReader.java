@@ -51,6 +51,14 @@ public interface CachedReader {
     int getIntValue( long ix );
 
     /**
+     * Retrieve the current value of this sequence as a long.
+     *
+     * @param   ix  value index
+     * @return   value
+     */
+    long getLongValue( long ix );
+
+    /**
      * Retrieve the current value of this sequence as a boolean value.
      *
      * @param   ix  value index

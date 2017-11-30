@@ -39,6 +39,10 @@ public class WrapperTupleSequence implements TupleSequence {
         return base_.getDoubleValue( icol );
     }
 
+    public long getLongValue( int icol ) {
+        return base_.getLongValue( icol );
+    }
+
     public Object getObjectValue( int icol ) {
         return base_.getObjectValue( icol );
     }

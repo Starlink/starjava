@@ -77,6 +77,17 @@ public interface Tuple {
     int getIntValue( int icol );
 
     /**
+     * Returns the value of a given column as a long.
+     * If that element of the tuple is not of numeric type,
+     * the result may not be useful.
+     *
+     * @param   icol  column index
+     * @return  value of element <code>icol</code>,
+     *          presumed of numeric type
+     */
+    long getLongValue( int icol );
+
+    /**
      * Returns the value of a given column as a boolean.
      * If that element of the table is not of boolean type,
      * the result may not be useful.

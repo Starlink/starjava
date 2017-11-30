@@ -396,6 +396,10 @@ public abstract class TableCloud {
             return baseTseq_.getIntValue( icol );
         }
 
+        public long getLongValue( int icol ) {
+            return baseTseq_.getLongValue( icol );
+        }
+
         public double getDoubleValue( int icol ) {
             return baseTseq_.getDoubleValue( icol );
         }

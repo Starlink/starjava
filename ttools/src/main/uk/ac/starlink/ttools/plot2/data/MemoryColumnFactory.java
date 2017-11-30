@@ -12,6 +12,7 @@ import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.DoubleList;
 import uk.ac.starlink.util.FloatList;
 import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.util.LongList;
 import uk.ac.starlink.util.ShortList;
 
 /**
@@ -52,6 +53,12 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             public CachedColumn createColumn( long nrow ) {
                 return nrow >= 0 ? new FixedFloatColumn( nrow )
                                  : new UnknownFloatColumn();
+            }
+        } );
+        map.put( StorageType.LONG, new ColumnCreator() {
+            public CachedColumn createColumn( long nrow ) {
+                return nrow >= 0 ? new FixedLongColumn( nrow )
+                                 : new UnknownLongColumn();
             }
         } );
         map.put( StorageType.INT, new ColumnCreator() {
@@ -161,6 +168,16 @@ public class MemoryColumnFactory implements CachedColumnFactory {
      */
     private static float toFloat( Object obj ) {
         return ((Number) obj).floatValue();
+    }
+
+    /**
+     * Converts an object to a long.
+     *
+     * @param  obj, presumed numeric
+     * @return  numerical value of <code>obj</code>
+     */
+    private static long toLong( Object obj ) {
+        return ((Number) obj).longValue();
     }
 
     /**
@@ -377,6 +394,44 @@ public class MemoryColumnFactory implements CachedColumnFactory {
 
         public CachedReader createReader() {
             return new FloatArrayReader( data_ );
+        }
+    }
+
+    /**
+     * CachedColumn implementation for long values, column length is known.
+     */
+    private static class FixedLongColumn implements CachedColumn {
+        private final int nrow_;
+        private final long[] data_;
+        private int irow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  nrow  column length
+         */
+        FixedLongColumn( long nrow ) {
+            if ( nrow > Integer.MAX_VALUE ) {
+                throw new UnsupportedOperationException( "Too long " + nrow );
+            }
+            nrow_ = (int) nrow;
+            data_ = new long[ nrow_ ];
+        }
+
+        public void add( Object value ) {
+            data_[ irow_++ ] = toLong( value );
+        }
+
+        public void endAdd() {
+            assert irow_ == nrow_;
+        }
+
+        public long getRowCount() {
+            return irow_;
+        }
+
+        public CachedReader createReader() {
+            return new LongArrayReader( data_ );
         }
     }
 
@@ -759,6 +814,35 @@ public class MemoryColumnFactory implements CachedColumnFactory {
     }
 
     /**
+     * CachedColumn implementation for long values, column length not known.
+     */
+    private static class UnknownLongColumn implements CachedColumn {
+        private LongList list_;
+        private long[] data_;
+
+        UnknownLongColumn() {
+            list_ = new LongList();
+        }
+
+        public void add( Object value ) {
+            list_.add( toLong( value ) );
+        }
+
+        public void endAdd() {
+            data_ = list_.toLongArray();
+            list_ = null;
+        }
+
+        public long getRowCount() {
+            return data_ == null ? list_.size() : data_.length;
+        }
+
+        public CachedReader createReader() {
+            return new LongArrayReader( data_ );
+        }
+    }
+
+    /**
      * CachedColumn implementation for int values, column length not known.
      */
     private static class UnknownIntColumn implements CachedColumn {
@@ -1018,6 +1102,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public int getIntValue( long ix ) {
             return Integer.MIN_VALUE;
         }
+        public long getLongValue( long ix ) {
+            return Long.MIN_VALUE;
+        }
     }
 
     /**
@@ -1042,6 +1129,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
         public int getIntValue( long ix ) {
             return Integer.MIN_VALUE;
+        }
+        public long getLongValue( long ix ) {
+            return Long.MIN_VALUE;
         }
         public boolean getBooleanValue( long ix ) {
             return false;
@@ -1071,6 +1161,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public int getIntValue( long ix ) {
             return (int) data_[ (int) ix ];
         }
+        public long getLongValue( long ix ) {
+            return (long) data_[ (int) ix ];
+        }
         public boolean getBooleanValue( long ix ) {
             return false;
         }
@@ -1099,6 +1192,38 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public int getIntValue( long ix ) {
             return (int) data_[ (int) ix ];
         }
+        public long getLongValue( long ix ) {
+            return (long) data_[ (int) ix ];
+        }
+        public boolean getBooleanValue( long ix ) {
+            return false;
+        }
+    }
+
+    /**
+     * Long-yielding CachedReader implementation based on a flat array.
+     */
+    private static class LongArrayReader implements CachedReader {
+        private final long[] data_;
+
+        /**
+         * Constructor.
+         */
+        LongArrayReader( long[] data ) {
+            data_ = data;
+        }
+        public Object getObjectValue( long ix ) {
+            return new Long( data_[ (int) ix ] );
+        }
+        public double getDoubleValue( long ix ) {
+            return (double) data_[ (int) ix ];
+        }
+        public int getIntValue( long ix ) {
+            return (int) data_[ (int) ix ];
+        }
+        public long getLongValue( long ix ) {
+            return data_[ (int) ix ];
+        }
         public boolean getBooleanValue( long ix ) {
             return false;
         }
@@ -1125,6 +1250,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             return data_[ (int) ix ];
         }
         public int getIntValue( long ix ) {
+            return data_[ (int) ix ];
+        }
+        public long getLongValue( long ix ) {
             return data_[ (int) ix ];
         }
         public boolean getBooleanValue( long ix ) {
@@ -1155,6 +1283,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public int getIntValue( long ix ) {
             return data_[ (int) ix ];
         }
+        public long getLongValue( long ix ) {
+            return data_[ (int) ix ];
+        }
         public boolean getBooleanValue( long ix ) {
             return false;
         }
@@ -1181,6 +1312,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             return data_[ (int) ix ];
         }
         public int getIntValue( long ix ) {
+            return data_[ (int) ix ];
+        }
+        public long getLongValue( long ix ) {
             return data_[ (int) ix ];
         }
         public boolean getBooleanValue( long ix ) {
@@ -1221,6 +1355,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public int getIntValue( long ix ) {
             return Integer.MIN_VALUE;
         }
+        public long getLongValue( long ix ) {
+            return Long.MIN_VALUE;
+        }
         public boolean getBooleanValue( long ix ) {
             return false;
         }
@@ -1259,6 +1396,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         public int getIntValue( long ix ) {
             return Integer.MIN_VALUE;
         }
+        public long getLongValue( long ix ) {
+            return Long.MIN_VALUE;
+        }
         public boolean getBooleanValue( long ix ) {
             return false;
         }
@@ -1296,6 +1436,9 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
         public int getIntValue( long ix ) {
             return Integer.MIN_VALUE;
+        }
+        public long getLongValue( long ix ) {
+            return Long.MIN_VALUE;
         }
         public boolean getBooleanValue( long ix ) {
             return false;
