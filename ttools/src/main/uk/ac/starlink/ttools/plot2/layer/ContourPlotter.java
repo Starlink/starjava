@@ -413,8 +413,8 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
     /**
      * Smooths a pixel grid.
-     * The smoothing just uses a square top hat kernel with full width given
-     * by the smoothing parameter.
+     * This is a convolution with a square top hat kernel,
+     * with full width given by the smoothing parameter.
      *
      * @param   inArray  original grid data
      * @param   gridder  grid geometry
@@ -425,29 +425,45 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                                        int smooth ) {
         int nx = gridder.getWidth();
         int ny = gridder.getHeight();
-        final float[] out = new float[ gridder.getLength() ];
+        int npix = gridder.getLength();
         int lo = - smooth / 2;
         int hi = ( smooth + 1 ) / 2;
+
+        /* Since the kernel is separable, we can do two 1-d convolutions,
+         * which scales much better than one 2-d convolution. */
+        double[] a1 = new double[ npix ];
         for ( int px = lo; px < hi; px++ ) {
-            for ( int py = lo; py < hi; py++ ) {
-                int ix0 = Math.max( 0, px );
-                int ix1 = Math.min( nx, nx + px );
-                int iy0 = Math.max( 0, py );
-                int iy1 = Math.min( ny, ny + py );
-                for ( int iy = iy0; iy < iy1; iy++ ) {
-                    int jy = iy - py;
-                    for ( int ix = ix0; ix < ix1; ix++ ) {
-                        int jx = ix - px;
-                        out[ gridder.getIndex( ix, iy ) ] +=
-                            inArray.getValue( gridder.getIndex( jx, jy ) );
-                    }
+            int ix0 = Math.max( 0, px );
+            int ix1 = Math.min( nx, nx + px );
+            for ( int iy = 0; iy < ny; iy++ ) {
+                for ( int ix = ix0; ix < ix1; ix++ ) {
+                    int jx = ix - px;
+                    a1[ gridder.getIndex( ix, iy ) ] +=
+                        inArray.getValue( gridder.getIndex( jx, iy ) );
                 }
             }
         }
-        float factor = 1f / ( ( hi - lo ) * ( hi - lo ) );
+        double[] a2 = new double[ npix ];
+        for ( int py = lo; py < hi; py++ ) {
+            int iy0 = Math.max( 0, py );
+            int iy1 = Math.min( ny, ny + py );
+            for ( int iy = iy0; iy < iy1; iy++ ) {
+                for ( int ix = 0; ix < nx; ix++ ) {
+                    int jy = iy - py;
+                    a2[ gridder.getIndex( ix, iy ) ] +=
+                        a1[ gridder.getIndex( ix, jy ) ];
+                }
+            }
+        }
+        final double[] out = a2;
+
+        /* Normalise. */
+        double factor = 1.0 / ( ( hi - lo ) * ( hi - lo ) );
         for ( int i = 0; i < out.length; i++ ) {
             out[ i ] *= factor;
         }
+
+        /* Return the result as a NumberArray. */
         return new NumberArray() {
             public int getLength() {
                 return out.length;
