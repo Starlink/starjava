@@ -132,7 +132,7 @@ public class PlanePlotType implements PlotType {
             new LinePlotter(),
             new LinearFitPlotter( true ),
             new LabelPlotter(),
-            new ContourPlotter(),
+            new ContourPlotter( true ),
             new GridPlotter( true ),
             new FillPlotter( true ),
             new TracePlotter( true ),

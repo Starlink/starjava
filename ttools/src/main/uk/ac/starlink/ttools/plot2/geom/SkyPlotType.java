@@ -71,7 +71,7 @@ public class SkyPlotType implements PlotType {
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter[] {
             new LabelPlotter(),
-            new ContourPlotter(),
+            new ContourPlotter( true ),
             new SkyDensityPlotter( true, true ),
             new HealpixPlotter( true ),
             new SkyGridPlotter(),

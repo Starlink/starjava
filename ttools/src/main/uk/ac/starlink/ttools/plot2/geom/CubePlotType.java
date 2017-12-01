@@ -84,7 +84,7 @@ public class CubePlotType implements PlotType {
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter[] {
             new LabelPlotter(),
-            new ContourPlotter(),
+            new ContourPlotter( true ),
         } ) );
         return list.toArray( new Plotter[ 0 ] );
     }

@@ -20,6 +20,7 @@ public class ContourStyle implements Style {
     private final double offset_;
     private final int nSmooth_;
     private final LevelMode levelMode_;
+    private final Combiner combiner_;
 
     /**
      * Constructor.
@@ -30,14 +31,16 @@ public class ContourStyle implements Style {
      *                 should be in the range 0..1
      * @param  nSmooth  smoothing kernel width
      * @param  levelMode  level determination algorithm
+     * @param  combiner   combination mode
      */
     public ContourStyle( Color color, int nLevel, double offset, int nSmooth,
-                         LevelMode levelMode ) {
+                         LevelMode levelMode, Combiner combiner ) {
         color_ = color;
         nLevel_ = nLevel;
         offset_ = offset;
         nSmooth_ = nSmooth;
         levelMode_ = levelMode;
+        combiner_ = combiner;
     }
 
     /**
@@ -85,6 +88,15 @@ public class ContourStyle implements Style {
         return levelMode_;
     }
 
+    /**
+     * Returns the combination mode.
+     *
+     * @return  combiner
+     */
+    public Combiner getCombiner() {
+        return combiner_;
+    }
+
     public Icon getLegendIcon() {
         return new Icon() {
             private static final int width_ = 12;
@@ -113,6 +125,7 @@ public class ContourStyle implements Style {
         code = code * 23 + Float.floatToIntBits( (float) offset_ );
         code = code * 23 + nSmooth_;
         code = code * 23 + levelMode_.hashCode();
+        code = code * 23 + combiner_.hashCode();
         return code;
     }
 
@@ -124,7 +137,8 @@ public class ContourStyle implements Style {
                 && this.nLevel_ == other.nLevel_
                 && this.offset_ == other.offset_
                 && this.nSmooth_ == other.nSmooth_
-                && this.levelMode_ == other.levelMode_;
+                && this.levelMode_.equals( other.levelMode_ )
+                && this.combiner_.equals( other.combiner_ );
         }
         else {
             return false;
