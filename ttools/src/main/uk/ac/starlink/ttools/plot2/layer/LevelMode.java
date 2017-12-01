@@ -149,9 +149,8 @@ public abstract class LevelMode {
                                                 int nLevel, double offset,
                                                 boolean isCounts ) {
         double[] limits = getCutLimits( array, NCLIP, true );
-        double loThresh = isCounts ? 1 : 0;
-        double min = Math.max( loThresh, limits[ 0 ] );
-        double max = Math.max( loThresh, limits[ 1 ] );
+        double min = isCounts ? Math.max( 1, limits[ 0 ] ) : limits[ 0 ];
+        double max = isCounts ? Math.max( 1, limits[ 1 ] ) : limits[ 1 ];
         if ( ! ( max > min ) ) {
             return new double[ 0 ];
         }
@@ -235,6 +234,8 @@ public abstract class LevelMode {
                                           boolean isLog ) {
         double[] tops = new double[ nExclude + 1 ];
         double[] bots = new double[ nExclude + 1 ];
+        Arrays.fill( tops, Double.NEGATIVE_INFINITY );
+        Arrays.fill( bots, Double.POSITIVE_INFINITY );
         int np = array.getLength();
         for ( int ip = 0; ip < np; ip++ ) {
             double c = array.getValue( ip );
