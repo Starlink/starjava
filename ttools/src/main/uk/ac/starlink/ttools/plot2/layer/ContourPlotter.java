@@ -253,33 +253,47 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         public ContourPlan calculatePlan( Object[] knownPlans,
                                           DataStore dataStore ) {
             Combiner combiner = style_.getCombiner();
+            int requiredPad = ( style_.getSmoothing() + 1 ) / 2;
             for ( Object plan : knownPlans ) {
                 if ( plan instanceof ContourPlan ) {
                     ContourPlan cplan = (ContourPlan) plan;
-                    if ( cplan.matches( combiner, surface_,
-                                        dataSpec_, geom_ ) ) {
+                    if ( cplan.matches( combiner, surface_, dataSpec_, geom_,
+                                        requiredPad ) ) {
                         return cplan;
                     }
                 }
             }
-            BinList.Result binResult = readBinList( dataStore ).getResult();
+
+            /* If we are calculating a new plan, request more padding than
+             * we need for the current style.  In that way, the same plan
+             * can be used if the smoothing value goes up a bit. */
+            int requestedPad = Math.max( 16, requiredPad * 2 );
+            BinList.Result binResult =
+                readBinList( dataStore, requestedPad ).getResult();
             return new ContourPlan( combiner, surface_, dataSpec_, geom_,
-                                    binResult );
+                                    requestedPad, binResult );
         }
 
         /**
          * Populates a 2d pixel grid giving the value of the weighted or
          * unweighted density map at each pixel.  It does this by reading
-         * the input table.
+         * the input table.  The populated pixel grid comprises the
+         * visible plot bounds, plus a padding region of a few pixels
+         * (as requested) around the outside to accommodate smoothing
+         * operations etc.
          *
          * @param  dataStore  input table data object
+         * @param  pad   number of pixels around the plot bounds that should
+         *               be populated
          * @return   populated pixel grid
          */
-        private BinList readBinList( DataStore dataStore ) {
+        private BinList readBinList( DataStore dataStore, int pad ) {
             Rectangle bounds = surface_.getPlotBounds();
-            Gridder gridder = new Gridder( bounds.width, bounds.height );
-            int xoff = bounds.x;
-            int yoff = bounds.y;
+            int nx = bounds.width + 2 * pad;
+            int ny = bounds.height + 2 * pad;
+            Gridder gridder = new Gridder( nx, ny );
+            int xoff = bounds.x - pad;
+            int yoff = bounds.y - pad;
             int nbin = gridder.getLength();
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             double[] dpos = new double[ surface_.getDataDimCount() ];
@@ -291,11 +305,15 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                     double w = WEIGHT_COORD.readDoubleCoord( tseq, icWeight_ );
                     if ( ! Double.isNaN( w ) &&
                          geom_.readDataPos( tseq, icPos_, dpos ) &&
-                         surface_.dataToGraphics( dpos, true, gp ) ) {
+                         surface_.dataToGraphics( dpos, false, gp ) ) {
                         int gx = PlotUtil.ifloor( gp.x ) - xoff;
-                        int gy = PlotUtil.ifloor( gp.y ) - yoff;
-                        int ibin = gridder.getIndex( gx, gy );
-                        binList.submitToBin( ibin, w );
+                        if ( gx >= 0 && gx < nx ) {
+                            int gy = PlotUtil.ifloor( gp.y ) - yoff;
+                            if ( gy >= 0 && gy < ny ) {
+                                int ibin = gridder.getIndex( gx, gy );
+                                binList.submitToBin( ibin, w );
+                            }
+                        }
                     }
                 }
             }
@@ -303,11 +321,15 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 binList = Combiner.COUNT.createArrayBinList( nbin );
                 while ( tseq.next() ) {
                     if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                         surface_.dataToGraphics( dpos, true, gp ) ) {
+                         surface_.dataToGraphics( dpos, false, gp ) ) {
                         int gx = PlotUtil.ifloor( gp.x ) - xoff;
-                        int gy = PlotUtil.ifloor( gp.y ) - yoff;
-                        int ibin = gridder.getIndex( gx, gy );
-                        binList.submitToBin( ibin, 1 );
+                        if ( gx >= 0 && gx < nx ) {
+                            int gy = PlotUtil.ifloor( gp.y ) - yoff;
+                            if ( gy >= 0 && gy < ny ) {
+                                int ibin = gridder.getIndex( gx, gy );
+                                binList.submitToBin( ibin, 1 );
+                            }
+                        }
                     }
                 }
             }
@@ -344,11 +366,12 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             Color color0 = g.getColor();
             g.setColor( style_.getColor() );
             Rectangle bounds = surface_.getPlotBounds();
-            int xoff = bounds.x;
-            int yoff = bounds.y;
+            int pad = cplan.pad_;
+            int xoff = bounds.x - pad;
+            int yoff = bounds.y - pad;
             int nx = bounds.width;
             int ny = bounds.height;
-            Gridder gridder = new Gridder( nx, ny );
+            Gridder gridder = new Gridder( nx + 2 * pad, ny + 2 * pad );
             final int leng = gridder.getLength();
 
             /* Get an object which reports the density at each grid point.
@@ -383,10 +406,15 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
              * Sweep in both directions (X,Y, then Y,X).  This paints some
              * contour pixels twice, but if you don't then lines that
              * are too steep miss pixels. */
-            for ( int ix = 0; ix < nx; ix++ ) {
+            int lw = 1; // line width
+            int ix0 = Math.max( 0, pad - lw );
+            int ix1 = Math.min( nx + pad + 2 * lw, gridder.getWidth() );
+            int iy0 = Math.max( 0, pad - lw );
+            int iy1 = Math.min( ny + pad + 2 * lw, gridder.getHeight() );
+            for ( int ix = ix0; ix < ix1; ix++ ) {
                 int lev0 = leveller.getLevel(
                                array.getValue( gridder.getIndex( ix, 0 ) ) );
-                for ( int iy = 1; iy < ny; iy++ ) {
+                for ( int iy = iy0 + 1; iy < iy1; iy++ ) {
                     int lev1 = leveller.getLevel(
                              array.getValue( gridder.getIndex( ix, iy ) ) );
                     if ( lev1 != lev0 ) {
@@ -395,10 +423,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                     lev0 = lev1;
                 }
             }
-            for ( int iy = 0; iy < ny; iy++ ) {
+            for ( int iy = iy0; iy < iy1; iy++ ) {
                 int lev0 = leveller.getLevel(
                                array.getValue( gridder.getIndex( 0, iy ) ) );
-                for ( int ix = 1; ix < nx; ix++ ) {
+                for ( int ix = ix0 + 1; ix < ix1; ix++ ) {
                     int lev1 = leveller.getLevel(
                              array.getValue( gridder.getIndex( ix, iy ) ) );
                     if ( lev1 != lev0 ) {
@@ -523,6 +551,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         final Surface surface_;
         final DataSpec dataSpec_;
         final DataGeom geom_;
+        final int pad_;
         final BinList.Result binResult_;
 
         /**
@@ -532,14 +561,17 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          * @param  surface   plot surface
          * @param  dataSpec   data specification
          * @param  geom     geom
+         * @param  pad     number of pixels around the visible plot bounds
+         *                 that are populated in the bin grid
          * @param  binResult  contains accumulated weight data
          */
         ContourPlan( Combiner combiner, Surface surface, DataSpec dataSpec,
-                     DataGeom geom, BinList.Result binResult ) {
+                     DataGeom geom, int pad, BinList.Result binResult ) {
             combiner_ = combiner;
             surface_ = surface;
             dataSpec_ = dataSpec;
             geom_ = geom;
+            pad_ = pad;
             binResult_ = binResult;
         }
 
@@ -551,13 +583,18 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          * @param  combiner  combination method for values
          * @param  dataSpec   data specification
          * @param  geom     geom
+         * @param  requiredPad   minimum number of padding pixels around
+         *                       the grid region that corresponds to the
+         *                       visible plot bounds
          */
         public boolean matches( Combiner combiner, Surface surface,
-                                DataSpec dataSpec, DataGeom geom ) {
+                                DataSpec dataSpec, DataGeom geom,
+                                int requiredPad ) {
             return combiner.equals( combiner_ )
                 && surface.equals( surface_ )
                 && dataSpec.equals( dataSpec_ )
-                && geom_.equals( geom );
+                && geom_.equals( geom )
+                && pad_ >= requiredPad;
         }
     }
 }
