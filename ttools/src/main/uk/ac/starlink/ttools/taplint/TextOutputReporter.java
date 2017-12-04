@@ -76,7 +76,7 @@ public class TextOutputReporter implements OutputReporter {
     }
 
     public void summariseUnreportedMessages( String scode ) {
-        String dscode = "-" + scode + "-";
+        String dscode = scode == null ? "" : "-" + scode + "-";
         int lds = dscode.length();
         for ( Iterator<String> it = codeMap_.keySet().iterator();
               it.hasNext(); ) {

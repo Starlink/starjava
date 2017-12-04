@@ -46,7 +46,8 @@ public interface OutputReporter extends Reporter {
      * suppressed in a given stage because the maximum repeat count
      * was exceeded.
      *
-     * @param   scode  section code to summarise
+     * @param   scode  section code to summarise;
+     *                 if null, no stage filtering is done
      */
     void summariseUnreportedMessages( String scode );
 
