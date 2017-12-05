@@ -61,13 +61,14 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
            .setStringUsage( "<pixels>" )
            .setShortDescription( "Smoothing kernel size in pixels" )
            .setXmlDescription( new String[] {
-                "<p>The size of the smoothing kernel applied to the",
+                "<p>The linear size of the smoothing kernel applied to the",
                 "density before performing the contour determination.",
                 "If set too low the contours will be too crinkly,",
                 "and if too high they will lose definition.",
+                "Smoothing currently uses an approximately Gaussian kernel.",
                 "</p>",
             } )
-        , 4, 1, 40 );
+        , 5, 1, 100 );
     private static final ConfigKey<Double> OFFSET_KEY =
         DoubleConfigKey.createSliderKey(
             new ConfigMeta( "zero", "Zero Point" )
@@ -454,39 +455,48 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         int nx = gridder.getWidth();
         int ny = gridder.getHeight();
         int npix = gridder.getLength();
-        int lo = - smooth / 2;
-        int hi = ( smooth + 1 ) / 2;
+        double[] kernel = gaussian( smooth, 1.5 );
 
         /* Since the kernel is separable, we can do two 1-d convolutions,
          * which scales much better than one 2-d convolution. */
         double[] a1 = new double[ npix ];
-        for ( int px = lo; px < hi; px++ ) {
+        for ( int qx = 0; qx < smooth; qx++ ) {
+            double k = kernel[ qx ];
+            int px = qx - smooth / 2;
             int ix0 = Math.max( 0, px );
             int ix1 = Math.min( nx, nx + px );
             for ( int iy = 0; iy < ny; iy++ ) {
                 for ( int ix = ix0; ix < ix1; ix++ ) {
                     int jx = ix - px;
                     a1[ gridder.getIndex( ix, iy ) ] +=
-                        inArray.getValue( gridder.getIndex( jx, iy ) );
+                        k * inArray.getValue( gridder.getIndex( jx, iy ) );
                 }
             }
         }
         double[] a2 = new double[ npix ];
-        for ( int py = lo; py < hi; py++ ) {
+        for ( int qy = 0; qy < smooth; qy++ ) {
+            double k = kernel[ qy ];
+            int py = qy - smooth / 2;
             int iy0 = Math.max( 0, py );
             int iy1 = Math.min( ny, ny + py );
             for ( int iy = iy0; iy < iy1; iy++ ) {
                 for ( int ix = 0; ix < nx; ix++ ) {
                     int jy = iy - py;
                     a2[ gridder.getIndex( ix, iy ) ] +=
-                        a1[ gridder.getIndex( ix, jy ) ];
+                        k * a1[ gridder.getIndex( ix, jy ) ];
                 }
             }
         }
         final double[] out = a2;
 
         /* Normalise. */
-        double factor = 1.0 / ( ( hi - lo ) * ( hi - lo ) );
+        double sk = 0;
+        for ( int i = 0; i < smooth; i++ ) {
+            for ( int j = 0; j < smooth; j++ ) {
+                sk += kernel[ i ] * kernel[ j ];
+            }
+        }
+        double factor = 1.0 / sk;
         for ( int i = 0; i < out.length; i++ ) {
             out[ i ] *= factor;
         }
@@ -500,6 +510,44 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 return out[ i ];
             }
         };
+    }
+
+    /**
+     * Calculates a 1-d smoothing kernel that approximates a Gaussian.
+     * It just uses discrete samples of the Gaussian function,
+     * it doesn't bother to integrate the function over pixels.
+     *
+     * <p>Note that the Gaussian kernel is separable, so can be split
+     * into two 1-d kernels for convolution (I read somewhere that
+     * the Gaussian is the only 2-d kernel that has this property,
+     * but I haven't taken the trouble to understand if that's true).
+     * I tested as well that separating this truncated discretised
+     * kernel for convolution works, at least it gives the same result
+     * regardless of which order you do the separated X- and
+     * Y-direction 1-d convolutions.
+     *
+     * @param  nsamp  number of samples required
+     * @param  nsigma   the number of standard deviations corresponding
+     *                  to the half-width of the kernel
+     *                  (is that called the support?)
+     * @return   nsamp-element array giving normalised, separable kernel
+     */
+    private static double[] gaussian( int nsamp, double nsigma ) {
+        double[] kernel = new double[ nsamp ];
+        double x0 = 0.5 * ( nsamp - 1 );
+        double sigma = nsamp * 0.5 / nsigma;
+        double sum = 0;
+        for ( int i = 0; i < nsamp; i++ ) {
+            double p = ( i - x0 ) / sigma;
+            double sample = Math.exp( -0.5 * p * p );
+            kernel[ i ] = sample;
+            sum += sample;
+        }
+        double norm = 1.0 / sum;
+        for ( int i = 0; i < nsamp; i++ ) {
+            kernel[ i ] += norm;
+        }
+        return kernel;
     }
 
     /**
