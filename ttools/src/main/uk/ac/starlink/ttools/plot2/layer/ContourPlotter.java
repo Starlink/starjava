@@ -357,8 +357,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             final BinList.Result binResult = binList.getResult();
             return new NumberGrid( gridder ) {
                 public double getValue( int index ) {
-                    double value = binResult.getBinValue( index );
-                    return Double.isNaN( value ) ? 0 : value;
+                    return binResult.getBinValue( index );
                 }
             };
         }
@@ -380,11 +379,28 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         public ReportMap getReport( Object plan ) {
             ReportMap reports = new ReportMap();
             if ( plan instanceof ContourPlan ) {
-                NumberGrid grid = ((ContourPlan) plan).smoothGrid_;
-                Leveller leveller = createLeveller( grid, style_, hasWeight_ );
+                Leveller leveller = createLeveller( (ContourPlan) plan );
                 reports.put( LEVELS_REPKEY, leveller.levels_ );
             }
             return reports;
+        }
+
+        /**
+         * Returns a leveller for a given plan.
+         *
+         * @param   plan  contour plan
+         * @return  leveller object
+         */
+        private Leveller createLeveller( ContourPlan plan ) {
+            NumberGrid grid = plan.smoothGrid_;
+            Combiner combiner = style_.getCombiner();
+            boolean isCounts = ! hasWeight_
+                            || combiner.equals( Combiner.COUNT )
+                            || combiner.equals( Combiner.HIT );
+            double[] levels = style_.getLevelMode()
+                             .calculateLevels( grid, style_.getLevelCount(),
+                                               style_.getOffset(), isCounts );
+            return new Leveller( levels );
         }
 
         /**
@@ -395,7 +411,6 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          * @param   dataStore   data storage
          */
         private void paintContours( Graphics g, ContourPlan cplan ) {
-            NumberGrid grid = cplan.smoothGrid_;
             assert cplan.smooth_ == style_.getSmoothing();
             Color color0 = g.getColor();
             g.setColor( style_.getColor() );
@@ -406,13 +421,25 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             int nx = bounds.width;
             int ny = bounds.height;
             Gridder gridder = new Gridder( nx + 2 * pad, ny + 2 * pad );
-            assert gridder.equals( grid.gridder_ );
             final int leng = gridder.getLength();
 
             /* Set up a list of contour levels.  Contours are defined as
              * the boundaries of groups of contiguous pixels falling within
              * a single level. */
-            Leveller leveller = createLeveller( grid, style_, hasWeight_ );
+            Leveller leveller = createLeveller( cplan );
+
+            /* For the contour generation, set up a grid which treats
+             * bad values as simply very low values.  This has the effect
+             * of making blanke regions fall below the lowest contour. */
+            final NumberGrid smoothGrid = cplan.smoothGrid_;
+            assert gridder.equals( smoothGrid.gridder_ );
+            NumberGrid plotGrid = new NumberGrid( smoothGrid.gridder_ ) {
+                public double getValue( int i ) {
+                    double value = smoothGrid.getValue( i );
+                    return Double.isNaN( value ) ? -Double.MAX_VALUE
+                                                 : value;
+                }
+            };
 
             /* For each pixel, see whether the next one along (+1 in X/Y
              * direction) is in a different level.  If so, paint a
@@ -428,9 +455,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             int iy0 = Math.max( 0, pad - lw );
             int iy1 = Math.min( ny + pad + 2 * lw, gridder.getHeight() );
             for ( int ix = ix0; ix < ix1; ix++ ) {
-                int lev0 = leveller.getLevel( grid.getValue( ix, 0 ) );
+                int lev0 = leveller.getLevel( plotGrid.getValue( ix, 0 ) );
                 for ( int iy = iy0 + 1; iy < iy1; iy++ ) {
-                    int lev1 = leveller.getLevel( grid.getValue( ix, iy ) );
+                    int lev1 = leveller.getLevel( plotGrid.getValue( ix, iy ) );
                     if ( lev1 != lev0 ) {
                         g.fillRect( xoff + ix, yoff + iy - 1, 1, 1 );
                     }
@@ -438,9 +465,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 }
             }
             for ( int iy = iy0; iy < iy1; iy++ ) {
-                int lev0 = leveller.getLevel( grid.getValue( 0, iy ) );
+                int lev0 = leveller.getLevel( plotGrid.getValue( 0, iy ) );
                 for ( int ix = ix0 + 1; ix < ix1; ix++ ) {
-                    int lev1 = leveller.getLevel( grid.getValue( ix, iy ) );
+                    int lev1 = leveller.getLevel( plotGrid.getValue( ix, iy ) );
                     if ( lev1 != lev0 ) {
                         g.fillRect( xoff + ix - 1, yoff + iy, 1, 1 );
                     }
@@ -452,23 +479,28 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
     }
 
     /**
-     * Smooths a pixel grid.
-     * This is a convolution with a square top hat kernel,
-     * with full width given by the smoothing parameter.
+     * Smooths a pixel grid using an algorithm suitable for summing values.
      *
      * @param   inGrid  original grid data
      * @param   smooth   smoothing parameter
      * @return  smoothed grid data
      */
-    private static NumberGrid smooth( NumberGrid inGrid, int smooth ) {
+    private static NumberGrid smoothSum( NumberGrid inGrid, int smooth ) {
         Gridder gridder = inGrid.gridder_;
         int nx = gridder.getWidth();
         int ny = gridder.getHeight();
         int npix = gridder.getLength();
+
+        /* Smooth using a convolution with a Gaussian kernel,
+         * with full width given by the smoothing parameter. */
         double[] kernel = gaussian( smooth, 1.5 );
 
-        /* Since the kernel is separable, we can do two 1-d convolutions,
-         * which scales much better than one 2-d convolution. */
+        /* Since the Gaussian kernel is separable and we are just summing the
+         * results, we can do two 1-d convolutions, which scales much
+         * better than one 2-d convolution.  Blank values in the input
+         * grid, which correspond to values with no input contributions,
+         * just don't contribute (equivalent to contributing at zero weight)
+         * to output pixels. */
         double[] a1 = new double[ npix ];
         for ( int qx = 0; qx < smooth; qx++ ) {
             double k = kernel[ qx ];
@@ -478,8 +510,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             for ( int iy = 0; iy < ny; iy++ ) {
                 for ( int ix = ix0; ix < ix1; ix++ ) {
                     int jx = ix - px;
-                    a1[ gridder.getIndex( ix, iy ) ] +=
-                        k * inGrid.getValue( gridder.getIndex( jx, iy ) );
+                    double d = inGrid.getValue( gridder.getIndex( jx, iy ) );
+                    if ( ! Double.isNaN( d ) ) {
+                        a1[ gridder.getIndex( ix, iy ) ] += k * d;
+                    }
                 }
             }
         }
@@ -520,6 +554,59 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
     }
 
     /**
+     * Smooths a pixel grid using an algorithm suitable for mean values.
+     *
+     * @param  inGrid  input grid
+     * @param  smooth  smoothing kernel size
+     * @return  smoothed grid
+     */
+    private static NumberGrid smoothMean( NumberGrid inGrid, int smooth ) {
+        Gridder gridder = inGrid.gridder_;
+        int nx = gridder.getWidth();
+        int ny = gridder.getHeight();
+        int npix = gridder.getLength();
+
+        /* We can't decompose this into two 1-d convolutions, since we
+         * need to keep track of the number of values submitted to the
+         * combiner as well as the sums of those values. 
+         * We use a Gaussian kernel for the smoothing, but rather a flat one,
+         * since its main job is going to be covering up for missing values.
+         * Maybe a circular top-hat would be better here, since it doesn't
+         * need to be separable? */
+        double[] kernel = gaussian( smooth, 0.5 );
+        BinList outBinList = Combiner.MEAN.createArrayBinList( npix );
+        for ( int qx = 0; qx < smooth; qx++ ) {
+            int px = qx - smooth / 2;
+            int ix0 = Math.max( 0, px );
+            int ix1 = Math.min( nx, nx + px );
+            for ( int qy = 0; qy < smooth; qy++ ) {
+                int py = qy - smooth / 2;
+                int iy0 = Math.max( 0, py );
+                int iy1 = Math.min( ny, ny + py );
+                double k = kernel[ qx ] * kernel[ qy ];
+                for ( int iy = iy0; iy < iy1; iy++ ) {
+                    int jy = iy - py;
+                    for ( int ix = ix0; ix < ix1; ix++ ) {
+                        int jx = ix - px;
+                        double d =
+                            inGrid.getValue( gridder.getIndex( jx, jy ) );
+                        if ( ! Double.isNaN( d ) ) {
+                            outBinList.submitToBin( gridder.getIndex( ix, iy ),
+                                                    k * d );
+                        }
+                    }
+                }
+            }
+        }
+        final BinList.Result binResult = outBinList.getResult();
+        return new NumberGrid( gridder ) {
+            public double getValue( int i ) {
+                return binResult.getBinValue( i );
+            }
+        };
+    }
+
+    /**
      * Calculates a 1-d smoothing kernel that approximates a Gaussian.
      * It just uses discrete samples of the Gaussian function,
      * it doesn't bother to integrate the function over pixels.
@@ -555,27 +642,6 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             kernel[ i ] += norm;
         }
         return kernel;
-    }
-
-    /**
-     * Returns a leveller for a given data grid and contour style.
-     *
-     * @param   grid  grid data
-     * @param  style  contour style
-     * @param  hasWeight  true if a weighting column is in use
-     * @return  leveller object
-     */
-    private static Leveller createLeveller( NumberGrid grid,
-                                            ContourStyle style,
-                                            boolean hasWeight ) {
-        Combiner combiner = style.getCombiner();
-        boolean isCounts = ! hasWeight
-                        || combiner.equals( Combiner.COUNT )
-                        || combiner.equals( Combiner.HIT );
-        final double[] levels = style.getLevelMode()
-                               .calculateLevels( grid, style.getLevelCount(),
-                                                 style.getOffset(), isCounts );
-        return new Leveller( levels );
     }
 
     /**
@@ -750,12 +816,19 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 return this;
             }
             else {
-                NumberGrid smoothGrid = smooth == 1
-                                      ? rawGrid_
-                                      : smooth( rawGrid_, smooth );
+                final NumberGrid sgrid;
+                if ( smooth == 1 ) {
+                    sgrid = rawGrid_;
+                }
+                else if ( combiner_.isExtensive() ) {
+                    sgrid = smoothSum( rawGrid_, smooth );
+                }
+                else {
+                    sgrid = smoothMean( rawGrid_, smooth );
+                }
                 return new ContourPlan( combiner_, surface_, dataSpec_,
                                         geom_, pad_, rawGrid_,
-                                        smooth, smoothGrid );
+                                        smooth, sgrid );
             }
         }
 

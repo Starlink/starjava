@@ -72,7 +72,7 @@ public abstract class LevelMode {
     /**
      * Calculates the contour levels for a given data array.
      *
-     * @param   array  data array
+     * @param   array  data array; NaN elements are permitted and ignored
      * @param   nLevel   number of requested levels; actual level count
      *                   may not be the same as this depending on data
      * @param   offset  offset from zero of the value of the first contour,
@@ -182,7 +182,7 @@ public abstract class LevelMode {
         int ngood = 0;
         for ( int ip = 0; ip < npix; ip++ ) {
             double v = array.getValue( ip );
-            if ( ! isCounts || v > 0 ) {
+            if ( ! Double.isNaN( v ) && ( ! isCounts || v > 0 ) ) {
                 values[ ngood++ ] = (float) v;
             }
         }
@@ -238,7 +238,7 @@ public abstract class LevelMode {
         int np = array.getLength();
         for ( int ip = 0; ip < np; ip++ ) {
             double c = array.getValue( ip );
-            if ( ! isLog || c > 0 ) {
+            if ( ! Double.isNaN( c ) && ( ! isLog || c > 0 ) ) {
                 if ( c > tops[ 0 ] ) {
                     tops[ 0 ] = c;
                     Arrays.sort( tops );
