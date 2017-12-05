@@ -254,13 +254,16 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         public ContourPlan calculatePlan( Object[] knownPlans,
                                           DataStore dataStore ) {
             Combiner combiner = style_.getCombiner();
-            int requiredPad = ( style_.getSmoothing() + 1 ) / 2;
+            int smooth = style_.getSmoothing();
+            int requiredPad = ( smooth + 1 ) / 2;
             for ( Object plan : knownPlans ) {
                 if ( plan instanceof ContourPlan ) {
                     ContourPlan cplan = (ContourPlan) plan;
                     if ( cplan.matches( combiner, surface_, dataSpec_, geom_,
                                         requiredPad ) ) {
-                        return cplan;
+                        return cplan.smooth_ == smooth
+                             ? cplan
+                             : cplan.resmooth( smooth );
                     }
                 }
             }
@@ -269,10 +272,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
              * we need for the current style.  In that way, the same plan
              * can be used if the smoothing value goes up a bit. */
             int requestedPad = Math.max( 16, requiredPad * 2 );
-            BinList.Result binResult =
-                readBinList( dataStore, requestedPad ).getResult();
+            NumberGrid rawGrid = readBinGrid( dataStore, requestedPad );
             return new ContourPlan( combiner, surface_, dataSpec_, geom_,
-                                    requestedPad, binResult );
+                                    requestedPad, rawGrid, 1, rawGrid )
+                  .resmooth( smooth );
         }
 
         /**
@@ -288,7 +291,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          *               be populated
          * @return   populated pixel grid
          */
-        private BinList readBinList( DataStore dataStore, int pad ) {
+        private NumberGrid readBinGrid( DataStore dataStore, int pad ) {
             Rectangle bounds = surface_.getPlotBounds();
             int nx = bounds.width + 2 * pad;
             int ny = bounds.height + 2 * pad;
@@ -334,7 +337,13 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                     }
                 }
             }
-            return binList;
+            final BinList.Result binResult = binList.getResult();
+            return new NumberGrid( gridder ) {
+                public double getValue( int index ) {
+                    double value = binResult.getBinValue( index );
+                    return Double.isNaN( value ) ? 0 : value;
+                }
+            };
         }
 
         public void paintData( final Object plan, Paper paper,
@@ -363,7 +372,8 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          * @param   dataStore   data storage
          */
         private void paintContours( Graphics g, ContourPlan cplan ) {
-            final BinList.Result binResult = cplan.binResult_;
+            NumberGrid grid = cplan.smoothGrid_;
+            assert cplan.smooth_ == style_.getSmoothing();
             Color color0 = g.getColor();
             g.setColor( style_.getColor() );
             Rectangle bounds = surface_.getPlotBounds();
@@ -373,31 +383,13 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             int nx = bounds.width;
             int ny = bounds.height;
             Gridder gridder = new Gridder( nx + 2 * pad, ny + 2 * pad );
+            assert gridder.equals( grid.gridder_ );
             final int leng = gridder.getLength();
-
-            /* Get an object which reports the density at each grid point.
-             * To start with, this is just the counts in the supplied
-             * density map. */
-            NumberArray array = new NumberArray() {
-                public int getLength() {
-                    return leng;
-                }
-                public double getValue( int index ) {
-                    double value = binResult.getBinValue( index );
-                    return Double.isNaN( value ) ? 0 : value;
-                }
-            };
-
-            /* If required, adjust this by smoothing. */
-            int smooth = style_.getSmoothing();
-            if ( smooth > 1 ) {
-                array = smooth( array, gridder, smooth );
-            }
 
             /* Set up a list of contour levels.  Contours are defined as
              * the boundaries of groups of contiguous pixels falling within
              * a single level. */
-            Leveller leveller = createLeveller( array, style_, hasWeight_ );
+            Leveller leveller = createLeveller( grid, style_, hasWeight_ );
 
             /* For each pixel, see whether the next one along (+1 in X/Y
              * direction) is in a different level.  If so, paint a
@@ -413,11 +405,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             int iy0 = Math.max( 0, pad - lw );
             int iy1 = Math.min( ny + pad + 2 * lw, gridder.getHeight() );
             for ( int ix = ix0; ix < ix1; ix++ ) {
-                int lev0 = leveller.getLevel(
-                               array.getValue( gridder.getIndex( ix, 0 ) ) );
+                int lev0 = leveller.getLevel( grid.getValue( ix, 0 ) );
                 for ( int iy = iy0 + 1; iy < iy1; iy++ ) {
-                    int lev1 = leveller.getLevel(
-                             array.getValue( gridder.getIndex( ix, iy ) ) );
+                    int lev1 = leveller.getLevel( grid.getValue( ix, iy ) );
                     if ( lev1 != lev0 ) {
                         g.fillRect( xoff + ix, yoff + iy - 1, 1, 1 );
                     }
@@ -425,11 +415,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 }
             }
             for ( int iy = iy0; iy < iy1; iy++ ) {
-                int lev0 = leveller.getLevel(
-                               array.getValue( gridder.getIndex( 0, iy ) ) );
+                int lev0 = leveller.getLevel( grid.getValue( 0, iy ) );
                 for ( int ix = ix0 + 1; ix < ix1; ix++ ) {
-                    int lev1 = leveller.getLevel(
-                             array.getValue( gridder.getIndex( ix, iy ) ) );
+                    int lev1 = leveller.getLevel( grid.getValue( ix, iy ) );
                     if ( lev1 != lev0 ) {
                         g.fillRect( xoff + ix - 1, yoff + iy, 1, 1 );
                     }
@@ -445,13 +433,12 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
      * This is a convolution with a square top hat kernel,
      * with full width given by the smoothing parameter.
      *
-     * @param   inArray  original grid data
-     * @param   gridder  grid geometry
+     * @param   inGrid  original grid data
      * @param   smooth   smoothing parameter
      * @return  smoothed grid data
      */
-    private static NumberArray smooth( NumberArray inArray, Gridder gridder,
-                                       int smooth ) {
+    private static NumberGrid smooth( NumberGrid inGrid, int smooth ) {
+        Gridder gridder = inGrid.gridder_;
         int nx = gridder.getWidth();
         int ny = gridder.getHeight();
         int npix = gridder.getLength();
@@ -469,7 +456,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 for ( int ix = ix0; ix < ix1; ix++ ) {
                     int jx = ix - px;
                     a1[ gridder.getIndex( ix, iy ) ] +=
-                        k * inArray.getValue( gridder.getIndex( jx, iy ) );
+                        k * inGrid.getValue( gridder.getIndex( jx, iy ) );
                 }
             }
         }
@@ -501,11 +488,8 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             out[ i ] *= factor;
         }
 
-        /* Return the result as a NumberArray. */
-        return new NumberArray() {
-            public int getLength() {
-                return out.length;
-            }
+        /* Return the result as a NumberGrid. */
+        return new NumberGrid( gridder ) {
             public double getValue( int i ) {
                 return out[ i ];
             }
@@ -553,12 +537,12 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
     /**
      * Returns a leveller for a given data grid and contour style.
      *
-     * @param   array  grid data
+     * @param   grid  grid data
      * @param  style  contour style
      * @param  hasWeight  true if a weighting column is in use
      * @return  leveller object
      */
-    private static Leveller createLeveller( NumberArray array,
+    private static Leveller createLeveller( NumberGrid grid,
                                             ContourStyle style,
                                             boolean hasWeight ) {
         Combiner combiner = style.getCombiner();
@@ -566,7 +550,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                         || combiner.equals( Combiner.COUNT )
                         || combiner.equals( Combiner.HIT );
         final double[] levels = style.getLevelMode()
-                               .calculateLevels( array, style.getLevelCount(),
+                               .calculateLevels( grid, style.getLevelCount(),
                                                  style.getOffset(), isCounts );
         return new Leveller() {
             public int getLevel( double count ) {
@@ -591,8 +575,31 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
     }
 
     /**
-     * Aggregates a BinList result with information that characterises its
+     * Partial NumberArray implementation that knows about grid geometry.
+     */
+    private static abstract class NumberGrid implements NumberArray {
+        final Gridder gridder_;
+
+        /**
+         * Constructor.
+         *
+         * @param  gridder  grid geometry object
+         */
+        NumberGrid( Gridder gridder ) {
+            gridder_ = gridder;
+        }
+        public double getValue( int ix, int iy ) {
+            return getValue( gridder_.getIndex( ix, iy ) );
+        }
+        public int getLength() {
+            return gridder_.getLength();
+        }
+    }
+
+    /**
+     * Aggregates accumulated grid data with information that characterises its
      * scope of applicability.
+     * It combines a raw and smoothed grid.
      */
     private static class ContourPlan {
         final Combiner combiner_;
@@ -600,7 +607,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         final DataSpec dataSpec_;
         final DataGeom geom_;
         final int pad_;
-        final BinList.Result binResult_;
+        final NumberGrid rawGrid_;
+        final int smooth_;
+        final NumberGrid smoothGrid_;
 
         /**
          * Constructor.
@@ -611,21 +620,53 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          * @param  geom     geom
          * @param  pad     number of pixels around the visible plot bounds
          *                 that are populated in the bin grid
-         * @param  binResult  contains accumulated weight data
+         * @param  rawGrid  accumulated weight data
+         * @param  smooth   smoothing width
+         * @param  smoothGrid   rawGrid data smoothed by the supplied smoothing
+         *                      parameter; if smooth==1, this is the same
+         *                      as rawGrid
          */
         ContourPlan( Combiner combiner, Surface surface, DataSpec dataSpec,
-                     DataGeom geom, int pad, BinList.Result binResult ) {
+                     DataGeom geom, int pad, NumberGrid rawGrid,
+                     int smooth, NumberGrid smoothGrid ) {
             combiner_ = combiner;
             surface_ = surface;
             dataSpec_ = dataSpec;
             geom_ = geom;
             pad_ = pad;
-            binResult_ = binResult;
+            rawGrid_ = rawGrid;
+            smooth_ = smooth;
+            smoothGrid_ = smoothGrid;
+        }
+
+        /**
+         * Returns a smoother instance with the same raw grid data, but
+         * which may have a different smoothed grid.
+         *
+         * @param  smooth  required smoothing width
+         * @return  grid; may be this one or not
+         */
+        ContourPlan resmooth( int smooth ) {
+            if ( smooth == smooth_ ) {
+                return this;
+            }
+            else {
+                NumberGrid smoothGrid = smooth == 1
+                                      ? rawGrid_
+                                      : smooth( rawGrid_, smooth );
+                return new ContourPlan( combiner_, surface_, dataSpec_,
+                                        geom_, pad_, rawGrid_,
+                                        smooth, smoothGrid );
+            }
         }
 
         /**
          * Indicates whether this plan can be used for a given set
          * of drawing requirements.
+         * Note this does not test smoothing equality, but the smoothed
+         * grid can be recalculated without having to regenerate the
+         * raw grid, so this object will still be worth using if it
+         * matches according to this method.
          *
          * @param  gridder   grid geometry
          * @param  combiner  combination method for values
