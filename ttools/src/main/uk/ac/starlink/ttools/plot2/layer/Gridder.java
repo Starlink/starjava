@@ -79,6 +79,26 @@ public class Gridder {
         return nx_ * ny_;
     }
 
+    @Override
+    public int hashCode() {
+        int code = 5502432;
+        code = 23 * code + nx_;
+        code = 23 * code + ny_;
+        return code;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( o instanceof Gridder ) {
+            Gridder other = (Gridder) o;
+            return this.nx_ == other.nx_
+                && this.ny_ == other.ny_;
+        }
+        else {
+            return false;
+        }
+    }
+
     /**
      * Returns a Gridder instance that is the transpose of the supplied one.
      * If the supplied instance does row-major indexing, the result does
