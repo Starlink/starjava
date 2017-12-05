@@ -200,6 +200,7 @@ public class ReportPanel extends JPanel {
             T value = map.get( key );
             JTextField field = new JTextField();
             field.setText( value == null ? null : key.toText( value ) );
+            field.setCaretPosition( 0 );
             field.setEditable( false );
             return field;
         }

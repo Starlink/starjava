@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,13 +79,21 @@ public abstract class FormControl implements Control {
     public JComponent getPanel() {
         if ( panel_ == null ) {
             panel_ = new JPanel( new BorderLayout() );
-            panel_.add( getCoordPanel(), BorderLayout.NORTH );
+            final JComponent coordPanel = getCoordPanel();
+            panel_.add( coordPanel, BorderLayout.NORTH );
             if ( getPlotter().hasReports() ) {
                 reportPanel_ = new ReportPanel( new Factory<Plotter>() {
                     public Plotter getItem() {
                         return FormControl.this.getPlotter();
                     }
-                } );
+                } ) {
+                    @Override
+                    public Dimension getPreferredSize() {
+                        return new Dimension( coordPanel.getPreferredSize()
+                                                        .width,
+                                              super.getPreferredSize().height );
+                    }
+                };
                 reportPanel_.setBorder( AuxWindow
                                        .makeTitledBorder( "Report" ) );
                 panel_.add( reportPanel_, BorderLayout.SOUTH );
