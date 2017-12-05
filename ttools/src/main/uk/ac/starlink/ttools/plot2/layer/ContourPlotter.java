@@ -19,6 +19,8 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -43,7 +45,8 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  */
 public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
-    private static final ConfigKey<Integer> NLEVEL_KEY =
+    /** Config key for the number of contour levels plotted. */
+    public static final ConfigKey<Integer> NLEVEL_KEY =
         IntegerConfigKey.createSpinnerKey(
             new ConfigMeta( "nlevel", "Level Count" )
            .setShortDescription( "Maximum number of contours" )
@@ -55,7 +58,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "</p>",
             } )
         , 5, 0, 999 );
-    private static final ConfigKey<Integer> SMOOTH_KEY =
+
+    /** Config key for the width of the smoothing kernel. */
+    public static final ConfigKey<Integer> SMOOTH_KEY =
         IntegerConfigKey.createSpinnerKey(
             new ConfigMeta( "smooth", "Smoothing" )
            .setStringUsage( "<pixels>" )
@@ -69,7 +74,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "</p>",
             } )
         , 5, 1, 100 );
-    private static final ConfigKey<Double> OFFSET_KEY =
+
+    /** Config key for the contour zero level. */
+    public static final ConfigKey<Double> OFFSET_KEY =
         DoubleConfigKey.createSliderKey(
             new ConfigMeta( "zero", "Zero Point" )
            .setShortDescription( "Level of first contour" )
@@ -80,6 +87,11 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "</p>",
             } )
         , 0, -2, +2, false );
+
+    /** Report key for the contour levels plotted. */
+    public static final ReportKey<double[]> LEVELS_REPKEY =
+         new LevelsReportKey();
+
     private static final FloatingCoord WEIGHT_COORD =
         FloatingCoord.WEIGHT_COORD;
     private static final Logger logger_ =
@@ -149,6 +161,11 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             "This may be improved in the future.",
             "</p>",
         } );
+    }
+
+    @Override
+    public boolean hasReports() {
+        return true;
     }
 
     public ConfigKey[] getStyleKeys() {
@@ -361,7 +378,13 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         }
 
         public ReportMap getReport( Object plan ) {
-            return null;
+            ReportMap reports = new ReportMap();
+            if ( plan instanceof ContourPlan ) {
+                NumberGrid grid = ((ContourPlan) plan).smoothGrid_;
+                Leveller leveller = createLeveller( grid, style_, hasWeight_ );
+                reports.put( LEVELS_REPKEY, leveller.levels_ );
+            }
+            return reports;
         }
 
         /**
@@ -552,26 +575,102 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         final double[] levels = style.getLevelMode()
                                .calculateLevels( grid, style.getLevelCount(),
                                                  style.getOffset(), isCounts );
-        return new Leveller() {
-            public int getLevel( double count ) {
-                int ipos = Arrays.binarySearch( levels, count );
-                return ipos < 0 ? - ( ipos + 1 ) : ipos;
+        return new Leveller( levels );
+    }
+
+    /**
+     * ReportKey implementation for reporting contour levels actually
+     * used in the plotted drawing.
+     */
+    private static class LevelsReportKey extends ReportKey<double[]> {
+
+        /**
+         * Constructor.
+         */
+        LevelsReportKey() {
+            super( new ReportMeta( "levels", "Levels" ), double[].class, true );
+        }
+
+        public String toText( double[] values ) {
+            int nval = values == null ? 0 : values.length;
+            if ( nval == 0 ) {
+                return null;
             }
-        };
+            else if ( nval == 1 ) {
+                return Double.toString( values[ 0 ] );
+            }
+            else if ( allInteger( values ) ) {
+                StringBuffer sbuf = new StringBuffer();
+                for ( int i = 0; i < nval; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ", " );
+                    }
+                    sbuf.append( Long.toString( (long) values[ i ] ) );
+                }
+                return sbuf.toString();
+            }
+            else {
+                StringBuffer sbuf = new StringBuffer();
+                for ( int i = 0; i < nval; i++ ) {
+                    double d1 = i - 1 >= 0
+                              ? Math.abs( values[ i ] - values[ i - 1 ] )
+                              : Double.POSITIVE_INFINITY;
+                    double d2 = i + 1 < nval
+                              ? Math.abs( values[ i + 1 ] - values[ i ] )
+                              : Double.POSITIVE_INFINITY;
+                    double diff = Math.min( d1, d2 );
+                    double dp = 0.001 * diff;
+                    if ( i > 0 ) {
+                        sbuf.append( ", " );
+                    }
+                    sbuf.append( PlotUtil.formatNumber( values[ i ], dp ) );
+                }
+                return sbuf.toString();
+            }
+        }
+
+        /**
+         * Indicates whether every element of a supplied double array
+         * is in fact an integer value.
+         *
+         * @param  values  array
+         * @return  true iff all values elements are integers
+         */
+        private static boolean allInteger( double[] values ) {
+            for ( double d : values ) {
+                if ( (long) d != d ) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     /**
      * Knows how to turn a pixel value into an integer level.
      */
-    private interface Leveller {
+    private static class Leveller {
+        final double[] levels_;
+
+        /**
+         * Constructor.
+         *
+         * @param  levels  monotonically increasing array of level values
+         */
+        Leveller( double[] levels ) {
+            levels_ = levels;
+        }
 
         /**
          * Returns the level value for a given pixel value.
          *
-         * @param  pixel value
+         * @param  value   pixel value
          * @return  contour level
          */
-        int getLevel( double count );
+        public int getLevel( double value ) {
+            int ipos = Arrays.binarySearch( levels_, value );
+            return ipos < 0 ? - ( ipos + 1 ) : ipos;
+        }
     }
 
     /**
