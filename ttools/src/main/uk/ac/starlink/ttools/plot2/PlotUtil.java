@@ -910,6 +910,9 @@ public class PlotUtil {
             Math.max( 0, (int) Math.round( -Math.log10( epsilon / aval ) ) );
 
         /* Return a formatted string on this basis. */
+        if ( aval <= Double.MIN_NORMAL ) {
+            return "0";
+        }
         if ( aval >= 1e6 || aval <= 1e-4 ) {
             return formatNumber( value, "0.#E0", nsf );
         }
