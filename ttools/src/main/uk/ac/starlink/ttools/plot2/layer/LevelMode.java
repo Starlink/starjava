@@ -190,7 +190,6 @@ public abstract class LevelMode {
             return new double[ 0 ];
         }
         Arrays.sort( values, 0, ngood );
-        Arrays.fill( values, ngood, values.length, Float.MAX_VALUE );
 
         /* Populate the levels by picking equally spaced distances along
          * the sorted array.  There is a threshold for the smallest
@@ -205,11 +204,11 @@ public abstract class LevelMode {
             int index =
                 (int) ( lastIndex
                       + ( ngood - lastIndex ) * 1. / ( nLevel + offset - il ) );
-            index = Math.min( index, values.length - 1 );
+            index = Math.min( index, ngood - 1 );
             double level = values[ index ];
             if ( isCounts && level - lastLevel < 1 ) {
                 level = lastLevel + 1;
-                index = Arrays.binarySearch( values, (float) level );
+                index = Arrays.binarySearch( values, 0, ngood, (float) level );
                 if ( index < 0 ) {
                     index = - ( index + 1 );
                 }
