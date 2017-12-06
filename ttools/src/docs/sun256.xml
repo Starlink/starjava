@@ -11283,6 +11283,20 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         validation as well as the custom VOTable checks.
         It was always supposed to do this, but it seems that it didn't,
         at least in recent versions.</li>
+    <li>Various improvements to the <ref id="layer-contour">Contour</ref>
+        plotter.
+        You can now contour quantities weighted by a given coordinate,
+        rather than just point density.
+        The smoothing from weighted point samples to the grid being
+        contoured can be performed using sum, mean and
+        other combination methods,
+        it now uses a Gaussian kernel rather than a square top hat,
+        and performance is considerably improved especially at large
+        smoothing widths.
+        The contour levels used are now <em>reported</em>,
+        so can be seen by specifying the <code>-verbose</code> flag.
+        The contours are now plotted correctly right up to the edge of
+        the visible plot, and various bugs have been fixed.</li>
     </ul>
     </p>
     </dd>

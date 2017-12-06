@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -44,6 +45,10 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  * @since    17 Feb 2013
  */
 public class ContourPlotter extends AbstractPlotter<ContourStyle> {
+
+    /** Coordinate used for weighting. */
+    private static final FloatingCoord WEIGHT_COORD =
+        FloatingCoord.WEIGHT_COORD;
 
     /** Config key for the number of contour levels plotted. */
     public static final ConfigKey<Integer> NLEVEL_KEY =
@@ -90,12 +95,41 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             } )
         , 0, -2, +2, false );
 
+    /** Config key for the smoothing combination mode. */
+    public static final ConfigKey<Combiner> COMBINER_KEY =
+        new OptionConfigKey<Combiner>(
+            new ConfigMeta( "combine", "Combine" )
+           .setShortDescription( "Weight combination mode" )
+           .setXmlDescription( new String[] {
+                "<p>Defines the way that the weight values are combined",
+                "when generating the value grid for which the contours",
+                "will be plotted.",
+                "If a weighting is supplied, the most useful values are",
+                "<code>" + Combiner.MEAN + "</code> which traces the",
+                "mean values of a quantity and",
+                "<code>" + Combiner.SUM + "</code> which traces the",
+                "weighted sum.",
+                "Other values such as",
+                "<code>" + Combiner.MEDIAN + "</code>",
+                "are of dubious validity because of the way that the",
+                "smoothing is done.",
+                "</p>",
+                "<p>This value is ignored if the weighting coordinate",
+                "<code>" + WEIGHT_COORD.getInput().getMeta().getShortName()
+                         + "</code>",
+                "is not set.",
+                "</p>",
+            } )
+        , Combiner.class, Combiner.getKnownCombiners(), Combiner.SUM ) {
+        public String getXmlDescription( Combiner combiner ) {
+            return combiner.getDescription();
+        }
+    }.setOptionUsage();
+
     /** Report key for the contour levels plotted. */
     public static final ReportKey<double[]> LEVELS_REPKEY =
          new LevelsReportKey();
 
-    private static final FloatingCoord WEIGHT_COORD =
-        FloatingCoord.WEIGHT_COORD;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -135,12 +169,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "<code>" + weightCoord_.getInput().getMeta().getShortName()
                          + "</code>",
                 "coordinate, and use the",
-                "<code>" + StyleKeys.COMBINER.getMeta().getShortName()
-                         + "</code>",
+                "<code>" + COMBINER_KEY.getMeta().getShortName() + "</code>",
                 "parameter to define how the weights are combined",
                 "(<code>" + Combiner.SUM + "</code>,",
-                 "<code>" + Combiner.MEAN + "</code>,",
-                 "<code>" + Combiner.MEDIAN + "</code>, etc).",
+                 "<code>" + Combiner.MEAN + "</code>, etc).",
                 "</p>",
             } );
         }
@@ -148,9 +180,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             "<p>Plots position density contours.",
             "This provides another way",
             "(alongside the",
-            ShapeMode.modeRef( ShapeMode.AUTO ),
-            "and",
+            ShapeMode.modeRef( ShapeMode.AUTO ) + ",",
             ShapeMode.modeRef( ShapeMode.DENSITY ),
+            "and",
+            ShapeMode.modeRef( ShapeMode.WEIGHTED ),
             "shading modes)",
             "to visualise the characteristics of overdense regions",
             "in a crowded plot.",
@@ -174,7 +207,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         List<ConfigKey> keys = new ArrayList<ConfigKey>();
         keys.add( StyleKeys.COLOR );
         if ( weightCoord_ != null ) {
-            keys.add( StyleKeys.COMBINER );
+            keys.add( COMBINER_KEY );
         }
         keys.add( NLEVEL_KEY );
         keys.add( SMOOTH_KEY );
@@ -193,7 +226,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         LevelMode levMode = config.get( StyleKeys.LEVEL_MODE );
         Combiner combiner = weightCoord_ == null
                           ? Combiner.COUNT
-                          : config.get( StyleKeys.COMBINER );
+                          : config.get( COMBINER_KEY );
         return new ContourStyle( color, nlevel, offset, nsmooth, levMode,
                                  combiner );
     }

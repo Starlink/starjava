@@ -10014,6 +10014,30 @@ so they don't look very beautiful in exported vector output formats
 
 <p>The configuration options are:
 <dl>
+<dt>Weight</dt>
+<dd><p>The weighting to apply to each input sample when producing the
+    grid whose values are to be contoured.
+    If supplied this is used in conjunction with the
+    <label>Combine</label> selection.
+    If left blank, an effective weighting of unity is used,
+    and only smoothed point densities are contoured.
+    </p></dd>
+<dt>Color</dt>
+<dd><p>The colour of the contour lines.
+    If overlaid on top of other plot types that use the same colour,
+    you may want to change this from its default value.
+    </p></dd>
+<dt>Combine</dt>
+<dd><p>Defines the way that weight values are combined
+    when generating the value grid for which contours will be plotted.
+    If a <label>Weight</label> value is supplied, the most useful values are
+    <label>mean</label> which traces the mean values of a quantity and
+    <label>sum</label> which traces the weighted sum.
+    Other values such as <label>median</label> are of dubious validity
+    because of the way that the smoothing is done.
+    This value is ignored if the <label>Weight</label> coordinate
+    is left blank.
+    </p></dd>
 <dt>Level Count</dt>
 <dd><p>The number of contours drawn.
     In fact this is an upper limit; if there is not enough variation
@@ -10033,6 +10057,15 @@ so they don't look very beautiful in exported vector output formats
     others, which are separated from it by a fixed amount) are drawn.
     By sliding this from side to side you can sweep the contours over
     the density range and get a good idea of where interesting features lie.
+    </p></dd>
+</dl>
+The plot reports the contour levels it has used:
+<dl>
+<dt>Levels</dt>
+<dd><p>The actual values at which contours have been plotted.
+    This can be useful for weighted plots using with a <label>Combine</label>
+    value of <label>mean</label>,
+    but for other combinations it may not have much physical meaning.
     </p></dd>
 </dl>
 </p>
@@ -25072,6 +25105,20 @@ introduced since the last version:
     <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
     <li>Stop the right hand side of the subsets stack being obscured
         by the scrollbar when there are too many subsets to see at once.</li>
+    <li>Various improvements to the <ref id="form-contour">Contour</ref>
+        plotting form.
+        You can now contour quantities weighted by a given coordinate,
+        rather than just point density.
+        The smoothing from weighted point samples to the grid being
+        contoured can be performed using sum, mean and
+        other combination methods,
+        it now uses a Gaussian kernel rather than a square top hat,
+        and performance is considerably improved especially at large
+        smoothing widths.
+        The contour levels used are now <em>reported</em>,
+        so can be seen at the bottom of the Form tab in the control panel.
+        The contours are now plotted correctly right up to the edge of
+        the visible plot, and various bugs have been fixed.</li>
     </ul>
     </p>
     </dd>
