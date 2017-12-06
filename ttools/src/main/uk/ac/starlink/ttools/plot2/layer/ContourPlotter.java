@@ -392,12 +392,26 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          * @return  leveller object
          */
         private Leveller createLeveller( ContourPlan plan ) {
-            NumberGrid grid = plan.smoothGrid_;
             Combiner combiner = style_.getCombiner();
+            LevelMode lmode = style_.getLevelMode();
+
+            /* Calculate the levels from the data.  In general it makes
+             * sense to do that using the smoothed grid, since that's
+             * what is going to get plotted.  However, if the combiner
+             * is extensive, then blank areas outside of the smoothing width
+             * in the raw grid will have been converted to zero values
+             * in the smoothed grid.  All those zeroes are indistinguishable
+             * from real data, and can cause the level calculation to
+             * give unhelpful results.  So for extensive combiners, use
+             * the raw grid, which will contain NaNs for blank areas,
+             * to assign levels.  To a first order, it should give the
+             * same results as the smoothed one. */
+            NumberGrid grid = combiner.isExtensive() ? plan.rawGrid_
+                                                     : plan.smoothGrid_;
             boolean isCounts = ! hasWeight_
                             || combiner.equals( Combiner.COUNT )
                             || combiner.equals( Combiner.HIT );
-            double[] levels = style_.getLevelMode()
+            double[] levels = lmode
                              .calculateLevels( grid, style_.getLevelCount(),
                                                style_.getOffset(), isCounts );
             return new Leveller( levels );
