@@ -57,7 +57,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "then fewer contour lines will be drawn.",
                 "</p>",
             } )
-        , 5, 0, 999 );
+        , 5, 1, 999 );
 
     /** Config key for the width of the smoothing kernel. */
     public static final ConfigKey<Integer> SMOOTH_KEY =
@@ -70,7 +70,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "density before performing the contour determination.",
                 "If set too low the contours will be too crinkly,",
                 "and if too high they will lose definition.",
-                "Smoothing currently uses an approximately Gaussian kernel.",
+                "Smoothing currently uses an approximately Gaussian kernel",
+                "for extensive combination modes (count, sum)",
+                "or a circular top hat for intensive modes (weighted mean).",
                 "</p>",
             } )
         , 5, 1, 100 );
@@ -583,12 +585,13 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         /* We can't decompose this into two 1-d convolutions, since we
          * need to keep track of the number of values submitted to the
          * combiner as well as the sums of those values. 
-         * We use a Gaussian kernel for the smoothing, but rather a flat one,
-         * since its main job is going to be covering up for missing values.
-         * Maybe a circular top-hat would be better here, since it doesn't
-         * need to be separable? */
-        double[] kernel = gaussian( smooth, 0.5 );
+         * The effective kernel used for the smoothing is a circular top hat.
+         * A Gaussian isn't a good choice here, since its main job is going
+         * to be covering up for missing values, and it doesn't need to
+         * be separable. */
         BinList outBinList = Combiner.MEAN.createArrayBinList( npix );
+        double q0 = 0.5 * ( smooth - 1 );
+        double qr = 0.5 * ( smooth - 1 ) + 0.5;
         for ( int qx = 0; qx < smooth; qx++ ) {
             int px = qx - smooth / 2;
             int ix0 = Math.max( 0, px );
@@ -597,16 +600,18 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 int py = qy - smooth / 2;
                 int iy0 = Math.max( 0, py );
                 int iy1 = Math.min( ny, ny + py );
-                double k = kernel[ qx ] * kernel[ qy ];
-                for ( int iy = iy0; iy < iy1; iy++ ) {
-                    int jy = iy - py;
-                    for ( int ix = ix0; ix < ix1; ix++ ) {
-                        int jx = ix - px;
-                        double d =
-                            inGrid.getValue( gridder.getIndex( jx, jy ) );
-                        if ( ! Double.isNaN( d ) ) {
-                            outBinList.submitToBin( gridder.getIndex( ix, iy ),
-                                                    k * d );
+                double r = Math.hypot( qx - q0, qy - q0 );
+                if ( r <= qr ) {
+                    for ( int iy = iy0; iy < iy1; iy++ ) {
+                        int jy = iy - py;
+                        for ( int ix = ix0; ix < ix1; ix++ ) {
+                            int jx = ix - px;
+                            double d =
+                                inGrid.getValue( gridder.getIndex( jx, jy ) );
+                            if ( ! Double.isNaN( d ) ) {
+                                int ig = gridder.getIndex( ix, iy );
+                                outBinList.submitToBin( ig, d );
+                            }
                         }
                     }
                 }
