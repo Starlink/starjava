@@ -56,7 +56,17 @@ public class PlasticStarTable extends ColumnStarTable {
                 Object value = dval.getValue();
                 ValueInfo info = dval.getInfo();
                 if ( info instanceof DefaultValueInfo ) {
-                    info = new DefaultValueInfo( info );
+                    final ValueInfo info0 = info;
+                    info = new DefaultValueInfo( info0 ) {
+                        @Override
+                        public String formatValue( Object value, int maxLeng ) {
+                            return info0.formatValue( value, maxLeng );
+                        }
+                        @Override
+                        public Object unformatString( String rep ) {
+                            return info0.unformatString( rep );
+                        }
+                    };
                 }
                 paramList.add( new DescribedValue( info, value ) );
             }
