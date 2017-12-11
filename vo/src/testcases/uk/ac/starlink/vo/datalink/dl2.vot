@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href='/static/xsl/datalink-to-html.xsl' type='text/xsl'?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://vo.ari.uni-heidelberg.de/docs/schemata/VOTable-1.3.xsd">
+  <RESOURCE type="results">
+    <TABLE name="dlresponse">
+      <DESCRIPTION>Data links for data sets.</DESCRIPTION>
+      <FIELD ID="ID" arraysize="*" datatype="char" name="ID" ucd="meta.id;meta.main">
+        <DESCRIPTION>Publisher data set id; this is an identifier for the dataset in question and can be used to retrieve the data.</DESCRIPTION>
+      </FIELD>
+      <FIELD ID="access_url" arraysize="*" datatype="char" name="access_url" ucd="meta.ref.url">
+        <DESCRIPTION>URL to retrieve the data or access the service.</DESCRIPTION>
+      </FIELD>
+      <FIELD ID="service_def" arraysize="*" datatype="char" name="service_def" ucd="meta.code">
+        <DESCRIPTION>Identifier for the type of service if accessURL refers to a service.</DESCRIPTION>
+      </FIELD>
+      <FIELD ID="error_message" arraysize="*" datatype="char" name="error_message" ucd="meta.code.error">
+        <DESCRIPTION>If accessURL is empty, this column gives the reason why.</DESCRIPTION>
+      </FIELD>
+      <FIELD ID="description" arraysize="*" datatype="char" name="description" ucd="meta.note">
+        <DESCRIPTION>More information on this link</DESCRIPTION>
+      </FIELD>
+      <FIELD ID="semantics" arraysize="*" datatype="char" name="semantics" ucd="meta.code">
+        <DESCRIPTION>What kind of data is linked here? Standard identifiers here include science, calibration, preview, info, auxiliary</DESCRIPTION>
+      </FIELD>
+      <FIELD ID="content_type" arraysize="*" datatype="char" name="content_type" ucd="meta.code.mime">
+        <DESCRIPTION>MIME type for the data returned.</DESCRIPTION>
+      </FIELD>
+      <FIELD ID="content_length" datatype="long" name="content_length" ucd="phys.size;meta.file" unit="byte">
+        <DESCRIPTION>Size of the resource at access_url</DESCRIPTION>
+        <VALUES null="-1"/>
+      </FIELD>
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>ivo://org.gavo.dc/~?lswscans/data/part1/Bruceplatten/FITS/B1107b.fits</TD>
+            <TD>http://dc.zah.uni-heidelberg.de/getproduct/lswscans/data/part1/Bruceplatten/FITS/B1107b.fits?scale=4</TD>
+            <TD/>
+            <TD/>
+            <TD>FITS, scaled by 1/4</TD>
+            <TD>#science</TD>
+            <TD>image/fits</TD>
+            <TD>79792740</TD>
+          </TR>
+          <TR>
+            <TD>ivo://org.gavo.dc/~?lswscans/data/part1/Bruceplatten/FITS/B1107b.fits</TD>
+            <TD/>
+            <TD>ndiwmgwbuupa</TD>
+            <TD/>
+            <TD/>
+            <TD>#proc</TD>
+            <TD/>
+            <TD>-1</TD>
+          </TR>
+          <TR>
+            <TD>ivo://org.gavo.dc/~?lswscans/data/part1/Bruceplatten/FITS/B1107b.fits</TD>
+            <TD>http://dc.zah.uni-heidelberg.de/getproduct/lswscans/data/part1/Bruceplatten/FITS/B1107b.fits</TD>
+            <TD/>
+            <TD/>
+            <TD>The full dataset.</TD>
+            <TD>#this</TD>
+            <TD>image/fits</TD>
+            <TD>1276683840</TD>
+          </TR>
+          <TR>
+            <TD>ivo://org.gavo.dc/~?lswscans/data/part1/Bruceplatten/FITS/B1107b.fits</TD>
+            <TD>http://dc.zah.uni-heidelberg.de/getproduct/lswscans/data/part1/Bruceplatten/FITS/B1107b.fits?preview=True</TD>
+            <TD/>
+            <TD/>
+            <TD>A preview for the dataset.</TD>
+            <TD>#preview</TD>
+            <TD/>
+            <TD>-1</TD>
+          </TR>
+          <TR>
+            <TD>not-an-id</TD>
+            <TD/>
+            <TD/>
+            <TD>NotFoundFault</TD>
+            <TD/>
+            <TD>#this</TD>
+            <TD/>
+            <TD/>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+  <RESOURCE ID="ndiwmgwbuupa" type="meta" utype="adhoc:service">
+    <GROUP name="inputParams">
+      <PARAM arraysize="*" datatype="char" name="ID" ucd="meta.id;meta.main" value="ivo://org.gavo.dc/~?lswscans/data/part1/Bruceplatten/FITS/B1107b.fits">
+        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
+      </PARAM>
+      <PARAM arraysize="2" datatype="double" name="DEC" ucd="pos.eq.dec" unit="deg" value="" xtype="interval">
+        <DESCRIPTION>The latitude coordinate</DESCRIPTION>
+        <VALUES>
+          <MIN value="41.0516060801"/>
+          <MAX value="49.0829696697"/>
+        </VALUES>
+      </PARAM>
+      <PARAM arraysize="2" datatype="double" name="RA" ucd="pos.eq.ra" unit="deg" value="" xtype="interval">
+        <DESCRIPTION>The longitude coordinate</DESCRIPTION>
+        <VALUES>
+          <MIN value="291.433510977"/>
+          <MAX value="301.112591938"/>
+        </VALUES>
+      </PARAM>
+      <PARAM datatype="int" name="SCALE" value="">
+        <DESCRIPTION>Factor to scale the image down before transporting (this does not currently take into account cutout parameters).</DESCRIPTION>
+        <VALUES>
+          <MIN value="2"/>
+          <MAX value="32"/>
+        </VALUES>
+      </PARAM>
+      <PARAM arraysize="*" datatype="char" name="POS" ucd="phys.angArea;obs" value="">
+        <DESCRIPTION>Region to (approximately) cut out, as Circle, Region, or Polygon</DESCRIPTION>
+      </PARAM>
+      <PARAM arraysize="*" datatype="double" name="POLYGON" ucd="phys.argArea;obs" unit="deg" value="">
+        <DESCRIPTION>A polygon (as a flattened array of ra, dec pairs) that should be covered by the cutout.</DESCRIPTION>
+        <VALUES>
+          <MAX value="301.1125919379 49.0623510271 300.4684965279 41.0516060801 292.045698542 41.0548452451 291.4335109771 49.0829696697"/>
+        </VALUES>
+      </PARAM>
+      <PARAM arraysize="3" datatype="double" name="CIRCLE" ucd="phys.argArea;obs" unit="deg" value="">
+        <DESCRIPTION>A circle (as a flattened array of ra, dec, radius) that should be covered by the cutout.</DESCRIPTION>
+        <VALUES>
+          <MAX value="296.2614072036 45.1505993428 5.1222387223"/>
+        </VALUES>
+      </PARAM>
+      <PARAM arraysize="2" datatype="int" name="PIXEL_1" ucd="pos.cartesian.x;instr.pixel" value="" xtype="interval">
+        <DESCRIPTION>Pixel coordinate along axis 1</DESCRIPTION>
+        <VALUES>
+          <MIN value="1"/>
+          <MAX value="22422"/>
+        </VALUES>
+      </PARAM>
+      <PARAM arraysize="2" datatype="int" name="PIXEL_2" ucd="pos.cartesian.y;instr.pixel" value="" xtype="interval">
+        <DESCRIPTION>Pixel coordinate along axis 2</DESCRIPTION>
+        <VALUES>
+          <MIN value="1"/>
+          <MAX value="28469"/>
+        </VALUES>
+      </PARAM>
+      <PARAM arraysize="*" datatype="char" name="KIND" value="">
+        <DESCRIPTION>Set to HEADER to retrieve just the primary header, leave empty for data.</DESCRIPTION>
+        <VALUES>
+          <OPTION name="Retrieve header only" value="HEADER"/>
+          <OPTION name="Retrieve the full data, including header (default)" value="DATA"/>
+        </VALUES>
+      </PARAM>
+    </GROUP>
+    <PARAM arraysize="*" datatype="char" name="accessURL" ucd="meta.ref.url" value="http://dc.zah.uni-heidelberg.de/lswscans/res/positions/dl/dlget"/>
+    <PARAM arraysize="*" datatype="char" name="standardID" value="ivo://ivoa.net/std/SODA#sync-1.0"/>
+  </RESOURCE>
+</VOTABLE>
