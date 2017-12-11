@@ -20,6 +20,9 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.URLValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.votable.datalink.ServiceDescriptor;
+import uk.ac.starlink.votable.datalink.ServiceDescriptorFactory;
+import uk.ac.starlink.votable.datalink.ServiceDescriptorInfo;
 
 /**
  * A {@link uk.ac.starlink.table.StarTable} implementation based on a VOTable.
@@ -347,6 +350,25 @@ public class VOStarTable extends AbstractStarTable {
                 else {
                     assert false : el;
                 }
+            }
+
+            /* Datalink-style Service Descriptors. */
+            ServiceDescriptorFactory sdFact = new ServiceDescriptorFactory();
+            ServiceDescriptor[] servDescrips =
+                sdFact.readTableServiceDescriptors( votable );
+            int nsd = servDescrips.length;
+            for ( int isd = 0; isd < nsd; isd++ ) {
+                ServiceDescriptor sd = servDescrips[ isd ];
+                final String sdName;
+                if ( sd.getName() != null ) {
+                    sdName = "Service_" + sd.getName();
+                }
+                else {
+                    sdName = nsd == 1 ? "ServiceDescriptor"
+                                      : "ServiceDescriptor" + ( isd + 1 );
+                }
+                ValueInfo sdInfo = new ServiceDescriptorInfo( sdName, this );
+                params.add( new DescribedValue( sdInfo, sd ) );
             }
 
             /* Post-process parameter list. */
