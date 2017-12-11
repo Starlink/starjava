@@ -15,6 +15,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.URLValueInfo;
 import uk.ac.starlink.table.ValueInfo;
@@ -36,7 +37,7 @@ import uk.ac.starlink.util.DOMUtils;
  * {@link uk.ac.starlink.table.ColumnInfo#getAuxDatum} method, for instance:
  * <pre>
  *     String id = (String) table.getColumnInfo(0)
-                                 .getAuxDatumValue(VOStarTable.ID_INFO);
+ *                               .getAuxDatumValue(VOStarTable.ID_INFO);
  * </pre>
  * In the same way, if you set an auxiliary metadata item under one of
  * these keys, like this:
@@ -538,6 +539,31 @@ public class VOStarTable extends AbstractStarTable {
                             : Decoder.longsToInts( shapel ) );
         info.setElementSize( decoder.getElementSize() );
         return info;
+    }
+
+    /**
+     * Identifies the column that was labelled with a given ID attribute.
+     *
+     * @param  colRef    ID string
+     * @param  table     table to interrogate; this will presumably be based
+     *                   on a VOStarTable, but it may be some kind of
+     *                   wrapped form of one
+     * @return   index of the column in <code>table</code> whose FIELD
+     *           element had an ID attribute of <code>colRef</code>,
+     *           or -1 if none exists
+     */
+    public static int getRefColumnIndex( String colRef, StarTable table ) {
+        if ( table != null ) {
+            int ncol = table.getColumnCount();
+            for ( int ic = 0; ic < ncol; ic++ ) {
+                ColumnInfo info = table.getColumnInfo( ic );
+                if ( colRef.equals( info.getAuxDatumValue( ID_INFO,
+                                                           String.class ) ) ) {
+                    return ic;
+                }
+            }
+        }
+        return -1;
     }
 
     /**
