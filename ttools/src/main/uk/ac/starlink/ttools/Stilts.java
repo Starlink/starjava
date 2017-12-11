@@ -95,6 +95,7 @@ public class Stilts {
         taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "cdsskymatch", taskPkg + "CdsUploadSkyMatch" );
         taskFactory_.register( "coneskymatch", taskPkg + "MultiCone" );
+        taskFactory_.register( "datalinklint", taskPkg + "DatalinkLint" );
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
         taskFactory_.register( "pixfoot", taskPkg + "PixFootprint" );
         taskFactory_.register( "pixsample", taskPkg + "PixSample" );

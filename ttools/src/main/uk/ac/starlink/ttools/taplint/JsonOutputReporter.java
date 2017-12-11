@@ -151,7 +151,8 @@ public class JsonOutputReporter implements OutputReporter {
         for ( Iterator<SecCode> it = codeMap_.keySet().iterator();
               it.hasNext(); ) {
             SecCode sc = it.next();
-            if ( sc.section_.equals( scode ) ) {
+            if ( ( sc.section_ == null && scode == null ) ||
+                 sc.section_.equals( scode ) ) {
                 int count = codeMap_.getCount( sc );
                 if ( count > maxRepeat_ ) {
                     ReportCode code = sc.code_;

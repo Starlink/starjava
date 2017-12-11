@@ -29,7 +29,7 @@ public class ParameterTest extends TestCase {
         "expression",
         "cols", "binsizes",
         "serviceurl", "ra", "dec", "sr",
-        "tapurl", "joburl", "adql", "uploadN",
+        "tapurl", "joburl", "adql", "uploadN", "votable",
         "query",
         "cache", "href",
         "db", "dbtable", "dbra", "dbdec",
