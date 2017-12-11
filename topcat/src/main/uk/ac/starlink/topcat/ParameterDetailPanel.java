@@ -197,16 +197,12 @@ public class ParameterDetailPanel extends JPanel {
             display = getLineDisplay();
             display.setEditable( editable );
         }
-        else if ( String.class.equals( clazz ) ) {
-            display = getTextDisplay();
-            display.setEditable( editable );
-        }
         else if ( clazz.isArray() ) {
             display = getVectorDisplay();
         }
         else {
-            display = getLineDisplay();
-            display.setEditable( false );
+            display = getTextDisplay();
+            display.setEditable( editable );
         }
         display.setValue( info, value );
         return display.getComponent();
