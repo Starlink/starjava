@@ -50,6 +50,7 @@ public class MultiTest extends TestCase {
         StarTable[] iTables = 
             Tables.tableArray(
                 reader.makeStarTables( toDataSource( buf, null ), sp ) );
+        assertEquals( tables.length, iTables.length );
         for ( int itab = 0; itab < iTables.length; itab++ ) {
             assertEqualData( tables[ itab ], iTables[ itab ] );
             DataSource datsrc =
