@@ -11,58 +11,76 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
+import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
-import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.StarEntityResolver;
 
 /**
- * ContentHandler which goes through a SAX stream and just extracts
- * the data from a single TABLE element, copying its metadata and data
- * to a given TableSink.
+ * ContentHandler which builds a DOM from a SAX stream including
+ * only the data from a single TABLE element.
  *
- * <p>A previous version of this class skipped all elements until it
- * found the TABLE element it was looking for.  This is a bit too
- * drastic - other parts of the DOM may be required in case the
- * required TABLE references them using by ID using <tt>ref</tt> attributes.
- * So it was changed to pull out everything until the end of the TABLE
- * element of interest.
- *
- * <p>That still won't get metadata that comes from SAX events after
- * the end of the TABLE element.  But given the TableSink interface,
- * in which the metadata is submitted before any of the row data,
- * there's nothing that can be done about that.
+ * <p>Currently it goes all the way through the SAX stream building the DOM.
+ * It could bail out some time before the end once it's got its table.
+ * However, this is tricky, since sometimes some elements after the
+ * end of the TABLE in question are important for the table metadata,
+ * so for now don't do that.
  *
  * @author   Mark Taylor
+ * @since    13 Dec 2017
  */
-class TableStreamer extends TableContentHandler implements TableHandler {
+class SingleTableReader extends VOTableParser implements TableHandler {
 
-    private int skipTables_;
-    private final TableSink sink_;
+    private final StoragePolicy storage_;
     private final Namespacing namespacing_;
-    private boolean isVotable_; 
-    private static Logger logger_ =
+    private RowStore rowStore_;
+    private boolean isVotable_;
+    private TableElement tableEl_;
+    private int skipTables_;
+    private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
      * Constructor.
      *
-     * @param   sink  table destination
+     * @param   storage   storage policy
      * @param   itable   index of table to be streamed - 0 means the first
      *          TABLE element encountered, 1 means the second etc
      * @param  strict whether to enforce strict reading of the VOTable standard
      */
-    public TableStreamer( TableSink sink, int itable, boolean strict ) {
+    public SingleTableReader( StoragePolicy storage, int itable,
+                              boolean strict ) {
         super( strict );
+        storage_ = storage;
+        skipTables_ = itable;
         setTableHandler( null );
         setReadHrefTables( false );
-        sink_ = sink;
-        skipTables_ = itable;
         namespacing_ = Namespacing.getInstance();
     }
 
+    /**
+     * Returns the TABLE element requested, including its TabularData.
+     *
+     * @return  TABLE element if one has been found, otherwise null
+     */
+    public TableElement getTargetTableElement() {
+        return tableEl_;
+    }
+
+    /**
+     * Indicates whether the parse so far appears to be of a VOTABLE XML
+     * document.
+     *
+     * @return  true iff XML looks like VOTable
+     */
+    public boolean isVotable() {
+        return isVotable_;
+    }
+
+    @Override
     public void startElement( String namespaceURI, String localName,
-                              String qName, Attributes atts ) 
+                              String qName, Attributes atts )
             throws SAXException {
         super.startElement( namespaceURI, localName, qName, atts );
         String tagName =
@@ -71,6 +89,9 @@ class TableStreamer extends TableContentHandler implements TableHandler {
             isVotable_ = true;
         }
         if ( "TABLE".equals( tagName ) ) {
+
+            /* Prepare to process table data only if we have reached the
+             * start of the target table. */
             if ( skipTables_-- == 0 ) {
                 setReadHrefTables( true );
                 setTableHandler( this );
@@ -79,19 +100,12 @@ class TableStreamer extends TableContentHandler implements TableHandler {
     }
 
     public void startTable( StarTable meta ) throws SAXException {
-        try {
-            sink_.acceptMetadata( meta );
-        }
-        catch ( IOException e ) {
-            throw (SAXException)
-                  new SAXParseException( e.getMessage(), getLocator(), e )
-                 .initCause( e );
-        }
+        rowStore_ = storage_.makeConfiguredRowStore( meta );
     }
 
     public void rowData( Object[] row ) throws SAXException {
         try {
-            sink_.acceptRow( row );
+            rowStore_.acceptRow( row );
         }
         catch ( IOException e ) {
             throw (SAXException)
@@ -101,42 +115,52 @@ class TableStreamer extends TableContentHandler implements TableHandler {
     }
 
     public void endTable() throws SAXException {
+
+        /* Ignore table data once we have processed one table. */
+        setTableHandler( null );
+        setReadHrefTables( false );
+
+        /* Package the gathered data as a TableElement for later use. */
         try {
-            sink_.endRows();
+            rowStore_.endRows();
+            tableEl_ = getTableElement();
+            TabularData tdata =
+                new TableBodies.StarTableTabularData( rowStore_
+                                                     .getStarTable() );
+            tableEl_.setData( tdata );
         }
         catch ( IOException e ) {
             throw (SAXException)
                   new SAXParseException( e.getMessage(), getLocator(), e )
                  .initCause( e );
         }
-        throw new SuccessfulCompletionException();
     }
 
     /**
-     * Acquires the data from a single TABLE element in a VOTable document,
-     * writing the result to a sink.  The rest of the SAX stream is ignored.
+     * Acquires a single StarTable gathered from parsing a VOTable document.
      *
-     * @param  istrm  stream from which the VOTable document will be supplied
-     * @param  sink   callback interface into which the table metadata and
-     *                data will be dumped
+     * @param  saxsrc   SAX source from which the VOTable document
+     *                  will be supplied
+     * @param  storage  storage policy for row data
      * @param  itable index of the table in the document to be read
      *                (0-based)
      * @param  strict whether to enforce strict reading of the VOTable standard
      */
-    public static void streamStarTable( InputSource saxsrc, TableSink sink,
-                                        int itable, boolean strict )
+    public static VOStarTable readStarTable( final InputSource saxsrc,
+                                             int itable, StoragePolicy storage,
+                                             boolean strict )
             throws IOException, SAXException {
 
-        /* Construct a table handler which can pull out data from one
-         * table as required. */
-        TableStreamer streamer = new TableStreamer( sink, itable, strict );
+        /* Construct a reader instance for the requested table. */
+        SingleTableReader reader =
+            new SingleTableReader( storage, itable, strict );
 
         /* Get a SAX parser. */
-        XMLReader parser;
+        final XMLReader parser;
         try {
             SAXParserFactory spfact = SAXParserFactory.newInstance();
             spfact.setValidating( false );
-            streamer.namespacing_.configureSAXParserFactory( spfact );
+            reader.namespacing_.configureSAXParserFactory( spfact );
             parser = spfact.newSAXParser().getXMLReader();
         }
         catch ( ParserConfigurationException e ) {
@@ -145,7 +169,7 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         }
 
         /* Install the content handler. */
-        parser.setContentHandler( streamer );
+        parser.setContentHandler( reader );
 
         /* Install a custom entity resolver. */
         parser.setEntityResolver( StarEntityResolver.getInstance() );
@@ -163,17 +187,12 @@ class TableStreamer extends TableContentHandler implements TableHandler {
             }
         } );
 
-        /* Do the parse.  We expect to be signalled by the handler with a
-         * SuccessfulCompletionException if the table gets copied.
-         * Otherwise, it hasn't happened. */
+        /* Do the parse. */
         try {
             parser.parse( saxsrc );
         }
-        catch ( SuccessfulCompletionException e ) {
-            return;
-        }
         catch ( CharConversionException e ) {
-            if ( streamer.isVotable_ ) {
+            if ( reader.isVotable_ ) {
                 throw e;
             }
             else {
@@ -182,25 +201,26 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         }
         catch ( SAXException e ) {
             e = VOElementFactory.fixStackTrace( e );
-            if ( streamer.isVotable_ ) {
+            if ( reader.isVotable_ ) {
                 throw e;
             }
             else {
                 throw new TableFormatException( e );
             }
         }
-        throw streamer.isVotable_
-            ? new IOException( "No TABLE element found" )
-            : new TableFormatException( "No VOTABLE element" );
-    }
 
-    /**
-     * This private exception signals that the TABLE element has been
-     * identified and extracted.
-     */
-    private static class SuccessfulCompletionException extends SAXException {
-        SuccessfulCompletionException() {
-            super( "Table extraction complete" );
+        /* Return the result or signal an error. */
+        if ( reader.isVotable_ ) {
+            TableElement tableEl = reader.getTargetTableElement();
+            if ( tableEl != null ) {
+                return new VOStarTable( tableEl );
+            }
+            else {
+                throw new IOException( "No TABLE element found" );
+            }
+        }
+        else {
+            throw new TableFormatException( "No VOTABLE element" );
         }
     }
 }

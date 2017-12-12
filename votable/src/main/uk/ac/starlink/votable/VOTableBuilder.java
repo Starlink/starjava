@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.MultiTableBuilder;
-import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -107,18 +106,15 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
         }
 
         /* Stream the result to a new table store. */
-        final RowStore rowStore = storagePolicy.makeRowStore();
         InputSource saxSrc = new InputSource( datsrc.getInputStream() );
         saxSrc.setSystemId( datsrc.getSystemId() );
         try {
-            TableStreamer.streamStarTable( saxSrc, rowStore, itab, strict_ );
+            return SingleTableReader
+                  .readStarTable( saxSrc, itab, storagePolicy, strict_ );
         }
         catch ( SAXException e ) {
             throw new TableFormatException( e.getMessage(), e );
         }
-
-        /* Return the resulting table. */
-        return rowStore.getStarTable();
     }
 
     public TableSequence makeStarTables( DataSource datsrc,
@@ -170,6 +166,12 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
      * for large XML documents and/or tables.
      * Invocation is synchronous, so the method only returns when the
      * streaming has been done (successfully or otherwise).
+     *
+     * <p>Note that only table metadata that precedes the TABLE element
+     * in the XML stream can be picked up when using this method.
+     * If there are any XML elements following the end of the TABLE
+     * whose content would normally show up in table metadata,
+     * it will be ignored when using this method.
      *
      * <p>For more flexible streamed access to VOTable data, use a 
      * {@link TableContentHandler}.

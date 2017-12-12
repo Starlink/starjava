@@ -696,6 +696,15 @@ public class TapQuery {
      * expressing this), an exception will be thrown.
      * Overflow status of a successful result is provided by the return value.
      *
+     * <p><strong>Note:</strong> any XML that comes after the TABLE
+     * element of the result table is ignored for the purposes of
+     * reporting the table metadata.  The only thing after the end
+     * of the TABLE that affects the result of this method is the
+     * overflow flag, which affects the return value.
+     * So if you need to pick up items which might be in trailing elements,
+     * for instance Service Descriptors in later RESOURCE elements,
+     * you will have to use a different method.
+     *
      * @param   conn  connection to table resource
      * @param  coding  HTTP content coding policy used to prepare connection
      * @param   sink   destination for table result of succesful query

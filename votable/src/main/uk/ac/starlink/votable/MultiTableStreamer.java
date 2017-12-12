@@ -57,6 +57,8 @@ class MultiTableStreamer extends SkeletonDOMBuilder implements TableHandler {
     }
 
     public void startTable( StarTable meta ) throws SAXException {
+        flushRowStore();
+        assert rowStore_ == null;
         try {
             rowStore_ = storage_.makeRowStore();
             rowStore_.acceptMetadata( meta );
@@ -84,12 +86,11 @@ class MultiTableStreamer extends SkeletonDOMBuilder implements TableHandler {
             StarTable table = null;
             try {
                 rowStore_.endRows();
-                tqueue_.addTable( rowStore_.getStarTable() );
             }
             catch ( IOException e ) {
                 tqueue_.addError( e );
+                rowStore_ = null;
             }
-            rowStore_ = null;
         }
     }
 
@@ -134,6 +135,7 @@ class MultiTableStreamer extends SkeletonDOMBuilder implements TableHandler {
         }
     }
 
+    @Override
     public void startElement( String namespaceURI, String localName,
                               String qName, Attributes atts )
             throws SAXException {
@@ -146,6 +148,31 @@ class MultiTableStreamer extends SkeletonDOMBuilder implements TableHandler {
             }
         }
         super.startElement( namespaceURI, localName, qName, atts );
+    }
+
+    @Override
+    public void endDocument() {
+        flushRowStore();
+    }
+
+    /**
+     * Checks if this object's RowStore is currently holding a table,
+     * and if so hands it off to the the table queue and clears the RowStore.
+     * This method should be called when the table is expected to be complete.
+     * However, it doesn't want to be done too early, for instance
+     * immediately after the end of the TABLE element,
+     * since there may be parts of the SAX stream somewhat later
+     * (sibling RESOURCE elements for instance) that should be taken
+     * account of when creating the StarTable.
+     */
+    private void flushRowStore() {
+        if ( rowStore_ != null ) {
+            StarTable table = rowStore_.getStarTable();
+            if ( table != null ) {
+                tqueue_.addTable( table );
+            }
+            rowStore_ = null;
+        }
     }
 
     /**
