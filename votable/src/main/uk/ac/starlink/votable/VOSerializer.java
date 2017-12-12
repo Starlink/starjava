@@ -32,6 +32,8 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.Base64OutputStream;
 import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.votable.datalink.ServiceDescriptor;
+import uk.ac.starlink.votable.datalink.ServiceParam;
 
 /**
  * Class which knows how to serialize a table's fields and data to 
@@ -54,6 +56,7 @@ public abstract class VOSerializer {
     private final String ucd_;
     private final String utype_;
     private final String description_;
+    private final ServiceDescriptor[] servDescrips_;
     final Map<Coosys,String> coosysMap_;
 
     final static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
@@ -76,6 +79,7 @@ public abstract class VOSerializer {
         String description = null;
         String ucd = null;
         String utype = null;
+        List<ServiceDescriptor> sdList = new ArrayList<ServiceDescriptor>();
         for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
             Object obj = it.next();
             if ( obj instanceof DescribedValue ) {
@@ -97,6 +101,12 @@ public abstract class VOSerializer {
                            && pclazz == String.class ) {
                         utype = (String) value;
                     }
+                    else if ( ServiceDescriptor.class
+                             .isAssignableFrom( pclazz ) ) {
+                        if ( value instanceof ServiceDescriptor ) {
+                            sdList.add( (ServiceDescriptor) value );
+                        }
+                    }
                     else {
                         paramList_.add( dval );
                     }
@@ -106,6 +116,7 @@ public abstract class VOSerializer {
         description_ = description;
         ucd_ = ucd;
         utype_ = utype;
+        servDescrips_ = sdList.toArray( new ServiceDescriptor[ 0 ] );
 
         /* Get a base identifier that can be used to prepend to XML ID values.
          * As long as this is unique per output XML document,
@@ -218,8 +229,7 @@ public abstract class VOSerializer {
 
     /**
      * Writes any PARAM and INFO elements associated with this serializer's
-     * table.  These should generally go in the RESOURCE element
-     * in which the table will be contained.
+     * table.  These should generally go in the TABLE element.
      * 
      * @param   writer  destination stream
      */
@@ -342,6 +352,173 @@ public abstract class VOSerializer {
     }
 
     /**
+     * Writes the service descriptor parameters of this serializer's table
+     * as a sequence of zero or more RESOURCE elements.
+     * Each has attributes type="meta" and utype="adhoc:service".
+     *
+     * @param  writer  destination stream
+     */
+    public void writeServiceDescriptors( BufferedWriter writer )
+            throws IOException {
+        for ( ServiceDescriptor sd : servDescrips_ ) {
+            writeServiceDescriptor( writer, sd );
+        }
+    }
+
+    /**
+     * Writes a service descriptor object as a RESOURCE element with
+     * utype="adhoc:service".
+     *
+     * @param   writer  destination stream
+     * @param   sdesc   service descriptor object
+     * @see   <a href="http://www.ivoa.net/documents/DataLink/"
+     *           >DataLink-1.0, sec 4</a>
+     */
+    private void writeServiceDescriptor( BufferedWriter writer,
+                                         ServiceDescriptor sdesc )
+            throws IOException {
+        String sdId = sdesc.getDescriptorId();
+        String sdName = sdesc.getName();
+        String sdDescription = sdesc.getDescription();
+        StringBuffer rtag = new StringBuffer()
+            .append( "<RESOURCE" )
+            .append( formatAttribute( "type", "meta" ) )
+            .append( formatAttribute( "utype", "adhoc:service" ) );
+        if ( sdName != null ) {
+            rtag.append( formatAttribute( "name", sdName ) );
+        }
+        if ( sdId != null && sdId.length() > 0 ) {
+            rtag.append( formatAttribute( "ID", sdId ) );
+        }
+        rtag.append( ">" );
+        writer.write( rtag.toString() );
+        writer.newLine();
+        if ( sdDescription != null ) {
+            writer.write( "  <DESCRIPTION>"
+                        + formatText( sdDescription.trim() )
+                        + "</DESCRIPTION>" );
+            writer.newLine();
+        }
+        writeStringParam( writer, "accessURL", sdesc.getAccessUrl() );
+        writeStringParam( writer, "standardID", sdesc.getStandardId() );
+        writeStringParam( writer, "resourceIdentifier",
+                                  sdesc.getResourceIdentifier() );
+        ServiceParam[] sdParams = sdesc.getInputParams();
+        if ( sdParams.length > 0 ) {
+            writer.write( "  <GROUP"
+                        + formatAttribute( "name", "inputParams" )
+                        + ">" );
+            writer.newLine();
+            for ( ServiceParam sdParam : sdParams ) {
+                writeServiceParam( writer, sdParam );
+            }
+            writer.write( "  </GROUP>" );
+            writer.newLine();
+        }
+        writer.write( "</RESOURCE>" );
+        writer.newLine();
+    }
+
+    /**
+     * Writes a PARAM element with a given value, if the value is not blank.
+     * If the value is null or the empty string, no output is written.
+     *
+     * @param  writer  destination stream
+     * @param  pname   parameter name
+     * @parma  pvalue  parameter value
+     */
+    private void writeStringParam( BufferedWriter writer,
+                                   String pname, String pvalue )
+            throws IOException {
+        if ( pvalue != null && pvalue.length() > 0 ) {
+            StringBuffer sbuf = new StringBuffer()
+                .append( "  <PARAM" )
+                .append( formatAttribute( "name", pname ) )
+                .append( formatAttribute( "datatype", "char" ) )
+                .append( formatAttribute( "arraysize", "*" ) )
+                .append( formatAttribute( "value", pvalue ) )
+                .append( "/>" );
+            writer.write( sbuf.toString() );
+            writer.newLine();
+        }
+    }
+
+    /**
+     * Serialises a ServiceParam object as a PARAM element,
+     * assumed to be within an inputParams GROUP.
+     *
+     * @param  writer  destination stream
+     * @param  param   service parameter object
+     */
+    private void writeServiceParam( BufferedWriter writer, ServiceParam param )
+            throws IOException {
+        int[] arraysize = param.getArraysize();
+        String name = param.getName();
+        String datatype = param.getDatatype();
+        String value = param.getValue();
+        Map<String,String> atts = new LinkedHashMap<String,String>();
+        atts.put( "name", name == null ? "??" : name );
+        atts.put( "datatype", datatype == null ? "char" : datatype );
+        if ( arraysize != null && arraysize.length > 0 ) {
+            atts.put( "arraysize", DefaultValueInfo.formatShape( arraysize ) );
+        }
+        atts.put( "value", value == null ? "" : value );
+        atts.put( "unit", param.getUnit() );
+        atts.put( "ucd", param.getUcd() );
+        atts.put( "utype", param.getUtype() );
+        atts.put( "xtype", param.getXtype() );
+        atts.put( "ref", param.getRef() );
+        for ( String aname :
+              new String[] { "unit", "ucd", "utype", "xtype", "ref", } ) {
+            String aval = atts.get( aname );
+            if ( aval == null || aval.length() == 0 ) {
+                atts.remove( aname );
+            }
+        }
+        writer.write( "    <PARAM" + formatAttributes( atts ) + ">" );
+        writer.newLine();
+        String descrip = param.getDescription();
+        if ( descrip != null && descrip.trim().length() > 0 ) {
+            writer.write( "      <DESCRIPTION>"
+                        + formatText( descrip )
+                        + "</DESCRIPTION>" );
+            writer.newLine();
+        }
+        String[] options = param.getOptions();
+        String[] minmax = param.getMinMax();
+        String min = minmax == null ? null : minmax[ 0 ];
+        String max = minmax == null ? null : minmax[ 1 ];
+        if ( min != null || max != null || options != null ) {
+            writer.write( "      <VALUES>" );
+            writer.newLine();
+            if ( min != null ) {
+                writer.write( "        <MIN"
+                            + formatAttribute( "value", min )
+                            + "/>" );
+                writer.newLine();
+            }
+            if ( max != null ) {
+                writer.write( "        <MAX"
+                            + formatAttribute( "value", max )
+                            + "/>" );
+                writer.newLine();
+            }
+            if ( options != null ) {
+                for ( String opt : options ) {
+                    writer.write( "        <OPTION"
+                                + formatAttribute( "value", opt )
+                                + "/>" );
+                    writer.newLine();
+                }
+            }
+            writer.write( "      </VALUES>" );
+            writer.newLine();
+        }
+        writer.write( "    </PARAM>" );
+        writer.newLine();
+    }
+
+    /**
      * Outputs the TABLE element start tag and all of its content before
      * the DATA element.
      * Other items legal where a TABLE can appear may be prepended
@@ -416,6 +593,7 @@ public abstract class VOSerializer {
     public void writePostDataXML( BufferedWriter writer ) throws IOException {
         writer.write( "</TABLE>" );
         writer.newLine();
+        writeServiceDescriptors( writer );
     }
 
     /**
@@ -777,7 +955,6 @@ public abstract class VOSerializer {
             }
         }
     }
-
 
     /**
      * TABLEDATA implementation of VOSerializer.
