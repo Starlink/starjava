@@ -10,6 +10,7 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.ColFitsStarTable;
 import uk.ac.starlink.fits.FitsConstants;
@@ -206,16 +207,18 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
             /* Obtain the TABLE element, which ought to be empty. */
             VODocument doc = (VODocument) domsrc.getNode();
             VOElement topel = (VOElement) doc.getDocumentElement();
-            VOElement resel = topel.getChildByName( "RESOURCE" );
-            if ( resel == null ) {
-                throw new TableFormatException(
-                    "Embedded VOTable document has no RESOURCE element" );
-            }
-            TableElement tabel = (TableElement) resel.getChildByName( "TABLE" );
-            if ( tabel == null ) {
+            NodeList tabelList = topel.getElementsByVOTagName( "TABLE" );
+            int ntabel = tabelList.getLength();
+            if ( ntabel == 0 ) {
                 throw new TableFormatException(
                     "Embedded VOTable document has no TABLE element" );
             }
+            else if ( ntabel > 1 ) {
+                throw new TableFormatException(
+                      "Embedded VOTable document has multiple"
+                    + "(" + ntabel + ") TABLE elements" );
+            }
+            TableElement tabel = (TableElement) tabelList.item( 0 );
             if ( tabel.getChildByName( "DATA" ) != null ) {
                 throw new TableFormatException(
                     "Embedded VOTable document has unexpected DATA element" );
