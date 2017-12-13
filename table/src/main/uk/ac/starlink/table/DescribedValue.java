@@ -108,9 +108,10 @@ public class DescribedValue {
     public String toString( int maxLength ) {
         StringBuffer buf = new StringBuffer( vinfo.toString() );
         buf.append( "=" )
-           .append( getValueAsString( maxLength - buf.length() ) );
+           .append( getValueAsString( Math.max( 1,
+                                                maxLength - buf.length() ) ) );
         if ( buf.length() > maxLength ) {
-            buf.setLength( maxLength - 3 );
+            buf.setLength( Math.max( 0, maxLength - 3 ) );
             buf.append( "..." );
         }
         return buf.toString();
