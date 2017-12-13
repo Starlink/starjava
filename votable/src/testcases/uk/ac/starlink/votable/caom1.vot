@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3">
+  <INFO name="query" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/datalink?runid=uvcjzy3rroe514qe&amp;ID=caom%3ACFHT%2F1742833%2F1742833og"/>
+  <RESOURCE type="results">
+    <TABLE>
+      <FIELD name="ID" datatype="char" arraysize="*" ucd="meta.id;meta.main" />
+      <FIELD name="access_url" datatype="char" arraysize="*" ucd="meta.ref.url" />
+      <FIELD name="service_def" datatype="char" arraysize="*" ucd="meta.ref" />
+      <FIELD name="error_message" datatype="char" arraysize="*" ucd="meta.code.error" />
+      <FIELD name="semantics" datatype="char" arraysize="*" ucd="meta.code" />
+      <FIELD name="description" datatype="char" arraysize="*" ucd="meta.note" />
+      <FIELD name="content_type" datatype="char" arraysize="*" ucd="meta.code.mime" />
+      <FIELD name="content_length" datatype="long" ucd="phys.size;meta.file" unit="byte" />
+      <FIELD name="readable" datatype="boolean">
+        <DESCRIPTION>the caller is allowed to use this link with the current authentication</DESCRIPTION>
+      </FIELD>
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>caom:CFHT/1742833/1742833og</TD>
+            <TD>http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/CFHT/1742833_preview_256.jpg?runid=uvcjzy3rroe514qe</TD>
+            <TD />
+            <TD />
+            <TD>http://www.openadc.org/caom2#thumbnail</TD>
+            <TD />
+            <TD>image/jpeg</TD>
+            <TD>21619</TD>
+            <TD>true</TD>
+          </TR>
+          <TR>
+            <TD>caom:CFHT/1742833/1742833og</TD>
+            <TD>http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/CFHT/1742833_preview_zoom_1024.jpg?runid=uvcjzy3rroe514qe</TD>
+            <TD />
+            <TD />
+            <TD>#preview</TD>
+            <TD />
+            <TD>image/jpeg</TD>
+            <TD>478658</TD>
+            <TD>true</TD>
+          </TR>
+          <TR>
+            <TD>caom:CFHT/1742833/1742833og</TD>
+            <TD>http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/CFHT/1742833_preview_1024.jpg?runid=uvcjzy3rroe514qe</TD>
+            <TD />
+            <TD />
+            <TD>#preview</TD>
+            <TD />
+            <TD>image/jpeg</TD>
+            <TD>313024</TD>
+            <TD>true</TD>
+          </TR>
+          <TR>
+            <TD>caom:CFHT/1742833/1742833og</TD>
+            <TD>http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/CFHT/1742833o.fits.fz?runid=uvcjzy3rroe514qe</TD>
+            <TD />
+            <TD />
+            <TD>#this</TD>
+            <TD />
+            <TD>application/fits</TD>
+            <TD>20672640</TD>
+            <TD>true</TD>
+          </TR>
+          <TR>
+            <TD>caom:CFHT/1742833/1742833og</TD>
+            <TD />
+            <TD>soda-54fafffb-8cac-4278-b968-555b5496ab9f</TD>
+            <TD />
+            <TD>#cutout</TD>
+            <TD />
+            <TD>application/fits</TD>
+            <TD />
+            <TD>true</TD>
+          </TR>
+          <TR>
+            <TD>caom:CFHT/1742833/1742833og</TD>
+            <TD />
+            <TD>soda-ed492d80-17c3-4508-99ab-7b9415aec5ff</TD>
+            <TD />
+            <TD>#cutout</TD>
+            <TD />
+            <TD>application/fits</TD>
+            <TD />
+            <TD>true</TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+    <INFO name="QUERY_STATUS" value="OK" />
+  </RESOURCE>
+  <RESOURCE type="meta" ID="soda-54fafffb-8cac-4278-b968-555b5496ab9f" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="26" value="ivo://cadc.nrc.ca/caom2ops" />
+    <PARAM name="standardID" datatype="char" arraysize="32" value="ivo://ivoa.net/std/SODA#sync-1.0" />
+    <PARAM name="accessURL" datatype="char" arraysize="57" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/sync" />
+    <GROUP name="inputParams">
+      <PARAM name="ID" datatype="char" arraysize="*" ucd="" value="ad:CFHT/1742833o.fits.fz" />
+      <PARAM name="POS" datatype="char" arraysize="*" ucd="obs.field" value="" />
+      <PARAM name="CIRCLE" datatype="double" arraysize="3" ucd="obs.field" unit="deg" xtype="circle" value="">
+        <VALUES>
+          <MAX value="21.146975243848086 -33.923782327952054 0.2533289119106916" />
+        </VALUES>
+      </PARAM>
+      <PARAM name="POLYGON" datatype="double" arraysize="*" ucd="obs.field" unit="deg" xtype="polygon" value="">
+        <VALUES>
+          <MAX value="21.362070230617867 -33.7441376627429 21.362985304335126 -34.10236751089079 20.930936321158566 -34.10291276565199 20.93248347703315 -33.744549867354536" />
+        </VALUES>
+      </PARAM>
+    </GROUP>
+  </RESOURCE>
+  <RESOURCE type="meta" ID="soda-ed492d80-17c3-4508-99ab-7b9415aec5ff" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="26" value="ivo://cadc.nrc.ca/caom2ops" />
+    <PARAM name="standardID" datatype="char" arraysize="33" value="ivo://ivoa.net/std/SODA#async-1.0" />
+    <PARAM name="accessURL" datatype="char" arraysize="58" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/async" />
+    <GROUP name="inputParams">
+      <PARAM name="ID" datatype="char" arraysize="*" ucd="" value="ad:CFHT/1742833o.fits.fz" />
+      <PARAM name="POS" datatype="char" arraysize="*" ucd="obs.field" value="" />
+      <PARAM name="CIRCLE" datatype="double" arraysize="3" ucd="obs.field" unit="deg" xtype="circle" value="">
+        <VALUES>
+          <MAX value="21.146975243848086 -33.923782327952054 0.2533289119106916" />
+        </VALUES>
+      </PARAM>
+      <PARAM name="POLYGON" datatype="double" arraysize="*" ucd="obs.field" unit="deg" xtype="polygon" value="">
+        <VALUES>
+          <MAX value="21.362070230617867 -33.7441376627429 21.362985304335126 -34.10236751089079 20.930936321158566 -34.10291276565199 20.93248347703315 -33.744549867354536" />
+        </VALUES>
+      </PARAM>
+    </GROUP>
+  </RESOURCE>
+</VOTABLE>
