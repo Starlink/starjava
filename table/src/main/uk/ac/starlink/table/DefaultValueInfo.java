@@ -518,13 +518,7 @@ public class DefaultValueInfo implements ValueInfo {
             assert cname.charAt( cname.length() - 1 ) == ';';
             basename = cname.substring( pos + 1, cname.length() - 1 );
         }
-        basename = basename.replaceFirst( "^java\\.lang\\.", "" );
-        if ( basename.equals( "java.net.URL" ) ) {
-            basename = "URL";
-        }
-        if ( basename.equals( "java.net.URI" ) ) {
-            basename = "URI";
-        }
+        basename = basename.replaceFirst( "^.*\\.", "" );
         StringBuffer buf = new StringBuffer( basename );
         for ( int i = 0; i < ndim; i++ ) {
             buf.append( "[]" );
