@@ -212,32 +212,6 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                                                    boolean xLog );
 
     /**
-     * Calculates the plan object for this plotter.
-     *
-     * @param   knownPlans  available plan objects
-     * @param   xAxis  bin width axis
-     * @param   xpad  number of pixel bins required each side of plot range
-     * @param   dataSpec  data specification
-     * @param   dataStore  data storage object
-     */
-    public Pixel1dPlan calculatePixelPlan( Object[] knownPlans,
-                                           Axis xAxis, int xpad,
-                                           DataSpec dataSpec,
-                                           DataStore dataStore ) {
-        for ( int ip = 0; ip < knownPlans.length; ip++ ) {
-            if ( knownPlans[ ip ] instanceof Pixel1dPlan ) {
-                Pixel1dPlan plan = (Pixel1dPlan) knownPlans[ ip ];
-                if ( plan.matches( xAxis, xpad, dataSpec ) ) {
-                    return plan;
-                }
-            }
-        }
-        BinArray binArray =
-            readBins( xAxis, MAX_KERNEL_WIDTH, dataSpec, dataStore );
-        return new Pixel1dPlan( binArray, xAxis, MAX_KERNEL_WIDTH, dataSpec );
-    }
-
-    /**
      * The supplied <code>geom</code> is ignored.
      */
     public PlotLayer createLayer( DataGeom geom, final DataSpec dataSpec,
