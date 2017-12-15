@@ -298,7 +298,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
          * visible part of the plot.  Currently, I'm too lazy. */
         Kernel1d kernel =
             Pixel1dPlotter
-           .createKernel( style.kernelShape_, style.smoothSizer_, xAxis, xLog );
+           .createKernel( style.kernelShape_, style.smoothSizer_, xAxis, xLog,
+                          false );
         GridData gdata = createGridData( kernel, xlos, xhis, binner, gridder );
 
         /* Prepare to paint lines. */

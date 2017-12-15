@@ -306,6 +306,10 @@ public class StyleKeys {
                 "cumulatively;",
                 "each bin includes the counts from all previous bins.",
                 "</p>",
+                "<p>Note that setting cumulative true may not make much sense",
+                "with some other parameter values,",
+                "for instance averaging aggregation modes.",
+                "</p>",
             } )
         );
 
@@ -832,6 +836,10 @@ public class StyleKeys {
         meta.setXmlDescription( new String[] {
             "<p>Defines how, if at all, the bars of histogram-like plots",
             "are normalised or otherwise scaled vertically.",
+            "</p>",
+            "<p>Note that some of the normalisation options",
+            "may not make much sense with some other parameter values,",
+            "for instance averaging aggregation modes.",
             "</p>",
 
             /* It shouldn't really be necessary to write this here,
