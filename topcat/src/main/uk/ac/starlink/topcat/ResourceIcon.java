@@ -731,6 +731,10 @@ public class ResourceIcon implements Icon {
                          toSaveIcon( TTRI.FORM_SKYDENSITY ) );
         putMap( nameMap, "IMPORT_FORM_SKYDENSITY",
                          toImportIcon( TTRI.FORM_SKYDENSITY ) );
+        putMap( nameMap, "SAVE_FORM_HISTOGRAM",
+                         toSaveIcon( TTRI.FORM_HISTOGRAM ) );
+        putMap( nameMap, "IMPORT_FORM_HISTOGRAM",
+                         toImportIcon( TTRI.FORM_HISTOGRAM ) );
 
         return nameMap;
     }
