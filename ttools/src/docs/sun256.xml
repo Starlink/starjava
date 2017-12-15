@@ -11297,6 +11297,21 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         so can be seen by specifying the <code>-verbose</code> flag.
         The contours are now plotted correctly right up to the edge of
         the visible plot, and various bugs have been fixed.</li>
+    <li>The <ref id="layer-histogram">histogram</ref> plotter
+        now has a <code>combine</code> parameter
+        (<code>sum</code>,
+         <code>mean</code>,
+         <code>median</code>,
+         <code>min</code>,
+         <code>max</code>,
+         <code>stdev</code>, etc)
+        for weighted histograms.
+        This means that you can plot e.g. the mean value of a given quantity
+        per interval on the X axis rather than just the summed quantity.
+        A corresponding (though somewhat less well-defined) option is
+        also provided for the
+        <ref id="layer-kde">kde</ref> and
+        <ref id="layer-densogram">densogram</ref> plotters.</li>
     </ul>
     </p>
     </dd>
