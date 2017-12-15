@@ -154,6 +154,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
                                        "Smoothing min/max are "
                                      + "the wrong way round" );
         }
+        assert config.get( COMBINER_KEY ).isExtensive();
         return new KnnKernelFigure( k, isSymmetric, minSizer, maxSizer );
     }
 

@@ -2,6 +2,11 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.Random;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 
 public class KernelTest extends TestCase {
 
@@ -22,6 +27,38 @@ public class KernelTest extends TestCase {
                 kshape.createKnnKernel( k, true, 1, 18 );
             }
         }
+    }
+
+    public void testKnnCombiner() throws ConfigException {
+
+        /* Check that the Combiner must be extensive for the KNN plotter.
+         * The logic in that class implicitly relies on it, since there
+         * is currently no support for an averaging kernel, only a
+         * summing one.  An averaging KNN kernel probably could be
+         * implemented, but it seems like a bit of a specialist requirement,
+         * at least wait until somebody asks for one. */
+        KnnKernelDensityPlotter knnPlotter = null;
+        for ( Plotter plotter : PlanePlotType.getInstance().getPlotters() ) {
+            if ( plotter instanceof KnnKernelDensityPlotter ) {
+                knnPlotter = (KnnKernelDensityPlotter) plotter;
+            }
+        }
+        assertNotNull( knnPlotter );
+        ConfigKey<Combiner> combinerKey = null;
+        for ( ConfigKey key : knnPlotter.getStyleKeys() ) {
+            if ( Combiner.class.isAssignableFrom( key.getValueClass() ) ) {
+                combinerKey = (ConfigKey<Combiner>) key;
+            }
+        }
+        assertNull( combinerKey );
+        ConfigMap config = new ConfigMap();
+        config.put( knnPlotter.MINSIZER_CKEY,
+                    BinSizer.createCountBinSizer( 15 ) );
+        config.put( knnPlotter.MAXSIZER_CKEY,
+                    BinSizer.createCountBinSizer( 3 ) );
+        KnnKernelDensityPlotter.KDenseStyle style =
+            knnPlotter.createStyle( config );
+        assertTrue( knnPlotter.getCombiner( style ).isExtensive() );
     }
 
     private void checkExactNormKernel( Kernel1d kernel ) {
