@@ -167,21 +167,21 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             return DELTA;
         }
         else {
-            double normExtent = getNormalisedExtent();
-            double ext = normExtent * width;
-            int nlevel = (int) Math.ceil( ext );
-            if ( nlevel == ext && evaluate( normExtent ) != 0 ) {
-                nlevel++;
-            }
-            double[] levels = new double[ nlevel ];
-            double xscale = 1.0 / width;
-            assert nlevel * xscale / normExtent >= 0.99999999;
-            for ( int i = 0; i < nlevel; i++ ) {
-                double x = i * xscale;
-                assert x >= 0 && x <= normExtent;
-                levels[ i ] = evaluate( x );
-            }
+            double[] levels = getFixedWidthLevels( width );
             return createSymmetricNormalisedKernel( levels, isSquare() );
+        }
+    }
+
+    public Kernel1d createMeanKernel( double width ) {
+        if ( width < 0 ) {
+            throw new IllegalArgumentException( "negative width" );
+        }
+        else if ( width == 0 ) {
+            return DELTA;
+        }
+        else {
+            double[] levels = getFixedWidthLevels( width );
+            return createSymmetricMeanKernel( levels, isSquare() );
         }
     }
 
@@ -202,6 +202,31 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
         else {
             return new KnnKernel( this, k, isSymmetric, minWidth, maxWidth );
         }
+    }
+
+    /**
+     * Returns per-pixel levels corresponding to the shape of this kernel
+     * for a given half-width.
+     *
+     * @param  width  half-width
+     * @return  level array
+     */
+    private double[] getFixedWidthLevels( double width ) {
+        double normExtent = getNormalisedExtent();
+        double ext = normExtent * width;
+        int nlevel = (int) Math.ceil( ext );
+        if ( nlevel == ext && evaluate( normExtent ) != 0 ) {
+            nlevel++;
+        }
+        double[] levels = new double[ nlevel ];
+        double xscale = 1.0 / width;
+        assert nlevel * xscale / normExtent >= 0.99999999;
+        for ( int i = 0; i < nlevel; i++ ) {
+            double x = i * xscale;
+            assert x >= 0 && x <= normExtent;
+            levels[ i ] = evaluate( x );
+        }
+        return levels;
     }
 
     @Override
@@ -275,6 +300,41 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
     }
 
     /**
+     * Creates a symmetric averabing kernel based on a fixed array of
+     * function values.  The <code>levels</code> array gives a list of
+     * the values at x=0, 1 (and -1), 2 (and -2), ....
+     *
+     * @param  levels  kernel function values on 1d grid starting from 0
+     * @param  isSquare  true iff the kernel is considered non-smooth
+     * @return   new kernel
+     */
+    public static Kernel1d createSymmetricMeanKernel( double[] levels,
+                                                      boolean isSquare ) {
+        if ( levels.length <= 1 ) {
+            return DELTA;
+        }
+        int offset = levels.length - 1;
+        double[] weights = new double[ 2 * offset + 1 ];
+        for ( int il = 0; il < levels.length; il++ ) {
+            weights[ offset + il ] = levels[ il ];
+            weights[ offset - il ] = levels[ il ];
+        }
+        MeanKernel kernel = new MeanKernel( weights, offset, isSquare );
+        assert kernel.getExtent() == levels.length - 1;
+        return kernel;
+    }
+
+    /**
+     * Returns the value of the argument, or zero if it's NaN.
+     *
+     * @param   d  value
+     * @return  non-NaN value
+     */
+    private static double definiteValue( double d ) {
+        return Double.isNaN( d ) ? 0 : d;
+    }
+
+    /**
      * Kernel implementation based on an array given gridded function values.
      * This is not necessarily normalised or symmetric.
      */
@@ -305,12 +365,15 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             int ns = in.length;
             int nw = weights_.length;
             double[] out = new double[ ns ];
-            for ( int iw = 0; iw < nw; iw++ ) {
-                double weight = weights_[ iw ];
-                int is0 = Math.max( 0, offset_ - iw );
-                int is1 = Math.min( ns, ns + offset_ - iw );
-                for ( int is = is0; is < is1; is++ ) {
-                    out[ is ] += in[ is + iw - offset_ ] * weight;
+            for ( int is = 0; is < ns; is++ ) {
+                double val = in[ is ]; 
+                if ( ! Double.isNaN( val ) ) {
+                    int iw0 = Math.max( 0, offset_ - is );
+                    int iw1 = Math.min( nw, ns + offset_ - is );
+                    for ( int iw = iw0; iw < iw1; iw++ ) { 
+                        int ix = is + iw - offset_;
+                        out[ is + iw - offset_ ] += weights_[ iw ] * val;
+                    }
                 }
             }
             return out;
@@ -332,6 +395,85 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
         public boolean equals( Object o ) {
             if ( o instanceof FixedKernel ) {
                 FixedKernel other = (FixedKernel) o;
+                return Arrays.equals( this.weights_, other.weights_ )
+                    && this.offset_ == other.offset_;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Averaging kernel implementation based ona an array of given gridded
+     * function values.  This is not necessarily symmetric.
+     */
+    private static class MeanKernel implements Kernel1d {
+
+        private final double[] weights_;
+        private final int offset_;
+        private final boolean isSquare_;
+
+        /**
+         * Constructor.
+         *
+         * @param   weights  function values on 1d grid
+         * @param   offset  index into weight corresponding to x=0
+         * @param  isSquare  true iff the kernel is considered non-smooth
+         */
+        public MeanKernel( double[] weights, int offset, boolean isSquare ) {
+            weights_ = weights.clone();
+            offset_ = offset;
+            isSquare_ = isSquare;
+        }
+
+        public int getExtent() {
+            return Math.max( offset_, weights_.length - 1 - offset_ );
+        }
+
+        public double[] convolve( double[] in ) {
+            int ns = in.length;
+            int nw = weights_.length;
+            double[] dsums = new double[ ns ];
+            double[] wsums = new double[ ns ];
+            for ( int is = 0; is < ns; is++ ) {
+                double val = in[ is ];
+                if ( ! Double.isNaN( val ) ) {
+                    int iw0 = Math.max( 0, offset_ - is );
+                    int iw1 = Math.min( nw, ns + offset_ - is );
+                    for ( int iw = iw0; iw < iw1; iw++ ) {
+                        int ix = is + iw - offset_;
+                        double w = weights_[ iw ];
+                        wsums[ ix ] += w;
+                        dsums[ ix ] += w * val;
+                    }
+                }
+            }
+            double[] out = new double[ ns ];
+            for ( int is = 0; is < ns; is++ ) {
+                double sw = wsums[ is ];
+                double sd = dsums[ is ];
+                out[ is ] = sw == 0 ? Double.NaN : sd / sw;
+            }
+            return out;
+        }
+
+        public boolean isSquare() {
+            return isSquare_;
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 2209;
+            code = 23 * code + Arrays.hashCode( weights_ );
+            code = 23 * code + offset_;
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof MeanKernel ) {
+                MeanKernel other = (MeanKernel) o;
                 return Arrays.equals( this.weights_, other.weights_ )
                     && this.offset_ == other.offset_;
             }
@@ -407,15 +549,23 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
                 int mWidth = Math.max( minWidth_, mw );
                 double[] pWeights = weightArrays_[ pWidth - minWidth_ ];
                 double[] mWeights = weightArrays_[ mWidth - minWidth_ ];
-                double oval =
-                    0.5 * ( pWeights[ 0 ] + mWeights[ 0 ] ) * in[ is ];
+                double val0 = in[ is ];
+                double oval = Double.isNaN( val0 )
+                            ? 0.0
+                            : 0.5 * ( pWeights[ 0 ] + mWeights[ 0 ] ) * val0;
                 int pnw = Math.min( pWeights.length, ns - is );
                 int mnw = Math.min( mWeights.length, is );
                 for ( int js = 1; js < pnw; js++ ) {
-                    oval += pWeights[ js ] * in[ is + js ];
+                    double val = in[ is + js ];
+                    if ( ! Double.isNaN( val ) ) {
+                        oval += pWeights[ js ] * val;
+                    }
                 }
                 for ( int js = 1; js < mnw; js++ ) {
-                    oval += mWeights[ js ] * in[ is - js ];
+                    double val = in[ is - js ];
+                    if ( ! Double.isNaN( val ) ) {
+                        oval += mWeights[ js ] * val;
+                    }
                 }
                 out[ is ] = oval;
             }
@@ -465,7 +615,7 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             int step = isPositive ? +1 : -1;
             double sum = 0;
             for ( int i = 0; i < maxWidth; i++ ) {
-                sum += data[ js ];
+                sum += definiteValue( data[ js ] );
                 if ( sum >= k_ ) {
                     return i;
                 }
@@ -486,15 +636,15 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
          */
         private int bidirectionalKnnWidth( double[] data, int js,
                                            int maxWidth ) {
-            double sum = data[ js ];
+            double sum = definiteValue( data[ js ] );
             for ( int i = 1; i < maxWidth; i++ ) {
                 int ks = js - i;
                 int ls = js + i;
                 if ( ks >= 0 ) {
-                    sum += data[ ks ];
+                    sum += definiteValue( data[ ks ] );
                 }
                 if ( ls < data.length ) {
-                    sum += data[ ls ];
+                    sum += definiteValue( data[ ls ] );
                 }
                 if ( sum >= k_ ) {
                     return i;

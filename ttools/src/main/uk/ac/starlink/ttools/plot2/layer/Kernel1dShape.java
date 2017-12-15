@@ -38,6 +38,21 @@ public interface Kernel1dShape {
     Kernel1d createFixedWidthKernel( double width );
 
     /**
+     * Creates an averaging kernel with a given nominal fixed width.
+     * The 'convolution' it performs is not really a convolution,
+     * instead it's a sort of weighted moving average.
+     * This is a smoothing that's suitable for intensive quantities.
+     * Using proper convolution for intensive quantities like the mean
+     * or median is problematic if there may be blank values in the
+     * input array, since the smoothed value has to keep track of
+     * how many non-blank values it has encountered.
+     *
+     * @param  width  half-width
+     * @return  new kernel
+     */
+    Kernel1d createMeanKernel( double width );
+
+    /**
      * Creates an adaptive kernel that uses a K-nearest-neighbours algorithm
      * to determine local smoothing width, so that the width of the kernel
      * is determined by the distance (number of 1-pixel bins) within which
