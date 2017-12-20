@@ -1,11 +1,13 @@
 package uk.ac.starlink.splat.vo;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -58,11 +60,16 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 	private VOBrowser browser;
 	private JMenuItem accurlMenuItem;
 	private JMenuItem curCellMenuItem;
+	private  int WIDTH=800;
+	private  int HEIGHT=450; 
+	private int  PREVIEWMAXWIDTH=800;
+	private int PREVIEWMAXHEIGHT=100;
 	
 //	JPanel tablepanel= null;
 
 	public DataLinkLinksFrame(DataLinkResponse dlp, VOBrowser browser)  {
-		 this.setSize(800, 400);
+		 this.setSize(WIDTH,HEIGHT);
+		 this.setMinimumSize(new Dimension(800, 350));
 		 linksTable = dlp.getLinksTable();
 		 dlparams=dlp;		
 		 preview = getPreview();
@@ -84,22 +91,31 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 		return addPreview(previewURL);
 		
 	}
+	
+	private int getProcRow() {
+		
+		int s = dlparams.getSemanticsIndex();
+		for (int row=0; row< linksTable.getRowCount(); row++) {
+			String semantics = dlparams.getSemanticsValue(row);
+			if (semantics.equals("#proc")) 
+				return row;
+		}		
+		return -1;
+	}
 
 	
 
 	private void initUI() {
 		this.setVisible(false);
+        this.getContentPane().removeAll();
 		
-        Border empty = BorderFactory.createEmptyBorder();      
-		JPanel panel = (JPanel) this.getContentPane();
-		panel.removeAll();
-		panel.setBorder(empty);
+		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.gridx=0;
         gbc.gridy=0;
-        gbc.weighty=1;
+        gbc.weighty=0;
         gbc.weightx=1;
         gbc.fill=GridBagConstraints.NONE;
     
@@ -123,30 +139,49 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 		//popup.add( new SSAQueryResultsTableSelectionMenu(true));
 		//popup.add( new SSAQueryResultsTableSelectionMenu(false));
 	
-        gbc.fill=GridBagConstraints.BOTH;
-        StarJTable table = new BasicStarPopupTable(linksTable, false);
+     
+        BasicStarPopupTable table = new BasicStarPopupTable(linksTable, false);
         table.setComponentPopupMenu(popup);
         table.addMouseListener(this);
+        int tableheight= table.getRowCount()*table.getRowHeight();
+        table.setPreferredScrollableViewportSize(new Dimension(750, tableheight));
+        
 		JScrollPane tablepanel = new JScrollPane(table);
+		tablepanel.setBorder(new TitledBorder("Links "));
 		
-		//JPanel servicesPanel = getServicesPanel();
 		JPanel buttonsPanel = new JPanel();
 	    closeButton = new JButton("Close");
 	    closeButton.addActionListener(this);
 		buttonsPanel.add(closeButton);
+		
+		gbc.fill=GridBagConstraints.HORIZONTAL;
+		gbc.weighty=0;		
 		panel.add(tablepanel, gbc);
 		gbc.gridy++;
-		if (servicePanel != null) {
-			panel.add( servicePanel, gbc);
+		
+		int row;
+		if ( ( row = getProcRow()) >= 0) {
+			JPanel procPanel = getServiceFormPanel( row);
+			panel.add( new JScrollPane(procPanel), gbc);
 			gbc.gridy++;
 		}
-		gbc.weighty=0.5;
-		panel.add(buttonsPanel, gbc);
+		if (servicePanel != null) {
+			panel.add( new JScrollPane(servicePanel), gbc);
+			gbc.gridy++;
+		}
+		gbc.weighty=1;
+		//panel.add(buttonsPanel, gbc);
+		this.add(panel, BorderLayout.PAGE_START);
+		this.add(buttonsPanel, BorderLayout.PAGE_END);
+		
+		//this.add(new JScrollPane(panel));
 		//Dimension size = panel.getSize();
 		//this.setPreferredSize(size);
 		this.repaint();
 		this.setVisible(true);
 	}
+
+	
 
 	// add datalink service form to the frame
 /*	private JPanel getServicesPanel() {
@@ -286,11 +321,17 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 			case "#auxiliary":	// ??? try to open spectrum
 				displaySpectrum(accessUrl, contentType, semantics);
 				break;
-			case "#cutout":     // if service def is soda - open soda parameters window
+			case "#proc":     // server side data processing
+				// should already be added to the panel addServicePanel(service, serviceDef, contentType, semantics, id);
+				break;
+			case "#cutout":     // if service def is soda - open soda parameters panel
 				addServicePanel(service, serviceDef, contentType, semantics, id);
 				break;
 			default:
-				// do nothing?	
+				if (serviceDef != null)	{
+					// try to add service panel
+					addServicePanel(service, serviceDef, contentType, semantics, id);					
+				}
 		}
 
 	}
@@ -331,6 +372,12 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 		initUI();		
 	}
 
+	private JPanel getServiceFormPanel(int row) {
+		// return the server side form for a certain row (mainly semantics=#proc)
+		String serviceDef = dlparams.getServiceDefValue(row);		
+		return getServiceFormPanel(dlparams.getDataLinkService(serviceDef), serviceDef, dlparams.getContentTypeValue(row), dlparams.getSemanticsValue(row), dlparams.getIDValue(row));
+		
+	}
 	private SodaPanel getServiceFormPanel( DataLinkServiceResource service, String serviceDef, String contentType, String semantics, String id) {
 		if (service == null || !service.isSodaService()) {
 			Logger.info(this, "No soda service "+serviceDef+"- handling not implemented yet\n");
@@ -371,14 +418,26 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 
 			URL url =new URL(accessUrl);
 			BufferedImage preview = ImageIO.read(url);
+		
+			int h=preview.getHeight();
+			int w=preview.getWidth();
+			if ( h >  PREVIEWMAXHEIGHT || w > PREVIEWMAXWIDTH) {
+				if (h > PREVIEWMAXHEIGHT)
+					h = PREVIEWMAXHEIGHT;
+				
+				if (w > PREVIEWMAXWIDTH)
+					w = PREVIEWMAXWIDTH;
+				Image scaledpreview =  preview.getScaledInstance(w, h, Image.SCALE_DEFAULT);
+				return new ImageIcon(scaledpreview);
+				       
+			}
+			
 			return new ImageIcon(preview);
 
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			//do nothing - no preview
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			//do nothing - no preview
 		}
 		return null;
 
