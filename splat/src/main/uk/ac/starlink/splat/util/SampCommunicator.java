@@ -8,7 +8,10 @@
 package uk.ac.starlink.splat.util;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -46,6 +49,7 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.SampFrame;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
+import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SpectrumIO.SourceType;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
@@ -80,7 +84,10 @@ public class SampCommunicator
     /** Logger. */
     private static Logger logger =
         Logger.getLogger( SampCommunicator.class.getName() );
-
+    
+    /** Property Change Support */
+    private final PropertyChangeSupport propChange = new PropertyChangeSupport(this);
+    
     /**
      * Constructor.
      */
@@ -91,7 +98,8 @@ public class SampCommunicator
         ClientProfile profile = server.getSampProfile();
         hubConnector = new MessageTrackerHubConnector( profile );
         SpectrumLoadHandler loadHandler = new SpectrumLoadHandler();
-        initConnector( new MessageHandler[] { loadHandler, } );
+        ResultsTableLoadHandler tableHandler = new ResultsTableLoadHandler();
+        initConnector( new MessageHandler[] { loadHandler, tableHandler } );
     }
 
     /**
@@ -227,6 +235,88 @@ public class SampCommunicator
         return new VOTableSendActionManager( ssaQueryBrowser, hubConnector );
     }
 
+    
+    /**
+     * MessageHandler implementation for dealing with spectrum load MTypes.
+     */
+    private class ResultsTableLoadHandler
+            implements MessageHandler
+    {
+    	private final Subscriptions subs;
+    	private final Map tableMap;
+    	
+    	
+    	ResultsTableLoadHandler()
+    	{
+    		subs = new Subscriptions();
+    		subs.addMType( "table.load.votable" );  
+    		tableMap = Collections.synchronizedMap( new IdentityHashMap() );
+    	}
+   /* 	
+        public void loadSucceeded(String location) {
+    		MsgInfo msginfo = (MsgInfo) tableMap.remove(location );
+            if ( msginfo != null ) {
+                Response response =
+                    Response.createSuccessResponse( new HashMap() );
+                msginfo.reply( response );
+            }
+            else {
+                logger.info( "Orphaned SAMP table load success?" );
+            }
+           // if ( tableMap.size() == 0 ) {
+           //     SpectrumIO.getInstance().setWatcher( null );
+           // }
+    		
+
+    	}
+    	public void loadFailed(String location, Throwable error) {
+    		MsgInfo msginfo = (MsgInfo) tableMap.remove( location );
+            if ( msginfo != null ) {
+                ErrInfo errInfo = new ErrInfo( error );
+                errInfo.setErrortxt( "Table load failed" );
+                Response response =
+                    Response.createErrorResponse( errInfo );
+                msginfo.reply( response );
+            }
+            else {
+                logger.info( "Orphaned SAMP table load failure?" );
+            }
+           // if ( tableMap.size() == 0 ) {
+           //     SpectrumIO.getInstance().setWatcher( null );
+           // }
+
+    	}*/
+    	
+    	@Override
+    	public Map getSubscriptions() {
+    		return subs;
+    	}
+    	
+    	/**
+         * Invoked by SAMP to request SPLAT spectrum load, with an
+         * asynchronous response required.
+         */
+    	@Override
+    	public void receiveCall( HubConnection connection, String senderId, String msgId, Message message ) throws Exception {
+    		String location = (String) message.getRequiredParam( "url" );
+    		tableMap.put( location, new MsgInfo( connection, msgId ) );
+    		browser.addSampResults( location, (String) message.getParam( "name" ));
+    	}
+    	
+    	/**
+         * Invoked by SAMP to request SPLAT results table load, with no response
+         * required.
+         */
+    	@Override
+    	public void receiveNotification( HubConnection connection, String senderId, Message message ) throws Exception {
+    		String location = (String) message.getRequiredParam( "url" );
+    		browser.addSampResults( location, (String) message.getParam( "name" ));
+    	
+    		//propChange.firePropertyChange("openSAMPResults", null, location);
+    	
+    	}
+    }
+
     /**
      * MessageHandler implementation for dealing with spectrum load MTypes.
      */
@@ -241,7 +331,7 @@ public class SampCommunicator
         	subs = new Subscriptions();
             subs.addMType( "spectrum.load.ssa-generic" );
             subs.addMType( "table.load.fits" );
-            subs.addMType( "table.load.votable" );
+           // subs.addMType( "table.load.votable" );
             propsMap = Collections.synchronizedMap( new IdentityHashMap() );
         }
 
@@ -255,12 +345,14 @@ public class SampCommunicator
          * required.
          */
         public void receiveNotification( HubConnection connection,
-                                         String senderId, Message message )
+        		String senderId, Message message )
         {
+        	  		
         	SpectrumIO.Props props = createProps( message );
-            SpectrumIO.getInstance().setWatcher( this );
-            props.setType(7); //set type == guess
-            loadSpectrum( props );
+        	SpectrumIO.getInstance().setWatcher( this );
+        	props.setType(7); //set type == guess
+        	loadSpectrum( props );
+
         }
 
         /**
@@ -268,15 +360,19 @@ public class SampCommunicator
          * asynchronous response required.
          */
         public void receiveCall( HubConnection connection, String senderId,
-                                 String msgId, Message message )
+        		String msgId, Message message )
         {
+        	
         	SpectrumIO.Props props = createProps( message );
-            propsMap.put( props, new MsgInfo( connection, msgId ) );
-            SpectrumIO.getInstance().setWatcher( this );
-            loadSpectrum( props );
+        	propsMap.put( props, new MsgInfo( connection, msgId ) );
+        	SpectrumIO.getInstance().setWatcher( this );
+        	loadSpectrum( props );
+
         }
 
-        /**
+       
+
+		/**
          * Invoked by SpectrumIO when a load has completed with success.
          */
         public void loadSucceeded( SpectrumIO.Props props )
@@ -567,4 +663,10 @@ public class SampCommunicator
                       hubConnector.isConnected() ? onIcon : offIcon );
         }
     }
+
+	
+	public void disconnect() {
+		hubConnector.setActive(false);
+		
+	}
 }

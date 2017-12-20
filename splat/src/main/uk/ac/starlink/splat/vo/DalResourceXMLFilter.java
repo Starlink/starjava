@@ -244,7 +244,20 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
     	return getDalGetServiceElement(voEl, false );
     }
 
+    public static StarTable getResourceTable( VOElement voEl )
+            throws IOException {
     	
+    	
+    	 VOElement[] resources = voEl.getChildrenByName( "RESOURCE" );
+         for (VOElement ve : resources) {
+        	 String at1 = ve.getAttribute("type");
+        	 if (! at1.equalsIgnoreCase("meta"))
+        		 return getStarTable( ve ) ; //get fist resource that is not "meta"
+        		 
+         }
+         throw  new IOException( "No table found"); 
+    	
+    }  	
     
     /**
      * Utility method which can return the single results table from a
@@ -303,21 +316,29 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
             }
         }
 
-        /* Locate result TABLE element. */
-        NodeList tableNodes = resultEl.getElementsByVOTagName( "TABLE" );
-        int nTable = tableNodes.getLength();
-        if ( nTable == 0 ) {
-            throw new IOException( "No table found"
-                                 + " in <RESOURCE type='results'>" );
-        }
-        if ( nTable > 1 ) {
-            logger_.warning( "Found " + nTable + " tables"
-                           + " in <RESOURCE type='results'>"
-                           + " - just returning first" );
-        }
+        return getStarTable( resultEl ) ; 
+      
+       
+    }
+    
+    /**
+     *  returns table element as vostartable
+     * @throws IOException 
+     */
+    private static VOStarTable getStarTable( VOElement voEl ) throws IOException {
+    	/* Locate result TABLE element. */
+    	 NodeList tableNodes = voEl.getElementsByVOTagName( "TABLE" );
+    	 int nTable = tableNodes.getLength();
+         if ( nTable == 0 ) {
+             throw new IOException( "No table found");
+         }
+         if ( nTable > 1 ) {
+             logger_.warning( "Found " + nTable + " tables"
+                            + " - just returning first" );
+         }
 
-        /* Return it as a StarTable. */
-        return new VOStarTable( (TableElement) tableNodes.item( 0 ) );
+         /* Return it as a StarTable. */
+         return new VOStarTable( (TableElement) tableNodes.item( 0 ) );
     }
 
     /**
@@ -407,4 +428,6 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         }
         else return null;
     }
+    
+   
 }

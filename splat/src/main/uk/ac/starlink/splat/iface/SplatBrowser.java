@@ -3344,6 +3344,8 @@ public class SplatBrowser
         }
         else {
             Utilities.saveFrameLocation( this, prefs, "SplatBrowser" );
+            if (communicator != null)
+            	communicator.disconnect();
             System.exit( 0 );
         }
     }
@@ -3754,4 +3756,10 @@ public class SplatBrowser
         current.loadLineIDs(false, false, lineIDManager);
         
     }
+
+	public void addSampResults(String location, String shortname) {
+		showSSAPBrowser();
+		ssapBrowser.addSampResults(location, "SAMP:"+shortname);
+		
+	}
 }

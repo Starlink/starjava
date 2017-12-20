@@ -128,4 +128,6 @@ public interface SplatCommunicator
      * @return  spectrum transmitter
      */ 
     EventEnabledTransmitter createVOTableTransmitter( SSAQueryBrowser ssaQueryBrowser );
+
+	void disconnect();
 }

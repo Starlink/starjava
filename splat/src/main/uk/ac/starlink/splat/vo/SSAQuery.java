@@ -96,6 +96,9 @@ public class SSAQuery
     /** Extended Query with metadata parameters  */
     private String queryText = "";
     
+    /** used to catch SAMP results table */
+    private boolean samp = false;
+    
     /**
      * Create an instance with the given base URL for an SSA service.
      */
@@ -103,7 +106,6 @@ public class SSAQuery
     {
         this.baseURL = baseURL;
         this.description = null;
-
  
     }
     /**
@@ -473,6 +475,9 @@ public class SSAQuery
             throws MalformedURLException, UnsupportedEncodingException
     {
         String newURL = this.baseURL;
+        if (this.description.startsWith("SAMP"))
+        	 return new URL(newURL);
+        
         if ( newURL.indexOf( '?' ) == -1 )  //  No ? in URL.
             newURL += ( "?" );
         else if ( !newURL.endsWith("?")  && !newURL.endsWith("&")) //? is not at the end
@@ -484,5 +489,15 @@ public class SSAQuery
         url.getQuery();
         return new URL(newURL);
         
+    }
+    
+    public void setSamp() {
+    	samp = true;
+    }
+    public boolean getSamp() {
+    	return samp;
+    }
+    public void unsetSamp() {
+    	samp = false;
     }
 }

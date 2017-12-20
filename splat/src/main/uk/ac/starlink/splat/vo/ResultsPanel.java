@@ -936,7 +936,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                 // for Obscore, use the column name
 
                 String colName = colInfo.getName();
-                if (datatype == OBSCORE ) {
+                // check for both obscore and ssap columns
+       //         if (datatype == OBSCORE ) {
                     if (colName != null) {
                         colName = colName.toLowerCase();
                         if ( colName.endsWith( "access_url" ) ) {
@@ -969,8 +970,8 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                             producttypecol = k;
                         }
                     }
-                }
-                if (datatype==SSAP ) {
+        //        }
+        //        if (datatype==SSAP ) {
                     if ( ucd != null && !ucd.isEmpty()) {
 
                         //  Old-style UCDs for backwards compatibility.
@@ -1048,7 +1049,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         producttypecol = k;
                     if (colInfo.getName().equals("ssa_pubDID"))
                         pubdidcol = k;
-                }
+             //   }
 
                 if (colInfo.getName().equals(idSource))
                     idsrccol = k;
@@ -1366,6 +1367,9 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             return (ArrayList<Props>) Arrays.asList(specArray);
         else return null;
     }
+    
+
+	
 
 /*    public void setDatalinkValues(HashMap<String,String> values) {
         //save to the current tab

@@ -781,6 +781,13 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         .setMnemonic( KeyEvent.VK_T );
         
         interopMenu.addSeparator();
+      /*  
+        voTableTransmitter selectedTransmitter = communicator.createTableTransmitter( resultsPanel.getSelectedList() );
+        interopMenu.add( selectedTransmitter.getBroadcastAction() )
+        .setMnemonic( KeyEvent.VK_B );
+        interopMenu.add( selectedTransmitter.createSendMenu() )
+        .setMnemonic( KeyEvent.VK_T );
+      */  
         binFITSTransmitter = communicator.createBinFITSTableTransmitter( this );
         interopMenu.add( binFITSTransmitter.getBroadcastAction() );
         interopMenu.add( binFITSTransmitter.createSendMenu() );
@@ -789,6 +796,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         voTableTransmitter = communicator.createVOTableTransmitter( this );
         interopMenu.add( voTableTransmitter.getBroadcastAction() );
         interopMenu.add( voTableTransmitter.createSendMenu() );
+        
         
 
         //  Create the Help menu.
@@ -1483,52 +1491,60 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 
         Iterator<SSAQuery> i = queryList.iterator();
         while ( i.hasNext() ) {
-            final SSAQuery ssaQuery = i.next();
-         
-
-            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + ssaQuery.getDescription());
-            progressFrame.addProgressPanel( progressPanel );
-
-            final SwingWorker worker = new SwingWorker()
-            {
-                boolean interrupted = false;
-                public Object construct() 
-                {
-                    progressPanel.start();
-                    try {
-                        runProcessQuery( ssaQuery, progressPanel );
-                    }
-                    catch (InterruptedException e) {
-                        interrupted = true;
-                    }
-                    return null;
-                }
-
-                public void finished()
-                {
-                    progressPanel.stop();
-                    //  Display the results.
-                    if ( ! interrupted ) {
-                        addResultsDisplay( ssaQuery );
-                    }
-                }
-            };
-
-            progressPanel.addActionListener( new ActionListener()
-            {
-                public void actionPerformed( ActionEvent e )
-                {
-                    if ( worker != null ) {
-                         worker.interrupt();
-                    }
-                }
-            });
-
-            worker.start();  
+        	processQuery(i.next());
+           
         }
     }
 
-    /**
+    private void processQuery(SSAQuery query) {
+		// TODO Auto-generated method stub
+      
+        final SSAQuery ssaQuery = query;
+     
+
+        final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + ssaQuery.getDescription());
+        if (progressFrame != null)
+        	progressFrame.addProgressPanel( progressPanel );
+
+        final SwingWorker worker = new SwingWorker()
+        {
+            boolean interrupted = false;
+            public Object construct() 
+            {
+                progressPanel.start();
+                try {
+                    runProcessQuery( ssaQuery, progressPanel );
+                }
+                catch (InterruptedException e) {
+                    interrupted = true;
+                }
+                return null;
+            }
+
+            public void finished()
+            {
+                progressPanel.stop();
+                //  Display the results.
+                if ( ! interrupted ) {
+                    addResultsDisplay( ssaQuery );
+                }
+            }
+        };
+
+        progressPanel.addActionListener( new ActionListener()
+        {
+            public void actionPerformed( ActionEvent e )
+            {
+                if ( worker != null ) {
+                     worker.interrupt();
+                }
+            }
+        });
+
+        worker.start();  
+	}
+
+	/**
      * Do a query to an SSAP server.
      */
     private void runProcessQuery( SSAQuery ssaQuery, ProgressPanel progressPanel ) throws InterruptedException
@@ -1596,11 +1612,13 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
             inSrc.setSystemId( queryURL.toString());
             
             VOElementFactory vofact = new VOElementFactory();
-            
             VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
-           
-            starTable = DalResourceXMLFilter.getDalResultTable( voe );
             
+            if (ssaQuery.getSamp()) {
+            	starTable = DalResourceXMLFilter.getResourceTable( voe );
+            } else {
+            	starTable = DalResourceXMLFilter.getDalResultTable( voe );
+            }
             // if the VOTable contains datalink service definitions, add to the SSAQuery.
             dataLinkParams =  DalResourceXMLFilter.getDalGetServiceElement(voe); 
             if (dataLinkParams != null) {
@@ -1720,6 +1738,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
             // !! assume for now that tables are sorted by pubdid - change later !!!!
             // make one line
         
+            
             dataLinkParams = ssaQuery.getDataLinkServices(); // get the data link services information
             shortName = ssaQuery.getDescription();
             if ( starTable != null ) {
@@ -2182,6 +2201,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
             updateParameters();
             metaPanel.updateUI();
         }
+    
        
     }
     
@@ -2772,9 +2792,18 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         }
         public void setMetadata(ParamElement[] metadata) {
             this.metadata = metadata;
-        }
-      
+        }      
                 
     }
+
+
+	public void addSampResults(String location, String shortname) {
+		makeResultsDisplay(null);
+		SSAQuery query=new SSAQuery(location);
+		query.setSamp();
+		//query.setServer(shortname);
+		query.setDescription(shortname);
+    	processQuery(query);    	
+	}
     
 }
