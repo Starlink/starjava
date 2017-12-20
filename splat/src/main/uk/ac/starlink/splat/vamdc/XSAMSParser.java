@@ -22,6 +22,7 @@ import org.vamdc.xsams.schema.MolecularStateType;
 import org.vamdc.xsams.schema.MoleculeType;
 import org.vamdc.xsams.schema.RadiativeTransitionProbabilityType;
 import org.vamdc.xsams.schema.RadiativeTransitionType;
+import org.vamdc.xsams.schema.ValueType;
 import org.vamdc.xsams.schema.WlType;
 import org.vamdc.xsams.schema.XSAMSData;
 
@@ -76,30 +77,62 @@ public class XSAMSParser  {
         List<MoleculeType> molecules = null;
         try {
             atoms = xsams.getSpecies().getAtoms().getAtoms();
-        } catch (NullPointerException npe) {
-            return lines;
-        }
-        for (AtomType atom : atoms) {
 
-            //  System.out.println("Atom: "+ atom.getChemicalElement().getElementSymbol() + " - ");
-            //  System.out.println( "Charge: "+ atom.getChemicalElement().getNuclearCharge() + " - ");
+            for (AtomType atom : atoms) {
 
-            for (IsotopeType iso : atom.getIsotopes()) {
-                //    IsotopeParametersType isop = iso.getIsotopeParameters();
-                for (AtomicIonType ion:iso.getIons()) {
-                    System.out.println("Ion: "+ ion.getIonCharge() + " - "+ion.getSpeciesID());
-                    String symbol="";
-                    try {
-                        symbol = atom.getChemicalElement().getElementSymbol().value();
-                    } catch ( NullPointerException e) {
-                        /// sometimes element symbol is null
-                        symbol = "";
-                    }
+            	//  System.out.println("Atom: "+ atom.getChemicalElement().getElementSymbol() + " - ");
+            	//  System.out.println( "Charge: "+ atom.getChemicalElement().getNuclearCharge() + " - ");
 
-                    System.out.println("Atom: "+ symbol);
-                    elements.put(ion.getSpeciesID(), symbol);
-                }
+            	for (IsotopeType iso : atom.getIsotopes()) {
+            		//    IsotopeParametersType isop = iso.getIsotopeParameters();
+            		for (AtomicIonType ion:iso.getIons()) {
+            			System.out.println("Ion: "+ ion.getIonCharge() + " - "+ion.getSpeciesID());
+            			String symbol="";
+            			try {
+            				symbol = atom.getChemicalElement().getElementSymbol().value();
+            			} catch ( NullPointerException e) {
+            				/// sometimes element symbol is null
+            				symbol = "";
+            			}
+
+            			System.out.println("Atom: "+ symbol);
+            			elements.put(ion.getSpeciesID(), symbol);
+            		}
+            	}
             }
+        } catch (NullPointerException npe) {
+
+        }
+        try {
+        	molecules = xsams.getSpecies().getMolecules().getMolecules();
+
+        	for (MoleculeType molecule : molecules) {
+
+        		System.out.println("Molecule: "+ molecule.getMolecularChemicalSpecies().getStoichiometricFormula() + " - ");
+        		//  System.out.println( "Charge: "+ atom.getChemicalElement().getNuclearCharge() + " - ");
+
+        		//          for (IsotopeType iso : atom.getIsotopes()) {
+        		//    IsotopeParametersType isop = iso.getIsotopeParameters();
+        		//              for (AtomicIonType ion:iso.getIons()) {
+        		//                 System.out.println("Ion: "+ ion.getIonCharge() + " - "+ion.getSpeciesID());
+        		String symbol="";
+        		try {
+        			symbol = molecule.getMolecularChemicalSpecies().getStoichiometricFormula();
+        		} catch ( NullPointerException e) {
+        			/// sometimes element symbol is null
+        			symbol = "";
+        		}
+
+        		System.out.println("Molecule: "+ symbol);
+        		elements.put(molecule.getSpeciesID(), symbol);
+        		//            }
+        		//        }
+        	}
+        } catch (NullPointerException npe) {
+
+        }
+        if (molecules == null && atoms == null) {
+        	return lines;
         }
 
         for ( RadiativeTransitionType radtrans: xsams.getProcesses().getRadiative().getRadiativeTransitions() ) { 
@@ -116,11 +149,11 @@ public class XSAMSParser  {
                 MolecularStateType state1 = (MolecularStateType) radtrans.getLowerStateRef();    
                 MolecularStateType state2 = (MolecularStateType) radtrans.getUpperStateRef();  
 
-                MolecularChemicalSpeciesType molecule1 = (MolecularChemicalSpeciesType) state1.getParent();
-                MolecularChemicalSpeciesType molecule2 = (MolecularChemicalSpeciesType) state2.getParent();
-                String id1 = molecule1.getStoichiometricFormula();
-                String id2 = molecule2.getStoichiometricFormula();
-                int charge1 = molecule1.getIonCharge();
+                MoleculeType molecule1 = (MoleculeType) state1.getParent();
+                MoleculeType molecule2 = (MoleculeType) state2.getParent();
+                String id1 = molecule1.getMolecularChemicalSpecies().getStoichiometricFormula();
+                String id2 = molecule2.getMolecularChemicalSpecies().getStoichiometricFormula();
+               // int charge1 = molecule1.getMolecularChemicalSpecies().getIonCharge();
 
                 String desc1 = state1.getDescription();
                 String desc2 = state2.getDescription();
@@ -137,7 +170,7 @@ public class XSAMSParser  {
                 if (energy1 != null) {
                     initialLevel.setEnergy(energy1.getValue().getValue(), energy1.getValue().getUnits());                         
                 } 
-                line = initialiseLine(atom, desc1, desc2, energy1, energy2, id1, id2, charge1, null, null, null, null );                    
+                line = initialiseLine(atom, desc1, desc2, energy1, energy2, id1, id2, -1, null, null, null, null );                    
 
             }
             else if (radtrans.getLowerStateRef() != null && radtrans.getLowerStateRef().getClass().equals(AtomicStateType.class)) {
@@ -201,20 +234,36 @@ public class XSAMSParser  {
             //   String elSymbol=null;
             //   if (id != null)
             //       elSymbol=elements.get(id);
+           
             try {
-                WlType wl =  radtrans.getEnergyWavelength().getWavelengths().get(0);
-                String unit = wl.getValue().getUnits();
-                if (unit.equals("A"))
-                    unit="Angstrom"; // correct unit for AST 
-                if (wl.isVacuum()) { // ?!!!!!! check if it's correct
-                    line.setWavelength(wl.getValue().getValue(), unit);
+              
+            		WlType wl =  radtrans.getEnergyWavelength().getWavelengths().get(0);
+            		String unit = wl.getValue().getUnits();
 
-                } else {
-                    line.setAirWavelength(wl.getValue().getValue(), unit);                          
-                    line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), unit);
-                }
+            		if (unit.equals("A"))
+            			unit="Angstrom"; // correct unit for AST 
+            		if (wl.isVacuum()) { // ?!!!!!! check if it's correct
+            			line.setWavelength(wl.getValue().getValue(), unit);
+
+            		} else {
+            			line.setAirWavelength(wl.getValue().getValue(), unit);                          
+            			line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), unit);
+            		}
+            	
             } catch (Exception e) {
+            	// if no wavelenghts are present, try  wavenumbers instead
+            	try {
+            		DataType wn = radtrans.getEnergyWavelength().getWavenumbers().get(0);
+            		Double wavelength = 1/wn.getValue().getValue();
+            		String unit = wn.getValue().getUnits();
+            		unit = unit.replaceAll("1/", "");//!!!
+            		System.out.println("WaveNumber: "+wn.getValue().getValue()+" "+wn.getValue().getUnits() + " Wavelength: "+wavelength+" "+unit);
+            		line.setWavelength(wavelength, unit);  
+            		
+            	}
+            	catch (Exception ee) {
 
+            	}
             }
             /*                try {
                     String e1 = null;
@@ -248,7 +297,7 @@ public class XSAMSParser  {
             if (atom) 
                 line.setInitialElement(id1, ionCharge);
             else 
-                line.setInitialElement(id1, 0);
+                line.setInitialElement(id1, -1);
         } 
 
         if (id2 != null)

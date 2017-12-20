@@ -129,8 +129,10 @@ public class VoTableTranslator {
             tableLines.add("<TD>"+ line.getWavelength().getValue() +"</TD>"); 
             tableLines.add("<TD>"+ line.getInitialElement().getElementName()+"</TD>"); 
             tableLines.add("<TD>"+ line.getInitialLevel().getEnergy().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getFinalLevel().getEnergy().getValue() +"</TD>"); 
-            tableLines.add("<TD>"+ line.getInitialElement().getIonizationStageRoman() +"</TD>");             
+            tableLines.add("<TD>"+ line.getFinalLevel().getEnergy().getValue() +"</TD>");
+            if (line.getInitialElement().getIonizationStage() >= 0)
+            	tableLines.add("<TD>"+ line.getInitialElement().getIonizationStageRoman() +"</TD>");   
+            else tableLines.add("<TD></TD>");
             tableLines.add("<TD>"+ line.getEinsteinA().getValue()+"</TD>"); 
             tableLines.add("<TD>"+ line.getInitialLevel().getConfiguration()+"</TD>"); 
             tableLines.add("<TD>"+ line.getFinalLevel().getConfiguration()+"</TD>"); 

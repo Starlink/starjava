@@ -77,6 +77,8 @@ public class Species {
     }
     
     public String getIonizationStageRoman() {
+    	if (ionizationStage <0)
+    		return "";
         if (ionizationStage>100)
             return "!!!"; 
         // TODO later make this better now just a hack
