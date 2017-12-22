@@ -93,14 +93,6 @@ public class TopcatUtils {
                               "Converts from string to numeric values" );
 
     /**
-     * Parameter key for storing an activation action for a table.
-     */
-    public final static ValueInfo ACTIVATORS_INFO =
-        new DefaultValueInfo( "topcat-activation", String.class,
-                              "Action which can be performed " +
-                              "on row activation" );
-
-    /**
      * Data identifier for epoch-type data.
      */
     public final static ValueInfo TIME_INFO =

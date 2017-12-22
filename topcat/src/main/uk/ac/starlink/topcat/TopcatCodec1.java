@@ -51,8 +51,6 @@ public class TopcatCodec1 implements TopcatCodec {
         createCodecInfo( "columnVisibilities", boolean[].class );
     private static final ValueInfo LABEL_INFO =
         createCodecInfo( "label", String.class );
-    private static final ValueInfo SEND_ROWS_INFO =
-        createCodecInfo( "broadcastRows", Boolean.class );
     private static final ValueInfo VERSION_INFO =
         createCodecInfo( "saveVersion", String.class );
     private static final ValueInfo SORT_COLUMN_INFO =
@@ -97,11 +95,6 @@ public class TopcatCodec1 implements TopcatCodec {
         }
         paramList.add( new DescribedValue( COLS_INDEX_INFO, icols ) );
         paramList.add( new DescribedValue( COLS_VISIBLE_INFO, activs ) );
-
-        /* Record whether to broadcast rows. */
-        paramList.add( new DescribedValue( SEND_ROWS_INFO,
-                                           tcModel.getRowSendModel()
-                                                  .isSelected() ) );
 
         /* Record sort order. */
         SortOrder sortOrder = tcModel.getSelectedSort();
@@ -270,11 +263,6 @@ public class TopcatCodec1 implements TopcatCodec {
         for ( int ic = 0; ic < ncol; ic++ ) {
             colList.setActive( ic, activs[ ic ] );
         }
-
-        /* Get whether to broadcast rows. */
-        tcModel.getRowSendModel()
-               .setSelected( Boolean.TRUE
-                            .equals( codec.getCodecValue( SEND_ROWS_INFO ) ) );
 
         /* Get current subset index. */
         Integer indexCurrentSubset =

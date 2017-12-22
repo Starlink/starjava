@@ -49,7 +49,6 @@ import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.ListSelectionModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -71,7 +70,6 @@ import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -218,8 +216,6 @@ public class ControlWindow extends AuxWindow
     private final JComboBox subsetSelector_ = new JComboBox();
     private final JComboBox sortSelector_ = new JComboBox();
     private final JToggleButton sortSenseButton_ = new UpDownButton();
-    private final JButton activatorButton_ = new JButton();
-    private final JCheckBox rowSendButton_ = new JCheckBox();
     private final TopcatCommunicator communicator_;
 
     private final Action readAct_;
@@ -281,12 +277,6 @@ public class ControlWindow extends AuxWindow
                                                       sortSelector_ } );
         info.addGap();
         info.addLine( "Row Subset", subsetSelector_ );
-        info.addGap();
-        info.addLine( "Activation Action",
-                      new Component[] { activatorButton_, rowSendButton_ } );
-        activatorButton_.setText( "           " );
-        rowSendButton_.setText( "Broadcast Row" );
-        rowSendButton_.setEnabled( false );
         info.fillIn();
 
         /* Reduce size of unused control panel. */
@@ -334,18 +324,6 @@ public class ControlWindow extends AuxWindow
             if ( interopPanel != null ) {
                 infoPanel.add( interopPanel, BorderLayout.SOUTH );
             }
-            communicator_.addConnectionListener( new ChangeListener() {
-                public void stateChanged( ChangeEvent evt ) {
-                    rowSendButton_.setEnabled( getCurrentModel() != null 
-                                            && communicator_.isConnected() );
-                }
-            } );
-            rowSendButton_.setToolTipText( "On Row Activation send a "
-                                         +  communicator_.getProtocolName()
-                                         + " highlight row message"
-                                         + " to all registered applications" );
-            rowSendButton_.setEnabled( getCurrentModel() != null
-                                    && communicator_.isConnected() );
         }
 
         /* Set up actions. */
@@ -1287,7 +1265,6 @@ public class ControlWindow extends AuxWindow
             int visRows = viewModel.getRowCount();
             String loc = tcModel.getLocation();
             String name = dataModel.getName();
-            Activator activator = tcModel.getActivator();
 
             idField_.setText( tcModel.getLabel() );
             indexLabel_.setText( tcModel.getID() + ": " );
@@ -1306,9 +1283,6 @@ public class ControlWindow extends AuxWindow
             sortSelector_.setModel( tcModel.getSortSelectionModel() );
             subsetSelector_.setModel( tcModel.getSubsetSelectionModel() );
             sortSenseButton_.setModel( tcModel.getSortSenseModel() );
-            activatorButton_.setAction( tcModel.getActivationAction() );
-            activatorButton_.setText( activator.toString() );
-            rowSendButton_.setModel( tcModel.getRowSendModel() );
         }
         else {
             idField_.setText( null );
@@ -1321,11 +1295,7 @@ public class ControlWindow extends AuxWindow
             sortSelector_.setModel( dummyComboBoxModel_ );
             subsetSelector_.setModel( dummyComboBoxModel_ );
             sortSenseButton_.setModel( dummyButtonModel_ );
-            activatorButton_.setModel( dummyButtonModel_ );
-            rowSendButton_.setModel( dummyButtonModel_ );
         }
-        rowSendButton_.setEnabled( communicator_ != null &&
-                                   communicator_.isConnected() );
 
         /* Make sure that the actions which relate to a particular table model
          * are up to date. */
@@ -1431,11 +1401,6 @@ public class ControlWindow extends AuxWindow
                         listWatchers[ i ].contentsChanged( event );
                     }
                 }
-                break;
-
-            /* Activator has changed. */
-            case TopcatEvent.ACTIVATOR:
-                updateInfo();
                 break;
         }
     }

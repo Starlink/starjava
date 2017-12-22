@@ -48,7 +48,6 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
-import uk.ac.starlink.topcat.interop.RowActivity;
 
 /**
  * Defines all the state for the representation of a given table as
@@ -73,11 +72,9 @@ public class TopcatModel {
     private final ColumnList columnList_;
     private final OptionsListModel subsets_;
     private final Map subsetCounts_;
-    private final OptionsListModel activators_;
     private final ComboBoxModel sortSelectionModel_;
     private final ComboBoxModel subsetSelectionModel_;
     private final SortSenseModel sortSenseModel_;
-    private final ToggleButtonModel rowSendModel_;
     private final Collection listeners_;
     private final Map columnSelectorMap_;
     private final TableBuilder tableBuilder_;
@@ -86,20 +83,15 @@ public class TopcatModel {
     private final ControlWindow controlWindow_;
     private String location_;
     private String label_;
-    private Activator activator_;
     private long lastHighlight_ = -1L;
-
-    private ActivationQueryWindow activationWindow_;
 
     private Action newsubsetAct_;
     private Action unsortAct_;
-    private TopcatWindowAction activationAct_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
     private static volatile int instanceCount = 0;
     private static StarTableColumn DUMMY_COLUMN;
-    private static RowActivity rowActivity_;
 
     /**
      * Constructs a new model from a given table.
@@ -184,12 +176,6 @@ public class TopcatModel {
         sortSelectionModel_ = new SortSelectionModel();
         sortSenseModel_ = new SortSenseModel();
 
-        /* Set up model for whether activated rows are broadcast. */
-        rowSendModel_ =
-            new ToggleButtonModel( "Broadcast Row", null,
-                                   "Whether to broadcast row index to other "
-                                 + "clients at at row activation" );
-
         /* Initialise subsets list. */
         subsets_ = new OptionsListModel();
         subsets_.add( RowSubset.ALL );
@@ -202,32 +188,9 @@ public class TopcatModel {
         subsetCounts_.put( RowSubset.NONE, new Long( 0 ) );
         subsetCounts_.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
 
-        /* Set up a dummy row activator. */
-        activator_ = Activator.NOP;
 
         /* Set up a map to contain column selector models. */
         columnSelectorMap_ = new HashMap();
-
-        /* If there are any activation strings stored in the table, 
-         * pull them out and store them. */
-        activators_ = new OptionsListModel();
-
-        // Don't do this for now - the string version doesn't isn't always 
-        // in a suitable format.
-        // DescribedValue actVal = 
-        //     startab.getParameterByName( TopcatUtils.ACTIVATORS_INFO
-        //                                            .getName() );
-        // if ( actVal != null ) {
-        //     Object av = actVal.getValue();
-        //     if ( av instanceof String ) {
-        //         activators_.add( av );
-        //     }
-        //     else if ( av instanceof String[] ) {
-        //         for ( int i = 0; i < ((String[]) av).length; i++ ) {
-        //             activators_.add( ((String[]) av)[ i ] );
-        //         }
-        //     }
-        // }
 
         /* Install numeric converters as appropriate. */
         for ( int icol = 0; icol < dataModel_.getColumnCount(); icol++ ) {
@@ -249,9 +212,6 @@ public class TopcatModel {
                                          "Define a new row subset" );
         unsortAct_ = new ModelAction( "Unsort", ResourceIcon.UNSORT,
                                       "Use natural row order" );
-        activationAct_ = new TopcatWindowAction( 
-                           "Set Activation Action", null,
-                           "Set what happens when a row/point is clicked on" );
 
         /* Set up the listeners. */
         listeners_ = new ArrayList();
@@ -315,72 +275,6 @@ public class TopcatModel {
 
             /* Notify listeners. */
             fireModelChanged( TopcatEvent.LABEL, null );
-        }
-    }
-
-    /**
-     * Sets the row activator object.
-     *
-     * @param  activator  activator to use
-     */
-    public void setActivator( Activator activator ) {
-        if ( ! equalObject( activator, activator_ ) ) {
-            activator_ = activator;
-
-            /* Reflect the change in the bound table parameter (so it can
-             * be serialized). */
-            if ( activator_ != null && activator_ != Activator.NOP ) {
-                List params = dataModel_.getParameters();
-                params.remove( dataModel_
-                              .getParameterByName( TopcatUtils.ACTIVATORS_INFO
-                                                  .getName() ) );
-                params.add( new DescribedValue( TopcatUtils.ACTIVATORS_INFO,
-                                                activator_.toString() ) );
-            }
-
-            /* Notify listeners. */
-            fireModelChanged( TopcatEvent.ACTIVATOR, null );
-        }
-    }
-
-    /**
-     * Returns the row activator object.
-     *
-     * @return   activator
-     */
-    public Activator getActivator() {
-        return activator_;
-    }
-
-    /**
-     * Returns the list which contains a list of the known activators for
-     * this table.  The elements of the list are strings which can be 
-     * turned into Activator objects using the {@link #makeActivator} method.
-     *
-     * @return  list of activator strings which may come in useful for 
-     *          this table
-     */
-    public OptionsListModel getActivatorList() {
-        return activators_;
-    }
-
-    /**
-     * Gets an activator object from a string representation of one.
-     * This usually involves compiling it using JEL, so it can result in a
-     * CompilationException.
-     *
-     * @param  actstr  string representation of the activator
-     * @return  activator object corresponding to <tt>actstr</tt>
-     */
-    public Activator makeActivator( String actstr )
-            throws CompilationException {
-        if ( actstr == null || 
-             actstr.trim().length() == 0 ||
-             actstr.equals( Activator.NOP.toString() ) ) {
-            return Activator.NOP;
-        }
-        else {
-            return new JELActivator( this, actstr );
         }
     }
 
@@ -536,16 +430,6 @@ public class TopcatModel {
     }
 
     /**
-     * Returns a toggle button model which determines whether a row 
-     * activation will automatically generate an interop row highlight message.
-     *
-     * @return   row send model
-     */
-    public ToggleButtonModel getRowSendModel() {
-        return rowSendModel_;
-    }
-
-    /**
      * Adds a listener to be notified of changes in this model.
      *
      * @param  listener  listener to add
@@ -601,27 +485,7 @@ public class TopcatModel {
     public void highlightRow( long lrow, boolean sendOut ) {
         if ( lrow != lastHighlight_ ) {
             fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
-            if ( activator_ != null &&
-                 ( sendOut ||
-                   ! ActivationQueryWindow.isRowSender( activator_ ) ) ) {
-                String msg = "Activate row " + ( lrow + 1 );
-                String report = activator_.activateRow( lrow );
-                if ( report != null && report.trim().length() > 0 ) {
-                    msg += ": " + report;
-                }
-                logger_.info( msg );
-            }
-            if ( sendOut && 
-                 rowSendModel_.isSelected() &&
-                 controlWindow_.getCommunicator() != null &&
-                 controlWindow_.getCommunicator().isConnected() ) {
-                try {
-                    getRowActivity().highlightRow( this, lrow );
-                }
-                catch ( IOException e ) {
-                    logger_.info( "Row send fail: " + e );
-                }
-            }
+            // Some activation action triggering should happen here.
         }
     }
 
@@ -643,17 +507,6 @@ public class TopcatModel {
      */
     public Action getUnsortAction() {
         return unsortAct_;
-    }
-
-    /**
-     * Gets an action which will allow the user to choose what happens
-     * if a row is activated.  This probably results in a dialog box
-     * or something.
-     *
-     * @return  activation configuration action
-     */
-    public Action getActivationAction() {
-        return activationAct_;
     }
 
     /**
@@ -1108,18 +961,6 @@ public class TopcatModel {
     }
 
     /**
-     * Returns a RowActivity object which can be used from this model.
-     *
-     * @return  lazily constructed row activity
-     */
-    private RowActivity getRowActivity() {
-        if ( rowActivity_ == null ) {
-            rowActivity_ = controlWindow_.getCommunicator().createRowActivity();
-        }
-        return rowActivity_;
-    }
-
-    /**
      * Utility method to check equality of two objects without choking
      * on nulls.
      */
@@ -1212,40 +1053,6 @@ public class TopcatModel {
             }
             else {
                 assert false;
-            }
-        }
-    }
-
-    /**
-     * Implementations of Actions associated with show/hide of windows.
-     */
-    private class TopcatWindowAction extends WindowAction {
-
-        TopcatWindowAction( String name, Icon icon, String shortdesc ) {
-            super( name, icon, shortdesc );
-        }
-
-        public boolean hasWindow() {
-            if ( this == activationAct_ ) {
-                return activationWindow_ != null;
-            }
-            else {
-                throw new AssertionError();
-            }
-        }
-
-        public Window getWindow( Component parent ) {
-            TopcatModel tcModel = TopcatModel.this;
-            if ( this == activationAct_ ) {
-                if ( ! hasWindow() ) {
-                    activationWindow_ = 
-                        new ActivationQueryWindow( tcModel, parent );
-                    activationWindow_.setVisible( true );
-                }
-                return activationWindow_;
-            }
-            else {
-                throw new AssertionError();
             }
         }
     }

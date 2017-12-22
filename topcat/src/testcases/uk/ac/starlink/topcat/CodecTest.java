@@ -85,8 +85,6 @@ public class CodecTest extends TableCase {
         tcModel.applySubset( tenSet );
         tcModel.sortBy( new SortOrder( tcModel.getColumnModel()
                                               .getColumn( 2 ) ), true );
-        tcModel.getRowSendModel()
-               .setSelected( ! tcModel.getRowSendModel().isSelected() );
         TableColumnModel colModel = tcModel.getColumnModel();
         colModel.moveColumn( 0, 4 );
         colModel.moveColumn( 5, 2 );
@@ -108,8 +106,6 @@ public class CodecTest extends TableCase {
         assertVOTableEquals( ap0, ap1, false );
         assertSubsetsEquals( tc0.getSubsets(), tc1.getSubsets(),
                              dm0.getRowCount() );
-        assertEquals( tc0.getRowSendModel().isSelected(),
-                      tc1.getRowSendModel().isSelected() );
     }
 
     private void assertSubsetsEquals( List<RowSubset> subsets0,
