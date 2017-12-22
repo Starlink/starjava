@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot2;
+package uk.ac.starlink.topcat;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -22,7 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.event.MouseInputAdapter;
-import uk.ac.starlink.topcat.ResourceIcon;
 
 /**
  * JList subclass that adds a couple of features.

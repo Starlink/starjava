@@ -24,6 +24,7 @@ import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.CheckBoxList;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.util.gui.ConstrainedViewportLayout;
 
