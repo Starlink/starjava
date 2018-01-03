@@ -39,15 +39,13 @@ public class CutoutSelector extends JPanel implements ItemListener {
         new CutoutService( "SuperCOSMOS All-Sky Blue", 0.67 ) {
             String displayCutout( int tableID, double ra, double dec, 
                                   int npix ) {
-                return SuperCosmos.sssShowBlue( Math.toDegrees( ra ),
-                                                Math.toDegrees( dec ), npix );
+                return SuperCosmos.sssShowBlue( ra, dec, npix );
             }
         },
         new CutoutService( "SuperCOSMOS All-Sky Red", 0.67 ) {
             String displayCutout( int tableID, double ra, double dec,
                                   int npix ) {
-                return SuperCosmos.sssShowRed( Math.toDegrees( ra ),
-                                               Math.toDegrees( dec ), npix );
+                return SuperCosmos.sssShowRed( ra, dec, npix );
             }
         },
         new TwoMassCutoutService( 'J' ),
@@ -57,8 +55,7 @@ public class CutoutSelector extends JPanel implements ItemListener {
             String displayCutout( int tableID, double ra, double dec,
                                   int npix ) {
                 return Sdss.sdssShowCutout( "SDSS (" + tableID + ")",
-                                            Math.toDegrees( ra ),
-                                            Math.toDegrees( dec ), npix );
+                                            ra, dec, npix );
             }
         },
     };
@@ -225,12 +222,12 @@ public class CutoutSelector extends JPanel implements ItemListener {
          * Displays an image centred around a given position.
          *
          * @param  tableID  id value for table being displayed
-         * @param  ra   right ascension in radians
-         * @param  dec  declination in radians
+         * @param  raDeg   right ascension in degrees
+         * @param  decDeg  declination in degrees
          * @param  npix linear dimension of image in pixels
          * @return log message for display operation
          */
-        abstract String displayCutout( int tableID, double ra, double dec,
+        abstract String displayCutout( int tableID, double raDeg, double decDeg,
                                        int npix );
 
         /**
@@ -255,10 +252,14 @@ public class CutoutSelector extends JPanel implements ItemListener {
                     }
                     if ( raObj instanceof Number &&
                          decObj instanceof Number ) {
-                        double ra = ((Number) raObj).doubleValue();
-                        double dec = ((Number) decObj).doubleValue();
-                        if ( ! Double.isNaN( ra ) && ! Double.isNaN( dec ) ) {
-                            return displayCutout( tableID, ra, dec, npix );
+                        double raRad = ((Number) raObj).doubleValue();
+                        double decRad = ((Number) decObj).doubleValue();
+                        if ( ! Double.isNaN( raRad ) &&
+                             ! Double.isNaN( decRad ) ) {
+                            double raDeg = Math.toDegrees( raRad );
+                            double decDeg = Math.toDegrees( decRad );
+                            return displayCutout( tableID, raDeg, decDeg,
+                                                  npix );
                         }
                     }
                     return "No position at (" + raObj + ", " + decObj + ")";
@@ -294,8 +295,7 @@ public class CutoutSelector extends JPanel implements ItemListener {
             return TwoMass.showCutout2Mass( "2MASS "
                                           + Character.toUpperCase( band_ )
                                           + " (" + tableID + ")",
-                                            Math.toDegrees( ra ),
-                                            Math.toDegrees( dec ), npix, 
+                                            ra, dec, npix, 
                                             Character.toLowerCase( band_ ) );
         }
     }
