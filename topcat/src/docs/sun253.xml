@@ -25192,6 +25192,10 @@ introduced since the last version:
         as well as in the Histogram window
         (from the <label>Report</label> panel or
         <label>Export|Layer Data</label> menu).</li>
+    <li>Fix a bug in the Data Window <label>Subset From Unselected Rows</label>
+        action - it was including all unselected rows rather than
+        just the visible ones, as per documentation.
+        This was a regression bug introduced at v4.2-1.</li>
     </ul>
     </p>
     </dd>

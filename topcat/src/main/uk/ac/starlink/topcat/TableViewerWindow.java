@@ -503,29 +503,37 @@ public class TableViewerWindow extends AuxWindow {
 
     /**
      * Returns a BitSet in which bit <i>i</i> is set if a table view row
-     * corresponding to row <i>i</i> of this viewer's data model has
-     * (or has not) been selected in the GUI.  This BitSet has the
+     * corresponding to row <i>i</i> of this viewer's data model
+     * is currently visible (is present in the current Row Subset)
+     * AND has (or has not) been selected in the GUI.  This BitSet has the
      * same number of bits as the data model has rows.
      *
-     * @param   isInclude  true for an inclusion mask,
-     *                     false for exclusion
+     * @param   isInclude  true for selected visible rows,
+     *                     false for unselected visible rows
      * @return  new bit vector
      */
     private BitSet getSelectionMask( boolean isInclude ) {
         int nrow = (int) tcModel_.getDataModel().getRowCount();
-        BitSet bits = new BitSet( nrow );
         int imin = rowSelectionModel_.getMinSelectionIndex();
         int imax = rowSelectionModel_.getMaxSelectionIndex();
         int[] rowMap = viewModel_.getRowMap();
+        BitSet selectMask = new BitSet( nrow );
         for ( int i = imin; i <= imax; i++ ) {
             if ( rowSelectionModel_.isSelectedIndex( i ) ) {
-                bits.set( rowMap == null ? i : rowMap[ i ] );
+                selectMask.set( rowMap == null ? i : rowMap[ i ] );
             }
         }
         if ( ! isInclude ) {
-            bits.flip( 0, nrow );
+            selectMask.flip( 0, nrow );
+            if ( rowMap != null && rowMap.length != nrow ) {
+                BitSet visibleMask = new BitSet( nrow );
+                for ( int i = 0; i < rowMap.length; i++ ) {
+                    visibleMask.set( rowMap[ i ] );
+                }
+                selectMask.and( visibleMask );
+            }
         }
-        return bits;
+        return selectMask;
     }
 
     /**
@@ -665,11 +673,12 @@ public class TableViewerWindow extends AuxWindow {
          */
         public SelectionSubsetAction( boolean isInclude ) {
             super( "Subset From " + ( isInclude ? "Selected" : "Unselected" )
-                                  + "Rows",
+                                  + " Rows",
                    isInclude ? ResourceIcon.INCLUDE_ROWS
                              : ResourceIcon.EXCLUDE_ROWS,
                    "Define a new row subset containing all "
-                 + ( isInclude ? "selected" : "visible unselected" ) + "rows" );
+                 + ( isInclude ? "selected" : "visible unselected" )
+                 + " rows" );
             isInclude_ = isInclude;
         }
 
