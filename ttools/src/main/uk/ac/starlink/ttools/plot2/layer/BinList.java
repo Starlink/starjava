@@ -73,6 +73,10 @@ public interface BinList {
          * In general, if no values have been submitted to the bin in question,
          * a NaN should be returned.
          *
+         * <strong>Note:</strong> if this result has been produced by a
+         * {@link Combiner}, it should generally be multiplied by the
+         * {@link Combiner.Type#getBinFactor binFactor} before use.
+         * 
          * @param  index  bin index
          * @return   bin value
          */

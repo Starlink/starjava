@@ -301,7 +301,8 @@ public class SkyDensityMap extends SingleMapperTask {
                     aq.adjustInfo( combiner
                                   .createCombinedInfo( jq.getValueInfo() ) );
                 CompiledExpression compEx = jq.getCompiledExpression();
-                binners[ iq ] = new Binner( info, binList, compEx );
+                binners[ iq ] = new Binner( info, binList, compEx,
+                                            combiner.getType() );
             }
 
             /* Iterate over input table rows, determining sky pixel index
@@ -333,10 +334,7 @@ public class SkyDensityMap extends SingleMapperTask {
                 ColumnStarTable.makeTableWithRows( npix );
             binsTable.addColumn( createIndexColumn( tiling_ ) );
             for ( Binner binner : binners ) {
-                binsTable.addColumn( BinResultColumnData
-                                    .createInstance( binner.info_,
-                                                     binner.binList_
-                                                           .getResult() ) );
+                binsTable.addColumn( binner.createColumnData( tiling_ ) );
             }
 
             /* Either output the table as is, with one row for each pixel. */
@@ -440,6 +438,7 @@ public class SkyDensityMap extends SingleMapperTask {
         final ValueInfo info_;
         final BinList binList_;
         final CompiledExpression compEx_;
+        final Combiner.Type ctype_;
 
         /**
          * Constructor.
@@ -447,11 +446,27 @@ public class SkyDensityMap extends SingleMapperTask {
          * @param  info  metadata for the accumulated value
          * @param  binList   accumulator instance
          * @param  compEx   value accessor
+         * @param  ctype   combiner type
          */
-        Binner( ValueInfo info, BinList binList, CompiledExpression compEx ) {
+        Binner( ValueInfo info, BinList binList, CompiledExpression compEx,
+                Combiner.Type ctype ) {
             info_ = info;
             binList_ = binList;
             compEx_ = compEx;
+            ctype_ = ctype;
+        }
+
+        /**
+         * Returns a column data based on this binner, once the bin list
+         * has been populated.
+         *
+         * @param  tiling  tiling
+         */
+        ColumnData createColumnData( SkyTiling tiling ) {
+            double binExtent = 4.0 * Math.PI / tiling.getPixelCount();
+            double binFactor = ctype_.getBinFactor( binExtent );
+            return BinResultColumnData
+                  .createInstance( info_, binList_.getResult(), binFactor );
         }
     }
 

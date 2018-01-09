@@ -320,15 +320,18 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
      * @param  g  graphics context
      * @param  pixer   defines pixel grid
      * @param  binResult  grid data
+     * @param  ctype   combiner type
      * @param  scaler   scales bin values to unit range
      * @param  colorModel  colour map; index zero corresponds to transparency
      * @param  surface   plot surface
      */
     private static void paintBins( Graphics g, GridPixer pixer,
                                    BinList.Result binResult,
+                                   Combiner.Type ctype,
                                    Scaler scaler, IndexColorModel colorModel,
                                    PlanarSurface surface ) {
         int ncolor = colorModel.getMapSize() - 1;
+        double binFactor = pixer.getBinFactor( ctype );
 
         /* Sample bin grid onto output pixel grid. */
         if ( true ) {
@@ -351,7 +354,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 if ( ib >= 0 ) {
                     if ( ib != ib0 ) {
                         ib0 = ib;
-                        double dval = binResult.getBinValue( ib );
+                        double dval = binFactor * binResult.getBinValue( ib );
                         sval = Double.isNaN( dval )
                              ? 0
                              : Math.min( 1 + (int) ( scaler.scaleValue( dval )
@@ -393,7 +396,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 for ( int ix = ixlo; ix <= ixhi; ix++ ) {
                     int ibin = pixer.getBinIndex( ix, iy );
                     assert ibin >= 0;
-                    double dval = binResult.getBinValue( ibin );
+                    double dval = binFactor * binResult.getBinValue( ibin );
                     if ( ! Double.isNaN( dval ) ) {
                         int sval =
                             Math.min( 1 + (int) ( scaler.scaleValue( dval )
@@ -697,6 +700,8 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         private void extendRange( Range range, PlanarSurface surface,
                                   GridPixer pixer, BinList.Result binResult ) {
             double[][] dlims = surface.getDataLimits();
+            double binFactor =
+                pixer.getBinFactor( gstyle_.combiner_.getType() );
             int[] ixRange = pixer.xgrid_.getBinRange( dlims[ 0 ] );
             int[] iyRange = pixer.ygrid_.getBinRange( dlims[ 1 ] );
             int ixlo = ixRange[ 0 ];
@@ -707,7 +712,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 for ( int ix = ixlo; ix <= ixhi; ix++ ) {
                     int ibin = pixer.getBinIndex( ix, iy );
                     assert ibin >= 0;
-                    range.submit( binResult.getBinValue( ibin ) );
+                    range.submit( binFactor * binResult.getBinValue( ibin ) );
                 }
             }
         }
@@ -756,6 +761,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             public void paintData( Object plan, Paper paper,
                                    DataStore dataStore ) {
                 final GridPlan gplan = (GridPlan) plan;
+                final Combiner.Type ctype = gstyle_.combiner_.getType();
                 ptype_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
                         Scaler scaler =
@@ -764,7 +770,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                         IndexColorModel colorModel =
                             PixelImage.createColorModel( gstyle_.shader_,
                                                          true );
-                        paintBins( g, gplan.pixer_, gplan.result_,
+                        paintBins( g, gplan.pixer_, gplan.result_, ctype,
                                    scaler, colorModel, surface_ );
                     }
                     public boolean isOpaque() {
@@ -899,7 +905,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
          * Returns the grid index given the X and Y grid indices.
          *
          * @param   ix  X gridder bin index
-         * @param   iy  Y girdder bin index
+         * @param   iy  Y gridder bin index
          * @return   grid index for bin list, or negative number if off-grid
          */
         int getBinIndex( int ix, int iy ) {
@@ -907,6 +913,17 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                  ? gridder_.getIndex( xgrid_.getBinOffset( ix ),
                                       ygrid_.getBinOffset( iy ) )
                  : -1;
+        }
+
+        /**
+         * Returns the area of a bin in data units.
+         * If either axis is logarithmic, this will be a strange quantity.
+         *
+         * @param  ctype  combination type
+         * @return  multiplication for bin values
+         */
+        double getBinFactor( Combiner.Type ctype ) {
+            return ctype.getBinFactor( xgrid_.binWidth_ * ygrid_.binWidth_ );
         }
 
         /**

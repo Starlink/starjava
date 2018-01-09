@@ -388,7 +388,8 @@ public class SkyDensityPlotter
                     SkyDensityPlan splan =
                         getSkyPlan( knownPlans, level, dataSpec );
                     if ( splan != null ) {
-                        splan.extendVisibleRange( range, ssurf );
+                        splan.extendVisibleRange( range, ssurf,
+                                                  getBinFactor( level ) );
                     }
                     else {
                         BinList.Result binResult =
@@ -410,9 +411,10 @@ public class SkyDensityPlotter
          * @return  tile renderer
          */
         private SkyTileRenderer createTileRenderer( SkySurface surface ) {
+            int level = getLevel( surface );
             return SkyTileRenderer
-                  .createRenderer( surface, Rotation.IDENTITY,
-                                   getLevel( surface ) );
+                  .createRenderer( surface, Rotation.IDENTITY, level,
+                                   getBinFactor( level ) );
         }
 
         /**
@@ -430,14 +432,16 @@ public class SkyDensityPlotter
         }
 
         /**
-         * Constructs an object which can map sky positions to a pixel
-         * index in a HEALPix grid.
+         * Returns the value by which all bin result values should be
+         * multiplied for a given level.
          *
-         * @param   surface  target plot surface
-         * @return   sky pixer
+         * @param   level  HEALPix level for plotting
+         * @return   bin multiplication factor
          */
-        private SkyPixer createSkyPixer( SkySurface surface ) {
-            return new SkyPixer( getLevel( surface ) );
+        private double getBinFactor( int level ) {
+            double binExtent = Tilings.healpixSqdeg( level );
+            Combiner.Type ctype = dstyle_.combiner_.getType();
+            return ctype.getBinFactor( binExtent );
         }
 
         /**
@@ -452,7 +456,8 @@ public class SkyDensityPlotter
          */
         private BinList readBins( SkySurface surface, DataSpec dataSpec,
                                   DataStore dataStore ) {
-            SkyPixer skyPixer = createSkyPixer( surface );
+            int level = getLevel( surface );
+            SkyPixer skyPixer = new SkyPixer( level );
             BinList binList = null;
             long npix = skyPixer.getPixelCount();
             Combiner combiner = dstyle_.combiner_;
@@ -652,7 +657,8 @@ public class SkyDensityPlotter
             }
             ValueInfo dataInfo = combiner.createCombinedInfo( weightInfo );
             ColumnData dataCol =
-                BinResultColumnData.createInstance( dataInfo, binResult );
+                BinResultColumnData.createInstance( dataInfo, binResult,
+                                                    getBinFactor( level ) );
 
             /* Combine these into a table and return. */
             final long nrow = skyPixer.getPixelCount();
@@ -728,8 +734,10 @@ public class SkyDensityPlotter
          *
          * @param  range     range to submit values to
          * @param  surface   viewing surface
+         * @param  binFactor   factor for multiplying bin result values
          */
-        public void extendVisibleRange( Range range, SkySurface surface ) {
+        public void extendVisibleRange( Range range, SkySurface surface,
+                                        double binFactor ) {
             Rectangle bounds = surface.getPlotBounds();
             int nx = bounds.width;
             int ny = bounds.height;
@@ -745,6 +753,7 @@ public class SkyDensityPlotter
                 double[] dpos = surface.graphicsToData( point, null );
                 if ( dpos != null ) {
                     double dval =
+                        binFactor *
                         binResult_.getBinValue( skyPixer.getIndex( dpos ) );
                     range.submit( dval );
                 }

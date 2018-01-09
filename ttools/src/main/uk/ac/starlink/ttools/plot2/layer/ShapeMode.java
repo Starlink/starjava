@@ -11,6 +11,7 @@ import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
@@ -1344,7 +1345,19 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 "to use one of the other shading modes instead.",
                 "</p>",
             } );
-            Combiner[] options = Combiner.getKnownCombiners();
+
+            /* Prepare a list of suitable options.  We exclude density-like
+             * options, since they require scaling by bin size.
+             * Although we could come up with a physical bin size in some
+             * cases (2d, linear axes), it can't really be done in others
+             * (logarithmic axes, and especially 3d). */
+            List<Combiner> optionList = new ArrayList<Combiner>();
+            for ( Combiner c : Combiner.getKnownCombiners() ) {
+                if ( ! Combiner.Type.DENSITY.equals( c.getType() ) ) {
+                    optionList.add( c );
+                }
+            }
+            Combiner[] options = optionList.toArray( new Combiner[ 0 ] );
             Combiner dflt = Combiner.MEAN;
             OptionConfigKey<Combiner> key =
                     new OptionConfigKey<Combiner>( meta, Combiner.class,
@@ -1388,6 +1401,20 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 assert dataSpec.getCoord( icWeight_ ) == WEIGHT_COORD;
             }
 
+            /**
+             * Indicates whether BinList.Result scaling is required.
+             * This is used in assertions, and should always return false,
+             * since no density-like combiners are in use by this mode.
+             * The idea is to provide evidence in the source code that
+             * bin scaling has not been overlooked.
+             *
+             * @return  whether BinList.Result values need to be scaled;
+             *          always false
+             */
+            boolean isBinFactorRequired() {
+                return wstamper_.combiner_.getType().getBinFactor( 0.01 ) != 1.;
+            }
+
             @Override
             public Map<AuxScale,AuxReader> getAuxRangers() {
                 Map<AuxScale,AuxReader> map = super.getAuxRangers();
@@ -1415,7 +1442,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         else {
                             binResult = wplan.binResult_;
                         }
-                        PlotUtil.extendRange( range, binResult );
+                        assert ! isBinFactorRequired();
+                        for ( Iterator<Long> it = binResult.indexIterator();
+                              it.hasNext(); ) {
+                            long ibin = it.next().longValue();
+                            range.submit( binResult.getBinValue( ibin ) );
+                        }
                     }
                 } );
                 return map;
@@ -1429,13 +1461,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
             /**
              * Constructs the binlist data structure containing the information
-             * about how to do the plot.
+             * about how to do the plot.  There is no need to scale the
+             * result of this call using a bin factor.
              *
              * @param  surface  plot surface
              * @param  dataSpec  data specification
              * @param  dataStore  data storage
              * @param  tseq    point sequence
              * @param  auxRanges   aux data range map
+             * @return  bin list that does not require scaling
              */
             private BinList readBinList( Surface surface, DataSpec dataSpec,
                                          DataStore dataStore,
@@ -1471,6 +1505,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         painter.paintPoint( tseq, null, wpaper );
                     }
                 }
+
+                /* We have excluded density-like combiners because it's
+                 * hard to know what to use as a bin size, so no scaling
+                 * of bin list results is required. */
+                assert ! isBinFactorRequired();
                 return wpaper.binList_;
             }
 
@@ -1594,6 +1633,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 private int[] scaleLevels( int nbin, BinList.Result binResult,
                                            Scaler scaler, int nlevel ) {
                     int[] pixels = new int[ nbin ];
+                    assert ! isBinFactorRequired();
                     for ( int i = 0; i < nbin; i++ ) {
                         double val = binResult.getBinValue( i );
                         if ( ! Double.isNaN( val ) ) {

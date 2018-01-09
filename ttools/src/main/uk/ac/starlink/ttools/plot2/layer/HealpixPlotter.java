@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -343,96 +342,6 @@ public class HealpixPlotter
     }
 
     /**
-     * Constructs a bin list for a given combiner, given also the data
-     * HEALPix level and the degrading factor.
-     * Note that the combination semantics of some of the combiners
-     * (those representing intensive, rather than extensive, quantities)
-     * is somewhat changed by the context in which they are used here;
-     * the submission count is implicitly that of the number of HEALPix
-     * subpixels corresponding to the degrade, rather than just the number
-     * of data values actually submitted.
-     *
-     * @param  combiner  basic combiner
-     * @param  dataLevel   HEALPix level at which data is supplied
-     * @param  viewLevel   HEALPix level at which pixels are to be calculated
-     * @return  bin list for accumulating pixel values
-     */
-    private static BinList createBinList( final Combiner combiner,
-                                          int dataLevel, int viewLevel ) {
-        int degrade = dataLevel - viewLevel;
-        long nbin = 12 * ( 1L << ( 2 * viewLevel ) );
-        boolean isFew = nbin < 1e6;
-        if ( Combiner.MEAN.equals( combiner ) ) {
-            final double factor = 1.0 / ( 1L << ( 2 * degrade ) );
-            final BinList baseList =
-                isFew ? Combiner.SUM.createArrayBinList( (int) nbin )
-                      : Combiner.SUM.createHashBinList( nbin );
-            return new BinList() {
-                public Combiner getCombiner() {
-                    return combiner;
-                }
-                public long getSize() {
-                    return baseList.getSize();
-                }
-                public void submitToBin( long index, double datum ) {
-                    baseList.submitToBin( index, datum );
-                }
-                public BinList.Result getResult() {
-                    return new FactorResult( baseList.getResult(), factor,
-                                             false );
-                }
-            };
-        }
-        else { 
-            if ( ! Arrays.asList( new Combiner[] {
-                       Combiner.SUM, Combiner.MIN, Combiner.MAX,
-                   } ).contains( combiner ) ) {
-                logger_.warning( "Unexpected combiner: " + combiner );
-            }
-            return isFew ? combiner.createArrayBinList( (int) nbin )
-                         : combiner.createHashBinList( nbin );
-        }
-    }
-
-    /**
-     * Wrapper implementation of BinList.Result that multiplies
-     * bin values by a fixed factor.
-     */
-    private static class FactorResult implements BinList.Result {
-        private final BinList.Result baseResult_;
-        private final double factor_;
-        private final boolean isCompacted_;
-
-        /**
-         * Constructor.
-         *
-         * @param  baseResult   base result instance
-         * @param  factor   factor by which bin values are multiplied
-         * @param  isCompacted  if true, compact operation is a no-op
-         */
-        FactorResult( BinList.Result baseResult, double factor,
-                      boolean isCompacted ) {
-            baseResult_ = baseResult;
-            factor_ = factor;
-            isCompacted_ = isCompacted;
-        }
-        public double getBinValue( long index ) {
-            return factor_ * baseResult_.getBinValue( index );
-        }
-        public long getBinCount() {
-            return baseResult_.getBinCount();
-        }
-        public Iterator<Long> indexIterator() {
-            return baseResult_.indexIterator();
-        }
-        public BinList.Result compact() {
-            return isCompacted_
-                 ? this
-                 : new FactorResult( baseResult_.compact(), factor_, true );
-        }
-    }
-
-    /**
      * Style for configuring the HEALPix plot.
      */
     public static class HealpixStyle implements Style {
@@ -523,6 +432,8 @@ public class HealpixPlotter
         private final int dataLevel_;
         private final int viewLevel_;
         private final IndexReader indexReader_;
+        private final double binFactor_;
+        private final Combiner workCombiner_;
 
         /**
          * Constructor.
@@ -540,8 +451,31 @@ public class HealpixPlotter
             hstyle_ = hstyle;
             dataLevel_ = dataLevel;
             indexReader_ = indexReader;
-            viewLevel_ = Math.max( 0, dataLevel_ - hstyle.degrade_ );
-            assert hstyle.degrade_ >= 0;
+            int degrade = hstyle.degrade_;
+            viewLevel_ = Math.max( 0, dataLevel_ - degrade );
+            assert degrade >= 0;
+
+            /* Assign combiners a bit differently from usual to implement
+             * HEALPix level degrade.
+             * The submission count is implicitly that of the number of
+             * HEALPix subpixels corresponding to the degrade, rather than
+             * just the number of data values actually submitted.
+             * This approach wouldn't necessarily work for all combination
+             * types, so they are restricted here. */
+            Combiner combiner = hstyle_.combiner_;
+            if ( ! Arrays.asList( new Combiner[] {
+                Combiner.MEAN, Combiner.SUM, Combiner.MIN, Combiner.MAX,
+            } ).contains( combiner ) ) {
+                logger_.warning( "Unexpected combiner: " + combiner );
+            }
+            if ( Combiner.MEAN.equals( combiner ) ) {
+                workCombiner_ = Combiner.SUM;
+                binFactor_ = 1.0 / ( 1L << 2 * degrade );
+            }
+            else {
+                workCombiner_ = combiner;
+                binFactor_ = 1.0;
+            }
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -617,7 +551,7 @@ public class HealpixPlotter
         private SkyTileRenderer createTileRenderer( Surface surf ) {
             return SkyTileRenderer
                   .createRenderer( (SkySurface) surf, hstyle_.rotation_,
-                                   viewLevel_ );
+                                   viewLevel_, binFactor_ );
         }
 
         /** 
@@ -655,8 +589,14 @@ public class HealpixPlotter
             int degrade = dataLevel_ - viewLevel_;
             assert degrade >= 0;
             int shift = degrade * 2;
-            BinList binList =
-                createBinList( hstyle_.combiner_, dataLevel_, viewLevel_ );
+            long nbin = 12 * ( 1L << ( 2 * viewLevel_ ) );
+            BinList binList = null;
+            if ( nbin < 1e6 ) {
+                binList = workCombiner_.createArrayBinList( (int) nbin );
+            }
+            if ( binList == null ) {
+                binList = workCombiner_.createHashBinList( nbin );
+            }
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             while ( tseq.next() ) {
                 double value = tseq.getDoubleValue( icValue_ );

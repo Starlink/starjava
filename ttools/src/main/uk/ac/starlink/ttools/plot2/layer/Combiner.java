@@ -9,6 +9,14 @@ import uk.ac.starlink.ttools.plot2.Equality;
 /**
  * Defines the combination mode for accumulating values into a bin.
  *
+ * <p>Instances of this class can produce <code>Container</code>
+ * and <code>BinList</code> objects into which values can be accumulated.
+ * Once populated, those objects can be interrogated to find
+ * combined values.
+ * <strong>Note</strong> that in general those accumulated results
+ * should be multiplied by the result of calling
+ * {@link Type#getBinFactor} before use.
+ *
  * <p>Note that the {@link #SUM} mode is usually sensible for unweighted values,
  * but if the values are weighted it may be more revealing to use
  * one of the others (like {@link #MEAN}).
@@ -64,7 +72,12 @@ public abstract class Combiner {
      *
      * @param   name  name
      * @param   description  short textual description
-     * @param   type    defines the kind of aggregation performed
+     * @param   type    defines the kind of aggregation performed;
+     *                  note the implementation of this class does not
+     *                  use this value to affect the bin results
+     *                  calculated by this combiner, but users of this
+     *                  class should make use of it to interpret the
+     *                  bin results
      * @param   hasBigBin  indicates whether the bins used by this combiner
      *                     are large
      *                     (take more memory than a <code>double</code>)
@@ -133,7 +146,8 @@ public abstract class Combiner {
     }
 
     /**
-     * Indicates the aggregation type.
+     * Indicates the aggregation type.  This value should be used to make
+     * sense of the output bin list results.
      *
      * @return  aggregation type
      */
@@ -233,7 +247,7 @@ public abstract class Combiner {
          * If a bin value is NaN because no values have been submitted,
          * it can be interpreted as zero.
          */
-        EXTENSIVE( true ),
+        EXTENSIVE( true, false ),
 
         /**
          * Average-like aggregation.
@@ -242,15 +256,25 @@ public abstract class Combiner {
          * No numeric value can be assumed if a bin value is NaN because
          * no values have been submitted.
          */
-        INTENSIVE( false );
+        INTENSIVE( false, false ),
+
+        /**
+         * Density-like aggregation.  This is like {@link #EXTENSIVE},
+         * but results should be divided by bin size;
+         * the {@link #getBinFactor getBinFactor} method in general will
+         * return a value that is not unity.
+         */
+        DENSITY( true, true );
 
         private final boolean isExtensive_;
+        private final boolean isScaling_;
 
         /**
          * Constructor.
          */
-        Type( boolean isExtensive ) {
+        Type( boolean isExtensive, boolean isScaling ) {
             isExtensive_ = isExtensive;
+            isScaling_ = isScaling;
         }
 
         /**
@@ -261,6 +285,17 @@ public abstract class Combiner {
          */
         public boolean isExtensive() {
             return isExtensive_;
+        }
+
+        /**
+         * Returns a scaling factor which ought to be applied to bin values.
+         * This may be unity, or it may depend on the supplied bin extent.
+         *
+         * @param  binExtent  bin size in some natural units
+         * @return   factor to multiply bin contents by before use
+         */
+        public double getBinFactor( double binExtent ) {
+            return isScaling_ ? 1.0 / binExtent : 1.0;
         }
     }
 
