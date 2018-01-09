@@ -39,7 +39,8 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
     protected KernelFigure createKernelFigure( ConfigMap config ) {
         BinSizer sizer = config.get( SMOOTHSIZER_KEY );
         Combiner combiner = config.get( COMBINER_KEY );
-        return new FixedKernelFigure( sizer, ! combiner.isExtensive() );
+        boolean isLikeMean = ! combiner.getType().isExtensive();
+        return new FixedKernelFigure( sizer, isLikeMean );
     }
 
     public String getPlotterDescription() {

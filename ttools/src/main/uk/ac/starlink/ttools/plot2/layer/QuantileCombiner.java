@@ -28,7 +28,7 @@ public abstract class QuantileCombiner extends Combiner {
      */
     public QuantileCombiner( String name, String description,
                              Quantiler quantiler ) {
-        super( name, description, false, true );
+        super( name, description, Type.INTENSIVE, true );
         quantiler_ = quantiler;
     }
 

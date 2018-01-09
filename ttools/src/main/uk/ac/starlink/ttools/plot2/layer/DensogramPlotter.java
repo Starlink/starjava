@@ -141,7 +141,8 @@ public class DensogramPlotter
         boolean xLog = surface.getLogFlags()[ 0 ];
         Combiner combiner = style.combiner_;
         Kernel1d kernel = createKernel( style.kernelShape_, style.sizer_,
-                                        xAxis, xLog, ! combiner.isExtensive() );
+                                        xAxis, xLog,
+                                        ! combiner.getType().isExtensive() );
         double[] bins = getDataBins( binArray, xAxis, kernel,
                                      Normalisation.NONE, style.cumul_ );
 
@@ -204,7 +205,7 @@ public class DensogramPlotter
         Kernel1d kernel =
             createKernel( style.kernelShape_, style.sizer_,
                           surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ],
-                          ! style.combiner_.isExtensive() );
+                          ! style.combiner_.getType().isExtensive() );
         return getEffectiveExtent( kernel );
     }
 

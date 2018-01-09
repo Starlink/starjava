@@ -21,7 +21,7 @@ public abstract class Combiner {
 
     private final String name_;
     private final String description_;
-    private final boolean isExtensive_;
+    private final Type type_;
     private final boolean hasBigBin_;
 
     /** Report the number of submitted values. */
@@ -64,17 +64,16 @@ public abstract class Combiner {
      *
      * @param   name  name
      * @param   description  short textual description
-     * @param   isExtensive   indicates whether this combiner represents
-     *                        an extensive or intensive quantity
+     * @param   type    defines the kind of aggregation performed
      * @param   hasBigBin  indicates whether the bins used by this combiner
      *                     are large
      *                     (take more memory than a <code>double</code>)
      */
-    protected Combiner( String name, String description, boolean isExtensive,
+    protected Combiner( String name, String description, Type type,
                         boolean hasBigBin ) {
         name_ = name;
         description_ = description;
-        isExtensive_ = isExtensive;
+        type_ = type;
         hasBigBin_ = hasBigBin;
     }
 
@@ -134,14 +133,12 @@ public abstract class Combiner {
     }
 
     /**
-     * Indicates whether the quantity calculated by this combiner is
-     * basically extensive (scales linearly with the number of values combined)
-     * or not.
+     * Indicates the aggregation type.
      *
-     * @return   true for extensive quantities, false for intensive
+     * @return  aggregation type
      */
-    public boolean isExtensive() {
-        return isExtensive_;
+    public Type getType() {
+        return type_;
     }
 
     /**
@@ -223,6 +220,51 @@ public abstract class Combiner {
     }
 
     /**
+     * Defines the scaling properties of a combiner.
+     * This also provides information on how the results of the
+     * populated bin list should be interpreted.
+     */
+    public enum Type {
+
+        /**
+         * Sum-like aggregation.
+         * To first order, the bin result quantities scale linearly
+         * with the number of values submitted.
+         * If a bin value is NaN because no values have been submitted,
+         * it can be interpreted as zero.
+         */
+        EXTENSIVE( true ),
+
+        /**
+         * Average-like aggregation.
+         * To first order, the bin result quantities are not dependent on
+         * the number of values submitted.
+         * No numeric value can be assumed if a bin value is NaN because
+         * no values have been submitted.
+         */
+        INTENSIVE( false );
+
+        private final boolean isExtensive_;
+
+        /**
+         * Constructor.
+         */
+        Type( boolean isExtensive ) {
+            isExtensive_ = isExtensive;
+        }
+
+        /**
+         * Indicates whether the bin values scale to first order
+         * with the number of submitted values per bin.
+         *
+         * @return  true iff no submitted values corresponds to a zero bin value
+         */
+        public boolean isExtensive() {
+            return isExtensive_;
+        }
+    }
+
+    /**
      * Defines an object that can be used to accumulate values and
      * retrieve a result.
      */
@@ -257,13 +299,12 @@ public abstract class Combiner {
          *
          * @param   name  name
          * @param   description  short textual description
-         * @param   isExtensive   indicates whether this combiner represents
-         *                        an extensive or intensive quantity
+         * @param   type   aggregation type
          * @param   hasBigBin  true if combiner has big bins
          */
-        AbstractCombiner( String name, String description, boolean isExtensive,
+        AbstractCombiner( String name, String description, Type type,
                           boolean hasBigBin ) {
-            super( name, description, isExtensive, hasBigBin );
+            super( name, description, type, hasBigBin );
         }
 
         public BinList createHashBinList( long size ) {
@@ -280,7 +321,8 @@ public abstract class Combiner {
          * Constructor.
          */
         public MeanCombiner() {
-            super( "mean", "the mean of the combined values", false, true );
+            super( "mean", "the mean of the combined values", Type.INTENSIVE,
+                   true );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -381,7 +423,7 @@ public abstract class Combiner {
             super( "stdev",
                    "the " + ( isSampleStdev ? "sample" : "population" )
                           + " standard deviation of the combined values",
-                   false, true );
+                   Type.INTENSIVE, true );
             isSampleStdev_ = isSampleStdev;
         }
 
@@ -493,7 +535,7 @@ public abstract class Combiner {
         CountCombiner() {
             super( "count",
                    "the number of non-blank values (weight is ignored)",
-                   true, false );
+                   Type.EXTENSIVE, false );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -558,7 +600,8 @@ public abstract class Combiner {
          * Constructor.
          */
         SumCombiner() {
-            super( "sum", "the sum of all the combined values", true, false );
+            super( "sum", "the sum of all the combined values",
+                   Type.EXTENSIVE, false );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -627,7 +670,7 @@ public abstract class Combiner {
          */
         MinCombiner() {
             super( "min", "the minimum of all the combined values",
-                   false, false );
+                   Type.INTENSIVE, false );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -697,7 +740,7 @@ public abstract class Combiner {
          */
         MaxCombiner() {
             super( "max", "the maximum of all the combined values",
-                   false, false );
+                   Type.INTENSIVE, false );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -755,7 +798,7 @@ public abstract class Combiner {
         HitCombiner() {
             super( "hit",
                    "1 if any values present, NaN otherwise (weight is ignored)",
-                   false, false );
+                   Type.EXTENSIVE, false );
         }
 
         public BinList createArrayBinList( int size ) {

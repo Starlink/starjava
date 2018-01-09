@@ -120,11 +120,20 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "is not set.",
                 "</p>",
             } )
-        , Combiner.class, Combiner.getKnownCombiners(), Combiner.SUM ) {
+        , Combiner.class, new Combiner[] {
+            Combiner.SUM,
+            Combiner.MEAN,
+            Combiner.MEDIAN,
+            Combiner.SAMPLE_STDEV,
+            Combiner.MIN,
+            Combiner.MAX,
+            Combiner.COUNT,
+        }, Combiner.SUM ) {
         public String getXmlDescription( Combiner combiner ) {
             return combiner.getDescription();
         }
-    }.setOptionUsage();
+    }.setOptionUsage()
+     .addOptionsXml();
 
     /** Report key for the contour levels plotted. */
     public static final ReportKey<double[]> LEVELS_REPKEY =
@@ -441,8 +450,9 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
              * the raw grid, which will contain NaNs for blank areas,
              * to assign levels.  To a first order, it should give the
              * same results as the smoothed one. */
-            NumberGrid grid = combiner.isExtensive() ? plan.rawGrid_
-                                                     : plan.smoothGrid_;
+            NumberGrid grid = combiner.getType().isExtensive()
+                            ? plan.rawGrid_
+                            : plan.smoothGrid_;
             boolean isCounts = ! hasWeight_
                             || combiner.equals( Combiner.COUNT )
                             || combiner.equals( Combiner.HIT );
@@ -872,7 +882,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 if ( smooth == 1 ) {
                     sgrid = rawGrid_;
                 }
-                else if ( combiner_.isExtensive() ) {
+                else if ( combiner_.getType().isExtensive() ) {
                     sgrid = smoothSum( rawGrid_, smooth );
                 }
                 else {

@@ -58,7 +58,7 @@ public class KernelTest extends TestCase {
                     BinSizer.createCountBinSizer( 3 ) );
         KnnKernelDensityPlotter.KDenseStyle style =
             knnPlotter.createStyle( config );
-        assertTrue( knnPlotter.getCombiner( style ).isExtensive() );
+        assertTrue( knnPlotter.getCombiner( style ).getType().isExtensive() );
     }
 
     private void checkExactNormKernel( Kernel1d kernel ) {
