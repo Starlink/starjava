@@ -18,6 +18,16 @@ public class CombinerTest extends TestCase {
         combiners_ = Combiner.getKnownCombiners();
     }
 
+    public void testCombinerTypes() {
+        assertEquals( 1.0, Combiner.Type.INTENSIVE.getBinFactor( 0.5 ) );
+        assertEquals( 1.0, Combiner.Type.EXTENSIVE.getBinFactor( 0.5 ) );
+        assertEquals( 2.0, Combiner.Type.DENSITY.getBinFactor( 0.5 ) );
+        assertEquals( 1.0, Combiner.Type.DENSITY.getBinFactor( 1.0 ) );
+        assertFalse( Combiner.Type.INTENSIVE.isExtensive() );
+        assertTrue( Combiner.Type.EXTENSIVE.isExtensive() );
+        assertTrue( Combiner.Type.DENSITY.isExtensive() );
+    }
+
     public void testBinLists() {
         for ( Combiner combiner : combiners_ ) {
             exerciseCombiner( combiner );
@@ -27,10 +37,13 @@ public class CombinerTest extends TestCase {
     public void testCombiners() {
         CTest[] ctests = new CTest[] {
             new CTest( Combiner.COUNT, 4, new double[] { 1, 0, 10, 20 } ),
+            new CTest( Combiner.DENSITY, 4, new double[] { 1, 0, 10, 20 } ),
             new CTest( Combiner.HIT, 1, new double[] { 1, 0, 10, 20 } ),
             new CTest( Combiner.MAX, 9.5, new double[] { .5, -.5, 9.5, 2 } ),
             new CTest( Combiner.MIN, -.5, new double[] { .5, -.5, 9.5, 2 } ),
             new CTest( Combiner.SUM, 11.5, new double[] { .5, -.5, 9.5, 2 } ),
+            new CTest( Combiner.WEIGHTED_DENSITY,
+                       11.5, new double[] { .5, -.5, 9.5, 2 } ),
             new CTest( Combiner.MEAN, 7.5, new double[] { 2, 4, 8, 16 } ),
             new CTest( Combiner.MEDIAN, 99,
                        new double[] { .9, 9, 99, 999, 9999 } ),

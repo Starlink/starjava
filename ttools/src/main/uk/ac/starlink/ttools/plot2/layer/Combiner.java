@@ -32,11 +32,17 @@ public abstract class Combiner {
     private final Type type_;
     private final boolean hasBigBin_;
 
-    /** Report the number of submitted values. */
+    /** Calculate the number of submitted values. */
     public static final Combiner COUNT;
+
+    /** Calculate the density of all submitted values. */
+    public static final Combiner DENSITY;
 
     /** Calculate the sum of all submitted values. */
     public static final Combiner SUM;
+
+    /** Calculate the weighted density of all submitted values. */
+    public static final Combiner WEIGHTED_DENSITY;
 
     /** Calculate the mean of all submitted values. */
     public static final Combiner MEAN;
@@ -58,12 +64,14 @@ public abstract class Combiner {
 
     private static final Combiner[] COMBINERS = new Combiner[] {
         SUM = new SumCombiner(),
+        WEIGHTED_DENSITY = new WeightedDensityCombiner(),
+        COUNT = new CountCombiner(),
+        DENSITY = new DensityCombiner(),
         MEAN = new MeanCombiner(),
         MEDIAN = new MedianCombiner(),
         MIN = new MinCombiner(),
         MAX = new MaxCombiner(),
         SAMPLE_STDEV = new StdevCombiner( true ),
-        COUNT = new CountCombiner(),
         HIT = new HitCombiner(),
     };
 
@@ -560,17 +568,20 @@ public abstract class Combiner {
     }
 
     /**
-     * Combiner instance that just counts submissions.
+     * Partial Combiner implementation that counts submissions.
      */
-    private static class CountCombiner extends AbstractCombiner {
+    private static abstract class AbstractCountCombiner
+            extends AbstractCombiner {
 
         /**
          * Constructor.
+         *
+         * @param  name  name
+         * @param  descrip  description
+         * @param  type  combiner type
          */
-        CountCombiner() {
-            super( "count",
-                   "the number of non-blank values (weight is ignored)",
-                   Type.EXTENSIVE, false );
+        AbstractCountCombiner( String name, String descrip, Type type ) {
+            super( name, descrip, type, false );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -590,14 +601,6 @@ public abstract class Combiner {
             return new CountContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo inInfo ) {
-            DefaultValueInfo outInfo = 
-                new DefaultValueInfo( "count", Integer.class,
-                                      "Number of items counted per bin" );
-            outInfo.setUCD( "meta.number" );
-            return outInfo;
-        }
-
         /**
          * Container that holds a count.
          * Note this is a static class to keep memory usage down
@@ -615,9 +618,48 @@ public abstract class Combiner {
     }
 
     /**
-     * Combiner implementation that calculates the sum.
+     * Combiner instance that counts submissions per bin. 
      */
-    private static class SumCombiner extends AbstractCombiner {
+    private static class CountCombiner extends AbstractCountCombiner {
+        CountCombiner() {
+            super( "count",
+                   "the number of non-blank values per bin (weight is ignored)",
+                   Type.EXTENSIVE );
+        }
+        public ValueInfo createCombinedInfo( ValueInfo inInfo ) {
+            DefaultValueInfo outInfo = 
+                new DefaultValueInfo( "count", Integer.class,
+                                      "Number of items counted per bin" );
+            outInfo.setUCD( "meta.number" );
+            return outInfo;
+        }
+    }
+
+    /**
+     * Combiner instance that counts submissions per unit of bin extent.
+     */
+    private static class DensityCombiner extends AbstractCountCombiner {
+        DensityCombiner() {
+            super( "count-per-unit",
+                   "the number of non-blank values per unit of bin size "
+                 + "(weight is ignored)",
+                   Type.DENSITY );
+        }
+        public ValueInfo createCombinedInfo( ValueInfo inInfo ) {
+            DefaultValueInfo outInfo =
+                new DefaultValueInfo( "density", Double.class,
+                                      "Number of items counted "
+                                    + "scaled by unit extent" );
+            outInfo.setUCD( "src.density" );
+            return outInfo;
+        }
+    }
+
+    /**
+     * Partial Combiner implementation that calculates the sum of
+     * submitted values.
+     */
+    private static abstract class AbstractSumCombiner extends AbstractCombiner {
 
         /**
          * Combines the existing state value with a supplied datum
@@ -633,10 +675,13 @@ public abstract class Combiner {
 
         /**
          * Constructor.
+         *
+         * @param  name  name
+         * @param  descrip  description
+         * @param  type  combiner type
          */
-        SumCombiner() {
-            super( "sum", "the sum of all the combined values",
-                   Type.EXTENSIVE, false );
+        AbstractSumCombiner( String name, String descrip, Type type ) {
+            super( name, descrip, type, false );
         }
 
         public BinList createArrayBinList( int size ) {
@@ -656,16 +701,6 @@ public abstract class Combiner {
             return new SumContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
-            DefaultValueInfo info =
-                new DefaultValueInfo( dataInfo.getName() + "_sum",
-                                      Double.class,
-                                      getInfoDescription( dataInfo )
-                                    + ", sum in bin" );
-            info.setUnitString( dataInfo.getUnitString() );
-            return info;
-        }
-
         /**
          * Container that holds a sum.
          * Note this is a static class to keep memory usage down
@@ -679,6 +714,45 @@ public abstract class Combiner {
             public double getCombinedValue() {
                 return sum_;
             }
+        }
+    }
+
+    /**
+     * Combiner instance that sums submitted values per bin.
+     */
+    private static class SumCombiner extends AbstractSumCombiner {
+        SumCombiner() {
+            super( "sum", "the sum of all the combined values per bin",
+                   Type.EXTENSIVE );
+        }
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info =
+                new DefaultValueInfo( dataInfo.getName() + "_sum",
+                                      Double.class,
+                                      getInfoDescription( dataInfo )
+                                    + ", sum in bin" );
+            info.setUnitString( dataInfo.getUnitString() );
+            return info;
+        }
+    }
+
+    /**
+     * Combiner instance that sums submitted values per unit of bin extent.
+     */
+    private static class WeightedDensityCombiner extends AbstractSumCombiner {
+        WeightedDensityCombiner() {
+            super( "sum-per-unit",
+                   "the sum of all the combined values per unit of bin size",
+                   Type.DENSITY );
+        }
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+            DefaultValueInfo info =
+                new DefaultValueInfo( dataInfo.getName() + "_density",
+                                      Double.class,
+                                      getInfoDescription( dataInfo )
+                                    + ", density per unit" );
+            info.setUnitString( dataInfo.getUnitString() );
+            return info;
         }
     }
 
