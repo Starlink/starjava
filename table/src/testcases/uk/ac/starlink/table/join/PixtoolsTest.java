@@ -13,6 +13,25 @@ public class PixtoolsTest extends TestCase {
         workPixtools( true );
     }
 
+    public void testIndices() {
+        checkIndex( true, 2, 23 );
+        checkIndex( false, 2, 23 );
+        checkIndex( true, 9, 1110787 );
+        checkIndex( false, 9, 1110787 );
+    }
+
+    private void checkIndex( boolean isNest, int level, long ipix ) {
+        PixTools pt = new PixTools();
+        long nside = 1L << level;
+        double[] latLon = isNest ? pt.pix2ang_nest( nside, ipix )
+                                 : pt.pix2ang_ring( nside, ipix );
+        Vector3d vec = isNest ? pt.pix2vect_nest( nside, ipix )
+                              : pt.pix2vect_ring( nside, ipix );
+        long ipix2 = isNest ? pt.vect2pix_nest( nside, vec )
+                            : pt.vect2pix_ring( nside, vec );
+        assertEquals( ipix, ipix2 );
+    }
+
     private void workPixtools( boolean useThreads )
             throws InterruptedException {
         int nw = 40;

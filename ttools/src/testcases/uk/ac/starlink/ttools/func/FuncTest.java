@@ -721,20 +721,34 @@ public class FuncTest extends TestCase {
         for ( int ik = 0; ik < 4; ik++ ) {
             long npix = 12L << 2*ik;
             for ( long ip = 0; ip < npix; ip++ ) {
-                assertEquals( ip, Tilings.healpixRingToNest( ik,
-                                  Tilings.healpixNestToRing( ik, ip ) ) );
-                assertEquals( ip, Tilings.healpixNestToRing( ik,
-                                  Tilings.healpixRingToNest( ik, ip ) ) );
-                assertEquals( Tilings.healpixNestLat( ik, ip ),
-                              Tilings.healpixRingLat( ik,
-                                   Tilings.healpixNestToRing( ik, ip ) ),
-                              1e-6 );
-                assertEquals( Tilings.healpixNestLon( ik, ip ),
-                              Tilings.healpixRingLon( ik,
-                                   Tilings.healpixNestToRing( ik, ip ) ),
-                              1e-6 );
+                checkHealpix( ik, ip );
             }
         }
+        checkHealpix( 2, 23 );
+        checkHealpix( 9, 1110787 );
+    }
+
+    private void checkHealpix( int ik, long ipix ) {
+        assertEquals( ipix, Tilings.healpixRingToNest( ik,
+                            Tilings.healpixNestToRing( ik, ipix ) ) );
+        assertEquals( ipix, Tilings.healpixNestToRing( ik,
+                            Tilings.healpixRingToNest( ik, ipix ) ) );
+        assertEquals( Tilings.healpixNestLat( ik, ipix ),
+                      Tilings.healpixRingLat( ik,
+                           Tilings.healpixNestToRing( ik, ipix ) ),
+                      1e-6 );
+        assertEquals( Tilings.healpixNestLon( ik, ipix ),
+                      Tilings.healpixRingLon( ik,
+                           Tilings.healpixNestToRing( ik, ipix ) ),
+                      1e-6 );
+        assertEquals( ipix,
+                      Tilings.healpixNestIndex( ik,
+                                 Tilings.healpixNestLon( ik, ipix ),
+                                 Tilings.healpixNestLat( ik, ipix ) ) );
+        assertEquals( ipix,
+                      Tilings.healpixRingIndex( ik,
+                                 Tilings.healpixRingLon( ik, ipix ),
+                                 Tilings.healpixRingLat( ik, ipix ) ) );
     }
 
     public void testJELClasses() {
