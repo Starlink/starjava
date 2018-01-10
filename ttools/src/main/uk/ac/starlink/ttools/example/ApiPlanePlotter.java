@@ -244,9 +244,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
                                              sizer, phase, combiner );
 
         /* Combine data and style to generate a histogram plot layer. */
-        Plotter plotter =
-            new HistogramPlotter( PlaneDataGeom.X_COORD, false,
-                                  StyleKeys.NORMALISE );
+        Plotter plotter = new HistogramPlotter( PlaneDataGeom.X_COORD, false );
         return plotter.createLayer( geom, dataSpec, style );
     }
 }

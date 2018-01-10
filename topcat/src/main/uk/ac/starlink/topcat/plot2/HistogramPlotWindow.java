@@ -36,8 +36,6 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
-import uk.ac.starlink.ttools.plot2.config.ConfigKey;
-import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
@@ -456,13 +454,12 @@ public class HistogramPlotWindow
      */
     private static Plotter[] createHistogramPlotters() {
         FloatingCoord xCoord = PlaneDataGeom.X_COORD;
-        ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE;
         return new Plotter[] {
-            new HistogramPlotter( xCoord, true, normKey ),
-            new FixedKernelDensityPlotter( xCoord, true, normKey ),
-            new KnnKernelDensityPlotter( xCoord, true, normKey ),
+            new HistogramPlotter( xCoord, true ),
+            new FixedKernelDensityPlotter( xCoord, true ),
+            new KnnKernelDensityPlotter( xCoord, true ),
             new DensogramPlotter( xCoord, true ),
-            new Stats1Plotter( xCoord, true, normKey ),
+            new Stats1Plotter( xCoord, true ),
             FunctionPlotter.PLANE,
         };
     }

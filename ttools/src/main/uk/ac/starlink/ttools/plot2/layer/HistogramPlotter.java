@@ -64,7 +64,6 @@ public class HistogramPlotter
 
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
-    private final ConfigKey<Normalisation> normKey_;
     private final SliceDataGeom histoDataGeom_;
     private final CoordGroup histoCoordGrp_;
     private final int icX_;
@@ -165,12 +164,9 @@ public class HistogramPlotter
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
-     * @param   normKey   config key for normalisation options
      */
-    public HistogramPlotter( FloatingCoord xCoord, boolean hasWeight,
-                             ConfigKey<Normalisation> normKey ) {
+    public HistogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
         xCoord_ = xCoord;
-        normKey_ = normKey;
         if ( hasWeight ) {
             weightCoord_ = FloatingCoord.WEIGHT_COORD;
             histoCoordGrp_ =
@@ -264,7 +260,7 @@ public class HistogramPlotter
         }
         list.addAll( Arrays.asList( new ConfigKey[] {
             StyleKeys.CUMULATIVE,
-            normKey_,
+            StyleKeys.NORMALISE,
             StyleKeys.BAR_FORM,
             THICK_KEY,
             StyleKeys.DASH,
@@ -278,7 +274,7 @@ public class HistogramPlotter
         BarStyle.Form barForm = config.get( StyleKeys.BAR_FORM );
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
         boolean cumulative = config.get( StyleKeys.CUMULATIVE );
-        Normalisation norm = config.get( normKey_ );
+        Normalisation norm = config.get( StyleKeys.NORMALISE );
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
         BinSizer sizer = config.get( BINSIZER_KEY );

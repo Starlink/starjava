@@ -57,7 +57,6 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
-    private final ConfigKey<Normalisation> normKey_;
     private final SliceDataGeom fitDataGeom_;
     private final CoordGroup fitCoordGrp_;
     private final int icX_;
@@ -86,6 +85,10 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     public static final ConfigKey<BinSizer> BINSIZER_KEY =
         HistogramPlotter.BINSIZER_KEY;
 
+    /** Config key for normalisation. */
+    public static final ConfigKey<Normalisation> NORMALISE_KEY =
+        StyleKeys.NORMALISE;
+
     /** Config key to display a line at the mean value. */
     public static final ConfigKey<Boolean> SHOWMEAN_KEY =
         new BooleanConfigKey(
@@ -103,12 +106,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
      *
      * @param  xCoord   X axis coordinate
      * @param  hasWeight  true if weights may be used
-     * @param   normKey   config key for normalisation options
      */
-    public Stats1Plotter( FloatingCoord xCoord, boolean hasWeight,
-                          ConfigKey<Normalisation> normKey ) {
+    public Stats1Plotter( FloatingCoord xCoord, boolean hasWeight ) {
         xCoord_ = xCoord;
-        normKey_ = normKey;
         if ( hasWeight ) {
             weightCoord_ = FloatingCoord.WEIGHT_COORD;
             fitCoordGrp_ =
@@ -156,7 +156,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             "and plot the corresponding Gaussian curve.",
             "The mean and standard deviation values are reported by the plot.",
             "</p>",
-            "<p>The <code>" + normKey_ + "</code> config option,",
+            "<p>The <code>" + NORMALISE_KEY + "</code> config option,",
             "perhaps in conjunction with <code>" + BINSIZER_KEY + "</code>,",
             "can be used to scale the height of the plotted curve",
             "in data units.",
@@ -178,7 +178,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         list.add( SHOWMEAN_KEY );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         list.add( StyleKeys.ANTIALIAS );
-        list.add( normKey_ );
+        list.add( NORMALISE_KEY );
         list.add( BINSIZER_KEY );
         return list.toArray( new ConfigKey[ 0 ] );
     }
@@ -189,7 +189,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                                 BasicStroke.JOIN_ROUND );
         boolean antialias = config.get( StyleKeys.ANTIALIAS );
-        Normalisation norm = config.get( normKey_ );
+        Normalisation norm = config.get( NORMALISE_KEY );
         BinSizer sizer = config.get( BINSIZER_KEY );
         return new StatsStyle( color, stroke, antialias, showmean,
                                norm, sizer );
