@@ -395,12 +395,13 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * @param   xAxis   axis over which counts are accumulated
      * @param   kernel   smoothing kernel
      * @param   norm   normalisation mode
+     * @param   ctype  combiner type used to populate bins
      * @param   cumul   true for cumulative representation
      * @return  output data bin values
      */
     public static double[] getDataBins( BinArray binArray, Axis xAxis,
                                         Kernel1d kernel, Normalisation norm,
-                                        boolean cumul ) {
+                                        Combiner.Type ctype, boolean cumul ) {
         double[] bins = binArray.getBins();
         int nb = bins.length;
 
@@ -432,7 +433,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
          * combiners like MEAN. */
         double total = binArray.loBin_ + binArray.midBin_ + binArray.hiBin_;
         double binWidth = getPixelDataWidth( xAxis );
-        double scale = norm.getScaleFactor( total, max, binWidth, cumul );
+        double scale =
+            norm.getScaleFactor( total, max, binWidth, ctype, cumul );
         if ( scale != 1.0 ) {
             double[] nbins = new double[ nb ];
             for ( int ib = 0; ib < nb; ib++ ) {

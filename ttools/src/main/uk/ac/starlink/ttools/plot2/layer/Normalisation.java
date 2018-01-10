@@ -34,8 +34,9 @@ public abstract class Normalisation {
     private static final Normalisation[] KNOWN_VALUES = {
         NONE = new Normalisation( "None", "No normalisation is performed." ) {
             public double getScaleFactor( double sum, double max,
-                                          double binWidth, boolean cumul ) {
-                return 1.0;
+                                          double binWidth, Combiner.Type ctype,
+                                          boolean cumul ) {
+                return ctype.getBinFactor( binWidth );
             }
         },
         AREA = new Normalisation( "Area",
@@ -44,8 +45,10 @@ public abstract class Normalisation {
                                 + "For cumulative plots, this behaves like "
                                 + "<code>height</code>." ) {
             public double getScaleFactor( double sum, double max,
-                                          double binWidth, boolean cumul ) {
-                return 1.0 / ( cumul ? sum : ( sum * binWidth ) );
+                                          double binWidth, Combiner.Type ctype,
+                                          boolean cumul ) {
+                return 1.0 / ( cumul ? ( sum * ctype.getBinFactor( binWidth ) )
+                                     : ( sum * binWidth ) );
             }
         },
         UNIT = new Normalisation( "Unit",
@@ -54,8 +57,9 @@ public abstract class Normalisation {
                                 + "For cumulative plots, this behaves like "
                                 + "<code>none</code>." ) {
             public double getScaleFactor( double sum, double max,
-                                          double binWidth, boolean cumul ) {
-                return cumul ? 1.0 : 1.0 / binWidth;
+                                          double binWidth, Combiner.Type ctype,
+                                          boolean cumul ) {
+                return cumul ? ctype.getBinFactor( binWidth ) : 1.0 / binWidth;
             }
         },
         MAXIMUM = new Normalisation( "Maximum",
@@ -64,7 +68,8 @@ public abstract class Normalisation {
                                    + "For cumulative plots, this behaves like "
                                    + "<code>height</code>." ) {
             public double getScaleFactor( double sum, double max,
-                                          double binWidth, boolean cumul ) {
+                                          double binWidth, Combiner.Type ctype,
+                                          boolean cumul ) {
                 return 1.0 / ( cumul ? sum : max );
             }
         },
@@ -72,7 +77,8 @@ public abstract class Normalisation {
                                     "The total height of histogram bars "
                                   + "is normalised to unity." ) {
             public double getScaleFactor( double sum, double max,
-                                          double binWidth, boolean cumul ) {
+                                          double binWidth, Combiner.Type ctype,
+                                          boolean cumul ) {
                 return 1.0 / sum;
             }
         },
@@ -105,18 +111,24 @@ public abstract class Normalisation {
      * <p>The <code>binWidth</code> should at least make sense in terms
      * of screen area.  For linear X axis, it can be in data units,
      * but for logarithmic X axis it may have to be in log(data units).
-     * The <code>binWidth</code> is only used by AREA mode.
+     * The <code>binWidth</code> is only used by AREA and UNIT modes.
      *
      * <p>For cumulative plots, all the modes except NONE behave the same,
      * normalising the total value to unity.
+     * The Combiner.Type may result in scaling the values by the inverse of
+     * the bin width.  However, that is sometimes done anyway
+     * (UNIT and AREA modes), so for those cases it's ignored,
+     * since you don't want to apply that correction twice.
      *
      * @param  sum  total height of all histogram bars
      * @param  max  height of tallest histogram bar
      * @param  binWidth  constant linear width of histogram bars, or NaN
+     * @param  ctype  combiner type used to populate bins
      * @param  isCumulative  true iff the plot is cumulative
      */
     public abstract double getScaleFactor( double sum, double max,
                                            double binWidth,
+                                           Combiner.Type ctype,
                                            boolean isCumulative );
 
     @Override

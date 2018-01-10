@@ -144,7 +144,8 @@ public class DensogramPlotter
                                         xAxis, xLog,
                                         ! combiner.getType().isExtensive() );
         double[] bins = getDataBins( binArray, xAxis, kernel,
-                                     Normalisation.NONE, style.cumul_ );
+                                     Normalisation.NONE,
+                                     style.combiner_.getType(), style.cumul_ );
 
         /* Work out the Y axis bounds. */
         Rectangle bounds = surface.getPlotBounds();

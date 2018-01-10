@@ -460,8 +460,10 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             double sum = sum_;
             double max = c * sum * binWidth;
             boolean isCumulative = false;
+            Combiner.Type ctype = Combiner.Type.EXTENSIVE;
             double normFactor =
-                style.norm_.getScaleFactor( sum, max, binWidth, isCumulative );
+                style.norm_.getScaleFactor( sum, max, binWidth, ctype,
+                                            isCumulative );
             return normFactor * c * sum_ * binWidth;
         }
 

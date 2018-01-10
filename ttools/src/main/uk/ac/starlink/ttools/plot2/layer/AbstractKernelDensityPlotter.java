@@ -151,8 +151,7 @@ public abstract class AbstractKernelDensityPlotter
         Axis xAxis = surface.getAxes()[ 0 ];
         boolean xLog = surface.getLogFlags()[ 0 ];
         Kernel1d kernel = style.createKernel( xAxis, xLog );
-        double[] bins = getDataBins( binArray, xAxis, kernel,
-                                     style.norm_, style.isCumulative_ );
+        double[] bins = getDataBins( binArray, xAxis, kernel, style );
 
         /* Work out the Y axis base of the bars in graphics coordinates. */
         Axis yAxis = surface.getAxes()[ 1 ];
@@ -298,8 +297,7 @@ public abstract class AbstractKernelDensityPlotter
         int xpad = getEffectiveExtent( kernel );
         BinArray binArray = readBins( xAxis, xpad, style.combiner_,
                                       dataSpec, dataStore );
-        double[] bins = getDataBins( binArray, xAxis, kernel,
-                                     style.norm_, style.isCumulative_ );
+        double[] bins = getDataBins( binArray, xAxis, kernel, style );
         int ixlo = binArray.getBinIndex( gxlo );
         int ixhi = binArray.getBinIndex( gxhi );
         for ( int ix = ixlo; ix < ixhi; ix++ ) {
@@ -313,8 +311,7 @@ public abstract class AbstractKernelDensityPlotter
         BinArray binArray = plan.binArray_;
         Axis xAxis = plan.xAxis_;
         Kernel1d kernel = style.createKernel( xAxis, xLog );
-        double[] dataBins = getDataBins( binArray, xAxis, kernel,
-                                         style.norm_, style.isCumulative_ );
+        double[] dataBins = getDataBins( binArray, xAxis, kernel, style );
         double[] dlimits = xAxis.getDataLimits();
         double dlo = dlimits[ 0 ];
         double dhi = dlimits[ 1 ];
@@ -359,6 +356,21 @@ public abstract class AbstractKernelDensityPlotter
         else {
             return (int) Math.round( p );
         }
+    }
+
+    /**
+     * Reads the data bin values using a given style.
+     *
+     * @param   binArray  basic results
+     * @param   xAxis   axis over which counts are accumulated
+     * @param   kernel   smoothing kernel
+     * @param   style   style
+     * @return  output data bin values
+     */
+    private static double[] getDataBins( BinArray binArray, Axis xAxis,
+                                         Kernel1d kernel, KDenseStyle style ) {
+        return getDataBins( binArray, xAxis, kernel, style.norm_,
+                            style.combiner_.getType(), style.isCumulative() );
     }
 
     /**
