@@ -243,7 +243,7 @@ public abstract class Combiner {
          *
          * @return  combined value of all submitted data
          */
-        double getResult();
+        double getCombinedValue();
     }
 
     /**
@@ -324,7 +324,7 @@ public abstract class Combiner {
                 count_++;
                 sum_ += datum;
             }
-            public double getResult() {
+            public double getCombinedValue() {
                 return count_ == 0 ? Double.NaN : sum_ / (double) count_;
             }
         }
@@ -441,7 +441,7 @@ public abstract class Combiner {
          * to keep memory usage down if there are many instances.
          */
         private static class PopulationStdevContainer extends StdevContainer {
-            public double getResult() {
+            public double getCombinedValue() {
                 return getStdev( false, count_, sum1_, sum2_ );
             }
         }
@@ -452,7 +452,7 @@ public abstract class Combiner {
          * to keep memory usage down if there are many instances.
          */
         private static class SampleStdevContainer extends StdevContainer {
-            public double getResult() {
+            public double getCombinedValue() {
                 return getStdev( true, count_, sum1_, sum2_ );
             }
         }
@@ -531,7 +531,7 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 count_++;
             }
-            public double getResult() {
+            public double getCombinedValue() {
                 return count_ == 0 ? Double.NaN : count_;
             }
         }
@@ -598,7 +598,7 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 sum_ = combineSum( sum_, datum );
             }
-            public double getResult() {
+            public double getCombinedValue() {
                 return sum_;
             }
         }
@@ -668,7 +668,7 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 min_ = combineMin( min_, datum );
             }
-            public double getResult() {
+            public double getCombinedValue() {
                 return min_;
             }
         }
@@ -738,7 +738,7 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 max_ = combineMax( max_, datum );
             }
-            public double getResult() {
+            public double getCombinedValue() {
                 return max_;
             }
         }
@@ -784,7 +784,7 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 hit_ = true;
             }
-            public double getResult() {
+            public double getCombinedValue() {
                 return hit_ ? 1 : Double.NaN;
             }
         }

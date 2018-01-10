@@ -118,7 +118,7 @@ public class BinBag {
         double total = 0;
         double max = 0;
         for ( int ib = 0; ib < nbin; ib++ ) {
-            double value = valueMap_.get( binIndices[ ib ] ).getResult();
+            double value = valueMap_.get( binIndices[ ib ] ).getCombinedValue();
             binValues[ ib ] = cumulative ? total + value : value;
             total += value;
             max = Math.max( max, Math.abs( value ) );

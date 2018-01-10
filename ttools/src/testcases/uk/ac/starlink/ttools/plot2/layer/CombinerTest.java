@@ -51,10 +51,10 @@ public class CombinerTest extends TestCase {
     public void testEmpties() {
         for ( Combiner combiner : combiners_ ) {
             Combiner.Container container = combiner.createContainer();
-            assertTrue( Double.isNaN( container.getResult() ) );
+            assertTrue( Double.isNaN( container.getCombinedValue() ) );
             container.submit( 1 );
             container.submit( 1 );
-            assertFalse( Double.isNaN( container.getResult() ) );
+            assertFalse( Double.isNaN( container.getCombinedValue() ) );
         }
     }
 
@@ -76,7 +76,7 @@ public class CombinerTest extends TestCase {
                 container.submit( datum );
                 bl.submitToBin( 1, datum );
             }
-            assertEquals( result_, container.getResult() );
+            assertEquals( result_, container.getCombinedValue() );
             BinList.Result binResult = bl.getResult();
             assertEquals( result_, binResult.getBinValue( 1 ) );
             assertEquals( result_, binResult.compact().getBinValue( 1 ) );

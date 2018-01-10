@@ -710,7 +710,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         BinArray getResult() {
             double[] dbins = new double[ bins_.length ];
             for ( int i = 0; i < bins_.length; i++ ) {
-                double val = bins_[ i ].getResult();
+                double val = bins_[ i ].getCombinedValue();
                 dbins[ i ] = val;
             }
             double loBin = getDefiniteValue( loBin_ );
@@ -727,7 +727,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
          * @return  definite result value, not NaN
          */
         private double getDefiniteValue( Combiner.Container container ) {
-            double d = container.getResult();
+            double d = container.getCombinedValue();
             return Double.isNaN( d ) ? 0 : d;
         }
     }

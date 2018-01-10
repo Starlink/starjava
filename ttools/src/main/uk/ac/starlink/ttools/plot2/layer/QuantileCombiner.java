@@ -62,7 +62,7 @@ public abstract class QuantileCombiner extends Combiner {
             public void submit( double datum ) {
                 dlist_.add( datum );
             }
-            public double getResult() {
+            public double getCombinedValue() {
                 return calculateQuantile( dlist_ );
             }
         };
