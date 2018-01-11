@@ -41,6 +41,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -72,6 +73,10 @@ public class SkyDensityPlotter
     private final FloatingCoord weightCoord_;
     private final boolean reportAuxKeys_;
 
+    /** Weighting coordinate. */
+    private static final FloatingCoord WEIGHT_COORD =
+        FloatingCoord.WEIGHT_COORD;
+
     /** Report key for HEALPix tile area in square degrees. */
     public static final ReportKey<Double> TILESIZE_REPKEY =
         ReportKey.createDoubleKey( new ReportMeta( "tile_sqdeg",
@@ -93,8 +98,7 @@ public class SkyDensityPlotter
                                   true );
 
     private static final AuxScale SCALE = AuxScale.COLOR;
-    private static final FloatingCoord WEIGHT_COORD =
-        FloatingCoord.WEIGHT_COORD;
+
     private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
     private static final ConfigKey<Integer> LEVEL_KEY =
         IntegerConfigKey.createSpinnerPairKey(
@@ -118,8 +122,72 @@ public class SkyDensityPlotter
                 "</p>",
             } )
         , -3, 29, -8, "Abs", "Rel", ABSLEVEL_REPKEY, RELLEVEL_REPKEY );
-    private static final ConfigKey<Double> TRANSPARENCY_KEY =
+
+    /** Config key for transparency. */
+    public static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
+
+    /** Config key for combination mode. */
+    public static final ConfigKey<Combiner> COMBINER_KEY;
+
+    /** Config key for solid angle units. */
+    public static final ConfigKey<SolidAngleUnit> ANGLE_KEY;
+
+    static {
+        ConfigMeta angleMeta = new ConfigMeta( "perunit", "Per Unit" );
+        ConfigMeta combineMeta = new ConfigMeta( "combine", "Combine" );
+        angleMeta.setShortDescription( "Solid angle unit for densities" );
+        angleMeta.setXmlDescription( new String[] {
+            "<p>Defines the unit of sky area used for scaling density-like",
+            "combinations",
+            "(e.g. <code>" + combineMeta.getShortName() + "</code>=" +
+            "<code>" + Combiner.DENSITY + "</code> or",
+            "<code>" + Combiner.WEIGHTED_DENSITY + "</code>).",
+            "If the Combination mode is calculating values per unit area,",
+            "this configures the area scale in question.", 
+            "For non-density-like combination modes",
+            "(e.g. <code>" + combineMeta.getShortName() + "</code>=" +
+            "<code>" + Combiner.SUM + "</code> or ",
+            "<code>" + Combiner.MEAN + "</code>)",
+            "it has no effect.",
+            "</p>", 
+        } );
+        combineMeta.setShortDescription( "Value combination mode" );
+        combineMeta.setXmlDescription( new String[] {
+            "<p>Defines how values contributing to the same density map bin",
+            "are combined together to produce the value assigned to that bin,",
+            "and hence its colour.",
+            "The combined values are the weights, but if the",
+            "<code>" + WEIGHT_COORD.getInput().getMeta().getShortName()
+                     + "</code>",
+            "is left blank, a weighting of unity is assumed.",
+            "</p>",
+            "<p>For density-like values",
+            "(<code>" + Combiner.DENSITY + "</code>,",
+            "<code>" + Combiner.WEIGHTED_DENSITY + "</code>)",
+            "the scaling is additionally influenced by the",
+            "<code>" + angleMeta.getShortName() + "</code> parameter.",
+            "</p>",
+        } );
+        ANGLE_KEY = new OptionConfigKey<SolidAngleUnit>(
+                            angleMeta, SolidAngleUnit.class,
+                            SolidAngleUnit.getKnownUnits(),
+                            SolidAngleUnit.DEGREE2 ) {
+            public String getXmlDescription( SolidAngleUnit unit ) {
+                return unit.getTextName();
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
+        COMBINER_KEY =
+                new OptionConfigKey<Combiner>( combineMeta, Combiner.class,
+                                               Combiner.getKnownCombiners(),
+                                               Combiner.WEIGHTED_DENSITY ) {
+            public String getXmlDescription( Combiner combiner ) {
+                return combiner.getDescription();
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
+    }
 
     /**
      * Constructor.
@@ -187,7 +255,8 @@ public class SkyDensityPlotter
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
         keyList.add( LEVEL_KEY );
         if ( weightCoord_ != null ) {
-            keyList.add( StyleKeys.COMBINER );
+            keyList.add( COMBINER_KEY );
+            keyList.add( ANGLE_KEY );
         }
         if ( reportAuxKeys_ ) {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
@@ -206,8 +275,9 @@ public class SkyDensityPlotter
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
         Combiner combiner = weightCoord_ == null
                           ? Combiner.COUNT
-                          : config.get( StyleKeys.COMBINER );
-        return new SkyDenseStyle( level, scaling, shader, combiner );
+                          : config.get( COMBINER_KEY );
+        SolidAngleUnit unit = config.get( ANGLE_KEY );
+        return new SkyDenseStyle( level, scaling, shader, combiner, unit );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -266,6 +336,7 @@ public class SkyDensityPlotter
         private final Scaling scaling_;
         private final Shader shader_;
         private final Combiner combiner_;
+        private final SolidAngleUnit unit_;
 
         /**
          * Constructor.
@@ -279,13 +350,15 @@ public class SkyDensityPlotter
          *                    colour map entries
          * @param   shader   colour map
          * @param   combiner  value combination mode for bin calculation
+         * @param   unit     solid angle unit for density combinations
          */
         public SkyDenseStyle( int level, Scaling scaling, Shader shader,
-                              Combiner combiner ) {
+                              Combiner combiner, SolidAngleUnit unit ) {
             level_ = level;
             scaling_ = scaling;
             shader_ = shader;
             combiner_ = combiner;
+            unit_ = unit;
         }
 
         /**
@@ -311,6 +384,7 @@ public class SkyDensityPlotter
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + shader_.hashCode();
             code = 23 * code + combiner_.hashCode();
+            code = 23 * code + unit_.hashCode();
             return code;
         }
 
@@ -321,7 +395,8 @@ public class SkyDensityPlotter
                 return this.level_ == other.level_
                     && this.scaling_.equals( other.scaling_ )
                     && this.shader_.equals( other.shader_ )
-                    && this.combiner_.equals( other.combiner_ );
+                    && this.combiner_.equals( other.combiner_ )
+                    && this.unit_.equals( other.unit_ );
             }
             else {
                 return false;
@@ -439,7 +514,8 @@ public class SkyDensityPlotter
          * @return   bin multiplication factor
          */
         private double getBinFactor( int level ) {
-            double binExtent = Tilings.healpixSqdeg( level );
+            double binExtent = Tilings.healpixSqdeg( level )
+                             / dstyle_.unit_.getExtentInSquareDegrees();
             Combiner.Type ctype = dstyle_.combiner_.getType();
             return ctype.getBinFactor( binExtent );
         }
