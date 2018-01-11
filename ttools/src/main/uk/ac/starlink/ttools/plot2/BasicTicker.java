@@ -26,8 +26,8 @@ public abstract class BasicTicker implements Ticker {
             return new CheckRule( createRawRule( dlo, dhi, approxMajorCount,
                                                  adjust, false ) ) {
                 boolean checkLabel( String label, double value ) {
-                    return Math.abs( Double.parseDouble( label ) - value )
-                         < 1e-10;
+                    double diff = Double.parseDouble( label ) - value;
+                    return diff == 0 || Math.abs( diff / value ) < 1e-10;
                 }
             };
         }
