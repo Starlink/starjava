@@ -85,9 +85,11 @@ public class BinBag {
      *
      * @param   cumulative  true for bins of a cumulative histogram
      * @param   norm  normalisation mode
+     * @param   unit  axis unit scaling
      * @return  sorted iterator over bins
      */
-    public Iterator<Bin> binIterator( boolean cumulative, Normalisation norm ) {
+    public Iterator<Bin> binIterator( boolean cumulative, Normalisation norm,
+                                      Unit unit ) {
 
         /* Avoid some edge cases by returning an empty iterator immediately
          * in case of no bins. */
@@ -125,7 +127,8 @@ public class BinBag {
         }
 
         /* Normalise. */
-        double bw = log_ ? BinMapper.log( binWidth_ ) : binWidth_;
+        double bw = log_ ? BinMapper.log( binWidth_ )
+                         : binWidth_ / unit.getExtent();
         double scale = norm.getScaleFactor( total, max, bw, combiner_.getType(),
                                             cumulative );
         if ( scale != 1.0 ) {

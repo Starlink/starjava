@@ -36,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.ShapeStyle;
 import uk.ac.starlink.ttools.plot2.layer.Stamper;
+import uk.ac.starlink.ttools.plot2.layer.Unit;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.ColumnDataSpec;
@@ -233,6 +234,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         BarStyle.Placement placement = BarStyle.PLACE_ADJACENT;
         boolean cumulative = true;
         Normalisation norm = Normalisation.NONE;
+        Unit unit = Unit.UNIT;
         int thick = 1;
         float[] dash = null;
         BinSizer sizer = BinSizer.createCountBinSizer( 16 );
@@ -240,11 +242,12 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         Combiner combiner = Combiner.SUM;
         HistogramPlotter.HistoStyle style =
             new HistogramPlotter.HistoStyle( color, barForm, placement,
-                                             cumulative, norm, thick, dash,
-                                             sizer, phase, combiner );
+                                             cumulative, norm, unit, thick,
+                                             dash, sizer, phase, combiner );
 
         /* Combine data and style to generate a histogram plot layer. */
-        Plotter plotter = new HistogramPlotter( PlaneDataGeom.X_COORD, false );
+        Plotter plotter =
+            new HistogramPlotter( PlaneDataGeom.X_COORD, false, null );
         return plotter.createLayer( geom, dataSpec, style );
     }
 }

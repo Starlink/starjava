@@ -9,6 +9,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
@@ -28,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
+import uk.ac.starlink.ttools.plot2.layer.Unit;
 import uk.ac.starlink.ttools.plot2.layer.TracePlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
@@ -68,6 +70,7 @@ public class TimePlotType implements PlotType {
                                StyleKeys.ERROR_SHAPE_1D, false );
         ShapeForm[] modeForms = new ShapeForm[] { MarkForm.SINGLE };
         List<Plotter> plotters = new ArrayList<Plotter>();
+        ConfigKey<Unit> unitKey = TimeUnit.createHistogramConfigKey();
         plotters.addAll( Arrays
                         .asList( ShapePlotter
                                 .createShapePlotters( modeForms,
@@ -78,11 +81,12 @@ public class TimePlotType implements PlotType {
             new FillPlotter( false ),
             new TracePlotter( false ),
             new GridPlotter( true ),
-            new HistogramPlotter( TimeDataGeom.T_COORD, true ),
-            new FixedKernelDensityPlotter( TimeDataGeom.T_COORD, true ),
-            new KnnKernelDensityPlotter( TimeDataGeom.T_COORD, true ),
+            new HistogramPlotter( TimeDataGeom.T_COORD, true, unitKey ),
+            new FixedKernelDensityPlotter( TimeDataGeom.T_COORD, true,
+                                           unitKey ),
+            new KnnKernelDensityPlotter( TimeDataGeom.T_COORD, true, unitKey ),
             new DensogramPlotter( TimeDataGeom.T_COORD, true ),
-            new Stats1Plotter( TimeDataGeom.T_COORD, true ),
+            new Stats1Plotter( TimeDataGeom.T_COORD, true, unitKey ),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),

@@ -81,7 +81,8 @@ public class DensogramPlotter
      * @param   hasWeight   true to permit histogram weighting
      */
     public DensogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
-        super( xCoord, hasWeight, "Densogram", ResourceIcon.FORM_DENSOGRAM );
+        super( xCoord, hasWeight, (ConfigKey<Unit>) null,
+               "Densogram", ResourceIcon.FORM_DENSOGRAM );
     }
 
     public String getPlotterDescription() {
@@ -111,7 +112,6 @@ public class DensogramPlotter
         list.add( StyleKeys.COLOR );
         list.add( SMOOTHSIZER_KEY );
         list.add( KERNEL_KEY );
-        list.add( COMBINER_KEY );
         list.addAll( Arrays.asList( RAMP_KEYSET.getKeys() ) );
         list.add( StyleKeys.CUMULATIVE );
         list.add( EXTENT_KEY );
@@ -124,7 +124,7 @@ public class DensogramPlotter
         RampKeySet.Ramp ramp = RAMP_KEYSET.createValue( config );
         BinSizer sizer = config.get( SMOOTHSIZER_KEY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
-        Combiner combiner = config.get( COMBINER_KEY );
+        Combiner combiner = Combiner.SUM;
         boolean cumul = config.get( StyleKeys.CUMULATIVE );
         int extent = config.get( EXTENT_KEY );
         double position = config.get( POSITION_KEY );
@@ -145,7 +145,8 @@ public class DensogramPlotter
                                         ! combiner.getType().isExtensive() );
         double[] bins = getDataBins( binArray, xAxis, kernel,
                                      Normalisation.NONE,
-                                     style.combiner_.getType(), style.cumul_ );
+                                     style.combiner_.getType(), Unit.UNIT,
+                                     style.cumul_ );
 
         /* Work out the Y axis bounds. */
         Rectangle bounds = surface.getPlotBounds();

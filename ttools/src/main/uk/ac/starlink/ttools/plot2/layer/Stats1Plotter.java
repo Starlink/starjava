@@ -57,6 +57,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
+    private final ConfigKey<Unit> unitKey_;
     private final SliceDataGeom fitDataGeom_;
     private final CoordGroup fitCoordGrp_;
     private final int icX_;
@@ -106,9 +107,13 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
      *
      * @param  xCoord   X axis coordinate
      * @param  hasWeight  true if weights may be used
+     * @param   unitKey  config key to select X axis physical units,
+     *                   or null if no unit selection required
      */
-    public Stats1Plotter( FloatingCoord xCoord, boolean hasWeight ) {
+    public Stats1Plotter( FloatingCoord xCoord, boolean hasWeight,
+                          ConfigKey<Unit> unitKey ) {
         xCoord_ = xCoord;
+        unitKey_ = unitKey;
         if ( hasWeight ) {
             weightCoord_ = FloatingCoord.WEIGHT_COORD;
             fitCoordGrp_ =
@@ -178,6 +183,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         list.add( SHOWMEAN_KEY );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         list.add( StyleKeys.ANTIALIAS );
+        if ( unitKey_ != null ) {
+            list.add( unitKey_ );
+        }
         list.add( NORMALISE_KEY );
         list.add( BINSIZER_KEY );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -190,9 +198,10 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                                                 BasicStroke.JOIN_ROUND );
         boolean antialias = config.get( StyleKeys.ANTIALIAS );
         Normalisation norm = config.get( NORMALISE_KEY );
+        Unit unit = unitKey_ == null ? Unit.UNIT : config.get( unitKey_ );
         BinSizer sizer = config.get( BINSIZER_KEY );
         return new StatsStyle( color, stroke, antialias, showmean,
-                               norm, sizer );
+                               norm, unit, sizer );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -226,6 +235,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
         final boolean showmean_;
         final Normalisation norm_;
+        final Unit unit_;
         final BinSizer sizer_;
 
         /**
@@ -236,15 +246,17 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * @param  antialias  true to draw line antialiased
          * @param  showmean   true to display a line showing the mean
          * @param  norm  normalisation
+         * @param  unit   axis scaling unit
          * @param  sizer   histogram equivalent bin sizer,
          *                 may be used in conjunction with norm
          */
         public StatsStyle( Color color, Stroke stroke, boolean antialias,
-                           boolean showmean, Normalisation norm,
+                           boolean showmean, Normalisation norm, Unit unit,
                            BinSizer sizer ) {
             super( color, stroke, antialias );
             showmean_ = showmean;
             norm_ = norm;
+            unit_ = unit;
             sizer_ = sizer;
         }
 
@@ -253,6 +265,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             int code = super.hashCode();
             code = 23 * code + ( showmean_ ? 11 : 17 );
             code = 23 * code + PlotUtil.hashCode( norm_ );
+            code = 23 * code + unit_.hashCode();
             code = 23 * code + PlotUtil.hashCode( sizer_ );
             return code;
         }
@@ -264,6 +277,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 return super.equals( other )
                     && this.showmean_ == other.showmean_
                     && PlotUtil.equals( this.norm_, other.norm_ )
+                    && this.unit_.equals( other.unit_ )
                     && PlotUtil.equals( this.sizer_, other.sizer_ );
             }
             else {
@@ -453,9 +467,10 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             double[] xlims = surface.getDataLimits()[ 0 ];
             Rounding xround =
                 Rounding.getRounding( surface.getTimeFlags()[ 0 ] );
-            double bw = style.sizer_.getWidth( xlog, xlims[ 0 ], xlims[ 1 ],
-                                               xround );
-            double binWidth = xlog ? log( bw ) : bw;
+            double bw = style.sizer_
+                       .getWidth( xlog, xlims[ 0 ], xlims[ 1 ], xround );
+            double binWidth = xlog ? log( bw )
+                                   : bw / style.unit_.getExtent();
             double c = 1.0 / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
             double sum = sum_;
             double max = c * sum * binWidth;

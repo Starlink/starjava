@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -35,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
 import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
 import uk.ac.starlink.ttools.plot2.layer.TracePlotter;
+import uk.ac.starlink.ttools.plot2.layer.Unit;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -125,6 +127,7 @@ public class PlanePlotType implements PlotType {
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( shapePlotters ) );
+        ConfigKey<Unit> unitKey = null;
         list.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
             new LinearFitPlotter( true ),
@@ -133,11 +136,12 @@ public class PlanePlotType implements PlotType {
             new GridPlotter( true ),
             new FillPlotter( true ),
             new TracePlotter( true ),
-            new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
-            new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
-            new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
+            new HistogramPlotter( PlaneDataGeom.X_COORD, true, unitKey ),
+            new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
+                                           unitKey ),
+            new KnnKernelDensityPlotter( PlaneDataGeom.X_COORD, true, unitKey ),
             new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
-            new Stats1Plotter( PlaneDataGeom.X_COORD, true ),
+            new Stats1Plotter( PlaneDataGeom.X_COORD, true, unitKey ),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );

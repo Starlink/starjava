@@ -46,6 +46,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
 
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
+    private final ConfigKey<Combiner> combinerKey_;
     private final String name_;
     private final Icon icon_;
     private final SliceDataGeom pixoDataGeom_;
@@ -100,19 +101,18 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
        .setOptionUsage()
        .addOptionsXml();
 
-    /** Config key for bin aggregation mode. */
-    public static final ConfigKey<Combiner> COMBINER_KEY =
-        HistogramPlotter.COMBINER_KEY;
-
     /**
      * Constructor.
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   unitKey  config key to select X axis physical units,
+     *                   or null if no unit selection required
      * @param   name  plotter name
      * @param   icon  plotter icon
      */
     protected Pixel1dPlotter( FloatingCoord xCoord, boolean hasWeight,
+                              ConfigKey<Unit> unitKey,
                               String name, Icon icon ) {
         xCoord_ = xCoord;
         name_ = name;
@@ -130,6 +130,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
               .createPartialCoordGroup( new Coord[] { xCoord },
                                         new boolean[] { true } );
         }
+        combinerKey_ = createCombinerKey( weightCoord_, unitKey );
         pixoDataGeom_ =
             new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
 
@@ -175,7 +176,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 "coordinate.",
                 "In this case you can choose how these weights are aggregated",
                 "in each pixel bin using the",
-                "<code>" + COMBINER_KEY.getMeta().getShortName() + "</code>",
+                "<code>" + combinerKey_.getMeta().getShortName() + "</code>",
                 "parameter.",
                 "The result is something like a smoothed version of the",
                 "corresponding weighted histogram.",
@@ -254,6 +255,15 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      */
     protected abstract ReportMap getPixel1dReport( Pixel1dPlan plan, S style,
                                                    boolean xLog );
+
+    /**
+     * Returns the combination mode configuration key for this plotter.
+     *
+     * @return  combiner key
+     */
+    public ConfigKey<Combiner> getCombinerKey() {
+        return combinerKey_;
+    }
 
     /**
      * The supplied <code>geom</code> is ignored.
@@ -396,12 +406,14 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * @param   kernel   smoothing kernel
      * @param   norm   normalisation mode
      * @param   ctype  combiner type used to populate bins
+     * @param   unit    unit for scaling X axis bin width
      * @param   cumul   true for cumulative representation
      * @return  output data bin values
      */
     public static double[] getDataBins( BinArray binArray, Axis xAxis,
                                         Kernel1d kernel, Normalisation norm,
-                                        Combiner.Type ctype, boolean cumul ) {
+                                        Combiner.Type ctype, Unit unit,
+                                        boolean cumul ) {
         double[] bins = binArray.getBins();
         int nb = bins.length;
 
@@ -432,7 +444,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         /* Normalise.  This probably doesn't make much sense for intensive
          * combiners like MEAN. */
         double total = binArray.loBin_ + binArray.midBin_ + binArray.hiBin_;
-        double binWidth = getPixelDataWidth( xAxis );
+        double binWidth = getPixelDataWidth( xAxis, unit );
         double scale =
             norm.getScaleFactor( total, max, binWidth, ctype, cumul );
         if ( scale != 1.0 ) {
@@ -527,15 +539,77 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * for logarithmic axis it's in log(data units).
      *
      * @param  axis  axis
+     * @param  unit  axis unit scaling factor
      * @return   fixed width of pixel in data-like coordinates
      */
-    private static double getPixelDataWidth( Axis axis ) {
+    private static double getPixelDataWidth( Axis axis, Unit unit ) {
         int[] glimits = axis.getGraphicsLimits();
         double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
-        double d1 = axis.graphicsToData( gmid - 0.5 );
-        double d2 = axis.graphicsToData( gmid + 0.5 );
+        double extent = unit.getExtent();
+        double d1 = axis.graphicsToData( gmid - 0.5 ) / extent;
+        double d2 = axis.graphicsToData( gmid + 0.5 ) / extent;
         return Math.abs( axis.isLinear() ? d2 - d1
                                          : Math.log( d2 ) - Math.log( d1 ) );
+    }
+
+    /**
+     * Creates a config key for selecting combination modes for a
+     * KDE-like plotter.
+     *
+     * @param  weightCoord   weight coordinate, or null for no weighting
+     * @param  unitKey     X-axis unit scaling key, or null for
+     *                     no unit selection
+     * @return   new config key
+     */
+    private static ConfigKey<Combiner>
+            createCombinerKey( FloatingCoord weightCoord,
+                               ConfigKey<Unit> unitKey ) {
+        ConfigMeta meta = new ConfigMeta( "combine", "Combine" );
+        boolean hasUnit = unitKey != null;
+        meta.setShortDescription( "Weight combination mode" );
+        StringBuffer dbuf = new StringBuffer();
+        dbuf.append( PlotUtil.concatLines( new String[] {
+            "<p>Defines how values contributing to the same bin",
+            "are combined together to produce the value assigned to that bin,",
+            "and hence its height.",
+            "The bins in this case are 1-pixel wide, so lack much physical",
+            "significance.",
+            "This means that while some combination modes, such as",
+            "<code>" + Combiner.WEIGHTED_DENSITY + "</code> and",
+            "<code>" + Combiner.MEAN + "</code> make sense,",
+            "others such as",
+            "<code>" + Combiner.SUM + "</code> do not.",
+            "</p>",
+            "<p>The combined values are those given by the",
+            "<code>" + weightCoord.getInput().getMeta().getShortName()
+                     + "</code> coordinate,",
+            "but if no weight is supplied,",
+            "a weighting of unity is assumed.",
+            "</p>",
+        } ) );
+        if ( hasUnit ) {
+            dbuf.append( PlotUtil.concatLines( new String[] {
+                "<p>For density-like values",
+                "(<code>" + Combiner.DENSITY + "</code>,",
+                "<code>" + Combiner.WEIGHTED_DENSITY + "</code>)",
+                "the scaling is additionally influenced by the",
+                "<code>" + unitKey.getMeta().getShortName() + "</code>",
+                "parameter.",
+                "</p>",
+            } ) );
+        }
+        meta.setXmlDescription( dbuf.toString() );
+        OptionConfigKey<Combiner> key =
+                new OptionConfigKey<Combiner>( meta, Combiner.class,
+                                               Combiner.getKnownCombiners(),
+                                               Combiner.WEIGHTED_DENSITY ) {
+            public String getXmlDescription( Combiner combiner ) {
+                return combiner.getDescription();
+            }
+        };
+        key.setOptionUsage();
+        key.addOptionsXml();
+        return key;
     }
 
     /**

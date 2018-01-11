@@ -21,22 +21,24 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   unitKey  config key to select X axis physical units,
+     *                   or null if no unit selection required
      */
-    public FixedKernelDensityPlotter( FloatingCoord xCoord,
-                                      boolean hasWeight ) {
-        super( xCoord, hasWeight, "KDE", ResourceIcon.FORM_KDE );
+    public FixedKernelDensityPlotter( FloatingCoord xCoord, boolean hasWeight,
+                                      ConfigKey<Unit> unitKey ) {
+        super( xCoord, hasWeight, unitKey, "KDE", ResourceIcon.FORM_KDE );
     }
 
     protected ConfigKey[] getKernelConfigKeys() {
         return new ConfigKey[] {
             SMOOTHSIZER_KEY,
-            COMBINER_KEY,
+            getCombinerKey(),
         };
     }
 
     protected KernelFigure createKernelFigure( ConfigMap config ) {
         BinSizer sizer = config.get( SMOOTHSIZER_KEY );
-        Combiner combiner = config.get( COMBINER_KEY );
+        Combiner combiner = config.get( getCombinerKey() );
         boolean isLikeMean = ! combiner.getType().isExtensive();
         return new FixedKernelFigure( sizer, isLikeMean );
     }

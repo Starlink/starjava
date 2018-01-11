@@ -109,7 +109,7 @@ public abstract class Normalisation {
      * normalisation for a given data set.
      *
      * <p>The <code>binWidth</code> should at least make sense in terms
-     * of screen area.  For linear X axis, it can be in data units,
+     * of screen area.  For linear X axis, it should be in data units,
      * but for logarithmic X axis it may have to be in log(data units).
      * The <code>binWidth</code> is only used by AREA and UNIT modes.
      *

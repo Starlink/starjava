@@ -96,10 +96,12 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   unitKey  config key to select X axis physical units,
+     *                   or null if no unit selection required
      */
-    public KnnKernelDensityPlotter( FloatingCoord xCoord,
-                                    boolean hasWeight ) {
-        super( xCoord, hasWeight, "Knn", ResourceIcon.FORM_KNN );
+    public KnnKernelDensityPlotter( FloatingCoord xCoord, boolean hasWeight,
+                                    ConfigKey<Unit> unitKey ) {
+        super( xCoord, hasWeight, unitKey, "Knn", ResourceIcon.FORM_KNN );
     }
 
     public String getPlotterDescription() {
@@ -152,7 +154,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
                                        "Smoothing min/max are "
                                      + "the wrong way round" );
         }
-        assert config.get( COMBINER_KEY ).getType().isExtensive();
+        assert config.get( getCombinerKey() ).getType().isExtensive();
         return new KnnKernelFigure( k, isSymmetric, minSizer, maxSizer );
     }
 

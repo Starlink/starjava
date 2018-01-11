@@ -55,6 +55,8 @@ public abstract class AbstractKernelDensityPlotter
     public static final ConfigKey<Normalisation> NORMALISE_KEY =
         StyleKeys.NORMALISE;
 
+    private final ConfigKey<Unit> unitKey_;
+
     private static final int GUESS_PLOT_WIDTH = 300;
 
     /**
@@ -62,13 +64,17 @@ public abstract class AbstractKernelDensityPlotter
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   unitKey  config key to select X axis physical units,
+     *                   or null if no unit selection required
      * @param   name  plotter name
      * @param   icon  plotter icon
      */
     protected AbstractKernelDensityPlotter( FloatingCoord xCoord,
                                             boolean hasWeight,
+                                            ConfigKey<Unit> unitKey,
                                             String name, Icon icon ) {
-        super( xCoord, hasWeight, name, icon );
+        super( xCoord, hasWeight, unitKey, name, icon );
+        unitKey_ = unitKey;
     }
 
     /**
@@ -94,6 +100,9 @@ public abstract class AbstractKernelDensityPlotter
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
         list.addAll( Arrays.asList( getKernelConfigKeys() ) );
+        if ( unitKey_ != null ) {
+            list.add( unitKey_ );
+        }
         list.add( KERNEL_KEY );
         list.add( StyleKeys.CUMULATIVE );
         list.add( NORMALISE_KEY );
@@ -109,7 +118,8 @@ public abstract class AbstractKernelDensityPlotter
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( NORMALISE_KEY );
         FillMode fill = config.get( StyleKeys.FILL );
-        Combiner combiner = config.get( COMBINER_KEY );
+        Combiner combiner = config.get( getCombinerKey() );
+        Unit unit = unitKey_ == null ? Unit.UNIT : config.get( unitKey_ );
         KernelFigure kernelFigure = createKernelFigure( config );
         Stroke stroke = fill.hasLine()
                       ? new BasicStroke( config.get( THICK_KEY ),
@@ -117,7 +127,7 @@ public abstract class AbstractKernelDensityPlotter
                                          BasicStroke.JOIN_ROUND )
                       : null;
         return new KDenseStyle( color, fill, stroke, kernelShape, kernelFigure,
-                                combiner, isCumulative, norm );
+                                combiner, unit, isCumulative, norm );
     }
 
     protected LayerOpt getLayerOpt( KDenseStyle style ) {
@@ -370,7 +380,8 @@ public abstract class AbstractKernelDensityPlotter
     private static double[] getDataBins( BinArray binArray, Axis xAxis,
                                          Kernel1d kernel, KDenseStyle style ) {
         return getDataBins( binArray, xAxis, kernel, style.norm_,
-                            style.combiner_.getType(), style.isCumulative() );
+                            style.combiner_.getType(), style.unit_,
+                            style.isCumulative() );
     }
 
     /**
@@ -383,6 +394,7 @@ public abstract class AbstractKernelDensityPlotter
         private final Kernel1dShape kernelShape_;
         private final KernelFigure kernelFigure_;
         private final Combiner combiner_;
+        private final Unit unit_;
         private final boolean isCumulative_;
         private final Normalisation norm_;
         private static final int[] ICON_DATA = { 4, 6, 8, 9, 9, 7, 5, 3, };
@@ -396,13 +408,14 @@ public abstract class AbstractKernelDensityPlotter
          * @param  kernelShape  smoothing kernel shape
          * @param  kernelFigure  kernel configuration
          * @param  combiner   bin aggregation mode
+         * @param  unit    axis unit scaling
          * @param  isCumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
         public KDenseStyle( Color color, FillMode fill, Stroke stroke,
                             Kernel1dShape kernelShape,
                             KernelFigure kernelFigure,
-                            Combiner combiner,
+                            Combiner combiner, Unit unit,
                             boolean isCumulative, Normalisation norm ) {
             color_ = color;
             fill_ = fill;
@@ -410,6 +423,7 @@ public abstract class AbstractKernelDensityPlotter
             kernelShape_ = kernelShape;
             kernelFigure_ = kernelFigure;
             combiner_ = combiner;
+            unit_ = unit;
             isCumulative_ = isCumulative;
             norm_ = norm;
         }
@@ -456,6 +470,7 @@ public abstract class AbstractKernelDensityPlotter
             code = 23 * code + kernelShape_.hashCode();
             code = 23 * code + kernelFigure_.hashCode();
             code = 23 * code + combiner_.hashCode();
+            code = 23 * code + unit_.hashCode();
             code = 23 * code + ( isCumulative_ ? 11 : 13 );
             code = 23 * code + PlotUtil.hashCode( norm_ );
             return code;
@@ -471,6 +486,7 @@ public abstract class AbstractKernelDensityPlotter
                     && this.kernelShape_.equals( other.kernelShape_ )
                     && this.kernelFigure_.equals( other.kernelFigure_ )
                     && this.combiner_.equals( other.combiner_ )
+                    && this.unit_.equals( other.unit_ )
                     && this.isCumulative_ == other.isCumulative_
                     && PlotUtil.equals( this.norm_, other.norm_ );
             }

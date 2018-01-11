@@ -36,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
@@ -52,6 +53,7 @@ import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
+import uk.ac.starlink.ttools.plot2.layer.Unit;
 
 /**
  * Layer plot window for histograms.
@@ -159,6 +161,7 @@ public class HistogramPlotWindow
      * @return   table representing the current histogram
      */
     private StarTable getBinDataTable( int iz ) {
+        Unit unit = Unit.UNIT;
         PlotPanel plotPanel = getPlotPanel();
         if ( iz >= plotPanel.getZoneCount() ) {
             return null;
@@ -321,7 +324,7 @@ public class HistogramPlotWindow
             final Number[] data = new Number[ nrow ];
             final Class clazz = isInt ? Integer.class : Double.class;
             for ( Iterator<BinBag.Bin> binIt =
-                      binBag.binIterator( isCumulative, norm );
+                      binBag.binIterator( isCumulative, norm, unit );
                   binIt.hasNext(); ) {
                 BinBag.Bin bin = binIt.next();
                 Double xmin = new Double( bin.getXMin() );
@@ -454,12 +457,13 @@ public class HistogramPlotWindow
      */
     private static Plotter[] createHistogramPlotters() {
         FloatingCoord xCoord = PlaneDataGeom.X_COORD;
+        ConfigKey<Unit> unitKey = null;
         return new Plotter[] {
-            new HistogramPlotter( xCoord, true ),
-            new FixedKernelDensityPlotter( xCoord, true ),
-            new KnnKernelDensityPlotter( xCoord, true ),
+            new HistogramPlotter( xCoord, true, null ),
+            new FixedKernelDensityPlotter( xCoord, true, null ),
+            new KnnKernelDensityPlotter( xCoord, true, null ),
             new DensogramPlotter( xCoord, true ),
-            new Stats1Plotter( xCoord, true ),
+            new Stats1Plotter( xCoord, true, null ),
             FunctionPlotter.PLANE,
         };
     }
