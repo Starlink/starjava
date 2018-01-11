@@ -13,6 +13,10 @@ import java.util.Set;
  */
 public enum AngleUnit {
 
+    /** Radians. */
+    RADIAN( "radian", "radians", Math.PI / 180.,
+            new String[] { "rad", "radian", "radians", } ),
+
     /** Degrees. */
     DEGREE( "degree", "degrees", 1.0,
             new String[] { "deg", } ),
