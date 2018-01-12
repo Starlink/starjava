@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -118,37 +119,76 @@ public class HealpixPlotter
             } )
         , false );
 
-    private static final AuxScale SCALE = AuxScale.COLOR;
-    private static final String DEGRADE_NAME = "degrade";
-    private static final String COMBINER_NAME = "combiner";
-    private static final ConfigKey<Integer> DEGRADE_KEY =
-        IntegerConfigKey.createSpinnerKey(
-            new ConfigMeta( "degrade", "Degrade" )
-           .setShortDescription( "HEALPix level degradation" )
-           .setXmlDescription( new String[] {
-                "<p>Allows the HEALPix grid to be drawn at a less detailed",
-                "level than the level at which the input data are supplied.",
-                "A value of zero (the default) means that the HEALPix tiles",
-                "are painted with the same resolution as the input data,",
-                "but a higher value will degrade resolution of the plot tiles;",
-                "each plotted tile will correspond to",
-                "4^<code>" + DEGRADE_NAME + "</code> input tiles.",
-                "The way that values are combined within each painted tile",
-                "is controlled by the",
-                "<code>" + COMBINER_NAME + "</code> value.",
-                "</p>"
-            } )
-        , 0, 0, MAX_LEVEL );
+
+    /** Config key for scaling angle unit. */
+    public static final ConfigKey<SolidAngleUnit> ANGLE_KEY =
+        SkyDensityPlotter.ANGLE_KEY;
+
+    /** Config key for HEALPix level degradation. */
+    public static final ConfigKey<Integer> DEGRADE_KEY;
+
+    /** Config key for degrade combination mode. */
+    public static final ConfigKey<Combiner> COMBINER_KEY;
+
+    /** Config key for transparency. */
     private static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
-    private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
+
+    /** Config key for view sky system. */
     private static final ConfigKey<SkySys> VIEWSYS_KEY =
         SkySurfaceFactory.VIEWSYS_KEY;
+
+    private static final AuxScale SCALE = AuxScale.COLOR;
+
+    static {
+        ConfigMeta degradeMeta = new ConfigMeta( "degrade", "Degrade" );
+        ConfigMeta combineMeta = new ConfigMeta( "combine", "Combine" );
+        degradeMeta.setShortDescription( "HEALPix level degradation" );
+        degradeMeta.setXmlDescription( new String[] {
+            "<p>Allows the HEALPix grid to be drawn at a less detailed",
+            "level than the level at which the input data are supplied.",
+            "A value of zero (the default) means that the HEALPix tiles",
+            "are painted with the same resolution as the input data,",
+            "but a higher value will degrade resolution of the plot tiles;",
+            "each plotted tile will correspond to",
+            "4^<code>" + degradeMeta.getShortName() + "</code> input tiles.",
+            "The way that values are combined within each painted tile",
+            "is controlled by the",
+            "<code>" + combineMeta.getShortName() + "</code> value.",
+            "</p>"
+        } );
+        combineMeta.setShortDescription( "Tile degrade combination mode" );
+        combineMeta.setXmlDescription( new String[] {
+            "<p>Defines how values degraded to a lower HEALPix level",
+            "are combined together to produce the value assigned to the",
+            "larger tile, and hence its colour.",
+            "This is mostly useful in the case that",
+            "<code>" + degradeMeta.getShortName() + "</code>&gt;0.",
+            "</p>",
+            "<p>For density-like values",
+            "(<code>" + Combiner.DENSITY + "</code>,",
+            "<code>" + Combiner.WEIGHTED_DENSITY + "</code>)",
+            "the scaling is additionally influenced by the",
+            "<code>" + ANGLE_KEY.getMeta().getShortName() + "</code>",
+            "parameter.",
+            "</p>",
+        } );
+        DEGRADE_KEY =
+            IntegerConfigKey.createSpinnerKey( degradeMeta, 0, 0, MAX_LEVEL );
+        COMBINER_KEY =
+                new OptionConfigKey<Combiner>( combineMeta, Combiner.class,
+                                               Combiner.getKnownCombiners(),
+                                               Combiner.MEAN ) {
+            public String getXmlDescription( Combiner combiner ) {
+                return combiner.getDescription();
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
+    }
+
+    private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
-
-    /** ConfigKey for degrading combiner. */
-    public static final ConfigKey<Combiner> COMBINER_KEY = createCombinerKey();
 
     /**
      * Constructor.
@@ -197,6 +237,7 @@ public class HealpixPlotter
         keyList.add( VIEWSYS_KEY );
         keyList.add( DEGRADE_KEY );
         keyList.add( COMBINER_KEY );
+        keyList.add( ANGLE_KEY );
         if ( transparent_ ) {
             keyList.add( TRANSPARENCY_KEY );
         }
@@ -213,12 +254,13 @@ public class HealpixPlotter
         SkySys viewSys = config.get( VIEWSYS_KEY );
         int degrade = config.get( DEGRADE_KEY );
         Combiner combiner = config.get( COMBINER_KEY );
+        SolidAngleUnit angle = config.get( ANGLE_KEY );
         Rotation rotation = Rotation.createRotation( dataSys, viewSys );
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
         return new HealpixStyle( dataLevel, degrade, rotation, scaling, shader,
-                                 combiner );
+                                 combiner, angle );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -312,36 +354,6 @@ public class HealpixPlotter
     }
 
     /**
-     * Constructs the config key for configuring the Combiner object
-     * used when degrading pixels.
-     *
-     * @return   combiner key
-     */
-    private static ConfigKey<Combiner> createCombinerKey() {
-        ConfigMeta meta = new ConfigMeta( COMBINER_NAME, "Combine");
-        meta.setShortDescription( "Pixel degrade combination mode" );
-        meta.setXmlDescription( new String[] {
-            "<p>Defines how pixel values will be combined if they are",
-            "degraded to a lower resolution than the data HEALPix level.",
-            "This only has any effect if",
-            "<code>" + DEGRADE_KEY.getMeta().getShortName() + "</code>&gt;0.",
-            "</p>",
-        } );
-        Combiner[] options = new Combiner[] {
-            Combiner.SUM,
-            Combiner.MEAN,
-            Combiner.MIN,
-            Combiner.MAX,
-        };
-        return new OptionConfigKey<Combiner>( meta, Combiner.class, options,
-                                              Combiner.SUM ) {
-            public String getXmlDescription( Combiner combiner ) {
-                return combiner.getDescription();
-            }
-        };
-    }
-
-    /**
      * Style for configuring the HEALPix plot.
      */
     public static class HealpixStyle implements Style {
@@ -351,6 +363,7 @@ public class HealpixPlotter
         private final Scaling scaling_;
         private final Shader shader_;
         private final Combiner combiner_;
+        private final SolidAngleUnit angle_;
 
         /**
          * Constructor.
@@ -364,16 +377,18 @@ public class HealpixPlotter
          *                    colour map entries
          * @param   shader   colour map
          * @param   combiner  combiner, only relevant if degrade is non-zero
+         * @param   angle      solid angle configuration for scaling
          */
         public HealpixStyle( int dataLevel, int degrade, Rotation rotation,
                              Scaling scaling, Shader shader,
-                             Combiner combiner ) {
+                             Combiner combiner, SolidAngleUnit angle ) {
             dataLevel_ = dataLevel;
             degrade_ = degrade;
             rotation_ = rotation;
             scaling_ = scaling;
             shader_ = shader;
             combiner_ = combiner;
+            angle_ = angle;
         }
 
         /**
@@ -400,7 +415,8 @@ public class HealpixPlotter
             code = 23 * code + rotation_.hashCode();
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + shader_.hashCode();
-            code = 23 * code + ( degrade_ == 0 ? 0 : combiner_.hashCode() );
+            code = 23 * code + combiner_.hashCode();
+            code = 23 * code + angle_.hashCode();
             return code;
         }
 
@@ -413,8 +429,8 @@ public class HealpixPlotter
                     && this.rotation_.equals( other.rotation_ )
                     && this.scaling_.equals( other.scaling_ )
                     && this.shader_.equals( other.shader_ )
-                    && ( degrade_ == 0 ||
-                         this.combiner_.equals( other.combiner_ ) );
+                    && this.combiner_.equals( other.combiner_ )
+                    && this.angle_.equals( other.angle_ );
             }
             else {
                 return false;
@@ -432,8 +448,6 @@ public class HealpixPlotter
         private final int dataLevel_;
         private final int viewLevel_;
         private final IndexReader indexReader_;
-        private final double binFactor_;
-        private final Combiner workCombiner_;
 
         /**
          * Constructor.
@@ -451,31 +465,8 @@ public class HealpixPlotter
             hstyle_ = hstyle;
             dataLevel_ = dataLevel;
             indexReader_ = indexReader;
-            int degrade = hstyle.degrade_;
-            viewLevel_ = Math.max( 0, dataLevel_ - degrade );
-            assert degrade >= 0;
-
-            /* Assign combiners a bit differently from usual to implement
-             * HEALPix level degrade.
-             * The submission count is implicitly that of the number of
-             * HEALPix subpixels corresponding to the degrade, rather than
-             * just the number of data values actually submitted.
-             * This approach wouldn't necessarily work for all combination
-             * types, so they are restricted here. */
-            Combiner combiner = hstyle_.combiner_;
-            if ( ! Arrays.asList( new Combiner[] {
-                Combiner.MEAN, Combiner.SUM, Combiner.MIN, Combiner.MAX,
-            } ).contains( combiner ) ) {
-                logger_.warning( "Unexpected combiner: " + combiner );
-            }
-            if ( Combiner.MEAN.equals( combiner ) ) {
-                workCombiner_ = Combiner.SUM;
-                binFactor_ = 1.0 / ( 1L << 2 * degrade );
-            }
-            else {
-                workCombiner_ = combiner;
-                binFactor_ = 1.0;
-            }
+            viewLevel_ = Math.max( 0, dataLevel_ - hstyle_.degrade_ );
+            assert hstyle.degrade_ >= 0;
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -549,9 +540,13 @@ public class HealpixPlotter
          * @return  tile renderer
          */
         private SkyTileRenderer createTileRenderer( Surface surf ) {
+            double binExtent = Tilings.healpixSqdeg( viewLevel_ )
+                             / hstyle_.angle_.getExtentInSquareDegrees();
+            Combiner.Type ctype = hstyle_.combiner_.getType();
+            double binFactor = ctype.getBinFactor( binExtent );
             return SkyTileRenderer
                   .createRenderer( (SkySurface) surf, hstyle_.rotation_,
-                                   viewLevel_, binFactor_ );
+                                   viewLevel_, binFactor );
         }
 
         /** 
@@ -590,12 +585,13 @@ public class HealpixPlotter
             assert degrade >= 0;
             int shift = degrade * 2;
             long nbin = 12 * ( 1L << ( 2 * viewLevel_ ) );
+            Combiner combiner = hstyle_.combiner_;
             BinList binList = null;
             if ( nbin < 1e6 ) {
-                binList = workCombiner_.createArrayBinList( (int) nbin );
+                binList = combiner.createArrayBinList( (int) nbin );
             }
             if ( binList == null ) {
-                binList = workCombiner_.createHashBinList( nbin );
+                binList = combiner.createHashBinList( nbin );
             }
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             while ( tseq.next() ) {
