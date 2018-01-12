@@ -39,6 +39,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -63,6 +64,10 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     private final boolean transparent_;
     private final boolean reportAuxKeys_;
 
+    /** Weighting coordinate. */
+    private static final FloatingCoord WEIGHT_COORD =
+        FloatingCoord.WEIGHT_COORD;
+
     /** ReportKey for actual X bin extent. */
     public static final ReportKey<Double> XBINWIDTH_KEY =
         createBinWidthReportKey( 'x' );
@@ -85,10 +90,30 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     /** Config key for Y bin phase. */
     public static final ConfigKey<Double> YPHASE_KEY = createPhaseKey( 'y' );
 
+    /** Config key for combination mode. */
+    public static final ConfigKey<Combiner> COMBINER_KEY =
+        new OptionConfigKey<Combiner>(
+            new ConfigMeta( "combine", "Combine" )
+           .setShortDescription( "Value combination mode" )
+           .setXmlDescription( new String[] {
+               "<p>Defines how values contributing to the same grid cell",
+               "are combined together to produce the value",
+               "assigned to that cell, and hence its colour.",
+               "The combined values are the weights, but if the",
+               "<code>" + WEIGHT_COORD.getInput().getMeta().getShortName()
+                        + "</code> coordinate",
+               "is left blank, a weighting of unity is assumed.",
+               "</p>",
+            } )
+        , Combiner.class, Combiner.getKnownCombiners(), Combiner.MEAN ) {
+        public String getXmlDescription( Combiner combiner ) {
+            return combiner.getDescription();
+        }
+    }.setOptionUsage()
+     .addOptionsXml();
+
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
-    private static final FloatingCoord WEIGHT_COORD =
-        FloatingCoord.WEIGHT_COORD;
     public static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
     private static final CoordGroup COORD_GROUP =
@@ -163,7 +188,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
         keyList.add( XBINSIZER_KEY );
         keyList.add( YBINSIZER_KEY );
-        keyList.add( StyleKeys.COMBINER );
+        keyList.add( COMBINER_KEY );
         if ( reportAuxKeys_ ) {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
@@ -180,7 +205,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         BinSizer ySizer = config.get( YBINSIZER_KEY );
         double xPhase = config.get( XPHASE_KEY ).doubleValue();
         double yPhase = config.get( YPHASE_KEY ).doubleValue();
-        Combiner combiner = config.get( StyleKeys.COMBINER );
+        Combiner combiner = config.get( COMBINER_KEY );
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();

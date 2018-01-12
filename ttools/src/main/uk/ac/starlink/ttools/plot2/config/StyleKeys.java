@@ -25,7 +25,6 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
-import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
@@ -198,32 +197,6 @@ public class StyleKeys {
            .createColorMeta( "labelcolor", "Label Color",
                              "axis labels and other plot annotations" )
             , ColorConfigKey.COLORNAME_BLACK, false );
-
-    /** Config key for density map combination. */
-    public static final ConfigKey<Combiner> COMBINER =
-        new OptionConfigKey<Combiner>(
-            new ConfigMeta( "combine", "Combine" )
-           .setShortDescription( "Value combination mode" )
-           .setXmlDescription( new String[] {
-                "<p>Defines how values contributing to the same",
-                "density map bin are combined together to produce",
-                "the value assigned to that bin (and hence its colour).",
-                "</p>",
-                "<p>For unweighted values (a pure density map),",
-                "it usually makes sense to use",
-                "<code>" + Combiner.COUNT + "</code>.",
-                "However, if the input is weighted by an additional",
-                "data coordinate, one of the other values such as",
-                "<code>" + Combiner.MEAN + "</code>",
-                "may be more revealing.",
-                "</p>",
-            } )
-        , Combiner.class, Combiner.getKnownCombiners(), Combiner.SUM ) {
-        public String getXmlDescription( Combiner combiner ) {
-            return combiner.getDescription();
-        }
-    }.setOptionUsage()
-     .addOptionsXml();
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
         BarStyle.FORM_OPEN,
