@@ -1080,13 +1080,14 @@ public class Plot2Example {
             new Plot2Example( "layer-healpix", c, PlotTask.SKY, new String[] {
                 "*layer1=healpix", "*in1=" + TName.SIMBAD_HPX,
                 "*healpix1=HPX8", "*value1=NBREF", null,
-                "*datalevel1=8", "*degrade1=2", null,
+                "*datalevel1=8", "*degrade1=2",
+                "*combine=sum-per-unit", "*perunit=arcmin2", null,
                 "projection=aitoff", "*datasys1=equatorial", "viewsys=galactic",
                 "labelpos=none",
                 null,
                 "auxfunc=log", "auxmap=cold", "auxflip=true",
-                "auxvisible=false", "auxclip=0,1", null,
-                "xpix=500", "ypix=250",
+                "auxclip=0,1", null,
+                "xpix=600", "ypix=280",
             } ),
             new Plot2Example( "layer-xyzvector", c, PlotTask.CUBE,
                               new String[] {
