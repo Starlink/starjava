@@ -8233,6 +8233,18 @@ stilts tskymap in=2mpz.fits icmd='addskycoords fk5 galactic ra dec glon glat'
     </p></dd>
 
 <dt><verbatim>
+stilts tskymap in=tgas_source.fits tiling=hpx7 lon=l lat=b count=false
+               cols=phot_g_n_obs combine=sum-per-unit perunit=arcmin2
+               out=obs-density.fits
+</verbatim></dt>
+<dd><p>Calculates a level-7 HEALPix map where each cell contains the
+    local number of observations per square arcminute, as determined
+    by summing all the <code>phot_g_n_obs</code> values from the
+    input table that fall into each tile and applying a suitable
+    scaling factor.
+    </p></dd>
+
+<dt><verbatim>
 stilts tskymap in=gums_lmc.fits lon=alpha lat=delta
                tiling=hpx14 complete=false omode=count
 </verbatim></dt>
@@ -11315,6 +11327,31 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         also provided for the
         <ref id="layer-kde">kde</ref> and
         <ref id="layer-densogram">densogram</ref> plotters.</li>
+    <li>The <code>combine</code> parameter that configures how
+        values are binned in various histogram-like plots
+        (<ref id="layer-skydensity">skydensity</ref>,
+         <ref id="layer-healpix">healpix</ref>)
+         <ref id="layer-grid">grid</ref>,
+         and since this version also
+         <ref id="layer-contour">contour</ref>,
+         <ref id="layer-histogram">histogram</ref>,
+         <ref id="layer-kde">kde</ref>)
+        now has two new options,
+        <code>sum-per-unit</code> and <code>count-per-unit</code>.
+        These work like the existing <code>sum</code> and <code>count</code>
+        options, but scale the combined values by the relevant unit
+        (e.g. X axis unit or solid angle).
+        Where these units are physical, a <code>perunit</code>
+        parameter is also provided for scaling in convenient units:
+        second, day, year etc for time
+        (<ref id="plot2time">plot2time</ref>), and
+        square degree, arcminute, arcecond etc for solid angle
+        (<ref id="layer-skydensity">skydensity</ref>,
+         <ref id="layer-healpix">healpix</ref>).
+        In some cases, the <code>combine</code> default values
+        have changed.</li>
+    <li>The same new <code>combine</code>/<code>perunit</code> options
+        are also added to the <ref id="tskymap">tskymap</ref> command.</li>
     </ul>
     </p>
     </dd>
