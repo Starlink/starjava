@@ -178,11 +178,16 @@ public abstract class Combiner {
      * Returns a metadata object that describes the result of applying
      * this combiner to data described by a given metadata object.
      *
-     * @param  info  metadata for values to be combined, usually numeric
+     * @param  info  metadata for values to be combined, usually numeric;
+     *               may be null if metadata unknown
+     * @param  scaleUnit      unit of bin extent by which bin values
+     *                        are divided for density-like combiners;
+     *                        may be null for unknown/natural units
      * @return  metadata for combined values; the content class must be
      *          be a primitive numeric wrapper class
      */
-    public abstract ValueInfo createCombinedInfo( ValueInfo info );
+    public abstract ValueInfo createCombinedInfo( ValueInfo info,
+                                                  Unit scaleUnit );
 
     @Override
     public String toString() {
@@ -388,7 +393,8 @@ public abstract class Combiner {
             return new MeanContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo info = new DefaultValueInfo( dataInfo );
             info.setContentClass( Double.class );
             info.setDescription( getInfoDescription( dataInfo )
@@ -440,7 +446,8 @@ public abstract class Combiner {
                    } );
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo info = new DefaultValueInfo( dataInfo );
             info.setContentClass( Double.class );
             info.setDescription( getInfoDescription( dataInfo )
@@ -492,7 +499,8 @@ public abstract class Combiner {
                                   : new PopulationStdevContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo info =
                 new DefaultValueInfo( dataInfo.getName() + "_stdev",
                                       Double.class,
@@ -626,7 +634,8 @@ public abstract class Combiner {
                    "the number of non-blank values per bin (weight is ignored)",
                    Type.EXTENSIVE );
         }
-        public ValueInfo createCombinedInfo( ValueInfo inInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo inInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo outInfo = 
                 new DefaultValueInfo( "count", Integer.class,
                                       "Number of items counted per bin" );
@@ -645,12 +654,14 @@ public abstract class Combiner {
                  + "(weight is ignored)",
                    Type.DENSITY );
         }
-        public ValueInfo createCombinedInfo( ValueInfo inInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo inInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo outInfo =
                 new DefaultValueInfo( "density", Double.class,
-                                      "Number of items counted "
-                                    + "scaled by unit extent" );
+                                      "Number of items counted per "
+                                    +  scaleUnit.getTextName() );
             outInfo.setUCD( "src.density" );
+            outInfo.setUnitString( "1/" + scaleUnit.getSymbol() );
             return outInfo;
         }
     }
@@ -725,7 +736,8 @@ public abstract class Combiner {
             super( "sum", "the sum of all the combined values per bin",
                    Type.EXTENSIVE );
         }
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo info =
                 new DefaultValueInfo( dataInfo.getName() + "_sum",
                                       Double.class,
@@ -745,13 +757,19 @@ public abstract class Combiner {
                    "the sum of all the combined values per unit of bin size",
                    Type.DENSITY );
         }
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo info =
                 new DefaultValueInfo( dataInfo.getName() + "_density",
                                       Double.class,
                                       getInfoDescription( dataInfo )
-                                    + ", density per unit" );
-            info.setUnitString( dataInfo.getUnitString() );
+                                    + ", density per "
+                                    + scaleUnit.getTextName() );
+            String inUnit = dataInfo.getUnitString();
+            if ( inUnit == null || inUnit.trim().length() == 0 ) {
+                inUnit = "1";
+            }
+            info.setUnitString( inUnit + "/" + scaleUnit.getSymbol() );
             return info;
         }
     }
@@ -799,7 +817,8 @@ public abstract class Combiner {
             return new MinContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo info =
                 new DefaultValueInfo( dataInfo.getName() + "_min",
                                       dataInfo.getContentClass(),
@@ -869,7 +888,8 @@ public abstract class Combiner {
             return new MaxContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             DefaultValueInfo info =
                 new DefaultValueInfo( dataInfo.getName() + "_max",
                                       dataInfo.getContentClass(),
@@ -926,7 +946,8 @@ public abstract class Combiner {
             return new HitContainer();
         }
 
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo ) {
+        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                             Unit scaleUnit ) {
             return new DefaultValueInfo( "hit", Short.class,
                                          "1 if bin contains data, 0 if not" );
         }

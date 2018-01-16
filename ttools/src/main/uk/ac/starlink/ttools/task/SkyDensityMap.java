@@ -31,6 +31,7 @@ import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 import uk.ac.starlink.ttools.plot2.layer.BinList;
 import uk.ac.starlink.ttools.plot2.layer.BinResultColumnData;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
+import uk.ac.starlink.ttools.plot2.layer.Unit;
 
 /**
  * Calculates sky density maps and outputs them as tables.
@@ -299,7 +300,8 @@ public class SkyDensityMap extends SingleMapperTask {
                 }
                 ValueInfo info =
                     aq.adjustInfo( combiner
-                                  .createCombinedInfo( jq.getValueInfo() ) );
+                                  .createCombinedInfo( jq.getValueInfo(),
+                                                       Unit.UNIT ) );
                 CompiledExpression compEx = jq.getCompiledExpression();
                 binners[ iq ] = new Binner( info, binList, compEx,
                                             combiner.getType() );

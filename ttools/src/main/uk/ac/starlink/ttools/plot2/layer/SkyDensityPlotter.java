@@ -731,7 +731,8 @@ public class SkyDensityPlotter
             if ( weightInfo == null ) {
                 weightInfo = new DefaultValueInfo( "data", Double.class );
             }
-            ValueInfo dataInfo = combiner.createCombinedInfo( weightInfo );
+            ValueInfo dataInfo =
+                combiner.createCombinedInfo( weightInfo, dstyle_.unit_ );
             ColumnData dataCol =
                 BinResultColumnData.createInstance( dataInfo, binResult,
                                                     getBinFactor( level ) );
