@@ -1701,7 +1701,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             }
         }.getParameter( env, zoneSuffix );
         if ( scaleLayer != null ) {
-            auxlabelParam.setStringDefault( getAuxLabel( scaleLayer, scale ) );
+            auxlabelParam
+           .setStringDefault( PlotUtil.getScaleAxisLabel( layers, scale ) );
         }
         String label = auxlabelParam.objectValue( env );
 
@@ -2669,35 +2670,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         for ( PlotLayer layer : layers ) {
             if ( layer.getAuxRangers().containsKey( scale ) ) {
                 return layer;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Tries to return the name of an input data quantity used in plotting
-     * a given layer that corresponds to a given AuxScale.
-     *
-     * @param   layer   plot layer
-     * @param   scale   scale
-     * @return  user-readable name for data corresponding to
-     *          <code>scale</code> in <code>layer</code>,
-     *          or null if there's no obvious answer
-     */
-    private static String getAuxLabel( PlotLayer layer, AuxScale scale ) {
-        AuxReader rdr = layer.getAuxRangers().get( scale );
-        if ( rdr != null ) {
-            int icAux = rdr.getCoordIndex();
-            if ( icAux >= 0 ) {
-                DataSpec dataSpec = layer.getDataSpec();
-                assert dataSpec == null || dataSpec instanceof JELDataSpec;
-                if ( dataSpec instanceof JELDataSpec ) {
-                    String[] exprs =
-                        ((JELDataSpec) dataSpec).getCoordExpressions( icAux );
-                    if ( exprs.length == 1 ) {
-                        return exprs[ 0 ];
-                    }
-                }
             }
         }
         return null;
