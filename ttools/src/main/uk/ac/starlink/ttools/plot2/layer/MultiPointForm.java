@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.ttools.plot.ErrorRenderer;
@@ -596,6 +597,9 @@ public abstract class MultiPointForm implements ShapeForm {
             return new AuxReader() {
                 public int getCoordIndex() {
                     return -1;
+                }
+                public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                    return null;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,

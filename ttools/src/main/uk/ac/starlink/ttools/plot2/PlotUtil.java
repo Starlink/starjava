@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
@@ -530,6 +531,52 @@ public class PlotUtil {
                           ? 0
                           : scaleValue( lo, hi, 1 + padFrac, logFlag ) );
         }
+    }
+
+    /**
+     * Attempts to return input-level metadata about an aux value that may
+     * be referenced in a given list of plot layers.
+     *
+     * @param   layers   list of layers
+     * @param   scale    aux item of interest
+     * @return   input metadata for scale, or null if nothing suitable can
+     *           be found
+     */
+    public static ValueInfo getScaleInfo( PlotLayer[] layers, AuxScale scale ) {
+        for ( PlotLayer layer : layers ) {
+            AuxReader rdr = layer.getAuxRangers().get( scale );
+            if ( rdr != null ) {
+                ValueInfo info = rdr.getAxisInfo( layer.getDataSpec() );
+                if ( info != null ) {
+                    return info;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Attempts to return a suitable label for an aux axis that may
+     * be referenced in a given list of plot layers.
+     *
+     * @param   layers   list of layers
+     * @param   scale    aux item of interest
+     * @return   scale axis label, or null if nothing suitable could be found
+     */
+    public static String getScaleAxisLabel( PlotLayer[] layers,
+                                            AuxScale scale ) {
+        ValueInfo info = getScaleInfo( layers, scale );
+        if ( info != null ) {
+            String name = info.getName();
+            String unit = info.getUnitString();
+            if ( name != null && unit != null ) {
+                return name + " / " + unit;
+            }
+            else if ( name != null ) {
+                return name;
+            }
+        }
+        return null;
     }
 
     /**

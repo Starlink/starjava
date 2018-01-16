@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.geom.Point2D;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -49,6 +50,11 @@ public class FloatingCoordAuxReader implements AuxReader {
 
     public int getCoordIndex() {
         return icol_;
+    }
+
+    public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+        ValueInfo[] infos = dataSpec.getUserCoordInfos( icol_ );
+        return infos.length == 1 ? infos[ 0 ] : null;
     }
 
     public void adjustAuxRange( Surface surface, DataSpec dataSpec,

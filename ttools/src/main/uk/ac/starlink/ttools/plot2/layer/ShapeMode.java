@@ -15,6 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
@@ -1422,6 +1424,27 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 map.put( SCALE, new AuxReader() {
                     public int getCoordIndex() {
                         return icWeight_;
+                    }
+                    public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                        Combiner combiner = wstamper_.combiner_;
+                        final ValueInfo weightInfo;
+                        if ( icWeight_ < 0 ||
+                             dataSpec.isCoordBlank( icWeight_ ) ) {
+                            weightInfo =
+                                new DefaultValueInfo( "1", Double.class,
+                                                      "Weight unspecified"
+                                                    + ", taken as unity" );
+                        }
+                        else {
+                            ValueInfo[] winfos =
+                                dataSpec.getUserCoordInfos( icWeight_ );
+                            weightInfo = winfos != null && winfos.length == 1
+                                       ? winfos[ 0 ]
+                                       : new DefaultValueInfo( "Weight",
+                                                               Double.class );
+                        }
+                        return wstamper_.combiner_
+                              .createCombinedInfo( weightInfo, Unit.UNIT );
                     }
                     public void adjustAuxRange( Surface surface,
                                                 DataSpec dataSpec,

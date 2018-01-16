@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -566,6 +568,9 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 public int getCoordIndex() {
                     return icWeight_;
                 }
+                public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                    return getCombinedInfo( dataSpec );
+                }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,
                                             Range range ) {
@@ -740,6 +745,30 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                     range.submit( binFactor * binResult.getBinValue( ibin ) );
                 }
             }
+        }
+
+        /**
+         * Returns the metadata for the combined values.
+         *
+         * @param  dataSpec  data specification
+         * @return   metadata for gridded cells
+         */
+        private ValueInfo getCombinedInfo( DataSpec dataSpec ) {
+            final ValueInfo weightInfo;
+            if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
+                weightInfo = new DefaultValueInfo( "1", Double.class,
+                                                   "Weight unspecified"
+                                                   + ", taken as unity" );
+            }
+            else {
+                ValueInfo[] winfos = dataSpec.getUserCoordInfos( icWeight_ );
+                weightInfo = winfos != null && winfos.length == 1
+                           ? winfos[ 0 ]
+                           : new DefaultValueInfo( "Weight", Double.class );
+            }
+            Unit unit = new Unit( "unit", "unit area", "area", 1,
+                                  "X axis unit * Y axis unit" );
+            return gstyle_.combiner_.createCombinedInfo( weightInfo, unit );
         }
 
         /**

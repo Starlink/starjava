@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.Icon;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
@@ -475,6 +477,9 @@ public class HealpixPlotter
                 public int getCoordIndex() {
                     return icValue_;
                 }
+                public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                    return getCombinedInfo( dataSpec );
+                }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore,
                                             Object[] knownPlans, Range range ) {
@@ -603,6 +608,30 @@ public class HealpixPlotter
                 }
             }
             return binList.getResult();
+        }
+
+        /**
+         * Returns the metadata for the tile values.
+         *
+         * @param  dataSpec  data specification
+         * @return   metadata for tile values
+         */
+        private ValueInfo getCombinedInfo( DataSpec dataSpec ) {
+            final ValueInfo weightInfo;
+            if ( icValue_ < 0 || dataSpec.isCoordBlank( icValue_ ) ) {
+                weightInfo = new DefaultValueInfo( "1", Double.class,
+                                                   "Weight unspecified"
+                                                 + ", taken as unity" );
+            }
+            else {
+                ValueInfo[] winfos =
+                    dataSpec.getUserCoordInfos( icValue_ );
+                weightInfo = winfos != null && winfos.length == 1
+                           ? winfos[ 0 ]
+                           : new DefaultValueInfo( "Weight", Double.class );
+            }
+            return hstyle_.combiner_
+                  .createCombinedInfo( weightInfo, hstyle_.angle_ );
         }
     }
 

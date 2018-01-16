@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -254,6 +255,13 @@ public class SpectrogramPlotter
                     map.put( SPECTRO_SCALE, new AuxReader() {
                         public int getCoordIndex() {
                             return icSpectrum_;
+                        }
+                        public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                            ValueInfo[] infos =
+                                dataSpec.getUserCoordInfos( icSpectrum_ );
+                            return infos != null && infos.length == 1
+                                 ? infos[ 0 ]
+                                 : null;
                         }
                         public void adjustAuxRange( Surface surface,
                                                     DataSpec dataSpec,

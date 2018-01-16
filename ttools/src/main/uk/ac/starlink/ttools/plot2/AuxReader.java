@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2;
 
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -38,4 +39,14 @@ public interface AuxReader {
      *           or -1
      */
     int getCoordIndex();
+
+    /**
+     * Attempts to provide information suitable for labelling the axis
+     * corresponding to the values ranged by this reader.
+     *
+     * @param  dataSpec  data specification
+     * @return  info corresponding to this reader's scale,
+     *          or null if none known
+     */
+    ValueInfo getAxisInfo( DataSpec dataSpec );
 }

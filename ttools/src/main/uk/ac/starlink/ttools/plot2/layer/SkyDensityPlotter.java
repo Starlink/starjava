@@ -447,6 +447,9 @@ public class SkyDensityPlotter
                 public int getCoordIndex() {
                     return icWeight_;
                 }
+                public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                    return getCombinedInfo( dataSpec );
+                }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore,
                                             Object[] knownPlans,
@@ -596,6 +599,29 @@ public class SkyDensityPlotter
             return null;
         }
 
+       /**
+         * Returns the metadata for the combined values.
+         *
+         * @param  dataSpec  data specification
+         * @return   metadata for gridded cells
+         */
+        private ValueInfo getCombinedInfo( DataSpec dataSpec ) {
+            final ValueInfo weightInfo;
+            if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
+                weightInfo = new DefaultValueInfo( "1", Double.class,
+                                                   "Weight unspecified"
+                                                 + ", taken as unity" ); 
+            }
+            else {
+                ValueInfo[] winfos = dataSpec.getUserCoordInfos( icWeight_ );
+                weightInfo = winfos != null && winfos.length == 1
+                           ? winfos[ 0 ]
+                           : new DefaultValueInfo( "Weight", Double.class );
+            }
+            return dstyle_.combiner_
+                  .createCombinedInfo( weightInfo, dstyle_.unit_ );
+        }
+
         /**
          * Drawing implementation for the sky density map.
          */
@@ -718,21 +744,7 @@ public class SkyDensityPlotter
 
             /* Construct a column containing bin contents, given that the
              * bin index is row number. */
-            ValueInfo weightInfo;
-            if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
-                weightInfo = null;
-            }
-            else {
-                ValueInfo[] winfos = dataSpec.getUserCoordInfos( icWeight_ );
-                weightInfo = winfos != null && winfos.length == 1
-                           ? winfos[ 0 ]
-                           : null;
-            }
-            if ( weightInfo == null ) {
-                weightInfo = new DefaultValueInfo( "data", Double.class );
-            }
-            ValueInfo dataInfo =
-                combiner.createCombinedInfo( weightInfo, dstyle_.unit_ );
+            ValueInfo dataInfo = getCombinedInfo( dataSpec );
             ColumnData dataCol =
                 BinResultColumnData.createInstance( dataInfo, binResult,
                                                     getBinFactor( level ) );
