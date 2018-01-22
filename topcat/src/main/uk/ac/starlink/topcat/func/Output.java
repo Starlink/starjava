@@ -6,7 +6,10 @@
 package uk.ac.starlink.topcat.func;
 
 /**
- * Functions for simple logging output.
+ * Functions for writing text to standard output.
+ * They will cause output to be written to the console.
+ * If you just want values to appear in the activation action logging window,
+ * you can just use the expression to report on its own.
  * 
  * @author   Mark Taylor (Starlink)
  * @since    2 Sep 2004
@@ -20,17 +23,18 @@ public class Output {
     }
 
     /**
-     * Outputs a string value to the user log.
+     * Outputs a string value to system output.
      *
      * @param  str  string value to output
      * @return  short report message
      */
     public static String print( String str ) {
+        java.lang.System.out.println( str );
         return str;
     }
 
     /**
-     * Outputs a numeric value to the user log.
+     * Outputs a numeric value to system output.
      *
      * @param   num  numeric value to output
      * @return  short report message
@@ -42,14 +46,16 @@ public class Output {
          * clutter up the public interface with lots of overloaded print()
          * methods.  The downcasting is done so that you don't get
          * extra decimal places when they didn't ought to be there. */
+        final String str;
         if ( (double) (long) num == num ) {
-            return Long.toString( (long) num );
+            str = Long.toString( (long) num );
         }
         else if ( (double) (float) num == num ) {
-            return Float.toString( (float) num );
+            str = Float.toString( (float) num );
         }
         else {
-            return Double.toString( num );
+            str = Double.toString( num );
         }
+        return print( str );
     }
 }
