@@ -1,6 +1,9 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -288,6 +291,32 @@ public class TopcatUtils {
             };
         }
         return about_;
+    }
+
+    /**
+     * Sets the text content of the system clipboard(s).
+     * This is somewhat OS-dependent.  X11 uses a PRIMARY selection
+     * (middle mouse button) alongside the CLIPBOARD selection
+     * (explicit cut'n'paste).  JTextComponents fill both, though
+     * not under exactly the same circumstances.  This method sets the
+     * text for both if both are available.
+     * This may not replicate exactly the behaviour expected by X clients,
+     * but I think it's what users would want to happen.  I may be wrong.
+     *
+     * @param  txt  text to set as clipboard contents
+     */
+    public static void setClipboardText( String txt ) {
+        StringSelection selection = new StringSelection( txt );
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+
+        /* Set the system clipboard to the given text. */
+        toolkit.getSystemClipboard().setContents( selection, null );
+
+        /* If there's a primary clipboard, set the text there too. */
+        Clipboard primary = toolkit.getSystemSelection();
+        if ( primary != null ) {
+            primary.setContents( selection, selection );
+        }
     }
 
     /**

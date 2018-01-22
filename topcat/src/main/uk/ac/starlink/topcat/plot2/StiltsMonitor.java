@@ -8,14 +8,9 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -40,6 +35,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.plot2.task.PlotSpec;
 import uk.ac.starlink.ttools.plot2.task.StiltsPlotFormatter;
 import uk.ac.starlink.ttools.plot2.task.StiltsPlot;
@@ -108,12 +104,11 @@ public class StiltsMonitor {
         clipboardAct_ = new BasicAction( "Copy", null,
                                          "Copy STILTS command text "
                                        + "to the system clipboard" ) {
-            final Clipboard[] clips = getClipboards();
             public void actionPerformed( ActionEvent evt ) {
                 StiltsState state = getStiltsState();
-                StringSelection selection = new StringSelection( state.text_ );
-                for ( Clipboard clip : clips ) {
-                    clip.setContents( selection, null );
+                String txt = state.text_;
+                if ( txt != null ) {
+                    TopcatUtils.setClipboardText( txt );
                 }
             }
         };
@@ -267,29 +262,6 @@ public class StiltsMonitor {
             executeAct_.setEnabled( state_.plot_ != null );
         }
         return state_;
-    }
-
-    /**
-     * Returns the list of clipboards to be updated by the text Copy action.
-     * This is somewhat OS-dependent.  X11 uses a PRIMARY selection
-     * (middle mouse button) alongside the CLIPBOARD selection
-     * (explicit cut'n'paste).  JTextComponents fill both, though
-     * not under exactly the same circumstances.  This method
-     * returns both if both are available.
-     * This may not replicate exactly the behaviour expected by X clients,
-     * but I think it's what users would want to happen.  I may be wrong.
-     *
-     * @return   list of clipboards to be populated by the copy-text action
-     */
-    private static Clipboard[] getClipboards() {
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        List<Clipboard> clips = new ArrayList<Clipboard>();
-        clips.add( toolkit.getSystemClipboard() );
-        Clipboard primary = toolkit.getSystemSelection();
-        if ( primary != null ) {
-            clips.add( primary );
-        }
-        return clips.toArray( new Clipboard[ 0 ] );
     }
 
     /**
