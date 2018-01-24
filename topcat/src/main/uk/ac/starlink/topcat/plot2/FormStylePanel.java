@@ -280,7 +280,8 @@ public class FormStylePanel extends JPanel {
 
         /* Any report entries which are specific to the currently selected
          * subset can get passed to the subset-specific specifier. */
-        subsetSpecifier_.submitReport( reports.get( getSelectedSubset() ) );
+        ReportMap rmap = reports.get( getSelectedSubset() );
+        subsetSpecifier_.submitReport( rmap == null ? new ReportMap() : rmap );
     }
 
     /**
