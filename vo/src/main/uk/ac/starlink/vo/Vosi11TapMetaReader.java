@@ -218,15 +218,15 @@ public class Vosi11TapMetaReader implements TapMetaReader {
          * only tables no columns or fkeys.
          */
         MIN( "detail=min", "minimal detail requested",
-             "if supported, all metadata is read at once" ),
+             "if supported, " +
+             "column and foreign-key metadata is only read as required" ),
 
         /**
          * Detail=max.  Hints that a full tableset query should return
          * columns and fkeys along with tables.
          */
         MAX( "detail=max", "full detail requested",
-             "if supported, " +
-             "column and foreign-key metadata is only read as required" ),
+             "if supported, all metadata is read at once" ),
 
         /**
          * No detail preference.  No hint to service whether column and fkey

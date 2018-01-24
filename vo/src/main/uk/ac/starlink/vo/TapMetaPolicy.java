@@ -27,7 +27,7 @@ public abstract class TapMetaPolicy {
     public static final TapMetaPolicy AUTO;
 
     /** Uses the VOSI 1.0 /tables endpoint. */
-    public static final TapMetaPolicy TABLESET;
+    public static final TapMetaPolicy VOSI10;
 
     /** Uses the TAP_SCHEMA tables, with columns on demand. */
     public static final TapMetaPolicy TAPSCHEMA_C;
@@ -63,10 +63,20 @@ public abstract class TapMetaPolicy {
                 return createAutoMetaReader( endpointSet, coding, 5000 );
             }
         },
-        TABLESET = new TapMetaPolicy( "TableSet",
-                                      "Reads all metadata in one go from the "
-                                    + "vs:TableSet document at the VOSI tables "
-                                    + "endpoint of the TAP service" ) {
+        TAPSCHEMA_C = createTapSchemaPolicy( "TAP_SCHEMA-C", false, true ),
+        TAPSCHEMA_CF =
+            createTapSchemaPolicy( "TAP_SCHEMA-CF", false, false ),
+        TAPSCHEMA =
+            createTapSchemaPolicy( "TAP_SCHEMA", true, false ),
+        VOSI11_NULL = createVosi11Policy( "TableSet-VOSI1.1",
+                                          Vosi11TapMetaReader.DetailMode.NULL ),
+        VOSI11_MAX = createVosi11Policy( "TableSet-VOSI1.1-1step",
+                                         Vosi11TapMetaReader.DetailMode.MAX ),
+        VOSI11_MIN = createVosi11Policy( "TableSet-VOSI1.1-2step",
+                                         Vosi11TapMetaReader.DetailMode.MIN ),
+        VOSI10 = new TapMetaPolicy( "TableSet-VOSI1.0",
+                                    "Reads all metadata in one go from the "
+                                  + "VOSI-1.0 /tables endpoint" ) {
             public TapMetaReader createMetaReader( EndpointSet endpointSet,
                                                    ContentCoding coding ) {
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
@@ -74,11 +84,6 @@ public abstract class TapMetaPolicy {
                 return new TableSetTapMetaReader( tablesUrl, fixer, coding );
             }
         },
-        TAPSCHEMA_C = createTapSchemaPolicy( "TAP_SCHEMA_C", false, true ),
-        TAPSCHEMA_CF =
-            createTapSchemaPolicy( "TAP_SCHEMA_CF", false, false ),
-        TAPSCHEMA =
-            createTapSchemaPolicy( "TAP_SCHEMA", true, false ),
         VIZIER = new TapMetaPolicy( "VizieR",
                                     "Uses TAPVizieR's non-standard two-stage "
                                   + "VOSI tables endpoint" ) {
@@ -89,12 +94,6 @@ public abstract class TapMetaPolicy {
                 return new VizierTapMetaReader( tablesetUrl, fixer, coding );
             }
         },
-        VOSI11_MAX = createVosi11Policy( "VOSI11-1step",
-                                         Vosi11TapMetaReader.DetailMode.MAX ),
-        VOSI11_MIN = createVosi11Policy( "VOSI11-2step",
-                                         Vosi11TapMetaReader.DetailMode.MIN ),
-        VOSI11_NULL = createVosi11Policy( "VOSI11",
-                                          Vosi11TapMetaReader.DetailMode.NULL ),
     };
 
     /**
