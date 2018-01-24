@@ -25196,6 +25196,8 @@ introduced since the last version:
         action - it was including all unselected rows rather than
         just the visible ones, as per documentation.
         This was a regression bug introduced at v4.2-1.</li>
+    <li>Fix bug in VOSI 1.1 TAP metadata acquisition detail request URLs
+        (spuriously doubled '/' character).</li>
     </ul>
     </p>
     </dd>

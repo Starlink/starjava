@@ -179,7 +179,8 @@ public class Vosi11TapMetaReader implements TapMetaReader {
      * Reads a tableset document from the base URL of this reader,
      * as modified by a given subpath and detail mode.
      *
-     * @param  subPath  url subpath
+     * @param  subPath  url subpath, normally including a leading '/',
+     *                  or null for the base URL
      * @param  detailMode  detail mode, or null if not applicable
      * @return   handler that has performed a parse on the URL corresponding
      *           to the given arguments
@@ -189,7 +190,7 @@ public class Vosi11TapMetaReader implements TapMetaReader {
             throws IOException {
         String surl = url_.toString();
         if ( subPath != null && subPath.length() > 0 ) {
-            surl += "/" + subPath;
+            surl += subPath;
         }
         String query = detailMode == null ? null : detailMode.query_;
         if ( query != null ) {
