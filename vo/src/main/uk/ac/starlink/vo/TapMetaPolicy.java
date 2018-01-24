@@ -41,9 +41,6 @@ public abstract class TapMetaPolicy {
     /** Uses the non-standard VizieR two-level tables endpoint. */
     public static final TapMetaPolicy VIZIER;
 
-    /** Uses the non-standard proposed VOSI 1.1 two-level tables endpoint. */
-    public static final TapMetaPolicy CADC;
-
     /** Uses the VOSI 1.1 one-stage (detail=max) /tables endpoint. */
     public static final TapMetaPolicy VOSI11_MAX;
 
@@ -90,17 +87,6 @@ public abstract class TapMetaPolicy {
                 URL tablesetUrl = endpointSet.getTablesEndpoint();
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
                 return new VizierTapMetaReader( tablesetUrl, fixer, coding );
-            }
-        },
-        CADC = new TapMetaPolicy( "CADC",
-                                  "Uses CADC's non-standard multi-stage "
-                                + "VOSI tables endpoint" ) {
-            public TapMetaReader createMetaReader( EndpointSet endpointSet,
-                                                   ContentCoding coding ) {
-                URL tablesetUrl = endpointSet.getTablesEndpoint();
-                CadcTapMetaReader.Config config =
-                    CadcTapMetaReader.Config.POPULATE_SCHEMAS;
-                return new CadcTapMetaReader( tablesetUrl, config, coding );
             }
         },
         VOSI11_MAX = createVosi11Policy( "VOSI11-1step",
