@@ -336,19 +336,14 @@ public abstract class TapMetaPolicy {
 
         /* If there are fewer columns than the threshold, or the column
          * count failed, use the VOSI tables endpoint instead.
-         * It would be nice to use the VOSI 1.1 endpoint here
-         * (Vosi11TapMetaReader with DetailMode.MAX) since it should
-         * allow services to regulate how their metadata is dispensed.
-         * The backwardly compatible way that VOSI1.1 TableSet detail
-         * negotiation is defined means that in principle it ought to
-         * do something sensible for VOSI 1.0 compliant services too.
-         * But at time of writing, at least a couple of existing services
-         * with cranky/broken VOSI1.0 implementations fail if you try that
-         * (CADC, TAPVizieR). */
-        logger_.info( "Use VOSI tables endpoint for "
+         * The VOSI 1.1 scalable request format is defined in a way
+         * that's backwardly compatible, so VOSI 1.1 should work for
+         * VOSI 1.0 services too. */
+        logger_.info( "Use VOSI-1.1 tables endpoint for "
                     + endpointSet.getIdentity() );
-        return new TableSetTapMetaReader( endpointSet.getTablesEndpoint(),
-                                          fixer, coding );
+        return new Vosi11TapMetaReader( endpointSet.getTablesEndpoint(),
+                                        fixer, coding,
+                                        Vosi11TapMetaReader.DetailMode.MAX );
     }
 
     /**
