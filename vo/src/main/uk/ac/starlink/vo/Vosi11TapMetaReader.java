@@ -10,8 +10,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ContentCoding;
 
 /**
- * TapMetaReader that works with the proposed VOSI-1.1 scalable /tables
- * endpoint.  This is currently as defined in updates to VOSI-1.1-PR20160413.
+ * TapMetaReader that works with the VOSI-1.1 scalable /tables endpoint.
  * It should work correctly with VOSI 1.1 services and also with VOSI 1.0
  * services and services (like, at time of writing, TAPVizieR)
  * that declare themselves as VOSI 1.0 but refuse to emit table details
@@ -59,7 +58,7 @@ public class Vosi11TapMetaReader implements TapMetaReader {
 
     public String getMeans() {
         String note = detailMode_.note_;
-        return "VOSI-1.1-PR" + ( note == null ? "" : ( ", " + note ) );
+        return "VOSI-1.1" + ( note == null ? "" : ( ", " + note ) );
     }
 
     public String getSource() {

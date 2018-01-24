@@ -26,7 +26,7 @@ public abstract class TapMetaPolicy {
     /** Tries its best to do something sensible. */
     public static final TapMetaPolicy AUTO;
 
-    /** Uses the VOSI tables endpoint. */
+    /** Uses the VOSI 1.0 /tables endpoint. */
     public static final TapMetaPolicy TABLESET;
 
     /** Uses the TAP_SCHEMA tables, with columns on demand. */
@@ -44,13 +44,13 @@ public abstract class TapMetaPolicy {
     /** Uses the non-standard proposed VOSI 1.1 two-level tables endpoint. */
     public static final TapMetaPolicy CADC;
 
-    /** Uses the proposed VOSI 1.1 one-stage (detail=max) /tables endpoint. */
+    /** Uses the VOSI 1.1 one-stage (detail=max) /tables endpoint. */
     public static final TapMetaPolicy VOSI11_MAX;
 
-    /** Uses the proposed VOSI 1.1 two-stage (detail=min) /tables endpoint. */
+    /** Uses the VOSI 1.1 two-stage (detail=min) /tables endpoint. */
     public static final TapMetaPolicy VOSI11_MIN;
 
-    /** Uses the proposed VOSI 1.1 /tables endpoint (backward compatible). */
+    /** Uses the VOSI 1.1 /tables endpoint (backward compatible). */
     public static final TapMetaPolicy VOSI11_NULL;
 
     private static final TapMetaPolicy[] KNOWN_VALUES = {
@@ -172,7 +172,6 @@ public abstract class TapMetaPolicy {
         return AUTO;
     }
 
-
     /**
      * Sorts an array of schemas in place by schema name.
      *
@@ -209,15 +208,14 @@ public abstract class TapMetaPolicy {
 
 
     /**
-     * Create a policy instance that uses the VOSI-1.1 WD20160129
-     * proposal.
+     * Create a policy instance that uses the VOSI-1.1 variable-detail option.
      *
      * @param  name  policy name
      * @param  dmode   requested detail mode for metadata queries
      */
     private static TapMetaPolicy
             createVosi11Policy( String name,
-                              final Vosi11TapMetaReader.DetailMode dmode ) {
+                                final Vosi11TapMetaReader.DetailMode dmode ) {
         String descrip =
              new StringBuffer()
             .append( "Reads metadata from the VOSI-1.1 /tables endpoint;\n" )
