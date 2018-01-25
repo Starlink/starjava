@@ -11297,6 +11297,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         so can be seen by specifying the <code>-verbose</code> flag.
         The contours are now plotted correctly right up to the edge of
         the visible plot, and various bugs have been fixed.</li>
+    <li>The <ref id="layer-linearfit">linearfit</ref> layer type
+        is now available for <ref id="plot2time"><code>plot2time</code></ref>
+        as well as <code>plot2plane</code>.</li>
     <li>The <ref id="layer-histogram">histogram</ref> plotter
         now has a <code>combine</code> parameter
         (<code>sum</code>,

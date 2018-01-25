@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
+import uk.ac.starlink.ttools.plot2.layer.LinearFitPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
@@ -76,6 +77,7 @@ public class TimePlotType implements PlotType {
         ConfigKey<Normalisation> normKey = StyleKeys.NORMALISE_TIME;
         plotters.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
+            new LinearFitPlotter( true ),
             new FillPlotter( false ),
             new TracePlotter( false ),
             new GridPlotter( true ),

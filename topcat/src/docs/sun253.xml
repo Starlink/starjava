@@ -13098,6 +13098,7 @@ share a time axis but have their own Y axis.
 <li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.line;</li>
+    <li>&FORM.linearfit;</li>
     <li>&FORM.mark;</li>
     <li>&FORM.error; (vertical bars only)</li>
     <li>&FORM.label;</li>
@@ -25177,6 +25178,9 @@ introduced since the last version:
         so can be seen at the bottom of the Form tab in the control panel.
         The contours are now plotted correctly right up to the edge of
         the visible plot, and various bugs have been fixed.</li>
+    <li>The <ref id="form-linearfit">Linear Fit</ref> form is now
+        available in the <ref id="TimePlotWindow">Time Plot</ref> window
+        as well as the Plane Plot.</li>
     <li>The <ref id="form-histogram">Histogram</ref> plot now offers
         the <label>Combine</label> option
         (sum, mean, median, min, max, stdev, etc) for weighted histograms.
