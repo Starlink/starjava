@@ -34,7 +34,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
@@ -139,7 +139,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             public Drawing createDrawing( Surface surface,
                                           Map<AuxScale,Range> auxRanges,
                                           PaperType paperType ) {
-                return new LinearFitDrawing( (PlaneSurface) surface, geom,
+                return new LinearFitDrawing( (PlanarSurface) surface, geom,
                                              dataSpec, cgrp, style, paperType );
             }
         };
@@ -170,7 +170,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
      */
     private static class LinearFitDrawing implements Drawing {
 
-        private final PlaneSurface surface_;
+        private final PlanarSurface surface_;
         private final DataGeom geom_;
         private final DataSpec dataSpec_;
         private final CoordGroup cgrp_;
@@ -187,7 +187,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
          * @param  style     line plotting style
          * @param  paperType  paper type
          */
-        LinearFitDrawing( PlaneSurface surface, DataGeom geom,
+        LinearFitDrawing( PlanarSurface surface, DataGeom geom,
                           DataSpec dataSpec, CoordGroup cgrp, LineStyle style,
                           PaperType paperType ) {
             surface_ = surface;
@@ -308,7 +308,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
          * @param  surface  plot surface
          * @param  style   line style
          */
-        void paintLine( Graphics g, PlaneSurface surface, LineStyle style ) {
+        void paintLine( Graphics g, PlanarSurface surface, LineStyle style ) {
             Rectangle bounds = surface.getPlotBounds();
             int gy0 = bounds.y;
             int gx1 = bounds.x - 10;

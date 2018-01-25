@@ -51,7 +51,7 @@ import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
-import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -259,8 +259,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static ReportMap getPixelReport( Surface surface ) {
         ReportMap report = new ReportMap();
-        if ( surface instanceof PlaneSurface ) {
-            Axis[] axes = ((PlaneSurface) surface).getAxes();
+        if ( surface instanceof PlanarSurface ) {
+            Axis[] axes = ((PlanarSurface) surface).getAxes();
             addPixelSize( report, REPKEY_XPIX, axes[ 0 ] );
             addPixelSize( report, REPKEY_YPIX, axes[ 1 ] );
         }
