@@ -42,6 +42,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -87,7 +88,7 @@ public class SkyDensityPlotter
         ReportKey
        .createIntegerKey( new ReportMeta( "abs_level",
                                           "Absolute HEALPix Level" ),
-                                    false );
+                          false );
     private static final ReportKey<Integer> RELLEVEL_REPKEY =
         ReportKey
        .createIntegerKey( new ReportMeta( "rel_level",
@@ -131,7 +132,7 @@ public class SkyDensityPlotter
     public static final ConfigKey<Combiner> COMBINER_KEY;
 
     /** Config key for solid angle units. */
-    public static final ConfigKey<SolidAngleUnit> ANGLE_KEY;
+    public static final PerUnitConfigKey<SolidAngleUnit> ANGLE_KEY;
 
     static {
         ConfigMeta angleMeta = new ConfigMeta( "perunit", "Per Unit" );
@@ -169,15 +170,11 @@ public class SkyDensityPlotter
             "<code>" + angleMeta.getShortName() + "</code> parameter.",
             "</p>",
         } );
-        ANGLE_KEY = new OptionConfigKey<SolidAngleUnit>(
-                            angleMeta, SolidAngleUnit.class,
-                            SolidAngleUnit.getKnownUnits(),
-                            SolidAngleUnit.DEGREE2 ) {
-            public String getXmlDescription( SolidAngleUnit unit ) {
-                return unit.getTextName();
-            }
-        }.setOptionUsage()
-         .addOptionsXml();
+        ANGLE_KEY =
+            new PerUnitConfigKey<SolidAngleUnit>(
+                    angleMeta, SolidAngleUnit.class,
+                    SolidAngleUnit.getKnownUnits(),
+                    SolidAngleUnit.DEGREE2 );
         COMBINER_KEY =
                 new OptionConfigKey<Combiner>( combineMeta, Combiner.class,
                                                Combiner.getKnownCombiners(),
@@ -188,6 +185,8 @@ public class SkyDensityPlotter
         }.setOptionUsage()
          .addOptionsXml();
     }
+    private static final ReportKey<Combiner.Type> CTYPE_REPKEY =
+        ANGLE_KEY.getCombinerTypeReportKey();
 
     /**
      * Constructor.
@@ -706,6 +705,7 @@ public class SkyDensityPlotter
                     map.put( RELLEVEL_REPKEY, new Integer( relLevel ) );
                     map.put( TILESIZE_REPKEY, new Double( tileSize ) );
                     map.put( HPXTABLE_REPKEY, createExportTable( splan ) );
+                    map.put( CTYPE_REPKEY, splan.combiner_.getType() );
                 }
                 return map;
             }
