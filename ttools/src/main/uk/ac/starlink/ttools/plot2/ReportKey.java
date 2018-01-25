@@ -140,6 +140,25 @@ public abstract class ReportKey<T> {
     }
 
     /**
+     * Constructs a typed key with default stringification.
+     *
+     * @param   meta   metadata describing this key
+     * @param   clazz  type of data item described by this key
+     * @param   isGeneralInterest  indicates whether this key represents
+     *          a general purpose report
+     * @return   new report key
+     */
+    public static <T> ReportKey<T>
+            createObjectKey( ReportMeta meta, Class<T> clazz,
+                             boolean isGeneralInterest ) {
+        return new ReportKey<T>( meta, clazz, isGeneralInterest ) {
+            public String toText( T value ) {
+                return value == null ? null : value.toString();
+            }
+        };
+    }
+
+    /**
      * Constructs a StarTable-valued key.
      *
      * @param   meta   metadata describing the key
