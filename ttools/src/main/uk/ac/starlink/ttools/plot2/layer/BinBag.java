@@ -237,6 +237,15 @@ public class BinBag {
     }
 
     /**
+     * Returns this bin bag's combiner.
+     *
+     * @return   combination mode
+     */
+    public Combiner getCombiner() {
+        return combiner_;
+    }
+
+    /**
      * Indicates whether the bin boundaries and aggregation mode
      * used by this object are the same as a given bin set specification.
      *
