@@ -10,6 +10,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
@@ -70,7 +71,7 @@ public class TimePlotType implements PlotType {
                                StyleKeys.ERROR_SHAPE_1D, false );
         ShapeForm[] modeForms = new ShapeForm[] { MarkForm.SINGLE };
         List<Plotter> plotters = new ArrayList<Plotter>();
-        ConfigKey<Unit> unitKey = TimeUnit.createHistogramConfigKey();
+        PerUnitConfigKey<Unit> unitKey = TimeUnit.createHistogramConfigKey();
         plotters.addAll( Arrays
                         .asList( ShapePlotter
                                 .createShapePlotters( modeForms,

@@ -39,6 +39,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -66,6 +67,7 @@ public class HistogramPlotter
     private final FloatingCoord weightCoord_;
     private final ConfigKey<Unit> unitKey_;
     private final ConfigKey<Combiner> combinerKey_;
+    private final ReportKey<Combiner.Type> ctypeRepkey_;
     private final SliceDataGeom histoDataGeom_;
     private final CoordGroup histoCoordGrp_;
     private final int icX_;
@@ -145,9 +147,11 @@ public class HistogramPlotter
      *                   or null if no unit selection required
      */
     public HistogramPlotter( FloatingCoord xCoord, boolean hasWeight,
-                             ConfigKey<Unit> unitKey ) {
+                             PerUnitConfigKey<Unit> unitKey ) {
         xCoord_ = xCoord;
         unitKey_ = unitKey;
+        ctypeRepkey_ = unitKey == null ? null
+                                       : unitKey.getCombinerTypeReportKey();
         if ( hasWeight ) {
             weightCoord_ = FloatingCoord.WEIGHT_COORD;
             histoCoordGrp_ =
@@ -362,6 +366,10 @@ public class HistogramPlotter
                                             new BinBagTable( hplan, style,
                                                              hasWeight,
                                                              xlog ) );
+                                if ( ctypeRepkey_ != null ) {
+                                    report.put( ctypeRepkey_,
+                                                bbag.getCombiner().getType() );
+                                }
                             }
                             return report;
                         }

@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
-import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.layer.Unit;
 
 /**
@@ -108,7 +108,7 @@ public class TimeUnit extends Unit {
      *
      * @return  time unit config key
      */
-    public static ConfigKey<Unit> createHistogramConfigKey() {
+    public static PerUnitConfigKey<Unit> createHistogramConfigKey() {
         ConfigMeta meta = new ConfigMeta( "perunit", "Per Unit" );
         meta.setShortDescription( "Time unit for densities" );
         meta.setXmlDescription( new String[] {
@@ -120,15 +120,7 @@ public class TimeUnit extends Unit {
             "it has no effect.",
             "</p>",
         } );
-        OptionConfigKey<Unit> key =
-                new OptionConfigKey<Unit>( meta, Unit.class, VALUES,
-                                           TimeUnit.SECOND ) {
-            public String getXmlDescription( Unit unit ) {
-                return null;
-            }
-        };
-        key.setOptionUsage();
-        key.addOptionsXml();
-        return key;
+        return new PerUnitConfigKey<Unit>( meta, Unit.class, VALUES,
+                                           TimeUnit.SECOND );
     }
 }

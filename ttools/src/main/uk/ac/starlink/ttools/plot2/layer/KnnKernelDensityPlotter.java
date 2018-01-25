@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -100,7 +101,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
      *                   or null if no unit selection required
      */
     public KnnKernelDensityPlotter( FloatingCoord xCoord, boolean hasWeight,
-                                    ConfigKey<Unit> unitKey ) {
+                                    PerUnitConfigKey<Unit> unitKey ) {
         super( xCoord, hasWeight, unitKey, "Knn", ResourceIcon.FORM_KNN );
     }
 

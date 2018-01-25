@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 
 /**
@@ -25,7 +26,7 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
      *                   or null if no unit selection required
      */
     public FixedKernelDensityPlotter( FloatingCoord xCoord, boolean hasWeight,
-                                      ConfigKey<Unit> unitKey ) {
+                                      PerUnitConfigKey<Unit> unitKey ) {
         super( xCoord, hasWeight, unitKey, "KDE", ResourceIcon.FORM_KDE );
     }
 

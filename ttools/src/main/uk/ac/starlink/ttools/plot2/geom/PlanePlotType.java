@@ -7,7 +7,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
-import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -127,7 +127,7 @@ public class PlanePlotType implements PlotType {
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( shapePlotters ) );
-        ConfigKey<Unit> unitKey = null;
+        PerUnitConfigKey<Unit> unitKey = null;
         list.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
             new LinearFitPlotter( true ),

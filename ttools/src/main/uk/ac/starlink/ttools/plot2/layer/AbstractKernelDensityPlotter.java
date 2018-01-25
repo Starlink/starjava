@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -55,7 +56,8 @@ public abstract class AbstractKernelDensityPlotter
     public static final ConfigKey<Normalisation> NORMALISE_KEY =
         StyleKeys.NORMALISE;
 
-    private final ConfigKey<Unit> unitKey_;
+    private final PerUnitConfigKey<Unit> unitKey_;
+    private final ReportKey<Combiner.Type> ctypeRepkey_;
 
     private static final int GUESS_PLOT_WIDTH = 300;
 
@@ -71,10 +73,12 @@ public abstract class AbstractKernelDensityPlotter
      */
     protected AbstractKernelDensityPlotter( FloatingCoord xCoord,
                                             boolean hasWeight,
-                                            ConfigKey<Unit> unitKey,
+                                            PerUnitConfigKey<Unit> unitKey,
                                             String name, Icon icon ) {
         super( xCoord, hasWeight, unitKey, name, icon );
         unitKey_ = unitKey;
+        ctypeRepkey_ = unitKey == null ? null
+                                       : unitKey.getCombinerTypeReportKey();
     }
 
     /**
@@ -338,6 +342,9 @@ public abstract class AbstractKernelDensityPlotter
         System.arraycopy( dataBins, ixlo, clipBins, 0, nx );
         ReportMap report = new ReportMap();
         report.put( BINS_KEY, clipBins );
+        if ( ctypeRepkey_ != null ) {
+            report.put( ctypeRepkey_, getCombiner( style ).getType() );
+        }
         ReportMap kReport = style.kernelFigure_.getReportMap( xLog, dlo, dhi );
         if ( kReport != null ) {
             report.putAll( kReport );
