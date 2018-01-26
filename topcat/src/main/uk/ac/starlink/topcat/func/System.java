@@ -6,6 +6,7 @@
 package uk.ac.starlink.topcat.func;
 
 import java.io.IOException;
+import uk.ac.starlink.topcat.Executor;
 
 /**
  * Executes commands on the local operating system.  These are executed as

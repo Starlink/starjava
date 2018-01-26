@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.func;
+package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +14,7 @@ import java.io.InputStream;
  * @author   Mark Taylor (Starlink)
  * @since    9 Jun 2005
  */
-abstract class Executor {
+public abstract class Executor {
     private boolean done_;
     private String out_;
     private String err_;
@@ -24,14 +24,14 @@ abstract class Executor {
      *
      * @return   new process
      */
-    abstract Process getProcess() throws IOException;
+    public abstract Process getProcess() throws IOException;
 
     /**
      * Returns a representation of the command line executed.
      *
      * @return  command line
      */
-    abstract String getLine();
+    public abstract String getLine();
 
     /**
      * Returns the standard output which resulted from running the process.
@@ -82,6 +82,7 @@ abstract class Executor {
         return status;
     }
 
+    @Override
     public String toString() {
         return getLine();
     }

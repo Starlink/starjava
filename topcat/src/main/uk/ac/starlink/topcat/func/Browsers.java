@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import uk.ac.starlink.topcat.Executor;
 import uk.ac.starlink.topcat.HtmlWindow;
 
 /**
