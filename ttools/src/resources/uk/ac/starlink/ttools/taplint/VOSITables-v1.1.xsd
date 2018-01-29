@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.ivoa.net/xml/VOSITables/v1.0"
+            xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0"
+            xmlns:vs="http://www.ivoa.net/xml/VODataService/v1.1"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.1">
+
+  <xsd:annotation>
+     <xsd:documentation>
+       A schema for formatting table metadata as returned by a 
+       tables resource, defined by the IVOA Support Interfaces 
+       specification (VOSI). 
+       See http://www.ivoa.net/Documents/latest/VOSI.html.  
+     </xsd:documentation>
+  </xsd:annotation>
+
+  <xsd:import namespace="http://www.ivoa.net/xml/VODataService/v1.1"
+              schemaLocation="http://www.ivoa.net/xml/VODataService/v1.1" />
+
+  <!--
+    -  the root element for a VOSI tableset metadata
+    -->
+  <xsd:element name="tableset" type="vs:TableSet" >
+     <xsd:annotation>
+       <xsd:documentation>
+         A description of the table metadata supported by the 
+         service associated with a VOSI-enabled resource.
+       </xsd:documentation>
+     </xsd:annotation>
+  </xsd:element>
+
+  <!--
+    -  single table root element for a VOSI table metadata
+    -->
+  <xsd:element name="table" type="vs:Table" >
+     <xsd:annotation>
+       <xsd:documentation>
+         A description of a single table supported by the
+         service associated with a VOSI-enabled resource.
+       </xsd:documentation>
+     </xsd:annotation>
+  </xsd:element>
+</xsd:schema>
