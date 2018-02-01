@@ -29,7 +29,9 @@ public class LineBox extends JPanel {
         if ( label != null ) {
             add( new JLabel( label + ": " ) );
         }
-        add( comp );
+        if ( comp != null ) {
+            add( comp );
+        }
         add( Box.createHorizontalGlue() );
         if ( postGap ) {
             setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 0 ) );
