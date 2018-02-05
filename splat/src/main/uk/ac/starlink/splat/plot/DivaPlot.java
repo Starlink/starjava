@@ -160,6 +160,12 @@ public class DivaPlot
      * Bounding box for creating full-sized Plot from physical coordinates.
      */
     protected double[] baseBox = new double[4];
+    
+    /**
+     * Controls whether the plot touches the base box or not.
+     */
+	private boolean baseBoxSpacing = false;
+	private double boxSpacingFactor = 1.;
 
     /**
      * Bounding box of visible region in physical coordinates.
@@ -703,6 +709,19 @@ public class DivaPlot
             baseBox[3] = yMax;
         }
 
+        if (baseBoxSpacing) {
+        	
+         double bb0 =	baseBox[0] - (baseBox[2]-baseBox[0])/boxSpacingFactor;
+         double bb1 =   baseBox[1] - (baseBox[3]-baseBox[1])/boxSpacingFactor;
+         double bb2 =   baseBox[2] - (baseBox[0]-baseBox[2])/boxSpacingFactor;
+         double bb3 =   baseBox[3] - (baseBox[1]-baseBox[3])/boxSpacingFactor;
+         
+       	 baseBox[0] = bb0;
+       	 baseBox[1] = bb1;
+       	 baseBox[2] = bb2;
+       	 baseBox[3] = bb3;
+       }
+        
         //  Set the values that define what a unit scale in either axes means.
         if ( init ) {
             setBaseScale();
@@ -1920,6 +1939,8 @@ public class DivaPlot
     //
     protected EventListenerList plotClickedListeners = new EventListenerList();
 
+
+
     /**
      * Registers a listener for to be informed when the Plot recieves a click..
      *
@@ -2026,4 +2047,10 @@ public class DivaPlot
     protected void addBehaviors() {
     	behaviors.add(new MagnitudeAxisInvertingBehavior());
     }
+
+	public void setAxisBoxSpacing(boolean addSpace, double factor) {
+		baseBoxSpacing=addSpace;
+		boxSpacingFactor=factor;		
+	}
+
 }

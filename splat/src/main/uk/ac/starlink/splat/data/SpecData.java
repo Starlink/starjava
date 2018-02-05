@@ -2769,6 +2769,15 @@ public class SpecData
     	return pointType;
     }
     
+    public boolean getDefaultAxisSpacingBehavior() {
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		return true; 
+    	}
+   	
+    	return false;
+    }
+    
+    
     /**
      * Lookup the physical values (i.e.&nbsp;wavelength and data value) that
      * correspond to a graphics X coordinate. Value is returned as formatted

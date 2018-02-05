@@ -154,6 +154,7 @@ public class PlotControlFrame
      *  Main menubar and various menus.
      */
     protected JCheckBoxMenuItem autoFitPercentiles = null;
+    protected JCheckBoxMenuItem axisBoxSpacing = null;
     protected JCheckBoxMenuItem baseSystemMatching = null;
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
@@ -172,6 +173,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem sidebandMatching = null;
     protected JCheckBoxMenuItem suffixLineIDs = null;
     protected JCheckBoxMenuItem trackerLineIDs = null;
+   
     protected JMenu analysisMenu = new JMenu();
     protected JMenu editMenu = new JMenu();
     protected JMenu fileMenu = new JMenu();
@@ -208,6 +210,8 @@ public class PlotControlFrame
     private boolean showDeblend = false;
 
     private LineBrowser slapBrowser;
+
+	private double boxSpacingFactor=20.;
 
     /**
      *  Create an instance using an existing SpecDataComp.
@@ -319,6 +323,7 @@ public class PlotControlFrame
         }
 
         this.plot = plotControl;
+        
         initUI( title );
     }
 
@@ -686,7 +691,13 @@ public class PlotControlFrame
 
         state1 = prefs.getBoolean( "PlotControlFrame_clipgraphics", false );
         clipGraphics.setSelected( state1 );
-
+        
+        //  Whether to clip spectrum graphics to lie with axes border.
+        axisBoxSpacing = new JCheckBoxMenuItem( "Add spacing between axis box and data" );
+        optionsMenu.add( axisBoxSpacing );
+        axisBoxSpacing.addItemListener( this );
+        axisBoxSpacing.setSelected(plot.getDefaultSpacingValue());
+        
         setupLineOptionsMenu();
 
         //  Include spacing for error bars in the auto ranging.
@@ -739,7 +750,9 @@ public class PlotControlFrame
         //plot.setShowLegend( state1 );
     }
 
-    /**
+    
+
+	/**
      * Set up the line identifier options menu.
      */
     protected void setupLineOptionsMenu()
@@ -2057,6 +2070,14 @@ public class PlotControlFrame
             plot.updatePlot();
             return;
         }
+        
+        if ( source.equals( axisBoxSpacing ) ) {
+            boolean state = axisBoxSpacing.isSelected();
+            plot.getPlot().setAxisBoxSpacing( state, boxSpacingFactor );
+            prefs.putBoolean( "PlotControlFrame_axisBoxSpacing", state );
+            plot.updatePlot();
+            return;
+        }
 
         if ( source.equals( clipGraphics ) ) {
             boolean state = clipGraphics.isSelected();
@@ -2211,6 +2232,16 @@ public class PlotControlFrame
             return;
         }
     }
-    
+ /*   
+    public void setBoxSpacing( boolean newstate) {
+        boolean state = axisBoxSpacing.isSelected();
+        if (state != newstate) {
+        	plot.getPlot().setAxisBoxSpacing( newstate, boxSpacingFactor );
+        	prefs.putBoolean( "PlotControlFrame_axisBoxSpacing", newstate );
+        	plot.updatePlot();
+        }
+        return;
+    }
+*/    
     //  add listener to slap browser -> load spectral line frames
 }
