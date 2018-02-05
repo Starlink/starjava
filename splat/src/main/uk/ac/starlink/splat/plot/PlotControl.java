@@ -28,9 +28,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.AbstractAction;
@@ -65,6 +68,7 @@ import uk.ac.starlink.diva.FigureChangedEvent;
 import uk.ac.starlink.diva.FigureListener;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.LineIDSpecData;
+import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -77,6 +81,7 @@ import uk.ac.starlink.splat.iface.SimpleDataLimitControls;
 import uk.ac.starlink.splat.iface.SpecChangedEvent;
 import uk.ac.starlink.splat.iface.SpecListener;
 import uk.ac.starlink.splat.iface.SpecTransferHandler;
+import uk.ac.starlink.splat.iface.SpecViewerFrame;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PrintUtilities;
 import uk.ac.starlink.splat.util.SplatException;
@@ -1955,12 +1960,21 @@ public class PlotControl
         }
     }
 
+    public void dealWithInvalidLogValues( ) {
+    	int option = JOptionPane.showConfirmDialog(this, "Cannot calculate log value. Create copy of Spectrum without invalid (non positive) data rows?", "No Log Possible",  JOptionPane.YES_NO_OPTION);
+    	if (option == JOptionPane.YES_OPTION )	{
+    		SpecViewerFrame svf = new SpecViewerFrame(getCurrentSpectrum());
+    		svf.deleteNonPositiveDataRows();
+    		svf.dispose();
+    	} 
+    }
 //
 // Implement PlotController interface.
 //
     public void updatePlot()
     {
         try {
+        
             updateThePlot( null );
         }
         catch (SplatException e) {
@@ -2252,37 +2266,57 @@ public class PlotControl
      * Removes the currently selected spectrum from the plot
      */
     public void removeCurrentSpectrumFromPlot() {
-		SpecData currentlySelectedSpectrum = (SpecData)nameList.getModel().getSelectedItem();
-		
-		// message + global list checkbox
-		String message = String.format("Do you really want to remove the spectrum '%s'?",
-        		currentlySelectedSpectrum.getShortName()
-        		);
-		
-		JCheckBox checkBox = new JCheckBox("Remove from global list as well", true);
-		
-		Object[] params = {message, checkBox};
-		
-		// ask the user
-		int n = JOptionPane.showConfirmDialog( this,
-                params,
-                        "Remove the spectrum",
-                        JOptionPane.YES_NO_OPTION );
-        
-		// return without taking action on 'No'
-		if ( n == JOptionPane.NO_OPTION ) {
-        	return;
-        }
+    	SpecData currentlySelectedSpectrum = (SpecData)nameList.getModel().getSelectedItem();
 
-        // remove the spectrum from plot
-        SpecDataComp specDataComp = getSpecDataComp();
-        specDataComp.remove(currentlySelectedSpectrum);
-        repaint();
-        
-        // remove the spectrum from global list, if required
-        if (checkBox.isSelected()) {
-        	globalList.removeSpectrum(currentlySelectedSpectrum);
-        }
-	}
+    	// message + global list checkbox
+    	String message = String.format("Do you really want to remove the spectrum '%s'?",
+    			currentlySelectedSpectrum.getShortName()
+    			);
+
+    	JCheckBox checkBox = new JCheckBox("Remove from global list as well", true);
+
+    	Object[] params = {message, checkBox};
+
+    	// ask the user
+    	int n = JOptionPane.showConfirmDialog( this,
+    			params,
+    			"Remove the spectrum",
+    			JOptionPane.YES_NO_OPTION );
+
+    	// return without taking action on 'No'
+    	if ( n == JOptionPane.NO_OPTION ) {
+    		return;
+    	}
+
+    	// remove the spectrum from plot
+    	SpecDataComp specDataComp = getSpecDataComp();
+    	specDataComp.remove(currentlySelectedSpectrum);
+    	repaint();
+
+    	// remove the spectrum from global list, if required
+    	if (checkBox.isSelected()) {
+    		globalList.removeSpectrum(currentlySelectedSpectrum);
+    	}
+    }
+
+    public boolean logXPossible() {
+
+    	double[] xdata = getCurrentSpectrum().getXEndPoints();   
+    	return (xdata[0] >= 0 && xdata[2] >= 0 );
+    }
+    public boolean logYPossible() {
+    	double[] ydata = getCurrentSpectrum().getYEndPoints();      	
+    	return (ydata[1] >= 0 && ydata[3] >= 0 );
+    }
+
+    public boolean getDefaultSpacingValue() {
+
+    	for (SpecData specData : plot.getSpecDataComp().get()) {
+    		if (specData.getDefaultAxisSpacingBehavior()) {			
+    			return true; 
+    		}
+    	}
+    	return false;
+    }
 }
 
