@@ -299,6 +299,7 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 			// TODO : blink line? make its background red? display message?
 		}
 		
+		
 		removeServicePanel();
 		//
 		// service_def:
@@ -339,7 +340,9 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 	private void displaySpectrum(String accessUrl, String contentType, String semantics, String dataLinkRequest, String idsrc) {
 		
 		SpectrumIO.Props [] propList = new SpectrumIO.Props[1];	
-		
+	
+		if (contentType==null)
+			contentType="";
 		int type = SpecDataFactory.mimeToSPLATType(contentType);
 		
 		propList[0]= new SpectrumIO.Props(accessUrl, type, semantics);

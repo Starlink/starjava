@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
@@ -374,19 +375,24 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
    
     	String server = resultsPane.getTitleAt(resultsPane.getSelectedIndex());
     	DataLinkResponse dlp;
-    	
+    	String query = null;
+    	String format = table.getAccessFormat(row);
+    	if (format.contains("datalink"))
+    		query = table.getAccessURL(row);
     	String datalinkIDField = dataLinkFrame.getIdSource(server);
     	String id = table.getDataLinkID(row, datalinkIDField);
     	String datalinkurl = dataLinkFrame.getDataLinkLink(server);
+    	
     	if (id != null && datalinkurl != null) {
-    		String query;
     		
-			try {
-				query = datalinkurl+"?ID="+URLEncoder.encode(id,"UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				logger.warning("could not encode: "+e.getMessage());
-				query=datalinkurl+"?ID="+id;
-			}
+    		if (query == null ) {
+    			try {
+    				query = datalinkurl+"?ID="+URLEncoder.encode(id,"UTF-8");
+    			} catch (UnsupportedEncodingException e) {
+    				logger.warning("could not encode: "+e.getMessage());
+    				query=datalinkurl+"?ID="+id;
+    			}
+    		}
     		try {
 			  dlp= new  DataLinkResponse(query);
 			 
@@ -402,7 +408,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return;
-			}
+			}  
     		 if (dataLinkLinksFrame == null)				  
     			 dataLinkLinksFrame = new DataLinkLinksFrame(dlp,  browser);
     		 else dataLinkLinksFrame.changeContent(dlp);
@@ -878,8 +884,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         ArrayList<Props> specList = new ArrayList<Props>();
         
         String idSource = null;
+        String fieldRef=null;
+       
         if ( dataLinkService && dataLinkEnabled  ) { 
-            idSource = dataLinkFrame.getIdSource(server);             
+            idSource = dataLinkFrame.getIdSource(server);   // resource id
+            fieldRef = dataLinkFrame.getSodaFieldRefID(server);
         } 
                
         //  Check for a selection if required, otherwise we're using the given
@@ -914,6 +923,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             int fluxerrorcol = -1;
             int pubdidcol=-1;
             int idsrccol=-1;
+            int idfieldcol=-1;
             int specstartcol=-1;
             int specstopcol=-1;
             int ucdcol=-1;
@@ -925,12 +935,21 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             ColumnInfo colInfo;
             String ucd;
             String utype;
+            String id = "";
             String dataLinkRequest="";
 
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
                 ucd = colInfo.getUCD();
                 utype = colInfo.getUtype();
+                List<DescribedValue> data = colInfo.getAuxData();
+     		    for (DescribedValue dv:data) {
+     			   String info = dv.getInfo().getName();
+     			   if (info.equalsIgnoreCase("ID") || info.equalsIgnoreCase("VOTable ID")) {
+     				  id = dv.getValueAsString(100);    		   
+     			   }  
+     		    }
+                
 
 
                 // for Obscore, use the column name
@@ -1051,8 +1070,9 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         pubdidcol = k;
              //   }
 
-                if (colInfo.getName().equals(idSource))
+                if (colInfo.getName().equals(idSource) || id.equals(idSource))
                     idsrccol = k;
+              
 
             } // for
 

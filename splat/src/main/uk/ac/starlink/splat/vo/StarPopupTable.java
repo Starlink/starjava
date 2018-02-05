@@ -66,6 +66,7 @@ public class StarPopupTable extends  BasicStarPopupTable  {
     // tells if there are soda or datalink parameters associated to this results table
 	private boolean hasSodaService = false;
 	private boolean hasDatalinkService = false;
+	
     
     public StarPopupTable() {
         super(true);
@@ -87,9 +88,14 @@ public class StarPopupTable extends  BasicStarPopupTable  {
    private void initTable() {
       // registerKeyboardAction(copylistener, "Copy", stroke, JComponent.WHEN_FOCUSED); // allow copying cell content to clipboard
        setAutoCreateRowSorter(true); // allow sorting by column
+      
    }
    
-   /*
+  
+	
+
+
+/*
     * Opens a window showing all the information contained in row r
     */
    protected void showInfo(int r) {
@@ -388,6 +394,8 @@ private boolean isPreferedFormat(String format1, String format2){
 	
    }
 
+   
+   
    public  String getDataLinkID(int row, String field) { // get the datalink ID
 	   if (! hasDatalinkService) 
 		   return null;
@@ -414,6 +422,49 @@ private boolean isPreferedFormat(String format1, String format2){
 
    }
    
+   
+   
+   public  String getAccessFormat(int row) { // get the access format value
+	   if (! hasDatalinkService) 
+		   return null;
+	   
+	   StarTable table = this.getStarTable();
+
+	   for (int i=0;i<table.getColumnCount();i++) {
+		   ColumnInfo ci =  table.getColumnInfo(i);
+		   String name = ci.getName();
+		   String utype = ci.getUtype();
+		   name = name.toLowerCase();
+		   
+		   if ((name != null && name.toLowerCase().endsWith("access_format")) || (utype != null && utype.toLowerCase().endsWith("access.format"))) {
+			   try {
+				   return  (String) table.getCell(row, i);
+			   } catch (IOException e) {}											     	    		   
+		   }    	    	  		   
+	   }
+	   return null; 
+   }
+      
+   public  String getAccessURL(int row) { // get the access format value
+	   if (! hasDatalinkService) 
+		   return null;
+
+	   StarTable table = this.getStarTable();
+
+	   for (int i=0;i<table.getColumnCount();i++) {
+		   ColumnInfo ci =  table.getColumnInfo(i);
+		   String name = ci.getName();
+		   String utype = ci.getUtype();
+		   if ((name != null && name.toLowerCase().endsWith("access_url")) || (utype != null && utype.toLowerCase().endsWith("access.reference"))) {
+			   try {
+				   return  (String) table.getCell(row, i);
+			   } catch (IOException e) {}											     	    		   
+		   }    	    	  
+	   }
+
+	   return null; 
+   }
+     
    public boolean hasSodaService() { // this table has soda services
 	   return hasSodaService;
 	

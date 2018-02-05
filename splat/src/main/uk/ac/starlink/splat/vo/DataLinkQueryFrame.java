@@ -372,7 +372,9 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     public String  getDataLinkLink(String server) {
         return  servers.get(server).getDataLinkLink();
    }
-    
+    public String  getSodaFieldRefID(String server) {
+        return  servers.get(server).getSodaFieldRefID();
+   }
 
     public void actionPerformed(ActionEvent e) {
        
@@ -610,9 +612,6 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     }
 */
 
-	public String getDataLinkIDField() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
     
 }

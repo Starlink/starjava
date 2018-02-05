@@ -93,6 +93,12 @@ public class DataLinkServices {
     		return soda.getRefID();  
     	return null;
     }
+    public String getSodaFieldRefID() { // the reference to a field for a soda service
+    	DataLinkServiceResource soda = getSodaService();
+    	if (soda != null)
+    		return soda.getFieldRefID();  
+    	return null;
+    }
 
     public boolean hasSodaService() {
         return (getSodaService() != null);    	
