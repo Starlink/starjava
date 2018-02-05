@@ -985,6 +985,7 @@ public class SpecDataFactory
             else {
                 specData = new SpecData( impl );
             }
+            specData.setObjectType(impl.getObjectType());
         }
         return specData;
     }
@@ -2027,7 +2028,7 @@ public class SpecDataFactory
         }
         else if ( simpleType.startsWith( "text/plain" ) ) {
             //  ASCII table of some kind.
-            stype = SpecDataFactory.TABLE;
+            stype = SpecDataFactory.GUESS;
         }
         else if ( simpleType.startsWith( "application/x-votable+xml" ) ||
                   simpleType.equals( "text/xml;x-votable" ) ||
