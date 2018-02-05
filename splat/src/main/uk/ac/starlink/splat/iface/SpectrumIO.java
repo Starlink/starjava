@@ -677,7 +677,8 @@ public class SpectrumIO
                 }
             }
             
-            if (objectType != null) {
+            if (objectType != null && objectType==ObjectTypeEnum.TIMESERIES) { 
+            	// change only if it's not the default value. In some cases the spectrum already determined the correct type
             	spectrum.setObjectType(objectType);
             }
         }
