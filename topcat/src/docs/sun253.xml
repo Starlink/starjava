@@ -25384,6 +25384,8 @@ introduced since the last version:
         (<ref id="form-skydensity">SkyDensity</ref>,
          <ref id="HealpixLayerControl">Healpix</ref>).
         In some cases, the default Combine values have changed.</li>
+    <li>Prevent MultiCone window from sending cone search queries
+        with <code>sr=NaN</code>.</li>
     </ul>
     </p>
     </dd>

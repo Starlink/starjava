@@ -38,8 +38,14 @@ public class ServiceConeSearcher extends DalConeSearcher
 
     public StarTable performSearch( double ra, double dec, double sr )
             throws IOException {
-        StarTable table = csearch_.performSearch( ra, dec, sr, verb_, tfact_ );
-        return getConsistentTable( table );
+        if ( Double.isNaN( ra ) || Double.isNaN( dec ) || Double.isNaN( sr ) ) {
+            return null;
+        }
+        else {
+            StarTable table =
+                csearch_.performSearch( ra, dec, sr, verb_, tfact_ );
+            return getConsistentTable( table );
+        }
     }
 
     public int getRaIndex( StarTable result ) {

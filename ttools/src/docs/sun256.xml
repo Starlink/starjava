@@ -11352,6 +11352,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         have changed.</li>
     <li>The same new <code>combine</code>/<code>perunit</code> options
         are also added to the <ref id="tskymap">tskymap</ref> command.</li>
+    <li>Prevent <code>coneskymatch</code> from sending cone search queries
+        with <code>sr=NaN</code>.</li>
     </ul>
     </p>
     </dd>
