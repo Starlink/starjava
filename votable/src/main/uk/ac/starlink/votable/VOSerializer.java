@@ -226,7 +226,10 @@ public abstract class VOSerializer {
     public void writeParams( BufferedWriter writer ) throws IOException {
         for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
             DescribedValue param = (DescribedValue) it.next();
-            DefaultValueInfo pinfo = new DefaultValueInfo( param.getInfo() );
+            ValueInfo pinfo0 = param.getInfo();
+            DefaultValueInfo pinfo = pinfo0 instanceof ColumnInfo
+                                   ? new ColumnInfo( (ColumnInfo) pinfo0 )
+                                   : new DefaultValueInfo( pinfo0 );
             Object pvalue = param.getValue();
 
             /* Adjust the info so that its dimension sizes are fixed,
