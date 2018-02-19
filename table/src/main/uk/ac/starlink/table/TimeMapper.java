@@ -20,10 +20,12 @@ import java.util.regex.Pattern;
  * which gives you the following precisions:
  * <ul>
  * <li>epoch +/- 1.7 months: 1 nanosecond precision
- * <li>epoch +/- 12 years: 10 microsecond precision
- * <li>epoch +/- 120 years: 1 microsecond precision
- * <li>epoch +/- 0.12 Myr: 1 millisecond precision
+ * <li>epoch +/- 140 years: 1 microsecond precision
+ * <li>epoch +/- 140 kyears: 1 millisecond precision
+ * <li>epoch +/- 140 Myears: 1 second precision
  * </ul>
+ * That means around microsecond precision for values near the current epoch
+ * (unless this software proves more long lasting than I anticipate).
  * It should be OK for most purposes.
  *
  * @author   Mark Taylor
