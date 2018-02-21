@@ -85,9 +85,17 @@ for f in `${star_bin}/hds_link Conly` `${star_bin}/ems_link Conly` ""; do
             got=""
             for d in $library_path; do
                if test -r $d/$libname -a -z "$got"; then
-                  list[$list_length]="$d/$libname "
-                  got="true"
-                  ((list_length++))
+                  adep="$d/$libname"
+
+                  already_there=0
+                  case "${list[@]}" in  *"$adep"*) already_there=1 ;; esac
+
+                  if [[ $already_there == 0 ]]; then
+                     list[$list_length]=$adep
+                     got="true"
+                     ((list_length++))
+                  fi
+
                fi
             done
          fi
@@ -119,6 +127,12 @@ while [ $index -lt $list_length ]; do
    ((index++))
    sofile=`echo $afile | sed "s:\.a:.${sotype}:"`
    for f in `$lddcmd $sofile`; do
+      case "$f" in
+         @rpath/lib/*.$sotype*)
+         f=`echo $f | sed "s:@rpath/lib:$star_lib:"`
+         ;;
+      esac
+
       case "$f" in
          $star_lib/*.$sotype*)
             adep=`echo $f | sed "s:\.${sotype}.*:.a:"`
