@@ -17,6 +17,7 @@
 #  Authors:
 #     PWD: P.W. Draper (Starlink, Durham University)
 #     MBT: M.B. Taylor (Starlink)
+#     DSB: D.S. Berry (East Asian Observatory)
 #     {enter_new_authors_here}
 
 #  History:
@@ -33,6 +34,11 @@
 #     21-DEC-2005 (MBT):
 #        Use Conly flags on hds_link and ems_link to remove fortran
 #        dependency altogether.
+#     19-FEB-2018 (DSB):
+#        The hds_link script no longer lists all dependencies, but instead
+#        instead relies on each sharable library knowing its own dependencies.
+#        So change this script to include dependencies determined from the
+#        sharable libraries listed by hds_link.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -43,7 +49,7 @@
 #.
 
 #  Set the list of directories we will search for the libraries.
-#  If this in ADDLIBS first followed by any directories in 
+#  If this in ADDLIBS first followed by any directories in
 #  $STARLINK/lib or /star/lib. Decided against LD_LIBRARY_PATH
 #  as this contains things like "/usr/lib" which we don't want to pick
 #  up any libraries from.
@@ -58,26 +64,30 @@ fi
 if test "$STARLINK" != ""; then
    library_path="${library_path}${STARLINK}/lib"
    star_bin="${STARLINK}/bin"
+   star_lib="${STARLINK}/lib"
 else
    library_path="${library_path}/star/lib"
    star_bin="/star/bin"
+   star_lib="/star/lib"
 fi
 
 #  Ok, now create the actual list. The main problem is that libraries
 #  are identified using the "-l" form, whereas we need the full names
 #  to extract the ".o" files.
 
-list=""
+list_length=0
 for f in `${star_bin}/hds_link Conly` `${star_bin}/ems_link Conly` ""; do
    case "$f" in
-      -l*) 
+      -l*)
          libname="`echo $f | sed 's:-l:lib:'`.a"
+
          if test "$libname" != ""; then
             got=""
             for d in $library_path; do
                if test -r $d/$libname -a -z "$got"; then
-                  list="${list}$d/$libname "
+                  list[$list_length]="$d/$libname "
                   got="true"
+                  ((list_length++))
                fi
             done
          fi
@@ -85,7 +95,49 @@ for f in `${star_bin}/hds_link Conly` `${star_bin}/ems_link Conly` ""; do
    esac
 done
 
+#  Now need to add in the dependencies (if any) determined from the
+#  sharable libraries corresponding to the above list of .a files. First
+#  get the file suffix for sharable libraries and the command to list the
+#  dependencies of a sharable library. These are different for Linux and
+#  OSX
+if test "`uname`" == "Linux"; then
+   sotype="so"
+   lddcmd="ldd"
+else
+   sotype="dylib"
+   lddcmd="otool -L"
+fi
+
+#  Process each archive file in the "list" array, get the corresponding
+#  sharable library, get its dependencies, if any are other sharable
+#  libraries within star_lib, add the corresponding archive files to
+#  the end of the "list" array. Remove version numbers from the sharable
+#  library before looking for the corresponding archive.
+index=0
+while [ $index -lt $list_length ]; do
+   afile=${list[$index]}
+   ((index++))
+   sofile=`echo $afile | sed "s:\.a:.${sotype}:"`
+   for f in `$lddcmd $sofile`; do
+      case "$f" in
+         $star_lib/*.$sotype*)
+            adep=`echo $f | sed "s:\.${sotype}.*:.a:"`
+            adep=`echo $adep |  sed -E 's:\.[0-9]+::g' `
+
+            already_there=0
+            case "${list[@]}" in  *"$adep"*) already_there=1 ;; esac
+
+            if [[ $already_there == 0 ]]; then
+               list[$list_length]=$adep
+               ((list_length++))
+            fi
+            ;;
+      esac
+   done
+done
+
+
 #  Return the list of libraries.
-echo $list
+echo ${list[@]}
 
 #  End of script.
