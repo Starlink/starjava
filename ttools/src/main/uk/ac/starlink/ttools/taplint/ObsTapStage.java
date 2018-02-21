@@ -677,7 +677,7 @@ public class ObsTapStage implements Stage {
                         "phys.angSize;instr.fov", "deg" ),
             new ObsCol( "s_region", Type.REGION,
                         "Char.SpatialAxis.Coverage.Support.Area",
-                        is11 ? "phys.outline;obs.field"
+                        is11 ? "pos.outline;obs.field"
                              : "phys.angArea;obs",
                         null ), // from ObsTAP 1.0 Table 6 but not Table 1
             new ObsCol( "s_resolution", Type.DOUBLE,

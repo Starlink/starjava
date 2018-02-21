@@ -11354,6 +11354,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         are also added to the <ref id="tskymap">tskymap</ref> command.</li>
     <li>Prevent <code>coneskymatch</code> from sending cone search queries
         with <code>sr=NaN</code>.</li>
+    <li>Minor fix in taplint OBS stage;
+        ObsCore v1.1 <code>s_region</code> UCD is
+        <code>pos.outline;obs.field</code>, not
+        <code>phys.outline;obs.field</code>
+        (a relic from PR-ObsCore-1.1-20161004).</li>
     </ul>
     </p>
     </dd>
