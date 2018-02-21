@@ -216,19 +216,21 @@ public class ObsTapStage implements Stage {
 
         /* Failing that, if it says ObsCore, that's probably what it means. */
         else {
-            for ( String dm : dmList ) {
-                if ( dm.toLowerCase().indexOf( "obscore" ) >= 0 ) {
-                    String msg = new StringBuffer()
-                       .append( "Mis-spelt ObsCore identifier? " )
-                       .append( dm )
-                       .append( " reported, should be " )
-                       .append( ObscoreVersion.V10.ivoid_ )
-                       .append( " or " )
-                       .append( ObscoreVersion.V11.ivoid_ )
-                       .append( "; assuming ObsCore 1.0" )
-                       .toString();
-                    reporter.report( FixedCode.W_IODM, msg );
-                    return ObscoreVersion.V10;
+            if ( dms != null ) {
+                for ( String dm : dms ) {
+                    if ( dm.toLowerCase().indexOf( "obscore" ) >= 0 ) {
+                        String msg = new StringBuffer()
+                           .append( "Mis-spelt ObsCore identifier? " )
+                           .append( dm )
+                           .append( " reported, should be " )
+                           .append( ObscoreVersion.V10.ivoid_ )
+                           .append( " or " )
+                           .append( ObscoreVersion.V11.ivoid_ )
+                           .append( "; assuming ObsCore 1.0" )
+                           .toString();
+                        reporter.report( FixedCode.W_IODM, msg );
+                        return ObscoreVersion.V10;
+                    }
                 }
             }
         }
