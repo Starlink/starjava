@@ -237,7 +237,8 @@ public abstract class VersionDetail {
                 hasName = true;
                 map.put( "value", new ParamHandler.ValueChecker() );
                 map.put( "ref",
-                         new RefChecker( new String[] { "COOSYS", "GROUP" } ) );
+                         new RefChecker( new String[] { "COOSYS", "GROUP",
+                                                        "FIELD", } ) );
             }
             else if ( "RESOURCE".equals( name ) ) {
                 hasID = true;

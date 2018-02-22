@@ -11359,6 +11359,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>pos.outline;obs.field</code>, not
         <code>phys.outline;obs.field</code>
         (a relic from PR-ObsCore-1.1-20161004).</li>
+    <li>votlint no longer Warns about
+        <code>PARAM/@ref</code>-$gt;<code>FIELD/@ID</code> references,
+        since this usage pattern is now found in
+        DataLink Service Descriptors.</li>
     </ul>
     </p>
     </dd>
