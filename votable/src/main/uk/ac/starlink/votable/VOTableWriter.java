@@ -238,6 +238,9 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         int itable = 0;
         for ( StarTable startab; ( startab = tableSeq.nextTable() ) != null;
               itable++ ) {
+            if ( itable > 0 ) {
+                writeBetweenTableXML( writer );
+            }
 
             /* Get the format to provide a configuration object which describes
              * exactly how the data from each cell is going to get written. */
@@ -368,6 +371,9 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
             throws IOException {
         writePreTableXML( writer );
         for ( int i = 0; i < startabs.length; i++ ) {
+            if ( i > 0 ) {
+                writeBetweenTableXML( writer );
+            }
             VOSerializer.makeSerializer( dataFormat, version, startabs[ i ] )
                         .writeInlineTableElement( writer );
         }
@@ -376,7 +382,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
     }
 
     /**
-     * Outputs all the text required before the TABLE element.
+     * Outputs all the text required before any tables are written.
      * This method can be overridden to alter the behaviour of the
      * writer if required.
      *
@@ -447,7 +453,27 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
     }
 
     /**
-     * Outputs all the text required after the TABLE element in the
+     * Outputs text between one table (TABLE and possibly other associated
+     * elements) and the next.  It's only called as a separator between
+     * adjacent tables, not at the start or end of a sequence of them;
+     * hence it's not called if only a single table is being output.
+     * This method can be overridden to alter the behaviour of the
+     * writer if required.
+     *
+     * <p>This method closes one RESOURCE element and opens another one.
+     *
+     * @param  writer       destination stream
+     */
+    protected void writeBetweenTableXML( BufferedWriter writer )
+            throws IOException {
+        writer.write( "</RESOURCE>" );
+        writer.newLine();
+        writer.write( "<RESOURCE>" );
+        writer.newLine();
+    }
+
+    /**
+     * Outputs all the text required after any tables in the
      * output table document.  This method can be overridden to alter
      * the behaviour of this writer if required.
      *
