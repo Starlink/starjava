@@ -1,0 +1,71 @@
+This package contains mostly contains source code developed by DPAC,
+the Gaia Data Processing and Analysis Consortium.
+
+At present it contains:
+
+ParallaxTools:
+-------------
+
+Code written by Enrique Utrilla (ESAC) for distance estimation
+from parallax values and errors.  This is based on theoretical
+work by Coryn Bailer-Jones and Tri Astraatmadja, as documented
+Astraatmadja and Bailer-Jones, ApJ vol.833, p.119 (2016)
+(2016ApJ...833..119A, DOI 10.3847/1538-4357/833/1/119).
+
+The code was copied from the DPAC subversion repository
+at https://gaia.esac.esa.int/dpacsvn; the initial import
+is the contents of DPAC/CU9/software/ParallaxTools/java/src
+at revision 598158.
+
+The code has been modified slightly by Mark Taylor, so that
+it can be used without dependency on any external libraries
+(but see below).  The details of the changes can be found
+by examinining the git history.
+
+DPAC code (GaiaTools) is generally intended to be LGPL,
+but in practice most of it is not because of some dependencies
+on non-open-source code.  The DPAC source files in this
+package were used by agreement with Uwe Lammers (ESAC),
+by email on 22 Feb 2018:
+
+   Date: Thu, 22 Feb 2018 16:02:10 +0000
+   From: Uwe Lammers <ulammers@sciops.esa.int>
+   Reply-To: uwe.lammers@sciops.esa.int
+   To: Mark Taylor <m.b.taylor@bristol.ac.uk>, uwe.lammers@sciops.esa.int
+   Subject: Re: ParallaxTools license
+
+   Dear Mark,
+
+   fantastic that you are building this into TOPCAT/STILTS!
+   I see no problem with releasing the respective code together
+   with TOPCAT under GPL.
+
+   We have plans to open-source more Gaia s/w, notably GaiaTools
+   but did not get to it yet. There is also still a licensing issue
+   we need to sort out, viz. GT is LGPL but has some dependencies to
+   code under GPL and such a constellation automatically triggers
+   copyleft for the whole combo (as you probably know).
+
+   Cheers
+   Uwe
+
+The original user documentation for this library is in DPAC
+(LiveLink) document GAIA-C9-TN-ESAC-EUM-054.
+
+uk.ac.starlink.dpac.math:
+------------------------
+
+Some supporting files required by the DPAC code.
+At present this contains modified copies of three source files
+from Apache commons-math3, as required for spline interpolation
+by ParallaxTools.
+
+These files were originally acquired from the repository
+http://git-wip-us.apache.org/repos/asf/commons-math.git,
+with tag MATH_3_6_1.  This code was originally licenced
+under the Apache License Version 2.0.
+
+Then, I just deleted those parts that referenced other
+Apache classes so I could use it standalone.  Nothing
+essential was lost.
+
