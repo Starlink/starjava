@@ -2,7 +2,6 @@ package gaia.cu9.tools.parallax;
 
 import java.util.HashMap;
 
-import org.apache.log4j.BasicConfigurator;
 import org.slf4j.LoggerFactory;
 
 import gaia.cu9.tools.parallax.DistanceEstimator.EstimationType;
@@ -79,8 +78,6 @@ public class ParallaxProcessor {
 	
 	
 	public static void main(String args[]){
-		BasicConfigurator.configure();
-		
 		ParallaxProcessor instance = new ParallaxProcessor();
 		instance.run();
 		
