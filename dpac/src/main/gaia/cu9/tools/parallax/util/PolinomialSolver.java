@@ -1,11 +1,6 @@
 package gaia.cu9.tools.parallax.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class PolinomialSolver {
-
-	protected static final Logger logger = LoggerFactory.getLogger(PolinomialSolver.class);
 
 	public static double solveSecondDegree(double a1, double a0){
 		

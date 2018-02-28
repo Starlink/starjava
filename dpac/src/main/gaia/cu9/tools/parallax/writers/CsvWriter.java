@@ -4,7 +4,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import gaia.cu9.tools.parallax.datamodel.DistanceEstimation;
 
@@ -38,7 +39,7 @@ public class CsvWriter {
 			try {
 				writer.close();
 			} catch (IOException e) {
-				LoggerFactory.getLogger(this.getClass()).warn("Exception closing file " + path, e);
+				Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Exception closing file " + path, e);
 			}
 		}
 		path = null;

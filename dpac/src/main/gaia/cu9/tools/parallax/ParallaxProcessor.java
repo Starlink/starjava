@@ -1,8 +1,10 @@
 package gaia.cu9.tools.parallax;
 
+import java.io.IOException;
+
 import java.util.HashMap;
 
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import gaia.cu9.tools.parallax.DistanceEstimator.EstimationType;
 import gaia.cu9.tools.parallax.datamodel.DistanceEstimation;
@@ -23,7 +25,7 @@ import gaia.cu9.tools.parallax.writers.CsvWriter;
  */
 public class ParallaxProcessor {
 	
-	public void run(){
+	public void run() throws IOException{
 		
 		String inputPath = "testdata/sample_thin_disc_7000.csv";
 //		String inputPath = "testdata/sim_7000.csv";
@@ -41,43 +43,29 @@ public class ParallaxProcessor {
 		int nObjects = 0;
 		long startTime = System.nanoTime();
 		
-		try {
-			reader.load(inputPath);
-			writer.open(outputPath);
+		reader.load(inputPath);
+		writer.open(outputPath);
+		
+		StarVariables star = reader.next();
+		
+		while(star!=null){
 			
-			StarVariables star = reader.next();
+			DistanceEstimation estimation = estimator.estimate(star);
+			writer.dump(estimation);
+			nObjects++;
 			
-			while(star!=null){
-				
-				DistanceEstimation estimation = estimator.estimate(star);
-				writer.dump(estimation);
-				nObjects++;
-				
-				star = reader.next();
-			}
-
-			
-		} catch (Exception e) {
-			LoggerFactory.getLogger(this.getClass()).error("Exception", e);
-		} finally {
-			if (reader!=null){
-				reader.close();
-			}
-			
-			if (writer!=null){
-				writer.close();
-			}
+			star = reader.next();
 		}
 		
 		long endTime = System.nanoTime();
 		long ellapsedTime = (long)((endTime-startTime)/1000000);
 		
-		LoggerFactory.getLogger(this.getClass()).info(nObjects + " processed in " + ellapsedTime + " ms.");
+		Logger.getLogger(this.getClass().getName()).info(nObjects + " processed in " + ellapsedTime + " ms.");
 
 	}
 	
 	
-	public static void main(String args[]){
+	public static void main(String args[]) throws IOException{
 		ParallaxProcessor instance = new ParallaxProcessor();
 		instance.run();
 		

@@ -2,8 +2,7 @@ package gaia.cu9.tools.parallax;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import gaia.cu9.tools.parallax.PDF.DistanceEstimationMethod;
 import gaia.cu9.tools.parallax.PDF.ExpDecrVolumeDensityDEM;
@@ -60,7 +59,7 @@ public class DistanceEstimator {
 	}
 	
 	public DistanceEstimator(EstimationType type, Map<String,String> parameters){
-		this.logger = LoggerFactory.getLogger(this.getClass());
+		this.logger = Logger.getLogger(this.getClass().getName());
 		
 		this.estimator=type;
 		
@@ -133,12 +132,12 @@ public class DistanceEstimator {
 			if (value!=null){
 				try{
 					result = Double.valueOf(value);
-					logger.info("Found value for parameter '" + key + "', using: " + result);
+					logger.config("Found value for parameter '" + key + "', using: " + result);
 				} catch (Exception e){
-					logger.warn("Invalid value for parameter '" + key +"' (" + value + "), using default value: " + defaultValue);
+					throw new IllegalArgumentException("Invalid value for parameter '" + key +"' (" + value + ")");
 				}
 			} else {
-				logger.info("No value for parameter '" + key +"' found, using default value: " + defaultValue);
+				logger.config("No value for parameter '" + key +"' found, using default value: " + defaultValue);
 			}
 		}
 		return result;
@@ -151,12 +150,12 @@ public class DistanceEstimator {
 			if (value!=null){
 				try{
 					result = Integer.valueOf(value);
-					logger.info("Found value for parameter '" + key + "', using: " + result);
+					logger.config("Found value for parameter '" + key + "', using: " + result);
 				} catch (Exception e){
-					logger.warn("Invalid value for parameter '" + key +"' (" + value + "), using default value: " + defaultValue);
+					throw new IllegalArgumentException("Invalid value for parameter '" + key +"' (" + value + ")");
 				}
 			} else {
-				logger.info("No value for parameter '" + key +"' found, using default value: " + defaultValue);
+				logger.config("No value for parameter '" + key +"' found, using default value: " + defaultValue);
 			}
 		}
 		return result;
@@ -169,12 +168,12 @@ public class DistanceEstimator {
 			if (value!=null){
 				try{
 					result = Boolean.valueOf(value);
-					logger.info("Found value for parameter '" + key + "', using: " + result);
+					logger.config("Found value for parameter '" + key + "', using: " + result);
 				} catch (Exception e){
-					logger.warn("Invalid value for parameter '" + key +"' (" + value + "), using default value: " + defaultValue);
+					throw new IllegalArgumentException("Invalid value for parameter '" + key +"' (" + value + ")");
 				}
 			} else {
-				logger.info("No value for parameter '" + key +"' found, using default value: " + defaultValue);
+				logger.config("No value for parameter '" + key +"' found, using default value: " + defaultValue);
 			}
 		}
 		return result;

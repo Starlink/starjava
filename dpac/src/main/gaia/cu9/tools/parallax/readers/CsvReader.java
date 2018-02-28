@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import gaia.cu9.tools.parallax.datamodel.DistanceEstimation;
 
@@ -26,7 +26,7 @@ public abstract class CsvReader<T> {
 	public CsvReader(CsvSchema<T> schema){
 		this.schema = schema;
 		currentEntryNumber = 0;
-		logger = LoggerFactory.getLogger(this.getClass());
+		logger = Logger.getLogger(this.getClass().getName());
 	}
 	
 	public void load(String path) throws IOException{
@@ -59,7 +59,7 @@ public abstract class CsvReader<T> {
 			try {
 				reader.close();
 			} catch (IOException e) {
-				LoggerFactory.getLogger(this.getClass()).warn("Exception closing file " + path, e);
+				Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Exception closing file " + path, e);
 			}
 		}
 		path = null;
@@ -85,7 +85,7 @@ public abstract class CsvReader<T> {
 			}
 	
 		} catch (Exception e) {
-			LoggerFactory.getLogger(this.getClass()).error("Exception", e);
+			Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception", e);
 		} finally {
 			if (this!=null){
 				this.close();
@@ -124,7 +124,7 @@ public abstract class CsvReader<T> {
 			try{
 				val = Double.valueOf(values.get(schema.getColumnIndex(key)));
 			} catch (Exception e){
-				logger.error("Error reading value for " + key + " in entry " + currentEntryNumber, e);
+				logger.log(Level.SEVERE, "Error reading value for " + key + " in entry " + currentEntryNumber, e);
 			}
 		}
 		return val;
@@ -137,7 +137,7 @@ public abstract class CsvReader<T> {
 			try{
 				val = Long.valueOf(values.get(schema.getColumnIndex(key)));
 			} catch (Exception e){
-				logger.error("Error reading value for " + key + " in entry " + currentEntryNumber, e);
+				logger.log(Level.SEVERE, "Error reading value for " + key + " in entry " + currentEntryNumber, e);
 			}
 		}
 		return val;
