@@ -30,7 +30,7 @@ public class ParallaxProcessor {
 //		String inputPath = "testdata/sim_7000.csv";
 		String outputPath = "testdata/sample_thin_disc_7000_hs_expdecr_16380.csv";
 		
-		HashMap<String, String> parameters = new HashMap<>();
+		HashMap<String, String> parameters = new HashMap<String, String>();
 //		parameters.put("logAxis", "false");
 		parameters.put("nPoints", "16380");
 //		parameters.put("integrateToInfinite", "false");

@@ -68,7 +68,7 @@ public abstract class CsvReader<T> {
 	
 	public List<T> readAll(String inputPath){
 
-		List<T> entries = new ArrayList<>();
+		List<T> entries = new ArrayList<T>();
 		try {
 			this.load(inputPath);
 			
@@ -101,7 +101,7 @@ public abstract class CsvReader<T> {
 		
 		StringTokenizer tokenizer= new StringTokenizer(line, schema.getSeparators());
 		
-		List<String> tokens = new ArrayList<>();
+		List<String> tokens = new ArrayList<String>();
 		while (tokenizer.hasMoreTokens()){
 			String token = tokenizer.nextToken();
 			if (!token.trim().equals("")){

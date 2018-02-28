@@ -7,7 +7,7 @@ public class TestCsvSchema extends StarVariablesCsvSchema{
 
 	@Override
 	public Map<String, Integer> setupColumnIndexes(){
-		Map<String, Integer> columnIndexes = new HashMap<>();
+		Map<String, Integer> columnIndexes = new HashMap<String, Integer>();
 		columnIndexes.put(ALPHA, 4);
 		columnIndexes.put(DELTA, 5);
 		columnIndexes.put(VARPI, 6);
