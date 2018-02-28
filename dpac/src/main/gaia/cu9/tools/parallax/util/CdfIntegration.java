@@ -32,7 +32,7 @@ public class CdfIntegration {
 	 * @param nPoints Number of points to be calculated in the range
 	 * @param rMin Minimum value of the range, in parsecs
 	 * @param rMax Maximum value of the range, in parsecs
-	 * @return
+	 * @return  CDF
 	 */
 	public double[][]  getCdf(PDF pdf, boolean logAxis, int nPoints, double rMin, double rMax, boolean normalisePdf, boolean integrateToInfinite){
 		
@@ -130,7 +130,7 @@ public class CdfIntegration {
 	 * 
 	 * This implementation uses the value of the PDF at the boundaries that 
 	 * has already been calculated externally, thus avoiding unnecesary calls
-	 * to {@link PDF#getUnnormalizedProbabilityAt()
+	 * to {@link PDF#getUnnormalizedProbabilityAt(double)}
 	 * 
 	 * @param pdf probability distribution function to integrate
 	 * @param min Minimum value of x (in linear units)
