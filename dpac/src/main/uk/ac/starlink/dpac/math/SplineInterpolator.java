@@ -14,15 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.math3.analysis.interpolation;
+/*
+ * Copied and edited for standalone use by Mark Taylor.
+ */
+// package org.apache.commons.math3.analysis.interpolation;
 
-import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.apache.commons.math3.exception.DimensionMismatchException;
-import org.apache.commons.math3.exception.NonMonotonicSequenceException;
-import org.apache.commons.math3.exception.NumberIsTooSmallException;
-import org.apache.commons.math3.exception.util.LocalizedFormats;
-import org.apache.commons.math3.util.MathArrays;
+package uk.ac.starlink.dpac.math;
 
 /**
  * Computes a natural (also known as "free", "unclamped") cubic spline interpolation for the data set.
@@ -49,7 +46,7 @@ import org.apache.commons.math3.util.MathArrays;
  * </p>
  *
  */
-public class SplineInterpolator implements UnivariateInterpolator {
+public class SplineInterpolator {
     /**
      * Computes an interpolating function for the data set.
      * @param x the arguments for the interpolation points
@@ -62,23 +59,17 @@ public class SplineInterpolator implements UnivariateInterpolator {
      * @throws NumberIsTooSmallException if the size of {@code x} is smaller
      * than 3.
      */
-    public PolynomialSplineFunction interpolate(double x[], double y[])
-        throws DimensionMismatchException,
-               NumberIsTooSmallException,
-               NonMonotonicSequenceException {
+    public PolynomialSplineFunction interpolate(double x[], double y[]) {
         if (x.length != y.length) {
-            throw new DimensionMismatchException(x.length, y.length);
+            throw new IllegalArgumentException();
         }
 
         if (x.length < 3) {
-            throw new NumberIsTooSmallException(LocalizedFormats.NUMBER_OF_POINTS,
-                                                x.length, 3, true);
+            throw new IllegalArgumentException();
         }
 
         // Number of intervals.  The number of data points is n + 1.
         final int n = x.length - 1;
-
-        MathArrays.checkOrder(x);
 
         // Differences between knot points
         final double h[] = new double[n];
