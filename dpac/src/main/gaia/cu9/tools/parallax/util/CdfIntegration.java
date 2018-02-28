@@ -2,7 +2,6 @@ package gaia.cu9.tools.parallax.util;
 
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.apache.commons.math3.util.FastMath;
 
 import gaia.cu9.tools.parallax.PDF.PDF;
 
@@ -48,22 +47,22 @@ public class CdfIntegration {
 		
 		double step = 0;
 		if (logAxis){
-			step = (FastMath.log(rMax)-FastMath.log(rMin))/(nPoints-1);
+			step = (Math.log(rMax)-Math.log(rMin))/(nPoints-1);
 		} else {
 			step = (rMax-rMin)/(nPoints-1);
 		}
 		r[0] = rMin;
-		logR[0] = FastMath.log(rMin);
+		logR[0] = Math.log(rMin);
 		sampledPdf[0] = pdf.getUnnormalizedProbabilityAt(r[0]);
 		sampledCdf[0] = 0;
 		
 		for (int i=1; i<nPoints; i++){
 			if (logAxis){
 				logR[i] = logR[i-1] + step;
-				r[i] = FastMath.exp(logR[i]);
+				r[i] = Math.exp(logR[i]);
 			} else {
 				r[i] = r[i-1] + step;
-				logR[i] = FastMath.log(r[i]);
+				logR[i] = Math.log(r[i]);
 			}
 			sampledPdf[i] = pdf.getUnnormalizedProbabilityAt(r[i]);
 			sampledCdf[i] = sampledCdf[i-1] + integrateBooleRule(pdf, r[i-1], r[i], sampledPdf[i-1], sampledPdf[i]);
@@ -166,7 +165,7 @@ public class CdfIntegration {
 		
 		double factor = 1;
 		if (logAxis){
-			factor = FastMath.exp(step);
+			factor = Math.exp(step);
 		}
 		double currentMinX = minR;
 		double currentMaxX = 0;
@@ -241,7 +240,7 @@ public class CdfIntegration {
 		for (int j=0;j<JMAX; j++){
 			xm = 0.5*(x1 + x2);
             fm = spline.value(xm) - percentile;
-            if (FastMath.abs(fm) < TOL){
+            if (Math.abs(fm) < TOL){
             	break;
             }
             f1 = spline.value(x1) - percentile;

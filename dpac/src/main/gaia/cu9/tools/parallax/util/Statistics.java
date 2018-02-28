@@ -1,7 +1,5 @@
 package gaia.cu9.tools.parallax.util;
 
-import org.apache.commons.math3.util.FastMath;
-
 public class Statistics {
 	
 	public static double mean(double[] x){
@@ -17,7 +15,7 @@ public class Statistics {
 		for (double val: x){
 			acc += val*val;
 		}
-		return FastMath.sqrt(acc/x.length);
+		return Math.sqrt(acc/x.length);
 	}
 	
 	public static double stdDev(double[] x){
@@ -29,7 +27,7 @@ public class Statistics {
 		for (double val: x){
 			acc += (val-mean)*(val-mean);
 		}
-		return FastMath.sqrt(acc/(x.length-1));
+		return Math.sqrt(acc/(x.length-1));
 	}
 	
 	public static double max(double[] x){

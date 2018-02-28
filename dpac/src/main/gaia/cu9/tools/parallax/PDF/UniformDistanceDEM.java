@@ -1,7 +1,5 @@
 package gaia.cu9.tools.parallax.PDF;
 
-import org.apache.commons.math3.util.FastMath;
-
 import gaia.cu9.tools.parallax.datamodel.StarVariables;
 import gaia.cu9.tools.parallax.util.Constants;
 import gaia.cu9.tools.parallax.util.PolinomialSolver;
@@ -35,8 +33,8 @@ public class UniformDistanceDEM extends DistanceEstimationMethod {
 		PDF distancePDF =  new PDF(){
 			@Override
 			public double getUnnormalizedProbabilityAt(double x) {
-				                               // FastMath.exp(-0.5*(varpi - 1./r)*(varpi - 1./r)/(sigma*sigma) - r/L) * r*r 
-				return ((x > 0) && (x <= rLim)) ? FastMath.exp(-0.5*(varPi - 1./x)*(varPi - 1./x)/sigma/sigma) / sigma*rLim*Constants.SQRT_2PI : 0;
+				                               // Math.exp(-0.5*(varpi - 1./r)*(varpi - 1./r)/(sigma*sigma) - r/L) * r*r 
+				return ((x > 0) && (x <= rLim)) ? Math.exp(-0.5*(varPi - 1./x)*(varPi - 1./x)/sigma/sigma) / sigma*rLim*Constants.SQRT_2PI : 0;
 			}
 			
 			@Override
@@ -78,7 +76,7 @@ public class UniformDistanceDEM extends DistanceEstimationMethod {
 	
 //	@Override
 //	public double getUnnormalizedProbabilityAt(double x) {
-//		return ((x > 0) && (x <= this.rLim)) ? FastMath.exp(-0.5*(this.varPi - 1./x)*(this.varPi - 1./x)/this.sigma/this.sigma) / this.sigma*this.rLim*Constants.SQRT_2PI : 0;
+//		return ((x > 0) && (x <= this.rLim)) ? Math.exp(-0.5*(this.varPi - 1./x)*(this.varPi - 1./x)/this.sigma/this.sigma) / this.sigma*this.rLim*Constants.SQRT_2PI : 0;
 //	}
 //	
 //	@Override

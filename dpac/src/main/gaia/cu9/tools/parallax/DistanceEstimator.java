@@ -2,7 +2,6 @@ package gaia.cu9.tools.parallax;
 
 import java.util.Map;
 
-import org.apache.commons.math3.util.FastMath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +122,7 @@ public class DistanceEstimator {
 	}
 	
 	protected double distanceToModulus(double r){
-		return 5*(FastMath.log10(r*1000) - 5);
+		return 5*(Math.log10(r*1000) - 5);
 	}
 
 	

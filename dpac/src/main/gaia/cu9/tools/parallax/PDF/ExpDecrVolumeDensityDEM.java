@@ -1,7 +1,5 @@
 package gaia.cu9.tools.parallax.PDF;
 
-import org.apache.commons.math3.util.FastMath;
-
 import gaia.cu9.tools.parallax.datamodel.StarVariables;
 import gaia.cu9.tools.parallax.util.PolinomialSolver;
 
@@ -26,7 +24,7 @@ public class ExpDecrVolumeDensityDEM extends DistanceEstimationMethod {
 		PDF distancePDF =  new PDF(){
 			@Override
 			public double getUnnormalizedProbabilityAt(double r) {
-				return (r > 0) ? FastMath.exp(-0.5*(varpi - 1./r)*(varpi - 1./r)/(sigma*sigma) - r/L) * r*r : 0;
+				return (r > 0) ? Math.exp(-0.5*(varpi - 1./r)*(varpi - 1./r)/(sigma*sigma) - r/L) * r*r : 0;
 			}
 			
 			@Override
@@ -69,7 +67,7 @@ public class ExpDecrVolumeDensityDEM extends DistanceEstimationMethod {
 
 //	@Override
 //	public double getUnnormalizedProbabilityAt(double r) {
-//		return (r > 0) ? FastMath.exp(-0.5*(this.varpi - 1./r)*(this.varpi - 1./r)/this.sigma/this.sigma - r/this.L) * r*r/this.sigma : 0;
+//		return (r > 0) ? Math.exp(-0.5*(this.varpi - 1./r)*(this.varpi - 1./r)/this.sigma/this.sigma - r/this.L) * r*r/this.sigma : 0;
 //	}
 //	
 //	@Override

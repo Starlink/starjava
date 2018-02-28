@@ -1,6 +1,5 @@
 package gaia.cu9.tools.parallax.util;
 
-import org.apache.commons.math3.util.FastMath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,7 @@ public class PolinomialSolver {
 			// just one root
 			return -0.5 * a1;
 		} else {
-			double discriminantSqrt = FastMath.sqrt(discriminant);
+			double discriminantSqrt = Math.sqrt(discriminant);
 			double root = Double.MAX_VALUE;
 			
 			double root1 = -0.5 * (a1 + discriminantSqrt);
@@ -59,15 +58,15 @@ public class PolinomialSolver {
 		double D = Q*Q*Q + R*R;
 		
 		if (D >= 0){
-			double S = FastMath.cbrt((R + FastMath.sqrt(D)));
-			double T = FastMath.cbrt((R - FastMath.sqrt(D)));
+			double S = Math.cbrt((R + Math.sqrt(D)));
+			double T = Math.cbrt((R - Math.sqrt(D)));
 			root = -a2/3. + S + T;
 		} else {
-			double angle = FastMath.acos(R/FastMath.sqrt(-(Q*Q*Q)));
+			double angle = Math.acos(R/Math.sqrt(-(Q*Q*Q)));
 			double[] r = new double[3];
 			root = Double.MAX_VALUE;
 			for (int i=0; i<r.length; i++){
-				r[i] = 2.*FastMath.sqrt(-Q)*FastMath.cos((angle + 2.*(double)i*FastMath.PI)/3.) - a2/3.;
+				r[i] = 2.*Math.sqrt(-Q)*Math.cos((angle + 2.*(double)i*Math.PI)/3.) - a2/3.;
 				if ((r[i] > 0) && (r[i] < root)){
 					root = r[i];
 				}
