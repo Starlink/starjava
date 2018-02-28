@@ -81,11 +81,6 @@
   <property name="name" value="dpac"/>
   <property name="version" value="1.0"/>
 
-  <!-- The Java package name -->
-  <!--
-   ! <property name="package.name" value="??"/>
-   !-->
-
   <!-- Compilation options -->
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
@@ -131,7 +126,6 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
-  <property name="build.docs" value="${build.dir}/docs"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
@@ -200,10 +194,6 @@
    !   path.
    !-->
   <extclasspath id="installed.classpath">
-
-    <!-- Table -->
-    <pathelement location="${star.jar.dir}/table/table.jar"/>
-
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -212,8 +202,22 @@
    !   not been installed (should be same packages as in installed.classpath).
    !-->
   <extclasspath id="built.jarpath">
-    <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
   </extclasspath>
+
+  <!-- Find all local third party jars files.
+   !
+   !   Normally these will be kept in their own third party package, but may
+   !   be kept here temporarily, say if there are version conflicts that
+   !   cannot be addressed. They are installed with the package jar files and
+   !   should be entered into the main jar file manifest.
+   !-->
+  <path id="package.jars">
+ <!--
+     <fileset dir="${src.jars.dir}">
+        <include name="*.jar"/>
+     </fileset>
+  !-->
+  </path>
 
   <!-- Create the local build system CLASSPATH.
    !
@@ -241,6 +245,9 @@
    !        without having them all installed)
    !-->
   <path id="built.classpath">
+
+    <!-- Third party jars held by this package -->
+    <path refid="package.jars"/>
 
     <!-- All classes in the local build system -->
     <dirset dir="${star.build.dir}">
@@ -307,18 +314,10 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  Table -->
-    <available property="table.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.table.StarTable"/>
-
-    <fail message="No TABLE available" unless="table.present"/>
-
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
                classpathref="classpath"
                classname="junit.framework.TestCase"/>
-
   </target>
 
   <!--
@@ -385,8 +384,7 @@
      !   (i.e. are discovered using "getResource()"). -->
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
-        <include name="**/{package.support.files}"/>
-        <include name="**/{more.package.support.files}"/>
+        <!-- <include name="**/{package.support.files}"/> -->
       </fileset>
     </copy>
 
@@ -395,11 +393,11 @@
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
-    <!--
+ <!--
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
-    -->
+  !-->
 
   </target>
 
@@ -452,11 +450,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
+         <title>DPAC - files originating from Gaia DPAC repository</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink {Package} - Webstart edition"</description>
+         <description>"Starlink DPAC - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
@@ -529,7 +527,7 @@
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
-   -->
+   !-->
 
   </target>
 
@@ -741,7 +739,7 @@
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
-  -->
+ -->
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
@@ -871,12 +869,6 @@
       <!-- Link to the full Java API at SUNs website -->
       <link offline="true" href="${javaapi.url}"
             packagelistLoc="${javaapi.lis}"/>
-
-   <!--
-    ! <group title="${Name} API" packages="${package.name}*"/>
-    !
-    ! <bottom><![CDATA[<i>Copyright &#169; ${year} Central Laboratory of the Research Councils. All Rights Reserved.<i>]]></bottom>
-    !-->
     </javadoc>
 
   </target>
@@ -937,7 +929,6 @@
           depends="build"
           if="junit.present">
 
-<!--
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -949,7 +940,6 @@
       <classpath refid="tests-classpath"/>
 
     </javac>
- -->
 
   </target>
 
@@ -966,7 +956,6 @@
           depends="compile-tests"
           if="junit.present">
 
-<!--
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
@@ -990,7 +979,6 @@
       </batchtest>
 
     </junit>
- -->
 
   </target>
 
