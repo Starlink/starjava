@@ -1,7 +1,7 @@
 package gaia.cu9.tools.parallax.util;
 
-import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import uk.ac.starlink.dpac.math.SplineInterpolator;
+import uk.ac.starlink.dpac.math.PolynomialSplineFunction;
 
 import gaia.cu9.tools.parallax.PDF.PDF;
 
