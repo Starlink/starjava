@@ -204,6 +204,9 @@
     <echo message="Executing GBIN target: ${what}"/>
     <ant dir="./gbin" target="${what}"/>
 
+    <echo message="Executing DPAC target: ${what}"/>
+    <ant dir="./dpac" target="${what}"/>
+
     <echo message="Executing RAYREG target: ${what}"/>
     <ant dir="./rayreg" target="${what}"/>
 
@@ -468,11 +471,11 @@
          <include name="**"/>
       </packageset>
 
-      <packageset dir="cdf/build/java" defaultexcludes="yes">
+      <packageset dir="gbin/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
-      <packageset dir="gbin/build/java" defaultexcludes="yes">
+      <packageset dir="dpac/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
