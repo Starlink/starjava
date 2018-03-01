@@ -69,3 +69,23 @@ Then, I just deleted those parts that referenced other
 Apache classes so I could use it standalone.  Nothing
 essential was lost.
 
+uk.ac.starlink.dpac.epoch:
+-------------------------
+
+GaiaTools classes from gaia.cu1.tools for epoch transfomration,
+acquired from the DPAC subversion repository at
+https://gaia.esac.esa.int/dpacsvn; the initial import is of files:
+
+    CU1/software/CrossMatch/src/gaia/cu1/tools/cu1crossmatch/epochtransformation/EpochTransformation.java
+    CU1/software/GaiaTools/src/gaia/cu1/tools/numeric/algebra/GVector3d.java
+
+at revision 579554.
+
+The code has been modified so that these classes can be used without
+external dependencies.  Since the signatures (e.g. implemented
+interfaces) have been changed, the packages in which they live have
+been changed to avoid problems if they are used on the same
+classpath as original GaiaTools classes.  The details of the changes
+can be found by examining the git history.  As for ParallaxTools,
+this code is licensed under the LGPL.
+

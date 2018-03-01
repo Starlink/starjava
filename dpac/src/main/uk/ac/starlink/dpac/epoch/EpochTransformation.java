@@ -1,7 +1,6 @@
-package gaia.cu1.tools.cu1crossmatch.epochtransformation;
+package uk.ac.starlink.dpac.epoch;
 
-import gaia.cu1.tools.cu1crossmatch.crossMatch.ConstantsAndTransformations;
-import gaia.cu1.tools.numeric.algebra.GVector3d;
+// package gaia.cu1.tools.cu1crossmatch.epochtransformation;
 
 /**
  * Propagates the 6-dimensional vector of barycentric astrometric parameters and
@@ -13,9 +12,10 @@ import gaia.cu1.tools.numeric.algebra.GVector3d;
  *         The Hipparcos and Tycho Catalogues (ESA SP-1200), Volume 1, Section
  *         1.5.5, 'Epoch Transformation: Rigorous Treatment'.
  */
-public final class EpochTransformation implements ConstantsAndTransformations {
+public final class EpochTransformation {
 
     private static double eps = 1.e-15;
+    private static final double PI = Math.PI;
 
     private EpochTransformation() {
 
