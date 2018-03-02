@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.func.Coverage;
 import uk.ac.starlink.ttools.func.Distances;
 import uk.ac.starlink.ttools.func.Fluxes;
 import uk.ac.starlink.ttools.func.Formats;
+import uk.ac.starlink.ttools.func.Gaia;
 import uk.ac.starlink.ttools.func.KCorrections;
 import uk.ac.starlink.ttools.func.Lists;
 import uk.ac.starlink.ttools.func.Maths;
@@ -130,6 +131,7 @@ public class JELUtils {
                 Distances.class,
                 Fluxes.class,
                 Formats.class,
+                Gaia.class,
                 KCorrections.class,
                 Lists.class,
                 Maths.class,
