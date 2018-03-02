@@ -61,6 +61,7 @@ this list up to date, but if there are missing entries please complain.
       iText_shrunk.jar
       jcdf.jar
       PixTools.jar
+      dpac.jar
 
    Apache license:
       apache-bzip2.jar
