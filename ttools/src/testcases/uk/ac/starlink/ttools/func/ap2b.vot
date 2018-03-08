@@ -1,0 +1,144 @@
+<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<RESOURCE type="results">
+<INFO name="QUERY_STATUS" value="OK"/>
+<INFO name="QUERY" value=""><![CDATA[select top 50
+       ra,dec,parallax,pmra,pmdec,radial_velocity,
+       ra_error,dec_error,parallax_error,pmra_error,pmdec_error,radial_velocity_error,
+       ra_dec_corr,ra_parallax_corr,ra_pmra_corr,ra_pmdec_corr,
+       dec_parallax_corr,dec_pmra_corr,dec_pmdec_corr,
+       parallax_pmra_corr,parallax_pmdec_corr,
+       pmra_pmdec_corr,
+       random_index,ref_epoch,
+       astrometric_parameters(ra,dec,parallax,pmra,pmdec,radial_velocity) as ap,
+       astrometric_parameter_error(ra_error,dec_error,parallax_error,pmra_error,pmdec_error,
+								   ra_dec_corr,ra_parallax_corr,ra_pmra_corr,ra_pmdec_corr,
+								   dec_parallax_corr,dec_pmra_corr,dec_pmdec_corr,
+								   parallax_pmra_corr,parallax_pmdec_corr,
+								   pmra_pmdec_corr,
+								   parallax,radial_velocity,radial_velocity_error) as aperr,
+       epoch_prop(ra,dec,parallax,pmra,pmdec,radial_velocity,2015.5,2015.5) as ga0,
+       epoch_prop(ra,dec,parallax,pmra,pmdec,radial_velocity,2015.5,3015.5) as ga1000,
+       epoch_prop_error(
+		   astrometric_parameters(ra,dec,parallax,pmra,pmdec,radial_velocity),
+           astrometric_parameter_error(ra_error,dec_error,parallax_error,pmra_error,pmdec_error,
+									   ra_dec_corr,ra_parallax_corr,ra_pmra_corr,ra_pmdec_corr,
+									   dec_parallax_corr,dec_pmra_corr,dec_pmdec_corr,
+									   parallax_pmra_corr,parallax_pmdec_corr,
+									   pmra_pmdec_corr,
+									   parallax,radial_velocity,radial_velocity_error),
+		   2015.5,2015.5) as gc0,
+       epoch_prop_error(
+		   astrometric_parameters(ra,dec,parallax,pmra,pmdec,radial_velocity),
+		   astrometric_parameter_error(ra_error,dec_error,parallax_error,pmra_error,pmdec_error,
+									   ra_dec_corr,ra_parallax_corr,ra_pmra_corr,ra_pmdec_corr,
+									   dec_parallax_corr,dec_pmra_corr,dec_pmdec_corr,
+									   parallax_pmra_corr,parallax_pmdec_corr,
+									   pmra_pmdec_corr,
+									   parallax,radial_velocity,radial_velocity_error),
+		   2015.5,3015.5) as gc1000
+ from user_dr2int6.gaia_source
+where parallax is not null
+  and radial_velocity is not null
+order by random_index asc]]></INFO>
+<INFO name="CAPTION" value=""><![CDATA[If you use public Gaia DR1 data in your paper, please take note of our guide on how to acknowledge and cite Gaia DR1: http://gaia.esac.esa.int/documentation/GDR1/Miscellaneous/sec_credit_and_citation_instructions.html]]></INFO>
+<INFO name="PAGE" value=""></INFO>
+<INFO name="PAGE_SIZE" value=""></INFO>
+<INFO name="JOBID" value="1521555773051I"><![CDATA[1521555773051I]]></INFO>
+<INFO name="JOBNAME" value=""><![CDATA[ap2b]]></INFO>
+<TABLE>
+<FIELD datatype="double" name="ra" ucd="pos.eq.ra;meta.main" unit="Angle[deg]" utype="Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C1">
+<DESCRIPTION>Right ascension</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="dec" ucd="pos.eq.dec;meta.main" unit="Angle[deg]" utype="Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C2">
+<DESCRIPTION>Declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="parallax" ucd="pos.parallax" unit="Angle[mas]">
+<DESCRIPTION>Parallax</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pmra" ucd="pos.pm;pos.eq.ra" unit="Angular Velocity[mas/year]">
+<DESCRIPTION>Proper motion in right ascension direction</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pmdec" ucd="pos.pm;pos.eq.dec" unit="Angular Velocity[mas/year]">
+<DESCRIPTION>Proper motion in declination direction</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="radial_velocity" ucd="spect.dopplerVeloc.opt" unit="Velocity[km/s]">
+<DESCRIPTION>Radial velocity</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="ra_error" ucd="stat.error;pos.eq.ra" unit="Angle[mas]">
+<DESCRIPTION>Standard error of right ascension</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="dec_error" ucd="stat.error;pos.eq.dec" unit="Angle[mas]">
+<DESCRIPTION>Standard error of declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="parallax_error" ucd="stat.error;pos.parallax" unit="Angle[mas]">
+<DESCRIPTION>Standard error of parallax</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pmra_error" ucd="stat.error;pos.pm;pos.eq.ra" unit="Angular Velocity[mas/year]">
+<DESCRIPTION>Standard error of proper motion in right ascension direction</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pmdec_error" ucd="stat.error;pos.pm;pos.eq.dec" unit="Angular Velocity[mas/year]">
+<DESCRIPTION>Standard error of proper motion in declination direction</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="radial_velocity_error" ucd="stat.error;spect.dopplerVeloc.opt" unit="Velocity[km/s]">
+<DESCRIPTION>Radial velocity error</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="ra_dec_corr" ucd="stat.correlation;pos.eq.ra;pos.eq.dec" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between right ascension and declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="ra_parallax_corr" ucd="stat.correlation;pos.eq.ra;pos.parallax" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between right ascension and parallax</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="ra_pmra_corr" ucd="stat.correlation;pos.eq.ra;pos.pm;pos.eq.ra" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between right ascension and proper motion in right ascension</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="ra_pmdec_corr" ucd="stat.correlation;pos.eq.ra;pos.pm;pos.eq.dec" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between right ascension and proper motion in declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="dec_parallax_corr" ucd="stat.correlation;pos.eq.dec;pos.parallax" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between declination and parallax</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="dec_pmra_corr" ucd="stat.correlation;pos.eq.dec;pos.pm;pos.eq.ra" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between declination and proper motion in right ascension</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="dec_pmdec_corr" ucd="stat.correlation;pos.eq.dec;pos.pm;pos.eq.dec" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between declination and proper motion in declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="parallax_pmra_corr" ucd="stat.correlation;pos.parallax;pos.pm;pos.eq.ra" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between parallax and proper motion in right ascension</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="parallax_pmdec_corr" ucd="stat.correlation;pos.parallax;pos.pm;pos.eq.dec" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between parallax and proper motion in declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="pmra_pmdec_corr" ucd="stat.correlation;pos.pm;pos.eq.ra;pos.pm;pos.eq.dec" unit="Dimensionless[see description]">
+<DESCRIPTION>Correlation between proper motion in right ascension and proper motion in declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="long" name="random_index" ucd="meta.code">
+<DESCRIPTION>Random index used to select subsets</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="ref_epoch" ucd="meta.ref;time.epoch" unit="Time[Julian Years]">
+<DESCRIPTION>Reference epoch</DESCRIPTION>
+</FIELD>
+<FIELD arraysize="*" datatype="double" name="ap"/>
+<FIELD arraysize="21x1" datatype="double" name="aperr"/>
+<FIELD arraysize="*" datatype="double" name="ga0"/>
+<FIELD arraysize="*" datatype="double" name="ga1000"/>
+<FIELD arraysize="*" datatype="double" name="gc0"/>
+<FIELD arraysize="*" datatype="double" name="gc1000"/>
+<DATA>
+<BINARY2>
+<STREAM encoding='base64'>
+
+   <!-- in the repository this data is missing, since it was extracted
+    !   from DR2 data which is at the time of commit to the public
+    !   repository embargoed.  Following DR2 the content will be
+    !   reinstated.  You can recreate the data from the integration
+    !   archive using the QUERY info value above if you have the
+    !   relevant privileges.
+    !-->
+ 
+</STREAM>
+</BINARY2>
+</DATA>
+</TABLE>
+</RESOURCE>
+</VOTABLE>
