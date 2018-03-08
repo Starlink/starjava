@@ -533,6 +533,7 @@ public class DefaultValueInfo implements ValueInfo {
      *
      * @param  shape the shape to format
      * @return  a human-readable representation of the value shape
+     * @see    #unformatShape(String)
      */
     public static String formatShape( int[] shape ) {
         if ( shape == null || shape.length == 0 ) {
@@ -553,6 +554,39 @@ public class DefaultValueInfo implements ValueInfo {
             }
             return buf.toString();
         }
+    }
+
+    /**
+     * Takes a stringified version of the shape and turns it into
+     * an array.  This performs the opposite of {@link #formatShape(int[])},
+     * so values are comma-separated, and the last one only may be "*".
+     *
+     * @param  txt  string representation of value shape
+     * @return   array representation of value shape
+     * @throws  IllegalArgumentException if the argument is not in a
+     *          comprehensible format
+     * @see   #formatShape(int[])
+     */
+    public static int[] unformatShape( String txt ) {
+        if ( txt == null || txt.trim().length() == 0 ) {
+            return null;
+        }
+        String[] els = txt.split( ",", -1 );
+        int nel = els.length;
+        int[] shape = new int[ nel ];
+        for ( int i = 0; i < nel; i++ ) {
+            String el = els[ i ].trim();
+            try {
+                shape[ i ] = i == nel - 1 && "*".equals( el )
+                           ? -1
+                           : Integer.parseInt( el );
+            }
+            catch ( NumberFormatException e ) {
+                throw new IllegalArgumentException( "Bad shape format: "
+                                                  + txt );
+            }
+        }
+        return shape;
     }
 
     public Object unformatString( String rep ) {
