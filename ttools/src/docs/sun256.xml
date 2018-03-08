@@ -11363,6 +11363,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>PARAM/@ref</code>-$gt;<code>FIELD/@ID</code> references,
         since this usage pattern is now found in
         DataLink Service Descriptors.</li>
+    <li>The <ref id="addcol"><code>addcol</code></ref>
+        and <ref id="colmeta"><code>colmeta</code></ref> filters
+        now accept <code>-shape</code> and <code>-elsize</code> flags
+        for defining array and string shape/extent column metadata.</li>
     </ul>
     </p>
     </dd>
