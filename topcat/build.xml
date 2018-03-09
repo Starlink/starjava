@@ -1451,7 +1451,7 @@
 
     <!-- Construct XML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and forms part of the user document. -->
-    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.topcat.doc.TopcatXmlDoclet"
              docletpathref="classpath"
              failonerror="true"
              public="true"
@@ -1460,7 +1460,7 @@
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.topcat.doc.TopcatXmlDoclet"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"
@@ -1469,7 +1469,7 @@
              packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.topcat.doc.TopcatXmlDoclet"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"
@@ -1478,7 +1478,7 @@
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.topcat.doc.SummaryXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.topcat.doc.TopcatXmlDoclet"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"

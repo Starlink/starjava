@@ -25390,6 +25390,11 @@ introduced since the last version:
         <ref id="Arrays">Arrays</ref>:
         <code>slice</code>, <code>pick</code>, and variants for integer
         and string array types.</li>
+    <li>The expression language
+        <ref id="funcs">Function documentation</ref> in the
+        user document is now more complete.
+        It now contains descriptions of all parameters and return values
+        as well as the general description of the function behaviour.</li>
     </ul>
     </p>
     </dd>
