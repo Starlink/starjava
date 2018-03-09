@@ -25393,7 +25393,8 @@ introduced since the last version:
     <li>The expression language
         <ref id="funcs">Function documentation</ref> in the
         user document is now more complete.
-        It now contains descriptions of all parameters and return values
+        It now contains descriptions of all parameters and return values,
+        with examples in some cases,
         as well as the general description of the function behaviour.</li>
     </ul>
     </p>

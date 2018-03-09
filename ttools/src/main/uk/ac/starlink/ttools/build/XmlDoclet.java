@@ -84,7 +84,7 @@ public abstract class XmlDoclet extends MemberDoclet {
     protected void outReturn( Type rtype, String rdesc ) throws IOException {
     }
 
-    protected void outExamples( String[] examples ) {
+    protected void outExamples( String[] examples ) throws IOException {
     }
 
     /**
