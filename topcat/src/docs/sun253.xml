@@ -25386,6 +25386,10 @@ introduced since the last version:
         In some cases, the default Combine values have changed.</li>
     <li>Prevent MultiCone window from sending cone search queries
         with <code>sr=NaN</code>.</li>
+    <li>New array manipulation functions added to
+        <ref id="Arrays">Arrays</ref>:
+        <code>slice</code>, <code>pick</code>, and variants for integer
+        and string array types.</li>
     </ul>
     </p>
     </dd>

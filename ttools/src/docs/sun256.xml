@@ -11367,6 +11367,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and <ref id="colmeta"><code>colmeta</code></ref> filters
         now accept <code>-shape</code> and <code>-elsize</code> flags
         for defining array and string shape/extent column metadata.</li>
+    <li>New array manipulation functions added to 
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>:
+        <code>slice</code>, <code>pick</code>, and variants for integer
+        and string array types.</li>
     </ul>
     </p>
     </dd>
