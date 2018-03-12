@@ -36,6 +36,7 @@ import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -155,7 +156,13 @@ public class MethodBrowser extends JPanel {
         docPane_.putClientProperty( JEditorPane.HONOR_DISPLAY_PROPERTIES,
                                     Boolean.TRUE );
         docPane_.setEditable( false );
-        docPane_.setEditorKit( new HTMLEditorKit() );
+        HTMLEditorKit ekit = new HTMLEditorKit();
+        StyleSheet stylesheet = new StyleSheet();
+        stylesheet.addStyleSheet( ekit.getStyleSheet() );
+        stylesheet.addRule( "p {margin-top: 10}" );
+        stylesheet.addRule( "code {color: #A52A2A}" ); // standard Brown
+        ekit.setStyleSheet( stylesheet );
+        docPane_.setEditorKit( ekit );
         docPane_.setText( getInstructions() );
         JScrollPane docScroller = new JScrollPane( docPane_ );
         docScroller.setPreferredSize( new Dimension( 500, 450 ) );
