@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.build;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -157,6 +158,7 @@ public abstract class MemberDoclet {
      */
     protected boolean process() throws IOException {
         ClassDoc[] classes = root_.classes();
+        Arrays.sort( classes );
         for ( int i = 0; i < classes.length; i++ ) {
             ClassDoc clazz = classes[ i ];
             if ( clazz.isPublic() ) {
