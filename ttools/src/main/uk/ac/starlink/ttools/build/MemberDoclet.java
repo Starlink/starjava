@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.LanguageVersion;
@@ -15,6 +16,7 @@ import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.Parameter;
+import com.sun.javadoc.ProgramElementDoc;
 import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Tag;
 import com.sun.javadoc.Type;
@@ -190,18 +192,48 @@ public abstract class MemberDoclet {
         MethodDoc[] methods = clazz.methods();
         for ( int i = 0; i < methods.length; i++ ) {
             MethodDoc method = methods[ i ];
-            if ( method.isPublic() && method.isStatic() ) {
+            if ( isDocumentable( method ) ) {
                 processMethod( method );
             }
         }
         FieldDoc[] fields = clazz.fields();
         for ( int i = 0; i < fields.length; i++ ) {
             FieldDoc field = fields[ i ];
-            if ( field.isPublic() && field.isStatic() && field.isFinal() ) {
+            if ( isDocumentable( field ) ) {
                 processField( field );
             }
         }
         endClass();
+    }
+
+    /**
+     * Indicates whether a given item is to be documented or ignored.
+     * Currently, members that are public, static, and not marked by
+     * the {@link uk.ac.starlink.ttools.build.HideDoc @HideDoc}
+     * annotation are considered documentable.
+     * Fields must additionally be declared final.
+     *
+     * @param  pel  program element
+     * @return   true to process for documentation, false to skip
+     */
+    public boolean isDocumentable( ProgramElementDoc pel ) {
+        if ( ! pel.isPublic() ) {
+            return false;
+        }
+        if ( ! pel.isStatic() ) {
+            return false;
+        }
+        if ( pel instanceof FieldDoc &&
+             ! pel.isFinal() ) {
+            return false;
+        }
+        for ( AnnotationDesc adesc : pel.annotations() ) {
+            if ( HideDoc.class.getName()
+                .equals( adesc.annotationType().qualifiedName() ) ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
