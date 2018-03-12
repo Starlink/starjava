@@ -238,57 +238,59 @@ public class FuncTest extends TestCase {
 
         double[] da = new double[] { 10., 11., 12., 13., 14., 15., };
         int[] ia = new int[] { 10, 11, 12, 13, 14, 15, };
-        String[] sa = new String[] { "Tess", "Armadillo", };
+        String[] sa = new String[] { "Tess", "Armadillo", "Scout", };
 
         assertArrayEquals( new double[] { 10, 11, 12 },
                            Arrays.slice(Arrays.array(10,11,12,13), 0, 3) );
         assertArrayEquals( new double[] { 12, 13 },
                            Arrays.slice(Arrays.array(10,11,12,13), -2, 999) );
         assertArrayEquals( new String[] { "A", "B", "C", },
-               Arrays.sliceString(Arrays.stringArray("A","B","C","D"), 0, 3));
+               Arrays.slice(Arrays.stringArray("A","B","C","D"), 0, 3));
         assertArrayEquals( new String[] { "C", "D", },
-               Arrays.sliceString(Arrays.stringArray("A","B","C","D"),-2,999));
+               Arrays.slice(Arrays.stringArray("A","B","C","D"),-2,999));
 
         assertArrayEquals( new double[] { 11, 12, 13, 14 },
                            Arrays.slice( da, 1, -1 ) );
-        assertArrayEquals( new double[] { 10, 11, 12, },
-                           Arrays.slice( ia, 0, 3 ) );
         assertArrayEquals( new int[] { 10, 11, 12, 13, },
-                           Arrays.sliceInt( ia, -99, -2 ) );
-        assertArrayEquals( new int[] { 10, 11, 12, 13, },
-                           Arrays.sliceInt( da, -99, -2 ) );
+                           Arrays.slice( ia, -99, -2 ) );
         assertArrayEquals( new String[ 0 ],
-                           Arrays.sliceString( sa, 2, 1 ) );
+                           Arrays.slice( sa, 2, 1 ) );
         assertArrayEquals( new String[] { "Tess", },
-                           Arrays.sliceString( sa, 0, 1 ) );
+                           Arrays.slice( sa, 0, 1 ) );
 
         assertArrayEquals( new double[] { 10, 13 },
                            Arrays.pick(Arrays.array(10,11,12,13), 0, 3) );
         assertArrayEquals( new double[] { 13, 12, 11 },
                            Arrays.pick(Arrays.array(10,11,12,13), -1, -2, -3 ));
         assertArrayEquals( new int[] { 10, 13 },
-                           Arrays.pickInt(Arrays.intArray(10,11,12,13), 0, 3));
+                           Arrays.pick(Arrays.intArray(10,11,12,13), 0, 3));
         assertArrayEquals( new int[] { 13, 12, 11 },
-              Arrays.pickInt( Arrays.intArray(10,11,12,13),-1,-2,-3));
+              Arrays.pick( Arrays.intArray(10,11,12,13),-1,-2,-3));
         assertArrayEquals( new String[] { "A", "D", },
-              Arrays.pickString(Arrays.stringArray("A","B","C","D"), 0, 3 ));
+              Arrays.pick(Arrays.stringArray("A","B","C","D"), 0, 3 ));
         assertArrayEquals( new String[] { "D", "C", "B", },
-              Arrays.pickString(Arrays.stringArray("A","B","C","D"),-1,-2,-3));
+              Arrays.pick(Arrays.stringArray("A","B","C","D"),-1,-2,-3));
 
         assertArrayEquals( new double[] { 11, 15, 12 },
                            Arrays.pick( da, 1, 5, 2 ) );
-        assertArrayEquals( new double[] { 11, 15, 12 },
-                           Arrays.pick( ia, 1, 5, 2 ) );
         assertArrayEquals( new int[] { 11, 15, 12 },
-                           Arrays.pickInt( da, 1, 5, 2 ) );
-        assertArrayEquals( null,
-                           Arrays.pick( sa, 1, 5, 2 ) );
+                           Arrays.pick( ia, 1, 5, 2 ) );
         assertArrayEquals( new double[] { 15, 14, 13 },
                            Arrays.pick( da, -1, -2, -3 ) );
-        assertArrayEquals( null, Arrays.pick( da, -99 ) );
-        assertArrayEquals( null, Arrays.pickInt( ia, 99 ) );
-        assertArrayEquals( new String[] { "Armadillo" },
-                           Arrays.pickString( sa, 1 ) );
+        try {
+            assertArrayEquals( null, Arrays.pick( da, -99 ) );
+            fail();
+        }
+        catch ( IndexOutOfBoundsException e ) {
+        }
+        try {
+            assertArrayEquals( null, Arrays.pick( ia, 99 ) );
+            fail();
+        }
+        catch ( IndexOutOfBoundsException e ) {
+        }
+        assertArrayEquals( new String[] { "Armadillo", "Scout", },
+                           Arrays.pick( sa, 1, -1 ) );
     }
 
     public void testConversions() {

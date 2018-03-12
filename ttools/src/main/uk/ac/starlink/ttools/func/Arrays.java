@@ -8,6 +8,7 @@ package uk.ac.starlink.ttools.func;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.build.HideDoc;
 import uk.ac.starlink.ttools.filter.QuantCalc;
 
 /**
@@ -50,10 +51,10 @@ import uk.ac.starlink.ttools.filter.QuantCalc;
  *     <code>condition</code>,
  *     <code>slice</code>,
  *     <code>pick</code>.
- *     Mostly these work on floating point (double precision) arrays,
- *     but some of them have variants
- *     (such as <code>sliceInt</code>, <code>sliceString</code>)
- *     for different array types.
+ *     Mostly these work on any numeric array type and return
+ *     floating point (double precision) values,
+ *     but some of them (<code>slice</code>, <code>pick</code>)
+ *     have variants for different array types.
  *     </li>
  * <li>The function <code>array</code>,
  *     which lets you assemble a floating point array value from
@@ -573,8 +574,7 @@ public class Arrays {
     }
 
     /**
-     * Returns a sub-sequence of floating-point values from a given
-     * numeric array.
+     * Returns a sub-sequence of values from a given array.
      *
      * <p>The semantics are like python array slicing, though both limits
      * have to be specified: the output array contains the sequence of
@@ -587,30 +587,32 @@ public class Arrays {
      * If the end index is less than or equal to the start index,
      * a zero-length array is returned.
      *
-     * <p>The result is a double-precision array, regardless of the
-     * input array type.
+     * <p><strong>Note:</strong>
+     * This documents the double-precision version of the routine.
+     * Corresponding routines exist for other data types
+     * (<code>float</code>, <code>long</code>, <code>int</code>,
+     * <code>short</code>, <code>byte</code>, <code>String</code>,
+     * <code>Object</code>).
      *
      * @example <code>slice(array(10,11,12,13), 0, 3) = [10, 11, 12]</code>
      * @example <code>slice(array(10,11,12,13), -2, 999) = [12, 13]</code>
      *
-     * @param   array  input numeric array
+     * @param   array  input array
      * @param   i0  index of first element, inclusive
      *              (may be negative to count back from the end)
      * @param   i1  index of the last element, exclusive
      *              (may be negative to count back from the end)
-     * @return   double-precision array giving the sequence of
+     * @return   array giving the sequence of
      *           elements specified by <code>i0</code> and <code>i1</code>
      */
-    public static double[] slice( Object array, int i0, int i1 ) {
-        int leng = getNumericArrayLength( array );
-        if ( leng >= 0 ) {
+    public static double[] slice( double[] array, int i0, int i1 ) {
+        if ( array != null ) {
+            int leng = array.length;
             int j0 = effectiveIndex( i0, leng );
             int j1 = effectiveIndex( i1, leng );
             int count = Math.max( 0, j1 - j0 );
             double[] out = new double[ count ];
-            for ( int i = 0; i < count; i++ ) {
-                out[ i ] = Array.getDouble( array, j0 + i );
-            }
+            System.arraycopy( array, j0, out, 0, count );
             return out;
         }
         else {
@@ -618,45 +620,47 @@ public class Arrays {
         }
     }
 
-    /**
-     * Returns a sub-sequence of integer values from a given
-     * numeric array.
-     *
-     * <p>The semantics are like python array slicing, though both limits
-     * have to be specified: the output array contains the sequence of
-     * elements in the input array from <code>i0</code> (inclusive)
-     * to <code>i1</code> (exclusive).  If a negative value is given
-     * in either case, it is added to the length of the input array,
-     * so that -1 indicates the last element of the input array.
-     * The indices are capped at 0 and the input array length respectively,
-     * so a large positive value may be used to indicate the end of the array.
-     * If the end index is less than or equal to the start index,
-     * a zero-length array is returned.
-     *
-     * <p>The result is an integer array, regardless of the input array type.
-     *
-     * @example <code>sliceInt(intArray(10,11,12,13), 0, 3)
-     *                = [10, 11, 12]</code>
-     * @example <code>sliceInt(intArray(10,11,12,13), -2, 999) = [12, 13]</code>
-     *
-     * @param   array  input numeric array
-     * @param   i0  index of first element, inclusive
-     *              (may be negative to count back from the end)
-     * @param   i1  index of the last element, exclusive
-     *              (may be negative to count back from the end)
-     * @return   integer array giving the sequence of
-     *           elements specified by <code>i0</code> and <code>i1</code>
-     */
-    public static int[] sliceInt( Object array, int i0, int i1 ) {
-        int leng = getNumericArrayLength( array );
-        if ( leng >= 0 ) {
+    @HideDoc
+    public static float[] slice( float[] array, int i0, int i1 ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int j0 = effectiveIndex( i0, leng );
+            int j1 = effectiveIndex( i1, leng );
+            int count = Math.max( 0, j1 - j0 );
+            float[] out = new float[ count ];
+            System.arraycopy( array, j0, out, 0, count );
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static long[] slice( long[] array, int i0, int i1 ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int j0 = effectiveIndex( i0, leng );
+            int j1 = effectiveIndex( i1, leng );
+            int count = Math.max( 0, j1 - j0 );
+            long[] out = new long[ count ];
+            System.arraycopy( array, j0, out, 0, count );
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static int[] slice( int[] array, int i0, int i1 ) {
+        if ( array != null ) {
+            int leng = array.length;
             int j0 = effectiveIndex( i0, leng );
             int j1 = effectiveIndex( i1, leng );
             int count = Math.max( 0, j1 - j0 );
             int[] out = new int[ count ];
-            for ( int i = 0; i < count; i++ ) {
-                out[ i ] = (int) Array.getDouble( array, j0 + i );
-            }
+            System.arraycopy( array, j0, out, 0, count );
             return out;
         }
         else {
@@ -664,43 +668,63 @@ public class Arrays {
         }
     }
 
-    /**
-     * Returns a sub-sequence of values from a String array.
-     *
-     * <p>The semantics are like python array slicing, though both limits
-     * have to be specified: the output array contains the sequence of
-     * elements in the input array from <code>i0</code> (inclusive)
-     * to <code>i1</code> (exclusive).  If a negative value is given
-     * in either case, it is added to the length of the input array,
-     * so that -1 indicates the last element of the input array.
-     * The indices are capped at 0 and the input array length respectively,
-     * so a large positive value may be used to indicate the end of the array.
-     * If the end index is less than or equal to the start index,
-     * a zero-length array is returned.
-     *
-     * @example <code>sliceString(stringArray("A","B","C","D"), 0, 3)
-     *                = ["A", "B", "C"]</code>
-     * @example <code>sliceString(stringArray("A","B","C","D"), -2, 999)
-     *                = ["B", "C"]</code>
-     *
-     * @param   array  input string array
-     * @param   i0  index of first element, inclusive
-     *              (may be negative to count back from the end)
-     * @param   i1  index of the last element, exclusive
-     *              (may be negative to count back from the end)
-     * @return   string array giving the sequence of
-     *           elements specified by <code>i0</code> and <code>i1</code>
-     */
-    public static String[] sliceString( String[] array, int i0, int i1 ) {
+    @HideDoc
+    public static short[] slice( short[] array, int i0, int i1 ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int j0 = effectiveIndex( i0, leng );
+            int j1 = effectiveIndex( i1, leng );
+            int count = Math.max( 0, j1 - j0 );
+            short[] out = new short[ count ];
+            System.arraycopy( array, j0, out, 0, count );
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static byte[] slice( byte[] array, int i0, int i1 ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int j0 = effectiveIndex( i0, leng );
+            int j1 = effectiveIndex( i1, leng );
+            int count = Math.max( 0, j1 - j0 );
+            byte[] out = new byte[ count ];
+            System.arraycopy( array, j0, out, 0, count );
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static String[] slice( String[] array, int i0, int i1 ) {
         if ( array != null ) {
             int leng = array.length;
             int j0 = effectiveIndex( i0, leng );
             int j1 = effectiveIndex( i1, leng );
             int count = Math.max( 0, j1 - j0 );
             String[] out = new String[ count ];
-            for ( int i = 0; i < count; i++ ) {
-                out[ i ] = array[ j0 + i ];
-            }
+            System.arraycopy( array, j0, out, 0, count );
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static Object[] slice( Object[] array, int i0, int i1 ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int j0 = effectiveIndex( i0, leng );
+            int j1 = effectiveIndex( i1, leng );
+            int count = Math.max( 0, j1 - j0 );
+            Object[] out = new Object[ count ];
+            System.arraycopy( array, j0, out, 0, count );
             return out;
         }
         else {
@@ -709,44 +733,42 @@ public class Arrays {
     }
 
     /**
-     * Returns a selection of floating-point elements from a given
-     * numeric array.
+     * Returns a selection of elements from a given array.
      *
      * <p>The output array consists of one element selected from the
      * input array for each of the supplied index values.
      * If a negative value is supplied for an index value,
      * it is added to the input array length, so that -1 indicates the
      * last element of the input array.
+     * If the input array is null, null is returned.
      * If any of the index values is out of the range of the extent of
-     * the input array, null is returned.
+     * the input array, an error results.
      *
-     * <p>The result is a double-precision array,
-     * regardless of the input array type.
+     * <p><strong>Note:</strong>
+     * This documents the double-precision version of the routine.
+     * Corresponding routines exist for other data types
+     * (<code>float</code>, <code>long</code>, <code>int</code>,
+     * <code>short</code>, <code>byte</code>, <code>String</code>,
+     * <code>Object</code>).
      *
      * @example  <code>pick(array(10,11,12,13), 0, 3) = [10, 13]</code>
      * @example  <code>pick(array(10,11,12,13), -1, -2, -3)
      *                 = [13, 12, 11]</code>
      *
-     * @param  array  input numeric array
+     * @param  array  input array
      * @param  indices   one or more index into the input array
      *                   (may be negative to count back from the end)
-     * @return   double-precision array giving the elements specified
-     *           by <code>indices</code>
+     * @return   array giving the elements specified by <code>indices</code>
      */
-    public static double[] pick( Object array, int... indices ) {
-        int leng = getNumericArrayLength( array );
-        if ( leng >= 0 ) {
+    public static double[] pick( double[] array, int... indices ) {
+        if ( array != null ) {
+            int leng = array.length;
             int n = indices.length;
             double[] out = new double[ n ];
             for ( int i = 0; i < n; i++ ) {
                 int ix = indices[ i ];
                 int jx = ix >= 0 ? ix : leng + ix;
-                if ( jx >= 0 && jx < leng ) {
-                    out[ i ] = Array.getDouble( array, jx );
-                }
-                else {
-                    return null;
-                }
+                out[ i ] = array[ jx ];
             }
             return out;
         }
@@ -755,43 +777,52 @@ public class Arrays {
         }
     }
 
-    /**
-     * Returns a selection of integer elements from a given numeric array.
-     *
-     * <p>The output array consists of one element selected from the
-     * input array for each of the supplied index values.
-     * If a negative value is supplied for an index value,
-     * it is added to the input array length, so that -1 indicates the
-     * last element of the input array.
-     * If any of the index values is out of the range of the extent of
-     * the input array, null is returned.
-     *
-     * <p>The result is an integer array, regardless of the input array type.
-     *
-     * @example  <code>pickInt(intArray(10,11,12,13), 0, 3) = [10, 13]</code>
-     * @example  <code>pickInt(intArray(10,11,12,13), -1, -2, -3)
-     *                 = [13, 12, 11]</code>
-     *
-     * @param  array  input numeric array
-     * @param  indices   one or more index into the input array
-     *                   (may be negative to count back from the end)
-     * @return   integer array giving the elements specified
-     *           by <code>indices</code>
-     */
-    public static int[] pickInt( Object array, int... indices ) {
-        int leng = getNumericArrayLength( array );
-        if ( leng >= 0 ) {
+    @HideDoc
+    public static float[] pick( float[] array, int... indices ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int n = indices.length;
+            float[] out = new float[ n ];
+            for ( int i = 0; i < n; i++ ) {
+                int ix = indices[ i ];
+                int jx = ix >= 0 ? ix : leng + ix;
+                out[ i ] = array[ jx ];
+            }
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static long[] pick( long[] array, int... indices ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int n = indices.length;
+            long[] out = new long[ n ];
+            for ( int i = 0; i < n; i++ ) {
+                int ix = indices[ i ];
+                int jx = ix >= 0 ? ix : leng + ix;
+                out[ i ] = array[ jx ];
+            }
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static int[] pick( int[] array, int... indices ) {
+        if ( array != null ) {
+            int leng = array.length;
             int n = indices.length;
             int[] out = new int[ n ];
             for ( int i = 0; i < n; i++ ) {
                 int ix = indices[ i ];
                 int jx = ix >= 0 ? ix : leng + ix;
-                if ( jx >= 0 && jx < leng ) {
-                    out[ i ] = (int) Array.getDouble( array, jx );
-                }
-                else {
-                    return null;
-                }
+                out[ i ] = array[ jx ];
             }
             return out;
         }
@@ -800,29 +831,44 @@ public class Arrays {
         }
     }
 
-    /**
-     * Returns a selection elements from a given string array.
-     *
-     * <p>The output array consists of one element selected from the
-     * input array for each of the supplied index values.
-     * If a negative value is supplied for an index value,
-     * it is added to the input array length, so that -1 indicates the
-     * last element of the input array.
-     * If any of the index values is out of the range of the extent of
-     * the input array, null is returned.
-     *
-     * @example  <code>pickString(stringArray("A","B","C","D"), 0, 3)
-     *                 = ["A", "D"]</code>
-     * @example  <code>pickString(stringArray("A","B","C","D"), -1, -2, -3)
-     *                 = ["D", "C", "B"]</code>
-     *
-     * @param  array  input string array
-     * @param  indices   one or more index into the input array
-     *                   (may be negative to count back from the end)
-     * @return   string array giving the elements specified
-     *           by <code>indices</code>
-     */
-    public static String[] pickString( String[] array, int... indices ) {
+    @HideDoc
+    public static short[] pick( short[] array, int... indices ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int n = indices.length;
+            short[] out = new short[ n ];
+            for ( int i = 0; i < n; i++ ) {
+                int ix = indices[ i ];
+                int jx = ix >= 0 ? ix : leng + ix;
+                out[ i ] = array[ jx ];
+            }
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static byte[] pick( byte[] array, int... indices ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int n = indices.length;
+            byte[] out = new byte[ n ];
+            for ( int i = 0; i < n; i++ ) {
+                int ix = indices[ i ];
+                int jx = ix >= 0 ? ix : leng + ix;
+                out[ i ] = array[ jx ];
+            }
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static String[] pick( String[] array, int... indices ) {
         if ( array != null ) {
             int leng = array.length;
             int n = indices.length;
@@ -830,12 +876,25 @@ public class Arrays {
             for ( int i = 0; i < n; i++ ) {
                 int ix = indices[ i ];
                 int jx = ix >= 0 ? ix : leng + ix;
-                if ( jx >= 0 && jx < leng ) {
-                    out[ i ] = array[ jx ];
-                }
-                else {
-                    return null;
-                }
+                out[ i ] = array[ jx ];
+            }
+            return out;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static Object[] pick( Object[] array, int... indices ) {
+        if ( array != null ) {
+            int leng = array.length;
+            int n = indices.length;
+            Object[] out = new Object[ n ];
+            for ( int i = 0; i < n; i++ ) {
+                int ix = indices[ i ];
+                int jx = ix >= 0 ? ix : leng + ix;
+                out[ i ] = array[ jx ];
             }
             return out;
         }
