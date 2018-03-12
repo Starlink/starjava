@@ -11371,10 +11371,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>:
         <code>slice</code>, <code>pick</code>, and variants for integer
         and string array types.</li>
-    <li>The expression language
-        <ref id="funcs">Function documentation</ref>
-        in the user document is somewhat extended;
-        examples are now included in some cases.</li>
+    <li>Improvements in documentation of the expression language functions:
+        in the <ref id="funcs">Function documentation</ref> section
+        classes are now listed in alphabetical order,
+        and examples are included in some cases.
+        Some readability improvements have also been made in the function
+        browser displayed by the <ref id="funcs"><code>funcs</code></ref>
+        command.</li>
     </ul>
     </p>
     </dd>
