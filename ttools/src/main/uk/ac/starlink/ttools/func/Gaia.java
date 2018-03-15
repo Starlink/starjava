@@ -6,8 +6,10 @@
 package uk.ac.starlink.ttools.func;
 
 import uk.ac.starlink.dpac.epoch.EpochTransformation;
-import gaia.cu9.tools.parallax.PDF.ExpDecrVolumeDensityDEM;
-import gaia.cu9.tools.parallax.PDF.PDF;
+import uk.ac.starlink.dpac.math.Edsd;
+import uk.ac.starlink.dpac.math.Function;
+import uk.ac.starlink.dpac.math.FuncUtils;
+import uk.ac.starlink.dpac.math.NumericFunction;
 
 /**
  * Functions related to astrometry suitable for use with data from the
@@ -51,8 +53,16 @@ import gaia.cu9.tools.parallax.PDF.PDF;
  *                                       >2016ApJ...833..119A</a>
  * based on the
  * <em>exponentially decreasing space density</em> prior defined therein.
- * Estimations of the distance modulus are also provided.
- * These functions are based on code provided by Enrique Utrilla (ESAC/DPAC).
+ * The implementation was written with reference to the Java implemntation
+ * by Enrique Utrilla (DPAC).
+ *
+ * <p>A distance scale <em>L</em> is required for defining the
+ * exponential cutoff with these functions.
+ * The papers above suggest using of the value <em>L</em>=1350parsec.
+ * Convenience forms of the functions are provided with this
+ * value fixed, but other forms of the functions where you can
+ * supply your own value of <em>L</em> (using the parameter <code>lpc</code>)
+ * are also provided.
  *
  * <p><strong>Epoch Propagation</strong></p>
  *
@@ -419,21 +429,7 @@ public class Gaia {
                                                double plxErrorMas ) {
         return distanceEstimateEdsd( plxMas, plxErrorMas, DEFAULT_LPC );
     }
-
-    /**
-     * Best estimate of distance modulus using the Exponentially Decreasing
-     * Space Density prior with a length scale of 1350pc.
-     * This estimate is provided by the mode of the PDF.
-     *
-     * @param   plxMas  parallax in mas
-     * @param   plxErrorMas   parallax error in mas
-     * @return   best distance modulus estimate in magnitudes
-     */
-    public static double modulusEstimateEdsd( double plxMas,
-                                              double plxErrorMas ) {
-        return modulusEstimateEdsd( plxMas, plxErrorMas, DEFAULT_LPC );
-    }
- 
+    
     /**
      * Best estimate of distance using the Exponentially Decreasing
      * Space Density prior with a supplied length scale.
@@ -447,30 +443,73 @@ public class Gaia {
     public static double distanceEstimateEdsd( double plxMas,
                                                double plxErrorMas,
                                                double lPc ) {
-        return 1000.0
-             * new ExpDecrVolumeDensityDEM( plxMas, plxErrorMas, lPc * .001 )
-              .getDistancePDF()
+        return 1000.0 
+             * new Edsd( plxMas, plxErrorMas, lPc * 0.001 )
               .getBestEstimation();
     }
 
     /**
-     * Best estimate of distance modulus using the Exponentially Decreasing
-     * Space Density prior with a supplied length scale.
-     * This estimate is provided by the mode of the PDF.
+     * Calculates the 5th and 95th percentile confidence intervals
+     * on the distance estimate using the Exponentially Decreasing
+     * Space Density prior with a length scale of 1350pc.
      *
-     * @param   plxMas  parallax in mas
-     * @param   plxErrorMas   parallax error in mas
-     * @param   lPc    length scale in parsec
-     * @return   best distance modulus estimate in magnitudes
+     * <p>Note this function has to numerically integrate the PDF
+     * to determine quantile values, so it is relatively slow.
+     *
+     * @example
+     *    <code>distanceBoundsEdsd(parallax, parallax_error, 1350, 0.5)</code>
+     *    calculates the median of the EDSD distance PDF
+     *
+     * @param  plxMas  parallax in mas
+     * @param  plxErrorMas  parallax error in mas
+     * @return  2-element array giving the 5th and 95th percentiles in parsec
+     *          of the EDSD distance PDF 
      */
-    public static double modulusEstimateEdsd( double plxMas,
-                                              double plxErrorMas,
-                                              double lPc ) {
-        return distanceToModulus(
-              1000.0
-            * new ExpDecrVolumeDensityDEM( plxMas, plxErrorMas, .001 * lPc )
-             .getDistanceModulusPDF()
-             .getBestEstimation() );
+    public static double[] distanceBoundsEdsd( double plxMas,
+                                               double plxErrorMas ) {
+        return distanceQuantilesEdsd( plxMas, plxErrorMas, DEFAULT_LPC,
+                                      0.05, 0.95 );
+    }
+
+    /**
+     * Calculates arbitrary quantiles for the distance estimate
+     * using the Exponentially Decreasing Space Density prior
+     * with a supplied length scale.
+     *
+     * <p>Note this function has to numerically integrate the PDF
+     * to determine quantile values, so it is relatively slow.
+     *
+     * @param  plxMas  parallax in mas
+     * @param  plxErrorMas  parallax error in mas
+     * @param  lPc    length scale in parsec
+     *                (suggested value is <code>DEFAULT_LPC</code>=1350)
+     * @param  quantiles  one or more required quantile values,
+     *                    each in the range 0..1
+     * @return   array with one element for each of the supplied quantiles
+     *           giving the corresponding distance in parsec
+     */
+    public static double[] distanceQuantilesEdsd( double plxMas,
+                                                  double plxErrorMas,
+                                                  double lPc,
+                                                  double... quantiles ) {
+        int nq = quantiles.length;
+        Edsd edsd = new Edsd( plxMas, plxErrorMas, lPc * 0.001 );
+        double tol = 1e-6;
+        NumericFunction ncdf = edsd.calculateCdf( tol );
+
+        /* Quadratic interpolation works better here than e.g. splines,
+         * look at the results for e.g. plx=40, plxError=0.75. */
+        Function scdf = FuncUtils.interpolateQuadratic( ncdf );
+        double[] qvs = new double[ nq ];
+        double rmin = 0;
+        double rmax = ncdf.getX( ncdf.getCount() - 1 );
+        double ytol = 0.00001;
+        for ( int i = 0; i < nq; i++ ) {
+            qvs[ i ] = 1000.
+                     * FuncUtils.findValueMonotonic( scdf, rmin, rmax,
+                                                     quantiles[ i ], ytol );
+        }
+        return qvs;
     }
 
     /**
