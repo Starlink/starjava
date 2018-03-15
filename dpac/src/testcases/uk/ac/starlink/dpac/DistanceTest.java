@@ -36,12 +36,14 @@ public class DistanceTest extends TestCase {
     }
 
     /**
-     * This tests the estimates made by this library against those
-     * published in Tri and Coryn's Paper III (2016ApJ...833..119A).
+     * This tests the estimates made by the classes in gaia.cu9.tools.parallax
+     * against those for Cepheids published in Tri and Coryn's Paper III
+     * (2016ApJ...833..119A).
      */
-    public void testDistances() throws IOException {
-        StarTable dc1 = getDistances( L011, "Exp1" );
-        StarTable dc2 = getDistances( L135, "Exp2" );
+    public void testCepDistancesCu9() throws IOException {
+        long start = System.currentTimeMillis();
+        StarTable dc1 = getCu9Distances( L011, "Exp1" );
+        StarTable dc2 = getCu9Distances( L135, "Exp2" );
         JoinFixAction fixAct1 =
             JoinFixAction.makeRenameDuplicatesAction( "Exp1" );
         JoinFixAction fixAct2 =
@@ -63,14 +65,55 @@ public class DistanceTest extends TestCase {
         // smaller discrepancies, without the large -0.0004 signal.
         // I haven't, but perhaps should, included tests against
         // that data here.
-        checkValues( tc, "diff_r5Exp1", 0.00045 );
-        checkValues( tc, "diff_r95Exp1", 0.00045 );
-        checkValues( tc, "diff_r5Exp2", 0.00045 );
-        checkValues( tc, "diff_r95Exp2", 0.00045 );
+        checkValues( tc, "diff_r5Exp1", 0.0005 );
+        checkValues( tc, "diff_r95Exp1", 0.0005 );
+        checkValues( tc, "diff_r5Exp2", 0.0005 );
+        checkValues( tc, "diff_r95Exp2", 0.0005 );
 
-        // This outputs the table for manual testing if required.
+        // this test is about 2 orders of magnitude faster than using CU9
+ //     System.out.println( "cu9:\t" + (System.currentTimeMillis() - start) );
  //     new uk.ac.starlink.table.StarTableOutput()
- //        .writeStarTable( tc, "out.vot", "votable" );
+ //        .writeStarTable( tc, "out-cu9.vot", "votable" );
+    }
+
+    /**
+     * This tests the estimates made by the Edsd class
+     * against those for Cepheids published in Tri and Coryn's Paper III
+     * (2016ApJ...833..119A).
+     */
+    public void testCepDistancesEdsd() throws IOException {
+        long start = System.currentTimeMillis();
+        StarTable dc1 = getEdsdDistances( 0.11, "Exp1" );
+        StarTable dc2 = getEdsdDistances( 1.35, "Exp2" );
+        JoinFixAction fixAct1 =
+            JoinFixAction.makeRenameDuplicatesAction( "Exp1" );
+        JoinFixAction fixAct2 =
+            JoinFixAction.makeRenameDuplicatesAction( "Exp2" );
+        StarTable tc =
+            new JoinStarTable( new StarTable[] { cepTable_, dc1, dc2 },
+                               new JoinFixAction[] { JoinFixAction.NO_ACTION,
+                                                     fixAct1, fixAct2 } );
+
+        // The best estimate (mode) values are similar to within a few
+        // parts in 1e6, with errors distributed approximately normally.
+        checkValues( tc, "diff_rMoExp1", 1.5e-6 );
+        checkValues( tc, "diff_rMoExp2", 3.0e-6 );
+
+        // There is a definite discrepancy in the quantile values;
+        // in most cases the relative difference is about -0.0004.
+        // Enrique Utrilla thinks that the problem is in Tri's code
+        // not his; comparisons with Ariadna's python code give
+        // smaller discrepancies, without the large -0.0004 signal.
+        // I haven't, but perhaps should, included tests against
+        // that data here.
+        checkValues( tc, "diff_r5Exp1", 0.0005 );
+        checkValues( tc, "diff_r95Exp1", 0.0005 );
+        checkValues( tc, "diff_r5Exp2", 0.0005 );
+        checkValues( tc, "diff_r95Exp2", 0.0005 );
+
+ //     System.out.println( "edsd:\t" + (System.currentTimeMillis() - start) );
+ //     new uk.ac.starlink.table.StarTableOutput()
+ //        .writeStarTable( tc, "out-edsd.vot", "votable" );
     }
 
     private void checkValues( StarTable tc, String cname, double maxval )
@@ -88,11 +131,24 @@ public class DistanceTest extends TestCase {
         }
     }
 
-    private StarTable getDistances( DistanceEstimator estimator, String label )
+    private StarTable getCu9Distances( DistanceEstimator estimator,
+                                       String label )
             throws IOException {
         StarTable inTable = cepTable_;
         StarReader rdr = new StarReader( inTable );
-        StarTable distTable = new DistanceTable( inTable, rdr, estimator );
+        StarTable distTable = new Cu9DistanceTable( inTable, rdr, estimator );
+        StarTable inputsTable =
+            new JoinStarTable( new StarTable[] { inTable, distTable } );
+        inputsTable = Tables.randomTable( inputsTable );
+        StarTable cmpTable = new ComparisonTable( inputsTable, label );
+        return new JoinStarTable( new StarTable[] { distTable, cmpTable } );
+    }
+
+    private StarTable getEdsdDistances( double lkpc, String label )
+            throws IOException {
+        StarTable inTable = cepTable_;
+        StarReader rdr = new StarReader( inTable );
+        StarTable distTable = new EdsdDistanceTable( inTable, rdr, lkpc );
         StarTable inputsTable =
             new JoinStarTable( new StarTable[] { inTable, distTable } );
         inputsTable = Tables.randomTable( inputsTable );
@@ -125,6 +181,7 @@ public class DistanceTest extends TestCase {
             addColumn( createDiffColumn( "rMo" + label, "best_dist" ) );
             addColumn( createDiffColumn( "r5" + label, "dist_lo" ) );
             addColumn( createDiffColumn( "r95" + label, "dist_hi" ) );
+            addColumn( createDiffColumn( "r50" + label, "dist_median" ) );
         }
         public long getRowCount() {
             return inTable_.getRowCount();

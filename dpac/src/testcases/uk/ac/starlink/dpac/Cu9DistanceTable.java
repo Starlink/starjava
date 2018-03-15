@@ -11,14 +11,14 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 
-public class DistanceTable extends CalcStarTable<DistanceEstimation> {
+public class Cu9DistanceTable extends CalcStarTable<DistanceEstimation> {
 
     private final StarTable base_;
     private final StarReader reader_;
     private final DistanceEstimator estimator_;
 
-    public DistanceTable( StarTable base, StarReader reader,
-                          final DistanceEstimator estimator ) {
+    public Cu9DistanceTable( StarTable base, StarReader reader,
+                             final DistanceEstimator estimator ) {
         super( base, createColumns() );
         base_ = base;
         reader_ = reader;
@@ -69,6 +69,11 @@ public class DistanceTable extends CalcStarTable<DistanceEstimation> {
         list.add( new EstimateCol( "mod_hi" ) {
             public double getDoubleValue( DistanceEstimation est ) {
                 return est.getModulusInterval()[ 1 ];
+            }
+        } );
+        list.add( new EstimateCol( "dist_median" ) {
+            public double getDoubleValue( DistanceEstimation est ) {
+                return Double.NaN;
             }
         } );
         @SuppressWarnings("unchecked")
