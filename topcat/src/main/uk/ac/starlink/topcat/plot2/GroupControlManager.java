@@ -31,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Control manager that uses FormLayerControls to provide
@@ -55,6 +56,15 @@ public class GroupControlManager implements ControlManager {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
+
+    /**
+     * System property that may contain a colon-separated list of
+     * Plotter implementation class names (with no-arg constructors)
+     * to plug in at runtime.
+     * This is a bit scrappy - they will show up in all plot types,
+     * which probably is not appropriate.
+     */
+    public static final String PLOTTERS_PROP = "plot2.plotters";
 
     /**
      * Constructor.
@@ -90,9 +100,12 @@ public class GroupControlManager implements ControlManager {
         for ( CoordsType ctyp : CoordsType.values() ) {
             plotterMap_.put( ctyp, new ArrayList<Plotter>() );
         }
-        Plotter[] plotters = plotType_.getPlotters();
-        for ( int i = 0; i < plotters.length; i++ ) {
-            Plotter plotter = plotters[ i ];
+        for ( Plotter plotter : plotType_.getPlotters() ) {
+            CoordsType ctyp = CoordsType.getInstance( plotter );
+            plotterMap_.get( ctyp ).add( plotter );
+        }
+        for ( Plotter plotter :
+              Loader.getClassInstances( PLOTTERS_PROP, Plotter.class ) ) {
             CoordsType ctyp = CoordsType.getInstance( plotter );
             plotterMap_.get( ctyp ).add( plotter );
         }
