@@ -2233,7 +2233,7 @@ public class SplatBrowser
                 SpecData spectrum;
                 List<SpecData> spectra;
                     if (props.getType() == SpecDataFactory.DATALINK) {
-                        System.out.println("and146: datalink");
+                       
                     	DataLinkResponse dlparams = new DataLinkResponse(props.getSpectrum()); // get SODA Params
                         props.setSpectrum(dlparams.getThisLink()); // get the accessURL for the first service read 
                         String stype = null;
@@ -2250,7 +2250,7 @@ public class SplatBrowser
                         	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
                         }
                     } 
-                    spectra = specDataFactory.get( props.getSpectrum(), props.getType(), props.getObjectType() ); ///!!! IF it's a list???
+                    spectra = specDataFactory.get( props.getSpectrum(), props.getType(), props.getObjectType() ); 
                     for (int s=0; s < spectra.size(); s++ ){
                         spectrum=spectra.get(s);
                         String sname = spectrum.getShortName();
