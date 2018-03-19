@@ -1,9 +1,13 @@
 1 Starlink SPLAT news.
-   3.14beta
+   3.14
    ========
-   - more support for DataLink
+   - improved Datalink processing
    - DataLink support also in Obscore
-   - few bugfixes
+   - VAMDC interface now works also for molecules
+   - improved timeseries detection and visualization
+   - sending/receiving query results tables via SAMP
+   - gives feedback to user in case of invalid values for log axes
+   - bugfixes
 
    3.13
    ====
