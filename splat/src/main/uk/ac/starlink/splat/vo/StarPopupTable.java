@@ -215,8 +215,8 @@ public class StarPopupTable extends  BasicStarPopupTable  {
 	   sorter.sort();
 	   int rowCount = this.getRowCount();
 	   // search for same pubdids
-	   String prevPubdid=(String) this.getValueAt(0, pubdidcol);
-	   String prevFormat=(String) this.getValueAt(0, formatcol);
+	   String prevPubdid= getStringValue(this.getValueAt(0, pubdidcol));
+	   String prevFormat= getStringValue(this.getValueAt(0, formatcol));
 	   
 	   for(int i=1; i<rowCount;i++){
 		    String pubdid = (String) this.getValueAt(i, pubdidcol);
@@ -236,7 +236,13 @@ public class StarPopupTable extends  BasicStarPopupTable  {
    }
    
 
-   /** 
+   private String getStringValue(Object value) {
+	if (value != null)
+		return value.toString();
+	return null;
+}
+
+/** 
     * Using a predefined preference order, returns
     * 	true if format1 is prefered than format2
     *   false otherwise
