@@ -2,6 +2,7 @@ package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
@@ -16,6 +17,7 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,8 +64,10 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 	private JMenuItem curCellMenuItem;
 	private  int WIDTH=800;
 	private  int HEIGHT=450; 
-	private int  PREVIEWMAXWIDTH=800;
+	private int  PREVIEWMAXWIDTH=700;
 	private int PREVIEWMAXHEIGHT=100;
+	
+	private int TABLEMAXHEIGHT=250;
 	
 //	JPanel tablepanel= null;
 
@@ -143,11 +147,15 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
         BasicStarPopupTable table = new BasicStarPopupTable(linksTable, false);
         table.setComponentPopupMenu(popup);
         table.addMouseListener(this);
-        int tableheight= table.getRowCount()*table.getRowHeight();
-        table.setPreferredScrollableViewportSize(new Dimension(750, tableheight));
         
+        int tableheight= (table.getRowCount()+4)*table.getRowHeight();
+        if ( tableheight < TABLEMAXHEIGHT )
+        	table.setPreferredScrollableViewportSize(new Dimension(750, tableheight));
+        else 
+        	table.setPreferredScrollableViewportSize(new Dimension(750, TABLEMAXHEIGHT));
 		JScrollPane tablepanel = new JScrollPane(table);
 		tablepanel.setBorder(new TitledBorder("Links "));
+		tablepanel.setPreferredSize(table.getPreferredScrollableViewportSize());
 		
 		JPanel buttonsPanel = new JPanel();
 	    closeButton = new JButton("Close");
@@ -155,7 +163,7 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 		buttonsPanel.add(closeButton);
 		
 		gbc.fill=GridBagConstraints.HORIZONTAL;
-		gbc.weighty=0;		
+		gbc.weighty=0;
 		panel.add(tablepanel, gbc);
 		gbc.gridy++;
 		
@@ -308,24 +316,27 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 			// get service with this ID
 			service = dlparams.getDataLinkService(serviceDef);
 		}
-		// 
-		// semantics:  http://www.ivoa.net/rdf/datalink/core
-		//
-		switch (semantics) {
-			case "#preview":    // open window with preview
+		
+		if (contentType.contains("html")) { // open link in browser
+			openbrowser(accessUrl);
+			return;
+		}
+		
+		switch (DataLinkSemanticsEnum.getSemantics(semantics)) {
+			case preview:    // open window with preview
 				preview = addPreview(accessUrl);
 				initUI();
 				break;
-			case "#this":	    // open spectrum
+			case thisdata:	    // #this - open spectrum
 				displaySpectrum(accessUrl, contentType, semantics);
 				break;
-			case "#auxiliary":	// ??? try to open spectrum
+			case auxiliary:	// ??? try to open spectrum
 				displaySpectrum(accessUrl, contentType, semantics);
 				break;
-			case "#proc":     // server side data processing
+			case proc:     // server side data processing
 				// should already be added to the panel addServicePanel(service, serviceDef, contentType, semantics, id);
 				break;
-			case "#cutout":     // if service def is soda - open soda parameters panel
+			case cutout:     // if service def is soda - open soda parameters panel
 				addServicePanel(service, serviceDef, contentType, semantics, id);
 				break;
 			default:
@@ -337,6 +348,21 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 
 	}
 	
+	private void openbrowser(String accessUrl) {
+		
+		Desktop desktop = Desktop.getDesktop();
+
+        if( desktop.isSupported( java.awt.Desktop.Action.BROWSE ) ) {
+        	try {
+                  URI uri = new URI( accessUrl );
+                  desktop.browse( uri );
+              }
+              catch ( Exception e ) {
+            	  Logger.error(this,  "cannot open "+accessUrl);
+              }
+        }		
+	}
+
 	private void displaySpectrum(String accessUrl, String contentType, String semantics, String dataLinkRequest, String idsrc) {
 		
 		SpectrumIO.Props [] propList = new SpectrumIO.Props[1];	
