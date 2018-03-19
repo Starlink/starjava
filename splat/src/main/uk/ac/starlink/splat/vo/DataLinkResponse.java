@@ -14,6 +14,7 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
+import uk.ac.starlink.votable.VOTableBuilder;
 
 public class DataLinkResponse {
 	
@@ -51,9 +52,9 @@ public class DataLinkResponse {
         DataSource  datsrc = new URLDataSource( dataLinkURL );
 
         VOElement votable =  new VOElementFactory( StoragePolicy.getDefaultPolicy() ).makeVOElement( datsrc.getInputStream(), datsrc.getURL().toString() );
-       // linksTable =
-       //         new VOTableBuilder().makeStarTable( datsrc, true,
-        //                StoragePolicy.getDefaultPolicy() );
+  //      linksTable =
+  //              new VOTableBuilder().makeStarTable( datsrc, true,
+   //                     StoragePolicy.getDefaultPolicy() );
         linksTable = DalResourceXMLFilter.getDalResultTable(votable);
         
         getTableIndexes();
@@ -65,32 +66,34 @@ public class DataLinkResponse {
  	
 	
 	private void getTableIndexes() {
+		
+	    
 		for (int i=0;i<linksTable.getColumnCount();i++) {
 			ColumnInfo ci =  linksTable.getColumnInfo(i);
 			String colname = ci.getName().replaceAll( "\\s", "_" );
-			switch (colname) {
-			case "ID":
+			switch (DataLinkLinksEnum.getLink(colname)) {
+			case ID:
 				idIndex=i;
 				break;
-			case "semantics":
+			case semantics:
 				semanticsIndex =i;  
 				break;
-			case "content_type":
+			case content_type:
 				contentTypeIndex =i;
 				break;
-			case "content_lengt":
+			case content_length:
 				contentLengthIndex =i;
 				break; 
-			case "service_def":
+			case service_def:
 				serviceDefIndex=i;
 				break;
-			case "error_message":
+			case error_message:
 				errorMessageIndex = i;
 				break;
-			case "description":
+			case description:
 				descriptionIndex=i;
 				break;
-			case "access_url":
+			case access_url:
 				accessUrlIndex =i;   
 
 			}
@@ -103,10 +106,12 @@ public class DataLinkResponse {
 			
 	
 			if (value.equalsIgnoreCase(semantics)) {
-				String error = (String) linksTable.getCell(i, errorMessageIndex);
-				if (error != null) {
-					Logger.info(this,  error);
-					return null;
+				if (errorMessageIndex != -1 ) {
+					String error = (String) linksTable.getCell(i, errorMessageIndex);
+					if (error != null) {
+						Logger.info(this,  error);
+						return null;
+					}
 				}
 				return	(String) linksTable.getCell(i, accessUrlIndex);
 			}
@@ -121,10 +126,12 @@ public class DataLinkResponse {
 			
 	
 			if (value.equalsIgnoreCase(semantics)) {
-				String error = (String) linksTable.getCell(i, errorMessageIndex);
-				if (error != null) {
-					Logger.info(this,  error);
-					return null;
+				if (errorMessageIndex != -1 ) {
+					String error = (String) linksTable.getCell(i, errorMessageIndex);
+					if (error != null) {
+						Logger.info(this,  error);
+						return null;
+					}
 				}
 				return	(String) linksTable.getCell(i, contentTypeIndex);
 			}

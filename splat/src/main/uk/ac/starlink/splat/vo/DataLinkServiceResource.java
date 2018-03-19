@@ -62,18 +62,13 @@ public class DataLinkServiceResource {
 			ParamElement pel = (ParamElement) el;
 			String name = pel.getAttribute("name").toLowerCase();
 			String value = pel.getAttribute("value");
-			switch (name)  {
-			case "accessurl":
+			if ( "accessurl".equals(name)) {
 				this.accessURL=value;
-				break;
-			case "standardid":
+			} else if ("standardid".equals(name)) {
 				this.standardID=value;
-				break;
-			case "resourceidentifier":
-				this.resourceIdentifier=value;
-				break;	            		
+			} else if ("resourceidentifier".equals(name)) { 
+				this.resourceIdentifier=value;				    		
 			}
-
 		}
 
 		// handle the GROUP with name=InputParams element and its parameters
