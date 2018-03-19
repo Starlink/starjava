@@ -11377,6 +11377,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Some readability improvements have also been made in the function
         browser displayed by the <ref id="funcs"><code>funcs</code></ref>
         command.</li>
+    <li>The IPAC table reader now matches data type specifications
+        case-insensitively.</li>
     </ul>
     </p>
     </dd>

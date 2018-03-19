@@ -25,7 +25,7 @@ import uk.ac.starlink.table.ValueInfo;
  * Reads and parses IPAC-format tables.
  * The data format is defined at
  * <a href="http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html"
-           >http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html</a>.
+ *     >http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html</a>.
  *
  * @author   Mark Taylor
  * @since    7 Feb 2006
@@ -406,7 +406,7 @@ class IpacReader implements RowSequence {
                               ? null
                              : blank.trim();
         final boolean hasBlank = blankVal != null;
-        if ( typeMatch( type, "int" ) || type.equals( "i" ) ) {
+        if ( typeMatch( type, "int" ) || type.equalsIgnoreCase( "i" ) ) {
             info.setContentClass( Integer.class );
             info.setNullable( hasBlank );
             return new ColumnReader( info ) {
@@ -425,7 +425,7 @@ class IpacReader implements RowSequence {
                 }
             };
         }
-        else if ( typeMatch( type, "long" ) || typeMatch( type, "l" ) ) {
+        else if ( typeMatch( type, "long" ) || type.equalsIgnoreCase( "l" ) ) {
             info.setContentClass( Long.class );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
@@ -443,7 +443,8 @@ class IpacReader implements RowSequence {
                 }
             };
         }
-        else if ( typeMatch( type, "double" ) || type.equals( "d" ) ) {
+        else if ( typeMatch( type, "double" ) ||
+                  type.equalsIgnoreCase( "d" ) ) {
             info.setContentClass( Double.class );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
@@ -461,8 +462,8 @@ class IpacReader implements RowSequence {
                 }
             };
         }
-        else if ( typeMatch( type, "float" ) || type.equals( "f" ) ||
-                  typeMatch( type, "real" ) || type.equals( "r" ) ) {
+        else if ( typeMatch( type, "float" ) || type.equalsIgnoreCase( "f" ) ||
+                  typeMatch( type, "real" ) || type.equalsIgnoreCase( "r" ) ) {
             info.setContentClass( Float.class );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
@@ -480,7 +481,7 @@ class IpacReader implements RowSequence {
                 }
             };  
         }
-        else if ( typeMatch( type, "char" ) || type.equals( "c" ) ) {
+        else if ( typeMatch( type, "char" ) || type.equalsIgnoreCase( "c" ) ) {
             info.setContentClass( String.class );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
@@ -519,6 +520,12 @@ class IpacReader implements RowSequence {
      * Determines whether a given type matches one of the defined IPAC types.
      * This does not handle the case of the special 1-character abbreviations.
      *
+     * <p>Type name matching is case-insensitive.
+     * Although the IPAC specification originally listed only lower case
+     * type names, the last time I checked (it says "Version 1.2 5/23/13")
+     * there are hints that accepting upper case type names is a good
+     * idea, and I have encountered at least some such in the wild.
+     *
      * @param  type  supplied type from file
      * @param  name  IPAC-defined type name
      * @return  true iff type matches name
@@ -526,7 +533,7 @@ class IpacReader implements RowSequence {
     private static boolean typeMatch( String type, String name ) {
 
         /* Equality is a match. */
-        if ( name.equals( type ) ) {
+        if ( name.equalsIgnoreCase( type ) ) {
             return true;
         }
 
@@ -538,7 +545,8 @@ class IpacReader implements RowSequence {
             int tleng = type.length();
             if ( tleng > 1 && tleng < name.length() ) {
                 for ( int i = 0; i < tleng; i++ ) {
-                    if ( type.charAt( i ) != name.charAt( i ) ) {
+                    if ( Character.toLowerCase( type.charAt( i ) ) !=
+                         Character.toLowerCase( name.charAt( i ) ) ) {
                         return false;
                     }
                 }

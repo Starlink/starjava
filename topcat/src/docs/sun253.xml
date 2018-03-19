@@ -25397,6 +25397,8 @@ introduced since the last version:
         with examples in some cases.
         Some readability improvements have also been made in the
         <ref id="MethodWindow">Available Functions Window</ref>.</li>
+    <li>The IPAC table reader now matches data type specifications
+        case-insensitively.</li>
     </ul>
     </p>
     </dd>
