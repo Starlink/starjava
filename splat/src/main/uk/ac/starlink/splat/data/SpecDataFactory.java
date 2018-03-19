@@ -855,7 +855,9 @@ public class SpecDataFactory
                     //throw new SplatException( "Failed to open FITS table", e );
                     success=false;
                 }
-            } 
+            } else {
+            	logger.info(String.format("Ignoring HDU #%d in '%s' (no spectra/data array size 0)", i, impl.getFullName()));
+            }
            
 
                 /* add only if data array size is not 0 
@@ -1631,9 +1633,13 @@ public class SpecDataFactory
             //  Purge any spectra with BAD limits.
             if ( purge && results != null ) {
                 results = purgeBadLimits( results );
+                if (results.length == 0)
+                	results=null;
             }
         }
+       
         return results;
+       
     }
 
     /**
@@ -2002,14 +2008,20 @@ public class SpecDataFactory
      */
     public static int mimeToSPLATType( String type )
     {
+    	
 //        System.out.println("and146: type to detect: " + type);
     	int stype = SpecDataFactory.DEFAULT;
+    	
+    	if (type == null)
+    		return stype;
+    	
         String simpleType = type.toLowerCase();
 
         //   Note allow for application/fits;xxxx, so use startsWith,
         //   same for full mime types below.
        
         if ( simpleType.startsWith( "application/fits" ) ||
+        	 simpleType.startsWith( "application/x-fits" ) || 
              simpleType.equals( "fits" ) ) {
             //  FITS format, is that image or table?
             stype = SpecDataFactory.FITS;
@@ -2028,7 +2040,7 @@ public class SpecDataFactory
         }
         else if ( simpleType.startsWith( "text/plain" ) ) {
             //  ASCII table of some kind.
-            stype = SpecDataFactory.GUESS;
+            stype = SpecDataFactory.TEXT;
         }
         else if ( simpleType.startsWith( "application/x-votable+xml" ) ||
                   simpleType.equals( "text/xml;x-votable" ) ||
@@ -2040,9 +2052,7 @@ public class SpecDataFactory
             if (simpleType.contains("content=datalink"))
                 stype = SpecDataFactory.DATALINK;
             else
-            // VOTable spectrum, open as a table. Is really the SSAP native
-            // XML representation so could be a SED? In which case this might be
-            // better as SpecDataFactory.SED, we'll see.
+            // VOTable spectrum, open as a table. 
                stype = SpecDataFactory.TABLE;
                // stype = SpecDataFactory.SED;
         }
