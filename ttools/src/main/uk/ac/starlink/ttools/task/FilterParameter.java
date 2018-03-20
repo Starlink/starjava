@@ -79,7 +79,9 @@ public class FilterParameter extends Parameter<ProcessingStep[]>
             "Thus a value of \"<code>" + indir + "filename</code>\"",
             "causes the file <code>filename</code> to be read for a list",
             "of filter commands to execute.  The commands in the file",
-            "may be separated by newline characters and/or semicolons.",
+            "may be separated by newline characters and/or semicolons,",
+            "and lines which are blank or which start with a",
+            "'<code>#</code>' character are ignored.",
             "</p>",
         } );
     }
