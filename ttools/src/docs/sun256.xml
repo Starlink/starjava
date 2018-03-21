@@ -11379,6 +11379,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         command.</li>
     <li>The IPAC table reader now matches data type specifications
         case-insensitively.</li>
+    <li>Add utility function <code>square</code>
+        to the expression language.</li>
     </ul>
     </p>
     </dd>

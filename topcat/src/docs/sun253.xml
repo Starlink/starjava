@@ -25399,6 +25399,8 @@ introduced since the last version:
         <ref id="MethodWindow">Available Functions Window</ref>.</li>
     <li>The IPAC table reader now matches data type specifications
         case-insensitively.</li>
+    <li>Add utility function <code>square</code>
+        to the expression language.</li>
     </ul>
     </p>
     </dd>

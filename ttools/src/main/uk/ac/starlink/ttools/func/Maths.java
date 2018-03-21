@@ -168,6 +168,16 @@ public class Maths {
     }
 
     /**
+     * Raise to the power 2.
+     *
+     * @param   x  a value
+     * @return  x * x
+     */
+    public static double square( double x ) {
+        return x * x;
+    }
+
+    /**
      * Returns the square root of the sum of squares of its arguments.
      * In the 2-argument case, doing it like this may avoid intermediate
      * overflow or underflow.
