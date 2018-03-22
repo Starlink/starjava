@@ -38,22 +38,33 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  * distance.  A thorough discussion of this topic and approaches to
  * estimating distances for Gaia-like data can be found in the papers
  * <ul>
- * <li>Bailer-Jones, PASP <em>127</em>, p994 (2015)
+ * <li>C.A.L.Bailer-Jones,
+ *     "<em>Estimating distances from parallaxes</em>",
+ *     PASP <em>127</em>, p994 (2015)
  *     <a href="http://adsabs.harvard.edu/abs/2015PASP..127..994B"
  *                                           >2015PASP..127..994B</a></li>
- * <li>Astraatmadja and Bailer-Jones, ApJ <em>832</em>, a137 (2016)
+ * <li>T.L.Astraatmadja and C.A.L.Bailer-Jones,
+ *     "<em>Estimating Distances from Parallaxes.
+ *          II. Performance of Bayesian Distance Estimators
+ *          on a Gaia-like Catalogue</em>",
+ *     ApJ <em>832</em>, a137 (2016)
  *     <a href="http://adsabs.harvard.edu/abs/2016ApJ...832..137A"
  *                                           >2016ApJ...832..137A</a></li>
- * <li>Luri et al., A&amp;A <em>in press</em> (2018)</li>
+ * <li>X.Luri et al., "<em>On the use of Gaia parallaxes</em>",
+ *     A&amp;A <em>in press</em> (2018)</li>
  * </ul>
  *
  * <p>The functions provided here correspond to calculations from
- * Astraatmadja and Bailer-Jones, ApJ <em>833</em>, a119 (2016)
+ * Astraatmadja &amp; Bailer-Jones,
+ * "<em>Estimating Distances from Parallaxes.
+ *      III. Distances of Two Million Stars in the Gaia DR1 Catalogue</em>",
+ * ApJ <em>833</em>, a119 (2016)
  * <a href="http://adsabs.harvard.edu/abs/2016ApJ...833..119A"
  *                                       >2016ApJ...833..119A</a>
  * based on the
- * <em>exponentially decreasing space density</em> prior defined therein.
- * The implementation was written with reference to the Java implemntation
+ * <strong>Exponentially Decreasing Space Density</strong> prior
+ * defined therein.
+ * This implementation was written with reference to the Java implementation
  * by Enrique Utrilla (DPAC).
  *
  * <p>A distance scale <em>L</em> is required for defining the
@@ -79,13 +90,11 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  * and if required their errors and correlations.
  * The expressions for this are set out in section 1.5.5 (Volume 1) of
  * <em>The Hipparcos and Tycho Catalogues</em>,
- * <a href="https://www.cosmos.esa.int/web/hipparcos/catalogues">ESA SP-1200</a>
- * (1997)
- * <a href="http://adsabs.harvard.edu/abs/1997ESASP1200.....E"
- *                                       >1997ESASP1200.....E</a>
- * (but see below), * and the code is based on an implementation by
+ * <a href="https://www.cosmos.esa.int/web/hipparcos/catalogues"
+ *    >ESA SP-1200</a> (1997)
+ * (but see below), and the code is based on an implementation by
  * Alexey Butkevich and Daniel Michalik (DPAC).
- * A correction is applied to the ESA-1200 treatment of
+ * A correction is applied to the SP-1200 treatment of
  * radial velocity uncertainty following <em>Michalik et al. 2014</em>
  * <a href="http://ukads.nottingham.ac.uk/abs/2014A%26A...571A..85M"
  *                                           >2014A&amp;A...571A..85M</a>
@@ -155,7 +164,7 @@ public class Gaia {
      *                   represented by a 6-element array as above
      *                   (a 5-element array is also permitted where
      *                   radial velocity is zero or unknown)
-     * @return   astrometry at time t0+tYr,
+     * @return   astrometry at time <code>t0+tYr</code>,
      *           represented by a 6-element array as above
      */
     public static double[] epochProp( double tYr, double[] astrom6 ) {
@@ -379,9 +388,9 @@ public class Gaia {
      * unnormalised radial velocity in km/s.
      *
      * <p>The output is calculated as
-     * <pre>
-     *    4.740470446 * rvMasyr / plxMas
-     * </pre>
+     * <code>AU_YRKMS * rvMasyr / plxMas</code>,
+     * where <code>AU_YRKMS=4.740470446</code>
+     * is one Astronomical Unit in km.yr/sec.
      *
      * @param  rvMasyr  normalised radial velocity, in mas/year
      * @param  plxMas   parallax in mas
@@ -396,9 +405,9 @@ public class Gaia {
      * normalised radial velocity in mas/year.
      *
      * <p>The output is calculated as
-     * <pre>
-     *    rvKms * plxMas / 4.740470446
-     * </pre>
+     * <code>rvKms * plxMas / AU_YRKMS</code>,
+     * where <code>AU_YRKMS=4.740470446</code>
+     * is one Astronomical Unit in km.yr/sec.
      *
      * @param  rvKms  unnormalised radial velocity, in mas/year
      * @param  plxMas  parallax in mas
@@ -464,10 +473,6 @@ public class Gaia {
      * <p>Note this function has to numerically integrate the PDF
      * to determine quantile values, so it is relatively slow.
      *
-     * @example
-     *    <code>distanceBoundsEdsd(parallax, parallax_error, 1350, 0.5)</code>
-     *    calculates the median of the EDSD distance PDF
-     *
      * @param  plxMas  parallax in mas
      * @param  plxErrorMas  parallax error in mas
      * @return  2-element array giving the 5th and 95th percentiles in parsec
@@ -487,20 +492,32 @@ public class Gaia {
      * <p>Note this function has to numerically integrate the PDF
      * to determine quantile values, so it is relatively slow.
      *
+     * @example
+     *     <code>distanceQuantilesEdsd(parallax, parallax_error,
+     *                                 1350, 0.5)[0]</code>
+     *     calculates the median of the EDSD distance PDF
+     *     using a length scale of 1.35kpc
+     *
+     * @example
+     *     <code>distanceQuantilesEdsd(parallax, parallax_error,
+     *                                 3000, 0.01, 0.99)</code>
+     *     returns a 2-element array giving the 1st and 99th percentile
+     *     of the distance estimate using a length scale of 3kpc
+     *
      * @param  plxMas  parallax in mas
      * @param  plxErrorMas  parallax error in mas
      * @param  lPc    length scale in parsec
-     *                (suggested value is <code>DEFAULT_LPC</code>=1350)
-     * @param  quantiles  one or more required quantile values,
-     *                    each in the range 0..1
-     * @return   array with one element for each of the supplied quantiles
+     * @param  qpoints  one or more required quantile cut points,
+     *                  each in the range 0..1
+     * @return   array with one element for each of the supplied
+     *           <code>qpoints</code>
      *           giving the corresponding distance in parsec
      */
     public static double[] distanceQuantilesEdsd( double plxMas,
                                                   double plxErrorMas,
                                                   double lPc,
-                                                  double... quantiles ) {
-        int nq = quantiles.length;
+                                                  double... qpoints ) {
+        int nq = qpoints.length;
         Edsd edsd = new Edsd( plxMas, plxErrorMas, lPc * 0.001 );
         double tol = 1e-6;
         NumericFunction ncdf = edsd.calculateCdf( tol );
@@ -515,20 +532,31 @@ public class Gaia {
         for ( int i = 0; i < nq; i++ ) {
             qvs[ i ] = 1000.
                      * FuncUtils.findValueMonotonic( scdf, rmin, rmax,
-                                                     quantiles[ i ], ytol );
+                                                     qpoints[ i ], ytol );
         }
         return qvs;
     }
 
     /**
      * Converts a distance in parsec to a distance modulus.
-     * The formula is <code>5*log10(d)-5</code>.
+     * The formula is <code>5*log10(distPc)-5</code>.
      *
      * @param  distPc  distance in parsec
      * @return  distance modulus in magnitudes
      */
     public static double distanceToModulus( double distPc ) {
         return 5.0 * Math.log10( distPc ) - 5.0;
+    }
+
+    /**
+     * Converts a distance modulus to a distance in parsec.
+     * The formula is <code>10^(1+distmod/5)</code>.
+     *
+     * @param   distmod  distance modulus in magnitudes
+     * @return    distance in parsec
+     */
+    public static double modulusToDistance( double distmod ) {
+        return Math.pow( 10, 1.0 + 0.2 * distmod );
     }
 
     /**
