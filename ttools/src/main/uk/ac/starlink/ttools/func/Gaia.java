@@ -67,13 +67,11 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  * This implementation was written with reference to the Java implementation
  * by Enrique Utrilla (DPAC).
  *
- * <p>A distance scale <em>L</em> is required for defining the
- * exponential cutoff with these functions.
- * The papers above suggest using of the value <em>L</em>=1350parsec.
- * Convenience forms of the functions are provided with this
- * value fixed, but other forms of the functions where you can
- * supply your own value of <em>L</em> (using the parameter <code>lpc</code>)
- * are also provided.
+ * <p>These functions are parameterised by a length scale <em>L</em>
+ * that defines the exponential decay (the mode of the prior PDF is at
+ * <em>r</em>=2<em>L</em>).
+ * Some value for this length scale, specified in parsec, must be supplied
+ * to the functions as the <code>lpc</code> parameter.
  *
  * <p><strong>Epoch Propagation</strong></p>
  *
@@ -108,12 +106,6 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  * @since    2 Mar 2018
  */
 public class Gaia {
-
-    /**
-     * Recommended value of the length scale for the exponentially decreasing
-     * space volume prior, in parsec (1350).
-     */
-    public static final double DEFAULT_LPC = 1350;
 
     /**
      * This quantity is A_v, the Astronomical Unit expressed in km.yr/sec.
@@ -435,21 +427,7 @@ public class Gaia {
 
     /**
      * Best estimate of distance using the Exponentially Decreasing
-     * Space Density prior with a length scale of 1350pc.
-     * This estimate is provided by the mode of the PDF.
-     *
-     * @param   plxMas  parallax in mas
-     * @param   plxErrorMas   parallax error in mas
-     * @return   best distance estimate in parsec
-     */
-    public static double distanceEstimateEdsd( double plxMas,
-                                               double plxErrorMas ) {
-        return distanceEstimateEdsd( plxMas, plxErrorMas, DEFAULT_LPC );
-    }
-    
-    /**
-     * Best estimate of distance using the Exponentially Decreasing
-     * Space Density prior with a supplied length scale.
+     * Space Density prior.
      * This estimate is provided by the mode of the PDF.
      *
      * @param   plxMas  parallax in mas
@@ -468,26 +446,26 @@ public class Gaia {
     /**
      * Calculates the 5th and 95th percentile confidence intervals
      * on the distance estimate using the Exponentially Decreasing
-     * Space Density prior with a length scale of 1350pc.
+     * Space Density prior.
      *
      * <p>Note this function has to numerically integrate the PDF
      * to determine quantile values, so it is relatively slow.
      *
      * @param  plxMas  parallax in mas
      * @param  plxErrorMas  parallax error in mas
+     * @param   lPc    length scale in parsec
      * @return  2-element array giving the 5th and 95th percentiles in parsec
      *          of the EDSD distance PDF 
      */
     public static double[] distanceBoundsEdsd( double plxMas,
-                                               double plxErrorMas ) {
-        return distanceQuantilesEdsd( plxMas, plxErrorMas, DEFAULT_LPC,
-                                      0.05, 0.95 );
+                                               double plxErrorMas,
+                                               double lPc ) {
+        return distanceQuantilesEdsd( plxMas, plxErrorMas, lPc, 0.05, 0.95 );
     }
 
     /**
      * Calculates arbitrary quantiles for the distance estimate
-     * using the Exponentially Decreasing Space Density prior
-     * with a supplied length scale.
+     * using the Exponentially Decreasing Space Density prior.
      *
      * <p>Note this function has to numerically integrate the PDF
      * to determine quantile values, so it is relatively slow.
