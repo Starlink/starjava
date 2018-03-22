@@ -69,7 +69,7 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  * <p>The Gaia source catalogue provides, for at least some sources,
  * the six-parameter astrometric solution
  * (Right Ascension, Declination, Parallax,
- * Proper motion in RA and Dec, and radial velocity),
+ * Proper motion in RA and Dec, and Radial Velocity),
  * along with errors on these values and correlations between these errors.
  * While a crude estimate of the position at an earlier or later epoch
  * than that of the measurement can be made by multiplying
@@ -78,13 +78,22 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  * accurate propagation between epochs of the astrometric parameters,
  * and if required their errors and correlations.
  * The expressions for this are set out in section 1.5.5 (Volume 1) of
- * <em>HIPPARCOS and TYCHO Catalogues</em>,
+ * <em>The Hipparcos and Tycho Catalogues</em>,
  * <a href="https://www.cosmos.esa.int/web/hipparcos/catalogues">ESA SP-1200</a>
  * (1997)
  * <a href="http://adsabs.harvard.edu/abs/1997ESASP1200.....E"
- *                                       >1997ESASP1200.....E</a>,
- * and the code is based on an implementation by
+ *                                       >1997ESASP1200.....E</a>
+ * (but see below), * and the code is based on an implementation by
  * Alexey Butkevich and Daniel Michalik (DPAC).
+ * A correction is applied to the ESA-1200 treatment of
+ * radial velocity uncertainty following <em>Michalik et al. 2014</em>
+ * <a href="http://ukads.nottingham.ac.uk/abs/2014A%26A...571A..85M"
+ *                                           >2014A&amp;A...571A..85M</a>
+ * because of their better handling of small radial velocities or parallaxes.
+ *
+ * <p>The calculations give the same results, though not exactly in
+ * the same form, as the epoch propagation functions available
+ * in the Gaia archive service.
  *
  * @author   Mark Taylor
  * @since    2 Mar 2018
@@ -194,21 +203,16 @@ public class Gaia {
      * Note the correlation coefficients, always in the range -1..1,
      * are dimensionless.
      *
-     * <p><strong>NOTE:</strong> Testing against the GACS epoch propagation
-     * functions shows good agreement <em>except</em> for the value of
-     * the radial velocity error (element 11).  This discrepancy is
-     * under investigation (possibly down to GACS use of
-     * <a href="http://adsabs.harvard.edu/abs/2014A%26A...570A..62B"
-     *     >Butkevich &amp; Lindegren (2014)</a>
-     * instead of the Hipparcos formulae?),
-     * but if you require accurate values for the propagated error
-     * in radial velocity, you should use this function with caution.
-     *
      * <p>This is clearly an unwieldy function to invoke,
      * but if you are using it with the gaia_source catalogue itself,
      * or other similar catalogues with the same column names and
      * units, you can invoke it by just copying and pasting the
      * example shown in this documentation.
+     *
+     * <p>This transformation is only applicable for radial velocities
+     * determined independently of the astrometry, such as those
+     * obtained with a spectrometer. It is not applicable for the
+     * back-transformation of data already propagated to another epoch.
      *
      * @example <code>epochPropErr(-15.5, array(
      *    ra,dec,parallax,pmra,pmdec,radial_velocity,
@@ -284,8 +288,9 @@ public class Gaia {
          * The CU1 routine wants the normalised RV (zeta) in radians/year,
          * which requires some non-trivial conversion to get from the
          * gaia_source radial_velocity in barycentric km/s.
-         * The formulae are provided by Eq. 1.5.69 of the Hipparcos
-         * book (SP-1200). */
+         * The formulae are provided by Eq. 17 of Michalik et al. 2014
+         * (2014A&A...571A..85M), which themselves are a generalisation
+         * of those from Eq. 1.5.69 of the Hipparcos Catalogue (SP-1200). */
         if ( hasRv ) {
             double rva = rvkms0 * RVNORM1;  // units of yr^-1
             for ( int i = 0; i < 5; i++ ) {
@@ -293,7 +298,8 @@ public class Gaia {
             }
             cov0[ 5 ][ 5 ] = RVNORM1 * RVNORM1
                            * ( Maths.square( plx0 * errRvkms0 ) +
-                               Maths.square( rvkms0 * errPlx0 ) );
+                               Maths.square( rvkms0 * errPlx0 ) +
+                               Maths.square( errRvkms0 * errPlx0 ) );
         }
 
         /* Invoke the actual CU1 propagation routine. */
@@ -325,13 +331,15 @@ public class Gaia {
         double corrPlxPmdec1 = cov1[ 2 ][ 4 ] / ( errPlx1 * errPmdec1 );
         double corrPmraPmdec1 = cov1[ 3 ][ 4 ] / ( errPmra1 * errPmdec1 );
 
-        /* Invert Hipparcos Eq. 1.5.69. */
+        /* Invert Michalik et al. 2014 Eq. 17. */
         final double rvkms1;
         final double errRvkms1;
         if ( hasRv ) {
             rvkms1 = RVNORM * zeta1 / plx1;
-            errRvkms1 = Math.sqrt( RVNORM * RVNORM * cov1[ 5 ][ 5 ] -
-                                   rvkms1 * rvkms1 * cov1[ 2 ][ 2 ] ) / plx1;
+            errRvkms1 =
+                Math.sqrt( ( RVNORM * RVNORM * cov1[ 5 ][ 5 ] -
+                             rvkms1 * rvkms1 * cov1[ 2 ][ 2 ] )
+                         / ( plx1 * plx1 + cov1[ 2 ][ 2 ] ) );
         }
         else {
             rvkms1 = Double.NaN;

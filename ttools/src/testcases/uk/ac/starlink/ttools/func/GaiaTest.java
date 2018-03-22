@@ -192,8 +192,9 @@ public class GaiaTest extends TestCase {
             "colmeta -shape 6 ga1000;",
             "colmeta -shape 21 gc1000;",
             "addcol zeta rvKmsToMasyr(radial_velocity,parallax)",
-            "addcol ezeta hypot(radial_velocity*parallax_error,"
-                             + "parallax*radial_velocity_error)/AU_YRKMS",
+            "addcol ezeta hypot(parallax*radial_velocity_error,"
+                             + "radial_velocity*parallax_error,"
+                             + "radial_velocity_error*parallax_error)/AU_YRKMS",
             "addcol czeta (parallax_error/ezeta)*(radial_velocity/AU_YRKMS)",
             "addcol -shape 6 ap_t "
               + "array(ra,dec,parallax,pmra,pmdec,zeta);",
@@ -228,12 +229,9 @@ public class GaiaTest extends TestCase {
               + "ga0[0],ga0[1],ga0[2],ga0[3],ga0[4],"
               + "rvMasyrToKms(ga0[5],ga0[2]),"
               + "gc0[0],gc0[1],gc0[2],gc0[3],gc0[4],"
-          //  + "AU_YRKMS/ga0[2]"
-          //      + "*sqrt(gc0[5]*gc0[5]-pow(ga0[5]*gc0[2]/AU_YRKMS,2)),"
-              + "1./ga0[2]*sqrt("
-                  + "square(AU_YRKMS*gc0[5])-"
-                  + "square(rvMasyrToKms(ga0[5],ga0[2])*gc0[2])"
-                  + "),"
+              + "sqrt((square(AU_YRKMS*gc0[5])-"
+                   +  "square(rvMasyrToKms(ga0[5],ga0[2])*gc0[2]))/"
+                   + "(ga0[2]*ga0[2]+gc0[2]*gc0[2])),"
               + "gc0[6],gc0[7],gc0[8],gc0[9],"
               + "gc0[11],gc0[12],gc0[13],"
               + "gc0[15],gc0[16],"
@@ -245,7 +243,9 @@ public class GaiaTest extends TestCase {
               + "ga1000[0],ga1000[1],ga1000[2],ga1000[3],ga1000[4],"
               + "rvMasyrToKms(ga1000[5],ga1000[2]),"
               + "gc1000[0],gc1000[1],gc1000[2],gc1000[3],gc1000[4],"
-              + "rvMasyrToKms(gc1000[5],ga1000[2]),"
+              + "sqrt((square(AU_YRKMS*gc1000[5])-"
+                   +  "square(rvMasyrToKms(ga1000[5],ga1000[2])*gc1000[2]))/"
+                   + "(ga1000[2]*ga1000[2]+gc1000[2]*gc1000[2])),"
               + "gc1000[6],gc1000[7],gc1000[8],gc1000[9],"
               + "gc1000[11],gc1000[12],gc1000[13],"
               + "gc1000[15],gc1000[16],"
@@ -291,13 +291,7 @@ public class GaiaTest extends TestCase {
         // and ASTROMETRIC_PARAMETER_ERROR functions with what I think
         // they ought to be.
         assertArrayColumnNearZero( result, "dist_ap", 1e-13 );
-
-        // NOTE: there are errors at the 1e-2 level here.
-        // They are in all and only the elements relating to radial velocity:
-        // 5, 10, 14, 17, 19, 20
-        assertArrayColumnNearZero( result, "dist_aperr", 1e-2 );
-        assertArrayColumnNearZero( result, "dist_aperr", 1e-13,
-                      new int[] { 0,1,2,3,4, 6,7,8, 11,12,13, 15,16, 18 } );
+        assertArrayColumnNearZero( result, "dist_aperr", 1e-13 );
 
         // This at least tests that propagation zero years makes zero
         // difference.  It should pick up some basic typos in the
@@ -315,29 +309,17 @@ public class GaiaTest extends TestCase {
         // makes zero difference; it makes sure that I am invoking
         // them in a way that I understand.
         assertArrayColumnNearZero( result, "rdist6_g0", 1e-13 );
-          // NOTE: there are errors at the 1e-1 level here,
-          // only in the radial velocity error, element 11.
-        assertArrayColumnNearZero( result, "rdist22_g0", 1e-1 );
-        assertArrayColumnNearZero( result, "rdist22_g0", 1e-13,
-            new int[] {0,1,2,3,4,5,6,7,8,9,10, 12,13,14,15,16,17,18,19,20,21} );
+        assertArrayColumnNearZero( result, "rdist22_g0", 1e-12 );
 
         // Now test that the func.Gaia propagation functions give the
         // same results as the GACS ones when propagating to an epoch
         // that is actually distinct.
         assertArrayColumnNearZero( result, "rdiff6_1000", 1e-8 );
-           // NOTE: element 11, the radial velocity error, is wildly out.
-        assertArrayColumnNearZero( result, "rdiff22_1000", 1e-3,
-            new int[] {0,1,2,3,4,5,6,7,8,9,10, 12,13,14,15,16,17,18,19,20,21} );
+        assertArrayColumnNearZero( result, "rdiff22_1000", 1e-8 );
     }
 
     private void assertArrayColumnNearZero( StarTable t, String cname,
                                             double tol )
-            throws IOException {
-        assertArrayColumnNearZero( t, cname, tol, null );
-    }
-
-    private void assertArrayColumnNearZero( StarTable t, String cname,
-                                            double tol, int[] iels )
             throws IOException {
         int icol = -1;
         for ( int ic = 0; ic < t.getColumnCount(); ic++ ) {
@@ -348,16 +330,8 @@ public class GaiaTest extends TestCase {
         for ( RowSequence rseq = t.getRowSequence(); rseq.next();
               rseq.close() ) {
             double[] arr = (double[]) rseq.getCell( icol );
-            if ( iels == null ) {
-                for ( int i = 0; i < arr.length; i++ ) {
-                    assertEquals( "element #" + i, 0., arr[ i ], tol );
-                }
-            }
-            else {
-                for ( int j = 0; j < iels.length; j++ ) {
-                    int i = iels[ j ];
-                    assertEquals( "element #" + i, 0., arr[ i ], tol );
-                }
+            for ( int i = 0; i < arr.length; i++ ) {
+                assertEquals( "element #" + i, 0., arr[ i ], tol );
             }
         }
     }
