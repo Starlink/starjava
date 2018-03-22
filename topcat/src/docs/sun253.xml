@@ -25401,6 +25401,13 @@ introduced since the last version:
         case-insensitively.</li>
     <li>Add utility function <code>square</code>
         to the expression language.</li>
+    <li>Add class <ref id="Gaia">Gaia</ref> to the expression language.
+        This contains functions for estimating distances from parallaxes 
+        and propagating astrometric parameters and errors to 
+        different epochs.  The functions are not specific
+        to data from the Gaia astrometry satellite,
+        but are presented in a form convenient for use 
+        with the Gaia DR2 source catalogue.</li>
     </ul>
     </p>
     </dd>

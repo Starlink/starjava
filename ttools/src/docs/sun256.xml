@@ -11381,6 +11381,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         case-insensitively.</li>
     <li>Add utility function <code>square</code>
         to the expression language.</li>
+    <li>Add class <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>
+        to the expression language.
+        This contains functions for estimating distances from parallaxes
+        and propagating astrometric parameters and errors to
+        different epochs.  The functions are not specific
+        to data from the Gaia astrometry satellite,
+        but are presented in a form convenient for use
+        with the Gaia DR2 source catalogue.</li>
     </ul>
     </p>
     </dd>
