@@ -132,7 +132,7 @@ public class ResourceIcon implements Icon {
         PARAMS = makeIcon( "tablemeta0.png" ),
         VIEWER = makeIcon( "browser1.png" ),
         SUBSETS = makeIcon( "venn2.png" ),
-        FUNCTION = makeIcon( "fx2.png" ),
+        FUNCTION = makeIcon( "fx4.png" ),
         MATCH1 = makeIcon( "matchOne2.png" ),
         MATCH2 = makeIcon( "matchTwo2.png" ),
         MATCHN = makeIcon( "matchN.png" ),
