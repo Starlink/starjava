@@ -1351,15 +1351,19 @@ public class SpecDataFactory
                             " for the URL : " + url.toString()    );
                 }
                 String conttype=connection.getContentType();
-                if (conttype==null) { // avoids NPE
-                    conttype=""; 
-                    mimetype = new MimeType();
-                } else
+                if (conttype!=null) {
                     mimetype = new MimeType(conttype);
+                }
 
                 compressed = ("gzip".equals(connection.getContentEncoding()) || conttype.contains("gzip"));
                 remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
             }
+
+            // Handle local URLs.
+            if (mimetype == null) {
+                mimetype = new MimeType();
+            }
+
             connection.setConnectTimeout(10*1000); // 10 seconds
             connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
             InputStream is = connection.getInputStream();

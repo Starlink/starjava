@@ -1,4 +1,10 @@
 1 Starlink SPLAT news.
+   3.11-4
+   ======
+
+   Fix a problem receiving local files from SAMP communicators.
+
+
    3.11-3
    ======
    - Improvements in the ObsCore interface
@@ -9,7 +15,7 @@
    ======
 
    - Several improvements/corrections in services GUI
-   - Query results list witth context menu (info/preview, 
+   - Query results list witth context menu (info/preview,
 	copy line to clipboard, download)
 
    3.11-1
@@ -29,7 +35,7 @@
    SPLAT can run without attempting to communicate with any running
    SAMP hubs.
 
-   
+
    3.10-8
    ======
 
@@ -58,23 +64,23 @@
    3.10-4
    ======
 
-   Changes: 
+   Changes:
    - Bug correction. DataLink parameters are now properly removed when
      "Clear Parameters"button is pressed.
    - Error messages correctios (e.g. if a table contains no data)
-   
+
 
    3.10-3
    ======
 
    This version introduces new features contributed by David Andresic:
-	- visual selection of spectra 
-	- saving/restoring a stack of spectra using a standard multi-HDU 
+	- visual selection of spectra
+	- saving/restoring a stack of spectra using a standard multi-HDU
 	FITS file
 
-   Several bug corrections from the last versioni has been corrected, 
+   Several bug corrections from the last versioni has been corrected,
    as well as updates for conformity to the DATALINK standard.
-   
+
 
    3.10-2
    ======
@@ -82,12 +88,12 @@
    Changes in this version:
 
 	- new feature: Search for spectra using ObsCore/Tap.
-   
+
 	- getData operation will not be supported anymore, instead the same
-	funcionality will be covered using DATALINK (change is transparent 
+	funcionality will be covered using DATALINK (change is transparent
 	to the user)
 
-	-  Echelle Spectra: A new data model for chelle spectra has been 
+	-  Echelle Spectra: A new data model for chelle spectra has been
 	introduced, making it possible to download only selected orders.
 
    3.10-1
@@ -99,7 +105,7 @@
 	- User-defined server tags are now saved and loaded next time SPLAT starts.
 	- Added "all theoretical" / "all observational" server options.
 
-   Several bug fixes, including 
+   Several bug fixes, including
 	- correct display of server resources containing more than one SSAP capability
 	- correction of server information display
 
@@ -124,7 +130,7 @@
 
      - If the SSAP server maximum record limit is reached (MAXREC), SPLAT will
        no longer return an error, it just continues downloading spectra to the
-       available limit. 
+       available limit.
 
      - The BAND parameter now handles the case when the upper limit is null.
 
@@ -133,12 +139,12 @@
 
    The column name used to select spectral coordinates in tables without any
    other metadata has changed from "wavelength*" to "wave*".
-  
+
    When changing the spectral coordinates column of a table in the main
    window the change wasn't seen immediately. This issue should now be fixed.
 
    A bug in the spectral synopsis that misidentified the celestial coordinate
-   axes has been fixed. This means the "Spec position:" item should now be 
+   axes has been fixed. This means the "Spec position:" item should now be
    correct for DSB spectral frames with permuted axes.
 
    A problem filtering with the standard spectral profiles has been fixed.
@@ -181,7 +187,7 @@
    A bug that meant some NDF spectra opened in SPLAT using the "splatdisp"
    command could not be saved to disk. This has been fixed. Note this includes
    spectra sent from GAIA.
- 
+
    Post Kaulia
 
    3.9-7
@@ -196,7 +202,7 @@
    "Ampere".
 
    The flip toolbox now correctly records the SPEFO log option RV.
-   The current status of the redshift option is also recorded to the 
+   The current status of the redshift option is also recorded to the
    SPEFO log.
 
    The auto-colourize option when loading spectra has been enabled again.
@@ -223,14 +229,14 @@
    3.9-4
    =====
 
-   The meta-data sent with a spectrum via SAMP now includes some SSA 
+   The meta-data sent with a spectrum via SAMP now includes some SSA
    version 1 utypes (spectrum.char.fluxaxis.name, spectrum.char.fluxaxis.unit,
    spectrum.char.spectralaxis.name and spectrum.char.spectralaxis.unit).
 
    The statistics window has been extended to include some alpha trimmed
    means in the extended statistics option.
 
-   The loading of spectra using SSAP downloads no longer blocks the 
+   The loading of spectra using SSAP downloads no longer blocks the
    interface. The previous behaviour was a bug.
 
    Support for asynchronous calls from SAMP has been improved.
@@ -257,7 +263,7 @@
 
    The locale used by SPLAT is now fixed to POSIX, this means that all
    numbers should be entered using decimal notation.
- 
+
    3.9-2
    =====
 
@@ -275,25 +281,25 @@ Nanahope release
    3.9-0
    =====
 
-   SPLAT has been updated to use SAMP for interoperability with other 
+   SPLAT has been updated to use SAMP for interoperability with other
    desktop applications. It is still possible to use PLASTIC, but that
    protocol is now deprecated. See the main documentation for more about
    these changes.
 
-   When opening NDF spectra with redundant axes the position of the 
+   When opening NDF spectra with redundant axes the position of the
    redundant axes may be reported in the synopsis. This will typically
    be the position on the sky that the spectrum occupied.
 
    SSAP query failures are now reported in more detail.
 
-   The offsets applied to spectra during display can now be derived from an 
+   The offsets applied to spectra during display can now be derived from an
    expression, rather than just using an order with a fixed offset. The
    way that line identifiers are handled when applying offsets is also
    changed. This should stop excessive data limits being used when most
    line identifiers are not displayed.
 
    A bug parsing the names of remotely downloaded spectra has been fixed.
-   This should make guessing the file types more robust and support 
+   This should make guessing the file types more robust and support
    compressed sources.
 
    SSAP servers that do not return any results will now not be shown in the
@@ -305,8 +311,8 @@ Nanahope release
    When displaying dual sideband spectra, line identifiers can now be drawn
    for both sidebands, not just the current one.
 
-   Series of spectra displayed in a single plot can now be offset from 
-   each other using artificial baselines for easier inspections. The 
+   Series of spectra displayed in a single plot can now be offset from
+   each other using artificial baselines for easier inspections. The
    ordering of the offsets can be determined by evaluating an expression
    based on the FITS card values in the spectra. This can include the
    evaluation of dates and times.
@@ -316,7 +322,7 @@ Nanahope release
    be compatible and must be regenerated. This should mean that new services
    will be picked up again.
 
-   A bug calculating UTC from TDB for the epoch of observation in the 
+   A bug calculating UTC from TDB for the epoch of observation in the
    JAC synopsis has been fixed.
 
    A new toolbox for applying offsets to spectra displayed in the same window
@@ -336,7 +342,7 @@ Nanahope release
    has been added to SUN/243.
 
    The colours that are automatically selected for spectra will no longer
-   include shades of yellow. These tend to be indistinctive on a white 
+   include shades of yellow. These tend to be indistinctive on a white
    background.
 
    The properties used for rendering the current spectrum (line style, width
@@ -344,13 +350,13 @@ Nanahope release
    between sessions. Note that the colour of the spectrum will not be re-used
    unless you have switched off automatically colouring.
 
-   Extra controls have been added to the SSAP download dialog. You can 
+   Extra controls have been added to the SSAP download dialog. You can
    now clear all the selections and just download data to the stack without
    displaying it.
 
    Line identifiers can be have the associated spectrum shortname suffixed
    to labels (it is already possible to prefix the shortname) or just have
-   the shortname shown as the label. 
+   the shortname shown as the label.
 
 Lehuakona Release
 -----------------
