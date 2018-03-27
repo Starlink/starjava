@@ -60,6 +60,31 @@ public class ImageWindow extends AuxWindow {
     }
 
     /**
+     * Creates an image from a location, suitable for use with this window.
+     *
+     * <p>This method is potentially time-consuming, and should not be
+     * invoked on the Event Dispatch Thread.
+     *
+     * @param  location   file or URL
+     * @return  image
+     */
+    public Image createImage( String location ) throws IOException {
+        return ImageIO
+              .read( DataSource.makeDataSource( location ).getInputStream() );
+    }
+
+    /**
+     * Synchronously configures this window to display an image.
+     *
+     * <p>This method must be invoked from the Event Dispatch Thread.
+     *
+     * @param  image  image to install
+     */
+    public void setImage( Image image ) {
+        label_.setIcon( image == null ? null : new ImageIcon( image ) );
+    }
+
+    /**
      * Sets the image to load from a given location.
      * This should be called from the event dispatch thread, but will
      * do most of the work out-of-thread to prevent blocking when loading
@@ -81,11 +106,9 @@ public class ImageWindow extends AuxWindow {
         new Thread( "Image Loader(" + location + ")" ) {
             Image im;
             public void run() {
-                byte[] buf;
                 String txt;
                 try {
-                    DataSource datsrc = DataSource.makeDataSource( location );
-                    im = ImageIO.read( datsrc.getInputStream() );
+                    im = createImage( location );
                     txt = null;
                 }
                 catch ( IOException e ) {
