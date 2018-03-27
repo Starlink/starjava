@@ -12,10 +12,10 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ListModel;
@@ -75,8 +75,8 @@ public class TopcatSampControl {
 
     private final HubConnector hubConnector_;
     private final ControlWindow controlWindow_;
-    private final Map idMap_;
-    private final Map highlightMap_;
+    private final Map<String,TableWithRows> idMap_;
+    private final Map<TopcatModel,Long> highlightMap_;
     private int idCount_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.interop" );
@@ -91,8 +91,9 @@ public class TopcatSampControl {
             throws IOException {
         hubConnector_ = hubConnector;
         controlWindow_ = controlWindow;
-        idMap_ = Collections.synchronizedMap( new HashMap() );
-        highlightMap_ = Collections.synchronizedMap( new WeakHashMap() );
+        idMap_ = new ConcurrentHashMap<String,TableWithRows>();
+        highlightMap_ = Collections
+                       .synchronizedMap( new WeakHashMap<TopcatModel,Long>() );
 
         /* Declare metadata. */
         Metadata meta = new Metadata();
@@ -151,10 +152,9 @@ public class TopcatSampControl {
 
         /* If the table model and row map is the same as an existing entry
          * in the map, return the ID for that one. */
-        for ( Iterator it = idMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            String id = (String) entry.getKey();
-            TableWithRows tr = (TableWithRows) entry.getValue();
+        for ( Map.Entry<String,TableWithRows> entry : idMap_.entrySet() ) {
+            String id = entry.getKey();
+            TableWithRows tr = entry.getValue();
             if ( tr.getTable() == tcModel &&
                  Arrays.equals( tr.rowMap_, rowMap ) ) {
                 return id;
@@ -197,10 +197,9 @@ public class TopcatSampControl {
          * for one of them.  Just pick the first (i.e. a random) one. */
         TableWithRows tr = new TableWithRows( tcModel, null );
         String tableId = null;
-        for ( Iterator it = idMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            String id = (String) entry.getKey();
-            TableWithRows twr = (TableWithRows) entry.getValue();
+        for ( Map.Entry<String,TableWithRows> entry : idMap_.entrySet() ) {
+            String id = entry.getKey();
+            TableWithRows twr = entry.getValue();
             if ( twr.getTable() == tcModel ) {
                 tableId = id;
                 tr = twr;
@@ -271,10 +270,9 @@ public class TopcatSampControl {
         /* Get a table id. */
         TableWithRows tr = new TableWithRows( tcModel, null );
         String tableId = null;
-        for ( Iterator it = idMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            String id = (String) entry.getKey();
-            TableWithRows twr = (TableWithRows) entry.getValue();
+        for ( Map.Entry<String,TableWithRows> entry : idMap_.entrySet() ) {
+            String id = entry.getKey();
+            TableWithRows twr = entry.getValue();
             if ( twr.getTable() == tcModel ) {
                 tableId = id;
                 tr = twr;
@@ -450,7 +448,7 @@ public class TopcatSampControl {
          * The purpose of this is to avoid the possibility of
          * eternal SAMP ping-pong between two (or more)
          * applications.  It doesn't completely work though. */
-        Long lastHigh = (Long) highlightMap_.get( tcModel );
+        Long lastHigh = highlightMap_.get( tcModel );
         if ( lastHigh == null || lastHigh.longValue() != lrow ) {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
@@ -538,7 +536,7 @@ public class TopcatSampControl {
 
         /* Examine the tableId. */
         if ( tableId != null && idMap_.containsKey( tableId ) ) {
-            return (TableWithRows) idMap_.get( tableId );
+            return idMap_.get( tableId );
         }
 
         /* If that fails, examine the URL. */
