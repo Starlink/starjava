@@ -61,6 +61,16 @@ public class SendManager {
     }
 
     /**
+     * Returns the client currently selected for sending.
+     * If null, a broadcast is indicated.
+     *
+     * @return  selected destination client, or null for broadcast
+     */
+    public Client getSelectedClient() {
+        return comboBoxModel_.getClient();
+    }
+
+    /**
      * Sends a given message by notification to the currently selected target
      * client or clients.  This message will presumably have the MType 
      * supplied to this object in the constructor.

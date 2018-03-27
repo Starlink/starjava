@@ -259,6 +259,24 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     /**
+     * Returns the SAMP HubConnector used by this object.
+     *
+     * @return   connector
+     */
+    public GuiHubConnector getConnector() {
+        return hubConnector_;
+    }
+
+    /**
+     * Returns the TopcatSampControl object used by this object.
+     *
+     * @return samp control
+     */
+    public TopcatSampControl getSampControl() {
+        return sampControl_;
+    }
+
+    /**
      * Turns a SAMP action manager into a Transmitter.
      *
      * @param  sender  SAMP sender
@@ -449,7 +467,7 @@ public class SampCommunicator implements TopcatCommunicator {
      * Makes sure that a map is SAMP-friendly.
      * Any entries which are not are simply discarded.
      */
-    private static Map sanitizeMap( Map map ) {
+    public static Map sanitizeMap( Map map ) {
 
         /* Retain only entries which are String->String mappings.
          * This is more restrictive than strictly necessary, but it's 
