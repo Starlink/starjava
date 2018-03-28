@@ -66,7 +66,7 @@ public class TableSendActionManager extends IndividualCallActionManager
             StarTable table = TopcatUtils.getSaveTable( tcModel );
             String ident = Integer.toString( tcModel.getID() );
             String name = tcModel.getLabel();
-            String sampId = sampControl_.getTableId( tcModel );
+            String sampId = sampControl_.getTableIdForSending( tcModel );
             return sender.createMessage( table, ident, name, sampId );
         }
         else {
