@@ -29,6 +29,7 @@ import org.astrogrid.samp.gui.SubscribedClientListModel;
 public class SendManager {
 
     private final GuiHubConnector connector_;
+    private final ListModel clientListModel_;
     private final SendComboBoxModel comboBoxModel_;
     private final String mtype_;
 
@@ -45,9 +46,8 @@ public class SendManager {
     public SendManager( GuiHubConnector connector, String mtype ) {
         connector_ = connector;
         mtype_ = mtype;
-        comboBoxModel_ =
-            new SendComboBoxModel( new SubscribedClientListModel( connector,
-                                                                  mtype ) );
+        clientListModel_ = new SubscribedClientListModel( connector, mtype );
+        comboBoxModel_ = new SendComboBoxModel( clientListModel_ );
     }
 
     /**
@@ -58,6 +58,20 @@ public class SendManager {
      */
     public ComboBoxModel getComboBoxModel() {
         return comboBoxModel_;
+    }
+
+    /**
+     * Returns a list model containing all clients that are potential
+     * targets for this send manager.  If the list is empty, sending
+     * won't do anything.  Note the content is not the same as for
+     * {@link #getComboBoxModel}, since this list contains only
+     * {@link org.astrogrid.samp.Client} instances, not the BROADCAST
+     * pseudo-client.
+     *
+     * @return  list with only <code>Client</code> entries
+     */
+    public ListModel getClientListModel() {
+        return clientListModel_;
     }
 
     /**
