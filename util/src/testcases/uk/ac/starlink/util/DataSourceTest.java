@@ -117,7 +117,7 @@ public class DataSourceTest extends TestCase {
     public void testResourceStream() {
         assertEquals( "Object.class", rSrc.getName() );
         assertTrue( rSrc.getURL().toString()
-                        .endsWith( "!/java/lang/Object.class" ) );
+                        .endsWith( "/java/lang/Object.class" ) );
     }
 
     private static byte[] fillBuffer1( InputStream istrm ) throws IOException {
