@@ -664,11 +664,14 @@ public class FuncTest extends TestCase {
             TINY );
 
         assertEquals( Maths.PI / 4.0,
-                      CoordsRadians.hmsToRadians( "03:00:00.0" ) );
+                      CoordsRadians.hmsToRadians( "03:00:00.0" ),
+		      TINY );
         assertEquals( -Maths.PI / 4.0,
-                      CoordsRadians.hmsToRadians( "-03: 0:0" ) );
+                      CoordsRadians.hmsToRadians( "-03: 0:0" ),
+		      TINY );
         assertEquals( CoordsRadians.hmsToRadians( "0 0 1" ),
-                      -CoordsRadians.hmsToRadians( "-0h0m1s" ) );
+                      -CoordsRadians.hmsToRadians( "-0h0m1s" ),
+		      TINY );
 
         assertEquals( "03:00:00",
                       CoordsRadians.radiansToHms( Maths.PI / 4.0 ) );
@@ -742,10 +745,10 @@ public class FuncTest extends TestCase {
         assertEquals( -90, CoordsDegrees.posAngDegrees( 15, 0, -15, 0 ), TINY );
         assertEquals( 0., CoordsDegrees.posAngDegrees( 35, 8, 35, 12 ), TINY );
 
-        assertEquals( 45, CoordsDegrees.hmsToDegrees( "03:00:00.0" ) );
-        assertEquals( -45, CoordsDegrees.hmsToDegrees( "-03: 0:0" ) );
+        assertEquals( 45, CoordsDegrees.hmsToDegrees( "03:00:00.0" ), TINY );
+        assertEquals( -45, CoordsDegrees.hmsToDegrees( "-03: 0:0" ), TINY );
         assertEquals( CoordsDegrees.hmsToDegrees( "0 0 1" ),
-                      -CoordsDegrees.hmsToDegrees( "-0h0m1s" ) );
+                      -CoordsDegrees.hmsToDegrees( "-0h0m1s" ), TINY );
 
         assertEquals( "03:00:00", CoordsDegrees.degreesToHms( 45 ) );
         assertEquals( "12:00:00.000", CoordsDegrees.degreesToHms( -180, 3 ) );
