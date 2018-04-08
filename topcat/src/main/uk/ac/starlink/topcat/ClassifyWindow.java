@@ -301,7 +301,7 @@ public class ClassifyWindow extends AuxWindow {
     public static String sanitiseText( String txt, boolean isStart,
                                        int maxlen ) {
         String regex = ( isStart ? "[a-zA-Z]" : "[a-zA-Z0-9]" )
-                     + "[a-zA-Z0-9]{0," + maxlen + "}";
+                     + "[a-zA-Z0-9]{0," + ( maxlen - 1 ) + "}";
         Matcher matcher = Pattern.compile( regex ).matcher( txt );
         if ( matcher.find() ) {
             return matcher.group();

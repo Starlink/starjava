@@ -37,6 +37,9 @@ public class ClassifyReportPanel extends JPanel {
     private int ncat_;
     private Item[] items_;
 
+    /** Maximum length of default subset name value identification string. */
+    private static final int MAXLEN_VALSTR = 16;
+
     /**
      * Constructor.
      */
@@ -377,7 +380,8 @@ public class ClassifyReportPanel extends JPanel {
             labelLabel_ = new JLabel( label );
             txtField_ = new JTextField();
             txtField_.setText( prefix +
-                               ClassifyWindow.sanitiseText( label, false, 6 ) );
+                               ClassifyWindow.sanitiseText( label, false,
+                                                            MAXLEN_VALSTR ) );
             flagBox_ = new JCheckBox();
             flagBox_.setSelected( cval != null );
             flagBox_.addActionListener( new ActionListener() {

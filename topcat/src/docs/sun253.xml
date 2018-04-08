@@ -25410,6 +25410,8 @@ introduced since the last version:
         but are presented in a form convenient for use 
         with the Gaia DR2 source catalogue.</li>
     <li>Make Available Functions window icon less ugly.</li>
+    <li>Adjust subset name assignment heuristics in
+        <ref id="ClassifyWindow">Column Classification Window</ref>.</li>
     </ul>
     </p>
     </dd>
