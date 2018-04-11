@@ -12,6 +12,8 @@ import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import uk.ac.starlink.topcat.AlignedBox;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBox;
@@ -72,7 +74,7 @@ public class BasicCoordLayerControl extends ConfigControl
         styler_ = new ConfigStyler( coordPanel_.getComponent() );
 
         /* Create data selection components. */
-        tableSelector_ = new TablesListComboBox();
+        tableSelector_ = new TablesListComboBox( 250 );
         subsetSelector_ = new JComboBox();
         dummyComboBoxModel_ = subsetSelector_.getModel();
 
@@ -90,10 +92,12 @@ public class BasicCoordLayerControl extends ConfigControl
         subsetSelector_.addActionListener( forwarder );
 
         /* Configure panel for specifying the data. */
-        JComponent dataPanel = Box.createVerticalBox();
-        dataPanel.add( new LineBox( "Table",
-                                    new ShrinkWrapper( tableSelector_ ),
-                                    true ) );
+        JComponent dataPanel = AlignedBox.createVerticalBox();
+        JComponent tline = Box.createHorizontalBox();
+        tline.add( new JLabel( "Table: " ) );
+        tline.add( tableSelector_ );
+        dataPanel.add( tline );
+        dataPanel.add( Box.createVerticalStrut( 5 ) );
         dataPanel.add( coordPanel_.getComponent() );
         dataPanel.add( Box.createVerticalStrut( 5 ) );
         dataPanel.add( new LineBox( "Row Subset",

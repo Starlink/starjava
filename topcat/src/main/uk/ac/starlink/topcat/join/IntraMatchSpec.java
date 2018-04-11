@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -40,7 +41,8 @@ public class IntraMatchSpec extends MatchSpec {
     public IntraMatchSpec( MatchEngine engine ) {
         engine_ = engine;
         Box main = Box.createVerticalBox();
-        add( main );
+        setLayout( new BorderLayout() );
+        add( main, BorderLayout.NORTH );
 
         /* Set up a table/column selector panel for the sole table. */
         tupleSelector_ = new TupleSelector( engine_.getTupleInfos() );

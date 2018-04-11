@@ -23,14 +23,6 @@ public class TablesListComboBox extends JComboBox {
     private final BasicComboBoxModel comboBoxModel_;
 
     /**
-     * Constructs a combo box with no maximum width,
-     * based on the ControlWindow's list of tables.
-     */
-    public TablesListComboBox() {
-        this( 0 );
-    }
-
-    /**
      * Constructs a combo box with a maximum width,
      * based on the ControlWindow's list of tables.
      *

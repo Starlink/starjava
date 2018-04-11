@@ -16,10 +16,10 @@ import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
@@ -31,12 +31,12 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
+import uk.ac.starlink.topcat.AlignedBox;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Plot layer control which manages coordinates and subsets in a common way
@@ -87,7 +87,7 @@ public abstract class FormLayerControl
         final TopcatListener externalTcListener = tcListener;
 
         /* Set up a selector for which table to plot. */
-        tableSelector_ = new TablesListComboBox();
+        tableSelector_ = new TablesListComboBox( 250 );
 
         /* Ensure listeners are notified when the table selection changes,
          * or when anything else about this control changes. */
@@ -102,10 +102,14 @@ public abstract class FormLayerControl
         } );
 
         /* Set up the panel for selecting the table and position coordinates. */
-        JComponent posbox = Box.createVerticalBox();
-        posbox.add( new LineBox( "Table", new ShrinkWrapper( tableSelector_ ),
-                                 true ) );
-        posbox.add( posCoordPanel_.getComponent() );
+        JComponent posbox = AlignedBox.createVerticalBox();
+        JComponent tline = Box.createHorizontalBox();
+        tline.add( new JLabel( "Table: " ) );
+        tline.add( tableSelector_ );
+        JComponent coordComp = posCoordPanel_.getComponent();
+        posbox.add( tline );
+        posbox.add( Box.createVerticalStrut( 5 ) );
+        posbox.add( coordComp );
 
         /* Set up a manager for per-subset configuration. */
         subsetManager_ =

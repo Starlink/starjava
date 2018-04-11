@@ -61,13 +61,14 @@ public class ConcatWindow extends AuxWindow {
 
         JComponent main = getMainArea();
         main.setLayout( new BorderLayout() );
+        int maxWidth = 250;
 
         /* Construct base table selection control. */
-        t1selector = new TablesListComboBox();
+        t1selector = new TablesListComboBox( maxWidth );
         t1selector.setToolTipText( "Table supplying the columns and top rows" );
 
         /* Construct added table selection control. */
-        t2selector = new TablesListComboBox();
+        t2selector = new TablesListComboBox( maxWidth );
         t2selector.setToolTipText( "Table supplying the bottom rows" );
 
         /* Reconfigure display if either table is reselected. */
@@ -80,18 +81,36 @@ public class ConcatWindow extends AuxWindow {
         t2selector.addItemListener( tableSelectionListener );
 
         /* Place table selection controls. */
-        Box tBox = Box.createVerticalBox();
+        final JLabel label2 = new JLabel( "Appended Table: " );
+        JLabel label1 = new JLabel( "Base Table: " ) {
+            @Override
+            public Dimension getPreferredSize() {
+                return label2.getPreferredSize();
+            }
+            @Override
+            public Dimension getMaximumSize() {
+                return label2.getMaximumSize();
+            }
+            @Override
+            public Dimension getMinimumSize() {
+                return label2.getMinimumSize();
+            }
+        };
+        JComponent line1 = Box.createHorizontalBox();
+        line1.add( label1 );
+        line1.add( t1selector );
+        JComponent line2 = Box.createHorizontalBox();
+        line2.add( label2 );
+        line2.add( t2selector );
+        line1.setAlignmentX( 0 );
+        line2.setAlignmentX( 0 );
+        JComponent tBox = Box.createVerticalBox();
+        tBox.add( line1 );
+        tBox.add( Box.createVerticalStrut( 5 ) );
+        tBox.add( line2 );
+        tBox.add( Box.createVerticalStrut( 5 ) );
+        tBox.setAlignmentX( 0 );
         main.add( tBox, BorderLayout.NORTH );
-        Box line = Box.createHorizontalBox();
-        line.add( Box.createHorizontalGlue() );
-        line.add( new JLabel( "Base Table: " ) );
-        line.add( t1selector );
-        tBox.add( line );
-        line = Box.createHorizontalBox();
-        line.add( Box.createHorizontalGlue() );
-        line.add( new JLabel( "Appended Table: " ) );
-        line.add( t2selector );
-        tBox.add( line );
 
         /* Place the column correspondance box. */
         colScroller = new JScrollPane();

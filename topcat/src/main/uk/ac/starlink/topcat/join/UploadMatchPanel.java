@@ -34,6 +34,7 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
+import uk.ac.starlink.topcat.AlignedBox;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnSelector;
@@ -102,7 +103,7 @@ public class UploadMatchPanel extends JPanel {
         coding_ = ContentCoding.GZIP;
         progBar_ = progBar;
         progBar_.setStringPainted( true );
-        JComponent main = Box.createVerticalBox();
+        JComponent main = AlignedBox.createVerticalBox();
         List<JComponent> cList = new ArrayList<JComponent>();
         add( main );
 
@@ -125,7 +126,7 @@ public class UploadMatchPanel extends JPanel {
         } );
 
         /* Containers for different input fields. */
-        JComponent localBox = Box.createVerticalBox();
+        JComponent localBox = AlignedBox.createVerticalBox();
         JComponent paramBox = Box.createVerticalBox();
         localBox.setBorder(
             BorderFactory.createCompoundBorder(
@@ -142,7 +143,7 @@ public class UploadMatchPanel extends JPanel {
         main.add( paramBox );
 
         /* Field for input table. */
-        final JComboBox tableSelector = new TablesListComboBox();
+        final JComboBox tableSelector = new TablesListComboBox( 200 );
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 setInputTable( (TopcatModel) tableSelector.getSelectedItem() );
@@ -151,8 +152,7 @@ public class UploadMatchPanel extends JPanel {
         cList.add( tableSelector );
         Box tableLine = Box.createHorizontalBox();
         tableLine.add( new JLabel( "Input Table: " ) );
-        tableLine.add( new ShrinkWrapper( tableSelector ) );
-        tableLine.add( Box.createHorizontalGlue() );
+        tableLine.add( tableSelector );
         localBox.add( tableLine );
         localBox.add( Box.createVerticalStrut( 5 ) );
 

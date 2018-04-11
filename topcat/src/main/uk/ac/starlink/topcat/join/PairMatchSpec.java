@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,7 +65,8 @@ public class PairMatchSpec extends MatchSpec {
         engine_ = engine;
 
         Box main = Box.createVerticalBox();
-        add( main );
+        setLayout( new BorderLayout() );
+        add( main, BorderLayout.NORTH );
 
         /* Set up table/column selector panels. */
         tupleSelectors_ = new TupleSelector[ 2 ];

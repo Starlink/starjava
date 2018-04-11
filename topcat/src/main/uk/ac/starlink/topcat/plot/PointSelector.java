@@ -218,7 +218,7 @@ public class PointSelector extends JPanel {
         controlBox.add( Box.createHorizontalStrut( 5 ) );
 
         /* Prepare a selection box for the table. */
-        tableSelector_ = new TablesListComboBox();
+        tableSelector_ = new TablesListComboBox( 0 );
         tableSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 TopcatModel tcModel =

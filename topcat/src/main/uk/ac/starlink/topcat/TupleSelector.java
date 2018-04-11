@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -36,13 +37,14 @@ public class TupleSelector extends JPanel {
      * @param  infos   metadata descriptors for each value required
      */
     public TupleSelector( ValueInfo[] infos ) {
+        super( new BorderLayout() );
         infos_ = infos;
         nCols_ = infos.length;
-        JComponent main = Box.createVerticalBox();
-        add( main );
+        JComponent main = AlignedBox.createVerticalBox();
+        add( main, BorderLayout.NORTH );
 
         /* Set up a table selection box. */
-        final JComboBox tableSelector = new TablesListComboBox();
+        final JComboBox tableSelector = new TablesListComboBox( 250 );
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 setTable( (TopcatModel) tableSelector.getSelectedItem() );
@@ -54,6 +56,7 @@ public class TupleSelector extends JPanel {
         line.add( label );
         line.add( tableSelector );
         main.add( line );
+        main.add( Box.createVerticalStrut( 5 ) );
 
         /* Set up selectors for the infos. */
         colSelectors_ = new ColumnSelector[ nCols_ ];

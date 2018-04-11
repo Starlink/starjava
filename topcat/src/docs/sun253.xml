@@ -25413,6 +25413,9 @@ introduced since the last version:
     <li>Adjust subset name assignment heuristics in
         <ref id="ClassifyWindow">Column Classification Window</ref>.</li>
     <li>Updated URLs in Messier demo table.</li>
+    <li>The width of table selector widgets is now limited,
+        so tables with very long labels no longer result
+        in very wide windows.</li>
     </ul>
     </p>
     </dd>

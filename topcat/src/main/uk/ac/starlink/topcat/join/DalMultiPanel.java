@@ -42,6 +42,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.topcat.AlignedBox;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ColumnSelector;
@@ -124,7 +125,7 @@ public class DalMultiPanel extends JPanel {
         coding_ = ContentCoding.GZIP;
         progBar_ = progBar;
         progBar.setStringPainted( true );
-        JComponent main = Box.createVerticalBox();
+        JComponent main = AlignedBox.createVerticalBox();
         List cList = new ArrayList();
         add( main );
 
@@ -140,7 +141,7 @@ public class DalMultiPanel extends JPanel {
         main.add( Box.createVerticalStrut( 10 ) );
 
         /* Field for input table. */
-        final JComboBox tableSelector = new TablesListComboBox();
+        final JComboBox tableSelector = new TablesListComboBox( 250 );
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 setInputTable( (TopcatModel) tableSelector.getSelectedItem() );
@@ -151,9 +152,10 @@ public class DalMultiPanel extends JPanel {
         cList.add( tableSelector );
         Box tableLine = Box.createHorizontalBox();
         tableLine.add( tableLabel );
-        tableLine.add( new ShrinkWrapper( tableSelector ) );
-        tableLine.add( Box.createHorizontalGlue() );
-        main.add( tableLine );
+        tableLine.add( tableSelector );
+        JComponent tpanel = new JPanel( new BorderLayout() );
+        tpanel.add( tableLine, BorderLayout.CENTER );
+        main.add( tpanel );
         main.add( Box.createVerticalStrut( 5 ) );
 
         /* Fields for position parameters. */
@@ -256,7 +258,8 @@ public class DalMultiPanel extends JPanel {
             raSelector_.addActionListener( tableListener );
             decSelector_.addActionListener( tableListener );
             srSelector_.addActionListener( tableListener );
-            tableLine.add( new ShrinkWrapper( queryCoverageView_ ) );
+            tpanel.add( new ShrinkWrapper( queryCoverageView_ ),
+                        BorderLayout.EAST );
             tcListener_ = new TopcatListener() {
                 public void modelChanged( TopcatEvent evt ) {
                     if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
