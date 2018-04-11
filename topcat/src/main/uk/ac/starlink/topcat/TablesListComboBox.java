@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Dimension;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
@@ -18,22 +19,49 @@ import uk.ac.starlink.util.gui.WeakListDataListener;
 public class TablesListComboBox extends JComboBox {
 
     private final ListModel tablesList_;
+    private final int maxWidth_;
     private final BasicComboBoxModel comboBoxModel_;
 
     /**
-     * Constructs a combo box based on the ControlWindow's list of tables.
+     * Constructs a combo box with no maximum width,
+     * based on the ControlWindow's list of tables.
      */
     public TablesListComboBox() {
-        this( ControlWindow.getInstance().getTablesListModel() );
+        this( 0 );
+    }
+
+    /**
+     * Constructs a combo box with a maximum width,
+     * based on the ControlWindow's list of tables.
+     *
+     * <p>There is layout magic here.
+     * The maximum width may be specified to limit the preferredSize
+     * of this component, which can be useful to stop it forcing
+     * parent components very wide in the presence of tables with long names.
+     * The maximumSize is set to the old preferredSize, so if there is
+     * space in the component anyway it will be used to render long names
+     * without truncation.
+     * To make this work out properly, this component should be laid out
+     * by some LayoutManager that respects maximumSize; note that includes
+     * BoxLayout, but not GridBagLayout.
+     *
+     * @param  maxWidth  absolute maximum of component size in pixels;
+     *                   if non-positive, there is no maximum
+     */
+    public TablesListComboBox( int maxWidth ) {
+        this( ControlWindow.getInstance().getTablesListModel(), maxWidth );
     }
 
     /**
      * Constructs a combo box based on a given ListModel containing tables.
      *
      * @param  tablesList  list of TopcatModels
+     * @param  maxWidth  absolute maximum of component size in pixels;
+     *                   if non-positive, there is no maximum
      */
-    public TablesListComboBox( ListModel tablesList ) {
+    public TablesListComboBox( ListModel tablesList, int maxWidth ) {
         tablesList_ = tablesList;
+        maxWidth_ = maxWidth;
         comboBoxModel_ = new BasicComboBoxModel( tablesList );
         final Object src = TablesListComboBox.this;
         tablesList_.addListDataListener( new ListDataListener() {
@@ -64,6 +92,19 @@ public class TablesListComboBox extends JComboBox {
         if ( tablesList_.getSize() == 1 ) {
             comboBoxModel_.setSelectedItem( tablesList_.getElementAt( 0 ) );
         }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        Dimension pref = super.getPreferredSize();
+        return maxWidth_ > 0 ? 
+               new Dimension( Math.min( pref.width, maxWidth_ ), pref.height )
+             : pref;
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+        return super.getPreferredSize();
     }
 
     /**
