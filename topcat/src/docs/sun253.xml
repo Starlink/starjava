@@ -25412,6 +25412,7 @@ introduced since the last version:
     <li>Make Available Functions window icon less ugly.</li>
     <li>Adjust subset name assignment heuristics in
         <ref id="ClassifyWindow">Column Classification Window</ref>.</li>
+    <li>Updated URLs in Messier demo table.</li>
     </ul>
     </p>
     </dd>
