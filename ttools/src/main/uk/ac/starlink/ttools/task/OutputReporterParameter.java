@@ -76,10 +76,13 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
         dbuf.append( "Each character of the string is one of the letters " );
         for ( int it = 0; it < types.length; it++ ) {
             char tchr = types[ it ].getChar();
+            cbuf.append( tchr );
             if ( it > 0 ) {
                 dbuf.append( ", " );
             }
-            cbuf.append( tchr );
+            dbuf.append( "<code>" )
+                .append( tchr )
+                .append( "</code>" );
         }
         String tchrs = cbuf.toString();
         dbuf.append( " with the following meanings:\n" )
