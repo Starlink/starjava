@@ -42,7 +42,6 @@ public class VotLint implements Task {
 
     public VotLint() {
         inParam_ = new InputStreamParameter( "votable" );
-        inParam_.setStringDefault( "-" );
         inParam_.setPosition( 1 );
         inParam_.setPrompt( "VOTable location" );
         inParam_.setDescription( new String[] {
