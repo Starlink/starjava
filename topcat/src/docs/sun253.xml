@@ -25416,6 +25416,11 @@ introduced since the last version:
     <li>The width of table selector widgets is now limited,
         so tables with very long labels no longer result
         in very wide windows.</li>
+    <li>DataLink-style service descriptor RESOURCEs in input VOTables
+       (and FITS-plus tables) now appear as table parameters,
+       and can be seen in the
+       <ref id="ParameterWindow">Parameter Window</ref>
+       with class <code>ServiceDescriptor</code>.</li>
     </ul>
     </p>
     </dd>

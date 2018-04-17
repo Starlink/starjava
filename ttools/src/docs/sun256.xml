@@ -11389,6 +11389,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to data from the Gaia astrometry satellite,
         but are presented in a form convenient for use
         with the Gaia DR2 source catalogue.</li>
+    <li>DataLink-style service descriptor RESOURCEs in input VOTables
+         (and FITS-plus tables) now appear as table parameters.</li>
     </ul>
     </p>
     </dd>
