@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
@@ -45,6 +46,8 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.topcat.activate.ActivationMeta;
+import uk.ac.starlink.topcat.activate.ActivationWindow;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
@@ -78,6 +81,7 @@ public class TopcatModel {
     private final Collection listeners_;
     private final Map columnSelectorMap_;
     private final TableBuilder tableBuilder_;
+    private ActivationWindow activationWindow_;
     private SubsetConsumerDialog subsetConsumerDialog_;
     private final int id_;
     private final ControlWindow controlWindow_;
@@ -187,7 +191,6 @@ public class TopcatModel {
         subsetCounts_ = new HashMap();
         subsetCounts_.put( RowSubset.NONE, new Long( 0 ) );
         subsetCounts_.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
-
 
         /* Set up a map to contain column selector models. */
         columnSelectorMap_ = new HashMap();
@@ -430,6 +433,19 @@ public class TopcatModel {
     }
 
     /**
+     * Returns the window that manages this model's activation actions.
+     *
+     * @return  activation window
+     */
+    public ActivationWindow getActivationWindow() {
+        if ( activationWindow_ == null ) {
+            activationWindow_ =
+                new ActivationWindow( this, ControlWindow.getInstance() );
+        }
+        return activationWindow_;
+    }
+
+    /**
      * Adds a listener to be notified of changes in this model.
      *
      * @param  listener  listener to add
@@ -485,7 +501,9 @@ public class TopcatModel {
     public void highlightRow( long lrow, boolean sendOut ) {
         if ( lrow != lastHighlight_ ) {
             fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
-            // Some activation action triggering should happen here.
+            ActivationMeta meta = sendOut ? ActivationMeta.NORMAL
+                                          : ActivationMeta.INHIBIT_SEND;
+            getActivationWindow().activateRow( lrow, meta );
         }
     }
 

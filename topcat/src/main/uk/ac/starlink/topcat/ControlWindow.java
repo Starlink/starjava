@@ -97,6 +97,7 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoadWorker;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
+import uk.ac.starlink.topcat.activate.ActivationWindow;
 import uk.ac.starlink.topcat.contrib.basti.BaSTITableLoadDialog;
 import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
@@ -216,6 +217,7 @@ public class ControlWindow extends AuxWindow
     private final JComboBox subsetSelector_ = new JComboBox();
     private final JComboBox sortSelector_ = new JComboBox();
     private final JToggleButton sortSenseButton_ = new UpDownButton();
+    private final JLabel activatorLabel_ = new JLabel();
     private final TopcatCommunicator communicator_;
 
     private final Action readAct_;
@@ -277,6 +279,7 @@ public class ControlWindow extends AuxWindow
                                                       sortSelector_ } );
         info.addGap();
         info.addLine( "Row Subset", subsetSelector_ );
+        info.addLine( "Activation Actions", activatorLabel_ );
         info.fillIn();
 
         /* Reduce size of unused control panel. */
@@ -374,12 +377,12 @@ public class ControlWindow extends AuxWindow
                                "Launch Mirage to display the current table" );
         mirageAct_.setEnabled( MirageHandler.isMirageAvailable() );
 
-        final ModelViewAction viewerAct = 
+        final ModelViewAction viewerAct;
+        viewActs_ = new ModelViewAction[] {
+            viewerAct =
             new ModelViewWindowAction( "Table Data", ResourceIcon.VIEWER,
                                        "Display table cell data",
-                                       TableViewerWindow.class );
-        viewActs_ = new ModelViewAction[] {
-            viewerAct,
+                                       TableViewerWindow.class ),
             new ModelViewWindowAction( "Table Parameters", ResourceIcon.PARAMS,
                                        "Display table metadata",
                                        ParameterWindow.class ),
@@ -392,6 +395,10 @@ public class ControlWindow extends AuxWindow
             new ModelViewWindowAction( "Column Statistics", ResourceIcon.STATS,
                                        "Display statistics for each column",
                                        StatsWindow.class ),
+            new ActivationWindowAction( "Activation Actions",
+                                        ResourceIcon.ACTIVATE,
+                                        "Display actions invoked when rows "
+                                      + "are selected" ),
         };
         graphicsActs_ = new Action[] {
             new GraphicsWindowAction( "Histogram Plot (old)",
@@ -1283,6 +1290,8 @@ public class ControlWindow extends AuxWindow
             sortSelector_.setModel( tcModel.getSortSelectionModel() );
             subsetSelector_.setModel( tcModel.getSubsetSelectionModel() );
             sortSenseButton_.setModel( tcModel.getSortSenseModel() );
+            activatorLabel_.setText( tcModel.getActivationWindow()
+                                            .getActivationSummary() );
         }
         else {
             idField_.setText( null );
@@ -1295,6 +1304,7 @@ public class ControlWindow extends AuxWindow
             sortSelector_.setModel( dummyComboBoxModel_ );
             subsetSelector_.setModel( dummyComboBoxModel_ );
             sortSenseButton_.setModel( dummyButtonModel_ );
+            activatorLabel_.setText( null );
         }
 
         /* Make sure that the actions which relate to a particular table model
@@ -1400,6 +1410,17 @@ public class ControlWindow extends AuxWindow
                     for ( int i = 0; i < listWatchers.length; i++ ) {
                         listWatchers[ i ].contentsChanged( event );
                     }
+                }
+                break;
+
+            /* Activation actions have changed. */
+            case TopcatEvent.ACTIVATOR:
+                if ( evt.getModel() == getCurrentModel() ) {
+                    String actTxt = evt.getDatum() instanceof String
+                                  ? (String) evt.getDatum()
+                                  : evt.getModel().getActivationWindow()
+                                                  .getActivationSummary();
+                    activatorLabel_.setText( actTxt );
                 }
                 break;
         }
@@ -1580,37 +1601,7 @@ public class ControlWindow extends AuxWindow
     /**
      * Class for showing a certain kind of window which applies to TopcatModels.
      */
-    private abstract class ModelViewAction extends BasicAction {
-
-        private final Map modelWindows_ = new WeakHashMap();
-
-        /**
-         * Constructor. 
-         *
-         * @param   name  action name
-         * @param   icon  action icon
-         * @param   shortdesc  action short description
-         */
-        ModelViewAction( String name, Icon icon, String shortdesc ) {
-            super( name, icon, shortdesc );
-        }
-
-        /**
-         * Displays this action's window type for the currently selected
-         * table.
-         */
-        public void actionPerformed( ActionEvent evt ) {
-            TopcatModel tcModel = getCurrentModel();
-            if ( tcModel == null ) {
-                return;
-            }
-            Window window = (Window) modelWindows_.get( tcModel );
-            if ( window == null ) {
-                window = createWindow( tcModel );
-                modelWindows_.put( tcModel, window );
-            }
-            window.setVisible( true );
-        }
+    private interface ModelViewAction extends Action {
 
         /**
          * Ensures that this action's window for a given table is visible
@@ -1620,33 +1611,18 @@ public class ControlWindow extends AuxWindow
          * @param  tcModel  table to reveal for
          * @param  visible  true to reveal, false to hide
          */
-        public void setViewVisible( TopcatModel tcModel, boolean visible ) {
-            Window window = (Window) modelWindows_.get( tcModel );
-            if ( window != null ) {
-                if ( visible ) {
-                    window.setVisible( true );
-                }
-                else {
-                    window.dispose();
-                }
-            }
-        }
-
-        /**
-         * Creates this action's window for a given table.
-         *
-         * @param  tcModel  table the window will apply to
-         */
-        protected abstract Window createWindow( TopcatModel tcModel );
+        void setViewVisible( TopcatModel tcModel, boolean visible );
     }
 
     /**
      * ModelViewAction class for actions which pop up a view window.
      */
-    private class ModelViewWindowAction extends ModelViewAction {
+    private class ModelViewWindowAction extends BasicAction
+                                        implements ModelViewAction {
 
         AuxWindow window_;
         final Constructor constructor_;
+        private final Map modelWindows_ = new WeakHashMap();
 
         /**
          * Constructor.
@@ -1675,7 +1651,41 @@ public class ControlWindow extends AuxWindow
             }
         }
 
-        protected Window createWindow( TopcatModel tcModel ) {
+        /**
+         * Displays this action's window type for the currently selected
+         * table.
+         */
+        public void actionPerformed( ActionEvent evt ) {
+            TopcatModel tcModel = getCurrentModel();
+            if ( tcModel == null ) {
+                return;
+            }
+            Window window = (Window) modelWindows_.get( tcModel );
+            if ( window == null ) {
+                window = createWindow( tcModel );
+                modelWindows_.put( tcModel, window );
+            }
+            window.setVisible( true );
+        }
+
+        public void setViewVisible( TopcatModel tcModel, boolean visible ) {
+            Window window = (Window) modelWindows_.get( tcModel );
+            if ( window != null ) {
+                if ( visible ) {
+                    window.setVisible( true );
+                }
+                else {
+                    window.dispose();
+                }
+            }
+        }
+
+        /**
+         * Creates this action's window for a given table.
+         *
+         * @param  tcModel  table the window will apply to
+         */
+        private Window createWindow( TopcatModel tcModel ) {
             try {
                 Object[] args = new Object[] { tcModel, ControlWindow.this };
                 try {
@@ -1693,6 +1703,33 @@ public class ControlWindow extends AuxWindow
             }
             catch ( Throwable e ) {
                 throw new RuntimeException( "Window creation failed???", e );
+            }
+        }
+    }
+
+    /**
+     * Action for opening the Activation window.
+     */
+    private class ActivationWindowAction extends BasicAction
+                                         implements ModelViewAction {
+        ActivationWindowAction( String name, Icon icon, String shortdesc ) {
+            super( name, icon, shortdesc );
+        }
+        public void actionPerformed( ActionEvent evt ) {
+            TopcatModel tcModel = getCurrentModel();
+            if ( tcModel != null ) {
+                tcModel.getActivationWindow().setVisible( true );
+            }
+        }
+        public void setViewVisible( TopcatModel tcModel, boolean visible ) {
+            Window window = tcModel.getActivationWindow();
+            if ( window != null ) {
+                if ( visible ) {
+                    window.setVisible( true );
+                }
+                else {
+                    window.dispose();
+                }
             }
         }
     }

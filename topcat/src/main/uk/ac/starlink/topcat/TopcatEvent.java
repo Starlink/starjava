@@ -15,6 +15,9 @@ public class TopcatEvent {
     /** Code indicating that the model's label has changed. */
     public static final int LABEL = 1;
 
+    /** Code indicating that the model's activator has changed. */
+    public static final int ACTIVATOR = 2;
+
     /** Code indicating that the model's parameter list has changed. */
     public static final int PARAMETERS = 3;
 

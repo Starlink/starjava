@@ -146,6 +146,9 @@ public class ResourceIcon implements Icon {
         BASTI = makeIcon( "BaSTI_icon_B.png" ),
         TREE_DIALOG = makeIcon( "browse.png" ),
         CLASSIFY = makeIcon( "classify3.png" ),
+        ACTIVATE = makeIcon( "activate3.png" ),
+        REACTIVATE = makeIcon( "flash-1.png" ),
+        REACTIVATE_ALL = makeIcon( "flash-2d.png" ),
 
         /* Specific actions. */
         UNSORT = makeIcon( "arrow_level.png" ),
