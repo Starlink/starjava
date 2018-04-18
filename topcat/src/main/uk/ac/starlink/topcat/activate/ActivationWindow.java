@@ -482,6 +482,8 @@ public class ActivationWindow extends AuxWindow {
             new TopcatSkyPosActivationType(),
             new SendSkyPosActivationType(),
             new CutoutActivationType(),
+            new JelActivationType(),
+            new ShellActivationType(),
         } ) );
         return list.toArray( new ActivationType[ 0 ] );
     }
