@@ -481,10 +481,14 @@ public class ActivationWindow extends AuxWindow {
             NopActivationType.INSTANCE,
             new TopcatSkyPosActivationType(),
             new SendSkyPosActivationType(),
+            new SendTableActivationType(),
+            new SendImageActivationType(),
+            new SendSpectrumActivationType(),
             new CutoutActivationType(),
             new BrowserActivationType(),
             new JelActivationType(),
             new ShellActivationType(),
+            new SendIndexActivationType( true ),
         } ) );
         return list.toArray( new ActivationType[ 0 ] );
     }
