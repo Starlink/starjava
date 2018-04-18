@@ -479,6 +479,9 @@ public class ActivationWindow extends AuxWindow {
                                                ActivationType.class ) );
         list.addAll( Arrays.asList( new ActivationType[] {
             NopActivationType.INSTANCE,
+            new TopcatSkyPosActivationType(),
+            new SendSkyPosActivationType(),
+            new CutoutActivationType(),
         } ) );
         return list.toArray( new ActivationType[ 0 ] );
     }
