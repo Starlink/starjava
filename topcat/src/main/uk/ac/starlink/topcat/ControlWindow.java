@@ -232,6 +232,7 @@ public class ControlWindow extends AuxWindow
     private final Action multisiaAct_;
     private final Action multissaAct_;
     private final Action cdsmatchAct_;
+    private final ModelViewAction datalinkAct_;
     private final Action logAct_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
@@ -399,6 +400,10 @@ public class ControlWindow extends AuxWindow
                                         ResourceIcon.ACTIVATE,
                                         "Display actions invoked when rows "
                                       + "are selected" ),
+            datalinkAct_ =
+            new ModelViewWindowAction( "DataLink View", ResourceIcon.DATALINK,
+                                       "Show row data as a DataLink table",
+                                       DatalinkWindow.class ),
         };
         graphicsActs_ = new Action[] {
             new GraphicsWindowAction( "Histogram Plot (old)",
@@ -566,8 +571,10 @@ public class ControlWindow extends AuxWindow
         toolBar.addSeparator();
 
         /* Add table view buttons to the toolbar. */
-        for ( int i = 0; i < viewActs_.length; i++ ) {
-            toolBar.add( viewActs_[ i ] );
+        for ( Action viewAct : viewActs_ ) {
+            if ( viewAct != datalinkAct_ ) {
+                toolBar.add( viewAct );
+            }
         }
         toolBar.addSeparator();
 
@@ -1328,6 +1335,8 @@ public class ControlWindow extends AuxWindow
         for ( int i = 0; i < viewActs_.length; i++ ) {
             viewActs_[ i ].setEnabled( hasModel );
         }
+        datalinkAct_.setEnabled( hasModel &&
+                                 DatalinkWindow.isUseful( tcModel ) );
         for ( int i = 0; i < showActs_.length; i++ ) {
             ShowAction sact = showActs_[ i ];
             if ( sact.selEffect != sact.otherEffect ) {
