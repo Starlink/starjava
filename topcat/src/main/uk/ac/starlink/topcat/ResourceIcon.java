@@ -140,6 +140,7 @@ public class ResourceIcon implements Icon {
         MULTICONE = makeIcon( "cones.png" ),
         MULTISIA = makeIcon( "sias.png" ),
         MULTISSA = makeIcon( "ssas.png" ),
+        DATALINK = makeIcon( "datalink2.png" ),
         SAMP = makeIcon( "comms2.png" ),
         GAVO = makeIcon( "virgo3.png" ),
         VIZIER = makeIcon( "vizmini.png" ),
