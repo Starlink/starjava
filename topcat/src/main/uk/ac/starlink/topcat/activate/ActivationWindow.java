@@ -483,6 +483,7 @@ public class ActivationWindow extends AuxWindow {
             new SendSkyPosActivationType(),
             new InvokeDatalinkActivationType(),
             new ViewDatalinkActivationType(),
+            new ViewImageActivationType(),
             new ServiceActivationType(),
             new LoadTableActivationType(),
             new SendTableActivationType(),
