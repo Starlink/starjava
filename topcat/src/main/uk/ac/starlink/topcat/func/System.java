@@ -74,7 +74,7 @@ public class System {
     static String execute( Executor executor ) {
         String msg = executor.getLine();
         try {
-            int status = executor.executeSynchronously();
+            int status = executor.executeSynchronously( true );
             String out = executor.getOut();
             String err = executor.getErr();
             if ( out.length() > 0 ) {

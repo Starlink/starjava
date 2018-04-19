@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Defines an object which can execute a system Process.
@@ -34,18 +36,20 @@ public abstract class Executor {
     public abstract String getLine();
 
     /**
-     * Returns the standard output which resulted from running the process.
+     * Returns the standard output which resulted from running the process,
+     * if execution was done in capturing mode.
      *
-     * @return  stdout
+     * @return  stdout content
      */
     public String getOut() {
         return out_;
     }
 
     /**
-     * Returns the standard error which resulted from running the process.
+     * Returns the standard error which resulted from running the process,
+     * if execution was done in capturing mode.
      *
-     * @return  stderr
+     * @return  stderr content
      */
     public String getErr() {
         return err_;
@@ -54,12 +58,17 @@ public abstract class Executor {
     /**
      * Calls {@link #getProcess} and attempts to execute it synchronously.
      * Can be run only once on this object.
-     * The {@link #getOut} and {@link #getErr} methods can be used
-     * after this call to get the results from stdout and stderr.
      *
+     * <p>If <code>isCapture</code> is set true, the {@link #getOut} and
+     * {@link #getErr} methods can be used after this call to get
+     * the results from stdout and stderr.  Otherwise, the process
+     * output streams go to the JVM's stdout/stderr.
+     *
+     * @param  isCapture  true to capture output and return it as
+     *                    the outcome message, false to let it go to stdout
      * @return   exit status (0 is OK)
      */
-    public int executeSynchronously()
+    public int executeSynchronously( boolean isCapture )
             throws IOException, InterruptedException {
         if ( done_ ) {
             throw new IllegalStateException();
@@ -68,8 +77,16 @@ public abstract class Executor {
             done_ = true;
         }
         Process proc = getProcess();
-        ReaderThread outReader = new ReaderThread( proc.getInputStream() );
-        ReaderThread errReader = new ReaderThread( proc.getErrorStream() );
+        Thread outReader;
+        Thread errReader;
+        if ( isCapture ) {
+            outReader = new ReaderThread( proc.getInputStream() );
+            errReader = new ReaderThread( proc.getErrorStream() );
+        }
+        else {
+            outReader = new RedirectThread( proc.getInputStream(), System.out );
+            errReader = new RedirectThread( proc.getErrorStream(), System.err );
+        }
         outReader.start();
         errReader.start();
         int status = proc.waitFor();
@@ -77,8 +94,8 @@ public abstract class Executor {
         errReader.join( 500 );
         outReader.interrupt();
         errReader.interrupt();
-        out_ = outReader.getData();
-        err_ = errReader.getData();
+        out_ = isCapture ? ((ReaderThread) outReader).getData() : null;
+        err_ = isCapture ? ((ReaderThread) errReader).getData() : null;
         return status;
     }
 
@@ -129,7 +146,7 @@ public abstract class Executor {
     }
 
     /**
-     * Thread which reads the data from an input stream.
+     * Thread which reads the data from an input stream and stores it.
      */
     private static class ReaderThread extends Thread {
         final InputStream strm_;
@@ -154,10 +171,6 @@ public abstract class Executor {
             return buf_.toString();
         }
 
-        /**
-         * Run method.  Reads the stream as long as it's open and this
-         * thread has not been interrupted.
-         */
         public void run() {
             try {
                 for ( int c; ( c = strm_.read() ) >= 0 && ! isInterrupted(); ) {
@@ -169,6 +182,40 @@ public abstract class Executor {
             finally {
                 try {
                     strm_.close();
+                }
+                catch ( IOException e ) {
+                }
+            }
+        }
+    }
+
+    /**
+     * Thread which reads the data from an input stream and redirects it.
+     */
+    private static class RedirectThread extends Thread { 
+        final InputStream in_;
+        final OutputStream out_;
+
+        /**
+         * Constructor.
+         *
+         * @param  in  source stream
+         * @param  out  destination stream
+         */
+        RedirectThread( InputStream in, OutputStream out ) {
+            in_ = in;
+            out_ = out;
+        }
+
+        public void run() {
+            try {
+                IOUtils.copy( in_, out_ );
+            }
+            catch ( IOException e ) {
+            }
+            finally {
+                try {
+                    in_.close();
                 }
                 catch ( IOException e ) {
                 }
