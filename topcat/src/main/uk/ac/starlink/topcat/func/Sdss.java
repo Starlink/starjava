@@ -8,7 +8,7 @@ package uk.ac.starlink.topcat.func;
 import uk.ac.starlink.util.CgiQuery;
 
 /**
- * Specialist display functions for use with the Sloane Digital Sky Server.
+ * Specialist display functions for use with the Sloan Digital Sky Server.
  *
  * @author   Mark Taylor (Starlink)
  * @since    25 Aug 2004

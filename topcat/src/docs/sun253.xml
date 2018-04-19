@@ -42,6 +42,8 @@
   <!ENTITY FIG.TableViewerWindow '&figs;TableViewerWindow.png'>
   <!ENTITY FIG.SubsetWindow '&figs;SubsetWindow.png'>
   <!ENTITY FIG.StatsWindow '&figs;StatsWindow.png'>
+  <!ENTITY FIG.ActivationWindow '&figs;ActivationWindow.png'>
+  <!ENTITY FIG.DatalinkWindow '&figs;DatalinkWindow.png'>
   <!ENTITY FIG.LoadWindow '&figs;LoadWindow.png'>
   <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.png'>
   <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.png'>
@@ -268,7 +270,8 @@
   <!ENTITY FIG.plot2-shading-weighted '&figs;plot2-shading-weighted.png'>
 
   <!-- Define external URLs. -->
-  <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
+  <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/VOTable/">
+  <!ENTITY URL.DATALINK "http://www.ivoa.net/Documents/DataLink/">
   <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
 
   <!-- Plot2 control references. -->
@@ -5643,6 +5646,19 @@ functions.  They are grouped as follows:
         column of the table.
         </p></dd>
 
+    <dt>&IMG.ACTIVATE;
+        <ref id="ActivationWindow">Activation Actions Window</ref></dt>
+    <dd><p>Displays a window for configuring
+        <ref id="activation">activation actions</ref>.
+        </p></dd>
+
+    <dt>&IMG.DATALINK; <ref id="DatalinkWindow">Datalink Window</ref></dt>
+    <dd><p>Displays a window for display of tables in the {links}-response
+        format defined by the <webref url="&URL.DATALINK;">DataLink</webref>
+        standard.  This is somewhat special-interest, so does not appear
+        in the toolbar.
+        </p></dd>
+
     </dl>
     </p></dd>
 
@@ -6905,6 +6921,26 @@ If you initiate a new calculation (by pushing the Recalculate button or
 selecting a new subset) or close the window during a calculation,
 the superceded calculation will be stopped.
 </p>
+
+</subsubsect>
+
+<subsubsect id="ActivationWindow">
+<subhead><title>Activation Action Window</title></subhead>
+
+<figure>
+<caption><px>Activation Action Window</px></caption>
+<figureimage src="&FIG.ActivationWindow;"/>
+</figure>
+
+</subsubsect>
+
+<subsubsect id="DatalinkWindow">
+<subhead><title>DataLink Window</title></subhead>
+
+<figure>
+<caption><px>DataLink Window</px></caption>
+<figureimage src="&FIG.DatalinkWindow;"/>
+</figure>
 
 </subsubsect>
 
@@ -25426,6 +25462,10 @@ introduced since the last version:
        and can be seen in the
        <ref id="ParameterWindow">Parameter Window</ref>
        with class <code>ServiceDescriptor</code>.</li>
+    <li>Complete overhaul of <ref id="ActivationWindow">Activation Window</ref>
+        and the activation framework in general, including introduction
+        of a number of new activation types.</li>
+    <li>New <ref id="DatalinkWindow">DataLink Window</ref>.</li>
     </ul>
     </p>
     </dd>
