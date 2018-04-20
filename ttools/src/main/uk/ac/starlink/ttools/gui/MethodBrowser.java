@@ -162,7 +162,7 @@ public class MethodBrowser extends JPanel {
         StyleSheet stylesheet = new StyleSheet();
         stylesheet.addStyleSheet( ekit.getStyleSheet() );
         stylesheet.addRule( "p {margin-top: 10}" );
-        stylesheet.addRule( "code {color: #A52A2A}" ); // standard Brown
+        stylesheet.addRule( "code {color: #6F3F0F}" );  // brown
         ekit.setStyleSheet( stylesheet );
         docPane_.setEditorKit( ekit );
         docPane_.setText( getInstructions() );
