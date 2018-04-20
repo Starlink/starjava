@@ -57,7 +57,6 @@
   <!ENTITY FIG.MatchWindow '&figs;MatchWindow.png'>
   <!ENTITY FIG.MatchWindow1 '&figs;MatchWindow1.png'>
   <!ENTITY FIG.MatchWindowN '&figs;MatchWindowN.png'>
-  <!ENTITY FIG.ActivationQueryWindow '&figs;ActivationQueryWindow.png'>
   <!ENTITY FIG.SoG '&figs;SoG.png'>
   <!ENTITY FIG.ImageWindow '&figs;ImageWindow.png'>
   <!ENTITY FIG.Splat '&figs;Splat.png'>
@@ -234,6 +233,25 @@
   <!ENTITY FIG.CdsUploadMatchWindow '&figs;CdsUploadMatchWindow.png'>
   <!ENTITY FIG.StiltsControl_command '&figs;StiltsControl_command.png'>
   <!ENTITY FIG.StiltsControl_formatting '&figs;StiltsControl_formatting.png'>
+  <!ENTITY FIG.TopcatSkyPosActivationType
+           '&figs;TopcatSkyPosActivationType.png'>
+  <!ENTITY FIG.SendSkyPosActivationType '&figs;SendSkyPosActivationType.png'>
+  <!ENTITY FIG.ViewImageActivationType '&figs;ViewImageActivationType.png'>
+  <!ENTITY FIG.SendImageActivationType '&figs;SendImageActivationType.png'>
+  <!ENTITY FIG.SendSpectrumActivationType
+           '&figs;SendSpectrumActivationType.png'>
+  <!ENTITY FIG.SendTableActivationType '&figs;SendTableActivationType.png'>
+  <!ENTITY FIG.SendIndexActivationType '&figs;SendIndexActivationType.png'>
+  <!ENTITY FIG.LoadTableActivationType '&figs;LoadTableActivationType.png'>
+  <!ENTITY FIG.BrowserActivationType '&figs;BrowserActivationType.png'>
+  <!ENTITY FIG.JelActivationType '&figs;JelActivationType.png'>
+  <!ENTITY FIG.ShellActivationType '&figs;ShellActivationType.png'>
+  <!ENTITY FIG.CutoutActivationType '&figs;CutoutActivationType.png'>
+  <!ENTITY FIG.InvokeDatalinkActivationType
+           '&figs;InvokeDatalinkActivationType.png'>
+  <!ENTITY FIG.ViewDatalinkActivationType
+           '&figs;ViewDatalinkActivationType.png'>
+  <!ENTITY FIG.ServiceActivationType '&figs;ServiceActivationType.png'>
 
   <!-- Example plots generated in stilts. -->
   <!ENTITY FIG.plot2-layer-mark '&figs;plot2-layer-mark.png'>
@@ -575,13 +593,15 @@ is highlighted by clicking on it, information about it will
 be shown on the right; some of this (table name, sort order) you
 can change here.
 Along the top is a toolbar with a number of buttons, most of which
-open up new windows.  These fall into a few groups:
+open up new windows.  These correspond to some of the things you
+might most often want to do in TOPCAT, and fall into a few groups:
 
 <dl>
 <dt>&IMG.LOAD; &IMG.SAVE; &IMG.BROADCAST;</dt>
 <dd><p>Load/Save/Send Table(s).</p></dd>
 
-<dt>&IMG.VIEWER; &IMG.PARAMS; &IMG.COLUMNS; &IMG.SUBSETS; &IMG.STATS;</dt>
+<dt>&IMG.VIEWER; &IMG.PARAMS; &IMG.COLUMNS; &IMG.SUBSETS; &IMG.STATS;
+    &IMG.ACTIVATE;</dt>
 <dd><p>Display various aspects of information about the table's data and
     metadata.</p></dd>
 
@@ -599,13 +619,13 @@ open up new windows.  These fall into a few groups:
 <dt>&IMG.SAMP; &IMG.FUNCTION; &IMG.HELP;</dt>
 <dd><p>Help and information</p></dd>
 </dl>
+</p>
 
+<p>The menus provide alternative ways to open up these windows,
+and also list a number of other, less commonly-used, options.
 The <label>Help</label> (&IMG.HELP;) button appears in most windows -
 if you click it a help browser will be displayed showing an appropriate 
 part of this manual.
-As well as the tool bar there are a number of 
-menus along the top - some of the options just repeat those appearing on the
-toolbar, but several less common ones are available as well.
 The <label>Help</label> menu gives you a few 
 more options along the same lines, including displaying the help 
 information in your usual web browser rather than in TOPCAT's (somewhat
@@ -1445,7 +1465,8 @@ you wish to load a table in <code>csv</code> format.
 
 <p>Tab-Separated Table, or TST, is a text-based table format used
 by a number of astronomical tools including Starlink's 
-<webref url="http://www.starlink.ac.uk/gaia/">GAIA</webref> and
+<webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>
+and
 ESO's <webref url="http://archive.eso.org/skycat/">SkyCat</webref>
 on which it is based.
 A definition of the format can be found in
@@ -2620,13 +2641,15 @@ in <ref id="vo-windows"/>.
 <li>To define a new <ref id="subsets" plaintextref="yes">Row Subset</ref>
     on the basis of table data in the 
     <ref id="SyntheticSubsetQueryWindow">Algebraic Subset</ref> dialogue</li>
-<li>To define a custom
-    <ref id="activation" plaintextref="yes">Activation Action</ref>
-    in the <ref id="ActivationQueryWindow">Activation</ref> dialogue.</li>
 <li>When faced with a <ref id="columnSelector">column selector</ref>
     for plotting or other purposes,
-    in some cases you can type in an expression rather than selecting
+    in most cases you can type in an expression rather than selecting
     or typing a simple column name.</li>
+<li>To define certain custom
+    <ref id="activation" plaintextref="yes">Activation Action</ref>s
+    (<ref id="JelActivationType">Execute code</ref>,
+     <ref id="ShellActivationType">Run system command</ref>)
+    in the <ref id="ActivationWindow">Activation</ref> window.</li>
 </ol>
 This is a powerful feature which permits you to manipulate and select
 table data in very flexible ways - you can think of it like a 
@@ -3057,9 +3080,8 @@ and so on.
 
 </p>
 
-<p>A listing of the functions in these classes is given in 
-<ref id="generalJel"/>, and complete documentation on them is
-available within TOPCAT from the 
+<p>Full documentation of the functions in these classes is given in 
+<ref id="generalJel"/>, and is also available within TOPCAT from the 
 <ref id="MethodWindow">Available Functions Window</ref>.
 </p>
 
@@ -3319,7 +3341,7 @@ will be available for use in the
 <ref id="SyntheticColumnQueryWindow">Synthetic Column</ref>, 
 <ref id="SyntheticSubsetQueryWindow">Algebraic Subset</ref> or
 (in the case of activation functions only)
-<ref id="ActivationQueryWindow">Activation Window</ref> windows.
+<ref id="ActivationWindow">Activation</ref> windows.
 They should be defined to take and return the relevant primitive or
 Object types for the function required
 (in the case of activation functions the return value should normally
@@ -3372,16 +3394,21 @@ the declaration with identical effect.
 <sect id="activation">
 <subhead><title>Activation Actions</title></subhead>
 
+<p><em>Note that the activation action framework has changed considerably
+at TOPCAT v4.6.  It is now much more flexible than in previous versions.
+</em>
+</p>
+
 <p>As well as seeing the overview of table data provided by a plot
 or statistics summary, it is often necessary to focus on a particular row
 of the table, which according to the nature of the table may represent
 an astronomical object, an event or some other entity.  
 In the <ref id="TableViewerWindow">Data Window</ref> a table row is
-simply a row of the displayed JTable, and in a plot it corresponds to
+simply a row of the displayed JTable, and in a scatter plot it corresponds to
 one plotted point.
 </p>
 
-<p>If you click on plotted point in one of the graphics windows,
+<p>If you click on a plotted point in one of the graphics windows,
 or on a row in the 
 Data Window, the corresponding table row will be <em>activated</em>.
 When a row is activated, three things happen:
@@ -3398,46 +3425,51 @@ plot corresponds to which row in the table and vice versa - just click
 on one and the other will be highlighted.
 </p>
 
-<p>The third one can be more complicated.  By default, no activation
-action is set, so nothing else happens, and this may very well be
-what you want.  
-However, by clicking on the <label>Activation Action</label> selector in the 
-<ref id="ControlWindow">Control Window</ref> 
-you can bring up the <ref id="ActivationQueryWindow">Activation Window</ref>
-which enables you to choose an additional action to take place.
-There are various options here and various ways to achieve them
-(see <ref id="ActivationQueryWindow"/> for more details)
-but the kinds of actions which are envisaged are to display one or
-more images or spectra relating to the row you have identified.
-One of the options available for instance retrieves a postage-stamp image
-of a few arcminutes around the sky position defined by the row
-from a SuperCOSMOS all-sky image survey and pops it up in a viewer
-window.  So for instance having spotted an interesting point in a 
+<p>The third one is much more flexible.
+By using the <ref id="ActivationWindow">Activation Window</ref>,
+you can set up one or several configurable events to take
+place on row activation.
+Examples include things like viewing a cutout image near the
+activated row's sky position or sending the sky position to
+an external all-sky viewer so that it displays that region of the sky.
+So for instance having spotted an interesting point in a 
 plot of a galaxy catalogue you can click on it, and immediately see 
-a picture to identify its morphological type.
+an observed image to identify its morphological type.
+Other options include communicating with external applications using
+SAMP for each activated row, for instance asking an image viewer such as
+DS9 to load an
+image in a table ImageURL column.
+All the options, along with details of how to configure them,
+are listed in <ref id="ActivationTypes"/>.
 </p>
 
-<p>The exact actions you want to perform may be closely tailored to the 
-data you have, for instance you may have a set of spectra on disk
-named by object ID.  It's impossible to cater for such possibilities
-with a set of pre-packaged options, so you are able to define your own 
-custom actions here.  This is done by writing a expression
-using the syntax described in <ref id="jel"/>.
-A number of special functions 
-(described in the <ref id="activationJel">following subsection</ref>)
-are provided to do things like display an image or a spectrum in a browser
-(given its filename or URL), or access data from certain data servers 
-on the web, but there is nothing to stop the adventurous plugging in their
-own external programs so in principle you can configure pretty much 
-anything to happen on the basis of the values in the row that you
-have activated.
+<p>If none of these options fits your particular requirements,
+there are various ways to implement custom behaviour.
+One is to invoke some kind of external program such as a
+shell script, and pass parameters to it based on row values;
+this can be done using the
+<ref id="ShellActivationType">Run system command</ref> option.
+You can also execute custom code in TOPCAT's
+<ref id="jel">expression language</ref>
+using the <ref id="JelActivationType">Execute code</ref> option
+using some <em>activation functions</em>
+specially provided to perform useful actions
+(e.g. image display) rather than just return results;
+these are summarised in <ref id="topcat.funcs">the following subsection</ref>.
+Finally, advanced users can supply their own activation functions
+for use with the Execute Code option,
+or can implement their own activation actions
+and plug them in at runtime using the <code>topcat.activators</code>
+<ref id="jvmProperties">system property</ref>.
 </p>
 
-<subsect>
+
+<subsect id="topcat.funcs">
 <subhead><title>Activation Functions</title></subhead>
 
 <p>When defining custom activation actions in the
-<ref id="ActivationQueryWindow">Activation Window</ref>,
+<ref id="JelActivationType">Execute Code</ref>
+activation action,
 you enter an expression to be invoked on a row when it is activated.
 This expression uses the syntax defined in <ref id="jel"/> and
 can make use of the functions listed in <ref id="generalJel"/>.
@@ -3451,7 +3483,7 @@ are available:
 </p>
 
 <p>A listing of the functions in these classes is given in
-<ref id="activationJel"/>, and complete documentation on them is
+<ref id="activationJel"/>, and documentation on them is also
 available within TOPCAT from the
 <ref id="MethodWindow">Available Functions Window</ref>.
 </p>
@@ -3482,21 +3514,22 @@ An example of the kind of thing which can be done might be:
 Examples of the kind of tool which TOPCAT can interoperate with in this
 way are 
 image analysis tools
-(<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
- <webref url="http://www.starlink.ac.uk/gaia/">GAIA</webref>,
- <webref url="http://hea-www.harvard.edu/RD/ds9/">ds9</webref>)
+(<webref url="http://ds9.si.edu/">SAOImage DS9</webref>,
+ <webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>,
+ <webref url="http://aladin.u-strasbg.fr/">Aladin</webref>),
 table analysis tools
 (<webref url="http://visivo.cineca.it/">VisIVO</webref>,
  <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>,
  other instances of TOPCAT itself),
 spectrum analysis tools
 (<webref url="http://www.starlink.ac.uk/splat/">SPLAT</webref>,
- <webref url="http://esavo.esa.int/vospec/">VOSpec</webref>),
+ <webref url="https://www.cosmos.esa.int/web/esdc/vospec/">VOSpec</webref>),
 sky visualisation tools
-(<webref url="http://www.worldwidetelescope.org/">World Wide Telescope</webref>,
+(<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+ <webref url="http://www.worldwidetelescope.org/">World Wide Telescope</webref>,
  <webref url="http://archive.eso.org/cms/virgo/">VirGO</webref>),
 scripting languages
-(<webref url="http://pypi.python.org/pypi/sampy/">SAMPy</webref>),
+(<webref url="http://www.astropy.org/">Astropy</webref>),
 and others.
 </p>
 
@@ -3541,6 +3574,11 @@ messages are described separately in the subsections below.
 There are also sections on the, somewhat different, 
 ways to control and monitor messaging operatiion
 for the cases of SAMP and PLASTIC.
+</p>
+
+<p>Note that the new <ref id="activation">activation action</ref>
+framework introduced in TOPCAT v4.6, unlike the activation window
+in previous versions, in most cases only works with SAMP and not PLASTIC.
 </p>
 
 <subsect id="sampControl">
@@ -3711,6 +3749,9 @@ unless you are a tool developer you can probably ignore these.
     ("<ref id="apparent">apparent</ref>") form.
     The <label>Broadcast</label> action is also available in the toolbar.
     </p>
+    <p>The <ref id="SendTableActivationType">Send VOTable</ref>
+    activation action also sends this message (SAMP only).
+    </p>
     <p>SAMP MTypes:
           <code>table.load.votable</code> or
           <code>table.load.fits</code>
@@ -3750,59 +3791,36 @@ unless you are a tool developer you can probably ignore these.
     </p></dd>
 
 <dt>Transmit Row</dt>
-<dd><p>The <ref id="ControlWindow">ControlWindow</ref> has a
-    <label>Broadcast Row</label> checkbox by the 
-    <label>Activation Action</label> selector.
-    If this is selected, then any time you activate a row
-    (e.g. by clicking on the corresponding point in a plot)
-    other applications who are looking at the same table are invited
-    to highlight that row in their copy of the table.
-    As for <label>Transmit Subset</label> above, this will only have an
+<dd><p>The <ref id="SendIndexActivationType">Send Row Index</ref>
+    activation action will send the row index of the activated
+    row to other applications (SAMP only).
+    As for Transmit Subset above, this will only have an
     effect if the other application(s) are displaying the same table.
-    </p>
-    <p>A similar facility is available as the <label>Transmit Row</label>
-    option in the 
-    <ref id="activation" plaintextref="yes">Activation Actions</ref>
-    window itself - the checkbox is just a convenience for a commonly-used
-    option.
     </p>
     <p>SAMP MType: <code>table.highlight.row</code>
     </p>
-    <p>PLASTIC Message ID: <code>ivo://votech.org/votable/highlightObject</code>
-    </p></dd>
+    </dd>
 
 <dt>Transmit Coordinates</dt>
-<dd><p>Another 
-    <ref id="activation" plaintextref="yes">Activation Action</ref>
-    is <label>Transmit Coordinates</label>.
-    In this case when you activate a row (e.g. by clicking on the 
-    corresponding point in a plot) 
-    other applications are invited to point out the
-    sky position corresponding to the row which is activated,
-    for instance by placing a cursor over it.
-    The table columns which correspond to Right Ascension and Declination
-    must be selected for this to work.
+<dd><p>The <ref id="SendSkyPosActivationType">Send Sky Coordinates</ref>
+    activation action will send the sky position of the activated row
+    to other applications (SAMP only).
+    These other applications are invited to point out that sky position,
+    for instance by placing a marker or centering the current window on it.
     </p>
     <p>SAMP MType: <code>coord.pointAt.sky</code>
     </p>
-    <p>PLASTIC Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
-    </p></dd>
+    </dd>
 
 <dt>Transmit Image</dt>
-<dd><p>The <ref id="DensityWindow" plaintextref="yes">Density Plot</ref> 
-    produces a 2-d histogram which is actually an image.
-    Its <label>Interop</label> menu provides
-    <label>Broadcast Image</label> and <label>Send Image</label> options
-    which will send this (as a FITS image) to other applications 
-    which can display it in some way.
-    This is a useful supplement to the facilities of the Density Plot
-    window, since it doesn't have very sophisticated image display
-    features (variable colour maps, contour plots etc).
+<dd><p>The <ref id="SendImageActivationType">Send FITS Image</ref>
+    activation action can send the contents of a nominated URL column
+    to a suitable image analysis application for loading or display.
     </p>
-    <p>Also, the <label>View URL as Image</label>
-    <ref id="activation">Activation Action</ref>
-    option allows you to identify a column which contains an image URL
-    and to send it to a suitable image viewer or viewers.
+    <p>The (old-style, somewhat deprecated)
+    <ref id="DensityWindow" plaintextref="yes">Density Plot</ref> window also
+    produces a 2-d histogram which is actually an image,
+    and this can be sent to image applications from its Interop menu.
     </p>
     <p>SAMP MType: <code>image.load.fits</code>
     </p>
@@ -3810,15 +3828,13 @@ unless you are a tool developer you can probably ignore these.
     </p></dd>
 
 <dt>Transmit Spectrum</dt>
-<dd><p>The <label>View URL as Spectrum</label>
-    <ref id="activation">Activation Action</ref>
-    option allows you to identify a column which contains a spectrum URL
-    and to send it to a suitable spectrum viewer or viewers.
+<dd><p>The <ref id="SendSpectrumActivationType">Send Spectrum</ref>
+    activation action can send the contents of a nominated URL column
+    to a suitable spectrum analysis application for loading or display.
     </p>
     <p>SAMP MType: <code>spectrum.load.ssa-generic</code>
     </p>
-    <p>PLASTIC Message ID: <code>ivo://votech.org/spectrum/loadFromURL</code>
-    </p></dd>
+    </dd>
 
 <dt>Transmit Resource List</dt>
 <dd><p>The <ref id="RegistryPanel">Registry Query Panel</ref>
@@ -3900,7 +3916,7 @@ unless you are a tool developer you can probably ignore these.
     currently visible plots and in the 
     <ref id="TableViewerWindow">Data Window</ref> if it is visible, 
     as well as performing any additional actions you have configured
-    in the <ref id="ActivationQueryWindow">Activation Window</ref>.
+    in the <ref id="ActivationWindow">Activation Window</ref>.
     </p>
     <p>SAMP MType: <code>table.highlight.row</code>
     </p>
@@ -4566,6 +4582,14 @@ The following ones have special significance within TOPCAT:
 <dt><code>startable.writers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table format output
     handler classes (see <ref id="customHandlers"/>).
+    </p></dd>
+
+<dt><code>topcat.activators</code></dt>
+<dd><p>Can be set to a (colon-separated) list of custom
+    <ref id="activation">Activation Actions</ref>.
+    Each element must be the class path of a class implementing the
+    <code>uk.ac.starlink.topcat.activate.ActivationType</code> interface,
+    and which has a no-arg constructor.
     </p></dd>
 
 <dt><code>topcat.exttools</code></dt>
@@ -5473,19 +5497,20 @@ Here is what the individual items mean:
     windows and it will not affect the value displayed here.
     </p></dd>
 
-<dt>Activation Action</dt>
-<dd><p>The currently selected
-    <ref plaintextref="yes" id="activation">Activation Action</ref>.
-    The action can be changed by clicking on this button to display
-    the <ref id="ActivationQueryWindow">Activation Window</ref>.
-    </p>
-    <p>The <label>Broadcast Row</label> checkbox to the right is a shortcut
-    for one useful activation action; it corresponds to the
-    Activation Window's option <label>Transmit Row</label> to All Listeners - 
-    that is it means that any other tools talking to TOPCAT using SAMP 
-    or PLASTIC will be informed about a row activation any time it happens.
-    This checkbox will be greyed out if no suitable 
-    messaging protocol is in use (see <ref id="interop"/>).
+<dt>Activation Actions</dt>
+<dd><p>Summarises the currently available and active
+    <ref id="activation">Activation Actions</ref>.
+    A value of the form <em>active-count</em> / <em>available-count</em>
+    is displayed, where
+    <em>active-count</em> is the number of actions that currently take
+    place whenever a row is activated, and
+    <em>available-count</em> is the number of actions that could be
+    made active without any additional configuration
+    (a number of other actions could probably be used too, but require
+    some manual setup).
+    You can view and configure the activation actions by using the
+    &IMG.ACTIVATE; <label>Activation Actions</label> toolbar button to
+    open the <ref id="ActivationWindow">Activation Window</ref>.
     </p></dd>
 
 </dl>
@@ -5647,7 +5672,7 @@ functions.  They are grouped as follows:
         </p></dd>
 
     <dt>&IMG.ACTIVATE;
-        <ref id="ActivationWindow">Activation Actions Window</ref></dt>
+        <ref id="ActivationWindow">Activation Window</ref></dt>
     <dd><p>Displays a window for configuring
         <ref id="activation">activation actions</ref>.
         </p></dd>
@@ -6924,15 +6949,6 @@ the superceded calculation will be stopped.
 
 </subsubsect>
 
-<subsubsect id="ActivationWindow">
-<subhead><title>Activation Action Window</title></subhead>
-
-<figure>
-<caption><px>Activation Action Window</px></caption>
-<figureimage src="&FIG.ActivationWindow;"/>
-</figure>
-
-</subsubsect>
 
 <subsubsect id="DatalinkWindow">
 <subhead><title>DataLink Window</title></subhead>
@@ -7023,44 +7039,57 @@ listed resource.  The parts of this panel are:
     but you can change it by choosing from the selector.
     If you don't want the action to get updated automatically,
     uncheck the checkbox on the left as explained above.
-    Possible actions are:
+    Most of the action options have behaviour that is similar
+    to a corresponding <ref id="ActivationTypes">activation action</ref>,
+    as noted below.
+    The options are:
     <ul>
     <li><strong>Report URL:</strong>
-        displays the URL in the Result field.
+        displays the URL in the Result field
         </li>
     <li><strong>View image internally:</strong>
         displays the linked resource
-        (an image in a format like PNG, JPEG, FITS)
+        (an image in a format like PNG, GIF, JPEG, FITS)
         in an internal image viewer
+        (like <ref id="ViewImageActivationType">Display Image</ref> action)
         </li>
     <li><strong>Load Table:</strong>
         loads the table from the linked resource (a FITS or VOTable table)
         into this TOPCAT application
+        (like <ref id="LoadTableActivationType">Load Table</ref> action)
         </li>
     <li><strong>View DataLink Table:</strong>
         displays the linked resource (a DataLink table)
         in a new window like this one
+        (like <ref id="ViewDatalinkActivationType" >View Datalink Table</ref>
+        action)
         </li>
     <li><strong>Send FITS Image:</strong>
         sends the linked resource (a FITS image)
         using SAMP to external image viewers
+        (like <ref id="SendImageActivationType">Send FITS Image</ref> action)
         </li>
     <li><strong>Send Spectrum:</strong>
         sends the linked resource (a spectrum)
         using SAMP to external spectrum viewers
+        (like <ref id="SendSpectrumActivationType">Send Spectrum</ref> action)
         </li>
     <li><strong>Send Table:</strong>
         sends the linked resource (a VOTable)
         using SAMP to external table viewers
+        (like <ref id="SendTableActivationType">Send VOTable</ref> action)
         </li>
     <li><strong>Show Web Page:</strong>
         opens the linked resource in the system web browser
+        (like <ref id="BrowserActivationType">View in Web Browser</ref> action)
         </li>
     </ul>
     Note that there currently is not much opportunity to customise the
-    behaviour of the various Action options supplied by this window,
-    for instance to configure which SAMP clients to send messages to.
+    behaviour of the various Action options supplied by this window;
+    these actions are less configurable than their corresponding
+    Activation Actions.
     </p></dd>
+
 <dt>Invoke</dt>
 <dd><p>Hitting this button actually invokes the selected Action on the
     current row.
@@ -18990,9 +19019,10 @@ may generate images on the fly.
 See the 
 <webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref>
 standard, and individual registry records, for details.
-A useful thing to do with the resulting table might be to set its
-Activation Action to the <label>View URL as Image</label> option
-using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+A useful thing to do with the resulting table might be
+to configure an <ref id="activation">activation action</ref> of
+<ref id="ViewImageActivationType">Display Image</ref> or
+<ref id="SendImageActivationType">Send FITS Image</ref>.
 </p>
 
 </subsubsect>
@@ -19034,9 +19064,9 @@ such as spectrum format, WCS, provenance information and so on.
 See the 
 <webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
 standard for details.
-A useful thing to do with the resulting table might be to set its
-Activation Action to the <label>View URL as Spectrum</label> option
-using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+A useful thing to do with the resulting table might be
+to configure an <ref id="activation">activation action</ref> of
+<ref id="SendSpectrumActivationType">Send Spectrum</ref>.
 </p>
 
 </subsubsect>
@@ -19158,9 +19188,10 @@ may not make much sense.  For this reason, take care if using the
 <p>One use of this function is to add some columns to an existing table which 
 contain URLs of images from a given server corresponding to the
 sky positions of those rows.
-Having done this you might want to set the resulting table's
-Activation Action to the <label>View URL as Image</label> option
-using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+Having done this you might want to configure an
+<ref id="activation">activation action</ref> for the resulting table of
+<ref id="ViewImageActivationType">Display Image</ref> or
+<ref id="SendImageActivationType">Send FITS Image</ref>.
 </p>
 
 </subsubsect>
@@ -19208,9 +19239,9 @@ standard for details.
 <p>One use of this function is to add some columns to an existing table which
 contain URLs of spectra from a given server corresponding to the
 sky positions of those rows.
-Having done this you might want to set the resulting table's
-Activation Action to the <label>View URL as Spectrum</label> option
-using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+Having done this you might want to configure an
+<ref id="activation">activation action</ref> for the resulting table of
+<ref id="SendSpectrumActivationType">Send Spectrum</ref>.
 </p>
 
 </subsubsect>
@@ -20123,6 +20154,1050 @@ further or to pick up the completed result.
 </subsect>
 
 
+<subsect id="ActivationWindow">
+<subhead><title>Activation Window</title></subhead>
+
+<figure>
+<caption><px>Activation Window</px></caption>
+<figureimage src="&FIG.ActivationWindow;"/>
+</figure>
+
+<p>The Activation Window lets you configure what happens when a 
+row is <ref id="activation" plaintextref="yes">activated</ref>.
+You can display it using the
+<label>Activation Window</label> (&IMG.ACTIVATE;)
+button when the chosen table is selected in the
+<ref id="ControlWindow">Control Window</ref>'s Table List.
+</p>
+
+<p>A list of suggested Activation Actions is displayed in the top left panel,
+and if you select one of these its details, including configuration
+and invocation options and the results of invoking these actions to date,
+will be shown in the rest of the window.
+Those actions in the list which are enabled (not greyed-out)
+and have their checkbox checked
+will be invoked every time a table row is activated.
+Unchecked ones can be invoked manually.
+More description of each of the panels is given below.
+</p>
+
+<p>The <label>Actions list</label>
+lists a number of activation actions that appear to be appropriate
+for the table this window applies to.
+Others, including duplicates of ones already listed,
+can be added from the <label>Actions|Add Action</label> (&IMG.ADD;) menu item.
+The only reason the full list is not visible by default is to
+avoid too much clutter in the window.
+Each action has a checkbox; if checked, an attempt will be made to
+invoke that action whenever a row is activated (e.g. clicked on).
+If the checkbox is not checked, the action can still be invoked
+manually for the current row using the
+<label>Invoke Selected Action on Current Row</label> (&IMG.REACTIVATE;) button.
+If the action name is greyed out, it means that it can't currently
+be invoked for some reason, perhaps because it needs more configuration first.
+To find out the reason, look in the <label>Status</label> panel,
+which should have a helpful message indicating why it's disabled.
+The grab handles (&IMG.UP_DOWN;) can be used to re-order items in the
+list, though this order doesn't have much effect except visually.
+Actions can be removed from the list by selecting them and using the
+<label>Actions|Remove Current Action</label> (&IMG.DELETE;) menu item.
+</p>
+
+<p>The <label>Description panel</label>
+gives a short description of the behaviour of the currently selected action.
+</p>
+
+<p>The <label>Configuration panel</label>
+displays a user interface to configure the details of
+what the selected action will do.  The format depends on the action.
+</p>
+
+<p>The <label>Status panel</label>
+contains a button (identical to that in the toolbar)
+that will invoke the currently selected action on the most recently
+activated row (or the first row, if no row has been activated so far
+in this table).  It may be in one of two states.
+If the action is sufficiently configured to be used immediately,
+the button will be enabled, and clicking on it will cause the
+action to happen immediately, with the result being displayed in
+the Results panel below.
+However, if the action cannot be performed for some reason,
+the button will be greyed out, and some text will explain why
+it's disabled.  Sometimes that means that the configuration in the
+panel above needs to be adjusted (e.g. some values filled in).
+</p>
+
+<p>The <label>Results panel</label>
+contains a line added every time the currently selected action is invoked,
+either by the <label>Invoke Now</label> (&IMG.REACTIVATE;) button or 
+because a row has been activated elsewhere in the application.
+Each line contains four entries:
+<ul>
+<li><strong>Seq:</strong>
+    A count that starts at 1 and increments for each invocation
+    </li>
+<li><strong>Row:</strong>
+    The index of the row on which the action has been invoked
+    </li>
+<li><strong>Status:</strong>
+    one of:
+    <ul>
+    <li>OK: action success</li>
+    <li>FAIL: action failure</li>
+    <li>CANCELLED: if the action was interrupted because the next invocation
+        started before it had finished</li>
+    <li>(blank): if the result is not yet available</li>
+    </ul>
+    </li>
+<li><strong>Message:</strong>
+    Some indication of what happened (OK) or what went wrong (FAIL)
+    when the action was performed
+    </li>
+</ul>
+</p>
+
+<p>The following items are available in the toolbar or menus:
+<dl>
+<dt>&IMG.ADD; Add Action</dt>
+<dd><p>Add a new action to the Actions List from the full menu of
+    available actions, as enumerated in <ref id="ActivationTypes"/>.
+    This can be used to add an action that's not visible by default,
+    because TOPCAT didn't think you would want to use it for this table,
+    or to add a duplicate of an existing visible action,
+    for instance to send a similar SAMP message to two different external tools.
+    </p></dd>
+<dt>&IMG.DELETE; Remove Selected Action</dt>
+<dd><p>Removes the currently selected action from the Actions list.
+    </p></dd>
+<dt>&IMG.REACTIVATE; Invoke Selected Action on Current Row</dt>
+<dd><p>This causes the currently selected action to be activated
+    on the most recently activated row (or the first row if none have
+    been activated yet).
+    You can use it to invoke the action without having to
+    actually click on a row in the view window or a plot.
+    It will invoke the action (if it can) whether or not it
+    is currently active, i.e. even when its checkbox is not checked.
+    </p></dd>
+<dt>&IMG.REACTIVATE_ALL; Activate Current Row</dt>
+<dd><p>Activates all the currently enabled actions on the most recently
+    activated row (or the first row if none have been activated yet).
+    This does the same as clicking on a row in the view window or a plot.
+    </p></dd>
+<dt>&IMG.FUNCTION; Available Functions</dt>
+<dd><p>Displays a window containing all the functions which can be used 
+    for writing algebraic expressions (see <ref id="jel"/>).
+    </p></dd>
+</dl>
+</p>
+
+<subsubsect id="ActivationTypes">
+<subhead><title>Activation Actions</title></subhead>
+
+<p>A range of activation actions is available.
+Which ones are displayed for selection by default depends on the
+characteristics of the table, but if you want to use one that's not
+displayed, you can use the <label>Actions|Add Action</label> (&IMG.ADD;)
+menu item to insert it into the list.
+</p>
+
+<p>The available actions are listed in the following sections.
+</p>
+
+<subsubsubsect id="TopcatSkyPosActivationType">
+<subhead><title>Use Sky Coordinates in TOPCAT</title></subhead>
+
+<figure>
+<caption><px>Configuration for
+             Use Sky Coordinates in TOPCAT action</px></caption>
+<figureimage src="&FIG.TopcatSkyPosActivationType;"/>
+</figure>
+
+<p>The <label>Use Sky Coordinates in TOPCAT</label>
+action causes the sky coordinates of an activated row
+to be communicated to certain other TOPCAT windows that have
+sky position entry widgets, for instance the 
+<ref id="ConeSearchDialog">Cone Search</ref> and
+<ref id="SiapTableLoadDialog">Simple Image Access</ref> windows.
+</p>
+
+<p>This is in most cases useful behaviour
+so if sky coordinates can be identified this action will be
+enabled by default.
+If you find it unhelpful however
+(e.g. you have typed a position into the Cone Search window position
+selector and you don't want it to be overwritten) it can be disabled.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>RA Column</dt>
+<dt>Dec Column</dt>
+<dd><p>Identifies the table columns representing sky coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="SendSkyPosActivationType">
+<subhead><title>Send Sky Coordinates</title></subhead>
+
+<figure>
+<caption><px>Configuration for Send Sky Coordinates action</px></caption>
+<figureimage src="&FIG.SendSkyPosActivationType;"/>
+</figure>
+
+<p>The <label>Send Sky Coordinates</label> action causes the
+sky coordinates associated with the activated row to be
+sent using <ref id="interop">SAMP</ref> to one or all suitable applications.
+It sends a message with the MType <code>coord.pointAt.sky</code>,
+so at least one external SAMP client subscribed to such messages
+must be registered.
+</p>
+
+<p>One way to use this action is to configure it to transmit to
+a viewer of all-sky imagery such as
+<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>.
+Then whenever a row is activated, Aladin will change its view
+to show imagery at the sky coordinates corresponding to that row.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>RA Column</dt>
+<dt>Dec Column</dt>
+<dd><p>Identifies the table columns representing sky coordinates.
+    </p></dd>
+<dt>Target Application</dt>
+<dd><p>Determines which external client(s) to send the messages to.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    also serves to indicate which clients capable of acting on this
+    message type are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="ViewImageActivationType">
+<subhead><title>Display Image</title></subhead>
+
+<figure>
+<caption><px>Configuration for Display Image action</px></caption>
+<figureimage src="&FIG.ViewImageActivationType;"/>
+</figure>
+
+<p>The <label>Display Image</label> action uses the contents of
+a column to provide a URL or filename giving the location of
+an image to display in an internal viewer.
+The image can be in a graphics format such as JPEG, PNG, or GIF,
+or it can be a FITS image.
+</p>
+
+<p>Note that for more sophisticated image handling,
+especially for FITS images, the
+<ref id="SendImageActivationType">Send FITS Image</ref> option
+in conjunction with an external image viewer application may
+be more appropriate.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Image Location</dt>
+<dd><p>Gives the URL or filename of the image to display for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>Image Viewer</dt>
+<dd><p>Selects which of the internal image viewers will be used for display. 
+    The <label>Basic</label> option is always available,
+    and <label>SoG</label> may be offered as well;
+    see <ref id="activationViewers"/>.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="SendImageActivationType">
+<subhead><title>Send FITS Image</title></subhead>
+
+<figure>
+<caption><px>Configuration for Send FITS Image action</px></caption>
+<figureimage src="&FIG.SendImageActivationType;"/>
+</figure>
+
+<p>The <label>Send FITS Image</label> action takes a URL or filename
+in the table that points to a FITS image,
+and sends it using <ref id="interop">SAMP</ref>
+to an external image viewer for display.
+It sends a message with the MType <code>image.load.fits</code>,
+so at least one external SAMP client subscribed to such messages
+must be registered.
+</p>
+
+<p>Suitable image viewers for use with this action include
+<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+<webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>
+and
+<webref url="http://ds9.si.edu/">SAOImage DS9</webref>.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Image Location</dt>
+<dd><p>Gives the URL or filename of the image to display for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>Image Viewer</dt>
+<dd><p>Determines which external client(s) to send the image URLs to.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    also serves to indicate which clients capable of acting on this
+    message type are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="SendSpectrumActivationType">
+<subhead><title>Send Spectrum</title></subhead>
+
+<figure>
+<caption><px>Configuration for Send Spectrum action</px></caption>
+<figureimage src="&FIG.SendSpectrumActivationType;"/>
+</figure>
+
+<p>The <label>Send Spectrum</label> action takes a URL or filename
+in the table that points to a spectrum resource,
+and sends it using <ref id="interop">SAMP</ref>
+to an external viewer for display.
+The supported spectrum data formats are dependent on the
+external application in question.
+It sends a message with the MType <code>spectrum.load.ssa-generic</code>,
+so at least one external SAMP client subscribed to such messages
+must be registered.
+</p>
+
+<p>Suitable spectrum viewers for use with this action include
+<webref url="http://www.starlink.ac.uk/splat/">SPLAT</webref> and
+<webref url="https://www.cosmos.esa.int/web/esdc/vospec/">VOSpec</webref>.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Spectrum Location</dt>
+<dd><p>Gives the URL or filename of the spectrum to display for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>Spectrum Viewer</dt>
+<dd><p>Determines which external client(s) to send the spectrum URLs to.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    also serves to indicate which clients capable of acting on this
+    message type are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="SendTableActivationType">
+<subhead><title>Send VOTable</title></subhead>
+
+<figure>
+<caption><px>Configuration for Send VOTable action</px></caption>
+<figureimage src="&FIG.SendTableActivationType;"/>
+</figure>
+
+<p>The <label>Send VOTable</label> action takes a URL or filename
+in the table that points to a VOTable document,
+and sends it as a table using <ref id="interop">SAMP</ref>
+to an external program to load.
+It sends a message with the MType <code>table.load.votable</code>,
+so at least one external SAMP client subscribed to such messages
+must be registered.
+</p>
+
+<p>This action can be used to send tables to other running instances
+of TOPCAT, or to different applications such as
+<webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>,
+<webref url="http://aladin.u-strasbg.fr/">Aladin</webref> or
+SAMP-enabled Python scripts.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>VOTable Location</dt>
+<dd><p>Gives the URL or filename of the VOTable to send for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>Table Viewer</dt>
+<dd><p>Determines which external client(s) to send the VOTable URLs to.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    also serves to indicate which clients capable of acting on this
+    message type are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="SendIndexActivationType">
+<subhead><title>Send Row Index</title></subhead>
+
+<figure>
+<caption><px>Configuration for Send Row Index action</px></caption>
+<figureimage src="&FIG.SendIndexActivationType;"/>
+</figure>
+
+<p>The <label>Send Row Index</label> action sends a message to
+other <ref id="interop">SAMP</ref> applications giving the row
+index of the activated row.
+This is in general only useful to other applications if they are
+already aware of the table whose row indices are being communicated
+like this, so a usual pattern of usage would be first to
+send the table to one or several external applications,
+and then to set up this action to indicate which rows are being
+selected.  If it is known that the table in question has never
+been communicated to other applications, the action will be disabled.
+The message sent has the MType <code>table.highlight.row</code>,
+so at least one external SAMP client subscribed to such messages
+must be registered.
+</p>
+
+<p>Suitable clients for use with this action include image viewers
+such as 
+<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+<webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>
+and
+<webref url="http://ds9.si.edu/">SAOImage DS9</webref>.
+If you send a table to one of
+(e.g. using the <label>Broadcast Table</label> (&IMG.BROADCAST;)
+button in the Control Window <ref id="controlTools">toolbar</ref>)
+and then set up this action to send row indices,
+then the image viewer will plot the catalogue positions over
+its displayed imagery, and whenever a row is activated within TOPCAT, 
+will highlight the corresponding plotted point in some way.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Target Client</dt>
+<dd><p>Determines which external client(s) to send the row indices to.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    also serves to indicate which clients capable of acting on this
+    message type are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="LoadTableActivationType">
+<subhead><title>Load Table</title></subhead>
+
+<figure>
+<caption><px>Configuration for Load Table action</px></caption>
+<figureimage src="&FIG.LoadTableActivationType;"/>
+</figure>
+
+<p>The <label>Load Table</label> action
+takes a URL or filename in the table that points to a table
+in one of TOPCAT's <ref id="inFormats">supported formats</ref>,
+and loads that into TOPCAT as a new table.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Table Location:</dt>
+<dd><p>Gives the URL or filename of the table to load for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>Table Format:</dt>
+<dd><p>Selects the file format of the table to load.
+    If the table is in one of the formats that TOPCAT is able to
+    auto-detect (VOTable, FITS, CDF) then the default value
+    <code>(auto)</code> may be used, otherwise the correct format
+    must be chosen from the list.
+    </p></dd>
+<dt>Multiple Tables:</dt>
+<dd><p>Determines what happens if the loaded file contains multiple tables;
+    some formats such as FITS and VOTable permit this.
+    If this checkbox is selected, then all tables in the file will be loaded,
+    otherwise only the first one is loaded and the others are ignored.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="BrowserActivationType">
+<subhead><title>View in Web Browser</title></subhead>
+
+<figure>
+<caption><px>Configuration for View in Web Browser action</px></caption>
+<figureimage src="&FIG.BrowserActivationType;"/>
+</figure>
+
+<p>The <label>View in Web Browser</label> action takes a URL or filename
+in the table and sends that resource to a web browser.
+If it's HTML it should be displayed directly, other content types
+may get sent to other desktop applications depending on the
+capabilities and configuration of the browser in use.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Web Page Location</dt>
+<dd><p>Gives the URL or filename of the resource to display for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>Browser Type</dt>
+<dd><p>A few options are available for controlling what browser is used
+    to display the URL.
+    <ul>
+    <li><strong>System Browser:</strong>
+        Attempts to open the URL in the default desktop web browser.
+        </li>
+    <li><strong>Basic Browser:</strong>
+        Displays the URL content in a basic HTML viewer implemented
+        within TOPCAT (see <ref id="documentViewers"/>).
+        This is OK for basic HTML and images,
+        but more complex or non-web-page content may not work.
+        </li>
+    <li><strong>Firefox:</strong>
+        Attempts to open the URL in the Firefox browser, if available.
+        </li>
+    <li><strong>Mozilla:</strong>
+        Attempts to open the URL in the Mozilla browser, if available.
+        </li>
+    </ul>
+    This list is rather out of date.  Other options may be added on request
+    in future, but in most cases the default option "System Browser"
+    will do the right thing.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="JelActivationType">
+<subhead><title>Execute Code</title></subhead>
+
+<figure>
+<caption><px>Configuration for Execute Code action</px></caption>
+<figureimage src="&FIG.JelActivationType;"/>
+</figure>
+
+<p>The <label>Execute Code</label> action can execute arbitrary
+code using the expression language described in <ref id="jel"/>.
+Most of the expressions and functions just evaluate an expression,
+and in that case the only effect is that the result of the
+expression is displayed in the <label>Results</label> panel
+at the bottom of the activation window every time a row is activated.
+However, some functions are defined especially for use in this
+window which have some additional effect such as popping up a
+viewer window or writing output to the console; these are listed
+in <ref id="topcat.funcs"/>.
+</p>
+
+<p>In principle, this window can provide very flexible options for
+defining your own activation actions.
+In practice, the available activation functions don't give you
+much more sophisticated options than what is available in the other
+activation types.  However, some more flexible options may be
+added in the future, and it is also possible to implement your own 
+as explained in <ref id="jelExtend"/>.
+Note that another option for configuring your own custom actions
+is to use the <ref id="ShellActivationType">Run System Command</ref>
+to invoke a shell script or similar with supplied arguments.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Executable Expression</dt>
+<dd><p>Type in the expression to be evaluated on row activation.
+    Column names act as variables which evaluate to the column value at
+    the activation row, as explained in <ref id="jel"/>.
+    The result of the expression is displayed in the Activation Window
+    <label>Results</label> panel, but there may be other effects as well
+    depending on the functions invoked.
+    The expression is parsed as it is typed in, and if the current text
+    does not represent a legal expression, the action is disabled,
+    and an error message is displayed in the <label>Status</label> panel
+    that should help to understand what's wrong.
+    </p></dd>
+<dt>Synchronous</dt>
+<dd><p>This checkbox determines whether the expression is evaluated on
+    the Java Event Dispatch Thread or not.
+    You can usually leave it alone, but if the expression is known to be
+    fast to evaluate, multiple evaluations may behave a bit more
+    predictably with it checked.  For slow expressions, it should be
+    unchecked (its default state).
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="ShellActivationType">
+<subhead><title>Run System Command</title></subhead>
+
+<figure>
+<caption><px>Configuration for Run System Command action</px></caption>
+<figureimage src="&FIG.ShellActivationType;"/>
+</figure>
+
+<p>The <label>Run System Command</label> action allows you to
+invoke an operating system command, for instance running a shell script,
+when a row is activated, with command parameters taken from table
+cell values as required.
+</p>
+
+<p>This functionality has been tested on Unix-like operating systems;
+it may or may not work well on other OSs (user reports welcome!).
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Command</dt>
+<dd><p>The first word of the system command; this is generally the name
+    of the command to execute.
+    This argument is implicitly quoted.
+    </p></dd>
+<dt>Arg #N</dt>
+<dd><p>A list of zero or more command-line arguments to the specified command.
+    Each item in this list is presented to the OS as a separate word,
+    so for instance embedded spaces within one of these lines
+    do not indicate multiple arguments.
+    <strong>Note</strong> that each of these arguments is an expression
+    in the expression language described in <ref id="jel"/>,
+    not a literal value.  So if you want (e.g.) the <em>value</em>
+    of a given column to appear as an argument, you should enter
+    the column's name.
+    If you want to supply a fixed string, rather than the result of
+    evaluating an expression, then surround the string in double quotes
+    (<code>"</code>).
+    The expressions are parsed as they are typed in, and if the current text
+    of any of the entries does not represent a legal expression,
+    the action is disabled,
+    and an error message is displayed in the Status panel
+    that should help to understand what's wrong.
+    </p></dd>
+<dt>Add/Remove Argument Field (&IMG.ADD;/&IMG.SUBTRACT;)</dt>
+<dd><p>Use these buttons to add or remove entries to the Arg #N argument list.
+    Empty entries at the end of the list are ignored, so you don't have
+    to remove trailing ones.
+    </p></dd>
+<dt>Synchronous</dt>
+<dd><p>This checkbox determines whether the expression is evaluated on
+    the Java Event Dispatch Thread or not.
+    You can usually leave it alone, but if the command is known to be
+    fast to execute, multiple invocations may behave a bit more
+    predictably with it checked.  For slow commands, it should be
+    unchecked (its default state).
+    </p></dd>
+<dt>Capture Output</dt>
+<dd><p>Determines what happens to the output (standard output and standard
+    error streams) of the executed command.  If this checkbox is checked
+    then the output is displayed in the Results panel of the Activation Window,
+    otherwise it goes to the standard output/error stream of the TOPCAT
+    application (and may appear on the console).
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="CutoutActivationType">
+<subhead><title>Display Cutout Image</title></subhead>
+
+<figure>
+<caption><px>Configuration for Display Cutout Image action</px></caption>
+<figureimage src="&FIG.CutoutActivationType;"/>
+</figure>
+
+<p>This option presents an easy-to-use way of popping up a
+cutout image from an image server displaying a region of sky
+around an activated row.
+The size of cutout can be selected, and a small selection of
+image services is provided.
+When you activate the row, the program will attempt to contact the
+web server which provides these images, retrieve the image, and
+display it in one of the internal <ref id="imageViewers">image viewers</ref>.
+</p>
+
+<p>Note: the options provided here are not very extensive;
+the list of image services is rather limited and the image viewer
+is not configurable.
+This action may be replaced or enhanced in future releases to provide
+a more capable image cutout display action.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>RA Column</dt>
+<dt>Dec Column</dt>
+<dd><p>Identifies the table columns representing sky coordinates
+    for the central cutout position.
+    </p></dd>
+<dt>Cutout Service</dt>
+<dd><p>Select which of the provided cutout services will provide the
+    displayed image.  The list is currently:
+    <ul>
+    <li>SuperCOSMOS All-Sky Blue</li>
+    <li>SuperCOSMOS All-Sky Red</li>
+    <li>2MASS Quick-Look J-band</li>
+    <li>2MASS Quick-Look H-band</li>
+    <li>2MASS Quick-Look K-band</li>
+    <li>SDSS Colour Images (note does not provide all-sky coverage)</li>
+    </ul>
+    </p></dd>
+<dt>Dimension in pixels</dt>
+<dd><p>Gives the number of pixels (width and height) of cutout images.
+    The text to the right of the selector indicates the size of a pixel for
+    currently selected service.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="ServiceActivationType">
+<subhead><title>Invoke Service</title></subhead>
+
+<figure>
+<caption><px>Configuration for Invoke Service action</px></caption>
+<figureimage src="&FIG.ServiceActivationType;"/>
+</figure>
+
+<p>The <label>Invoke Service</label> action is only appropriate
+(and only visible by default) for tables in the VOTable (or FITS-plus)
+format which include <label>Service Desriptor</label> elements
+as defined in the <webref url="&URL.DATALINK;">DataLink standard</webref>.
+These service descriptors can provide information on how to invoke
+an external data service of some kind, which is usually related to
+the data in the table, and usually can be invoked differently
+for each row in the table (for instance using one of the table
+columns as a parameter of the invocation URL).
+For instance a Service Descriptor may be attached to a table to
+provide a rule for finding an additional data product
+(like a time series or preview image) for each row in a table.
+</p>
+
+<p>This action invokes one of these service descriptors for the
+activated row.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Action</dt>
+<dd><p>Determines what to do with the URL that invoking the chosen service
+    on an activated row defines.  An attempt is made to come up with a
+    sensible default based on the available information, but you may
+    need to select one manually from the list.
+    Most of the action options have behaviour that is similar
+    to a corresponding <ref id="ActivationTypes">activation action</ref>,
+    as noted below.
+    The options are:
+    <ul>
+    <li><strong>Report URL:</strong>
+        displays the URL in the Result field
+        </li>
+    <li><strong>View image internally:</strong>
+        displays the linked resource
+        (an image in a format like PNG, GIF, JPEG, FITS)
+        in an internal image viewer
+        (like <ref id="ViewImageActivationType">Display Image</ref> action)
+        </li>
+    <li><strong>Load Table:</strong>
+        loads the table from the linked resource (a FITS or VOTable table)
+        into this TOPCAT application
+        (like <ref id="LoadTableActivationType">Load Table</ref> action)
+        </li>
+    <li><strong>View DataLink Table:</strong>
+        displays the linked resource (a DataLink table)
+        in a new window like this one
+        (like <ref id="ViewDatalinkActivationType" >View Datalink Table</ref>
+        action)
+        </li>
+    <li><strong>Send FITS Image:</strong>
+        sends the linked resource (a FITS image)
+        using SAMP to external image viewers
+        (like <ref id="SendImageActivationType">Send FITS Image</ref> action)
+        </li>
+    <li><strong>Send Spectrum:</strong>
+        sends the linked resource (a spectrum)
+        using SAMP to external spectrum viewers
+        (like <ref id="SendSpectrumActivationType">Send Spectrum</ref> action)
+        </li>
+    <li><strong>Send Table:</strong>
+        sends the linked resource (a VOTable)
+        using SAMP to external table viewers
+        (like <ref id="SendTableActivationType">Send VOTable</ref> action)
+        </li>
+    <li><strong>Show Web Page:</strong>
+        opens the linked resource in the system web browser
+        (like <ref id="BrowserActivationType">View in Web Browser</ref> action)
+        </li>
+    </ul>
+    Note that there currently is not much opportunity to customise the
+    behaviour of the various Action options supplied by this window;
+    these actions are less configurable than their corresponding
+    Activation Actions.
+    </p></dd>
+<dt>Service</dt>
+<dd><p>If the current table has multiple service descriptors,
+    this allows you to select which one to use.
+    In the common case that there is only one service descriptor for a table,
+    this option does not appear.
+    If there are no service descriptors, this action is disabled.
+    </p></dd>
+<dt>Service Parameters</dt>
+<dd><p>Some service descriptors have additional user-supplied parameters.
+    In this case, a set of fields will be displayed at the bottom of
+    the configuration panel (defaults may or may not be present)
+    allowing you to supply values.
+    Note that the user interface for supplying these parameters
+    is currently very basic, and may be improved in future releases.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="InvokeDatalinkActivationType">
+<subhead><title>Invoke Datalink Row</title></subhead>
+
+<figure>
+<caption><px>Configuration for Invoke Datalink Row action</px></caption>
+<figureimage src="&FIG.InvokeDatalinkActivationType;"/>
+</figure>
+
+<p>The <label>Invoke Datalink Row</label> action is only useful
+(and only visible by default) for a particular type of table,
+namely the <em>{links}-response</em> table format defined
+by the <webref url="&URL.DATALINK;">DataLink standard</webref>.
+This format is sometimes loosely known as the DataLink format,
+and is used to represent links of various kinds to external data resources.
+</p>
+
+<p>Each row of a DataLink table represents a labelled link to some
+external resource, and this activation action follows that
+link in some way when the row is activated, providing options for
+how it is followed.
+<strong>Note</strong> however, that if you have a DataLink table
+loaded and want to invoke its links,
+the <ref id="DatalinkWindow">DataLink Window</ref> may provide
+a more straightforward way to do it than this activation action
+(the functionality is quite similar to what's here,
+but fewer popup windows are involved).
+</p>
+
+<p>Because different rows typically have different kinds of links
+and so can be invoked in different ways, most of the configuration
+of link-following behaviour is not done in the Configuration panel
+of the Activation Window, but in a popup window specific to the
+row when activation takes place.
+The per-row popup window, if displayed, has the same content as the
+lower panel of the
+<ref plaintextref="yes" id="DatalinkWindow">DataLink Window</ref>.
+Refer to the documentation of that window for more details.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Auto/Manual</dt>
+<dd><p>In Manual mode, activating the row pops up the per-row configuration
+    popup window to give you a chance to adjust the options before
+    actually invoking the link.
+    In Auto mode, the link is invoked immediately on row activation,
+    using whatever are the current default options.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="ViewDatalinkActivationType">
+<subhead><title>View Datalink Table</title></subhead>
+
+<figure>
+<caption><px>Configuration for View Datalink Table action</px></caption>
+<figureimage src="&FIG.ViewDatalinkActivationType;"/>
+</figure>
+
+<p>The <label>View Datalink Table</label> action is for tables
+with a column containing URLs that point to files in the 
+<em>{links}-response</em> table format defined
+by the <webref url="&URL.DATALINK;">DataLink standard</webref>.
+Activating a row with this action defined will retrieve the
+DataLink file from the given URL and display it in a new popup window.
+The display is the same as that of the
+<ref plaintextref="yes" id="DatalinkWindow">DataLink Window</ref>,
+except that in this case the DataLink table has not been loaded into
+the TOPCAT application as a new table.
+Refer to the documentation of that window for more details.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Datalink Location</dt>
+<dd><p>Gives the URL or filename of the DataLink table for each row.
+    This is normally one of the table columns and can be selectd from
+    the drop-down list, but alternatively the
+    <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="activationViewers">
+<subhead><title>Viewer Windows</title></subhead>
+
+<p>Some of the activation actions listed in the previous sections
+result in popping up windows to view related resources in some way.
+In many cases, the best thing is to send data to external applications
+that are optimised for working with different (non-table) data types,
+but for simple cases TOPCAT provides internal viewers.
+They are listed in the following subsections.
+</p>
+
+<subsubsubsect id="imageViewers">
+<subhead><title>Image Viewer Applications</title></subhead>
+
+<p>If you choose the <ref id="ViewImageActivationType">Display Image</ref>
+or <ref id="CutoutActivationType">Display Cutout Image</ref>
+activation actions, or the <label>View image internally</label>
+option in one of the DataLink-related actions,
+TOPCAT will try to display an image in an internal image viewer.
+</p>
+
+<p>The default image viewer is 
+<webref plaintextref="yes" url="http://www.starlink.ac.uk/sog/">SoG</webref>,
+an astronomical image viewer based on JSky, which offers 
+colourmap manipulation, image zooming, graphics overlays, and other features.
+For this to work JAI, otherwise known as
+<webref plaintextref="yes" url="http://java.sun.com/products/java-media/jai/"
+        >Java Advanced Imaging</webref> must be installed.
+JAI is a free component available from Sun, but not a part of the Java 2
+Standard Edition by default.  In operation, SoG looks like this:
+</p>
+
+<figure>
+<caption><px>SoG Image Viewer</px></caption>
+<figureimage src="&FIG.SoG;"/>
+</figure>
+
+<p>If JAI or the SoG classes themselves are absent, a fallback viewer
+which just displays the given image in a basic graphics window 
+with no manipulation facilities is used.
+The fallback image viewer looks like this:
+</p>
+
+<figure>
+<caption><px>Fallback Image Viewer</px></caption>
+<figureimage src="&FIG.ImageWindow;"/>
+</figure>
+
+<p>Alternative options are available to communicate with external
+image viewers.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="spectrumViewers">
+<subhead><title>Spectrum Viewers</title></subhead>
+
+<p>If you try to display a spectrum internally, TOPCAT may be
+able to pop up a SPLAT sub-window.
+</p>
+
+<p><webref plaintextref="yes" url="http://www.starlink.ac.uk/splat/"
+           >SPLAT</webref>
+is a sophisticated multi-spectrum analysis program.
+This requires the presence of a component named JNIAST, which may
+or may not have been installed with TOPCAT (it depends on some
+non-Java, i.e. platform-specific code).  
+There is currently no fallback spectrum viewer, so if JNIAST is 
+not present, then spectra cannot be displayed internally.
+An example of SPLAT display of multiple spectra is shown below.
+</p>
+
+<figure>
+<caption><px>SPLAT Spectrum Viewer</px></caption>
+<figureimage src="&FIG.Splat;"/>
+</figure>
+
+<p>Full documentation for SPLAT is available on-line within the program,
+or in <docxref doc="sun243"/>.
+</p>
+
+<p>In general it is more reliable and configurable to use SAMP to
+send spectra to an external running instance of SPLAT,
+via the <ref id="SendSpectrumActivationType">Send Spectrum</ref> action.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="documentViewers">
+<subhead><title>Web Browsers</title></subhead>
+
+<p>If you choose the <ref id="BrowserActivationType">View in Web Browser</ref>
+action
+then activating a row will display the web page whose URL 
+is in one of the columns in a web browser.
+You are given the option of what browser you would like to use in this case.
+</p>
+
+<p>The <label>basic browser</label> option uses a simple
+browser which can view HTML or plain text pages and has forward and
+back buttons which work as you'd expect.  In many cases this is fine
+for viewing HTML pages, and it is available regardless of the system
+that you are running TOPCAT on.  It looks like this:
+</p>
+
+<figure>
+<caption><px>Basic HTML browser</px></caption>
+<figureimage src="&FIG.HtmlWindow;"/>
+</figure>
+
+<p>Other options are available for using other installed web browsers,
+which in most cases will behave better.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+</subsect>
+
+
 <subsect>
 <subhead><title>Other Windows</title></subhead>
 
@@ -20381,297 +21456,6 @@ versions of the base and appended tables, so that any row subsets,
 hidden columns, or sorts currently in force will be reflected in the
 output.
 </p>
-
-</subsubsect>
-
-
-<subsubsect id="ActivationQueryWindow">
-<subhead><title>Activation Window</title></subhead>
-
-<figure>
-<caption><px>Activation Window</px></caption>
-<figureimage src="&FIG.ActivationQueryWindow;"/>
-</figure>
-
-<p>The Activation Window allows you to configure an action to perform
-when a table row is <ref plaintextref="yes" id="activation">activated</ref>
-by clicking on a row in the Data Window or a point in the Plot Window.
-It can be obtained by clicking the <label>Activation Action</label>
-selector at the bottom of the properties panel in the Control Window.
-</p>
-
-<p>You have various options for how to define the action.
-On the left of the window is a list of options; you have to choose
-one of these to determine what kind of action will take place.
-When you click on one of these options the corresponding 
-controls on the right hand side will become enabled:
-use these to select the details of the action and then 
-click the <label>OK</label> button so that subsequent 
-activation events will cause the action you have defined
-(or <label>Cancel</label> so that they won't).
-When you click OK the <label>Activation Action</label>
-in the control window will indicate the action you have configured.
-</p>
-
-<p>The available options are as follows:
-<dl>
-
-<dt>No Action</dt>
-<dd><p>If this is selected, no special action will take place when a 
-    row is activated.  This is the default.
-    </p></dd>
-
-<dt>Display Cutout Image</dt>
-<dd><p>This option presents an easy-to-use way of popping up a
-    cutout image from an image server displaying a region of sky
-    around an activated row.
-    You need to select the columns in your table which 
-    represent Right Ascension and Declination, including the units 
-    in which they are entered in the table (TOPCAT may be able to
-    guess some or all of this information based on column names, UCDs
-    and unit values, in which case it will enter its guesses in the
-    selectors for you to accept or change).
-    You also need to select the size in pixels of the image you want 
-    to see and the name of the survey which will supply the image 
-    from one of the listed ones:
-    <ul>
-    <li>SuperCOSMOS All-Sky Blue</li>
-    <li>SuperCOSMOS All-Sky Red</li>
-    <li>2MASS Quick-Look J-band</li>
-    <li>2MASS Quick-Look H-band</li>
-    <li>2MASS Quick-Look K-band</li>
-    <li>SDSS Colour Images (note does not provide all-sky coverage)</li>
-    </ul>
-    When you activate the row, the program will attempt to contact the
-    web server which provides these images, retrieve the image, and
-    display it in an image viewer window.
-    Unfortunately at present the viewer window is an internal one;
-    it does not display in an external SAMP viewer.
-    </p></dd>
-
-<dt>View URL as Image</dt>
-<dd><p>This option is suitable if one of the columns in your table 
-    gives the location (filename or URL) of an image file.
-    The image may be in FITS, GIF, JPEG or PNG format, optionally 
-    compressed using gzip, Unix compress, or bzip2 format.
-    Select the column which contains the location, and activating a 
-    row will pop up an image viewer to display it
-    (if the table is the result of a single or multiple SIA query,
-    the correct column will probably be filled in automatically).
-    The <label>Image Viewer</label> selector allows you to choose one 
-    of the options in <ref id="imageViewers"/> or, if you are registered
-    with a SAMP or PLASTIC hub, any SAMP/PLASTIC image viewer 
-    which is also registered - see <ref id="interop"/>.
-    </p></dd>
-
-<dt>View URL as Spectrum</dt>
-<dd><p>This option is suitable if one of the columns in your table
-    gives the location (filename or URL) of a spectrum file,
-    and you wish to display the spectra in an external SAMP- or
-    PLASTIC-compatible spectrum viewer, such as
-    <webref url="http://www.starlink.ac.uk/splat/">SPLAT</webref> or
-    <webref url="http://esavo.esa.int/vospec/">VOSpec</webref>.
-    First select the column which contains the 
-    <label>Spectrum Location</label>
-    (if the table is the result of a single or multiple SSA query,
-    the correct column will probably be filled in automatically).
-    Then choose the <label>Spectrum Viewer</label> appropriately.
-    Once this is done, activating a
-    row will try to send the corresponding spectrum to the selected
-    viewer application(s).
-    The details of what data formats are acceptable depend on the
-    viewer application, but FITS, VOTable and some ASCII table
-    variants are usually OK.
-    Note that TOPCAT, as well as a suitable spectrum viewer, 
-    must be connected to a running SAMP or PLASTIC hub for this to work
-    (see <ref id="interop"/>) - there is no internal spectrum viewer.
-    </p></dd>
-
-<dt>View URL as Web Page</dt>
-<dd><p>This option is suitable if one of the columns in your table
-    gives the location (filename or URL) of a web page; this should
-    normally be in HTML or plain text, but depending on what browser
-    you use other kinds of document may be supported.
-    Select the column which contains the location and the browser
-    which you would like to use for display, and activating a row
-    will try to pop up a browser window to display it.
-    See <ref id="documentViewers"/> for more information about browsers.
-    </p></dd>
-
-<dt>Transmit Row</dt>
-<dd><p>This option causes the row number of an activated row
-    to be transmitted to one or more other applications using an
-    appropriate SAMP or PLASTIC message.
-    This will only work if TOPCAT is registered with a SAMP/PLASTIC hub, and
-    so are one or more other applications which understand that message,
-    and the other application(s) know about the table in question,
-    for instance because it has previously been sent to/from TOPCAT.
-    You may specify that either a single application, or all appropriate ones,
-    will receive the messages.
-    See <ref id="interop"/> for more explanation.
-    </p></dd>
-
-<dt>Transmit Coordinates</dt>
-<dd><p>This option causes the sky position of an activated row 
-    to be transmitted to 
-    one or more other applications using an appropriate SAMP or PLASTIC 
-    message.
-    This will only work if TOPCAT is registered with a SAMP/PLASTIC hub, and
-    so are one or more other applications which understand that message.
-    An example might be a sky viewing application such as Aladin which 
-    can point to a particular region of sky whenever you activate a point.
-    You need to specify the columns which represent (J2000) 
-    Right Ascension and Declination, and optionally a particular listener
-    to receive the messages (otherwise all registered ones will).
-    See <ref id="interop"/> for more explanation.
-    </p></dd>
-
-<dt>Execute Custom Code</dt>
-<dd><p>This option must be used if none of the others 
-    (which are fairly restrictive) do what you want.
-    It is highly flexible, but not so easy to use.
-    What you have to do is to write an expression following the rules
-    in <ref id="jel"/> involving some
-    of the column names which will be invoked when a row is activated.
-    This expression will typically have the effect of popping up
-    an image or a spectrum in a viewer,
-    but, especially if you link in your own functions 
-    (see <ref id="jelExtend"/>) it can do pretty much anything.
-    </p>
-    <p>Functions which are expected to be useful for activation actions
-    are described in <ref id="activationJel"/> and include some
-    general-purpose ones 
-    (<code>displayImage</code> and <code>displaySpectrum</code> to display
-    an image or spectrum in an external viewer) as well as a few 
-    which are relevant to particular survey data, for instance the
-    <code>spectra2QZ()</code> function, which will pop up a spectrum
-    viewer displaying all the spectra related to a given row of 2QZ
-    survey data based on the contents of its NAME column.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>As the above list shows, most of the activation actions you can
-define result in a viewer window of some kind popping up.
-Exactly what kind of viewer is used depends on how TOPCAT is set up
-and in some cases on your choices.  More details of the viewer
-programs available are given in the following subsections.
-If these don't do what you want, you can use the 
-<label>Execute Custom Code</label> option, perhaps in conjunction with
-<ref id="jelExtend">user-defined</ref> functions or the 
-<code>System</code> <code>exec()</code> functions
-described in <ref id="activationJel"/>, to invoke your own.
-</p>
-
-<subsubsubsect id="imageViewers">
-<subhead><title>Image Viewer Applications</title></subhead>
-
-<p>If you choose the <label>Display Cutout Image</label> or
-<label>View URL as Image</label> option in the 
-<ref id="ActivationQueryWindow">Activation Window</ref>,
-then activating a row will display an image in an image viewer.
-</p>
-
-<p>The default image viewer is 
-<webref plaintextref="yes" url="http://www.starlink.ac.uk/sog/">SoG</webref>,
-an astronomical image viewer based on JSky, which offers 
-colourmap manipulation, image zooming, graphics overlays, and other features.
-For this to work JAI, otherwise known as
-<webref plaintextref="yes" url="http://java.sun.com/products/java-media/jai/"
-        >Java Advanced Imaging</webref> must be installed.
-JAI is a free component available from Sun, but not a part of the Java 2
-Standard Edition by default.  In operation, SoG looks like this:
-</p>
-
-<figure>
-<caption><px>SoG Image Viewer</px></caption>
-<figureimage src="&FIG.SoG;"/>
-</figure>
-
-<p>If JAI or the SoG classes themselves are absent, a fallback viewer
-which just displays the given image in a basic graphics window 
-with no manipulation facilities is used.
-The fallback image viewer looks like this:
-</p>
-
-<figure>
-<caption><px>Fallback Image Viewer</px></caption>
-<figureimage src="&FIG.ImageWindow;"/>
-</figure>
-
-</subsubsubsect>
-
-<subsubsubsect id="spectrumViewers">
-<subhead><title>Spectrum Viewers</title></subhead>
-
-<p>If you choose the <label>View URL as Spectrum</label> option in
-the <ref id="ActivationQueryWindow">Activation Window</ref>,
-then activating a row will display a spectrum in a spectrum viewer.
-</p>
-
-<p>The default spectrum viewer is 
-<webref plaintextref="yes" url="http://www.starlink.ac.uk/splat/"
-        >SPLAT</webref>,
-a sophisticated multi-spectrum analysis program.
-This requires the presence of a component named JNIAST, which may
-or may not have been installed with TOPCAT (it depends on some
-non-Java, i.e. platform-specific code).  
-There is currently no fallback spectrum viewer, so if JNIAST is 
-not present, then spectra cannot be displayed. 
-In this case it will not be possible to select the
-<label>Display Named Spectrum</label> item in the 
-Activation Window.
-An example of SPLAT display of multiple spectra is shown below.
-</p>
-
-<figure>
-<caption><px>SPLAT Spectrum Viewer</px></caption>
-<figureimage src="&FIG.Splat;"/>
-</figure>
-
-<p>Full documentation for SPLAT is available on-line within the program,
-or in <docxref doc="sun243"/>.
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect id="documentViewers">
-<subhead><title>Web Browsers</title></subhead>
-
-<p>If you choose the <label>View URL as Web Page</label> option in
-the <label>Activation Window</label>,
-then activating a row will display the web page whose URL 
-is in one of the columns in a web browser.
-You are given the option of what browser you would like to use in this case.
-</p>
-
-<p>The default <label>basic browser</label> option uses a simple
-browser which can view HTML or plain text pages and has forward and
-back buttons which work as you'd expect.  In many cases this is fine
-for viewing HTML pages, and it is available regardless of the system
-that you are running TOPCAT on.  It looks like this:
-</p>
-
-<figure>
-<caption><px>Basic HTML browser</px></caption>
-<figureimage src="&FIG.HtmlWindow;"/>
-</figure>
-
-<p>In some circumstances, it's possible to use your normal web browser
-for web page display instead.  
-The list of browsers currently includes Firefox, Mozilla
-and Netscape as well as the basic one.  Selecting these will generally
-only work if (1) the browser you select is installed and on your path, 
-(2) you're on some Unix-like operating system,
-(3) the browser is already running when the action is invoked.
-In this case, the selected URL should be displayed in an existing
-browser window rather than opening a new one.
-Doing it this way has the advantage that your browser can probably 
-display many types of document (perhaps using plugins) as well as HTML.
-</p>
-
-</subsubsubsect>
 
 </subsubsect>
 
@@ -21378,9 +22162,7 @@ in defining custom
 <ref id="activation" plaintextref="yes">Activation Actions</ref>.
 </p>
 
-<p>Note that although all the available functions are listed here
-with short descriptions, their full explanation, including parameter
-descriptions and examples, is only available from the 
+<p>This information is also available within TOPCAT from the
 <ref id="MethodWindow" plaintextref="yes">Available Functions Window</ref>,
 obtained using the &IMG.FUNCTION; toolbar button.
 </p>
@@ -21391,7 +22173,8 @@ obtained using the &IMG.FUNCTION; toolbar button.
 <p>The following functions can be used anywhere that you can write
 an algebraic expression in TOPCAT.  They will typically be used for
 defining new synthetic columns or algebraically-defined row subsets.
-More complete documentation of them is available from within TOPCAT
+The documentation in the following subsections is also
+available from within TOPCAT
 in the <ref id="MethodWindow">Available Functions Window</ref>.
 </p>
 
@@ -21409,7 +22192,8 @@ popping up an image display window.
 They generally return a short string, which will be logged to the user
 to give an indication of what happened (or didn't happen, or should
 have happened).
-More complete documentation of them is available from within TOPCAT
+The documentation in the following subsections is also
+available from within TOPCAT
 in the <ref id="MethodWindow">Available Functions Window</ref>.
 </p>
 
