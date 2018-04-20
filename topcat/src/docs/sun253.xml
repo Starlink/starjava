@@ -5652,13 +5652,6 @@ functions.  They are grouped as follows:
         <ref id="activation">activation actions</ref>.
         </p></dd>
 
-    <dt>&IMG.DATALINK; <ref id="DatalinkWindow">Datalink Window</ref></dt>
-    <dd><p>Displays a window for display of tables in the {links}-response
-        format defined by the <webref url="&URL.DATALINK;">DataLink</webref>
-        standard.  This is somewhat special-interest, so does not appear
-        in the toolbar.
-        </p></dd>
-
     </dl>
     </p></dd>
 
@@ -5827,7 +5820,14 @@ and those common to other windows (described in <ref id="commonMenus"/>).
 
 <p>The <label>Views</label> menu contains actions for launching the
 windows which give certain views of the table metadata.
-These are all provided as toolbar buttons as well.
+Most of these are provided as toolbar buttons as well,
+but one is rather special-interest, so appears only in this menu:
+<dl>
+<dt>&IMG.DATALINK; <ref id="DatalinkWindow">Datalink Window</ref></dt>
+<dd><p>Displays a window for display of tables in the {links}-response format
+    defined by the <webref url="&URL.DATALINK;">DataLink</webref> standard.
+    </p></dd>
+</dl>
 </p>
 
 <p>The <label>Graphics</label> menu contains actions for launching the
@@ -6941,6 +6941,146 @@ the superceded calculation will be stopped.
 <caption><px>DataLink Window</px></caption>
 <figureimage src="&FIG.DatalinkWindow;"/>
 </figure>
+
+<p>The DataLink Window, unlike the other Table View Windows,
+is rather specialist, and only applies to a particular type of table,
+namely the <em>{links}-response</em> table format defined
+by the <webref url="&URL.DATALINK;">DataLink standard</webref>.
+This format is sometimes loosely known as the DataLink format,
+and is used to represent links of various kinds to external data resources.
+</p>
+
+<p>Because of its specialist nature, this window
+does not appear in the Control Window toolbar
+like the other view windows, so to open it you have to
+select the &IMG.DATALINK; <label>DataLink View</label> item
+from the <label>Views</label> menu in the
+<ref id="ControlWindow">Control Window</ref>.
+This menu item will only be enabled if the loaded table looks
+like it has the appropriate form.
+</p>
+
+<p>The upper panel of this window displays the table content
+just like the <ref id="TableViewerWindow">Data Window</ref>,
+but the lower panel contains link-specific information about
+the row that is currently selected in the upper one.
+</p>
+
+<p>The <label>Row Link Type</label> sub-panel reports what type of
+link the given row represents.  Its value depends on which table
+columns are filled in, and may be one of:
+<ul>
+<li><strong>Fixed Access URL:</strong>
+    The link is to a URL given in the <code>access_url</code> column.
+    </li>
+<li><strong>Service Invocation:</strong>
+    The link is to a parameterised URL defined by a service descriptor
+    referenced in the <code>service_def</code> column, with parameters
+    supplied by other columns and/or user interaction.
+    </li>
+<li><strong>Link Error:</strong>
+    The row reports an error in the <code>error_message</code> column
+    indicating why a requested link cannot be supplied.
+    </li>
+</ul>
+</p>
+
+<p>The <label>Row Detail</label> panel provides additional information
+on the row.
+For the rows that actually represent a link, information such as
+link semantics and resource content type are listed where available,
+along with a URL sub-panel as below.
+</p>
+
+<p>The <label>URL</label> sub-panel, if present, shows the actual link URL
+and provides options to invoke it, i.e. to do something with the
+listed resource.  The parts of this panel are:
+<dl>
+<dt>URL</dt>
+<dd><p>Displays the URL that can be invoked,
+    with per-row parameters substituted in if applicable.
+    You can cut and paste from this field to copy the URL if required.
+    </p></dd>
+<dt>Type</dt>
+<dd><p>Displays TOPCAT's best guess, given the information available in
+    the row, about what kind of resource the link represents.
+    It doesn't always get it right.
+    If it's wrong, you can select one of the options manually from this
+    selector instead.
+    The value in this selector is by default updated every time
+    you select a new row in the table.
+    However, if you want the selected type to be "sticky",
+    i.e. not to be automatically updated,
+    uncheck the checkbox on the left of it.
+    Then the selected value will stay the same until it's changed manually.
+    The purpose of this selector is to give a hint to the Action selection.
+   </p></dd>
+<dt>Action</dt>
+<dd><p>Provides a list of possible actions to perform on the identified URL.
+    The action depends on the value of the <label>Type</label> field;
+    when the Type changes, the Action changes to the value it had
+    last time that Type was selected.  Each Type has a default Action,
+    but you can change it by choosing from the selector.
+    If you don't want the action to get updated automatically,
+    uncheck the checkbox on the left as explained above.
+    Possible actions are:
+    <ul>
+    <li><strong>Report URL:</strong>
+        displays the URL in the Result field.
+        </li>
+    <li><strong>View image internally:</strong>
+        displays the linked resource
+        (an image in a format like PNG, JPEG, FITS)
+        in an internal image viewer
+        </li>
+    <li><strong>Load Table:</strong>
+        loads the table from the linked resource (a FITS or VOTable table)
+        into this TOPCAT application
+        </li>
+    <li><strong>View DataLink Table:</strong>
+        displays the linked resource (a DataLink table)
+        in a new window like this one
+        </li>
+    <li><strong>Send FITS Image:</strong>
+        sends the linked resource (a FITS image)
+        using SAMP to external image viewers
+        </li>
+    <li><strong>Send Spectrum:</strong>
+        sends the linked resource (a spectrum)
+        using SAMP to external spectrum viewers
+        </li>
+    <li><strong>Send Table:</strong>
+        sends the linked resource (a VOTable)
+        using SAMP to external table viewers
+        </li>
+    <li><strong>Show Web Page:</strong>
+        opens the linked resource in the system web browser
+        </li>
+    </ul>
+    Note that there currently is not much opportunity to customise the
+    behaviour of the various Action options supplied by this window,
+    for instance to configure which SAMP clients to send messages to.
+    </p></dd>
+<dt>Invoke</dt>
+<dd><p>Hitting this button actually invokes the selected Action on the
+    current row.
+    </p></dd>
+<dt>Result</dt>
+<dd><p>Displays the outcome of the most recently invoked URL.
+    An OK or FAIL indicator is displayed, along with a text message
+    that may provide some detail.
+    </p></dd>
+</dl>
+</p>
+
+<p>In the case of a Service Invocation link type,
+there may be user-supplied parameters for the link.
+If so, a <label>Parameters</label> sub-panel appears
+at the bottom with a list of the available parameters
+(defaults may or may not be present) to allow you to enter values.
+Note that the user interface for supplying these parameters
+is currently very basic, and may be improved in future releases.
+</p>
 
 </subsubsect>
 
