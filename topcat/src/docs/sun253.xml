@@ -26280,117 +26280,166 @@ introduced since the last version:
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
-    <li>Stop the right hand side of the subsets stack being obscured
-        by the scrollbar when there are too many subsets to see at once.</li>
-    <li>Various improvements to the <ref id="form-contour">Contour</ref>
-        plotting form.
-        You can now contour quantities weighted by a given coordinate,
-        rather than just point density.
-        The smoothing from weighted point samples to the grid being
-        contoured can be performed using sum, mean and
-        other combination methods,
-        it now uses a Gaussian kernel rather than a square top hat,
-        and performance is considerably improved especially at large
-        smoothing widths.
-        The contour levels used are now <em>reported</em>,
-        so can be seen at the bottom of the Form tab in the control panel.
-        The contours are now plotted correctly right up to the edge of
-        the visible plot, and various bugs have been fixed.</li>
-    <li>The <ref id="form-linearfit">Linear Fit</ref> form is now
-        available in the <ref id="TimePlotWindow">Time Plot</ref> window
-        as well as the Plane Plot.</li>
-    <li>The <ref id="form-histogram">Histogram</ref> plot now offers
-        the <label>Combine</label> option
-        (sum, mean, median, min, max, stdev, etc) for weighted histograms.
-        This means that you can plot e.g. the mean value of a given quantity
-        per interval on the X axis rather than just the summed quantity.
-        A corresponding (though somewhat less well-defined) option is
-        also provided when plotting
-        <ref id="form-kde">KDE</ref>s and
-        <ref id="form-densogram">Densogram</ref>s.</li>
-    <li>The <ref id="form-histogram">Histogram</ref> plot form
-        now lets you export the calculated binned data per plot layer
-        for histograms plotted in the Plane and Time plot windows
-        as well as in the Histogram window
-        (from the <label>Report</label> panel or
-        <label>Export|Layer Data</label> menu).</li>
-    <li>Fix a bug in the Data Window <label>Subset From Unselected Rows</label>
-        action - it was including all unselected rows rather than
-        just the visible ones, as per documentation.
-        This was a regression bug introduced at v4.2-1.</li>
-    <li>Fix bug in VOSI 1.1 TAP metadata acquisition detail request URLs
-        (spuriously doubled '/' character).</li>
-    <li>Rearrange <label>TAP|Metadata Acquisition</label> menu options
-        in the TAP window to reflect current practice and standards.
-        The default behaviour (Auto) now uses VOSI-1.1-style scalable
-        tables endpoint rather than VOSI-1.0 for relatively small services
-        (this is still VOSI-1.0 compatible), the CADC option is withdrawn,
-        and some of the other options are re-ordered.</li>
-    <li>The <label>Combine</label> option that configures how
-        values are binned in various histogram-like plots
-        (<ref id="form-skydensity">SkyDensity</ref>,
-         <ref id="HealpixLayerControl">Healpix</ref>,
-         <ref id="form-grid">Grid</ref>,
-         and since this version also
-         <ref id="form-contour">Contour</ref>,
-         <ref id="form-histogram">Histogram</ref>,
-         <ref id="form-kde">KDE</ref>)
-        now has two new options,
-        <label>sum-per-unit</label> and <label>count-per-unit</label>.
-        These work like the existing sum and count options,
-        but scale the combined values by the relevant unit
-        (e.g. X axis unit or solid angle).
-        Where these units are physical, a <label>Per Unit</label>
-        parameter is also provided for scaling in convenient units:
-        second, day, year etc for time
-        (<ref id="TimePlotWindow">Time plot</ref>), and
-        square degree, arcminute, arcecond etc for solid angle
-        (<ref id="form-skydensity">SkyDensity</ref>,
-         <ref id="HealpixLayerControl">Healpix</ref>).
-        In some cases, the default Combine values have changed.</li>
-    <li>Prevent MultiCone window from sending cone search queries
-        with <code>sr=NaN</code>.</li>
-    <li>New array manipulation functions
-        <code>slice</code> and <code>pick</code>
-        added to class <ref id="Arrays">Arrays</ref>.</li>
-    <li>Improvements in documentation of the expression language functions:
-        in the <ref id="funcs">Function documentation</ref> section
-        classes are now listed in alphabetical order,
-        and the documentation of each function is more complete,
-        including descriptions of all parameters and return values,
-        with examples in some cases.
-        Some readability improvements have also been made in the
-        <ref id="MethodWindow">Available Functions Window</ref>.</li>
-    <li>The IPAC table reader now matches data type specifications
-        case-insensitively.</li>
-    <li>Add utility function <code>square</code>
-        to the expression language.</li>
-    <li>Add class <ref id="Gaia">Gaia</ref> to the expression language.
-        This contains functions for estimating distances from parallaxes 
-        and propagating astrometric parameters and errors to 
-        different epochs.  The functions are not specific
-        to data from the Gaia astrometry satellite,
-        but are presented in a form convenient for use 
-        with the Gaia DR2 source catalogue.</li>
-    <li>Make Available Functions window icon less ugly.</li>
-    <li>Adjust subset name assignment heuristics in
-        <ref id="ClassifyWindow">Column Classification Window</ref>.</li>
-    <li>Updated URLs in Messier demo table.</li>
-    <li>The width of table selector widgets is now limited,
-        so tables with very long labels no longer result
-        in very wide windows.</li>
-    <li>DataLink-style service descriptor RESOURCEs in input VOTables
-       (and FITS-plus tables) now appear as table parameters,
-       and can be seen in the
-       <ref id="ParameterWindow">Parameter Window</ref>
-       with class <code>ServiceDescriptor</code>.</li>
-    <li>Complete overhaul of <ref id="ActivationWindow">Activation Window</ref>
-        and the activation framework in general, including introduction
-        of a number of new activation types.</li>
-    <li>New <ref id="DatalinkWindow">DataLink Window</ref>.</li>
-    </ul>
+    <dl>
+    <dt>Activation and DataLink</dt>
+    <dd><p>There has been a complete overhaul of the Activation Action system,
+        partly motivated by the need to work with the DataLink standard,
+        and some related DataLink functionality introduced:
+        <ul>
+        <li>A new <ref id="ActivationWindow">Activation Window</ref> replaces
+            the old one, with more flexibility, better configurability,
+            better reporting, and better extensibility.</li>
+        <li>You can now configure multiple activation actions at once.</li>
+        <li>The result (success/failure plus detail message) is visible
+            for each action performed.</li>
+        <li>New general-purpose actions available:
+            <ref id="LoadTableActivationType">Load Table</ref>,
+            <ref id="ShellActivationType">Run System Command</ref>,
+            <ref id="SendTableActivationType">Send VOTable</ref>.</li>
+        <li>New DataLink-related actions:
+            <ref id="ServiceActivationType">Invoke Service</ref>,
+            <ref id="InvokeDatalinkActivationType">Invoke Datalink Row</ref>,
+            <ref id="ViewDatalinkActivationType">View Datalink Table</ref>.</li>
+        <li>The new framework is also much more extensible, so other actions
+            will be added in the future, and it's also possible to
+            plug in your own at runtime.</li>
+        <li>A new <ref id="DatalinkWindow">Datalink Window</ref> is added
+            for viewing {links}-response tables and invoking their links.</li>
+        <li>DataLink-style Service Descriptor RESOURCEs in input VOTables
+            (and FITS-plus tables) now become table parameters;
+            they can be viewed in the
+            <ref id="ParameterWindow">Parameter Window</ref> with class
+            <code>ServiceDescriptor</code>,
+            and will survive a VOTable Save/Load cycle.</li>
+        </ul>
+        Note at this release the Activation Window configuration is not
+        persisted, so you have to set it up every time you load a table.
+        In future releases, it is planned to save configuration state
+        with table sessions.
+        </p></dd>
+    <dt>New expression language functions</dt>
+    <dd><p>
+        <ul>
+        <li>Add class <ref id="Gaia">Gaia</ref> to the expression language.
+            This contains functions for estimating distances from parallaxes 
+            and propagating astrometric parameters and errors to 
+            different epochs.  These astrometric functions are not specific
+            to data from the Gaia astrometry satellite,
+            but are presented in a form convenient for use 
+            with the Gaia DR2 source catalogue.</li>
+        <li>New array manipulation functions
+            <code>slice</code> and <code>pick</code>
+            added to class <ref id="Arrays">Arrays</ref>.</li>
+        <li>New utility function <code>square</code> added to class
+            <ref id="Maths">Maths</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Plotting enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Various improvements to the <ref id="form-contour">Contour</ref>
+            plotting form.
+            You can now contour quantities weighted by a given coordinate,
+            rather than just point density.
+            The smoothing from weighted point samples to the grid being
+            contoured can be performed using sum, mean and
+            other combination methods,
+            it now uses a Gaussian kernel rather than a square top hat,
+            and performance is considerably improved especially at large
+            smoothing widths.
+            The contour levels used are now <em>reported</em>,
+            so can be seen at the bottom of the Form tab in the control panel.
+            The contours are now plotted correctly right up to the edge of
+            the visible plot, and various bugs have been fixed.</li>
+        <li>The <ref id="form-histogram">Histogram</ref> plot now offers
+            the <label>Combine</label> option
+            (sum, mean, median, min, max, stdev, etc) for weighted histograms.
+            This means that you can plot e.g. the mean value of a given quantity
+            per interval on the X axis rather than just the summed quantity.
+            A corresponding (though somewhat less well-defined) option is
+            also provided when plotting
+            <ref id="form-kde">KDE</ref>s and
+            <ref id="form-densogram">Densogram</ref>s.</li>
+        <li>The <label>Combine</label> option that configures how
+            values are binned in various histogram-like plots
+            (<ref id="form-skydensity">SkyDensity</ref>,
+             <ref id="HealpixLayerControl">Healpix</ref>,
+             <ref id="form-grid">Grid</ref>,
+             and since this version also
+             <ref id="form-contour">Contour</ref>,
+             <ref id="form-histogram">Histogram</ref>,
+             <ref id="form-kde">KDE</ref>)
+            now has two new options,
+            <label>sum-per-unit</label> and <label>count-per-unit</label>.
+            These work like the existing sum and count options,
+            but scale the combined values by the relevant unit
+            (e.g. X axis unit or solid angle).
+            Where these units are physical, a <label>Per Unit</label>
+            parameter is also provided for scaling in convenient units:
+            second, day, year etc for time
+            (<ref id="TimePlotWindow">Time plot</ref>), and
+            square degree, arcminute, arcecond etc for solid angle
+            (<ref id="form-skydensity">SkyDensity</ref>,
+             <ref id="HealpixLayerControl">Healpix</ref>).
+            In some cases, the default Combine values have changed.</li>
+        <li>The <ref id="form-histogram">Histogram</ref> plot form
+            now lets you export the calculated binned data per plot layer
+            for histograms plotted in the Plane and Time plot windows
+            as well as in the Histogram window
+            (from the <label>Report</label> panel or
+            <label>Export|Layer Data</label> menu).</li>
+        <li>The <ref id="form-linearfit">Linear Fit</ref> form is now
+            available in the <ref id="TimePlotWindow">Time Plot</ref> window
+            as well as the Plane Plot.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor behaviour changes</dt>
+    <dd><p>
+        <ul>
+        <li>The width of table selector widgets is now limited,
+            so tables with very long labels no longer result
+            in very wide windows.</li>
+        <li>Improvements in documentation of the expression language functions:
+            in the <ref id="funcs">Function documentation</ref> section
+            classes are now listed in alphabetical order,
+            and the documentation of each function is more complete,
+            including descriptions of all parameters and return values,
+            with examples in some cases.
+            Some readability improvements have also been made in the
+            <ref id="MethodWindow">Available Functions Window</ref>.</li>
+        <li>The Available Functions window icon is now a bit less ugly.</li>
+        <li>The IPAC table reader now matches data type specifications
+            case-insensitively.</li>
+        <li>Adjust subset name assignment heuristics in
+            <ref id="ClassifyWindow">Column Classification Window</ref>.</li>
+        <li>Updated URLs in Messier demo table.</li>
+        <li>Rearrange <label>TAP|Metadata Acquisition</label> menu options
+            in the TAP window to reflect current practice and standards.
+            The default behaviour (Auto) now uses VOSI-1.1-style scalable
+            tables endpoint rather than VOSI-1.0 for relatively small services
+            (this is still VOSI-1.0 compatible), the CADC option is withdrawn,
+            and some of the other options are re-ordered.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
+        <li>Stop the right hand side of the subsets stack being obscured
+            by the scrollbar when there are too many subsets
+            to see at once.</li>
+        <li>Fix a bug in the Data Window
+            <label>Subset From Unselected Rows</label>
+            action - it was including all unselected rows rather than
+            just the visible ones, as per documentation.
+            This was a regression bug introduced at v4.2-1.</li>
+        <li>Prevent MultiCone window from sending cone search queries
+            with <code>sr=NaN</code>.</li>
+        <li>Fix bug in VOSI 1.1 TAP metadata acquisition detail request URLs
+            (spuriously doubled '/' character).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p>
     </dd>
 
