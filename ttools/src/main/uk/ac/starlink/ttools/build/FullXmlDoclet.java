@@ -104,7 +104,13 @@ public class FullXmlDoclet extends XmlDoclet {
     protected void startClass( ClassDoc clazz ) throws IOException {
         discardOutput_ = !useClass( clazz );
         if ( headOnly_ ) {
-            out( "<dt>" + clazz.name() + "</dt>" );
+            out( "<dt>" 
+               + "<ref id='"
+               + getXmlId( clazz )
+               + "'>"
+               + clazz.name()
+               + "</ref>"
+               + "</dt>" );
             out( "<dd>" );
         }
         else {
