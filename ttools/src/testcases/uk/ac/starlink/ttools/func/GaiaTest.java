@@ -285,7 +285,6 @@ public class GaiaTest extends TestCase {
         if ( result != null ) {
             Tables.checkTable( result );
         }
-        new StarTableOutput().writeStarTable( result, "out.vot", "votable" );
 
         // This tests the results of the GACS ASTROMETRIC_PARAMETERS
         // and ASTROMETRIC_PARAMETER_ERROR functions with what I think
