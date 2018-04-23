@@ -11450,115 +11450,136 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
-    <li><code>votlint</code> no longer considers an integer- or array-typed
-        <code>PARAM</code> element with attribute <code>value=""</code>
-        to be an error.</li>
-    <li><code>taplint</code>'s VOTable validation now includes XML schema/DTD
-        validation as well as the custom VOTable checks.
-        It was always supposed to do this, but it seems that it didn't,
-        at least in recent versions.</li>
-    <li>Various improvements to the <ref id="layer-contour">Contour</ref>
-        plotter.
-        You can now contour quantities weighted by a given coordinate,
-        rather than just point density.
-        The smoothing from weighted point samples to the grid being
-        contoured can be performed using sum, mean and
-        other combination methods,
-        it now uses a Gaussian kernel rather than a square top hat,
-        and performance is considerably improved especially at large
-        smoothing widths.
-        The contour levels used are now <em>reported</em>,
-        so can be seen by specifying the <code>-verbose</code> flag.
-        The contours are now plotted correctly right up to the edge of
-        the visible plot, and various bugs have been fixed.</li>
-    <li>The <ref id="layer-linearfit">linearfit</ref> layer type
-        is now available for <ref id="plot2time"><code>plot2time</code></ref>
-        as well as <code>plot2plane</code>.</li>
-    <li>The <ref id="layer-histogram">histogram</ref> plotter
-        now has a <code>combine</code> parameter
-        (<code>sum</code>,
-         <code>mean</code>,
-         <code>median</code>,
-         <code>min</code>,
-         <code>max</code>,
-         <code>stdev</code>, etc)
-        for weighted histograms.
-        This means that you can plot e.g. the mean value of a given quantity
-        per interval on the X axis rather than just the summed quantity.
-        A corresponding (though somewhat less well-defined) option is
-        also provided for the
-        <ref id="layer-kde">kde</ref> and
-        <ref id="layer-densogram">densogram</ref> plotters.</li>
-    <li>The <code>combine</code> parameter that configures how
-        values are binned in various histogram-like plots
-        (<ref id="layer-skydensity">skydensity</ref>,
-         <ref id="layer-healpix">healpix</ref>)
-         <ref id="layer-grid">grid</ref>,
-         and since this version also
-         <ref id="layer-contour">contour</ref>,
-         <ref id="layer-histogram">histogram</ref>,
-         <ref id="layer-kde">kde</ref>)
-        now has two new options,
-        <code>sum-per-unit</code> and <code>count-per-unit</code>.
-        These work like the existing <code>sum</code> and <code>count</code>
-        options, but scale the combined values by the relevant unit
-        (e.g. X axis unit or solid angle).
-        Where these units are physical, a <code>perunit</code>
-        parameter is also provided for scaling in convenient units:
-        second, day, year etc for time
-        (<ref id="plot2time">plot2time</ref>), and
-        square degree, arcminute, arcecond etc for solid angle
-        (<ref id="layer-skydensity">skydensity</ref>,
-         <ref id="layer-healpix">healpix</ref>).
-        In some cases, the <code>combine</code> default values
-        have changed.</li>
-    <li>The same new <code>combine</code>/<code>perunit</code> options
-        are also added to the <ref id="tskymap">tskymap</ref> command.</li>
-    <li>Prevent <code>coneskymatch</code> from sending cone search queries
-        with <code>sr=NaN</code>.</li>
-    <li>Minor fix in taplint OBS stage;
-        ObsCore v1.1 <code>s_region</code> UCD is
-        <code>pos.outline;obs.field</code>, not
-        <code>phys.outline;obs.field</code>
-        (a relic from PR-ObsCore-1.1-20161004).</li>
-    <li>votlint no longer Warns about
-        <code>PARAM/@ref</code>-$gt;<code>FIELD/@ID</code> references,
-        since this usage pattern is now found in
-        DataLink Service Descriptors.</li>
-    <li>The <ref id="addcol"><code>addcol</code></ref>
-        and <ref id="colmeta"><code>colmeta</code></ref> filters
-        now accept <code>-shape</code> and <code>-elsize</code> flags
-        for defining array and string shape/extent column metadata.</li>
-    <li>New array manipulation functions
-        <code>slice</code> and <code>pick</code> added to class
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
-    <li>Improvements in documentation of the expression language functions:
-        in the <ref id="staticMethods">Function documentation</ref> section
-        classes are now listed in alphabetical order,
-        and examples are included in some cases.
-        Some readability improvements have also been made in the function
-        browser displayed by the <ref id="funcs"><code>funcs</code></ref>
-        command.</li>
-    <li>The IPAC table reader now matches data type specifications
-        case-insensitively.</li>
-    <li>Add utility function <code>square</code>
-        to the expression language.</li>
-    <li>Add class <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>
-        to the expression language.
-        This contains functions for estimating distances from parallaxes
-        and propagating astrometric parameters and errors to
-        different epochs.  The functions are not specific
-        to data from the Gaia astrometry satellite,
-        but are presented in a form convenient for use
-        with the Gaia DR2 source catalogue.</li>
-    <li>DataLink-style service descriptor RESOURCEs in input VOTables
-         (and FITS-plus tables) now appear as table parameters.</li>
-    <li>New DataLink validator
-        <ref id="datalinklint"><code>datalinklint</code></ref>
-        added.</li>
-    </ul>
+    <dl>
+    <dt>New Functionality</dt>
+    <dd><p>
+        <ul>
+        <li>New DataLink validator task
+            <ref id="datalinklint"><code>datalinklint</code></ref>.</li>
+        <li>Add class <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>
+            to the expression language.
+            This contains functions for estimating distances from parallaxes
+            and propagating astrometric parameters and errors to
+            different epochs.  The functions are not specific
+            to data from the Gaia astrometry satellite,
+            but are presented in a form convenient for use
+            with the Gaia DR2 source catalogue.</li>
+        <li>New array manipulation functions
+            <code>slice</code> and <code>pick</code> added to class
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+        <li>New utility function <code>square</code> added to class
+            <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref>.</li>
+        <li>The <ref id="addcol"><code>addcol</code></ref>
+            and <ref id="colmeta"><code>colmeta</code></ref> filters
+            now accept <code>-shape</code> and <code>-elsize</code> flags
+            for defining array and string shape/extent column metadata.</li>
+        <li>DataLink-style service descriptor RESOURCEs in input VOTables
+             (and FITS-plus tables) now appear as table parameters.</li>
+        </ul>
+        </p></dd>
+    <dt>Plotting Enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Various improvements to the <ref id="layer-contour">Contour</ref>
+            plotter.
+            You can now contour quantities weighted by a given coordinate,
+            rather than just point density.
+            The smoothing from weighted point samples to the grid being
+            contoured can be performed using sum, mean and
+            other combination methods,
+            it now uses a Gaussian kernel rather than a square top hat,
+            and performance is considerably improved especially at large
+            smoothing widths.
+            The contour levels used are now <em>reported</em>,
+            so can be seen by specifying the <code>-verbose</code> flag.
+            The contours are now plotted correctly right up to the edge of
+            the visible plot, and various bugs have been fixed.</li>
+        <li>The <ref id="layer-histogram">histogram</ref> plotter
+            now has a <code>combine</code> parameter
+            (<code>sum</code>,
+             <code>mean</code>,
+             <code>median</code>,
+             <code>min</code>,
+             <code>max</code>,
+             <code>stdev</code>, etc)
+            for weighted histograms.
+            This means that you can plot e.g. the mean value of a given quantity
+            per interval on the X axis rather than just the summed quantity.
+            A corresponding (though somewhat less well-defined) option is
+            also provided for the
+            <ref id="layer-kde">kde</ref> and
+            <ref id="layer-densogram">densogram</ref> plotters.</li>
+        <li>The <code>combine</code> parameter that configures how
+            values are binned in various histogram-like plots
+            (<ref id="layer-skydensity">skydensity</ref>,
+             <ref id="layer-healpix">healpix</ref>)
+             <ref id="layer-grid">grid</ref>,
+             and since this version also
+             <ref id="layer-contour">contour</ref>,
+             <ref id="layer-histogram">histogram</ref>,
+             <ref id="layer-kde">kde</ref>)
+            now has two new options,
+            <code>sum-per-unit</code> and <code>count-per-unit</code>.
+            These work like the existing <code>sum</code> and <code>count</code>
+            options, but scale the combined values by the relevant unit
+            (e.g. X axis unit or solid angle).
+            Where these units are physical, a <code>perunit</code>
+            parameter is also provided for scaling in convenient units:
+            second, day, year etc for time
+            (<ref id="plot2time">plot2time</ref>), and
+            square degree, arcminute, arcecond etc for solid angle
+            (<ref id="layer-skydensity">skydensity</ref>,
+             <ref id="layer-healpix">healpix</ref>).
+            In some cases, the <code>combine</code> default values
+            have changed.</li>
+        <li>The same new <code>combine</code>/<code>perunit</code> options
+            are also added to the <ref id="tskymap">tskymap</ref> command.</li>
+        <li>The <ref id="layer-linearfit">linearfit</ref> layer type
+            is now available for
+            <ref id="plot2time"><code>plot2time</code></ref>
+            as well as <code>plot2plane</code>.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor behaviour changes</dt>
+    <dd><p>
+        <ul>
+        <li><code>votlint</code> no longer considers an integer- or array-typed
+            <code>PARAM</code> element with attribute <code>value=""</code>
+            to be an error.</li>
+        <li><code>votlint</code> no longer Warns about
+            <code>PARAM/@ref</code>-&gt;<code>FIELD/@ID</code> references,
+            since this usage pattern is now found in
+            DataLink Service Descriptors.</li>
+            <li>The IPAC table reader now matches data type specifications
+                case-insensitively.</li>
+        <li>Improvements in documentation of the expression language functions:
+            in the <ref id="staticMethods">Function documentation</ref> section
+            classes are now listed in alphabetical order,
+            and examples are included in some cases.
+            Some readability improvements have also been made in the function
+            browser displayed by the <ref id="funcs"><code>funcs</code></ref>
+            command.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li><code>taplint</code>'s VOTable validation now includes
+            XML schema/DTD
+            validation as well as the custom VOTable checks.
+            It was always supposed to do this, but it seems that it didn't,
+            at least in recent versions.</li>
+        <li>Update JCDF to v1.2-3; fixes some CDF reading bugs.</li>
+        <li>Prevent <code>coneskymatch</code> from sending cone search queries
+            with <code>sr=NaN</code>.</li>
+        <li>Minor fix in <code>taplint</code> OBS stage;
+            ObsCore v1.1 <code>s_region</code> UCD is
+            <code>pos.outline;obs.field</code>, not
+            <code>phys.outline;obs.field</code>
+            (a relic from PR-ObsCore-1.1-20161004).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p>
     </dd>
 
