@@ -19,6 +19,8 @@ import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 
 import javax.media.jai.JAI;
@@ -187,9 +189,11 @@ public class SOGNavigatorImageDisplay
     public void setFilename( String fileOrUrl, boolean handle )
         throws Exception
     {
-        if ( fileOrUrl.startsWith( "http:" ) ) {
-            setURL( FileUtil.makeURL( null, fileOrUrl ) );
+        try {
+            setURL( new URL( fileOrUrl ) );
             return;
+        }
+        catch ( MalformedURLException e ) {
         }
         if ( !checkSave() ) {
             return;
