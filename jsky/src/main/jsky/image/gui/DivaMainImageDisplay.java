@@ -567,12 +567,8 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
         if (s.equals("file")) {
             setFilename(url.getFile());
         }
-        else if (s.equals("http")) {
-            downloadImageToTempFile(url);
-        }
         else {
-            DialogUtil.error("Unsupported URL syntax: " + s);
-            return;
+            downloadImageToTempFile(url);
         }
     }
 
