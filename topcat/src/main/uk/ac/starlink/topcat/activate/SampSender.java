@@ -217,9 +217,14 @@ public class SampSender {
         ErrInfo errInfo = response.getErrInfo();
         if ( response.isOK() ) {
             String txt = "Successfully sent to " + client;
-            Map result = response.getResult();
-            if ( result != null && ! result.isEmpty() ) {
-                txt += ": " + result;
+            try {
+                Map result = response.getResult();
+                if ( result != null && ! result.isEmpty() ) {
+                    txt += ": " + result;
+                }
+            }
+            catch ( RuntimeException e ) {
+                txt += ": " + e;
             }
             return Outcome.success( txt );
         }
