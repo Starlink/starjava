@@ -99,7 +99,7 @@ public class ViewDatalinkActivationType implements ActivationType {
         }
 
         protected Activator createActivator( ColumnData cdata ) {
-            return new UrlColumnActivator( cdata, false ) {
+            return new LocationColumnActivator( cdata, false ) {
                 protected Outcome activateLocation( String loc ) {
                     return invokeLocation( loc, dlPanel_, window_ );
                 }

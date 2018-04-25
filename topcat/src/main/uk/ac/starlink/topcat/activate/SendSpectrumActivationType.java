@@ -1,6 +1,9 @@
 package uk.ac.starlink.topcat.activate;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.swing.JComboBox;
@@ -15,6 +18,7 @@ import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * ActivationType for displaying a spectrum in an external viewer.
@@ -124,6 +128,21 @@ public class SendSpectrumActivationType implements ActivationType {
             }
             String loc = (String) locval;
 
+            /* Turn the location into a URL. */
+            final URL url;
+            File file = new File( loc );
+            if ( file.exists() ) {
+                url = URLUtils.makeFileURL( file );
+            }
+            else {
+                try {
+                    url = new URL( loc );
+                }
+                catch ( MalformedURLException e ) {
+                    return Outcome.failure( "Bad URL/no such file: " + loc );
+                }
+            }
+
             /* Read the rest of the row and use it to assemble
              * the spectrum metadata. */
             StarTable table = tcModel_.getDataModel();
@@ -154,7 +173,7 @@ public class SendSpectrumActivationType implements ActivationType {
 
             /* Send the message. */
             Message message = new Message( SPECTRUM_MTYPE );
-            message.addParam( "url", loc );
+            message.addParam( "url", url.toString() );
             message.addParam( "meta", SampCommunicator
                                      .sanitizeMap( specMeta ) );
             return specSender_.activateMessage( message );

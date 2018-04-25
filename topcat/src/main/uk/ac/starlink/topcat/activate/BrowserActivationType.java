@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.activate;
 
+import java.net.URL;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -68,9 +69,10 @@ public class BrowserActivationType implements ActivationType {
             final Object browser = browserChooser_.getSelectedItem();
             return browser instanceof Browser
                  ? new UrlColumnActivator( cdata, false ) {
-                       protected Outcome activateLocation( String loc ) {
-                           ((Browser) browser).showLocation( loc );
-                           return Outcome.success( loc );
+                       protected Outcome activateUrl( URL url ) {
+                           String turl = url.toString();
+                           ((Browser) browser).showLocation( turl );
+                           return Outcome.success( turl );
                        }
                    }
                  : null;

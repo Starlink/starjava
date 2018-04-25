@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.activate;
 
+import java.net.URL;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
 import org.astrogrid.samp.Message;
@@ -70,9 +71,9 @@ public class SendTableActivationType implements ActivationType {
         protected Activator createActivator( final ColumnData cdata ) {
             if ( clientListModel_.getSize() > 0 ) {
                 return new UrlColumnActivator( cdata, false ) {
-                    protected Outcome activateLocation( String loc ) {
+                    protected Outcome activateUrl( URL url ) {
                         Message message = new Message( VOTABLE_MTYPE );
-                        message.addParam( "url", loc );
+                        message.addParam( "url", url.toString() );
                         return votableSender_.activateMessage( message );
                     }
                 };

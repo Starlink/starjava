@@ -26448,6 +26448,9 @@ introduced since the last version:
     <ul>
     <li>Fix <ref id="imageViewers">SoG</ref> internal image viewer
         to work with non-HTTP URLs.</li>
+    <li>Fix SAMP-related <ref id="ActivationTypes">activation actions</ref>
+        so they work with filenames as well as URLs for locations
+        (as documented).</li>
     </ul>
     </p></dd>
 

@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.activate;
 
 import java.awt.BorderLayout;
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URI;
 import javax.swing.Box;
@@ -16,6 +18,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Partial ActivatorConfigurator implementation for activators
@@ -196,19 +199,21 @@ public abstract class UrlColumnConfigurator
 
     /**
      * Utility class providing a partial Activator implementation
-     * for UrlColumnConfigurators.
+     * for UrlColumnConfigurators that want a location (file or URL) value.
      */
-    protected static abstract class UrlColumnActivator implements Activator {
+    protected static abstract class LocationColumnActivator
+            implements Activator {
         private final ColumnData cdata_;
         private final boolean invokeOnEdt_;
 
         /**
          * Constructor.
          *
-         * @param  cdata  column data containing URL strings
+         * @param  cdata  column data containing location strings
          * @param  invokeOnEdt  whether to invoke on the EDT
          */
-        protected UrlColumnActivator( ColumnData cdata, boolean invokeOnEdt ) {
+        protected LocationColumnActivator( ColumnData cdata,
+                                           boolean invokeOnEdt ) {
             cdata_ = cdata;
             invokeOnEdt_ = invokeOnEdt;
         }
@@ -238,12 +243,56 @@ public abstract class UrlColumnConfigurator
         }
 
         /**
-         * Consumes the URL corresponding to the row
+         * Consumes the location string corresponding to the row
          * to perform the activation action.
          *
-         * @param  loc  URL/location string
+         * @param  loc  location string, not null or blank
          * @return  outcome
          */
         protected abstract Outcome activateLocation( String loc );
+    }
+
+    /**
+     * Utility class providing a partial Activator implementation
+     * for UrlColumnConfigurators that want an actual URL value.
+     */
+    protected static abstract class UrlColumnActivator
+            extends LocationColumnActivator {
+
+        /**
+         * Constructor.
+         *
+         * @param  cdata  column data containing location strings
+         * @param  invokeOnEdt  whether to invoke on the EDT
+         */
+        protected UrlColumnActivator( ColumnData cdata, boolean invokeOnEdt ) {
+            super( cdata, invokeOnEdt );
+        }
+
+        protected final Outcome activateLocation( String loc ) {
+            final URL url;
+            File file = new File( loc );
+            if ( file.exists() ) {
+                url = URLUtils.makeFileURL( file );
+            }
+            else {
+                try {
+                    url = new URL( loc );
+                }
+                catch ( MalformedURLException e ) {
+                    return Outcome.failure( "Bad URL/no such file: " + loc );
+                }
+            }
+            return activateUrl( url );
+        }
+
+        /**
+         * Consumes the URL corresponding to the row
+         * to perform the activation action.
+         *
+         * @param  url  URL, not null
+         * @return  outcome
+         */
+        protected abstract Outcome activateUrl( URL url );
     }
 }

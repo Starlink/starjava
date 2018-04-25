@@ -81,7 +81,7 @@ public class LoadTableActivationType implements ActivationType {
         }
 
         protected Activator createActivator( ColumnData cdata ) {
-            return new UrlColumnActivator( cdata, false ) {
+            return new LocationColumnActivator( cdata, false ) {
                 protected Outcome activateLocation( final String loc ) {
                     StarTableFactory tfact = controlWindow_.getTableFactory();
                     String format = (String) formatSelector_.getSelectedItem();
