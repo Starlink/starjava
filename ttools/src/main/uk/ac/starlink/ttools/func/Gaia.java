@@ -50,8 +50,10 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  *     ApJ <em>832</em>, a137 (2016)
  *     <a href="http://adsabs.harvard.edu/abs/2016ApJ...832..137A"
  *                                           >2016ApJ...832..137A</a></li>
- * <li>X.Luri et al., "<em>On the use of Gaia parallaxes</em>",
- *     A&amp;A <em>in press</em> (2018)</li>
+ * <li>X.Luri et al., "<em>Gaia Data Release 2: Using Gaia Parallaxes</em>",
+ *     A&amp;A <em>in press</em> (2018)
+ *     <a href="https://arxiv.org/abs/1804.09376"
+ *                             >arXiv:1804.09376</a></li>
  * </ul>
  *
  * <p>The functions provided here correspond to calculations from
