@@ -127,24 +127,23 @@ public class TapServiceFinderPanel extends JPanel {
         /* Notify listeners if selection changes. */
         sTree_.addTreeSelectionListener( new TreeSelectionListener() {
             public void valueChanged( TreeSelectionEvent evt ) {
-                TapServiceFinder.Service oldService = selectedService_;
-                selectedService_ = TapServiceTreeModel
-                                  .getService( evt.getNewLeadSelectionPath() );
-                TapServiceFinderPanel.this
-                                     .firePropertyChange( TAP_SERVICE_PROPERTY,
-                                                          oldService,
-                                                          selectedService_ );
+                updateServiceSelection( evt.getNewLeadSelectionPath() );
             }
         } );
 
         /* Notify listeners if a selection is made (double-click). */
         sTree_.addMouseListener( new MouseAdapter() {
             public void mousePressed( MouseEvent evt ) {
-                if ( evt.getClickCount() == 2 &&
-                     sTree_.getRowForLocation( evt.getX(), evt.getY() ) >= 0 ) {
-                    ActionEvent actEvt = new ActionEvent( this, 0, "click2" );
-                    for ( ActionListener l : listeners_ ) {
-                        l.actionPerformed( actEvt );
+                TreePath selPath =
+                    sTree_.getPathForLocation( evt.getX(), evt.getY() );
+                if ( selPath != null ) {
+                    updateServiceSelection( selPath );
+                    if ( evt.getClickCount() == 2 ) {
+                        ActionEvent actEvt =
+                            new ActionEvent( this, 0, "click2" );
+                        for ( ActionListener l : listeners_ ) {
+                            l.actionPerformed( actEvt );
+                        }
                     }
                 }
             }
@@ -586,6 +585,32 @@ public class TapServiceFinderPanel extends JPanel {
             selModel.removeSelectionPaths( pathsToRemove
                                           .toArray( new TreePath[ 0 ] ) );
         }
+    }
+
+    /**
+     * Forces an update of the currently selected service to that
+     * indicated by a tree path.  Should be called if the user has
+     * selected a new tree row.
+     *
+     * @param  path  new selection path (may be null)
+     */
+    private void updateServiceSelection( TreePath path ) {
+        TapServiceFinder.Service oldService = selectedService_;
+        selectedService_ = TapServiceTreeModel.getService( path );
+
+        /* Jump through an extra hoop to ensure that property listeners
+         * are informed even if the property hasn't actually changed.
+         * This might be a mild abuse of the PropertyChangeListener contract,
+         * but it should be harmless, and it's required in this case to
+         * make sure the TAP URL is updated to the currently selected
+         * value even if the selected value in the tree hasn't changed
+         * (since the user might have changed it in other components). */
+        if ( oldService != null && oldService.equals( selectedService_ ) ) {
+            firePropertyChange( TAP_SERVICE_PROPERTY, oldService, null );
+            oldService = null;
+        }
+        firePropertyChange( TAP_SERVICE_PROPERTY,
+                            oldService, selectedService_ );
     }
 
     /**

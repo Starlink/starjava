@@ -26488,6 +26488,8 @@ introduced since the last version:
         Obsolete browser options Firefox and Mozilla have been removed
         from the <ref id="BrowserActivationType">View in Web Browser</ref>
         activation action.</li>
+    <li>Fix minor GUI issue with selecting TAP services by double-clicking
+        on their name in the selection tree.</li>
     </ul>
     </p></dd>
 
