@@ -3,12 +3,14 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -81,6 +83,7 @@ public class TapResultReader {
             "deleted from the server when its data is no longer required.",
             "If it is not deleted, then the job is left on the TAP server",
             "and it can be accessed via the normal UWS REST endpoints",
+            "or using <code>tapresume</code>",
             "until it is destroyed by the server.",
             "</p>",
             "<p>Possible values:",
@@ -146,6 +149,23 @@ public class TapResultReader {
 
             public StarTable waitForResult( final UwsJob tapJob )
                     throws IOException {
+                StoragePolicy storage = tfact.getStoragePolicy();
+
+                /* For the special case deletion mode == now,
+                 * delete the job immediately. */
+                if ( ! delete.canWait() ) {
+                    try {
+                        return TapQuery.getResult( tapJob, coding, storage );
+                    }
+                    catch ( IOException e ) {
+                        throw new IOException( "Job not completed, no table" );
+                    }
+                    finally {
+                        considerDeletion( tapJob );
+                    }
+                }
+
+                /* Otherwise, follow the job's progress. */
                 UwsJob.JobWatcher progger = null;
                 if ( progress ) {
                     progger = new UwsJob.JobWatcher() {
@@ -159,16 +179,14 @@ public class TapResultReader {
                 if ( delete.isDeletionPossible() ) {
                     deleteThread = new Thread( "UWS job deleter" ) {
                         public void run() {
-                            considerDeletion( tapJob );
+                            considerDeletionOnShutdown( tapJob );
                         }
                     };
                     Runtime.getRuntime().addShutdownHook( deleteThread );
                 }
                 try {
-                    table = TapQuery
-                           .waitForResult( tapJob, coding,
-                                           tfact.getStoragePolicy(),
-                                           pollMillis );
+                    table = TapQuery.waitForResult( tapJob, coding,
+                                                    storage, pollMillis );
                 }
                 catch ( InterruptedException e ) {
                     considerDeletionEarly( tapJob );
@@ -216,6 +234,37 @@ public class TapResultReader {
             }
 
             /**
+             * Examines a UWS job on JVM shutdown, and if suitable for
+             * deletion, deletes it.  Otherwise, informs the user that
+             * it's still running.
+             * Should be called from a shutdown hook thread.
+             *
+             * @param  uwsJob   job to delete
+             */
+            private void considerDeletionOnShutdown( UwsJob uwsJob ) {
+                String phase = uwsJob.getLastInfo().getPhase();
+                UwsStage stage = UwsStage.forPhase( phase );
+                if ( delete.shouldDelete( stage ) ) {
+                    uwsJob.attemptDelete();
+                    if ( progress ) {
+                        errStream.println( "DELETED" );
+                        errStream.flush();
+                    }
+                }
+                else if ( stage == UwsStage.RUNNING ||
+                          stage == UwsStage.UNSTARTED ) {
+                    URL joburl = uwsJob.getJobUrl();
+                    errStream.println( "Job still " + phase
+                                     + " on server at " + joburl );
+                    errStream.println( "Consider aborting it: "
+                                     + "stilts tapresume"
+                                     + " delete=" + DeleteMode.now
+                                     + " joburl='" + joburl + "'" );
+                    errStream.flush();
+                }
+            }
+
+            /**
              * Examine a UWS job, and if it is suitable for deletion,
              * delete it.  May be called from any thread.
              *
@@ -255,37 +304,46 @@ public class TapResultReader {
     /**
      * Enumeration of UWS job deletion modes.
      */
-    private static enum DeleteMode {
+    public static enum DeleteMode {
 
         finished( "delete only if the job finished, successfully or not",
-                  true ) {
-            public boolean shouldDelete( UwsStage stage ) {
+                  true, true ) {
+            boolean shouldDelete( UwsStage stage ) {
                 return stage == UwsStage.FINISHED;
             }
         },
-        never( "do not delete", false ) {
-            public boolean shouldDelete( UwsStage stage ) {
+        never( "do not delete", false, true ) {
+            boolean shouldDelete( UwsStage stage ) {
                 return false;
             }
         },
-        always( "delete in any case", true ) {
-            public boolean shouldDelete( UwsStage stage ) {
+        always( "delete on command exit", true, true ) {
+            boolean shouldDelete( UwsStage stage ) {
+                return true;
+            }
+        },
+        now( "delete and return immediately", true, false ) {
+            boolean shouldDelete( UwsStage stage ) {
                 return true;
             }
         };
 
         private final String description_;
         private final boolean isDeletionPossible_;
+        private final boolean canWait_;
 
         /**
          * Constructor.
          *
          * @param  description   short XML description
          * @param  isDeletionPossible  whether shouldDelete can ever return true
+         * @param  canWait   whether waiting for a result is permissible
          */
-        private DeleteMode( String description, boolean isDeletionPossible ) {
+        DeleteMode( String description, boolean isDeletionPossible,
+                    boolean canWait ) {
             description_ = description;
             isDeletionPossible_ = isDeletionPossible;
+            canWait_ = canWait;
         }
 
         /**
@@ -293,15 +351,25 @@ public class TapResultReader {
          *
          * @param   stage  UWS stage
          */
-        public abstract boolean shouldDelete( UwsStage stage );
+        abstract boolean shouldDelete( UwsStage stage );
 
         /**
          * Whether this this mode ever recommends deletion.
          *
-         * @param  true iff {@link #shouldDelete} can ever return true
+         * @return  true iff {@link #shouldDelete} can ever return true
          */
-        public boolean isDeletionPossible() {
+        boolean isDeletionPossible() {
             return isDeletionPossible_;
+        }
+
+        /**
+         * Whether this mode permits waiting for the job to finish.
+         * If false, deletion should proceed immediately.
+         *
+         * @return   true if waiting is permitted
+         */
+        boolean canWait() {
+            return canWait_;
         }
 
         /**
@@ -310,7 +378,7 @@ public class TapResultReader {
          *
          * @return  XML documentation string
          */
-        public static String getListItems() {
+        static String getListItems() {
             StringBuffer sbuf = new StringBuffer();
             for ( DeleteMode dMode : Arrays.asList( values() ) ) {
                 sbuf.append( "<li>" )

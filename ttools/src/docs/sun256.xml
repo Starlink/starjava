@@ -11588,6 +11588,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>VOTable output tweaked: single quotes now used for attribute
         values if attribute contains double quotes.</li>
+    <li>Add new option <code>delete=now</code> to
+        <ref id="tapresume"><code>tapresume</code></ref>,
+        which lets you delete a TAP async job.
+        Also add a message to <ref id="tapquery"><code>tapquery</code></ref>
+        inviting the user to delete interrupted jobs in this way.</li>
     </ul>
     </p>
     </dd>
