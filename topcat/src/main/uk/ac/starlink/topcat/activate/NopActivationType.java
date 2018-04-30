@@ -64,6 +64,11 @@ public class NopActivationType implements ActivationType {
             }
             public void removeActionListener( ActionListener l ) {
             }
+            public ConfigState getState() {
+                return new ConfigState();
+            }
+            public void setState( ConfigState state ) {
+            }
         };
     }
 }

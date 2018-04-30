@@ -80,6 +80,8 @@ public class CutoutActivationType implements ActivationType {
         private final JComboBox serviceSelector_;
         private final IntSelector npixSelector_;
         private final JLabel pixsizeLabel_;
+        private static final String SERVICE_KEY = "service";
+        private static final String NPIX_KEY = "npix";
 
         /**
          * Constructor.
@@ -126,6 +128,19 @@ public class CutoutActivationType implements ActivationType {
 
         public String getSkyConfigMessage() {
             return null;
+        }
+
+        public ConfigState getState() {
+            ConfigState state = getSkyPosState();
+            state.saveSelection( SERVICE_KEY, serviceSelector_ );
+            state.saveSelection( NPIX_KEY, npixSelector_.getComboBox() );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            setSkyPosState( state );
+            state.restoreSelection( SERVICE_KEY, serviceSelector_ );
+            state.restoreSelection( NPIX_KEY, npixSelector_.getComboBox() );
         }
 
         /**

@@ -23,6 +23,10 @@ public abstract class SkyPosConfigurator extends AbstractActivatorConfigurator {
     private final LabelledComponentStack stack_;
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
+    private static final String RACOL_KEY = "ra_col";
+    private static final String RAUNIT_KEY = "ra_unit";
+    private static final String DECOL_KEY = "dec_col";
+    private static final String DEUNIT_KEY = "dec_unit";
 
     /**
      * Constructor.
@@ -99,6 +103,34 @@ public abstract class SkyPosConfigurator extends AbstractActivatorConfigurator {
         else {
             return "RA, Dec not specified";
         }
+    }
+
+    /**
+     * Returns a partial config state, giving the current configuration
+     * of the sky position components.
+     *
+     * @return   sky position state
+     */
+    protected ConfigState getSkyPosState() {
+        ConfigState state = new ConfigState();
+        state.saveSelection( RACOL_KEY, raSelector_.getColumnComponent() );
+        state.saveSelection( RAUNIT_KEY, raSelector_.getUnitComponent() );
+        state.saveSelection( DECOL_KEY, decSelector_.getColumnComponent() );
+        state.saveSelection( DEUNIT_KEY, decSelector_.getUnitComponent() );
+        return state;
+    }
+
+    /**
+     * Restores the sky position configuration of this configurator
+     * from a stored state object.
+     *
+     * @param  state sky position state
+     */
+    protected void setSkyPosState( ConfigState state ) {
+        state.restoreSelection( RACOL_KEY, raSelector_.getColumnComponent() );
+        state.restoreSelection( RAUNIT_KEY, raSelector_.getUnitComponent() );
+        state.restoreSelection( DECOL_KEY, decSelector_.getColumnComponent() );
+        state.restoreSelection( DEUNIT_KEY, decSelector_.getUnitComponent() );
     }
 
     /**

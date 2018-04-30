@@ -109,5 +109,13 @@ public class ViewDatalinkActivationType implements ActivationType {
         protected String getConfigMessage( ColumnData cdata ) {
             return null;
         }
+
+        public ConfigState getState() {
+            return getUrlState();
+        }
+
+        public void setState( ConfigState state ) {
+            setUrlState( state );
+        }
     }
 }

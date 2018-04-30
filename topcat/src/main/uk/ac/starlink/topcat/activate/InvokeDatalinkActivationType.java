@@ -56,6 +56,7 @@ public class InvokeDatalinkActivationType implements ActivationType {
         private final TopcatModel tcModel_;
         private final LinkRowPanel linkPanel_;
         private final JFrame window_;
+        private static final String AUTO_KEY = "auto";
 
         /**
          * Constructor.
@@ -135,6 +136,16 @@ public class InvokeDatalinkActivationType implements ActivationType {
             else {
                 return null;
             }
+        }
+
+        public ConfigState getState() {
+            ConfigState state = new ConfigState();
+            state.saveFlag( AUTO_KEY, autoModel_ );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            state.restoreFlag( AUTO_KEY, autoModel_ );
         }
     }
 }

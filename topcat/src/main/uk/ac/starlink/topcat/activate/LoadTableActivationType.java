@@ -50,6 +50,8 @@ public class LoadTableActivationType implements ActivationType {
         private final ControlWindow controlWindow_;
         private final JComboBox formatSelector_;
         private final JCheckBox multipleSelector_;
+        private static final String FORMAT_KEY = "format";
+        private static final String MULTIPLE_KEY = "multiple";
 
         /**
          * Constructor.
@@ -136,6 +138,19 @@ public class LoadTableActivationType implements ActivationType {
 
         protected String getConfigMessage( ColumnData cdata ) {
             return null;
+        }
+
+        public ConfigState getState() {
+            ConfigState state = getUrlState();
+            state.saveSelection( FORMAT_KEY, formatSelector_ );
+            state.saveFlag( MULTIPLE_KEY, multipleSelector_.getModel() );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            setUrlState( state );
+            state.restoreSelection( FORMAT_KEY, formatSelector_ );
+            state.restoreFlag( MULTIPLE_KEY, multipleSelector_.getModel() );
         }
     }
 }

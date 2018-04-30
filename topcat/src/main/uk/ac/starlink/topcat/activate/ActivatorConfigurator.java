@@ -66,4 +66,20 @@ public interface ActivatorConfigurator {
      * @param  listener  listener to remove
      */
     void removeActionListener( ActionListener listener );
+
+    /**
+     * Returns an object that contains the current state of this configurator.
+     * This includes options selected by the user, but does not include
+     * any description of the table on which this configurator is working.
+     *
+     * @return  configuration state
+     */
+    ConfigState getState();
+
+    /**
+     * Restores the state of this object from a given state object.
+     *
+     * @param  state   stored state
+     */
+    void setState( ConfigState state );
 }

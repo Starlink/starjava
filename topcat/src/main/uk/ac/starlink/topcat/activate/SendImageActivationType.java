@@ -86,5 +86,13 @@ public class SendImageActivationType implements ActivationType {
         protected String getConfigMessage( ColumnData cdata ) {
             return imageSender_.getUnavailableText();
         }
+
+        public ConfigState getState() {
+            return getUrlState();
+        }
+
+        public void setState( ConfigState state ) {
+            setUrlState( state );
+        }
     }
 }

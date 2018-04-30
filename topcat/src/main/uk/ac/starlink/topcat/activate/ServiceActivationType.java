@@ -74,6 +74,9 @@ public class ServiceActivationType implements ActivationType {
         private final JComponent paramContainer_;
         private ServiceParamPanel paramPanel_;
 
+        private static final String SERVICE_KEY = "service";
+        private static final String ACTION_KEY = "action";
+
         /**
          * Constructor.
          *
@@ -151,6 +154,19 @@ public class ServiceActivationType implements ActivationType {
             else {
                 return null;
             }
+        }
+
+        public ConfigState getState() {
+            ConfigState state = new ConfigState();
+            state.saveSelection( SERVICE_KEY, servicePanel_.serviceSelector_ );
+            state.saveSelection( ACTION_KEY, invokePanel_.invokeSelector_ );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            state.restoreSelection( SERVICE_KEY,
+                                    servicePanel_.serviceSelector_ );
+            state.restoreSelection( ACTION_KEY, invokePanel_.invokeSelector_ );
         }
 
         /**

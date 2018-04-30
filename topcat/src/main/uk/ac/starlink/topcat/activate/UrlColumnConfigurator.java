@@ -34,6 +34,7 @@ public abstract class UrlColumnConfigurator
     private final TopcatModel tcModel_;
     private final JComboBox colSelector_;
     private final Box queryPanel_;
+    private static final String URLCOL_KEY = "url";
 
     /**
      * Constructor.
@@ -104,6 +105,27 @@ public abstract class UrlColumnConfigurator
         return item instanceof ColumnData
              ? getConfigMessage( (ColumnData) item )
              : "No location specified";
+    }
+
+    /**
+     * Returns a partial config state, giving the current configuration
+     * of the selected URL column.
+     *
+     * @return  url state
+     */
+    protected ConfigState getUrlState() {
+        ConfigState state = new ConfigState();
+        state.saveSelection( URLCOL_KEY, colSelector_ );
+        return state;
+    }
+
+    /**
+     * Restores the URL selection from a stored state object.
+     *
+     * @param  state  URL state
+     */
+    protected void setUrlState( ConfigState state ) {
+        state.restoreSelection( URLCOL_KEY, colSelector_ );
     }
 
     /**

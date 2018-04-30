@@ -50,6 +50,12 @@ public class TopcatSkyPosActivationType implements ActivationType {
             public String getSkyConfigMessage() {
                 return null;
             }
+            public ConfigState getState() {
+                return getSkyPosState();
+            }
+            public void setState( ConfigState state ) {
+                setSkyPosState( state );
+            }
         };
     }
 }

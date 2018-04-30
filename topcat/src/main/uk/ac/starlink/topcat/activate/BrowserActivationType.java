@@ -42,6 +42,7 @@ public class BrowserActivationType implements ActivationType {
     private static class BrowserColumnConfigurator
                          extends UrlColumnConfigurator {
         private final JComboBox browserChooser_;
+        private static final String BROWSER_KEY = "browser";
 
         /**
          * Constructor.
@@ -80,6 +81,17 @@ public class BrowserActivationType implements ActivationType {
 
         protected String getConfigMessage( ColumnData cdata ) {
             return null;
+        }
+
+        public ConfigState getState() {
+            ConfigState state = getUrlState();
+            state.saveSelection( BROWSER_KEY, browserChooser_ );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            setUrlState( state );
+            state.restoreSelection( BROWSER_KEY, browserChooser_ );
         }
     }
 

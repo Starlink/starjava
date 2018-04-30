@@ -71,6 +71,15 @@ public class IntSelector extends JPanel implements ItemListener {
     }
 
     /**
+     * Returns the combo box that forms the main part of this selector.
+     *
+     * @return  combo box
+     */
+    public JComboBox getComboBox() {
+        return cbox_;
+    }
+
+    /**
      * Implements ItemListener interface, called when the selection is
      * changed.  This maintains the value of the currently selected value
      * and validates it.

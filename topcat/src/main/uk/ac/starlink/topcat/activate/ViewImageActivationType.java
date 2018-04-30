@@ -58,6 +58,7 @@ public class ViewImageActivationType implements ActivationType {
     private static class ImageColumnConfigurator extends UrlColumnConfigurator {
         final TopcatModel tcModel_;
         final JComboBox viewerSelector_;
+        private static final String VIEWER_KEY = "viewer";
 
         /**
          * Constructor.
@@ -80,6 +81,15 @@ public class ViewImageActivationType implements ActivationType {
         }
         public String getConfigMessage( ColumnData cdata ) {
             return null;
+        }
+        public ConfigState getState() {
+            ConfigState state = getUrlState();
+            state.saveSelection( VIEWER_KEY, viewerSelector_ );
+            return state;
+        }
+        public void setState( ConfigState state ) {
+            setUrlState( state );
+            state.restoreSelection( VIEWER_KEY, viewerSelector_ );
         }
     }
 

@@ -82,5 +82,13 @@ public class SendSkyPosActivationType implements ActivationType {
         public String getSkyConfigMessage() {
             return skySender_.getUnavailableText();
         }
+
+        public ConfigState getState() {
+            return getSkyPosState();
+        }
+
+        public void setState( ConfigState state ) {
+            setSkyPosState( state );
+        }
     }
 }

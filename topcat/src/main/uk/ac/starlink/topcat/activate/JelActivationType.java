@@ -56,6 +56,8 @@ public class JelActivationType implements ActivationType {
         private final TopcatModel tcModel_;
         private final JTextPane textPanel_;
         private final JCheckBox syncSelector_;
+        private static final String TEXT_KEY = "text";
+        private static final String SYNC_KEY = "sync";
 
         /**
          * Constructor.
@@ -112,6 +114,18 @@ public class JelActivationType implements ActivationType {
             catch ( CompilationException e ) {
                 return "Expression error: " + e.getMessage();
             }
+        }
+
+        public ConfigState getState() {
+            ConfigState state = new ConfigState();
+            state.saveText( TEXT_KEY, textPanel_ );
+            state.saveFlag( SYNC_KEY, syncSelector_.getModel() );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            state.restoreText( TEXT_KEY, textPanel_ );
+            state.restoreFlag( SYNC_KEY, syncSelector_.getModel() );
         }
 
         /**

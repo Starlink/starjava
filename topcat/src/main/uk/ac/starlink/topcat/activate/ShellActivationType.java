@@ -71,6 +71,11 @@ public class ShellActivationType implements ActivationType {
         private final JCheckBox syncSelector_;
         private final JCheckBox captureSelector_;
 
+        private static final String SYNC_KEY = "sync";
+        private static final String CAPTURE_KEY = "capture";
+        private static final String NWORD_KEY = "nword";
+        private static final String IWORD_KEY = "word";
+
         /**
          * Constructor.
          *
@@ -145,6 +150,34 @@ public class ShellActivationType implements ActivationType {
             catch ( CompilationException e ) {
                 return "Expression error: " + e.getMessage();
             }
+        }
+
+        public ConfigState getState() {
+            ConfigState state = new ConfigState();
+            state.saveText( IWORD_KEY + 0, cmdField_ );
+            List<ArgsPanel.Entry> entries = argsPanel_.entries_;
+            int nWord = 1 + entries.size();
+            state.setInt( NWORD_KEY, nWord );
+            for ( int iw = 1; iw < nWord; iw++ ) {
+                state.saveText( IWORD_KEY + iw,
+                                entries.get( iw - 1 ).field_ );
+            }
+            state.saveFlag( SYNC_KEY, syncSelector_.getModel() );
+            state.saveFlag( CAPTURE_KEY, captureSelector_.getModel() );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            int nWord = state.getInt( NWORD_KEY );
+            argsPanel_.reset( nWord - 1 );
+            state.restoreText( IWORD_KEY + 0, cmdField_ );
+            List<ArgsPanel.Entry> entries = argsPanel_.entries_;
+            for ( int iw = 1; iw < nWord; iw++ ) {
+                state.restoreText( IWORD_KEY + iw,
+                                   entries.get( iw - 1 ).field_ );
+            }
+            state.restoreFlag( SYNC_KEY, syncSelector_.getModel() );
+            state.restoreFlag( CAPTURE_KEY, captureSelector_.getModel() );
         }
 
         /**
@@ -345,6 +378,22 @@ public class ShellActivationType implements ActivationType {
                 args[ i ] = entries_.get( i ).field_.getText();
             }
             return args;
+        }
+
+        /**
+         * Clears the content of this panel and sets the number of
+         * entries as specified.
+         *
+         * @param  nEntry  required number of entries
+         */
+        public void reset( int nEntry ) {
+            while ( entries_.size() > 0 ) {
+                removeEntry();
+            }
+            for ( int i = 0; i < nEntry; i++ ) {
+                addEntry();
+            }
+            countChanged();
         }
 
         /**

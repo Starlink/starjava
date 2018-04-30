@@ -104,6 +104,14 @@ public class SendSpectrumActivationType implements ActivationType {
             return specSender_.getUnavailableText();
         }
 
+        public ConfigState getState() {
+            return getUrlState();
+        }
+
+        public void setState( ConfigState state ) {
+            setUrlState( state );
+        }
+
         /**
          * Performs the activation action by sending the spectrum.
          *

@@ -89,6 +89,11 @@ public class SendIndexActivationType implements ActivationType {
                     return null;
                 }
             }
+            public ConfigState getState() {
+                return new ConfigState();
+            }
+            public void setState( ConfigState state ) {
+            }
         };
     }
 
