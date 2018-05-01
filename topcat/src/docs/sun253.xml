@@ -3441,6 +3441,9 @@ DS9 to load an
 image in a table ImageURL column.
 All the options, along with details of how to configure them,
 are listed in <ref id="ActivationTypes"/>.
+Since v4.6-1, all the defined Activation Actions are saved when
+you <ref id="sessionSave">save the session</ref>
+(though not if you just save the table).
 </p>
 
 <p>If none of these options fits your particular requirements,
@@ -17292,8 +17295,8 @@ The saved items include:
 <li>All defined Row Subsets</li>
 <li>The current Sort Order</li>
 <li>The current Row Subset</li>
+<li>All Activation Actions</li>
 <li>The label</li>
-<li>Whether row selection causes a SAMP broadcast</li>
 </ul>
 </p>
 
@@ -20296,6 +20299,10 @@ Each line contains four entries:
     for writing algebraic expressions (see <ref id="jel"/>).
     </p></dd>
 </dl>
+</p>
+
+<p>All the state of this window is saved and restored if you save its
+corresponding table using the <ref id="sessionSave">Save Session</ref> option.
 </p>
 
 <subsubsect id="ActivationTypes">
@@ -26467,6 +26474,9 @@ introduced since the last version:
         values if attribute contains double quotes.</li>
     <li>The <ref id="ActivationWindow">Activation Window</ref> now has
         toolbar buttons for adding and removing displayed actions.</li>
+    <li>All activation actions in the
+        <ref id="ActivationWindow">Activation Window</ref> are now preserved
+        when you <ref id="sessionSave">save a session</ref>.</li>
     </ul>
     </p></dd>
 

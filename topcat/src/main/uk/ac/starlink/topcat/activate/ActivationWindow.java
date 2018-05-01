@@ -8,9 +8,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -63,6 +68,8 @@ public class ActivationWindow extends AuxWindow {
     private long currentRow_;
     private ActivationEntry selectedEntry_;
     private String summary_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.activate" );
 
     /**
      * Name of a system property ({@value}) that may supply
@@ -72,6 +79,11 @@ public class ActivationWindow extends AuxWindow {
      * constructor.
      */
     public static final String ACTIVATORS_PROP = "topcat.activators";
+
+    private static final String ATYPECLAZZ_KEY = "_ActivationType";
+    private static final String ISACTIVE_KEY = "_isActive";
+    private static final String ISSELECTED_KEY = "_isSelected";
+    private static final String TRUE = "true";
 
     /**
      * Constructs a new window.
@@ -411,6 +423,75 @@ public class ActivationWindow extends AuxWindow {
     }
 
     /**
+     * Returns the state of this window in a form that is easily
+     * serialized but can be fed back to another instance of this class
+     * with the same table to restore the interesting parts of the state.
+     *
+     * @return  activation state object
+     */
+    public List<Map<String,String>> getActivationState() {
+        List<Map<String,String>> list = new ArrayList<Map<String,String>>();
+        ActivationEntry selected = (ActivationEntry) list_.getSelectedValue();
+        for ( ActivationEntry entry : list_.getItems() ) {
+            Map<String,String> map = new LinkedHashMap<String,String>();
+            ActivationType type = entry.getType();
+            boolean isActive = list_.isChecked( entry );
+            boolean isSelected = entry.equals( selected );
+            ConfigState astate = entry.getConfigurator().getState();
+            map.put( ATYPECLAZZ_KEY, type.getClass().getName() );
+            if ( isActive ) {
+                map.put( ISACTIVE_KEY, TRUE );
+            }
+            map.putAll( astate.getMap() );
+            if ( isSelected ) {
+                map.put( ISSELECTED_KEY, TRUE );
+            }
+            list.add( map );
+        }
+        return list;
+    }
+
+    /**
+     * Updates the state of this window to match state stored from a
+     * previous instance.  The supplied state is expected to apply to
+     * a table (TopcatModel) that matches the one owned by this window
+     * in relevant respects (for instance column list).
+     *
+     * @param  stateList  activation state object
+     */
+    public void setActivationState( List<Map<String,String>> stateList ) {
+        if ( stateList == null || stateList.size() == 0 ) {
+            return;
+        }
+        listModel_.removeAllElements();
+        TopcatModelInfo tinfo = TopcatModelInfo.createInfo( tcModel_ );
+        TypeFinder typeFinder = new TypeFinder();
+        ActivationEntry selected = null;
+        for ( Map<String,String> map : stateList ) {
+            String clazzName = map.get( ATYPECLAZZ_KEY );
+            ActivationType atype = typeFinder.findType( clazzName );
+            if ( atype != null ) {
+                boolean isActive = TRUE.equals( map.get( ISACTIVE_KEY ) );
+                boolean isSelected = TRUE.equals( map.get( ISSELECTED_KEY ) );
+                ActivationEntry entry =
+                    addActivationEntry( atype, tinfo, isActive );
+                entry.getConfigurator().setState( new ConfigState( map ) );
+                list_.setChecked( entry, isActive );
+                if ( isSelected ) {
+                    selected = entry;
+                }
+                else if ( selected == null && isActive ) {
+                    selected = entry;
+                }
+            }
+        }
+        if ( selected == null && listModel_.getSize() == 0 ) {
+            selected = (ActivationEntry) listModel_.getElementAt( 0 );
+        }
+        list_.setSelectedValue( selected, true );
+    }
+
+    /**
      * Called when the result of the <code>getActivationSummary</code> method
      * may have changed.  Messages the topcat model that this has happened.
      */
@@ -430,9 +511,11 @@ public class ActivationWindow extends AuxWindow {
      * @param  tinfo   topcat model information, current at time of call
      * @param  isActive   whether the action should initially be configured
      *                    active
+     * @return  added entry
      */
-    private void addActivationEntry( ActivationType atype,
-                                     TopcatModelInfo tinfo, boolean isActive ) {
+    private ActivationEntry addActivationEntry( ActivationType atype,
+                                                TopcatModelInfo tinfo,
+                                                boolean isActive ) {
 
         /* Create a new entry. */
         final ActivationEntry entry = new ActivationEntry( atype, tinfo );
@@ -464,6 +547,7 @@ public class ActivationWindow extends AuxWindow {
         listModel_.addElement( entry );
         list_.setSelectedIndex( listModel_.getSize() - 1 );
         list_.setChecked( entry, isActive );
+        return entry;
     }
 
     /**
@@ -517,6 +601,13 @@ public class ActivationWindow extends AuxWindow {
         List<ActivationType> list = new ArrayList<ActivationType>();
         list.addAll( Loader.getClassInstances( ACTIVATORS_PROP,
                                                ActivationType.class ) );
+
+        /* These should generally have no-arg constructors,
+         * since instances might need to be created dynamically
+         * when restoring state from its serialized form.
+         * Failing that, there should only be one instance of each
+         * distinct class in the list.
+         * Otherwise, some state restoration might not work well. */
         list.addAll( Arrays.asList( new ActivationType[] {
             NopActivationType.INSTANCE,
             new TopcatSkyPosActivationType(),
@@ -607,6 +698,52 @@ public class ActivationWindow extends AuxWindow {
                       "Invoke all configured actions for "
                     + "the most recently selected row" + rowTxt );
             setEnabled( hasRow );
+        }
+    }
+
+    /**
+     * Helper class that comes up with an ActivationType instance given
+     * its class name.
+     */
+    private static class TypeFinder {
+        final Map<String,ActivationType> typeMap_;
+
+        /**
+         * Constructor.
+         */
+        TypeFinder() {
+            typeMap_ = new HashMap<String,ActivationType>();
+            for ( ActivationType type : getOptionActivationTypes() ) {
+                typeMap_.put( type.getClass().getName(), type );
+            }
+        }
+
+        /**
+         * Obtains an ActivationType with a given class name.
+         * This may be one of the ones provided by default by this window,
+         * or if not, an attempt is made to load the class and create an
+         * instance dynamically (using a no-arg constructor).
+         *
+         * @param   clazzName  ActivateType class name;
+         *                     preferably should have a no-arg constructor
+         * @return  activation type instance, or null if it can't be found
+         */
+        ActivationType findType( String clazzName ) {
+            if ( typeMap_.containsKey( clazzName ) ) {
+                return typeMap_.get( clazzName );
+            }
+            try {
+                ActivationType atype =
+                    (ActivationType) Class.forName( clazzName ).newInstance();
+                typeMap_.put( atype.getClass().getName(), atype );
+                return atype;
+            }
+            catch ( Throwable e ) {
+                logger_.log( Level.WARNING,
+                             "Can't restore activation type " + clazzName
+                           + " (" + e + ")", e );
+                return null;
+            }
         }
     }
 }

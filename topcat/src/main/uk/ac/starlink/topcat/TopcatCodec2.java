@@ -14,6 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -58,6 +61,8 @@ public class TopcatCodec2 implements TopcatCodec {
         createCodecInfo( "sortSense", Boolean.class );
     private static final ValueInfo CURRENT_SUBSET_INFO =
         createCodecInfo( "currentSubset", Integer.class );
+    private static final ValueInfo ACTIVATION_INFO =
+        createCodecInfo( "activationActions", String.class );
 
     private static final ValueInfo COL_SPECS_INFO =
         createCodecInfo( "colSpecs", String[].class );
@@ -263,6 +268,14 @@ public class TopcatCodec2 implements TopcatCodec {
         if ( iset >= 0 ) {
             paramList.add( new DescribedValue( CURRENT_SUBSET_INFO,
                                                new Integer( iset ) ) );
+        }
+
+        /* Record activation actions. */
+        List<Map<String,String>> activState =
+            tcModel.getActivationWindow().getActivationState();
+        String activTxt = serializeMapList( activState );
+        if ( activTxt != null ) {
+            paramList.add( new DescribedValue( ACTIVATION_INFO, activTxt ) );
         }
 
         /* Copy parameters from the input table.
@@ -583,6 +596,16 @@ public class TopcatCodec2 implements TopcatCodec {
         /* I don't think this is required, but it can't hurt. */
         tcModel.recompileSubsets();
 
+        /* Restore activation actions. */
+        String activTxt = (String) pset.getCodecValue( ACTIVATION_INFO );
+        if ( activTxt != null ) {
+            List<Map<String,String>> activState =
+                deserializeMapList( activTxt );
+            if ( activState != null ) {
+                tcModel.getActivationWindow().setActivationState( activState );
+            }
+        }
+
         /* Set label. */
         tcModel.setLabel( (String) pset.getCodecValue( LABEL_INFO ) );
 
@@ -778,6 +801,61 @@ public class TopcatCodec2 implements TopcatCodec {
      */         
     private static boolean isCodecUtype( String utype ) {
         return utype != null && utype.startsWith( CODEC_UTYPE_PREFIX );
+    }
+
+    /**
+     * Converts a list of maps to a string using JSON.
+     *
+     * @param  list  list of maps
+     * @return  JSON string encoding list
+     */
+    private static String serializeMapList( List<Map<String,String>> list ) {
+        StringBuffer buf = new StringBuffer()
+            .append( "[" );
+        for ( Map<String,String> map : list ) {
+            buf.append( "\n  " )
+               .append( JSONObject.valueToString( map ) )
+               .append( "," );
+        }
+        buf.setLength( buf.length() - 1 );
+        buf.append( "\n]" );
+        return buf.toString();
+    }
+
+    /**
+     * Decodes a JSON string representing a list of string-&gt;string maps.
+     * Elements of the wrong type are ignored, if the decode fails completely
+     * null is returned and a message is written through the logging system.
+     *
+     * @param  txt  encoded text
+     * @return  list of string-&gt;string maps
+     */
+    private static List<Map<String,String>> deserializeMapList( String txt ) {
+        try {
+            JSONArray jsonArray = new JSONArray( txt );
+            int nel = jsonArray.length();
+            List<Map<String,String>> list =
+                new ArrayList<Map<String,String>>( nel );
+            for ( int i = 0; i < nel; i++ ) {
+                Object el = jsonArray.get( i );
+                if ( el instanceof JSONObject ) {
+                    JSONObject jsonObj = (JSONObject) el;
+                    Map<String,String> map = new LinkedHashMap<String,String>();
+                    for ( String key : jsonObj.keySet() ) {
+                        Object val = jsonObj.get( key );
+                        if ( val instanceof String ) {
+                            map.put( key, (String) val );
+                        }
+                    }
+                    list.add( map );
+                }
+            }
+            return list;
+        }
+        catch ( JSONException e ) {
+            logger_.log( Level.WARNING, "JSON deserialization error: " + e, e );
+            return null;
+        }
     }
 
     /**
