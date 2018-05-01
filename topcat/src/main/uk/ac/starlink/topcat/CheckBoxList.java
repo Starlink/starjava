@@ -210,7 +210,8 @@ public abstract class CheckBoxList<T> extends JList {
             Point point = evt.getPoint();
             if ( canSelect_ && ! isCheckbox( point ) && ! isHandle( point ) ) {
                 int index = locationToIndex( point );
-                Object value = getModel().getElementAt( index );
+                Object value = index >= 0 ? getModel().getElementAt( index )
+                                          : null;
                 setSelectedValue( value, false );
             }
         }

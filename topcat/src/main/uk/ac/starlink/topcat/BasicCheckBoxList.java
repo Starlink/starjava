@@ -36,6 +36,29 @@ public class BasicCheckBoxList<T> extends CheckBoxList<T> {
     }
 
     /**
+     * Returns a list of all the items currently in this list.
+     *
+     * @return  list of all items
+     */
+    public List<T> getItems() {
+        List<T> list = new ArrayList<T>();
+        ListModel listModel = getModel();
+        for ( int i = 0; i < listModel.getSize(); i++ ) {
+            Object item = listModel.getElementAt( i );
+            if ( item == null ) {
+                list.add( null );
+            }
+            else {
+                T titem = getTypedValue( listModel.getElementAt( i ) );
+                if ( titem != null ) {
+                    list.add( titem );
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
      * Returns a list of the items currently in this list whose
      * check box is selected.
      *
@@ -43,11 +66,9 @@ public class BasicCheckBoxList<T> extends CheckBoxList<T> {
      */
     public List<T> getCheckedItems() {
         List<T> list = new ArrayList<T>();
-        ListModel listModel = getModel();
-        for ( int i = 0; i < listModel.getSize(); i++ ) {
-            Object item = listModel.getElementAt( i );
-            if ( clazz_.isInstance( item ) && activeSet_.contains( item ) ) {
-                list.add( clazz_.cast( item ) );
+        for ( T item : getItems() ) {
+            if ( isChecked( item ) ) {
+                list.add( item );
             }
         }
         return list;
