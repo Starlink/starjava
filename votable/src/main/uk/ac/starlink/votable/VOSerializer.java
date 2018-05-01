@@ -613,6 +613,11 @@ public abstract class VOSerializer {
            .append( name )
            .append( '=' )
            .append( '"' );
+
+        /* Assemble the string, counting the number of single and double
+         * quote substitutions required. */
+        int nquot = 0;
+        int napos = 0;
         for ( int i = 0; i < vleng; i++ ) {
             char c = value.charAt( i );
             switch ( c ) {
@@ -627,13 +632,52 @@ public abstract class VOSerializer {
                     break;
                 case '"':
                     buf.append( "&quot;" );
+                    nquot++;
                     break;
+                case '\'':
+                    napos++;
+                    // fall through
                 default:
                     buf.append( ensureLegalXml( c ) );
             }
         }
         buf.append( '"' );
-        return buf.toString();
+
+        /* We're probably done; most likely there were no single or double
+         * quotes.  But if it turns out that the output had lots of
+         * double quotes and not so many single quotes, redo it with
+         * single quotes on the outside to get a tidier result. */
+        if ( nquot <= napos ) {
+            return buf.toString();
+        }
+        else {
+            buf.setLength( 0 );
+            buf.append( ' ' )
+               .append( name )
+               .append( '=' )
+               .append( '\'' );
+            for ( int i = 0; i < vleng; i++ ) {
+                char c = value.charAt( i );
+                switch ( c ) {
+                    case '<':
+                        buf.append( "&lt;" );
+                        break;
+                    case '>':
+                        buf.append( "&gt;" );
+                        break;
+                    case '&':
+                        buf.append( "&amp;" );
+                        break;
+                    case '\'':
+                        buf.append( "&apos;" );
+                        break;
+                    default:
+                        buf.append( ensureLegalXml( c ) );
+                }
+            }
+            buf.append( '\'' );
+            return buf.toString();
+        }
     }
 
     /**

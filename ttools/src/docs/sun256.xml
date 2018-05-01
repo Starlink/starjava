@@ -11586,6 +11586,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>VOTable output tweaked: single quotes now used for attribute
+        values if attribute contains double quotes.</li>
     </ul>
     </p>
     </dd>

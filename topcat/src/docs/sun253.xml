@@ -26451,6 +26451,8 @@ introduced since the last version:
     <li>Fix SAMP-related <ref id="ActivationTypes">activation actions</ref>
         so they work with filenames as well as URLs for locations
         (as documented).</li>
+    <li>VOTable output tweaked: single quotes now used for attribute
+        values if attribute contains double quotes.</li>
     </ul>
     </p></dd>
 
