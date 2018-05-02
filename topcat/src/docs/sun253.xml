@@ -26477,6 +26477,8 @@ introduced since the last version:
     <li>All activation actions in the
         <ref id="ActivationWindow">Activation Window</ref> are now preserved
         when you <ref id="sessionSave">save a session</ref>.</li>
+    <li>Fix a bug in the TAP client that caused a read error for result
+        VOTables longer than 2Gb.</li>
     </ul>
     </p></dd>
 

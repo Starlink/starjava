@@ -11593,6 +11593,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         which lets you delete a TAP async job.
         Also add a message to <ref id="tapquery"><code>tapquery</code></ref>
         inviting the user to delete interrupted jobs in this way.</li>
+    <li>Fix bug in <code>tapquery</code> and <code>tapresume</code> that
+        caused a result read failure for result VOTables longer than 2Gb.</li>
     </ul>
     </p>
     </dd>

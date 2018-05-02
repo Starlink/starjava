@@ -14,7 +14,7 @@ import java.io.InputStream;
 public class HeadBufferInputStream extends FilterInputStream {
 
     private final byte[] headBuf_;
-    private int pos_;
+    private long pos_;
 
     /**
      * Constructor.
@@ -44,7 +44,7 @@ public class HeadBufferInputStream extends FilterInputStream {
      *
      * @return  byte read count
      */
-    public int getReadCount() {
+    public long getReadCount() {
         return pos_;
     }
 
@@ -53,7 +53,7 @@ public class HeadBufferInputStream extends FilterInputStream {
         int value = in.read();
         if ( value >= 0 ) {
             if ( pos_ < headBuf_.length ) {
-                headBuf_[ pos_ ] = (byte) value;
+                headBuf_[ (int) pos_ ] = (byte) value;
             }
             pos_++;
         }
@@ -65,7 +65,7 @@ public class HeadBufferInputStream extends FilterInputStream {
         int c = in.read( b );
         if ( c >= 0 ) {
             for ( int i = 0; i + pos_ < headBuf_.length && i < c; i++ ) {
-                headBuf_[ i + pos_ ] = b[ i ];
+                headBuf_[ i + (int) pos_ ] = b[ i ];
             }
             pos_ += c;
         }
@@ -77,7 +77,7 @@ public class HeadBufferInputStream extends FilterInputStream {
         int c = in.read( b, off, len );
         if ( c >= 0 ) {
             for ( int i = 0; i + pos_ < headBuf_.length && i < c; i++ ) {
-                headBuf_[ i + pos_ ] = b[ i + off ];
+                headBuf_[ i + (int) pos_ ] = b[ i + off ];
             }
             pos_ += c;
         }
@@ -87,7 +87,7 @@ public class HeadBufferInputStream extends FilterInputStream {
     @Override
     public long skip( long n ) throws IOException {
         return pos_ < headBuf_.length
-             ? read( new byte[ headBuf_.length - pos_ ] )
+             ? read( new byte[ headBuf_.length - (int) pos_ ] )
              : in.skip( n );
     }
 
