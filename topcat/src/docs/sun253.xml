@@ -21464,7 +21464,11 @@ output.
 <subhead><title>SAMP Window</title></subhead>
 
 <p>The SAMP Window displays the status of SAMP messaging and allows some
-control over its configuration.  SAMP is a messaging protocol which
+control over its configuration.
+You can display it using the <label>SAMP Status</label> item (&IMG.SAMP;)
+in the <ref id="ControlWindow">Control Window</ref>
+<label>Interop</label> menu or toolbar.
+SAMP is a messaging protocol which
 allows TOPCAT to exchange information with other desktop applications -
 see <ref id="interop"/> for details.
 </p>
