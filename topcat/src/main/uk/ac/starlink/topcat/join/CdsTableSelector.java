@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.join;
 import cds.moc.HealpixMoc;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
@@ -63,7 +64,23 @@ public class CdsTableSelector extends JPanel {
         setLayout( new BorderLayout() );
 
         /* Add selector component. */
-        nameSelector_ = new JComboBox();
+        nameSelector_ = new JComboBox() {
+
+            /* If the catalogue names when they are eventually downloaded
+             * are too long for the width of the window, make sure that
+             * the long entries, rather than the combo box itself,
+             * get truncated. */
+            @Override
+            public Dimension getMinimumSize() {
+                return new Dimension( 180, super.getMinimumSize().height );
+            }
+
+            /* No sense making the combo box longer than the longest entry. */
+            @Override
+            public Dimension getMaximumSize() {
+                return super.getPreferredSize();
+            }
+        };
         nameSelector_.setEditable( true );
         nameSelector_.setSelectedItem( null );
 
