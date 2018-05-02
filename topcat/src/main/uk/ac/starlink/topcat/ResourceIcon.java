@@ -150,6 +150,7 @@ public class ResourceIcon implements Icon {
         ACTIVATE = makeIcon( "activate3.png" ),
         REACTIVATE = makeIcon( "flash-1.png" ),
         REACTIVATE_ALL = makeIcon( "flash-2d.png" ),
+        DELETE_INACTIVE = makeIcon( "trash2-box.png" ),
 
         /* Specific actions. */
         UNSORT = makeIcon( "arrow_level.png" ),

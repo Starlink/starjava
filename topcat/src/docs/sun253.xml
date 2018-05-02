@@ -20185,7 +20185,8 @@ More description of each of the panels is given below.
 lists a number of activation actions that appear to be appropriate
 for the table this window applies to.
 Others, including duplicates of ones already listed,
-can be added from the <label>Actions|Add Action</label> (&IMG.ADD;) menu item.
+can be added from the <label>Add Action</label> (&IMG.ADD;) button
+or menu item.
 The only reason the full list is not visible by default is to
 avoid too much clutter in the window.
 Each action has a checkbox; if checked, an attempt will be made to
@@ -20200,7 +20201,7 @@ which should have a helpful message indicating why it's disabled.
 The grab handles (&IMG.UP_DOWN;) can be used to re-order items in the
 list, though this order doesn't have much effect except visually.
 Actions can be removed from the list by selecting them and using the
-<label>Actions|Remove Current Action</label> (&IMG.DELETE;) menu item.
+<label>Remove Current Action</label> (&IMG.DELETE;) button.
 </p>
 
 <p>The <label>Description panel</label>
@@ -20258,17 +20259,6 @@ Each line contains four entries:
 
 <p>The following items are available in the toolbar or menus:
 <dl>
-<dt>&IMG.ADD; Add Action</dt>
-<dd><p>Add a new action to the Actions List from the full menu of
-    available actions, as enumerated in <ref id="ActivationTypes"/>.
-    This can be used to add an action that's not visible by default,
-    because TOPCAT didn't think you would want to use it for this table,
-    or to add a duplicate of an existing visible action,
-    for instance to send a similar SAMP message to two different external tools.
-    </p></dd>
-<dt>&IMG.DELETE; Remove Selected Action</dt>
-<dd><p>Removes the currently selected action from the Actions list.
-    </p></dd>
 <dt>&IMG.REACTIVATE; Invoke Selected Action on Current Row</dt>
 <dd><p>This causes the currently selected action to be activated
     on the most recently activated row (or the first row if none have
@@ -20282,6 +20272,24 @@ Each line contains four entries:
 <dd><p>Activates all the currently enabled actions on the most recently
     activated row (or the first row if none have been activated yet).
     This does the same as clicking on a row in the view window or a plot.
+    </p></dd>
+<dt>&IMG.ADD; Add Action</dt>
+<dd><p>Add a new action to the Actions List from the full menu of
+    available actions, as enumerated in <ref id="ActivationTypes"/>.
+    This can be used to add an action that's not visible by default,
+    because TOPCAT didn't think you would want to use it for this table,
+    or to add a duplicate of an existing visible action,
+    for instance to send a similar SAMP message to two different external tools.
+    </p></dd>
+<dt>&IMG.DELETE; Remove Selected Action</dt>
+<dd><p>Removes the currently selected action from the Actions list.
+    </p></dd>
+<dt>&IMG.DELETE_INACTIVE; Remove Inactive Actions</dt>
+<dd><p>Removes all the actions from the Actions list,
+    except the currently active ones (ones with their checkbox checked).
+    This can be useful to clear out the list and remove clutter.
+    Any actions you want to restore can be added back using the
+    <label>Add Action</label> button.
     </p></dd>
 <dt>&IMG.FUNCTION; Available Functions</dt>
 <dd><p>Displays a window containing all the functions which can be used 
@@ -26457,6 +26465,8 @@ introduced since the last version:
         (as documented).</li>
     <li>VOTable output tweaked: single quotes now used for attribute
         values if attribute contains double quotes.</li>
+    <li>The <ref id="ActivationWindow">Activation Window</ref> now has
+        toolbar buttons for adding and removing displayed actions.</li>
     </ul>
     </p></dd>
 

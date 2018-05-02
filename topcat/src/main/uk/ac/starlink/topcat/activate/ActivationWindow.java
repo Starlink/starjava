@@ -21,9 +21,11 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JToolBar;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListDataEvent;
@@ -124,11 +126,29 @@ public class ActivationWindow extends AuxWindow {
 
         final JMenu actMenu = new JMenu( "Actions" );
         actMenu.setMnemonic( KeyEvent.VK_A );
-        JMenu addMenu = new JMenu( "Add Action" );
+
+        /* The add item action is really only suitable for a menu item,
+         * but it's important to have it on display, since otherwise
+         * users might not realise that you can add to this list.
+         * So provide a toolbar action with a popup menu instead.
+         * It's slightly clunky to do that, but too bad. */
+        String addName = "Add Action";
+        String addDescrip = "Add a new Activation Action to the displayed list";
+        JMenu addMenu = new JMenu( addName );
         addMenu.setIcon( ResourceIcon.ADD );
-        addMenu.setToolTipText( "Add a new Activation Action"
-                              + " to the displayed list" );
+        addMenu.setToolTipText( addDescrip );
         actMenu.add( addMenu );
+        final JPopupMenu addPopupMenu = new JPopupMenu( addName );
+        Action addPopupAct =
+                new BasicAction( addName, ResourceIcon.ADD, addDescrip ) {
+            public void actionPerformed( ActionEvent evt ) {
+                Object src = evt.getSource();
+                if ( src instanceof Component ) {
+                    Component comp = (Component) src;
+                    addPopupMenu.show( comp, 0, comp.getHeight() );
+                }
+            }
+        };
 
         /* Don't delare this final - it may be out of date after this
          * constructor finishes executing. */
@@ -167,6 +187,7 @@ public class ActivationWindow extends AuxWindow {
                 case DISABLED:
                     addAct.setEnabled( isEnabled );
                     addMenu.add( addAct );
+                    addPopupMenu.add( addAct );
                 case NONE:
                     break;
                 default:
@@ -190,6 +211,19 @@ public class ActivationWindow extends AuxWindow {
                     isel = Math.min( isel, listModel_.getSize() - 1 );
                     if ( isel >= 0 ) {
                         list_.setSelectedIndex( isel );
+                    }
+                }
+            }
+        };
+        final Action removeInactiveAct =
+                new BasicAction( "Remove Inactive Actions",
+                                 ResourceIcon.DELETE_INACTIVE,
+                                 "Remove all inactive (unchecked) actions"
+                               + " from the list" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                for ( ActivationEntry entry : list_.getItems() ) {
+                    if ( ! list_.isChecked( entry ) ) {
+                        listModel_.removeElement( entry );
                     }
                 }
             }
@@ -295,15 +329,21 @@ public class ActivationWindow extends AuxWindow {
         getJMenuBar().add( actMenu );
         actMenu.addSeparator();
         actMenu.add( removeAct );
+        actMenu.add( removeInactiveAct );
         actMenu.addSeparator();
         actMenu.add( invokeSingleAct_ );
         actMenu.add( invokeAllAct_ );
 
         /* Add tools. */
-        getToolBar().add( invokeSingleAct_ );
-        getToolBar().add( invokeAllAct_ );
-        getToolBar().add( MethodWindow.getWindowAction( this, true ) );
-        getToolBar().addSeparator();
+        JToolBar toolbar = getToolBar();
+        toolbar.add( invokeSingleAct_ );
+        toolbar.add( invokeAllAct_ );
+        toolbar.addSeparator();
+        toolbar.add( addPopupAct );
+        toolbar.add( removeAct );
+        toolbar.add( removeInactiveAct );
+        toolbar.addSeparator();
+        toolbar.add( MethodWindow.getWindowAction( this, true ) );
 
         /* Initialise the state. */
         list_.setSelectedIndex( 0 );
