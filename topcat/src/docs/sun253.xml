@@ -26479,6 +26479,7 @@ introduced since the last version:
         when you <ref id="sessionSave">save a session</ref>.</li>
     <li>Fix a bug in the TAP client that caused a read error for result
         VOTables longer than 2Gb.</li>
+    <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
     </ul>
     </p></dd>
 

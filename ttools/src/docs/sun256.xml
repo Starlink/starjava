@@ -11595,6 +11595,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         inviting the user to delete interrupted jobs in this way.</li>
     <li>Fix bug in <code>tapquery</code> and <code>tapresume</code> that
         caused a result read failure for result VOTables longer than 2Gb.</li>
+    <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
     </ul>
     </p>
     </dd>
