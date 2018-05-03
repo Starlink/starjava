@@ -13,6 +13,7 @@ import java.awt.geom.Ellipse2D;
 import javax.swing.JComponent;
 import javax.swing.JSlider;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
@@ -30,13 +31,15 @@ import javax.swing.plaf.basic.BasicSliderUI;
  * It is declared there with the MIT licence.
  *
  * @author  Ernest Yu <ernieyu1@gmail.com>
+ * @author  Mark Taylor
  * @see <a href="https://ernienotes.wordpress.com/2010/12/27/creating-a-java-swing-range-slider/"
  *         >Ernest Yu's blog</a>
  */
 class RangeSliderUI extends BasicSliderUI {
 
-    /** Color of selected range. */
-    private Color rangeColor = Color.GREEN;
+    /** Colors of selected range. */
+    private Color thumbOutlineColor = UIManager.getColor( "Label.foreground" );
+    private Color thumbFillColor = UIManager.getColor( "controlShadow" );
     
     /** Location and size of thumb for upper value. */
     private Rectangle upperThumbRect;
@@ -47,7 +50,7 @@ class RangeSliderUI extends BasicSliderUI {
     private transient boolean lowerDragging;
     /** Indicator that determines whether upper thumb is being dragged. */
     private transient boolean upperDragging;
-    
+
     /**
      * Constructs a RangeSliderUI for the specified slider component.
      * @param b RangeSlider
@@ -181,64 +184,6 @@ class RangeSliderUI extends BasicSliderUI {
     }
     
     /**
-     * Paints the track.
-     */
-    @Override
-    public void paintTrack(Graphics g) {
-        // Draw track.
-        super.paintTrack(g);
-        
-        Rectangle trackBounds = trackRect;
-        
-        if (slider.getOrientation() == JSlider.HORIZONTAL) {
-            // Determine position of selected range by moving from the middle
-            // of one thumb to the other.
-            int lowerX = thumbRect.x + (thumbRect.width / 2);
-            int upperX = upperThumbRect.x + (upperThumbRect.width / 2);
-            
-            // Determine track position.
-            int cy = (trackBounds.height / 2) - 2;
-
-            // Save color and shift position.
-            Color oldColor = g.getColor();
-            g.translate(trackBounds.x, trackBounds.y + cy);
-            
-            // Draw selected range.
-            g.setColor(rangeColor);
-            for (int y = 0; y <= 3; y++) {
-                g.drawLine(lowerX - trackBounds.x, y, upperX - trackBounds.x, y);
-            }
-
-            // Restore position and color.
-            g.translate(-trackBounds.x, -(trackBounds.y + cy));
-            g.setColor(oldColor);
-            
-        } else {
-            // Determine position of selected range by moving from the middle
-            // of one thumb to the other.
-            int lowerY = thumbRect.x + (thumbRect.width / 2);
-            int upperY = upperThumbRect.x + (upperThumbRect.width / 2);
-            
-            // Determine track position.
-            int cx = (trackBounds.width / 2) - 2;
-
-            // Save color and shift position.
-            Color oldColor = g.getColor();
-            g.translate(trackBounds.x + cx, trackBounds.y);
-
-            // Draw selected range.
-            g.setColor(rangeColor);
-            for (int x = 0; x <= 3; x++) {
-                g.drawLine(x, lowerY - trackBounds.y, x, upperY - trackBounds.y);
-            }
-            
-            // Restore position and color.
-            g.translate(-(trackBounds.x + cx), -trackBounds.y);
-            g.setColor(oldColor);
-        }
-    }
-    
-    /**
      * Overrides superclass method to do nothing.  Thumb painting is handled
      * within the <code>paint()</code> method.
      */
@@ -266,10 +211,10 @@ class RangeSliderUI extends BasicSliderUI {
             RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.translate(knobBounds.x, knobBounds.y);
 
-        g2d.setColor(Color.CYAN);
+        g2d.setColor(thumbFillColor);
         g2d.fill(thumbShape);
 
-        g2d.setColor(Color.BLUE);
+        g2d.setColor(thumbOutlineColor);
         g2d.draw(thumbShape);
         
         // Dispose graphics.
@@ -295,10 +240,10 @@ class RangeSliderUI extends BasicSliderUI {
             RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.translate(knobBounds.x, knobBounds.y);
 
-        g2d.setColor(Color.PINK);
+        g2d.setColor(thumbFillColor);
         g2d.fill(thumbShape);
 
-        g2d.setColor(Color.RED);
+        g2d.setColor(thumbOutlineColor);
         g2d.draw(thumbShape);
 
         // Dispose graphics.
