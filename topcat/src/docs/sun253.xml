@@ -244,6 +244,7 @@
   <!ENTITY FIG.SendIndexActivationType '&figs;SendIndexActivationType.png'>
   <!ENTITY FIG.LoadTableActivationType '&figs;LoadTableActivationType.png'>
   <!ENTITY FIG.BrowserActivationType '&figs;BrowserActivationType.png'>
+  <!ENTITY FIG.DownloadActivationType '&figs;DownloadActivationType.png'>
   <!ENTITY FIG.JelActivationType '&figs;JelActivationType.png'>
   <!ENTITY FIG.ShellActivationType '&figs;ShellActivationType.png'>
   <!ENTITY FIG.CutoutActivationType '&figs;CutoutActivationType.png'>
@@ -20712,6 +20713,55 @@ capabilities and configuration of the browser in use.
 
 </subsubsubsect>
 
+<subsubsubsect id="DownloadActivationType">
+<subhead><title>Download URL</title></subhead>
+
+<figure>
+<caption><px>Configuration for Download URL action</px></caption>
+<figureimage src="&FIG.DownloadActivationType;"/>
+</figure>
+
+<p>The <label>Download URL</label> action uses a URL column or
+expression defined in the table and downloads its contents to
+a local file.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Resource URL</dt>
+<dd><p>Gives the URL of the remote resource to download.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a URL string from other columns.
+    </p></dd>
+<dt>Filename Expression</dt>
+<dd><p>An expression for the name of the local file to which the
+    resource should be saved.
+    This is an <ref id="jel">expression</ref> based on table
+    columns in the usual way; it might just be a column name,
+    but is more likely to be a string expression based on columns
+    in the table.
+    For instance in the above example, the expression
+    <code>name + ".jpeg"</code>
+    (or equivalently <code>concat(name, ".jpeg")</code>)
+    takes the content of the <code>name</code> column in the table,
+    and appends the extension ".jpeg" to make a filename appropriate
+    for the given row.
+    </p></dd>
+<dt>Directory</dt>
+<dd><p>This selector is a convenience to let you choose the local
+    directory into which files will be downloaded.
+    You can type in a pathname, or use the <label>Browse</label> button
+    to select a directory interactively.
+    If this field is left blank, then the Filename expression
+    supplied above will be used on its own to give an absolute
+    or relative (to the current application directory) path.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="JelActivationType">
 <subhead><title>Execute Code</title></subhead>
 
@@ -26490,6 +26540,8 @@ introduced since the last version:
         activation action.</li>
     <li>Fix minor GUI issue with selecting TAP services by double-clicking
         on their name in the selection tree.</li>
+    <li>Add a new <ref id="DownloadActivationType">Download URL</ref>
+        activation action.</li>
     </ul>
     </p></dd>
 

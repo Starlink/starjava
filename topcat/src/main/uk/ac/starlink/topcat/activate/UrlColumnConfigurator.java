@@ -34,6 +34,7 @@ public abstract class UrlColumnConfigurator
     private final TopcatModel tcModel_;
     private final JComboBox colSelector_;
     private final Box queryPanel_;
+    private final JLabel colLabel_;
     private static final String URLCOL_KEY = "url";
 
     /**
@@ -59,9 +60,9 @@ public abstract class UrlColumnConfigurator
         colSelector_ = ColumnDataComboBoxModel.createComboBox();
         colSelector_.setModel( colModel );
         colSelector_.addActionListener( getActionForwarder() );
-        JLabel colLabel = new JLabel( urlWord + " Location: " );
+        colLabel_ = new JLabel( urlWord + " Location: " );
         JComponent colLine = Box.createHorizontalBox();
-        colLine.add( colLabel );
+        colLine.add( colLabel_ );
         colLine.add( colSelector_ );
         queryPanel_.add( colLine );
         queryPanel_.add( Box.createVerticalStrut( 5 ) );
@@ -180,6 +181,15 @@ public abstract class UrlColumnConfigurator
     protected String getWindowLabel( ColumnData cdata ) {
         return cdata.getColumnInfo().getName()
              + "(" + tcModel_.getID() + ")";
+    }
+
+    /**
+     * Resets the label for the Location field.
+     *
+     * @param  label  new label
+     */
+    public void setLocationLabel( String label ) {
+        colLabel_.setText( label + ": " );
     }
 
     /**

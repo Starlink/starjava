@@ -642,6 +642,7 @@ public class ActivationWindow extends AuxWindow {
             new SendImageActivationType(),
             new SendSpectrumActivationType(),
             new CutoutActivationType(),
+            new DownloadActivationType(),
             new BrowserActivationType(),
             new JelActivationType(),
             new ShellActivationType(),
