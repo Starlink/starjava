@@ -69,7 +69,7 @@ public enum ResourceType {
                 }
                 return IMAGE;
             }
-            if ( standardid.startsWith( "ivo://ivoa.net/std/sia" ) ) {
+            if ( standardid.startsWith( "ivo://ivoa.net/std/ssa" ) ) {
                 return SPECTRUM;
             }
         }

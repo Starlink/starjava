@@ -26486,6 +26486,8 @@ introduced since the last version:
         Java 10 on OSX or use of Nimbus Look&amp;Feel.
         It does mean that range sliders may look ugly in at least some
         OSX environments, but at least it doesn't crash.</li>
+    <li>Improvements and bugfixes related to guessing activation service
+        and resource types.</li>
     </ul>
     </p></dd>
 
