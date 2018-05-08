@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -53,6 +54,7 @@ public class TopcatUtils {
     private static String stilVersion_;
     private static DecimalFormat longFormat_;
     private static Map statusMap_;
+    private static Boolean canBrowse_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     static final TopcatCodec DFLT_SESSION_ENCODER;
@@ -438,6 +440,26 @@ public class TopcatUtils {
             canJel_ = Boolean.valueOf( can );
         }
         return canJel_.booleanValue();
+    }
+
+    /**
+     * Returns a browse-capable desktop instance, or null if none is available.
+     *
+     * @return  desktop
+     */
+    public synchronized static Desktop getBrowserDesktop() {
+        if ( canBrowse_ == null ) {
+            boolean canBrowse =
+                   Desktop.isDesktopSupported()
+                && Desktop.getDesktop().isSupported( Desktop.Action.BROWSE );
+            if ( ! canBrowse ) {
+                logger_.warning( "Can't send URLs to browser"
+                               + " (no Desktop.Action.BROWSE" );
+            }
+            canBrowse_ = Boolean.valueOf( canBrowse );
+        }
+        return canBrowse_.booleanValue() ? Desktop.getDesktop()
+                                         : null;
     }
 
     /**

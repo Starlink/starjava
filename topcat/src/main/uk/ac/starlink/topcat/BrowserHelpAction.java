@@ -1,18 +1,18 @@
 package uk.ac.starlink.topcat;
 
-import edu.stanford.ejalbert.BrowserLauncher;
-import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
-import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import uk.ac.starlink.topcat.interop.TopcatServer;
-import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Action which invokes help by attempting to display a page from the 
@@ -27,8 +27,8 @@ public class BrowserHelpAction extends AbstractAction {
     private final URL helpUrl_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
-    private static BrowserLauncher launcher_;
     private static final TopcatServer server_ = getTopcatServer();
+    private static final Desktop desktop_ = TopcatUtils.getBrowserDesktop();
 
     /**
      * Constructor.
@@ -39,37 +39,15 @@ public class BrowserHelpAction extends AbstractAction {
     private BrowserHelpAction( URL helpUrl, Component parent ) {
         helpUrl_ = helpUrl;
         parent_ = parent;
-        setEnabled( helpUrl_ != null && server_ != null );
+        setEnabled( helpUrl_ != null && server_ != null && desktop_ != null );
     }
 
     public void actionPerformed( ActionEvent evt ) {
-        if ( launcher_ == null ) {
-            launcher_ = createBrowserLauncher( parent_ );
-        }
-        if ( launcher_ != null ) {
-            launcher_.openURLinBrowser( helpUrl_.toString() );
-        }
-    }
-
-    /**
-     * Creates and returns a new BrowserLauncher instance.
-     * If it can't be done, null is returned, and an error is displayed.
-     *
-     * @param  parent  parent component, may be used for error display
-     */
-    public static BrowserLauncher createBrowserLauncher( Component parent ) {
         try {
-            BrowserLauncher launcher = new BrowserLauncher();
-            launcher.setNewWindowPolicy( false );
-            return launcher;
+            desktop_.browse( helpUrl_.toURI() );
         }
-        catch ( BrowserLaunchingInitializingException e ) {
-            ErrorDialog.showError( parent, "Browser Error", e );
-            return null;
-        }
-        catch ( UnsupportedOperatingSystemException e ) {
-            ErrorDialog.showError( parent, "Browser Error", e );
-            return null;
+        catch ( Throwable e ) {
+            logger_.log( Level.WARNING, "Browser invocation failed: " + e, e );
         }
     }
 
@@ -151,7 +129,7 @@ public class BrowserHelpAction extends AbstractAction {
      * (rooted at uk/ac/starlink/topcat/ in the classpath).
      *
      * @param  relUrl   relative path
-     * @return  URL
+     * @return  URL, or null in case of problem
      */
     public static URL getHelpUrl( String relUrl ) {
         if ( server_ != null ) {
@@ -166,6 +144,29 @@ public class BrowserHelpAction extends AbstractAction {
         }
         else {
             return null;
+        }
+    }
+
+    /**
+     * Returns an internal URI corresponding to a relative URL
+     * (rooted at uk/ac/starlink/topcat/ in the classpath).
+     *
+     * @param  relUrl   relative path
+     * @return  URI, or null in case of problem
+     */
+    public static URI getHelpUri( String relUrl ) {
+        URL url = getHelpUrl( relUrl );
+        if ( url == null ) {
+            return null;
+        }
+        else {
+            try {
+                return url.toURI();
+            }
+            catch ( URISyntaxException e ) {
+                logger_.log( Level.WARNING, "Bad URI: " + url, e );
+                return null;
+            }
         }
     }
 }

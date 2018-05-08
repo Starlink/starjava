@@ -1,7 +1,7 @@
 package uk.ac.starlink.topcat;
 
-import edu.stanford.ejalbert.BrowserLauncher;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -472,23 +472,21 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
      * Tries on a best-efforts basis to returns a handler
      * that launches a browser when a URL is clicked.
      *
-     * @return  browser launcher handler, or null if it can't be done
+     * @return  browser handler, or null if it can't be done
      */
     private static UrlHandler createUrlHandler() {
-        final BrowserLauncher launcher;
-        try {
-            launcher = new BrowserLauncher();
-        }
-        catch ( Exception e ) {
-            logger_.log( Level.WARNING,
-                         "Trouble invoking BrowserLauncher: " + e, e );
-            return null;
-        }
-        launcher.setNewWindowPolicy( false );
+        final Desktop desktop = TopcatUtils.getBrowserDesktop();
         return new UrlHandler() {
             public void clickUrl( URL url ) {
                 logger_.info( "Passing URL to browser: " + url );
-                launcher.openURLinBrowser( url.toString() );
+                try {
+                    desktop.browse( url.toURI() );
+                }
+                catch ( Throwable e ) {
+                    logger_.log( Level.WARNING,
+                                 "Trouble sending URL " + url + " to browser",
+                                 e );
+                }
             }
         };
     }

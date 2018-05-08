@@ -1,19 +1,21 @@
 package uk.ac.starlink.topcat;
 
-import edu.stanford.ejalbert.BrowserLauncher;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.help.JHelpContentViewer;
 import javax.help.HelpSet;
@@ -49,9 +51,9 @@ public class HelpWindow extends AuxWindow {
     private final Action toBrowserAction_;
     private final JLabel urlHead_;
     private final JTextField urlInfo_;
+    private final Desktop desktop_;
     private JHelp jhelp_;
     private HelpSet hset_;
-    private BrowserLauncher launcher_;
     private String helpId_;
     private boolean fontSet_;
 
@@ -99,7 +101,8 @@ public class HelpWindow extends AuxWindow {
                     javax.help.Map.ID mapId = evt.getID();
                     helpId_ = mapId == null ? null : mapId.id;
                     URL url = mapId == null ? evt.getURL() : null;
-                    toBrowserAction_.setEnabled( helpId_ != null );
+                    toBrowserAction_.setEnabled( helpId_ != null &&
+                                                 desktop_ != null );
                     externalURL( url );
                 }
              } );
@@ -129,24 +132,30 @@ public class HelpWindow extends AuxWindow {
         }
 
         /* Action which displays help page in a web browser. */
+        desktop_ = TopcatUtils.getBrowserDesktop();
         toBrowserAction_ =
                 new BasicAction( "To Browser", ResourceIcon.TO_BROWSER,
                                  "Display current help page in WWW browser" ) {
             public void actionPerformed( ActionEvent evt ) {
-                if ( helpId_ == null ) {
+                URI helpUri = helpId_ == null
+                            ? null
+                            : BrowserHelpAction.getHelpUri( helpId_ + ".html" );
+                if ( helpUri != null && desktop_ != null ) {
+                    try {
+                        desktop_.browse( helpUri );
+                    }
+                    catch ( IOException e ) {
+                        logger_.log( Level.WARNING,
+                                     "Browser trouble with " + helpUri, e );
+                        beep();
+                    }
+                }
+                else {
                     beep();
-                }
-                URL url = BrowserHelpAction.getHelpUrl( helpId_ + ".html" );
-                if ( launcher_ == null ) {
-                    launcher_ = BrowserHelpAction
-                               .createBrowserLauncher( HelpWindow.this );
-                }
-                if ( launcher_ != null ) {
-                    launcher_.openURLinBrowser( url.toString() );
                 }
             }
         };
-        toBrowserAction_.setEnabled( helpId_ != null );
+        toBrowserAction_.setEnabled( helpId_ != null && desktop_ != null );
         getToolBar().add( toBrowserAction_ );
         getToolBar().addSeparator();
 

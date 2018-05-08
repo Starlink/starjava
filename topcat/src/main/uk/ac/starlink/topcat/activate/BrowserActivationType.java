@@ -1,13 +1,17 @@
 package uk.ac.starlink.topcat.activate;
 
+import java.awt.Desktop;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.topcat.HtmlWindow;
 import uk.ac.starlink.topcat.Outcome;
-import uk.ac.starlink.topcat.func.Browsers;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
  * ActivationType for displaying a resource in a browser.
@@ -27,7 +31,7 @@ public class BrowserActivationType implements ActivationType {
     }
 
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
-        return new BrowserColumnConfigurator( tinfo );
+        return new BrowserColumnConfigurator( tinfo, createBrowserList() );
     }
 
     public Suitability getSuitability( TopcatModelInfo tinfo ) {
@@ -48,13 +52,14 @@ public class BrowserActivationType implements ActivationType {
          * Constructor.
          *
          * @param  topcat model information
+         * @param  browsers  available browser implementations
          */
-        BrowserColumnConfigurator( TopcatModelInfo tinfo ) {
+        BrowserColumnConfigurator( TopcatModelInfo tinfo, Browser[] browsers ) {
             super( tinfo, "Web Page",
                    new ColFlag[] { ColFlag.HTML, ColFlag.URL, } );
             JComponent queryPanel = getQueryPanel();
             browserChooser_ = new JComboBox();
-            for ( Browser b : Browser.values() ) {
+            for ( Browser b : browsers ) {
                 browserChooser_.addItem( b );
             }
             browserChooser_.addActionListener( getActionForwarder() );
@@ -68,19 +73,20 @@ public class BrowserActivationType implements ActivationType {
 
         protected Activator createActivator( ColumnData cdata ) {
             final Object browser = browserChooser_.getSelectedItem();
+            final String label = getWindowLabel( cdata );
             return browser instanceof Browser
                  ? new UrlColumnActivator( cdata, false ) {
                        protected Outcome activateUrl( URL url ) {
-                           String turl = url.toString();
-                           ((Browser) browser).showLocation( turl );
-                           return Outcome.success( turl );
+                           return ((Browser) browser).browse( url, label );
                        }
                    }
                  : null;
         }
 
         protected String getConfigMessage( ColumnData cdata ) {
-            return null;
+            return browserChooser_.getSelectedItem() instanceof Browser
+                 ? null
+                 : "no browser??";
         }
 
         public ConfigState getState() {
@@ -96,29 +102,80 @@ public class BrowserActivationType implements ActivationType {
     }
 
     /**
-     * Enumeration of known browsers.
+     * Returns a new list of browsers that can be used.
+     *
+     * @return  browsers
      */
-    private static enum Browser {
-        SYSTEM( "system browser" ) {
-            public void showLocation( String url ) {
-                Browsers.systemBrowser( url );
+    private final Browser[] createBrowserList() {
+        List<Browser> list = new ArrayList<Browser>();
+        Desktop desktop = TopcatUtils.getBrowserDesktop();
+        if ( desktop != null ) {
+            list.add( new DesktopBrowser( desktop ) );
+        }
+        list.add( new BasicBrowser() );
+        return list.toArray( new Browser[ 0 ] );
+    }
+
+    /**
+     * Browser implementation that uses java.awt.Desktop.
+     */
+    private static class DesktopBrowser extends Browser {
+        private final Desktop desktop_;
+
+        /**
+         * Constructor.
+         *
+         * @param  desktop  desktop instance, assumed to support URI browsing
+         */
+        DesktopBrowser( Desktop desktop ) {
+            super( "system browser" );
+            desktop_ = desktop;
+        }
+        public Outcome browse( URL url, String label ) {
+            try {
+                desktop_.browse( url.toURI() );
             }
-        },
-        BASIC( "basic browser" ) {
-            public void showLocation( String url ) {
-                Browsers.basicBrowser( url );
+            catch ( Throwable e ) {
+                return Outcome.failure( e );
             }
-        },
-        FIREFOX( "firefox" ) {
-            public void showLocation( String url ) {
-                Browsers.mozalike( "firefox", url );
+            return Outcome.success( url.toString() );
+        }
+    }
+
+    /**
+     * Internally implemented HTML display window.
+     */
+    private static class BasicBrowser extends Browser {
+        private HtmlWindow htmlWin_;
+        BasicBrowser() {
+            super( "basic browser" );
+        }
+        public Outcome browse( URL url, String label ) {
+            HtmlWindow win = getHtmlWindow( label );
+            try {
+                win.setURL( url );
             }
-        },
-        MOZILLA( "mozilla" ) {
-            public void showLocation( String url ) {
-                Browsers.mozalike( "mozilla", url );
+            catch ( Throwable e ) {
+                return Outcome.failure( e );
             }
-        };
+            return Outcome.success( url.toString() );
+        }
+        private HtmlWindow getHtmlWindow( String label ) {
+            if ( htmlWin_ == null ) {
+                htmlWin_ = new HtmlWindow( null );
+            }
+            htmlWin_.setTitle( label );
+            if ( ! htmlWin_.isShowing() ) {
+                htmlWin_.setVisible( true );
+            }
+            return htmlWin_;
+        }
+    }
+
+    /**
+     * Browser functionality interface
+     */
+    private static abstract class Browser {
         final String name_;
 
         /**
@@ -131,11 +188,13 @@ public class BrowserActivationType implements ActivationType {
         }
 
         /**
-         * Loads the given URL in this browser.
+         * Attempts to display the given URL in a browser window.
          *
-         * @param  url  location
+         * @param  url  resource to display
+         * @param  label   label for window
+         * @return   action outcome
          */
-        abstract void showLocation( String url );
+        public abstract Outcome browse( URL url, String label );
 
         @Override
         public String toString() {

@@ -5,12 +5,11 @@
 
 package uk.ac.starlink.topcat.func;
 
-import edu.stanford.ejalbert.BrowserLauncher;
-import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
-import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import uk.ac.starlink.topcat.Executor;
 import uk.ac.starlink.topcat.HtmlWindow;
@@ -24,7 +23,7 @@ import uk.ac.starlink.topcat.HtmlWindow;
 public class Browsers {
 
     private static HtmlWindow htmlWindow_;
-    private static BrowserLauncher browserLauncher_;
+    private static Boolean canDesktop_;
 
     /**
      * Private constructor prevents instantiation.
@@ -86,27 +85,28 @@ public class Browsers {
      * @return  short log message
      */
     public static String systemBrowser( String url ) {
-        try {
-            if ( browserLauncher_ == null ) {
-                browserLauncher_ = new BrowserLauncher();
-                browserLauncher_.setNewWindowPolicy( false );
+        if ( canDesktop_ == null ) {
+            boolean canDesktop;
+            if ( Desktop.isDesktopSupported() ) {
+                canDesktop = Desktop.getDesktop()
+                            .isSupported( Desktop.Action.BROWSE );
             }
-            browserLauncher_.openURLinBrowser( url );
-            return url;
+            else {
+                canDesktop = false;
+            }
+            canDesktop_ = Boolean.valueOf( canDesktop );
         }
-        catch ( UnsupportedOperatingSystemException e ) {
-            String msg = e.getMessage();
-            if ( e == null ) {
-                msg = e.toString();
+        if ( canDesktop_.booleanValue() ) {
+            try {
+                Desktop.getDesktop().browse( new URI( url ) );
+                return url;
             }
-            return msg + ": " + url;
+            catch ( Throwable e ) {
+                return "Error: " + e;
+            }
         }
-        catch ( BrowserLaunchingInitializingException e ) {
-            String msg = e.getMessage();
-            if ( e == null ) {
-                msg = e.toString();
-            }
-            return msg + ": " + url;
+        else {
+            return "No system browser - try basic?";
         }
     }
 
