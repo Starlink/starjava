@@ -435,7 +435,7 @@ public class TopcatModel {
     /**
      * Returns the window that manages this model's activation actions.
      *
-     * @return  activation window
+     * @return  activation window, created lazily
      */
     public ActivationWindow getActivationWindow() {
         if ( activationWindow_ == null ) {
@@ -443,6 +443,18 @@ public class TopcatModel {
                 new ActivationWindow( this, ControlWindow.getInstance() );
         }
         return activationWindow_;
+    }
+
+    /**
+     * Indicates whether this model currently has an activation window.
+     * If this method returns false, then calling {@link #getActivationWindow}
+     * will result in one being created.
+     *
+     * @return  true iff an activation window has already been created
+     *          for this model
+     */
+    public boolean hasActivationWindow() {
+        return activationWindow_ != null;
     }
 
     /**

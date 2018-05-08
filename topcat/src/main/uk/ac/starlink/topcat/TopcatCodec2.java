@@ -271,11 +271,14 @@ public class TopcatCodec2 implements TopcatCodec {
         }
 
         /* Record activation actions. */
-        List<Map<String,String>> activState =
-            tcModel.getActivationWindow().getActivationState();
-        String activTxt = serializeMapList( activState );
-        if ( activTxt != null ) {
-            paramList.add( new DescribedValue( ACTIVATION_INFO, activTxt ) );
+        if ( tcModel.hasActivationWindow() ) {
+            List<Map<String,String>> activState =
+                tcModel.getActivationWindow().getActivationState();
+            String activTxt = serializeMapList( activState );
+            if ( activTxt != null ) {
+                paramList.add( new DescribedValue( ACTIVATION_INFO,
+                                                   activTxt ) );
+            }
         }
 
         /* Copy parameters from the input table.
