@@ -30,7 +30,7 @@ import javax.swing.plaf.basic.BasicSliderUI;
  * in March 2017 (b3d9b4052d518, stable since 2013).
  * It is declared there with the MIT licence.
  *
- * @author  Ernest Yu <ernieyu1@gmail.com>
+ * @author  Ernest Yu &lt;ernieyu1@gmail.com&gt;
  * @author  Mark Taylor
  * @see <a href="https://ernienotes.wordpress.com/2010/12/27/creating-a-java-swing-range-slider/"
  *         >Ernest Yu's blog</a>
