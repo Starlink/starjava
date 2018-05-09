@@ -431,32 +431,50 @@ public class ControlWindow extends AuxWindow
             new Plot2WindowAction( "Histogram Plot",
                                    ResourceIcon.PLOT2_HISTOGRAM,
                                    "Plane plotting window configured for "
-                                   + "convenience for histogram plotting",
-                                   HistogramPlotWindow.class ),
+                                   + "convenience for histogram plotting" ) {
+                StackPlotWindow createWindow() {
+                    return new HistogramPlotWindow( plot2parent_ );
+                }
+            },
             new Plot2WindowAction( "Plane Plot",
                                    ResourceIcon.PLOT2_PLANE,
-                                   "Plane plotting window",
-                                   PlanePlotWindow.class ),
+                                   "Plane plotting window" ) {
+                StackPlotWindow createWindow() {
+                    return new PlanePlotWindow( plot2parent_ );
+                }
+            },
             new Plot2WindowAction( "Sky Plot",
                                    ResourceIcon.PLOT2_SKY,
-                                   "Sky plotting window",
-                                   SkyPlotWindow.class ),
+                                   "Sky plotting window" ) {
+                StackPlotWindow createWindow() {
+                    return new SkyPlotWindow( plot2parent_ );
+                }
+            },
             new Plot2WindowAction( "Cube Plot",
                                    ResourceIcon.PLOT2_CUBE,
                                    "3D plotting window"
-                                   + " using Cartesian coordinates",
-                                   CubePlotWindow.class ),
+                                   + " using Cartesian coordinates" ) {
+                StackPlotWindow createWindow() {
+                    return new CubePlotWindow( plot2parent_ );
+                }
+            },
             new Plot2WindowAction( "Sphere Plot",
                                    ResourceIcon.PLOT2_SPHERE,
                                    "3D plotting window"
-                                   + " using spherical polar coordinates",
-                                   SpherePlotWindow.class ),
+                                   + " using spherical polar coordinates" ) {
+                StackPlotWindow createWindow() {
+                    return new SpherePlotWindow( plot2parent_ );
+                }
+            },
         };
         Action[] morePlot2Acts = new Action[] {
             new Plot2WindowAction( "Time Plot",
                                    ResourceIcon.PLOT2_TIME,
-                                   "Time series plotting window",
-                                   TimePlotWindow.class ),
+                                   "Time series plotting window" ) {
+                StackPlotWindow createWindow() {
+                    return new TimePlotWindow( plot2parent_ );
+                }
+            }
         };
 
         matchActs_ = new Action[] {
@@ -1784,8 +1802,9 @@ public class ControlWindow extends AuxWindow
     /**
      * Action class for new-style graphics windows.
      */
-    private class Plot2WindowAction
-            extends TopcatWindowAction<StackPlotWindow> {
+    private abstract class Plot2WindowAction extends BasicAction
+                                             implements TopcatToolAction {
+        Component plot2parent_;
 
         /**
          * Constructor.
@@ -1793,15 +1812,11 @@ public class ControlWindow extends AuxWindow
          * @param  name  action name
          * @param  icon  action icon
          * @param  shortdesc  action short description
-         * @param  winClass  StackPlotWindow subclass - must have a
-         *         constructor that takes (Component)
          */
-        Plot2WindowAction( String name, Icon icon, String shortdesc,
-                           Class<? extends StackPlotWindow> winClazz ) {
-            super( name, icon, shortdesc, winClazz );
+        Plot2WindowAction( String name, Icon icon, String shortdesc ) {
+            super( name, icon, shortdesc );
         }
 
-        @Override
         public void actionPerformed( ActionEvent evt ) {
             StackPlotWindow window = createWindow();
             TopcatModel tcModel = getCurrentModel();
@@ -1811,6 +1826,17 @@ public class ControlWindow extends AuxWindow
                 window.getControlStack().addControl( dfltControl );
             }
             window.setVisible( true );
+        }
+
+        /**
+         * Creates an instance of the plot window relevant for this action.
+         *
+         * @return  new plot window
+         */
+        abstract StackPlotWindow createWindow();
+
+        public void setParent( Component parent ) {
+            plot2parent_ = parent;
         }
     }
 
