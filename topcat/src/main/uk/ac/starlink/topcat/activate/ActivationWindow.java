@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -167,6 +169,7 @@ public class ActivationWindow extends AuxWindow {
         TopcatModelInfo tinfo0 = TopcatModelInfo.createInfo( tcModel );
         SortedMap<Suitability,List<ActivationType>> atypeMap =
             new TreeMap<Suitability,List<ActivationType>>();
+        List<Action> addMenuActions = new ArrayList<Action>();
         for ( ActivationType atype : getOptionActivationTypes() ) {
             Suitability suitability = atype.getSuitability( tinfo0 );
             final ActivationType atype0 = atype;
@@ -198,19 +201,37 @@ public class ActivationWindow extends AuxWindow {
                     isEnabled = true;
                 case DISABLED:
                     addAct.setEnabled( isEnabled );
-                    addMenu.add( addAct );
-                    addPopupMenu.add( addAct );
+                    addMenuActions.add( addAct );
                 case NONE:
                     break;
                 default:
                     assert false : "Unknown Suitability: " + suitability;
             }
         }
+
+        /* Add the relevant actions to the displayed list.  These go in
+         * rough order of interest - the ones most likely to be useful
+         * are near the top. */
         for ( Suitability s : atypeMap.keySet() ) {
             for ( ActivationType atype : atypeMap.get( s ) ) {
                 addActivationEntry( atype, tinfo0, s == Suitability.ACTIVE );
             }
         }
+
+        /* Add insertion actions for all the actions to the Add menus.
+         * Put them in alphabetical order. */
+        Collections.sort( addMenuActions, new Comparator<Action>() {
+            public int compare( Action a1, Action a2 ) {
+                return ((String) a1.getValue( Action.NAME ))
+                      .compareTo( (String) a2.getValue( Action.NAME ) );
+            }
+        } );
+        for ( Action addAct : addMenuActions ) {
+            addMenu.add( addAct );
+            addPopupMenu.add( addAct );
+        }
+
+        /* Add some more actions. */
         tinfo0 = null;  // do not keep around for re-use, may go out of date
         final Action removeAct =
                 new BasicAction( "Remove Selected Action", ResourceIcon.DELETE,
