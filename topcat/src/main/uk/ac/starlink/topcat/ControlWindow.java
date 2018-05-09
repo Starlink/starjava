@@ -175,7 +175,7 @@ public class ControlWindow extends AuxWindow
     public static String TOPCAT_TOOLS_PROP = "topcat.exttools";
 
     private final JList tablesList_;
-    private final DefaultListModel tablesModel_;
+    private final TablesListModel tablesModel_;
     private final DefaultListModel loadingModel_;
     private final TableModelListener tableWatcher_ = this;
     private final TopcatListener topcatWatcher_ = this;
@@ -253,7 +253,7 @@ public class ControlWindow extends AuxWindow
         taboutput_.setJDBCHandler( tabfact_.getJDBCHandler() );
 
         /* Set up a list of the known tables. */
-        tablesModel_ = new DefaultListModel();
+        tablesModel_ = new TablesListModel();
         loadingModel_ = new DefaultListModel();
         tablesList_ = new JList( tablesModel_ );
 
@@ -1015,7 +1015,7 @@ public class ControlWindow extends AuxWindow
      *
      * @return  list model of {@link TopcatModel} objects
      */
-    public ListModel getTablesListModel() {
+    public TypedListModel<TopcatModel> getTablesListModel() {
         return tablesModel_;
     }
 
@@ -2257,4 +2257,15 @@ public class ControlWindow extends AuxWindow
         }
     }
 
+    /**
+     * ListModel for holding TopcatModels.
+     */
+    private static class TablesListModel
+                         extends DefaultListModel
+                         implements TypedListModel<TopcatModel> {
+        @Override
+        public TopcatModel getElementAt( int index ) {
+             return (TopcatModel) super.getElementAt( index );
+        }
+    }
 }

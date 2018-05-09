@@ -18,7 +18,7 @@ import uk.ac.starlink.util.gui.WeakListDataListener;
  */
 public class TablesListComboBox extends JComboBox {
 
-    private final ListModel tablesList_;
+    private final TypedListModel<TopcatModel> tablesList_;
     private final int maxWidth_;
     private final BasicComboBoxModel comboBoxModel_;
 
@@ -51,7 +51,8 @@ public class TablesListComboBox extends JComboBox {
      * @param  maxWidth  absolute maximum of component size in pixels;
      *                   if non-positive, there is no maximum
      */
-    public TablesListComboBox( ListModel tablesList, int maxWidth ) {
+    public TablesListComboBox( TypedListModel<TopcatModel> tablesList,
+                               int maxWidth ) {
         tablesList_ = tablesList;
         maxWidth_ = maxWidth;
         comboBoxModel_ = new BasicComboBoxModel( tablesList );
