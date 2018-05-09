@@ -18,6 +18,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -47,6 +48,7 @@ public class GroupControlManager implements ControlManager {
     private final ControlStack stack_;
     private final PlotType plotType_;
     private final PlotTypeGui plotTypeGui_;
+    private final TypedListModel<TopcatModel> tablesModel_;
     private final ZoneFactory zfact_;
     private final MultiConfigger baseConfigger_;
     private final TopcatListener tcListener_;
@@ -72,6 +74,7 @@ public class GroupControlManager implements ControlManager {
      * @param   stack  control stack which this object will manage
      * @param   plotType  defines basic plot characteristics
      * @param   plotTypeGui  defines GUI-specific plot characteristics
+     * @param   tablesModel   list of available tables
      * @param   zfact   zone id factory
      * @param   baseConfigger  configuration source for some global config
      *                        options
@@ -80,12 +83,14 @@ public class GroupControlManager implements ControlManager {
      *                     selected TopcatModel
      */
     public GroupControlManager( ControlStack stack, PlotType plotType,
-                                PlotTypeGui plotTypeGui, ZoneFactory zfact,
-                                MultiConfigger baseConfigger,
+                                PlotTypeGui plotTypeGui,
+                                TypedListModel<TopcatModel> tablesModel,
+                                ZoneFactory zfact, MultiConfigger baseConfigger,
                                 TopcatListener tcListener ) {
         stack_ = stack;
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;
+        tablesModel_ = tablesModel;
         zfact_ = zfact;
         baseConfigger_ = baseConfigger;
         tcListener_ = tcListener;
@@ -134,8 +139,9 @@ public class GroupControlManager implements ControlManager {
         for ( Plotter plotter : plotterMap_.get( CoordsType.MISC ) ) {
             Action stackAct =
                 LayerControlAction
-               .createPlotterAction( plotter, stack, zfact_, nextSupplier_,
-                                     tcListener_, baseConfigger_ );
+               .createPlotterAction( plotter, stack, tablesModel_, zfact_,
+                                     nextSupplier_, tcListener_,
+                                     baseConfigger_ );
             if ( stackAct != null ) {
                 stackActList.add( stackAct );
             }
@@ -335,8 +341,8 @@ public class GroupControlManager implements ControlManager {
             Specifier<ZoneId> zsel = zfact_.isSingleZone() ? null : zs0;
             boolean autoPop = ctyp.isAutoPopulate();
             MultiFormLayerControl control = 
-                new MultiFormLayerControl( coordPanel, zsel, autoPop,
-                                           nextSupplier_, tcListener_,
+                new MultiFormLayerControl( coordPanel, tablesModel_, zsel,
+                                           autoPop, nextSupplier_, tcListener_,
                                            ctyp.getIcon(),
                                            plotterList
                                           .toArray( new Plotter[ 0 ] ),

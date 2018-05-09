@@ -50,7 +50,6 @@ import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
-import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.HelpAction;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -60,6 +59,7 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.topcat.WindowToggle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -156,9 +156,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param  plotType   defines basic plot type characteristics
      * @param  plotTypeGui  defines graphical user interface specifics
      *                      for plot type
+     * @param  tablesModel  list of available tables
      */
     public StackPlotWindow( String name, Component parent, PlotType plotType,
-                            PlotTypeGui<P,A> plotTypeGui ) {
+                            PlotTypeGui<P,A> plotTypeGui,
+                            TypedListModel<TopcatModel> tablesModel ) {
         super( name, parent );
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;
@@ -420,8 +422,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
         controlManager_ =
-            new GroupControlManager( stack_, plotType, plotTypeGui, zoneFact_,
-                                     configger, tcListener );
+            new GroupControlManager( stack_, plotType, plotTypeGui, tablesModel,
+                                     zoneFact_, configger, tcListener );
 
         /* Prepare actions for adding and removing stack controls. */
         Action[] stackActions = controlManager_.getStackActions();

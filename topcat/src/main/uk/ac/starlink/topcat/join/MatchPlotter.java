@@ -17,10 +17,12 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TupleSelector;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.topcat.plot2.ControlManager;
 import uk.ac.starlink.topcat.plot2.CubePlotWindow;
 import uk.ac.starlink.topcat.plot2.LayerCommand;
@@ -92,6 +94,8 @@ public abstract class MatchPlotter {
      * @return  match plotter instance, or null if we don't know how to do it
      */
     public static MatchPlotter getMatchPlotter( MatchEngine engine ) {
+        final TypedListModel<TopcatModel> tablesModel =
+            ControlWindow.getInstance().getTablesListModel();
 
         /* Get the names of the coordinates which are required by the
          * matching criterion. */
@@ -117,7 +121,7 @@ public abstract class MatchPlotter {
                              new String[] { "Lon", "Lat", "Radius" } ) ) {
             return new BasicMatchPlotter( SphereDataGeom.INSTANCE, false ) {
                 public StackPlotWindow createPlotWindow( Component parent ) {
-                    return new SpherePlotWindow( parent );
+                    return new SpherePlotWindow( parent, tablesModel );
                 }
             };
         }
@@ -128,7 +132,7 @@ public abstract class MatchPlotter {
             return new BasicMatchPlotter( SkyDataGeom.createGeom( null, null ),
                                           true ) {
                 public StackPlotWindow createPlotWindow( Component parent ) {
-                    return new SkyPlotWindow( parent );
+                    return new SkyPlotWindow( parent, tablesModel );
                 }
             };
         }
@@ -137,7 +141,7 @@ public abstract class MatchPlotter {
         else if ( sameFirstNames( cNames, new String[] { "X", "Y", "Z" } ) ) {
             return new BasicMatchPlotter( CubeDataGeom.INSTANCE, false ) {
                 public StackPlotWindow createPlotWindow( Component parent ) {
-                    return new CubePlotWindow( parent );
+                    return new CubePlotWindow( parent, tablesModel );
                 }
             };
         }
@@ -146,7 +150,7 @@ public abstract class MatchPlotter {
         else if ( sameFirstNames( cNames, new String[] { "X", "Y" } ) ) {
             return new BasicMatchPlotter( PlaneDataGeom.INSTANCE, true ) {
                 public StackPlotWindow createPlotWindow( Component parent ) {
-                    return new PlanePlotWindow( parent );
+                    return new PlanePlotWindow( parent, tablesModel );
                 }
             };
         }

@@ -6,6 +6,8 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -30,9 +32,11 @@ public class TimePlotWindow
      * Constructor.
      *
      * @param  parent  parent component
+     * @param  tablesModel  list of available tables
      */
-    public TimePlotWindow( Component parent ) {
-        super( "Time Plot", parent, PLOT_TYPE, PLOT_GUI );
+    public TimePlotWindow( Component parent,
+                           TypedListModel<TopcatModel> tablesModel ) {
+        super( "Time Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
         getToolBar().addSeparator();
         addHelp( "TimePlotWindow" );
     }

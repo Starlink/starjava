@@ -25,6 +25,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
+import uk.ac.starlink.topcat.TypedListModel;
+import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -58,6 +60,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      *
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
+     * @param  tablesModel   list of available tables
      * @param  zsel    zone id specifier, may be null for single-zone plots
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
@@ -71,13 +74,14 @@ public class MultiFormLayerControl extends FormLayerControl {
      *                        options
      */
     public MultiFormLayerControl( PositionCoordPanel posCoordPanel,
+                                  TypedListModel<TopcatModel> tablesModel,
                                   Specifier<ZoneId> zsel, boolean autoPopulate,
                                   NextSupplier nextSupplier,
                                   TopcatListener tcListener, Icon controlIcon,
                                   Plotter[] plotters,
                                   Configger baseConfigger ) {
-        super( posCoordPanel, zsel, autoPopulate, nextSupplier, tcListener,
-               controlIcon );
+        super( posCoordPanel, tablesModel, zsel, autoPopulate, nextSupplier,
+               tcListener, controlIcon );
         baseConfigger_ = baseConfigger;
         subsetKeys_ = nextSupplier.getKeys();
 

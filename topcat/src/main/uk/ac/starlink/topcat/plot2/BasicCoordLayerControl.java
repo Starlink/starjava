@@ -18,6 +18,7 @@ import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -56,6 +57,7 @@ public class BasicCoordLayerControl extends ConfigControl
      * @param   zsel    zone id specifier, may be null for single-zone case
      * @param   coordPanel   panel which displays the plotter's coordinates,
      *                       and supplies a DataGeom
+     * @param   tablesModel  list of available tables
      * @param   baseConfigger   provides global configuration info
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
@@ -63,6 +65,7 @@ public class BasicCoordLayerControl extends ConfigControl
      */
     public BasicCoordLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                    PositionCoordPanel coordPanel,
+                                   TypedListModel<TopcatModel> tablesModel,
                                    Configger baseConfigger,
                                    boolean autoPopulate ) {
         super( null, plotter.getPlotterIcon() );
@@ -74,7 +77,7 @@ public class BasicCoordLayerControl extends ConfigControl
         styler_ = new ConfigStyler( coordPanel_.getComponent() );
 
         /* Create data selection components. */
-        tableSelector_ = new TablesListComboBox( 250 );
+        tableSelector_ = new TablesListComboBox( tablesModel, 250 );
         subsetSelector_ = new JComboBox();
         dummyComboBoxModel_ = subsetSelector_.getModel();
 

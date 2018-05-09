@@ -37,6 +37,7 @@ import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 
 /**
  * Plot layer control which manages coordinates and subsets in a common way
@@ -66,6 +67,7 @@ public abstract class FormLayerControl
      *
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
+     * @param  tablesModel   list of available tables
      * @param  zsel    zone id specifier, may be null for single-zone plots
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
@@ -77,6 +79,7 @@ public abstract class FormLayerControl
      * @param  controlIcon  icon for control stack
      */
     protected FormLayerControl( PositionCoordPanel posCoordPanel,
+                                TypedListModel<TopcatModel> tablesModel,
                                 Specifier<ZoneId> zsel, boolean autoPopulate,
                                 NextSupplier nextSupplier,
                                 TopcatListener tcListener, Icon controlIcon ) {
@@ -87,7 +90,7 @@ public abstract class FormLayerControl
         final TopcatListener externalTcListener = tcListener;
 
         /* Set up a selector for which table to plot. */
-        tableSelector_ = new TablesListComboBox( 250 );
+        tableSelector_ = new TablesListComboBox( tablesModel, 250 );
 
         /* Ensure listeners are notified when the table selection changes,
          * or when anything else about this control changes. */

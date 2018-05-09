@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
@@ -22,9 +24,11 @@ public class CubePlotWindow
      * Constructor.
      *
      * @param  parent   parent component
+     * @param  tablesModel  list of available tables
      */
-    public CubePlotWindow( Component parent ) {
-        super( "Cube Plot", parent, PLOT_TYPE, PLOT_GUI );
+    public CubePlotWindow( Component parent,
+                           TypedListModel<TopcatModel> tablesModel ) {
+        super( "Cube Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
         getToolBar().addSeparator();
         addHelp( "CubePlotWindow" );
     }

@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot2;
 import javax.swing.Icon;
 import javax.swing.JScrollPane;
 import uk.ac.starlink.topcat.TopcatListener;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -24,6 +26,7 @@ public class SingleFormLayerControl extends FormLayerControl {
      *
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
+     * @param  tablesModel   list of available tables
      * @param  zsel    zone id specifier, may be null for single-zone plots
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
@@ -36,12 +39,13 @@ public class SingleFormLayerControl extends FormLayerControl {
      *                        options
      */
     public SingleFormLayerControl( PositionCoordPanel posCoordPanel,
+                                   TypedListModel<TopcatModel> tablesModel,
                                    Specifier<ZoneId> zsel, boolean autoPopulate,
                                    NextSupplier nextSupplier,
                                    TopcatListener tcListener, Icon controlIcon,
                                    Plotter plotter, Configger baseConfigger ) {
-        super( posCoordPanel, zsel, autoPopulate, nextSupplier, tcListener,
-               controlIcon );
+        super( posCoordPanel, tablesModel, zsel, autoPopulate, nextSupplier,
+               tcListener, controlIcon );
         formControl_ =
             new SimpleFormControl( baseConfigger, plotter, new Coord[ 0 ] );
         formControl_.addActionListener( getActionForwarder() );

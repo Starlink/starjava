@@ -27,6 +27,7 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -78,9 +79,11 @@ public class HistogramPlotWindow
      * Constructor.
      *
      * @param  parent  parent component
+     * @param  tablesModel  list of available tables
      */
-    public HistogramPlotWindow( Component parent ) {
-        super( "Histogram Plot", parent, PLOT_TYPE, PLOT_GUI );
+    public HistogramPlotWindow( Component parent,
+                                TypedListModel<TopcatModel> tablesModel ) {
+        super( "Histogram Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
 
         /* This window currently works with a single plot zone, with index zero.
          * At least, the histogram-specific behaviour applies only

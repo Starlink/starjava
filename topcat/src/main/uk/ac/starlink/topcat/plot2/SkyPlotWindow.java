@@ -8,6 +8,8 @@ import java.util.List;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -37,9 +39,12 @@ public class SkyPlotWindow
      * Constructor.
      *
      * @param  parent   parent component
+     * @param  tablesModel  list of available tables
      */
-    public SkyPlotWindow( Component parent ) {
-        super( "Sky Plot", parent, PLOT_TYPE, new SkyPlotTypeGui() );
+    public SkyPlotWindow( Component parent,
+                          TypedListModel<TopcatModel> tablesModel ) {
+        super( "Sky Plot", parent, PLOT_TYPE, new SkyPlotTypeGui(),
+               tablesModel );
         getToolBar().addSeparator();
         addHelp( "SkyPlotWindow" );
     }

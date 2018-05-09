@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -28,12 +30,16 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
      * Constructor.
      *
      * @param   plotter  healpix plotter
+     * @param   tablesModel  list of available tables
      * @param   zsel    zone id specifier, may be null for single-zone case
      * @param   baseConfigger   provides global configuration info
      */
-    public HealpixLayerControl( HealpixPlotter plotter, Specifier<ZoneId> zsel,
+    public HealpixLayerControl( HealpixPlotter plotter,
+                                TypedListModel<TopcatModel> tablesModel,
+                                Specifier<ZoneId> zsel,
                                 Configger baseConfigger ) {
-        super( plotter, zsel, new HealpixCoordPanel(), baseConfigger, true );
+        super( plotter, zsel, new HealpixCoordPanel(), tablesModel,
+               baseConfigger, true );
         assert plotter.getCoordGroup().getPositionCount() == 0;
     }
 

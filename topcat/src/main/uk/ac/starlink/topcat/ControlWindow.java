@@ -433,21 +433,22 @@ public class ControlWindow extends AuxWindow
                                    "Plane plotting window configured for "
                                    + "convenience for histogram plotting" ) {
                 StackPlotWindow createWindow() {
-                    return new HistogramPlotWindow( plot2parent_ );
+                    return new HistogramPlotWindow( plot2parent_,
+                                                    tablesModel_ );
                 }
             },
             new Plot2WindowAction( "Plane Plot",
                                    ResourceIcon.PLOT2_PLANE,
                                    "Plane plotting window" ) {
                 StackPlotWindow createWindow() {
-                    return new PlanePlotWindow( plot2parent_ );
+                    return new PlanePlotWindow( plot2parent_, tablesModel_ );
                 }
             },
             new Plot2WindowAction( "Sky Plot",
                                    ResourceIcon.PLOT2_SKY,
                                    "Sky plotting window" ) {
                 StackPlotWindow createWindow() {
-                    return new SkyPlotWindow( plot2parent_ );
+                    return new SkyPlotWindow( plot2parent_, tablesModel_ );
                 }
             },
             new Plot2WindowAction( "Cube Plot",
@@ -455,7 +456,7 @@ public class ControlWindow extends AuxWindow
                                    "3D plotting window"
                                    + " using Cartesian coordinates" ) {
                 StackPlotWindow createWindow() {
-                    return new CubePlotWindow( plot2parent_ );
+                    return new CubePlotWindow( plot2parent_, tablesModel_ );
                 }
             },
             new Plot2WindowAction( "Sphere Plot",
@@ -463,7 +464,7 @@ public class ControlWindow extends AuxWindow
                                    "3D plotting window"
                                    + " using spherical polar coordinates" ) {
                 StackPlotWindow createWindow() {
-                    return new SpherePlotWindow( plot2parent_ );
+                    return new SpherePlotWindow( plot2parent_, tablesModel_ );
                 }
             },
         };
@@ -472,7 +473,7 @@ public class ControlWindow extends AuxWindow
                                    ResourceIcon.PLOT2_TIME,
                                    "Time series plotting window" ) {
                 StackPlotWindow createWindow() {
-                    return new TimePlotWindow( plot2parent_ );
+                    return new TimePlotWindow( plot2parent_, tablesModel_ );
                 }
             }
         };

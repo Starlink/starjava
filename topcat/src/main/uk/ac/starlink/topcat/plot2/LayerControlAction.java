@@ -6,6 +6,8 @@ import javax.swing.Icon;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -71,6 +73,7 @@ public abstract class LayerControlAction extends BasicAction {
      *
      * @param  plotter   plotter to provide an action for
      * @param  stack    stack to which controls are to be added
+     * @param  tablesModel  list of available tables
      * @param  zfact    zone id factory
      * @param  nextSupplier  manages global dispensing for some style options
      * @param  tcListener  listener for TopcatEvents
@@ -80,6 +83,7 @@ public abstract class LayerControlAction extends BasicAction {
      */
     public static LayerControlAction
             createPlotterAction( final Plotter plotter, ControlStack stack,
+                                 final TypedListModel<TopcatModel> tablesModel,
                                  final ZoneFactory zfact,
                                  final NextSupplier nextSupplier,
                                  final TopcatListener tcListener,
@@ -115,8 +119,8 @@ public abstract class LayerControlAction extends BasicAction {
                     Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zs0 );
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
-                    return new SpectrogramLayerControl( sPlotter, zsel,
-                                                        configger );
+                    return new SpectrogramLayerControl( sPlotter, tablesModel,
+                                                        zsel, configger );
                 }
             };
         }
@@ -127,7 +131,8 @@ public abstract class LayerControlAction extends BasicAction {
                     Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zs0 );
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
-                    return new HealpixLayerControl( hPlotter, zsel, configger );
+                    return new HealpixLayerControl( hPlotter, tablesModel,
+                                                    zsel, configger );
                 }
             };
         }
@@ -140,7 +145,8 @@ public abstract class LayerControlAction extends BasicAction {
                     Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zs0 );
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
-                    return new SingleFormLayerControl( posCoordPanel, zsel,
+                    return new SingleFormLayerControl( posCoordPanel,
+                                                       tablesModel, zsel,
                                                        true, nextSupplier,
                                                        tcListener,
                                                        plotter.getPlotterIcon(),
@@ -173,8 +179,8 @@ public abstract class LayerControlAction extends BasicAction {
                     Configger configger = baseConfigger.layerConfigger( zs0 );
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
                     return new BasicCoordLayerControl( plotter, zsel,
-                                                       coordPanel, configger,
-                                                       false );
+                                                       coordPanel, tablesModel,
+                                                       configger, false );
                 }
             };
         }
