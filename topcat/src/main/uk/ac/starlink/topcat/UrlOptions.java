@@ -18,6 +18,8 @@ import uk.ac.starlink.topcat.activate.ViewDatalinkActivationType;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Sog;
+import uk.ac.starlink.topcat.plot2.PlotWindowType;
+import uk.ac.starlink.topcat.plot2.TablePlotDisplay;
 
 /**
  * Defines an action that consumes a URL.
@@ -51,6 +53,7 @@ public class UrlOptions {
         UrlInvoker reportUrl = createReportInvoker();
         UrlInvoker viewImage = createViewImageInvoker();
         UrlInvoker loadTable = createLoadTableInvoker( controlWin );
+        UrlInvoker plotTable = createPlotTableInvoker( controlWin );
         UrlInvoker browser = createBrowserInvoker();
         UrlInvoker viewDatalink = createDatalinkInvoker( dlPanel );
         UrlInvoker sendFitsImage =
@@ -64,6 +67,7 @@ public class UrlOptions {
             reportUrl,
             viewImage,
             loadTable,
+            plotTable,
             viewDatalink,
             sendFitsImage,
             sendSpectrum,
@@ -133,6 +137,38 @@ public class UrlOptions {
                     return Outcome.failure( e );
                 }
                 return Outcome.success( tcmref.get().toString() );
+            }
+        };
+    }
+
+    /**
+     * Returns an invoker for plotting a table directly without loading it.
+     *
+     * @param  controlWin  application control window
+     * @return  new invoker
+     */
+    private static UrlInvoker
+            createPlotTableInvoker( final ControlWindow controlWin ) {
+        final StarTableFactory tfact = controlWin.getTableFactory();
+        final TablePlotDisplay plotDisplay =
+            new TablePlotDisplay( controlWin, PlotWindowType.PLANE,
+                                  "Downloaded", false );
+        return new AbstractUrlInvoker( "Plot Table" ) {
+            public Outcome invokeUrl( URL url ) {
+                String loc = url.toString();
+                final StarTable table;
+                try {
+                    table = tfact.makeStarTable( loc );
+                }
+                catch ( IOException e ) {
+                    return Outcome.failure( e );
+                }
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        plotDisplay.showPlotWindow( table );
+                    }
+                } );
+                return Outcome.success( loc );
             }
         };
     }
