@@ -118,13 +118,8 @@ import uk.ac.starlink.topcat.plot.LinesWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.topcat.plot2.Control;
-import uk.ac.starlink.topcat.plot2.CubePlotWindow;
-import uk.ac.starlink.topcat.plot2.HistogramPlotWindow;
-import uk.ac.starlink.topcat.plot2.PlanePlotWindow;
-import uk.ac.starlink.topcat.plot2.SkyPlotWindow;
-import uk.ac.starlink.topcat.plot2.SpherePlotWindow;
+import uk.ac.starlink.topcat.plot2.PlotWindowType;
 import uk.ac.starlink.topcat.plot2.StackPlotWindow;
-import uk.ac.starlink.topcat.plot2.TimePlotWindow;
 import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -428,54 +423,14 @@ public class ControlWindow extends AuxWindow
                                       DensityWindow.class ),
         };
         Action[] plot2Acts = new Action[] {
-            new Plot2WindowAction( "Histogram Plot",
-                                   ResourceIcon.PLOT2_HISTOGRAM,
-                                   "Plane plotting window configured for "
-                                   + "convenience for histogram plotting" ) {
-                StackPlotWindow createWindow() {
-                    return new HistogramPlotWindow( plot2parent_,
-                                                    tablesModel_ );
-                }
-            },
-            new Plot2WindowAction( "Plane Plot",
-                                   ResourceIcon.PLOT2_PLANE,
-                                   "Plane plotting window" ) {
-                StackPlotWindow createWindow() {
-                    return new PlanePlotWindow( plot2parent_, tablesModel_ );
-                }
-            },
-            new Plot2WindowAction( "Sky Plot",
-                                   ResourceIcon.PLOT2_SKY,
-                                   "Sky plotting window" ) {
-                StackPlotWindow createWindow() {
-                    return new SkyPlotWindow( plot2parent_, tablesModel_ );
-                }
-            },
-            new Plot2WindowAction( "Cube Plot",
-                                   ResourceIcon.PLOT2_CUBE,
-                                   "3D plotting window"
-                                   + " using Cartesian coordinates" ) {
-                StackPlotWindow createWindow() {
-                    return new CubePlotWindow( plot2parent_, tablesModel_ );
-                }
-            },
-            new Plot2WindowAction( "Sphere Plot",
-                                   ResourceIcon.PLOT2_SPHERE,
-                                   "3D plotting window"
-                                   + " using spherical polar coordinates" ) {
-                StackPlotWindow createWindow() {
-                    return new SpherePlotWindow( plot2parent_, tablesModel_ );
-                }
-            },
+            new Plot2WindowAction( PlotWindowType.HISTOGRAM ),
+            new Plot2WindowAction( PlotWindowType.PLANE ),
+            new Plot2WindowAction( PlotWindowType.SKY ),
+            new Plot2WindowAction( PlotWindowType.CUBE ),
+            new Plot2WindowAction( PlotWindowType.SPHERE ),
         };
         Action[] morePlot2Acts = new Action[] {
-            new Plot2WindowAction( "Time Plot",
-                                   ResourceIcon.PLOT2_TIME,
-                                   "Time series plotting window" ) {
-                StackPlotWindow createWindow() {
-                    return new TimePlotWindow( plot2parent_, tablesModel_ );
-                }
-            }
+            new Plot2WindowAction( PlotWindowType.TIME ),
         };
 
         matchActs_ = new Action[] {
@@ -1803,23 +1758,25 @@ public class ControlWindow extends AuxWindow
     /**
      * Action class for new-style graphics windows.
      */
-    private abstract class Plot2WindowAction extends BasicAction
-                                             implements TopcatToolAction {
-        Component plot2parent_;
+    private class Plot2WindowAction extends BasicAction
+                                    implements TopcatToolAction {
+        private final PlotWindowType ptype_;
+        private Component plot2parent_;
 
         /**
          * Constructor.
          *
-         * @param  name  action name
-         * @param  icon  action icon
-         * @param  shortdesc  action short description
+         * @param  ptype  plot type
          */
-        Plot2WindowAction( String name, Icon icon, String shortdesc ) {
-            super( name, icon, shortdesc );
+        Plot2WindowAction( PlotWindowType ptype ) {
+            super( ptype.getName() + " Plot", ptype.getIcon(),
+                   ptype.getDescription() );
+            ptype_ = ptype;
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            StackPlotWindow window = createWindow();
+            StackPlotWindow window =
+                ptype_.createWindow( plot2parent_, tablesModel_ );
             TopcatModel tcModel = getCurrentModel();
             Control dfltControl =
                 window.getControlManager().createDefaultControl( tcModel );
@@ -1828,13 +1785,6 @@ public class ControlWindow extends AuxWindow
             }
             window.setVisible( true );
         }
-
-        /**
-         * Creates an instance of the plot window relevant for this action.
-         *
-         * @return  new plot window
-         */
-        abstract StackPlotWindow createWindow();
 
         public void setParent( Component parent ) {
             plot2parent_ = parent;
