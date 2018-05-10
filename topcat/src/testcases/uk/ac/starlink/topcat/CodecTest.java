@@ -56,8 +56,9 @@ public class CodecTest extends TableCase {
         TopcatModel[] tcModels = new TopcatModel[ nt ];
         for ( int i = 0; i < nt; i++ ) {
             tcModels[ i ] =
-                new TopcatModel( demoTables[ i ], "demo" + ( i + 1 ),
-                                 controlWindow_ );
+                TopcatModel
+               .createRawTopcatModel( demoTables[ i ], "demo" + ( i + 1 ),
+                                      controlWindow_ );
             assertEqualTopcatModels( tcModels[ i ],
                                      roundTrip( codec, tcModels[ i ] ) );
         }

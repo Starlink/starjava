@@ -94,7 +94,7 @@ public class TopcatModel {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
-    private static volatile int instanceCount = 0;
+    private static volatile int instanceCount_ = 0;
     private static StarTableColumn DUMMY_COLUMN;
 
     /**
@@ -102,10 +102,11 @@ public class TopcatModel {
      * The only row subset available is ALL.
      *
      * @param   startab  random-access table providing the data
+     * @param   id       id number; should be unique for loaded tables
      * @param   location  location string
      * @param   controlWindow  control window instance
      */
-    protected TopcatModel( StarTable startab, String location,
+    protected TopcatModel( StarTable startab, int id, String location,
                            ControlWindow controlWindow ) {
         controlWindow_ = controlWindow;
 
@@ -123,7 +124,7 @@ public class TopcatModel {
         /* Initialize the label. */
         location_ = location;
         label_ = location_;
-        id_ = ++instanceCount;
+        id_ = id;
         if ( label_ == null ) {
             label_ = startab.getName();
         }
@@ -1012,7 +1013,8 @@ public class TopcatModel {
                                             ControlWindow controlWindow ) {
 
         /* Construct model. */
-        TopcatModel tcModel = new TopcatModel( table, location, controlWindow );
+        TopcatModel tcModel =
+            createRawTopcatModel( table, location, controlWindow );
 
         /* Add subsets for any boolean type columns. */
         StarTable dataModel = tcModel.getDataModel();
@@ -1041,7 +1043,20 @@ public class TopcatModel {
     public static TopcatModel
                   createRawTopcatModel( StarTable table, String location,
                                         ControlWindow controlWindow ) {
-        return new TopcatModel( table, location, controlWindow );
+        return new TopcatModel( table, ++instanceCount_,
+                                location, controlWindow );
+    }
+
+    /**
+     * Returns a new TopcatModel that is supposed to be used independently
+     * rather than loaded into the main topcat application list.
+     *
+     * @param  table  random-access table providing the data
+     * @param  name   name by which the table will be known
+     */
+    public static TopcatModel createUnloadedTopcatModel( StarTable table,
+                                                         final String name ) {
+        return new TopcatModel( table, 0, name, (ControlWindow) null );
     }
 
     /**
@@ -1052,14 +1067,9 @@ public class TopcatModel {
      *
      * @return  new empty TopcatModel
      */
-    public static synchronized TopcatModel createDummyModel() {
-        int ic = instanceCount;
-        instanceCount = -1;
-        TopcatModel dummy = 
-            new TopcatModel( new RowListStarTable( new ColumnInfo[ 0 ] ),
-                             "dummy", null );
-        instanceCount = ic;
-        return dummy;
+    public static TopcatModel createDummyModel() {
+        return createUnloadedTopcatModel(
+            new RowListStarTable( new ColumnInfo[ 0 ] ), "dummy" );
     }
 
     /**
