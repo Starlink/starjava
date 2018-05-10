@@ -253,6 +253,7 @@
   <!ENTITY FIG.ViewDatalinkActivationType
            '&figs;ViewDatalinkActivationType.png'>
   <!ENTITY FIG.ServiceActivationType '&figs;ServiceActivationType.png'>
+  <!ENTITY FIG.PlotTableActivationType '&figs;PlotTableActivationType.png'>
 
   <!-- Example plots generated in stilts. -->
   <!ENTITY FIG.plot2-layer-mark '&figs;plot2-layer-mark.png'>
@@ -7055,37 +7056,46 @@ listed resource.  The parts of this panel are:
         displays the linked resource
         (an image in a format like PNG, GIF, JPEG, FITS)
         in an internal image viewer
-        (like <ref id="ViewImageActivationType">Display Image</ref> action)
+        (like the <ref id="ViewImageActivationType">Display Image</ref> action)
         </li>
     <li><strong>Load Table:</strong>
         loads the table from the linked resource (a FITS or VOTable table)
         into this TOPCAT application
-        (like <ref id="LoadTableActivationType">Load Table</ref> action)
+        (like the <ref id="LoadTableActivationType">Load Table</ref> action)
+        </li>
+    <li><strong>Plot Table:</strong>
+        pops up a plane plot window that allows to perform plots using
+        the table referenced by the linked resource,
+        without actually loading the table into the TOPCAT application
+        (like the <ref id="PlotTableActivationType">Plot Table</ref> action)
         </li>
     <li><strong>View DataLink Table:</strong>
         displays the linked resource (a DataLink table)
         in a new window like this one
-        (like <ref id="ViewDatalinkActivationType" >View Datalink Table</ref>
-        action)
+        (like the 
+        <ref id="ViewDatalinkActivationType" >View Datalink Table</ref> action)
         </li>
     <li><strong>Send FITS Image:</strong>
         sends the linked resource (a FITS image)
         using SAMP to external image viewers
-        (like <ref id="SendImageActivationType">Send FITS Image</ref> action)
+        (like the <ref id="SendImageActivationType">Send FITS Image</ref>
+        action)
         </li>
     <li><strong>Send Spectrum:</strong>
         sends the linked resource (a spectrum)
         using SAMP to external spectrum viewers
-        (like <ref id="SendSpectrumActivationType">Send Spectrum</ref> action)
+        (like the <ref id="SendSpectrumActivationType">Send Spectrum</ref>
+        action)
         </li>
     <li><strong>Send Table:</strong>
         sends the linked resource (a VOTable)
         using SAMP to external table viewers
-        (like <ref id="SendTableActivationType">Send VOTable</ref> action)
+        (like the <ref id="SendTableActivationType">Send VOTable</ref> action)
         </li>
     <li><strong>Show Web Page:</strong>
         opens the linked resource in the system web browser
-        (like <ref id="BrowserActivationType">View in Web Browser</ref> action)
+        (like the <ref id="BrowserActivationType">View in Web Browser</ref>
+        action)
         </li>
     </ul>
     Note that there currently is not much opportunity to customise the
@@ -20666,6 +20676,73 @@ and loads that into TOPCAT as a new table.
 
 </subsubsubsect>
 
+<subsubsubsect id="PlotTableActivationType">
+<subhead><title>Plot Table</title></subhead>
+
+<p>The <label>Plot Table</label> action
+takes a URL or filename in the table that points to a table
+in one of TOCAT's <ref id="inFormats">supported formats</ref>,
+and displays a plot window that can plot the data from that table.
+This is like loading the table
+(e.g. with the <ref id="LoadTableActivationType">Load Table</ref> action)
+and then opening a <ref id="plot2">plot window</ref> in the usual way,
+but doing it this way does not actually load the table into
+TOPCAT's list of loaded tables,
+and every time the action is activated, the data from the last
+invocation is just replaced with that from the current one
+(as far as possible - the tables need to have a similar structure
+for each row).
+In the plot window, the referenced table is listed first in the
+Table selector (or selectors, if multiple layers are configured)
+with the special name "<label>0: Activated</label>".
+All the currently loaded tables are available in the window as well
+as the activated one, so you can plot those for comparison in the
+same window if you want.
+</p>
+
+<p>The configuration of this action lets you select the
+type of plot window to use, but other than that does not
+let you specify in detail how you want the plot to look.
+However, after you have activated the action once,
+you can interactively configure the plot as required using all
+the usual plot options, and subsequent activations of the same
+action will just update the plot with the data from the newly
+activated row, without affecting the rest of the configuration.
+This makes it easy to visually compare column data from
+tables linked in different rows of the original table.
+Note however that the details of the plot window configuration
+are not included when a session is saved.
+</p>
+
+<figure>
+<caption><px>Configuration for Plot Table action</px></caption>
+<figureimage src="&FIG.PlotTableActivationType;"/>
+</figure>
+
+<p>Configuration:
+<dl>
+<dt>Table Location:</dt>
+<dd><p>Gives the URL or filename of the table to plot for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>Plot Type:</dt>
+<dd><p>Selects which type of plot window will be displayed.
+    The options are as listed in <ref id="plot2"/>.
+    </p></dd>
+<dt>Table Format:</dt>
+<dd><p>Selects the file format of the table to load.
+    If the table is in one of the formats that TOPCAT is able to
+    auto-detect (VOTable, FITS, CDF) then the default value
+    <code>(auto)</code> may be used, otherwise the correct format
+    must be chosen from the list.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="BrowserActivationType">
 <subhead><title>View in Web Browser</title></subhead>
 
@@ -26542,6 +26619,9 @@ introduced since the last version:
         on their name in the selection tree.</li>
     <li>Add a new <ref id="DownloadActivationType">Download URL</ref>
         activation action.</li>
+    <li>Add a new <ref id="PlotTableActivationType">Plot Table</ref>
+        activation action and a corresponding URL invocation action
+        in the <ref id="DatalinkWindow">Datalink Window</ref>.</li>
     </ul>
     </p></dd>
 
