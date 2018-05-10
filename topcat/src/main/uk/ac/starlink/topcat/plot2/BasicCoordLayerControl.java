@@ -167,6 +167,10 @@ public class BasicCoordLayerControl extends ConfigControl
         return zsel_;
     }
 
+    public TablesListComboBox getTableSelector() {
+        return tableSelector_;
+    }
+
     @Override
     public ConfigMap getConfig() {
         ConfigMap config = super.getConfig();

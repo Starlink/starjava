@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -115,6 +116,10 @@ public class FunctionLayerControl extends ConfigControl
 
     public Specifier<ZoneId> getZoneSpecifier() {
         return zsel_;
+    }
+
+    public TablesListComboBox getTableSelector() {
+        return null;
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {

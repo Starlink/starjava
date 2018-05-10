@@ -278,6 +278,10 @@ public abstract class FormLayerControl
         return zsel_;
     }
 
+    public TablesListComboBox getTableSelector() {
+        return tableSelector_;
+    }
+
     public void submitReports( Map<LayerId,ReportMap> reports ) {
         RowSubset[] subsets = subStack_.getSelectedSubsets();
         GuiCoordContent[] posContents = posCoordPanel_.getContents();

@@ -5,6 +5,7 @@ import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.topcat.TablesListComboBox;
 
 /**
  * Control subinterface for controls that can contribute PlotLayers
@@ -59,4 +60,15 @@ public interface LayerControl extends Control {
      * @return   zone id specifier, or null
      */
     Specifier<ZoneId> getZoneSpecifier();
+
+    /**
+     * Returns the selection widget for choosing which table this control
+     * is working with.
+     * If this control does not use a table, null is returned.
+     * The assumption is (currently) that a given control uses a maximum
+     * of one table.
+     *
+     * @return  table selector, or null
+     */
+    TablesListComboBox getTableSelector();
 }

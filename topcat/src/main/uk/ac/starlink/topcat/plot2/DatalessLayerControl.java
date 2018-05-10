@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.Map;
+import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
@@ -73,5 +74,9 @@ public class DatalessLayerControl extends ConfigControl
 
     public Specifier<ZoneId> getZoneSpecifier() {
         return zsel_;
+    }
+
+    public TablesListComboBox getTableSelector() {
+        return null;
     }
 }
