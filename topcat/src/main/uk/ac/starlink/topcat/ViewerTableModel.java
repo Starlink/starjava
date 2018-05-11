@@ -20,10 +20,10 @@ import uk.ac.starlink.table.StarTable;
  */
 public class ViewerTableModel extends AbstractTableModel {
 
-    private PlasticStarTable startable;
-    private RowSubset rset = RowSubset.ALL;
-    private int[] order;
-    private int[] rowMap;
+    private PlasticStarTable startable_;
+    private RowSubset rset_ = RowSubset.ALL;
+    private int[] order_;
+    private int[] rowMap_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -38,7 +38,7 @@ public class ViewerTableModel extends AbstractTableModel {
      *          returns <tt>false</tt>
      */
     public ViewerTableModel( PlasticStarTable startable ) {
-        this.startable = startable;
+        startable_ = startable;
 
         /* Ensure that we have a random access table to use, and that it
          * is not unfeasibly large. */
@@ -63,12 +63,12 @@ public class ViewerTableModel extends AbstractTableModel {
      *         to indicate natural ordering
      */
     public void setOrder( int[] order ) {
-        if ( order != null && order.length != startable.getRowCount() ) {
+        if ( order != null && order.length != startable_.getRowCount() ) {
             throw new IllegalArgumentException( "Wrong number of rows!"
-                + " (" + order.length + " != " + startable.getRowCount() );
+                + " (" + order.length + " != " + startable_.getRowCount() );
         }
-        this.order = order;
-        setRowMap( getRowMap( order, rset, getTableRowCount() ) );
+        order_ = order;
+        setRowMap( getRowMap( order, rset_, getTableRowCount() ) );
         fireTableDataChanged();
     }
 
@@ -81,8 +81,8 @@ public class ViewerTableModel extends AbstractTableModel {
      *          rows to be viewed
      */
     public void setSubset( RowSubset rset ) {
-        this.rowMap = getRowMap( order, rset, getTableRowCount() );
-        this.rset = rset;
+        rowMap_ = getRowMap( order_, rset, getTableRowCount() );
+        rset_ = rset;
         fireTableDataChanged();
     }
 
@@ -92,7 +92,7 @@ public class ViewerTableModel extends AbstractTableModel {
      * @return the row subset
      */
     public RowSubset getSubset() {
-        return rset;
+        return rset_;
     }
 
     /**
@@ -102,7 +102,7 @@ public class ViewerTableModel extends AbstractTableModel {
      * @return  row mapping; may be <tt>null</tt> to indicate a unit map
      */
     public int[] getRowMap() {
-        return rowMap;
+        return rowMap_;
     }
 
     /**
@@ -113,7 +113,7 @@ public class ViewerTableModel extends AbstractTableModel {
      *                 may be <tt>null</tt> to indicate a unit map
      */
     public void setRowMap( int[] rowMap ) {
-        this.rowMap = rowMap;
+        rowMap_ = rowMap;
         fireTableDataChanged();
     }
 
@@ -163,12 +163,12 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     public int getColumnCount() {
-        return startable.getColumnCount();
+        return startable_.getColumnCount();
     }
 
     public int getRowCount() {
-        return rowMap == null ? getTableRowCount()
-                              : rowMap.length;
+        return rowMap_ == null ? getTableRowCount()
+                              : rowMap_.length;
     }
 
     /**
@@ -179,8 +179,8 @@ public class ViewerTableModel extends AbstractTableModel {
      * @return  index of the row in the base table
      */
     public long getBaseRow( int irow ) {
-        return ( rowMap == null ) ? (long) irow
-                                  : (long) rowMap[ irow ];
+        return ( rowMap_ == null ) ? (long) irow
+                                   : (long) rowMap_[ irow ];
     }
 
     /**
@@ -192,14 +192,14 @@ public class ViewerTableModel extends AbstractTableModel {
      * @return  index of the row in this view model, or -1
      */
     public int getViewRow( long lrow ) {
-        if ( rowMap == null ) {
+        if ( rowMap_ == null ) {
             return (int) lrow;
         }
         else {
-            int nr = rowMap.length;
+            int nr = rowMap_.length;
             int irow = AbstractStarTable.checkedLongToInt( lrow );
             for ( int i = 0; i < nr; i++ ) {
-                if ( rowMap[ i ] == irow ) {
+                if ( rowMap_[ i ] == irow ) {
                     return i;
                 }
             }
@@ -210,7 +210,7 @@ public class ViewerTableModel extends AbstractTableModel {
     public Object getValueAt( int irow, int icol ) {
         if ( icol >= 0 ) {
             try {
-                return startable.getCell( getBaseRow( irow ), icol );
+                return startable_.getCell( getBaseRow( irow ), icol );
             }
             catch ( IOException e ) {
                 e.printStackTrace();
@@ -234,7 +234,7 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     public boolean isCellEditable( int irow, int icol ) {
-        // return startable.getColumnData( icol ).isWritable();
+        // return startable_.getColumnData( icol ).isWritable();
         return true;
     }
 
@@ -244,21 +244,21 @@ public class ViewerTableModel extends AbstractTableModel {
          * we will have to replace it with a column which is writable,
          * ensure that it contains the same data as the original, and
          * slot it into the same place as the original column. */
-        ColumnData coldat = startable.getColumnData( icol );
-        if ( ! startable.getColumnData( icol ).isWritable() ) {
-            ColumnData oldcol = startable.getColumnData( icol );
+        ColumnData coldat = startable_.getColumnData( icol );
+        if ( ! startable_.getColumnData( icol ).isWritable() ) {
+            ColumnData oldcol = startable_.getColumnData( icol );
             ColumnData newcol = new EditableColumn( oldcol );
             ColumnInfo info = newcol.getColumnInfo();
             info.setNullable( true );
             info.setElementSize( -1 );
-            startable.setColumn( icol, newcol );
+            startable_.setColumn( icol, newcol );
         }
 
         /* We have a writable column.  Write the value to the appropriate
          * cell. */
-        assert startable.getColumnData( icol ).isWritable();
+        assert startable_.getColumnData( icol ).isWritable();
         try {
-            startable.getColumnData( icol )
+            startable_.getColumnData( icol )
                      .storeValue( getBaseRow( irow ), val );
         }
         catch ( IOException e ) {
@@ -274,7 +274,7 @@ public class ViewerTableModel extends AbstractTableModel {
      * Returns the number of rows in the underlying table as an <tt>int</tt>.
      */
     private int getTableRowCount() {
-        return AbstractStarTable.checkedLongToInt( startable.getRowCount() );
+        return AbstractStarTable.checkedLongToInt( startable_.getRowCount() );
     }
 
     /**
@@ -287,7 +287,7 @@ public class ViewerTableModel extends AbstractTableModel {
      *           model
      */
     public StarTable getSnapshot() {
-        return getRowPermutedView( startable );
+        return getRowPermutedView( startable_ );
     }
 
     /**
@@ -299,14 +299,14 @@ public class ViewerTableModel extends AbstractTableModel {
      * @return   a table which is a possibly permuted view of <tt>table</tt>
      */
     public StarTable getRowPermutedView( StarTable table ) {
-        if ( rowMap == null ) {
+        if ( rowMap_ == null ) {
             return table;
         }
         else {
-            int nrow = rowMap.length;
+            int nrow = rowMap_.length;
             long[] rowMapCopy = new long[ nrow ];
             for ( int i = 0; i < nrow; i++ ) {
-                rowMapCopy[ i ] = (long) rowMap[ i ];
+                rowMapCopy[ i ] = (long) rowMap_[ i ];
             }
             return new RowPermutedStarTable( table, rowMapCopy );
         }
