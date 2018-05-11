@@ -12,6 +12,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JCheckBox;
@@ -21,6 +23,8 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.MouseInputAdapter;
 
 /**
@@ -46,6 +50,7 @@ public abstract class CheckBoxList<T> extends JList {
     private final boolean canSelect_;
     private final CheckBoxCellRenderer renderer_;
     private final DragListener dragger_;
+    private final List<ListDataListener> listeners_;
     private String[] msgLines_;
 
     /**
@@ -64,6 +69,28 @@ public abstract class CheckBoxList<T> extends JList {
         super( model );
         clazz_ = clazz;
         canSelect_ = canSelect;
+
+        /* Arrange to forward ListDataEvents from the base list model to
+         * listeners to this object.  Checkbox update events will also
+         * be forwarded by separate arrangement. */
+        listeners_ = new ArrayList<ListDataListener>();
+        model.addListDataListener( new ListDataListener() {
+            public void contentsChanged( ListDataEvent evt ) {
+                for ( ListDataListener l : listeners_ ) {
+                    l.contentsChanged( evt );
+                }
+            }
+            public void intervalAdded( ListDataEvent evt ) {
+                for ( ListDataListener l : listeners_ ) {
+                    l.intervalAdded( evt );
+                }
+            }
+            public void intervalRemoved( ListDataEvent evt ) {
+                for ( ListDataListener l : listeners_ ) {
+                    l.intervalRemoved( evt );
+                }
+            }
+        } );
 
         /* Set up cell rendering. */
         renderer_ = new CheckBoxCellRenderer( entryRenderer );
@@ -154,6 +181,26 @@ public abstract class CheckBoxList<T> extends JList {
         repaint();
     }
 
+    /**
+     * Adds a listener for list events.  As well as changes to the
+     * underlying ListModel, this will also be messaged when any of
+     * the elements becomes checked or unchecked.
+     *
+     * @param  l  listener to add
+     */
+    public void addListDataListener( ListDataListener l ) {
+        listeners_.add( l );
+    }
+
+    /**
+     * Removes a listener previously added.
+     *
+     * @param  l  listener to remove
+     */
+    public void removeListDataListener( ListDataListener l ) {
+        listeners_.remove( l );
+    }
+
     @Override
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
@@ -229,6 +276,12 @@ public abstract class CheckBoxList<T> extends JList {
                 T item = getTypedValue( getModel().getElementAt( index ) );
                 if ( item != null ) {
                     setChecked( item, ! isChecked( item ) );
+                    ListDataEvent devt =
+                        new ListDataEvent( this, ListDataEvent.CONTENTS_CHANGED,
+                                           index, index );
+                    for ( ListDataListener l : listeners_ ) {
+                        l.contentsChanged( devt );
+                    }
                 }
             }
         }
