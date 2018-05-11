@@ -20196,7 +20196,7 @@ More description of each of the panels is given below.
 </p>
 
 <p>The <label>Actions list</label>
-lists a number of activation actions that appear to be appropriate
+lists a number of activation actions that may be appropriate
 for the table this window applies to.
 Others, including duplicates of ones already listed,
 can be added from the <label>Add Action</label> (&IMG.ADD;) button
@@ -20207,7 +20207,8 @@ Each action has a checkbox; if checked, an attempt will be made to
 invoke that action whenever a row is activated (e.g. clicked on).
 If the checkbox is not checked, the action can still be invoked
 manually for the current row using the
-<label>Invoke Selected Action on Current Row</label> (&IMG.REACTIVATE;) button.
+<label>Invoke Selected Action on Current Row</label> (&IMG.REACTIVATE;) or
+<label>Invoke Selected Action on All Rows</label> (&IMG.ACTIVATE_SEQ;) buttons.
 If the action name is greyed out, it means that it can't currently
 be invoked for some reason, perhaps because it needs more configuration first.
 To find out the reason, look in the <label>Status</label> panel,
@@ -20224,7 +20225,9 @@ gives a short description of the behaviour of the currently selected action.
 
 <p>The <label>Configuration panel</label>
 displays a user interface to configure the details of
-what the selected action will do.  The format depends on the action.
+what the selected action will do.
+The format depends on the action; see <ref id="ActivationTypes"/>
+for details.
 </p>
 
 <p>The <label>Status panel</label>
@@ -20244,8 +20247,10 @@ panel above needs to be adjusted (e.g. some values filled in).
 
 <p>The <label>Results panel</label>
 contains a line added every time the currently selected action is invoked,
-either by the <label>Invoke Now</label> (&IMG.REACTIVATE;) button or 
-because a row has been activated elsewhere in the application.
+either by the <label>Invoke</label> buttons
+(&IMG.REACTIVATE;, &IMG.REACTIVATE_ALL;,
+ &IMG.ACTIVATE_SEQ;, &IMG.ACTIVATE_SEQ_ALL;)
+or because a row has been activated elsewhere in the application.
 Each line contains four entries:
 <ul>
 <li><strong>Seq:</strong>
@@ -20273,20 +20278,7 @@ Each line contains four entries:
 
 <p>The following items are available in the toolbar or menus:
 <dl>
-<dt>&IMG.REACTIVATE; Invoke Selected Action on Current Row</dt>
-<dd><p>This causes the currently selected action to be activated
-    on the most recently activated row (or the first row if none have
-    been activated yet).
-    You can use it to invoke the action without having to
-    actually click on a row in the view window or a plot.
-    It will invoke the action (if it can) whether or not it
-    is currently active, i.e. even when its checkbox is not checked.
-    </p></dd>
-<dt>&IMG.REACTIVATE_ALL; Activate Current Row</dt>
-<dd><p>Activates all the currently enabled actions on the most recently
-    activated row (or the first row if none have been activated yet).
-    This does the same as clicking on a row in the view window or a plot.
-    </p></dd>
+
 <dt>&IMG.ADD; Add Action</dt>
 <dd><p>Add a new action to the Actions List from the full menu of
     available actions, as enumerated in <ref id="ActivationTypes"/>.
@@ -20302,9 +20294,50 @@ Each line contains four entries:
 <dd><p>Removes all the actions from the Actions list,
     except the currently active ones (ones with their checkbox checked).
     This can be useful to clear out the list and remove clutter.
-    Any actions you want to restore can be added back using the
+    Any actions you want to restore can be added back later using the
     <label>Add Action</label> button.
     </p></dd>
+
+<dt>&IMG.REACTIVATE; Invoke Selected Action on Current Row</dt>
+<dd><p>This causes the currently selected action to be activated
+    on the most recently activated row (or the first row if none have
+    been activated yet).
+    You can use it to invoke the action without having to
+    actually click on a row in the view window or a plot.
+    It will invoke the action (if it can) whether or not it
+    is currently active, i.e. even when its checkbox is not checked.
+    </p></dd>
+<dt>&IMG.REACTIVATE_ALL; Activate Current Row</dt>
+<dd><p>Activates all the currently enabled actions on the most recently
+    activated row (or the first row if none have been activated yet).
+    This does the same as clicking on a row in the
+    <ref id="TableViewerWindow">Data Window</ref> or a plot.
+    </p></dd>
+
+<dt>&IMG.ACTIVATE_SEQ; Invoke Selected Action on All Rows</dt>
+<dd><p>This invokes the currently selected action to be activated
+    for each row in turn in the <ref id="apparent">apparent table</ref>
+    (i.e. each row in the current row subset).
+    As each row is activated, the result will be displayed in the
+    Results panel, and a progress bar will indicate how far through
+    the table it's got.
+    </p></dd>
+<dt>&IMG.ACTIVATE_SEQ_ALL; Activate All Rows</dt>
+<dd><p>Activates all the currently enabled actions
+    for each row in turn in the <ref id="apparent">apparent table</ref>
+    (i.e. each row in the current row subset).
+    As each row is activated, the result will be displayed in the
+    Results panel of each active action,
+    and a progress bar will indicate how far through the table it's got.
+    The effect is the same as clicking on every row of the table
+    displayed in the <ref id="TableViewerWindow">Data Window</ref>
+    one at a time.
+    </p></dd>
+<dt>&IMG.CANCEL_SEQ; Cancel Sequence</dt>
+<dd><p>Cancels a sequence of activations that was started by
+    either of the <label>... All Rows</label> actions above.
+    </p></dd>
+
 <dt>&IMG.FUNCTION; Available Functions</dt>
 <dd><p>Displays a window containing all the functions which can be used 
     for writing algebraic expressions (see <ref id="jel"/>).
@@ -26622,6 +26655,10 @@ introduced since the last version:
     <li>Add a new <ref id="PlotTableActivationType">Plot Table</ref>
         activation action and a corresponding URL invocation action
         in the <ref id="DatalinkWindow">Datalink Window</ref>.</li>
+    <li>Add new options to the
+        <ref id="ActivationWindow">Activation Window</ref>
+        to allow automatically invoking actions on every table row
+        in turn.</li>
     </ul>
     </p></dd>
 
