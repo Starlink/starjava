@@ -138,6 +138,11 @@ public abstract class CheckBoxList<T> extends JList {
         return clazz_.isInstance( value ) ? clazz_.cast( value ) : null;
     }
 
+    @Override
+    public T getSelectedValue() {
+        return getTypedValue( super.getSelectedValue() );
+    }
+
     /**
      * Sets a message which is overpainted on the blank part of this
      * component.  If null or empty, no message is painted.
@@ -298,7 +303,7 @@ public abstract class CheckBoxList<T> extends JList {
 
         @Override
         public void mouseReleased( MouseEvent evt ) {
-            T selItem = getTypedValue( getSelectedValue() );
+            T selItem = getSelectedValue();
             int toIndex = locationToIndex( evt.getPoint() );
             if ( toIndex >= 0 && fromIndex_ >= 0 && toIndex != fromIndex_ ) {
                 moveItem( fromIndex_, toIndex );

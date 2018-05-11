@@ -82,7 +82,7 @@ public class ControlStack extends CheckBoxList<Control> {
      * @return   current control, or null
      */
     public Control getCurrentControl() {
-        return getTypedValue( getSelectedValue() );
+        return getSelectedValue();
     }
 
     /**
