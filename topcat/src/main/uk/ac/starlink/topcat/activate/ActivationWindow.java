@@ -396,27 +396,28 @@ public class ActivationWindow extends AuxWindow {
 
         /* Add menus. */
         getJMenuBar().add( actMenu );
-        actMenu.addSeparator();
         actMenu.add( removeAct );
         actMenu.add( removeInactiveAct );
         actMenu.addSeparator();
         actMenu.add( invokeSingleAct_ );
         actMenu.add( invokeAllAct_ );
+        actMenu.addSeparator();
         actMenu.add( singleSeqAct_ );
         actMenu.add( allSeqAct_ );
         actMenu.add( cancelSeqAct_ );
 
         /* Add tools. */
         JToolBar toolbar = getToolBar();
-        toolbar.add( invokeSingleAct_ );
-        toolbar.add( invokeAllAct_ );
-        toolbar.add( singleSeqAct_ );
-        toolbar.add( allSeqAct_ );
-        toolbar.add( cancelSeqAct_ );
-        toolbar.addSeparator();
         toolbar.add( addPopupAct );
         toolbar.add( removeAct );
         toolbar.add( removeInactiveAct );
+        toolbar.addSeparator();
+        toolbar.add( invokeSingleAct_ );
+        toolbar.add( invokeAllAct_ );
+        toolbar.addSeparator();
+        toolbar.add( singleSeqAct_ );
+        toolbar.add( allSeqAct_ );
+        toolbar.add( cancelSeqAct_ );
         toolbar.addSeparator();
         toolbar.add( MethodWindow.getWindowAction( this, true ) );
 
@@ -760,10 +761,10 @@ public class ActivationWindow extends AuxWindow {
         public void configure() {
             boolean hasRow = currentRow_ >= 0;
             String rowTxt = hasRow ? " (" + ( currentRow_ + 1 ) + ")" : "";
-            putValue( NAME, "Invoke Selected Action on Current Row" + rowTxt );
+            putValue( NAME, "Invoke selected action on current row" + rowTxt );
             putValue( SHORT_DESCRIPTION,
-                      "Invoke currently selected action for "
-                    + "the most recently selected row" + rowTxt );
+                      "Perform the currently selected action"
+                    + " on the most recently selected row" + rowTxt );
             setEnabled( hasRow &&
                         entry_ != null &&
                         entry_.getConfigurator().getActivator() != null );
@@ -797,10 +798,10 @@ public class ActivationWindow extends AuxWindow {
         public void configure() {
             boolean hasRow = currentRow_ >= 0;
             String rowTxt = hasRow ? " (" + ( currentRow_ + 1 ) + ")" : "";
-            putValue( NAME, "Activate Current Row" + rowTxt );
+            putValue( NAME, "Activate current row" + rowTxt );
             putValue( SHORT_DESCRIPTION,
-                      "Invoke all configured actions for "
-                    + "the most recently selected row" + rowTxt );
+                      "Perform all active (checked) actions"
+                    + " on the most recently selected row" + rowTxt );
             setEnabled( hasRow && getActiveActivators().length > 0 );
         }
     }
@@ -837,7 +838,7 @@ public class ActivationWindow extends AuxWindow {
         SingleSequenceAction() {
             super( "Invoke selected action on all rows",
                    ResourceIcon.ACTIVATE_SEQ,
-                   "Perform the currently selected activation action"
+                   "Perform the currently selected action"
                  + " on every row in the current subset in turn" );
             meta_ = ActivationMeta.NORMAL;
             configure();
@@ -938,7 +939,8 @@ public class ActivationWindow extends AuxWindow {
         AllSequenceAction() {
             super( "Activate all rows",
                    ResourceIcon.ACTIVATE_SEQ_ALL,
-                   "Activate every row in the current subset in turn" );
+                   "Perform all active (checked) actions"
+                 + " on every row in the current subset in turn" );
             meta_ = ActivationMeta.NORMAL;
             configure();
         }
