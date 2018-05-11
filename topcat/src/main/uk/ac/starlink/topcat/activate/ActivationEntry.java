@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -78,7 +79,7 @@ public class ActivationEntry {
      * scheduling it on an appropriate thread and directing the output
      * to a suitable destination for display.
      *
-     * <p><strong>Note:</strong> This method should be called on the EDT.
+     * <p>This method should be called on the EDT.
      * It should return in a short amount of time.
      *
      * @param  lrow   row index to activate
@@ -109,6 +110,61 @@ public class ActivationEntry {
                     executeAndUpdate( activator, lrow, meta, item );
                 }
             } ) );
+        }
+    }
+
+    /**
+     * Invokes the currently configured activation action for this entry,
+     * returning only when it has completed.
+     * The output is directed the output to a suitable destination.
+     *
+     * <p>This method should not be called on the EDT.  It may take
+     * some time to execute.
+     *
+     * @param  activator  activator
+     * @param  lrow   row index to activate
+     * @param  meta   activation metadata
+     */
+    public void activateRowSync( final Activator activator,
+                                 final long lrow, final ActivationMeta meta ) {
+        assert ! SwingUtilities.isEventDispatchThread();
+        if ( activator == null ) {
+            return;
+        }
+        if ( activator.invokeOnEdt() ) {
+            try {
+                SwingUtilities.invokeAndWait( new Runnable() {
+                    public void run() {
+                        Outcome outcome = activator.activateRow( lrow, meta );
+                        String msg = outcome.getMessage();
+                        logPanel_.addItem( lrow, getStatus( outcome ), msg );
+                    }
+                } );
+            }
+            catch ( Exception e ) {
+                logger_.log( Level.WARNING,
+                             "Synchronous activation failed: " + e, e );
+            }
+        }
+        else {
+            final AtomicReference<ActivationLogPanel.Item> itemRef =
+                new AtomicReference<ActivationLogPanel.Item>();
+            try {
+                SwingUtilities.invokeAndWait( new Runnable() {
+                    public void run() {
+                        itemRef.set( logPanel_.addItem( lrow ) );
+                    }
+                } );
+            }
+            catch ( Exception e ) {
+                logger_.log( Level.WARNING,
+                             "Synchronous activation failed: " + e, e );
+            }
+            final ActivationLogPanel.Item item = itemRef.get();
+            if ( item == null ) {
+                return;
+            }
+            executeAndUpdate( activator, lrow, meta, item );
         }
     }
 
