@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.logging.Logger;
 import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.AbstractStarTable;
@@ -103,6 +104,50 @@ public class ViewerTableModel extends AbstractTableModel {
      */
     public int[] getRowMap() {
         return rowMap_;
+    }
+
+    /**
+     * Returns an iterator over the base table row indices represented
+     * by this view.  This is an iteration over the values in the
+     * {@link #getRowMap rowMap} if it is non-null, or an iterator
+     * over all the rows if it is null.
+     * The number of elements iterated over is given by
+     * {@link #getRowCount}.
+     *
+     * @return  row index iterator
+     */
+    public Iterator<Long> getRowIndexIterator() {
+        final int[] rowMap = rowMap_;
+        if ( rowMap == null ) {
+            final long n = startable_.getRowCount();
+            return new Iterator<Long>() {
+                private long lx_ = -1;
+                public boolean hasNext() {
+                    return lx_ < n - 1;
+                }
+                public Long next() {
+                    return new Long( ++lx_ );
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+        else {
+            final long n = rowMap.length;
+            return new Iterator<Long>() {
+                private int kx_ = -1;
+                public boolean hasNext() {
+                    return kx_ < n - 1;
+                }
+                public Long next() {
+                    return new Long( rowMap[ ++kx_ ] );
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
     }
 
     /**
