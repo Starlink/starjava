@@ -79,11 +79,12 @@ public class ActivationEntry {
      * to a suitable destination for display.
      *
      * <p><strong>Note:</strong> This method should be called on the EDT.
+     * It should return in a short amount of time.
      *
      * @param  lrow   row index to activate
      * @param  meta   activation metadata
      */
-    public void activateRow( final long lrow, final ActivationMeta meta ) {
+    public void activateRowAsync( final long lrow, final ActivationMeta meta ) {
         assert SwingUtilities.isEventDispatchThread();
         final Activator activator = configurator_.getActivator();
         if ( activator == null ) {
@@ -105,39 +106,38 @@ public class ActivationEntry {
             final ActivationLogPanel.Item item = logPanel_.addItem( lrow );
             lastJob_ = new Job( item, getQueue().submit( new Runnable() {
                 public void run() {
-                    try {
-                        final Outcome outcome =
-                            activator.activateRow( lrow, meta );
-                        SwingUtilities.invokeLater( new Runnable() {
-                            public void run() {
-                                logPanel_
-                               .updateItem( item, getStatus( outcome ),
-                                            outcome.getMessage() );
-                            }
-                        } );
-                    }
-                    catch ( Throwable e ) {
-                        scheduleLogFailure( item, e.toString() );
-                        logger_.log( Level.WARNING, "Activation failure: " + e,
-                                     e );
-                    }
+                    executeAndUpdate( activator, lrow, meta, item );
                 }
             } ) );
         }
     }
 
     /**
-     * Causes an asynchronous update of the given item's statues to failed.
+     * Synchronously performs the activation action, and then
+     * schedules a log panel update.
+     * This method should not be called on the EDT.
      *
-     * @param  item  item whose state is to be updated
-     * @param  msg   failure detail message
+     * @param  activator  activator
+     * @param  lrow    row index
+     * @param  meta   additional activation metadata, or null
+     * @param  item   destination for status updates
      */
-    private void scheduleLogFailure( final ActivationLogPanel.Item item,
-                                     final String msg ) {
+    private void executeAndUpdate( Activator activator, long lrow,
+                                   ActivationMeta meta,
+                                   final ActivationLogPanel.Item item ) {
+        Outcome outcome;
+        try {
+            outcome = activator.activateRow( lrow, meta );
+        }
+        catch ( Throwable e ) {
+            logger_.log( Level.WARNING, "Activation failure: " + e, e );
+            outcome = Outcome.failure( e );
+        }
+        final ActivationLogPanel.Status status = getStatus( outcome );
+        final String msg = outcome.getMessage();
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                logPanel_.updateItem( item, ActivationLogPanel.Status.FAIL,
-                                      msg );
+                logPanel_.updateItem( item, status, msg );
             }
         } );
     }

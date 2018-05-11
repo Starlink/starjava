@@ -400,7 +400,7 @@ public class ActivationWindow extends AuxWindow {
         invokeSingleAct_.configure();
         updateStatus();
         for ( ActivationEntry entry : list_.getCheckedItems() ) {
-            entry.activateRow( lrow, meta );
+            entry.activateRowAsync( lrow, meta );
         }
     }
 
@@ -668,7 +668,7 @@ public class ActivationWindow extends AuxWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             if ( entry_ != null && currentRow_ >= 0 ) {
-                entry_.activateRow( currentRow_, meta_ );
+                entry_.activateRowAsync( currentRow_, meta_ );
             }
         }
 
@@ -704,7 +704,7 @@ public class ActivationWindow extends AuxWindow {
         public void actionPerformed( ActionEvent evt ) {
             if ( currentRow_ >= 0 ) {
                 for ( ActivationEntry entry : list_.getCheckedItems() ) {
-                    entry.activateRow( currentRow_, meta_ );
+                    entry.activateRowAsync( currentRow_, meta_ );
                 }
             }
         }
