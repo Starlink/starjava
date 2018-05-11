@@ -26659,6 +26659,9 @@ introduced since the last version:
         <ref id="ActivationWindow">Activation Window</ref>
         to allow automatically invoking actions on every table row
         in turn.</li>
+    <li>Add activation functions <code>sleep</code> and
+        <code>sleepMillis</code> to <ref id="System">System</ref>
+        class.</li>
     </ul>
     </p></dd>
 
