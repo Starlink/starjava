@@ -8,9 +8,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,10 +20,18 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
+import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -29,12 +39,14 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -47,6 +59,7 @@ import uk.ac.starlink.topcat.MethodWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.ViewerTableModel;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -66,7 +79,13 @@ public class ActivationWindow extends AuxWindow {
     private final JLabel statusLabel_;
     private final InvokeAllAction invokeAllAct_;
     private final InvokeSingleAction invokeSingleAct_;
+    private final SingleSequenceAction singleSeqAct_;
+    private final AllSequenceAction allSeqAct_;
+    private final CancelSequenceAction cancelSeqAct_;
     private final ActionListener statusListener_;
+    private final JProgressBar progBar_;
+    private final ThreadFactory seqThreadFact_;
+    private ExecutorService sequenceQueue_;
     private long currentRow_;
     private ActivationEntry selectedEntry_;
     private String summary_;
@@ -97,6 +116,13 @@ public class ActivationWindow extends AuxWindow {
         super( tcModel, "Activation Actions", parent );
         tcModel_ = tcModel;
         currentRow_ = 0;
+        seqThreadFact_ = new ThreadFactory() {
+            public Thread newThread( Runnable r ) {
+                Thread thread = new Thread( r, "Activation Sequence" );
+                thread.setDaemon( true );
+                return thread;
+            }
+        };
         list_ = new BasicCheckBoxList<ActivationEntry>( ActivationEntry.class,
                                                         true ) {
             @Override
@@ -263,13 +289,16 @@ public class ActivationWindow extends AuxWindow {
         };
         invokeAllAct_ = new InvokeAllAction();
         invokeSingleAct_ = new InvokeSingleAction();
+        singleSeqAct_ = new SingleSequenceAction();
+        allSeqAct_ = new AllSequenceAction();
+        cancelSeqAct_ = new CancelSequenceAction();
         list_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 if ( selectedEntry_ != null ) {
                     selectedEntry_.getConfigurator()
                                   .removeActionListener( statusListener_ );
                 }
-                selectedEntry_ = (ActivationEntry) list_.getSelectedValue();
+                selectedEntry_ = getSelectedEntry();
                 if ( selectedEntry_ != null ) {
                     selectedEntry_.getConfigurator()
                                   .addActionListener( statusListener_ );
@@ -289,6 +318,7 @@ public class ActivationWindow extends AuxWindow {
                 }
                 invokeSingleAct_.entry_ = selectedEntry_;
                 invokeSingleAct_.configure();
+                singleSeqAct_.configure();
                 updateStatus();
                 configContainer_.revalidate();
                 outputContainer_.revalidate();
@@ -299,16 +329,21 @@ public class ActivationWindow extends AuxWindow {
             }
         } );
 
-        listModel_.addListDataListener( new ListDataListener() {
-            public void contentsChanged( ListDataEvent evt ) {
-                updateActivations();
-            }
-            public void intervalAdded( ListDataEvent evt ) {
-                updateActivations();
-            }
-            public void intervalRemoved( ListDataEvent evt ) {
-                updateActivations();
-            }
+        list_.addListDataListener( new ListDataListener() {
+             public void contentsChanged( ListDataEvent evt ) {
+                 listChanged();
+             }
+             public void intervalAdded( ListDataEvent evt ) {
+                 listChanged();
+             }
+             public void intervalRemoved( ListDataEvent evt ) {
+                 listChanged();
+             }
+             private void listChanged() {
+                 updateActivations();
+                 invokeAllAct_.configure();
+                 allSeqAct_.configure();
+             }
         } );
 
         configContainer_ = new JPanel( new BorderLayout() );
@@ -356,6 +391,7 @@ public class ActivationWindow extends AuxWindow {
         vsplitter.setOneTouchExpandable( true );
         JComponent mainPanel = new JPanel( new BorderLayout() );
         mainPanel.add( vsplitter, BorderLayout.CENTER );
+        progBar_ = placeProgressBar();
         getMainArea().add( mainPanel );
 
         /* Add menus. */
@@ -366,11 +402,17 @@ public class ActivationWindow extends AuxWindow {
         actMenu.addSeparator();
         actMenu.add( invokeSingleAct_ );
         actMenu.add( invokeAllAct_ );
+        actMenu.add( singleSeqAct_ );
+        actMenu.add( allSeqAct_ );
+        actMenu.add( cancelSeqAct_ );
 
         /* Add tools. */
         JToolBar toolbar = getToolBar();
         toolbar.add( invokeSingleAct_ );
         toolbar.add( invokeAllAct_ );
+        toolbar.add( singleSeqAct_ );
+        toolbar.add( allSeqAct_ );
+        toolbar.add( cancelSeqAct_ );
         toolbar.addSeparator();
         toolbar.add( addPopupAct );
         toolbar.add( removeAct );
@@ -383,6 +425,16 @@ public class ActivationWindow extends AuxWindow {
 
         /* Add help information. */
         addHelp( "ActivationWindow" );
+    }
+
+    /**
+     * Returns the currently selected ActivationEntry.
+     * May be null.
+     *
+     * @return selected entry
+     */
+    public ActivationEntry getSelectedEntry() {
+        return list_.getSelectedValue();
     }
 
     /**
@@ -452,7 +504,7 @@ public class ActivationWindow extends AuxWindow {
      */
     public List<Map<String,String>> getActivationState() {
         List<Map<String,String>> list = new ArrayList<Map<String,String>>();
-        ActivationEntry selected = (ActivationEntry) list_.getSelectedValue();
+        ActivationEntry selected = getSelectedEntry();
         for ( ActivationEntry entry : list_.getItems() ) {
             Map<String,String> map = new LinkedHashMap<String,String>();
             ActivationType type = entry.getType();
@@ -558,8 +610,9 @@ public class ActivationWindow extends AuxWindow {
                         l.contentsChanged( listEvt );
                     }
                 }
-                if ( entry == invokeSingleAct_.entry_ ) {
+                if ( entry == getSelectedEntry() ) {
                     invokeSingleAct_.configure();
+                    singleSeqAct_.configure();
                 }
             }
         } );
@@ -610,6 +663,34 @@ public class ActivationWindow extends AuxWindow {
         }
         statusLabel_.setText( message );
         statusLabel_.setEnabled( invokeSingleAct_.isEnabled() );
+    }
+
+    /**
+     * Sets the ExecutorService which is used to invoke sequences of
+     * actions (one for each table row).  To keep things sane,
+     * and in view of the fact we only have one progress bar,
+     * only one of these queues is allowed to be present and active at
+     * any one time (the invocation actions which would cause
+     * creation of a new one are disabled while any other is running).
+     * To install a new queue, or to signal that an existing one is
+     * finished with, this method should be called.
+     * Calling it with a null value will ensure that any existing queue
+     * is shut down.
+     *
+     * <p>This method must be invoked from the EDT.
+     *
+     * @param   queue  new sequence activation queue;
+     *          use null to indicate that an existing queue is finished with
+     */
+    private void setSequenceQueue( ExecutorService queue ) {
+        progBar_.setModel( new DefaultBoundedRangeModel() );
+        if ( sequenceQueue_ != null ) {
+            sequenceQueue_.shutdownNow();
+        }
+        sequenceQueue_ = queue;
+        singleSeqAct_.configure();
+        allSeqAct_.configure();
+        cancelSeqAct_.configure();
     }
 
     /**
@@ -720,7 +801,247 @@ public class ActivationWindow extends AuxWindow {
             putValue( SHORT_DESCRIPTION,
                       "Invoke all configured actions for "
                     + "the most recently selected row" + rowTxt );
-            setEnabled( hasRow );
+            setEnabled( hasRow && getActiveActivators().length > 0 );
+        }
+    }
+
+    /**
+     * Action that cancels the operation of any multi-row activation
+     * sequence that is under way.
+     */
+    private class CancelSequenceAction extends BasicAction {
+        CancelSequenceAction() {
+            super( "Cancel sequence", ResourceIcon.CANCEL_SEQ,
+                   "Stop a running sequence of actions" );
+            configure();
+        }
+        public void actionPerformed( ActionEvent evt ) {
+            setSequenceQueue( null );
+        }
+
+        /**
+         * Should be called if anything affecting enabledness changes.
+         */
+        public void configure() {
+            setEnabled( sequenceQueue_ != null );
+        }
+    }
+
+    /**
+     * Action that invokes the currently selected activation action
+     * on every row of the current apparent table.
+     */
+    private class SingleSequenceAction extends BasicAction {
+        private final ActivationMeta meta_;
+
+        SingleSequenceAction() {
+            super( "Invoke selected action on all rows",
+                   ResourceIcon.ACTIVATE_SEQ,
+                   "Perform the currently selected activation action"
+                 + " on every row in the current subset in turn" );
+            meta_ = ActivationMeta.NORMAL;
+            configure();
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            final ActivationEntry entry = getSelectedEntry();
+            if ( entry != null ) {
+                final Activator activator =
+                    entry.getConfigurator().getActivator();
+                if ( activator != null ) {
+                    final ExecutorService queue =
+                        Executors.newSingleThreadExecutor( seqThreadFact_ );
+                    setSequenceQueue( queue );
+                    seqThreadFact_.newThread( new Runnable() {
+                        public void run() {
+                            try {
+                                runSequence( queue, entry, activator );
+                            }
+                            finally {
+                                SwingUtilities.invokeLater( new Runnable() {
+                                    public void run() {
+                                        if ( queue == sequenceQueue_ ) {
+                                            setSequenceQueue( null );
+                                        }
+                                    }
+                                } );
+                            }
+                        }
+                    } ).start();
+                }
+            }
+        }
+
+        /**
+         * Does the work of invoking a given activator for each row
+         * of this window's table.
+         *
+         * @param  queue  execution queue
+         * @param  entry  activation entry
+         * @param  activator  activator
+         */
+        private void runSequence( final ExecutorService queue,
+                                  final ActivationEntry entry,
+                                  final Activator activator ) {
+            ViewerTableModel viewModel = tcModel_.getViewModel();
+            BoundedRangeModel progModel =
+                new DefaultBoundedRangeModel( 0, 0, 0,
+                                              viewModel.getRowCount() );
+            progBar_.setModel( progModel );
+            try {
+                int ir = 0;
+                for ( Iterator<Long> it = viewModel.getRowIndexIterator();
+                      it.hasNext() && ! queue.isShutdown(); ) {
+                    final long lrow = it.next().longValue();
+                    queue.submit( new Runnable() {
+                        public void run() {
+                            entry.activateRowSync( activator, lrow, meta_ );
+                        }
+                    } ).get();  // wait for completion
+                    progModel.setValue( ++ir );
+                }
+            }
+            catch ( InterruptedException e ) {
+                // job was cancelled by user (probably)
+            }
+            catch ( RejectedExecutionException e ) {
+                // job was cancelled by user (probably)
+            }
+            catch ( ExecutionException e ) {
+                // Shouldn't really happen.  Could catch this per iteration,
+                // but given that there is plenty of error handling already
+                // there, a failure here may mean something serious has gone
+                // wrong, and is likely to go wrong for every iteration.
+                logger_.log( Level.WARNING, "Activation sequence failed: " + e,
+                             e );
+            }
+        }
+
+        /**
+         * Should be called if anything affecting enabledness changes.
+         */
+        public void configure() {
+            setEnabled( sequenceQueue_ == null &&
+                        selectedEntry_ != null &&
+                        selectedEntry_.getConfigurator()
+                                      .getActivator() != null );
+        }
+    }
+
+    /**
+     * Action that invokes all the currently active activation actions
+     * on every row of the current apparent table.
+     */ 
+    private class AllSequenceAction extends BasicAction {
+        private final ActivationMeta meta_;
+
+        AllSequenceAction() {
+            super( "Activate all rows",
+                   ResourceIcon.ACTIVATE_SEQ_ALL,
+                   "Activate every row in the current subset in turn" );
+            meta_ = ActivationMeta.NORMAL;
+            configure();
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+
+            /* Prepare a list of the activators to invoke at each row. */
+            final Map<ActivationEntry,Activator> activators =
+                new LinkedHashMap<ActivationEntry,Activator>();
+            for ( ActivationEntry entry : list_.getCheckedItems() ) {
+                Activator activator = entry.getConfigurator().getActivator();
+                if ( activator != null ) {
+                    activators.put( entry, activator );
+                }
+            }
+
+            /* Call on all rows, and dispose of the queue when done. */
+            if ( activators.size() > 0 ) {
+                final ExecutorService queue =
+                    Executors.newCachedThreadPool( seqThreadFact_ );
+                setSequenceQueue( queue );
+                seqThreadFact_.newThread( new Runnable() {
+                    public void run() {
+                        try {
+                            runSequence( queue, activators );
+                        }
+                        finally {
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    if ( queue == sequenceQueue_ ) {
+                                        setSequenceQueue( null );
+                                    }
+                                }
+                            } );
+                        }
+                    }
+                } ).start();
+            }
+        }
+
+        /**
+         * Does the work of invoking the supplied activators for each row
+         * of this window's table.
+         *
+         * @param  queue  execution queue
+         * @param  activators  list of ActivationEntry,Activator pairs
+         */
+        private void
+                runSequence( final ExecutorService queue,
+                             final Map<ActivationEntry,Activator> activators ) {
+            ViewerTableModel viewModel = tcModel_.getViewModel();
+            BoundedRangeModel progModel =
+                new DefaultBoundedRangeModel( 0, 0, 0,
+                                              viewModel.getRowCount() );
+            progBar_.setModel( progModel );
+            try {
+
+                /* Step through each row of the table. */
+                int ir = 0;
+                for ( Iterator<Long> it = viewModel.getRowIndexIterator();
+                      it.hasNext() && ! queue.isShutdown(); ) {
+                     final long lrow = it.next().longValue();
+
+                     /* Prepare a list of all the actions to be invoked. */
+                     Collection<Callable<Void>> jobs =
+                         new ArrayList<Callable<Void>>();
+                     for ( Map.Entry<ActivationEntry,Activator> e :
+                           activators.entrySet() ) {
+                         final ActivationEntry entry = e.getKey();
+                         final Activator activator = e.getValue();
+                         jobs.add( new Callable<Void>() {
+                             public Void call() {
+                                 entry.activateRowSync( activator, lrow,
+                                                        meta_ );
+                                 return null;
+                             }
+                         } );
+                     }
+
+                     /* Invoke them all concurrently, waiting until
+                      * all are complete before moving on to the next row. */
+                     queue.invokeAll( jobs );
+                     progModel.setValue( ++ir );
+                }
+            }
+            catch ( InterruptedException e ) {
+                // job was cancelled by user (probably)
+            }
+            catch ( RejectedExecutionException e ) {
+                // job was cancelled by user (probably)
+            }
+            catch ( Throwable e ) {
+                logger_.log( Level.WARNING, "Activation sequence failed: " + e,
+                             e );
+            }
+        }
+
+        /**
+         * Should be called if enabledness changes.
+         */
+        public void configure() {
+            setEnabled( sequenceQueue_ == null &&
+                        getActiveActivators().length > 0 );
         }
     }
 
