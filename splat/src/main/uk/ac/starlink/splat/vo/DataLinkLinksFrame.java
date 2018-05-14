@@ -317,7 +317,7 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 			service = dlparams.getDataLinkService(serviceDef);
 		}
 		
-		if (contentType.contains("html")) { // open link in browser
+		if (contentType != null && contentType.contains("html")) { // open link in browser
 			openbrowser(accessUrl);
 			return;
 		}
