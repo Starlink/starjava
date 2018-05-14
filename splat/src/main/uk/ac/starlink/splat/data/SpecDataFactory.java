@@ -358,8 +358,8 @@ public class SpecDataFactory
 				}
              }
                  
-             if (remotetype != GUESS && remotetype != NOT_SUPPORTED)
-                 type = remotetype;
+           //  if ( remotetype != GUESS && remotetype != NOT_SUPPORTED)
+           //      type = remotetype;
               
              if ( ( /*type != TABLE &&*/ type != HDX ) || ( type == GUESS ) ) {               
                 PathParser pathParser = remoteToLocalFile( namer.getURL(), type ); 
@@ -709,6 +709,7 @@ public class SpecDataFactory
     {
     	List<SpecDataImpl> impls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
     	//SpecDataImpl impl = null;
+    	
         if ( format.equals( "NDF" ) ) {
             //impl = makeNDFSpecDataImpl( name );
         	impls.add(makeNDFSpecDataImpl( name ));
@@ -897,30 +898,48 @@ public class SpecDataFactory
         throws SplatException
     {
         SpecDataImpl impl = null;
+      
 
         //  Check if this is a VOTable first (signature easier to check).
         Exception tableException = null;
         try {
             DataSource datsrc = null;
             if ( isRemote ) {
-                datsrc = new URLDataSource( url );
+                datsrc = new URLDataSource( url );               
             }
             else {
-                datsrc = new FileDataSource( specspec );
+                datsrc = new FileDataSource( specspec );             
             }
+            
             StarTable starTable =
                 new VOTableBuilder().makeStarTable( datsrc, true,
-                                                    storagePolicy );
+                		storagePolicy );
+            
+            
             if ( starTable.getRowCount() == 0 )
                 throw new Exception( "The TABLE is empty");
             if ( starTable != null ) {
                 //is it a line id table?
                 if (islineIDTable(starTable))
                     return new LineIDTableSpecDataImpl( starTable );
-                else 
-                    return new TableSpecDataImpl( starTable );
+                else {
+                	
+                	 VODMLReader vodml = new VODMLReader( datsrc );
+                	 String productType = vodml.getDataProductType(); 
+                     String timeSystem = vodml.getTimeFrameKindParameter();
+                     impl = new TableSpecDataImpl(starTable);
+                     if (productType.equalsIgnoreCase("TIMESERIES")) {
+                         impl.setObjectType(ObjectTypeEnum.TIMESERIES);
+                         if (timeSystem != null && ! timeSystem.isEmpty() )
+                             impl.setTimeSystem(timeSystem);
+                     }
+                     return impl;
+                }
             }
             
+        }
+        catch (SplatException e) {
+        	throw e;
         }
         catch (Exception e) {
             tableException = e;
@@ -935,6 +954,7 @@ public class SpecDataFactory
                 throw new SplatException (tableException);
             }
         }
+       
         try {
             if ( isRemote ) {
                 impl = new NDXSpecDataImpl( url );
@@ -1453,7 +1473,7 @@ public class SpecDataFactory
             }
             break;
             case TABLE: {
-                stype = ".xml";
+                stype = ".vot";
             }
             break;
             case GUESS: {
