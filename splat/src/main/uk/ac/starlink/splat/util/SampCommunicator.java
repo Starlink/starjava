@@ -10,8 +10,10 @@ package uk.ac.starlink.splat.util;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -44,6 +46,7 @@ import org.astrogrid.samp.gui.MessageTrackerHubConnector;
 import org.astrogrid.samp.gui.SysTray;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubServiceMode;
+import org.xml.sax.InputSource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.SampFrame;
@@ -52,7 +55,13 @@ import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SpectrumIO.SourceType;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.vo.DalResourceXMLFilter;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
 
 /**
  * Communicator implementation based on the SAMP protocol.
@@ -98,8 +107,8 @@ public class SampCommunicator
         ClientProfile profile = server.getSampProfile();
         hubConnector = new MessageTrackerHubConnector( profile );
         SpectrumLoadHandler loadHandler = new SpectrumLoadHandler();
-        ResultsTableLoadHandler tableHandler = new ResultsTableLoadHandler();
-        initConnector( new MessageHandler[] { loadHandler, tableHandler } );
+    // TableLoadHandler tableHandler = new TableLoadHandler();
+        initConnector( new MessageHandler[] { loadHandler } );
     }
 
     /**
@@ -236,86 +245,7 @@ public class SampCommunicator
     }
 
     
-    /**
-     * MessageHandler implementation for dealing with spectrum load MTypes.
-     */
-    private class ResultsTableLoadHandler
-            implements MessageHandler
-    {
-    	private final Subscriptions subs;
-    	private final Map tableMap;
-    	
-    	
-    	ResultsTableLoadHandler()
-    	{
-    		subs = new Subscriptions();
-    		subs.addMType( "table.load.votable" );  
-    		tableMap = Collections.synchronizedMap( new IdentityHashMap() );
-    	}
-   /* 	
-        public void loadSucceeded(String location) {
-    		MsgInfo msginfo = (MsgInfo) tableMap.remove(location );
-            if ( msginfo != null ) {
-                Response response =
-                    Response.createSuccessResponse( new HashMap() );
-                msginfo.reply( response );
-            }
-            else {
-                logger.info( "Orphaned SAMP table load success?" );
-            }
-           // if ( tableMap.size() == 0 ) {
-           //     SpectrumIO.getInstance().setWatcher( null );
-           // }
-    		
-
-    	}
-    	public void loadFailed(String location, Throwable error) {
-    		MsgInfo msginfo = (MsgInfo) tableMap.remove( location );
-            if ( msginfo != null ) {
-                ErrInfo errInfo = new ErrInfo( error );
-                errInfo.setErrortxt( "Table load failed" );
-                Response response =
-                    Response.createErrorResponse( errInfo );
-                msginfo.reply( response );
-            }
-            else {
-                logger.info( "Orphaned SAMP table load failure?" );
-            }
-           // if ( tableMap.size() == 0 ) {
-           //     SpectrumIO.getInstance().setWatcher( null );
-           // }
-
-    	}*/
-    	
-    	@Override
-    	public Map getSubscriptions() {
-    		return subs;
-    	}
-    	
-    	/**
-         * Invoked by SAMP to request SPLAT spectrum load, with an
-         * asynchronous response required.
-         */
-    	@Override
-    	public void receiveCall( HubConnection connection, String senderId, String msgId, Message message ) throws Exception {
-    		String location = (String) message.getRequiredParam( "url" );
-    		tableMap.put( location, new MsgInfo( connection, msgId ) );
-    		browser.addSampResults( location, (String) message.getParam( "name" ));
-    	}
-    	
-    	/**
-         * Invoked by SAMP to request SPLAT results table load, with no response
-         * required.
-         */
-    	@Override
-    	public void receiveNotification( HubConnection connection, String senderId, Message message ) throws Exception {
-    		String location = (String) message.getRequiredParam( "url" );
-    		browser.addSampResults( location, (String) message.getParam( "name" ));
-    	
-    		//propChange.firePropertyChange("openSAMPResults", null, location);
-    	
-    	}
-    }
+ 
 
     /**
      * MessageHandler implementation for dealing with spectrum load MTypes.
@@ -329,8 +259,10 @@ public class SampCommunicator
         SpectrumLoadHandler()
         {
         	subs = new Subscriptions();
+        	subs.addMType( "table.load.votable" );
             subs.addMType( "spectrum.load.ssa-generic" );
             subs.addMType( "table.load.fits" );
+            
            // subs.addMType( "table.load.votable" );
             propsMap = Collections.synchronizedMap( new IdentityHashMap() );
         }
@@ -348,14 +280,21 @@ public class SampCommunicator
         		String senderId, Message message )
         {
         	  		
-        	SpectrumIO.Props props = createProps( message );
-        	SpectrumIO.getInstance().setWatcher( this );
-        	props.setType(7); //set type == guess
-        	loadSpectrum( props );
+        
+        	String location = (String) message.getRequiredParam( "url" );
+        	if (isResultsTable(location)) {        		
+        		browser.addSampResults(location, (String) message.getParam( "name" ));
+        	} else {        		
+        		SpectrumIO.Props props = createProps( message );
+        		SpectrumIO.getInstance().setWatcher( this );
+        		props.setType(7); //set type == guess
+        		loadSpectrum( props );
+        	}
 
         }
 
-        /**
+
+		/**
          * Invoked by SAMP to request SPLAT spectrum load, with an
          * asynchronous response required.
          */
@@ -363,10 +302,16 @@ public class SampCommunicator
         		String msgId, Message message )
         {
         	
-        	SpectrumIO.Props props = createProps( message );
-        	propsMap.put( props, new MsgInfo( connection, msgId ) );
-        	SpectrumIO.getInstance().setWatcher( this );
-        	loadSpectrum( props );
+        	
+        	String location = (String) message.getRequiredParam( "url" );
+        	if (isResultsTable(location)) {        		
+        		browser.addSampResults(location, (String) message.getParam( "name" ));
+        	} else { 
+        		SpectrumIO.Props props = createProps( message );
+            	propsMap.put( props, new MsgInfo( connection, msgId ) );
+        		SpectrumIO.getInstance().setWatcher( this );
+        		loadSpectrum( props );
+        	}
 
         }
 
@@ -456,6 +401,91 @@ public class SampCommunicator
             SwingUtilities.invokeLater( specAdder );
         }
     }
+    
+	private boolean isResultsTable(String location) {
+		
+		URL source;
+		URLConnection con;
+		InputSource inSrc;
+		boolean isQueryTable=true;
+		
+		try {
+			source = new URL(location);
+			con = source.openConnection();
+
+			//  Handle redirects
+			if ( con instanceof HttpURLConnection ) {
+				int code = ((HttpURLConnection)con).getResponseCode();
+
+
+				if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+						code == HttpURLConnection.HTTP_MOVED_TEMP ||
+						code == HttpURLConnection.HTTP_SEE_OTHER ) {
+					String newloc = con.getHeaderField( "Location" );
+
+					source = new URL(newloc);
+					con = source.openConnection();
+				}
+
+			}
+
+			con.setConnectTimeout(10 * 1000); // 10 seconds
+			con.setReadTimeout(30*1000);
+			con.connect();
+			
+			inSrc = new InputSource( con.getInputStream() );
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			return false; // failed
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			return false;
+		}
+       
+             
+        // inSrc.setSystemId( ssaQuery.getBaseURL() );
+        inSrc.setSystemId( source.toString());
+        
+        StarTable starTable = null;
+        VOElementFactory vofact = new VOElementFactory();
+        VOElement voe;
+		try {
+			voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
+			 starTable = DalResourceXMLFilter.getResourceTable( voe );
+		} catch (IOException e) {
+			return false;
+		}
+        
+      
+      
+        //  Check parameter QUERY_STATUS, this should be set to OK
+        //  when the query
+        String queryOK = null;
+
+        // TO DO 
+        // parse further to recognise if result is ssap or obscore result
+        //
+        String queryDescription = null;
+        try {
+            queryOK = starTable
+                    .getParameterByName( "QUERY_STATUS" )
+                    .getValueAsString( 100 );
+            queryDescription = starTable
+                    .getParameterByName( "QUERY_STATUS" )
+                    .getInfo().getDescription();
+        }
+        catch (NullPointerException ne) {
+            // Whoops, that's not good, but see what we can do.
+            return false;
+        }
+        if ( queryOK != null && (! "OK".equalsIgnoreCase( queryOK ) && ! "OVERFLOW".equalsIgnoreCase( queryOK ) ) ) {
+          
+           return false;
+        }
+        
+        return true; // it's a results table
+	}
 
     /**
      * Convert a spectrum specification (a URL and Map of SSAP metadata) into
