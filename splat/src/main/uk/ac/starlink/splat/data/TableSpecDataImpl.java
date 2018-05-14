@@ -567,8 +567,12 @@ public class TableSpecDataImpl
     	for (Object oParam : starTable.getParameters()) {
     		if (oParam instanceof DescribedValue) {
     			DescribedValue param = (DescribedValue) oParam;
-    			//if (param.getInfo().getName().equals("data_product_type")) {
-    			if (param.getInfo().getUtype() != null
+    			if (param.getInfo().getName().toLowerCase().contains("dataproducttype")) {
+    				String value = (String) param.getValue();
+    				if (value != null && (value.equalsIgnoreCase("timeseries") || value.equalsIgnoreCase("lightcurve"))) {
+    					setObjectType(ObjectTypeEnum.TIMESERIES);
+    				}
+    			} else if (param.getInfo().getUtype() != null
     					&& (param.getInfo().getUtype().toLowerCase().contains("dataproducttype") ||
     					    param.getInfo().getUtype().toLowerCase().contains("spectrum.type"))) {
     				String value = (String) param.getValue();

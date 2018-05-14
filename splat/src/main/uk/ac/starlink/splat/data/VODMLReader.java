@@ -10,8 +10,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import jsky.util.Logger;
+import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.votable.VODocument;
 import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
 
 /*
  * This class allows xml parsing of a VO Document.
@@ -31,6 +34,19 @@ public class VODMLReader  {
         xPath =  XPathFactory.newInstance().newXPath();       
     }
     
+    VODMLReader(DataSource datasrc) throws SplatException {
+        //  Access the VOTable.
+        VOElement root = null;
+        try {
+        	root = new VOElementFactory().makeVOElement(datasrc);                       
+        }
+        catch (Exception e) {
+            throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
+        }
+        VOElement element = root.getChildByName("VODML");
+        doc = (VODocument) element.getOwnerDocument();
+        xPath =  XPathFactory.newInstance().newXPath();    
+    }
  
     public String getDataProductType() {
         try {
