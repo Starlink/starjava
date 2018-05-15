@@ -120,7 +120,7 @@ public class PlotTableActivationType implements ActivationType {
                 plotDisplay_ = plotDisplay;
             }
             return new LocationColumnActivator( cdata, false ) {
-                public Outcome activateLocation( final String loc ) {
+                public Outcome activateLocation( final String loc, long lrow ) {
                     final StarTable table;
                     try {
                         table = tfact_.makeStarTable( loc, format );

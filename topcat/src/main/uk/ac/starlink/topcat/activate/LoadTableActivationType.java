@@ -88,7 +88,8 @@ public class LoadTableActivationType implements ActivationType {
             final boolean isSelect = false;
             final boolean isMultiple = multipleSelector_.isSelected();
             return new LocationColumnActivator( cdata, false ) {
-                protected Outcome activateLocation( final String loc ) {
+                protected Outcome activateLocation( final String loc,
+                                                    long lrow ) {
                     final List<StarTable> tables = new ArrayList<StarTable>();
                     try {
                         if ( isMultiple ) {

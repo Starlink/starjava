@@ -116,16 +116,10 @@ public class DownloadActivationType implements ActivationType {
                 return null;
             }
             return new UrlColumnActivator( cdata, invokeOnEdt ) {
-                long lrow_;
-                @Override
-                public Outcome activateRow( long lrow, ActivationMeta meta ) {
-                    lrow_ = lrow;
-                    return super.activateRow( lrow, meta );
-                }
-                protected Outcome activateUrl( URL url ) {
+                protected Outcome activateUrl( URL url, long lrow ) {
                     Object filenameObj;
                     try {
-                        filenameObj = filenameKit.evaluateAtRow( lrow_ );
+                        filenameObj = filenameKit.evaluateAtRow( lrow );
                     }
                     catch ( Throwable e ) {
                         return Outcome.failure( "Error getting filename: "

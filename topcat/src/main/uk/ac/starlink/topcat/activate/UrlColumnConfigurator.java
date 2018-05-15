@@ -263,7 +263,7 @@ public abstract class UrlColumnConfigurator
                  value instanceof URI ) {
                 String loc = value.toString();
                 if ( loc.trim().length() > 0 ) {
-                    return activateLocation( loc );
+                    return activateLocation( loc, lrow );
                 }
             }
             return Outcome.failure( value == null ? "No location"
@@ -279,9 +279,10 @@ public abstract class UrlColumnConfigurator
          * to perform the activation action.
          *
          * @param  loc  location string, not null or blank
+         * @param  lrow   row index
          * @return  outcome
          */
-        protected abstract Outcome activateLocation( String loc );
+        protected abstract Outcome activateLocation( String loc, long lrow );
     }
 
     /**
@@ -301,7 +302,7 @@ public abstract class UrlColumnConfigurator
             super( cdata, invokeOnEdt );
         }
 
-        protected final Outcome activateLocation( String loc ) {
+        protected final Outcome activateLocation( String loc, long lrow ) {
             final URL url;
             File file = new File( loc );
             if ( file.exists() ) {
@@ -315,7 +316,7 @@ public abstract class UrlColumnConfigurator
                     return Outcome.failure( "Bad URL/no such file: " + loc );
                 }
             }
-            return activateUrl( url );
+            return activateUrl( url, lrow );
         }
 
         /**
@@ -323,8 +324,9 @@ public abstract class UrlColumnConfigurator
          * to perform the activation action.
          *
          * @param  url  URL, not null
+         * @param  lrow  row index
          * @return  outcome
          */
-        protected abstract Outcome activateUrl( URL url );
+        protected abstract Outcome activateUrl( URL url, long lrow );
     }
 }

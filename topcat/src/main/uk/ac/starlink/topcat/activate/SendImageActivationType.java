@@ -71,7 +71,7 @@ public class SendImageActivationType implements ActivationType {
         protected Activator createActivator( final ColumnData cdata ) {
             if ( clientListModel_.getSize() > 0 ) {
                 return new UrlColumnActivator( cdata, false ) {
-                    protected Outcome activateUrl( URL url ) {
+                    protected Outcome activateUrl( URL url, long lrow ) {
                         Message message = new Message( IMAGE_MTYPE );
                         message.addParam( "url", url.toString() );
                         return imageSender_.activateMessage( message );

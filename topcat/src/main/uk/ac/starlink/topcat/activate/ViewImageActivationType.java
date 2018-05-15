@@ -152,7 +152,7 @@ public class ViewImageActivationType implements ActivationType {
                                           final String label ) {
             return new UrlColumnConfigurator
                       .LocationColumnActivator( cdata, false ) {
-                protected Outcome activateLocation( String loc ) {
+                protected Outcome activateLocation( String loc, long lrow ) {
                     final ImageWindow imwin = getImageWindow( label );
                     final Image image;
                     try {
@@ -204,7 +204,7 @@ public class ViewImageActivationType implements ActivationType {
                                           final String label ) {
             return new UrlColumnConfigurator
                       .LocationColumnActivator( cdata, true ) {
-                protected Outcome activateLocation( String loc ) {
+                protected Outcome activateLocation( String loc, long lrow ) {
                     try {
                         /* The setFilename method takes a fileOrUrl. */
                         getSogger( label ).setFilename( loc, false );

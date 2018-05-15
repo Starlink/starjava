@@ -71,7 +71,7 @@ public class SendTableActivationType implements ActivationType {
         protected Activator createActivator( final ColumnData cdata ) {
             if ( clientListModel_.getSize() > 0 ) {
                 return new UrlColumnActivator( cdata, false ) {
-                    protected Outcome activateUrl( URL url ) {
+                    protected Outcome activateUrl( URL url, long lrow ) {
                         Message message = new Message( VOTABLE_MTYPE );
                         message.addParam( "url", url.toString() );
                         return votableSender_.activateMessage( message );

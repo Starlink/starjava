@@ -76,7 +76,7 @@ public class BrowserActivationType implements ActivationType {
             final String label = getWindowLabel( cdata );
             return browser instanceof Browser
                  ? new UrlColumnActivator( cdata, false ) {
-                       protected Outcome activateUrl( URL url ) {
+                       protected Outcome activateUrl( URL url, long lrow ) {
                            return ((Browser) browser).browse( url, label );
                        }
                    }
