@@ -26682,6 +26682,9 @@ introduced since the last version:
     <li>Add Import Parameters option to
         <ref id="LoadTableActivationType">Load Table</ref>
         activation action.</li>
+    <li>Fix range bug; caused plot failure when plotting very
+        large numbers with no variation
+        (e.g. gaia_source solution_id).</li>
     </ul>
     </p></dd>
 

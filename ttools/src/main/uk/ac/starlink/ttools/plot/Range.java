@@ -173,7 +173,13 @@ public class Range {
                 return new double[] { lo_, hi_ };
             }
             else if ( lo_ == hi_ ) {
-                return new double[] { hi_ - 1.0, hi_ + 1.0 };
+
+                /* Defend against very large values. */
+                double d0 = 1.0;
+                double d1 = hi_ - d0 < hi_ + d0
+                          ? d0
+                          : 0.01 * Math.abs( hi_ );
+                return new double[] { hi_ - d1, hi_ + d1 };
             }
             else {
                 return new double[] { 0.0, 1.0 };
