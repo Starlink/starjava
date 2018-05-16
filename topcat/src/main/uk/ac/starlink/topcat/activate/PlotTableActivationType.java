@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.activate;
 import java.awt.Component;
 import java.io.IOException;
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -18,6 +19,8 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.plot2.PlotWindowType;
 import uk.ac.starlink.topcat.plot2.TablePlotDisplay;
 
@@ -56,8 +59,10 @@ public class PlotTableActivationType implements ActivationType {
         private TablePlotDisplay plotDisplay_;
         private final JComboBox formatSelector_;
         private final JComboBox ptypeSelector_;
+        private final JCheckBox paramsSelector_;
         private static final String FORMAT_KEY = "format";
         private static final String PLOTTYPE_KEY = "plotType";
+        private static final String IMPORTPARAMS_KEY = "importParams";
 
         /**
          * Constructor.
@@ -94,13 +99,21 @@ public class PlotTableActivationType implements ActivationType {
             locTld.configure( tfact_, null );
             formatSelector_ = locTld.createFormatSelector();
             formatSelector_.addActionListener( forwarder );
+            paramsSelector_ = new JCheckBox();
+            paramsSelector_.setSelected( true );
+            paramsSelector_.addActionListener( forwarder );
             queryPanel.add( new LineBox( "Plot Type", ptypeSelector_ ) );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
             queryPanel.add( new LineBox( "Table Format", formatSelector_ ) );
+            queryPanel.add( Box.createVerticalStrut( 5 ) );
+            queryPanel.add( new LineBox( "Import Parameters",
+                                         paramsSelector_ ) );
+            queryPanel.add( Box.createVerticalStrut( 5 ) );
         }
 
         protected Activator createActivator( ColumnData cdata ) {
             final String format = (String) formatSelector_.getSelectedItem();
+            final boolean importParams = paramsSelector_.isSelected();
             PlotWindowType ptype =
                 (PlotWindowType) ptypeSelector_.getSelectedItem();
             final TablePlotDisplay plotDisplay;
@@ -120,6 +133,7 @@ public class PlotTableActivationType implements ActivationType {
                 plotDisplay_ = plotDisplay;
             }
             return new LocationColumnActivator( cdata, false ) {
+                final TopcatModel parentTable = getTopcatModel();
                 public Outcome activateLocation( final String loc, long lrow ) {
                     final StarTable table;
                     try {
@@ -127,6 +141,11 @@ public class PlotTableActivationType implements ActivationType {
                     }
                     catch ( IOException e ) {
                         return Outcome.failure( e );
+                    }
+                    if ( importParams ) {
+                        table.getParameters()
+                             .addAll( TopcatUtils
+                                     .getRowAsParameters( parentTable, lrow ) );
                     }
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
@@ -146,6 +165,7 @@ public class PlotTableActivationType implements ActivationType {
             ConfigState state = getUrlState();
             state.saveSelection( PLOTTYPE_KEY, ptypeSelector_ );
             state.saveSelection( FORMAT_KEY, formatSelector_ );
+            state.saveFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
             return state;
         }
 
@@ -153,6 +173,7 @@ public class PlotTableActivationType implements ActivationType {
             setUrlState( state );
             state.restoreSelection( PLOTTYPE_KEY, ptypeSelector_ );
             state.restoreSelection( FORMAT_KEY, formatSelector_ );
+            state.restoreFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
         }
     }
 }

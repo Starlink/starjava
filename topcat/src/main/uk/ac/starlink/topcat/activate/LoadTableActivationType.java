@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.activate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -10,6 +12,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
@@ -17,6 +20,8 @@ import uk.ac.starlink.table.gui.LocationTableLoadDialog;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
  * Activation type for loading a table into the TOPCAT application.
@@ -25,6 +30,9 @@ import uk.ac.starlink.topcat.Outcome;
  * @since    30 Jan 2018
  */
 public class LoadTableActivationType implements ActivationType {
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.activate" );
 
     public String getName() {
         return "Load Table";
@@ -50,8 +58,10 @@ public class LoadTableActivationType implements ActivationType {
         private final ControlWindow controlWindow_;
         private final JComboBox formatSelector_;
         private final JCheckBox multipleSelector_;
+        private final JCheckBox paramsSelector_;
         private static final String FORMAT_KEY = "format";
         private static final String MULTIPLE_KEY = "multiple";
+        private static final String IMPORTPARAMS_KEY = "importParams";
 
         /**
          * Constructor.
@@ -69,6 +79,9 @@ public class LoadTableActivationType implements ActivationType {
             formatSelector_.addActionListener( forwarder );
             multipleSelector_ = new JCheckBox();
             multipleSelector_.addActionListener( forwarder );
+            paramsSelector_ = new JCheckBox();
+            paramsSelector_.setSelected( true );
+            paramsSelector_.addActionListener( forwarder );
             Box formatBox = Box.createHorizontalBox();
             formatBox.add( new JLabel( "Table Format: " ) );
             formatBox.add( formatSelector_ );
@@ -76,10 +89,16 @@ public class LoadTableActivationType implements ActivationType {
             multiBox.add( new JLabel( "Multiple Tables" ) );
             multiBox.add( multipleSelector_ );
             multiBox.add( Box.createHorizontalGlue() );
+            Box paramsBox = Box.createHorizontalBox();
+            paramsBox.add( new JLabel( "Import Parameters" ) );
+            paramsBox.add( paramsSelector_ );
+            paramsBox.add( Box.createHorizontalGlue() );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
             queryPanel.add( formatBox );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
             queryPanel.add( multiBox );
+            queryPanel.add( Box.createVerticalStrut( 5 ) );
+            queryPanel.add( paramsBox );
         }
 
         protected Activator createActivator( ColumnData cdata ) {
@@ -87,7 +106,9 @@ public class LoadTableActivationType implements ActivationType {
             final String format = (String) formatSelector_.getSelectedItem();
             final boolean isSelect = false;
             final boolean isMultiple = multipleSelector_.isSelected();
+            final boolean importParams = paramsSelector_.isSelected();
             return new LocationColumnActivator( cdata, false ) {
+                final TopcatModel parentTable = getTopcatModel();
                 protected Outcome activateLocation( final String loc,
                                                     long lrow ) {
                     final List<StarTable> tables = new ArrayList<StarTable>();
@@ -106,6 +127,18 @@ public class LoadTableActivationType implements ActivationType {
                     }
                     catch ( IOException e ) {
                         return Outcome.failure( e );
+                    }
+                    if ( importParams ) {
+                        List<DescribedValue> params =
+                            TopcatUtils.getRowAsParameters( parentTable, lrow );
+                        try {
+                            for ( StarTable table : tables ) {
+                                table.getParameters().addAll( params );
+                            }
+                        }
+                        catch ( UnsupportedOperationException e ) {
+                            logger_.log( Level.WARNING, "Can't add params", e );
+                        }
                     }
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
@@ -145,6 +178,7 @@ public class LoadTableActivationType implements ActivationType {
             ConfigState state = getUrlState();
             state.saveSelection( FORMAT_KEY, formatSelector_ );
             state.saveFlag( MULTIPLE_KEY, multipleSelector_.getModel() );
+            state.saveFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
             return state;
         }
 
@@ -152,6 +186,7 @@ public class LoadTableActivationType implements ActivationType {
             setUrlState( state );
             state.restoreSelection( FORMAT_KEY, formatSelector_ );
             state.restoreFlag( MULTIPLE_KEY, multipleSelector_.getModel() );
+            state.restoreFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
         }
     }
 }

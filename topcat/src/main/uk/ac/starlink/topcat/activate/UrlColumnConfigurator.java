@@ -109,6 +109,15 @@ public abstract class UrlColumnConfigurator
     }
 
     /**
+     * Returns the TopcatModel that this configurator is using.
+     *
+     * @return  topcat model
+     */
+    public TopcatModel getTopcatModel() {
+        return tcModel_;
+    }
+
+    /**
      * Returns a partial config state, giving the current configuration
      * of the selected URL column.
      *
