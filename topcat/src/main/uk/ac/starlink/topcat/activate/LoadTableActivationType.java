@@ -22,6 +22,7 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Activation type for loading a table into the TOPCAT application.
@@ -84,7 +85,8 @@ public class LoadTableActivationType implements ActivationType {
             paramsSelector_.addActionListener( forwarder );
             Box formatBox = Box.createHorizontalBox();
             formatBox.add( new JLabel( "Table Format: " ) );
-            formatBox.add( formatSelector_ );
+            formatBox.add( new ShrinkWrapper( formatSelector_ ) );
+            formatBox.add( Box.createHorizontalGlue() );
             Box multiBox = Box.createHorizontalBox();
             multiBox.add( new JLabel( "Multiple Tables" ) );
             multiBox.add( multipleSelector_ );

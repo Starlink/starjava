@@ -23,6 +23,7 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.plot2.PlotWindowType;
 import uk.ac.starlink.topcat.plot2.TablePlotDisplay;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Activation type that opens a plot window for use with a table whose
@@ -102,9 +103,11 @@ public class PlotTableActivationType implements ActivationType {
             paramsSelector_ = new JCheckBox();
             paramsSelector_.setSelected( true );
             paramsSelector_.addActionListener( forwarder );
-            queryPanel.add( new LineBox( "Plot Type", ptypeSelector_ ) );
+            queryPanel.add( new LineBox( "Plot Type",
+                                      new ShrinkWrapper( ptypeSelector_ ) ) );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
-            queryPanel.add( new LineBox( "Table Format", formatSelector_ ) );
+            queryPanel.add( new LineBox( "Table Format",
+                                      new ShrinkWrapper( formatSelector_ ) ) );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
             queryPanel.add( new LineBox( "Import Parameters",
                                          paramsSelector_ ) );
