@@ -26685,6 +26685,14 @@ introduced since the last version:
     <li>Fix range bug; caused plot failure when plotting very
         large numbers with no variation
         (e.g. gaia_source solution_id).</li>
+    <li>Set the JVMVersion setting in the OSX DMG Info.plist to 1.8+
+        (was previously 1.3+).
+        Although it will run on 1.6, some problems (scrambled JTables)
+        have been reported with 1.6, apparently fixed at 1.8.
+        However, I'm not sure whether the OSX runtime honours this
+        setting; quite possibly it will make no difference.
+        If you notice this either fixes or breaks anything when
+        running on a Mac, I'd be interested to know!</li>
     </ul>
     </p></dd>
 

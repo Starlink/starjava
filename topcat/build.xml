@@ -759,6 +759,12 @@
      !   be the `marketing version of the bundle' (ie, the release
      !   version); 'buildnumber' can optionally hold a rolling build number.
      !   -->
+    <!-- The JVMVersion is set to 1.8+; the default is 1.3+.
+     !   1.8 is preferred since there are some (minor) problems with
+     !   Apple (1.6) Java on OSX, apparently solved with the
+     !   1.8 (Oracle/OpenJDK) series.
+     !   It's not clear if the OSX runtime honours this setting though.
+     !-->
     <osxjarbundler dir="${dist.osx}"
                 mainclass="${package.name}.Driver"
                 name="${Name}"
@@ -770,6 +776,7 @@
                 infostring="${Name} ${copyright.string}"
                 vmoptions=""
                 version="${version}"
+                jvmversion="1.8+"
                 workingdirectory="$USER_HOME"
                 jar="${dist.lib.pkg}/topcat-full.jar">
 
