@@ -380,7 +380,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>24 April 2018</docdate>
+<docdate>18 May 2018</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -26625,68 +26625,89 @@ introduced since the last version:
     </p>
     </dd>
 
-<dt>Next version</dt>
+<dt>Version 4.6-1 (18 May 2018)</dt>
 <dd><p>
-    <ul>
-    <li>Fix <ref id="imageViewers">SoG</ref> internal image viewer
-        to work with non-HTTP URLs.</li>
-    <li>Fix SAMP-related <ref id="ActivationTypes">activation actions</ref>
-        so they work with filenames as well as URLs for locations
-        (as documented).</li>
-    <li>VOTable output tweaked: single quotes now used for attribute
-        values if attribute contains double quotes.</li>
-    <li>The <ref id="ActivationWindow">Activation Window</ref> now has
-        toolbar buttons for adding and removing displayed actions.</li>
-    <li>All activation actions in the
-        <ref id="ActivationWindow">Activation Window</ref> are now preserved
-        when you <ref id="sessionSave">save a session</ref>.</li>
-    <li>Fix a bug in the TAP client that caused a read error for result
-        VOTables longer than 2Gb.</li>
-    <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
-    <li>Introduce a fallback RangeSlider for use in plot windows when the
-        JIDE-OSS one is unavailable.  That cures some circumstances
-        in which plot windows could fail, e.g. (apparently?)
-        Java 10 on OSX or use of Nimbus Look&amp;Feel.
-        It does mean that range sliders may look ugly in at least some
-        OSX environments, but at least it doesn't crash.</li>
-    <li>Improvements and bugfixes related to guessing activation service
-        and resource types.</li>
-    <li>Remove dependency on external library BrowserLauncher2
-        (<code>edu.stanford.ejalbert.BrowserLauncher</code>) external library;
-        now use <code>java.awt.Desktop</code> functions instead.
-        This may improve browser interactions on some platforms.
-        Obsolete browser options Firefox and Mozilla have been removed
-        from the <ref id="BrowserActivationType">View in Web Browser</ref>
-        activation action.</li>
-    <li>Fix minor GUI issue with selecting TAP services by double-clicking
-        on their name in the selection tree.</li>
-    <li>Add a new <ref id="DownloadActivationType">Download URL</ref>
-        activation action.</li>
-    <li>Add a new <ref id="PlotTableActivationType">Plot Table</ref>
-        activation action and a corresponding URL invocation action
-        in the <ref id="DatalinkWindow">Datalink Window</ref>.</li>
-    <li>Add new options to the
-        <ref id="ActivationWindow">Activation Window</ref>
-        to allow automatically invoking actions on every table row
-        in turn.</li>
-    <li>Add activation functions <code>sleep</code> and
-        <code>sleepMillis</code> to <ref id="System">System</ref>
-        class.</li>
-    <li>Add Import Parameters option to
-        <ref id="LoadTableActivationType">Load Table</ref>
-        activation action.</li>
-    <li>Fix range bug; caused plot failure when plotting very
-        large numbers with no variation
-        (e.g. gaia_source solution_id).</li>
-    <li>Set the JVMVersion setting in the OSX DMG Info.plist to 1.8+
-        (was previously 1.3+).
-        Although it will run on 1.6, some problems (scrambled JTables)
-        have been reported with 1.6, apparently fixed at 1.8.
-        However, I'm not sure whether the OSX runtime honours this
-        setting; quite possibly it will make no difference.
-        If you notice this either fixes or breaks anything when
-        running on a Mac, I'd be interested to know!</li>
-    </ul>
+    <dl>
+    <dt>Activation Action improvements</dt>
+    <dd><p>There have been several improvements to the
+        <ref id="ActivationWindow">Activation Window</ref>.
+        In most cases these were intended parts of the new activation
+        framework introduced in v4.6, but didn't get completed before
+        the (Gaia DR2-imposed) release date for that version.
+        <ul>
+        <li>Persistence: all activation state in the
+            Activation Window is now preserved
+            when you <ref id="sessionSave">save a session</ref>.</li>
+        <li>Multiple activation:
+            buttons are now provided to invoke actions on every
+            (apparent) table row in turn,
+            rather than just on a selected row.</li>
+        <li><ref id="DownloadActivationType">Download URL</ref>
+            activation action added.</li>
+        <li><ref id="PlotTableActivationType">Plot Table</ref>
+            activation action added,
+            as well as a corresponding URL invocation action
+            in the <ref id="DatalinkWindow">Datalink Window</ref>.</li>
+        <li>Add/Remove buttons: the Activation Window now has
+            toolbar buttons for adding and removing actions
+            in the displayed list
+            (previously these were only available as menu items).</li>
+        <li><code>sleep</code> and <code>sleepMillis</code>
+            functions added to <ref id="System">System</ref> class.</li>
+        <li>Import Parameters option added to
+            <ref id="LoadTableActivationType">Load Table</ref>
+            activation action.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix <ref id="imageViewers">SoG</ref> internal image viewer
+            to work with non-HTTP URLs.</li>
+        <li>Fix SAMP-related <ref id="ActivationTypes">activation actions</ref>
+            so they work with filenames as well as URLs for locations
+            (as documented).</li>
+        <li>Fix a bug in the TAP client that caused a read error for result
+            VOTables longer than 2Gb.</li>
+        <li>Introduce a fallback RangeSlider for use in plot windows when the
+            JIDE-OSS one is unavailable.  That cures some circumstances
+            in which plot windows could fail, e.g. (apparently?)
+            Java 10 on OSX or use of Nimbus Look&amp;Feel.
+            It does mean that range sliders may look ugly in at least some
+            OSX environments, but at least it doesn't crash.</li>
+        <li>Improvements and bugfixes related to guessing activation service
+            and resource types.</li>
+        <li>Fix minor GUI issue with selecting TAP services by double-clicking
+            on their name in the selection tree.</li>
+        <li>Fix range bug; caused plot failure when plotting very
+            large numbers with no variation
+            (e.g. gaia_source solution_id).</li>
+        </ul>
+        </p></dd>
+    <dt>Minor upgrades and changes</dt>
+    <dd><p>
+        <ul>
+        <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
+        <li>Remove dependency on external library BrowserLauncher2
+            (<code>edu.stanford.ejalbert.BrowserLauncher</code>);
+            now use <code>java.awt.Desktop</code> functions instead.
+            This may improve browser interactions on some platforms.
+            Obsolete browser options Firefox and Mozilla have been removed
+            from the <ref id="BrowserActivationType">View in Web Browser</ref>
+            activation action.</li>
+        <li>VOTable output tweaked: single quotes now used for attribute
+            values if attribute contains double quotes.</li>
+        <li>Set the JVMVersion setting in the OSX DMG Info.plist to 1.8+
+            (was previously 1.3+).
+            Although it will run on Java 1.6, some problems (scrambled JTables)
+            have been reported with 1.6, apparently fixed at 1.8.
+            However, I'm not sure whether the OSX runtime honours this
+            setting; quite possibly it will make no difference.
+            If you notice this either fixes or breaks anything when
+            running on a Mac, I'd be interested to know!</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

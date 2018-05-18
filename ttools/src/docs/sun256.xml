@@ -139,7 +139,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>24 April 2018</docdate>
+<docdate>18 May 2018</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -11583,21 +11583,21 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </p>
     </dd>
 
-<dt>Next version</dt>
-<dd><p>
+<dt>Version 3.1-4 (18 May 2018)</dt>
+<dd><p>Bugfixes and minor enhancements:
     <ul>
-    <li>VOTable output tweaked: single quotes now used for attribute
-        values if attribute contains double quotes.</li>
     <li>Add new option <code>delete=now</code> to
         <ref id="tapresume"><code>tapresume</code></ref>,
         which lets you delete a TAP async job.
         Also add a message to <ref id="tapquery"><code>tapquery</code></ref>
         inviting the user to delete interrupted jobs in this way.</li>
+    <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
+    <li>VOTable output tweaked: single quotes now used for attribute
+        values if attribute contains double quotes.</li>
     <li>Fix bug in <code>tapquery</code> and <code>tapresume</code> that
         caused a result read failure for result VOTables longer than 2Gb.</li>
-    <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
     <li>Fix range bug; caused plot failure when plotting very
-        large numbers with no variation
+        large values with no variation
         (e.g. gaia_source solution_id).</li>
     </ul>
     </p>
