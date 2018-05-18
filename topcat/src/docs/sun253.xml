@@ -20704,6 +20704,15 @@ and loads that into TOPCAT as a new table.
     If this checkbox is selected, then all tables in the file will be loaded,
     otherwise only the first one is loaded and the others are ignored.
     </p></dd>
+<dt>Import Parameters:</dt>
+<dd><p>If this option is set, then all the values in the activated row
+    of the activated table will appear in the newly loaded table as
+    <em>table parameters</em>.
+    That means they can be viewed in the
+    <ref id="ParameterWindow">Parameter Window</ref>
+    and accessed from the expression language using the
+    <ref id="jelParams">param$<em>name</em></ref> syntax.
+    </p></dd>
 </dl>
 </p>
 
@@ -20770,6 +20779,14 @@ are not included when a session is saved.
     auto-detect (VOTable, FITS, CDF) then the default value
     <code>(auto)</code> may be used, otherwise the correct format
     must be chosen from the list.
+    </p></dd>
+<dt>Import Parameters:</dt>
+<dd><p>If this option is set, then all the values in the activated row
+    of the activated table will be available in the plotted table as
+    <em>table parameters</em>.
+    That means they can accessed from the expression language
+    (e.g. as coordinate expressions) using the
+    <ref id="jelParams">param$<em>name</em></ref> syntax.
     </p></dd>
 </dl>
 </p>
@@ -26662,6 +26679,12 @@ introduced since the last version:
     <li>Add activation functions <code>sleep</code> and
         <code>sleepMillis</code> to <ref id="System">System</ref>
         class.</li>
+    <li>Add Import Parameters option to
+        <ref id="LoadTableActivationType">Load Table</ref>
+        activation action.</li>
+    <li>Fix range bug; caused plot failure when plotting very
+        large numbers with no variation
+        (e.g. gaia_source solution_id).</li>
     </ul>
     </p></dd>
 

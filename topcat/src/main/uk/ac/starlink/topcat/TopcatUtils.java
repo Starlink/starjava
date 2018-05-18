@@ -26,6 +26,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -285,6 +286,36 @@ public class TopcatUtils {
             };
         }
         return about_;
+    }
+
+    /**
+     * Returns the values from a row of a given table as a list of
+     * DescribedValues, suitable for use as parameters (per-value metadata)
+     * of a StarTable.
+     *
+     * @param  tcModel  table supplying values
+     * @param  lrow    row index
+     * @return   list of described values
+     */
+    public static List<DescribedValue> getRowAsParameters( TopcatModel tcModel,
+                                                           long lrow ) {
+        StarTable table = tcModel.getDataModel();
+        TableColumnModel tcm = tcModel.getColumnModel();
+        int ncol = tcm.getColumnCount();
+        List<DescribedValue> list = new ArrayList<DescribedValue>( ncol );
+        try {
+            Object[] row = table.getRow( lrow );
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                int jcol = tcm.getColumn( icol ).getModelIndex();
+                ValueInfo info =
+                    new DefaultValueInfo( table.getColumnInfo( jcol ) );
+                list.add( new DescribedValue( info, row[ jcol ] ) );
+            }
+        }
+        catch ( IOException e ) {
+            logger_.log( Level.WARNING, "Trouble reading parameters: " + e, e );
+        }
+        return list;
     }
 
     /**

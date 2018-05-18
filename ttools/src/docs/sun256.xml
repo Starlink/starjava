@@ -11596,6 +11596,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug in <code>tapquery</code> and <code>tapresume</code> that
         caused a result read failure for result VOTables longer than 2Gb.</li>
     <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL parsing library to v1.4.</li>
+    <li>Fix range bug; caused plot failure when plotting very
+        large numbers with no variation
+        (e.g. gaia_source solution_id).</li>
     </ul>
     </p>
     </dd>
