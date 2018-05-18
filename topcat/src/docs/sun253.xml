@@ -3459,41 +3459,13 @@ You can also execute custom code in TOPCAT's
 using the <ref id="JelActivationType">Execute code</ref> option
 using some <em>activation functions</em>
 specially provided to perform useful actions
-(e.g. image display) rather than just return results;
-these are summarised in <ref id="topcat.funcs">the following subsection</ref>.
+(e.g. image display) rather than just return results.
 Finally, advanced users can supply their own activation functions
 for use with the Execute Code option,
 or can implement their own activation actions
 and plug them in at runtime using the <code>topcat.activators</code>
 <ref id="jvmProperties">system property</ref>.
 </p>
-
-
-<subsect id="topcat.funcs">
-<subhead><title>Activation Functions</title></subhead>
-
-<p>When defining custom activation actions in the
-<ref id="JelActivationType">Execute Code</ref>
-activation action,
-you enter an expression to be invoked on a row when it is activated.
-This expression uses the syntax defined in <ref id="jel"/> and
-can make use of the functions listed in <ref id="generalJel"/>.
-However in this case there is an additional list of functions you can use 
-which cause something to happen (for instance displaying an image) rather
-than just returning a value.  The following classes of functions
-are available:
-
-&activation.runtime.class.docs;
-
-</p>
-
-<p>A listing of the functions in these classes is given in
-<ref id="activationJel"/>, and documentation on them is also
-available within TOPCAT from the
-<ref id="MethodWindow">Available Functions Window</ref>.
-</p>
-
-</subsect>
 
 </sect>
 
@@ -20903,10 +20875,10 @@ Most of the expressions and functions just evaluate an expression,
 and in that case the only effect is that the result of the
 expression is displayed in the <label>Results</label> panel
 at the bottom of the activation window every time a row is activated.
-However, some functions are defined especially for use in this
-window which have some additional effect such as popping up a
-viewer window or writing output to the console; these are listed
-in <ref id="topcat.funcs"/>.
+However, some functions are defined especially for use in this window,
+and have some additional effect such as popping up a
+viewer window, writing output to the console, or downloading a file.
+These are listed below.
 </p>
 
 <p>In principle, this window can provide very flexible options for
@@ -20945,6 +20917,22 @@ to invoke a shell script or similar with supplied arguments.
     </p></dd>
 </dl>
 </p>
+
+<p>The available <em>Activation Functions</em>
+(ones that have some effect other than just returning a value)
+are summarised below, and listed in detail in <ref id="activationJel"/>.
+You can also browse them interactively in the
+<label>Activation Functions</label> branch of the
+<ref id="MethodWindow">Available Functions Window</ref>.
+Note some of these offer rather out of date functionality,
+and may be withdrawn (replaced by better alternatives)
+in future releases.
+</p>
+
+<p>
+&activation.runtime.class.docs;
+</p>
+
 
 </subsubsubsect>
 
@@ -22386,6 +22374,11 @@ have happened).
 The documentation in the following subsections is also
 available from within TOPCAT
 in the <ref id="MethodWindow">Available Functions Window</ref>.
+</p>
+
+<p>Some of these items offer rather out of date functionality.
+They may be withdrawn (replaced by better alternatives)
+in future releases.
 </p>
 
 &activation.runtime.method.docs;
