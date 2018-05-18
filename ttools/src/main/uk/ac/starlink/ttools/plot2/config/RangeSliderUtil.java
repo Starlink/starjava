@@ -62,6 +62,23 @@ public class RangeSliderUtil {
      * @return   range slider
      */
     public static JSlider createRangeSlider( int imin, int imax ) {
+        JSlider slider = createUnconfiguredRangeSlider( imin, imax );
+
+        /* Some implementations set the initial values, some do not,
+         * so make sure it's configured correctly. */
+        setSliderRange( slider, imin, imax );
+        return slider;
+    }
+
+    /**
+     * Constructs a range-capable slider instance, without necessarily
+     * configuring it fully.
+     *
+     * @param  imin  minimum value
+     * @param  imax  maximum value
+     * @return   range slider
+     */
+    private static JSlider createUnconfiguredRangeSlider( int imin, int imax ) {
         if ( ! jideBroken_ ) {
             try {
                 return new JideRangeSlider( imin, imax );
