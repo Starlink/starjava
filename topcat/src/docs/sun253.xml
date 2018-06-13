@@ -26715,6 +26715,8 @@ introduced since the last version:
     <ul>
     <li>New functions <code>urlEncode</code> and <code>urlDecode</code>
         added to <ref id="Strings">Strings</ref> class.</li>
+    <li>Fix bug that meant View Image Internally datalink invocation option
+        failed in absence of JAI/SoG.</li>
     </ul>
     </p></dd>
 

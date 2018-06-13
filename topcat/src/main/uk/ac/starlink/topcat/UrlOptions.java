@@ -223,8 +223,8 @@ public class UrlOptions {
                 String loc = url.toString();
                 String label = "Image";
                 String msg = TopcatUtils.canSog()
-                           ? BasicImageDisplay.displayBasicImage( label, loc )
-                           : Sog.sog( label, loc );
+                           ? Sog.sog( label, loc )
+                           : BasicImageDisplay.displayBasicImage( label, loc );
                 return Outcome.success( msg );
             }
         };
