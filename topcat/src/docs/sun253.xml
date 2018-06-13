@@ -4657,9 +4657,10 @@ writing (see <ref id="outSql"/>) tables.
 If you don't need to talk to SQL-type databases, 
 you can ignore the rest of this section.
 The steps described here are the standard ones
-for configuring JDBC (which sort-of stands for Java Database Connectivity),
-described in more detail on 
-<webref url="&URL.J2SE_DOCS;guide/jdbc/">Sun's JDBC web page</webref>.
+for configuring JDBC (which sort-of stands for Java Database Connectivity);
+you can find more information on that on the web.
+The best place to look may be within the documentation
+of the RDBMS you are using.
 </p>
 
 <p>To use TOPCAT with SQL-compatible databases you must:
@@ -4673,16 +4674,18 @@ described in more detail on
 </ul>
 Installing the driver consists of two steps:
 <ol>
-<li>Set the <code>jdbc.drivers</code> system property to the name of the
-    driver class as described in <ref id="jvmProperties"/></li>
 <li>Ensure that the classpath you are using includes this driver class
     as described in <ref id="jvmClasspath"/></li>
+<li>Set the <code>jdbc.drivers</code> system property to the name of the
+    driver class as described in <ref id="jvmProperties"/></li>
 </ol>
 </p>
 
-<p>These steps are all standard for use of the
-<webref url="&URL.J2SE_DOCS;guide/jdbc/">JDBC</webref>
-system.
+<p>Below are presented the results of some experiments with JDBC drivers.
+Note however that
+<strong>this information may be be incomplete and out of date</strong>.
+If you have updates, feel free to pass them on and they may be
+incorporated here.
 </p>
 
 <p>To the author's knowledge, TOPCAT has so far successfully been used
@@ -4713,9 +4716,9 @@ with the following RDBMSs and corresponding JDBC drivers:
 
 <dt><webref url="http://www.oracle.com/">Oracle</webref></dt>
 <dd><p>You can use Oracle with the JDBC driver that comes as part of its
-    <webref url="http://www.oracle.com/technology/tech/oci/instantclient/instantclient.html"
+    <webref url="http://www.oracle.com/technetwork/database/database-technologies/instant-client/"
             >Basic Instant Client Package</webref>.
-    However, you <em>can't</em> currently use the
+    However, you <em>may not be able to</em> use the
     <ref id="SQLTableLoadDialog">SQL load</ref
          >/<ref id="SQLWriteDialog">SQL save</ref>
     dialogue boxes to do it.  You have to specify a JDBC URL specifying
@@ -4737,14 +4740,12 @@ with the following RDBMSs and corresponding JDBC drivers:
 <dd><p>There is more than one JDBC driver known to work with
     SQL Server, including 
     <webref url="http://jtds.sourceforge.net/">jTDS</webref> 
-    and the
-    <webref url="http://www.microsoft.com/sql/technologies/jdbc/default.mspx"
-            >Microsoft JDBC driver</webref>.
+    and its own JDBC driver.
     Some evidence suggests that jTDS may be the better choice, 
     but your mileage may vary.
     </p></dd>
 
-<dt><webref url="http://www.sybase.com/products/databasemanagement/adaptiveserverenterprise"
+<dt><webref url="https://www.sap.com/uk/products/sybase-ase.html"
             >Sybase ASE</webref></dt>
 <dd><p>There has been a successful use of Sybase 12.5.2 and jConnect 
     (jconn3.jar) using a JDBC URL like
@@ -4753,14 +4754,12 @@ with the following RDBMSs and corresponding JDBC drivers:
     </p></dd>
 
 </dl>
-Other RDBMSs and drivers may or may not work - please let us know the
-results of any experiments you carry out.
-Sun maintain a list of JDBC drivers for various databases; it can be found at
-<webref url="http://servlet.java.sun.com/products/jdbc/drivers"/>.
+It is probably possible to use other RDBMSs and drivers,
+but you may have to do some homework.
 </p>
 
-<p>Here are example command lines to start up TOPCAT using 
-databases known to work.
+<p>Here are some example command lines to start up TOPCAT using 
+databases that at least have worked at some point.
 <dl>
 
 <dt>PostgreSQL</dt>
@@ -26717,6 +26716,9 @@ introduced since the last version:
         added to <ref id="Strings">Strings</ref> class.</li>
     <li>Fix bug that meant View Image Internally datalink invocation option
         failed in absence of JAI/SoG.</li>
+    <li>Slight improvements to the
+        <ref id="jdbcConfig">JDBC Configuration</ref>
+        section of this manual.</li>
     </ul>
     </p></dd>
 

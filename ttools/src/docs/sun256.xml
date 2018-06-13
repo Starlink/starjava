@@ -1078,9 +1078,10 @@ for reading  or writing tables.
 If you don't need to talk to SQL-type databases,
 you can ignore the rest of this section.
 The steps described here are the standard ones
-for configuring JDBC (which sort-of stands for Java Database Connectivity),
-described in more detail on
-<webref url="&URL.J2SE_DOCS;guide/jdbc/">Sun's JDBC web page</webref>.
+for configuring JDBC (which sort-of stands for Java Database Connectivity);
+you can find more information on that on the web.
+The best place to look may be within the documentation 
+of the RDBMS you are using.
 </p>
 
 <p>To use STILTS with SQL-compatible databases you must:
@@ -1101,20 +1102,13 @@ Installing the driver consists of two steps:
 </ol>
 </p>
 
-<p>These steps are all standard for use of the
-<webref url="&URL.J2SE_DOCS;guide/jdbc/">JDBC</webref> system.
-See <docxref doc="sun252" loc="jdbcConfig"/> for information
-about JDBC drivers known to work with STIL (the short story is
-that at least MySQL and PostreSQL will work).
-</p>
-
-<p>Here is an example of using <code><ref id="tcopy">tcopy</ref></code>
+<p>Here is an example of using <code><ref id="tpipe">tpipe</ref></code>
 to write the results
 of an SQL query on a table in a MySQL database as a VOTable:
 <verbatim><![CDATA[
    stilts -classpath /usr/local/jars/mysql-connector-java.jar \
           -Djdbc.drivers=com.mysql.jdbc.Driver \
-          tcopy \
+          tpipe \
           in="jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
           ofmt=votable gsc.vot
 ]]></verbatim>
@@ -1122,7 +1116,7 @@ or invoking Java directly:
 <verbatim><![CDATA[
    java -classpath stilts.jar:/usr/local/jars/mysql-connect-java.jar \
         -Djdbc.drivers=com.mysql.jdbc.Driver \
-        uk.ac.starlink.ttools.Stilts tcopy \
+        uk.ac.starlink.ttools.Stilts tpipe \
         in="jdbc:mysql://localhost/db1#SELECT id, ra, dec FROM gsc WHERE mag < 9" \
         ofmt=votable out=gsc.vot
 ]]></verbatim>
@@ -1141,6 +1135,98 @@ put the line
 in the <code>.starjava.properties</code> file in your home directory,
 then you could avoid having to give the <code>-classpath</code> and 
 <code>-Djdbc.drivers</code> flags respectively.
+</p>
+
+<p>Below are presented the results of some experiments with JDBC drivers.
+Note however that
+<strong>this information may be be incomplete and out of date</strong>.
+If you have updates, feel free to pass them on and they may be
+incorporated here. 
+</p>
+
+<p>To the author's knowledge, STILTS has successfully been used
+with the following RDBMSs and corresponding JDBC drivers:
+<dl>
+
+<dt><webref url="http://www.mysql.com/">MySQL</webref></dt>
+<dd><p>MySQL has been tested on Linux with the
+    <webref url="http://www.mysql.com/products/connector/j/"
+            >Connector/J</webref> driver and seems to work;
+    tested versions are server 3.23.55 with driver 3.0.8 and
+    server 4.1.20 with driver 5.0.4.
+    Sometimes tables with very many (hundreds of) columns cannot be
+    written owing to SQL statement length restrictions.
+    Note there is known to be a column metadata bug in version 3.0.6 of the
+    driver which can cause a ClassCastException error when tables are written.
+    Check the driver's documentation for additional parameters, for instance
+    "<code>useUnicode=true&amp;characterEncoding=UTF8</code>" may be required
+    to handle some non-ASCII characters.
+    </p></dd>
+
+<dt><webref url="http://www.postgresql.org/">PostgreSQL</webref></dt>
+<dd><p>PostgreSQL 7.4.1 apparently works with
+    <webref url="http://jdbc.postgresql.org/">its own driver</webref>.
+    Note the performance of this driver appears to be rather poor,
+    at least for writing tables.
+    </p></dd>
+
+<dt><webref url="http://www.oracle.com/">Oracle</webref></dt>
+<dd><p>You can use Oracle with the JDBC driver that comes as part of its
+    <webref url="http://www.oracle.com/technetwork/database/database-technologies/instant-client/"
+            >Basic Instant Client Package</webref>.
+    </p></dd>
+
+<dt><webref url="http://www.microsoft.com/SQL">SQL Server</webref></dt>
+<dd><p>There is more than one JDBC driver known to work with
+    SQL Server, including
+    <webref url="http://jtds.sourceforge.net/">jTDS</webref>
+    and its own JDBC driver.
+    Some evidence suggests that jTDS may be the better choice,
+    but your mileage may vary.
+    </p></dd>
+
+<dt><webref url="https://www.sap.com/uk/products/sybase-ase.html"
+            >Sybase ASE</webref></dt>
+<dd><p>There has been a successful use of Sybase 12.5.2 and jConnect
+    (jconn3.jar) using a JDBC URL like
+    "<code>jdbc:sybase:Tds:hostname:port/dbname?user=XXX&amp;password=XXX#SELECT...</code>".
+    An earlier attempt using Sybase ASE 11.9.2 failed.
+    </p></dd>
+
+</dl>
+It is probably possible to use other RDBMSs and drivers,
+but you may have to do some homework.
+</p>
+
+<p>Here are some example command lines that at least have at some point
+got STILTS running with databases:
+<dl>
+
+<dt>PostgreSQL</dt>
+<dd><p><verbatim>
+   stilts -classpath pg73jdbc3.jar \
+          -Djdbc.drivers=org.postgresql.Driver ...
+</verbatim></p></dd>
+
+<dt>MySQL</dt>
+<dd><p><verbatim>
+   stilts -classpath mysql-connector-java-3.0.8-bin.jar \
+          -Djdbc.drivers=com.mysql.jdbc.Driver ...
+</verbatim></p></dd>
+
+<dt>Oracle</dt>
+<dd><p><verbatim>
+   stilts -classpath ojdbc14.jar \
+          -Djdbc.drivers=oracle.jdbc.driver.OracleDriver ...
+</verbatim></p></dd>
+
+<dt>SQL Server with jTDS</dt>
+<dd><p><verbatim>
+   stilts -classpath jtds-1.1.jar \
+          -Djdbc.drivers=net.sourceforge.jtds.jdbc.Driver ...
+</verbatim></p></dd>
+
+</dl>
 </p>
 
 </subsect>
@@ -1172,19 +1258,19 @@ it is very easy to string STILTS commands together in Jython.
 usage:
 <ul>
 <li>You can make use of python programming constructions like 
-    loops, functions and variables</li>
+loops, functions and variables</li>
 <li>Python syntax can be used to put together parameter values
-    (especially referencing quoted strings or values containing embedded
-    spaces) in a way which is often less painful than doing it from
-    the shell</li>
+(especially referencing quoted strings or values containing embedded
+spaces) in a way which is often less painful than doing it from
+the shell</li>
 <li>Intermediate processing stages can be kept in memory (in a python variable)
-    rather than having to write them out to a file and read them in for the
-    next command; this can be much more efficient</li>
+rather than having to write them out to a file and read them in for the
+next command; this can be much more efficient</li>
 <li>Because of the previous point, there are separate read, filter,
-    processing and write commands, which means command lines can be
-    shorter and less confusing</li>
+processing and write commands, which means command lines can be
+shorter and less confusing</li>
 <li>The java startup overhead (typically a couple of seconds) happens only
-    once when entering jython, not once for every STILTS command</li>
+once when entering jython, not once for every STILTS command</li>
 </ul>
 Note however that you will <em>not</em> be able to introduce JyStilts
 commands into your larger existing Python programs if those rely on
@@ -1192,7 +1278,7 @@ C-based extensions, such as NumPy and SciPy, since JyStilts will only
 run in JPython, while C-based extensions will only run in CPython.
 (See however 
 <webref url="http://jnumerical.sourceforge.net/index.html"
-        >JNumeric</webref> for some of the Numpy functionality from Jython.)
+>JNumeric</webref> for some of the Numpy functionality from Jython.)
 </p>
 
 <p>Usage from jython has syntax which is similar to command-line STILTS,
@@ -1200,24 +1286,24 @@ but with a few changes.
 The following functions are defined by JyStilts:
 <ul>
 <li>A function <code>tread</code>, which reads a table from a
-    file or URL and turns it into a table object in jython
-    </li>
+file or URL and turns it into a table object in jython
+</li>
 <li>A table method <code>write</code> which takes a table object and
-    writes it to file
-    </li>
+writes it to file
+</li>
 <li>A table method for each STILTS <ref id="filterSteps">filter</ref>
-    (e.g. <code>cmd_head</code>, <code>cmd_select</code>,
-          <code>cmd_addcol</code>)
-    </li>
+(e.g. <code>cmd_head</code>, <code>cmd_select</code>,
+  <code>cmd_addcol</code>)
+</li>
 <li>A table method for each STILTS <ref id="outModes">output mode</ref>
-    (e.g. <code>mode_out</code>, <code>mode_meta</code>,
-          <code>mode_samp</code>),
-    </li>
+(e.g. <code>mode_out</code>, <code>mode_meta</code>,
+  <code>mode_samp</code>),
+</li>
 <li>A function for each STILTS <ref id="cmdUsage">task</ref> 
-    (e.g. <code>tmatch2</code>, <code>tcat</code>, <code>plot2sky</code>)
-    </li>
+(e.g. <code>tmatch2</code>, <code>tcat</code>, <code>plot2sky</code>)
+</li>
 <li>A number of table methods which make table objects integrate nicely into
-    the python environment</li>
+the python environment</li>
 </ul>
 Reasonably detailed documentation for these is provided in the 
 usual Python way ("<em>doc strings</em>"), 
@@ -1232,55 +1318,55 @@ flow of execution easier to follow.
 A typical sequence will involve:
 <ol>
 <li>Reading one or more tables from file using
-    the <code>tread</code> function</li>
+the <code>tread</code> function</li>
 <li>Perhaps filtering the input table(s) using one or more of the 
-    <code>cmd_*</code> filter methods</li>
+<code>cmd_*</code> filter methods</li>
 <li>Performing core processing such as crossmatching</li>
 <li>Perhaps filtering the result using one or more of the
-    <code>cmd_*</code> filter methods</li>
+<code>cmd_*</code> filter methods</li>
 <li>If running interactively, perhaps examining the intermediate results
-    using one of the <code>mode_*</code> output modes</li>
+using one of the <code>mode_*</code> output modes</li>
 <li>Writing the final result to a file using the <code>write</code> method</li>
 </ol>
 </p>
 
 <p>Here is an example command line invocation for crossmatching two tables:
 <verbatim>
-   stilts tskymatch2 in1=survey.fits \
-                     icmd1='addskycoords fk4 fk5 RA1950 DEC1950 RA2000 DEC2000' \
-                     in2=mycat.csv ifmt2=csv \
-                     icmd2='select VMAG>18' \
-                     ra1=ALPHA dec1=DELTA ra2=RA2000 dec2=DEC2000 \
-                     error=10 join=2not1 \
-                     out=matched.fits
+stilts tskymatch2 in1=survey.fits \
+	     icmd1='addskycoords fk4 fk5 RA1950 DEC1950 RA2000 DEC2000' \
+	     in2=mycat.csv ifmt2=csv \
+	     icmd2='select VMAG>18' \
+	     ra1=ALPHA dec1=DELTA ra2=RA2000 dec2=DEC2000 \
+	     error=10 join=2not1 \
+	     out=matched.fits
 </verbatim>
 and here is what it might look like in JyStilts:
 <verbatim><![CDATA[
-   >>> import stilts
-   >>> t1 = stilts.tread('survey.fits')
-   >>> t1 = t1.cmd_addskycoords(t1, 'fk4', 'fk5', 'RA1950', 'DEC1950', 'RA2000', 'DEC2000')
-   >>> t2 = stilts.tread('mycat.csv', 'csv')
-   >>> t2 = t2.cmd_select('VMAG>18')
-   >>> tm = stilts.tskymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA',
-   ...                        error=10, join='2not1')
-   >>> tm.write('matched.fits')
+>>> import stilts
+>>> t1 = stilts.tread('survey.fits')
+>>> t1 = t1.cmd_addskycoords(t1, 'fk4', 'fk5', 'RA1950', 'DEC1950', 'RA2000', 'DEC2000')
+>>> t2 = stilts.tread('mycat.csv', 'csv')
+>>> t2 = t2.cmd_select('VMAG>18')
+>>> tm = stilts.tskymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA',
+...                        error=10, join='2not1')
+>>> tm.write('matched.fits')
 ]]></verbatim>
 </p>
 
 <p>When running interactively, it can be convenient to examine the intermediate
 results before processing or writing as well, for instance:
 <verbatim><![CDATA[
-   >>> tm.mode_count()
-   columns: 19   rows: 2102
-   >>> tm.cmd_keepcols('ID ALPHA DELTA').cmd_head(4).write()
-   +--------+---------------+-----------+
-   | ID     | ALPHA         | DELTA     |
-   +--------+---------------+-----------+
-   | 262    | 149.82439     | -0.11249  |
-   | 263    | 150.14438     | -0.11785  |
-   | 265    | 149.92944     | -0.11667  |
-   | 273    | 149.93185     | -0.12566  |
-   +--------+---------------+-----------+
+>>> tm.mode_count()
+columns: 19   rows: 2102
+>>> tm.cmd_keepcols('ID ALPHA DELTA').cmd_head(4).write()
++--------+---------------+-----------+
+| ID     | ALPHA         | DELTA     |
++--------+---------------+-----------+
+| 262    | 149.82439     | -0.11249  |
+| 263    | 150.14438     | -0.11785  |
+| 265    | 149.92944     | -0.11667  |
+| 273    | 149.93185     | -0.12566  |
++--------+---------------+-----------+
 ]]></verbatim>
 </p>
 
@@ -1295,7 +1381,7 @@ is given in the following subsections.
 <code>jystilts.jar</code> file from the STILTS web page,
 and simply run
 <verbatim>
-    java -jar jystilts.jar   
+java -jar jystilts.jar   
 </verbatim>
 This file includes jython itself and all the STILTS and JyStilts classes.
 To use the JyStilts commands, you will need to import the stilts
@@ -1320,12 +1406,12 @@ to reinstate this if there is some pressing need.
 start jython with the <code>stilts.jar</code> file on your classpath,
 for instance like this:
 <verbatim>
-    jython -J-classpath /some/where/stilts.jar
+jython -J-classpath /some/where/stilts.jar
 </verbatim>
 or (C-shell):
 <verbatim>
-    setenv CLASSPATH /some/where/stilts.jar
-    jython
+setenv CLASSPATH /some/where/stilts.jar
+jython
 </verbatim>
 </p>
 
@@ -1348,7 +1434,7 @@ file on your classpath as above.
 <p>The <code>tread</code> function reads tables from an external location
 into JyStilts.  Its arguments are as follows:
 <verbatim>
-   tread(location, fmt='(auto)', random=False)
+tread(location, fmt='(auto)', random=False)
 </verbatim>
 and its return value is a <ref id="jytable">table object</ref>,
 which can be interrogated directly, or used in other JyStilts commands.
@@ -1370,10 +1456,10 @@ satisfactory.
 
 <p>Examples of reading a table are:
 <verbatim><![CDATA[
-   >>> import stilts
-   >>> t1 = stilts.tread('cat.fits')
-   >>> t2 = stilts.tread(open('cat.fits', 'rb'))           # less efficient
-   >>> t3 = stilts.tread('data.csv', fmt='csv', random=True)
+>>> import stilts
+>>> t1 = stilts.tread('cat.fits')
+>>> t2 = stilts.tread(open('cat.fits', 'rb'))           # less efficient
+>>> t3 = stilts.tread('data.csv', fmt='csv', random=True)
 ]]></verbatim>
 </p>
 
@@ -1381,7 +1467,7 @@ satisfactory.
 (presumably the result of one or a sequence of JyStilts commands) 
 is using the <code>write</code> table method:
 <verbatim>
-   write(self, location=None, fmt='(auto)')
+write(self, location=None, fmt='(auto)')
 </verbatim>
 The <code>location</code> gives either a string which is a filename,
 or a writable python file (or file-like) object.
@@ -1395,24 +1481,24 @@ format can be guessed from the filename.
 
 <p>Examples of writing a table are:
 <verbatim><![CDATA[
-   >>> table.write('out.fits')
-   >>> table.write(open('out.fits', 'wb'))       #  less efficient?
-   >>> table.write('catalogue.dat', fmt='csv')
-   >>> table.write()                             #  display to stdout
+>>> table.write('out.fits')
+>>> table.write(open('out.fits', 'wb'))       #  less efficient?
+>>> table.write('catalogue.dat', fmt='csv')
+>>> table.write()                             #  display to stdout
 ]]></verbatim>
 </p>
 
 <p>Often it's convenient to combine examining the table with filtering
 steps, for instance:
 <verbatim><![CDATA[
-   >>> table.every(100).write()
+>>> table.every(100).write()
 ]]></verbatim>
 would write only every hundredth row, and
 <verbatim><![CDATA[
-   >>> (table.cmd_sorthead(10, 'BMAG')
-   ...       .cmd_select('!NULL_VMAG')
-   ...       .cmd_keepcols('BMAG VMAG')
-   ...       .write())
+>>> (table.cmd_sorthead(10, 'BMAG')
+...       .cmd_select('!NULL_VMAG')
+...       .cmd_keepcols('BMAG VMAG')
+...       .write())
 ]]></verbatim>
 would write only the BMAG and VMAG columns 
 for the ten rows in which VMAG is non-null with the lowest BMAG values.
@@ -1425,8 +1511,8 @@ or VOTable (which can store multiple TABLE elements in one document).
 This is done using the <code>treads</code> and <code>twrites</code> functions.
 The functions look like this:
 <verbatim><![CDATA[
-   treads(location, fmt='(auto)', random=False)
-   twrites(tables, location=None, fmt='(auto)')
+treads(location, fmt='(auto)', random=False)
+twrites(tables, location=None, fmt='(auto)')
 ]]></verbatim>
 These are similar to the <code>tread</code> and <code>twrite</code> functions,
 except that <code>treads</code> returns a list of tables rather than
@@ -1436,10 +1522,10 @@ Here is an example of reading multiple tables from a multi-extension FITS
 file, counting the rows in each, and then writing them out to a multi-TABLE
 VOTable file:
 <verbatim><![CDATA[
-   import stilts
-   tables = stilts.treads('multi.fits')
-   print([t.getRowCount() for t in tables])
-   stilts.twrites(tables, 'multi.vot', fmt='votable')
+import stilts
+tables = stilts.treads('multi.fits')
+print([t.getRowCount() for t in tables])
+stilts.twrites(tables, 'multi.vot', fmt='votable')
 ]]></verbatim>
 </p>
 
@@ -11609,6 +11695,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New functions <code>urlEncode</code> and <code>urlDecode</code>
         added to class
         <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
+    <li>Slight improvements to the
+        <ref id="jdbcConfig">JDBC Configuration</ref>
+        section of this manual.</li>
     </ul>
     </p>
     </dd>
