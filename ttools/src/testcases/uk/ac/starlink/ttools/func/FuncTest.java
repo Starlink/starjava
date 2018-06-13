@@ -590,6 +590,9 @@ public class FuncTest extends TestCase {
         assertEquals( "some text", Strings.trim( "  some text  " ) );
         assertEquals( "some text", Strings.trim( "some text" ) );
 
+        assertEquals( "RR%20Lyr", Strings.urlEncode( "RR Lyr" ) );
+        assertEquals( "RR Lyr", Strings.urlDecode( "RR%20Lyr" ) );
+
         // These examples from sec 3.5.1 of IAU-endorsed document
         // "Specifications concerning designations" at
         // http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx

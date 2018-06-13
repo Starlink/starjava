@@ -33,6 +33,14 @@ public class Strings {
         + "( [(][^)]*[)])?"              // 8. specifier
     );
 
+    /** Legal characters for the data part of a URI - see RFC 3986. */
+    private static final String URI_DATA_CHARS =
+        "abcdefghijklmnopqrstuvwxyz" +
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        "0123456789" +
+        "-_.~";
+
+
     /**
      * Private constructor prevents instantiation.
      */
@@ -416,6 +424,82 @@ public class Strings {
             sval = new String( cbuf ) + sval;
         }
         return sval;
+    }
+
+    /**
+     * Performs necessary quoting of a string for it to be included
+     * safely in the data part of a URL.
+     * Alphanumeric characters and the characters
+     * underscore ("<code>_</code>"),
+     * minus sign ("<code>-</code>"),
+     * period ("<code>.</code>") and
+     * tilde ("<code>~</code>") are passed through unchanged,
+     * and any other 7-bit ASCII character is represented by a percent sign
+     * ("<code>%</code>") followed by its 2-digit hexadecimal code.
+     * Characters with values of 128 or greater are simply dropped.
+     *
+     * @example  <code>urlEncode("RR Lyr") = "RR%20Lyr"</code>
+     *
+     * @param  txt  input (unencoded) string
+     * @return  output (encoded) string
+     * @see  <a href="https://tools.ietf.org/html/rfc3986">RFC 3986</a>
+     */
+    public static String urlEncode( String txt ) {
+        if ( txt == null ) {
+            return null;
+        }
+        else {
+            int nc = txt.length();
+            StringBuffer sbuf = new StringBuffer( nc );
+            for ( int i = 0; i < nc; i++ ) {
+                char c = txt.charAt( i );
+                if ( URI_DATA_CHARS.indexOf( c ) >= 0 ) {
+                    sbuf.append( c );
+                }
+                else if ( c >= 0x10 && c <= 0x7f ) {
+                    sbuf.append( '%' )
+                        .append( Integer.toHexString( (int) c ) );
+                }
+            }
+            return sbuf.toString();
+        }
+    }
+
+    /**
+     * Reverses the quoting performed by <code>urlEncode</code>.
+     * Percent-encoded sequences (<code>%xx</code>) are replaced
+     * by the ASCII character with the hexadecimal code <code>xx</code>.
+     *
+     * @example  <code>urlDecode("RR%20Lyr") = "RR Lyr"</code>
+     *
+     * @param  txt  input (encoded) string
+     * @return  output (unencoded) string
+     * @see  <a href="https://tools.ietf.org/html/rfc3986">RFC 3986</a>
+     */
+    public static String urlDecode( String txt ) {
+        if ( txt == null ) {
+            return null;
+        }
+        else {
+            int nc = txt.length();
+            StringBuffer sbuf = new StringBuffer( nc );
+            for ( int i = 0; i < nc; i++ ) {
+                char c = txt.charAt( i );
+                if ( c == '%' ) {
+                    try {
+                        String hexPair = txt.substring( i + 1, i + 3 );
+                        c = (char) Integer.parseInt( hexPair, 16 );
+                        i += 2;
+                    }
+                    catch ( RuntimeException e ) {
+                        // failed for some reason (bad hex, short string) -
+                        // just copy input characters as usual instead
+                    }
+                }
+                sbuf.append( c );
+            }
+            return sbuf.toString();
+        }
     }
 
     /**
