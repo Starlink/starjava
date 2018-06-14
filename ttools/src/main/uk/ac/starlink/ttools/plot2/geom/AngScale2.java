@@ -1,8 +1,17 @@
-package skyview.data;
+package uk.ac.starlink.ttools.plot2.geom;
+
+import skyview.data.AngScale;
 
 /** Find an appropriate delta to use for getting grid intervals.
+ *
+ * <p>This subclasses the SkyView AngScale class in order to modify
+ * its behaviour slightly.  The implementation is copied from the
+ * original skyview source.
+ *
+ * @author   Tom McGlynn
+ * @author   Mark Taylor
  */
-public class AngScale {
+public class AngScale2 extends AngScale {
    
     private final double deciBigs[] = {
 	120, 60, 30, 15, 5, 3, 1 
@@ -121,17 +130,4 @@ public class AngScale {
     public void setTime(boolean flag) {
 	time = flag;
     }
-       
-    public static void main(String[] args) {
-	
-	double min = Double.parseDouble(args[0]);
-	double max = Double.parseDouble(args[1]);
-	AngScale ang = new AngScale();
-	ang.setSexagesimal(args.length == 2);
-	double[] s = ang.scaling(min,max);
-	System.out.println("Starting value: "+s[0]+", Delta: "+s[1]);
-	
-    }
-		      
-	
 }
