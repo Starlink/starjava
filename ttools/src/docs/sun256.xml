@@ -11698,6 +11698,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Slight improvements to the
         <ref id="jdbcConfig">JDBC Configuration</ref>
         section of this manual.</li>
+    <li>Minor improvements to <code>datalinklint</code> error reporting.</li>
     </ul>
     </p>
     </dd>

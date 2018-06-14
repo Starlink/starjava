@@ -501,6 +501,7 @@ public class DatalinkValidator {
                         String msg = new StringBuffer()
                             .append( "Wrong datatype '" )
                             .append( datatype )
+                            .append( clazz.isArray() ? " array" : "" )
                             .append( "' for column " )
                             .append( name )
                             .append( ", should be 'long'" )
@@ -562,7 +563,7 @@ public class DatalinkValidator {
         }
         if ( missingBuf.length() > 0 ) {
             reporter_.report( DatalinkCode.E_RCOL,
-                              "Missing required DataLink columns "
+                              "Missing/unusable required DataLink columns: "
                              + missingBuf );
         }
 
