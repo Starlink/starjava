@@ -5,8 +5,13 @@ import skyview.data.AngScale;
 /** Find an appropriate delta to use for getting grid intervals.
  *
  * <p>This subclasses the SkyView AngScale class in order to modify
- * its behaviour slightly.  The implementation is copied from the
+ * its behaviour slightly.  The original implementation is copied from the
  * original skyview source.
+ *
+ * <p>The changes consist of addding some larger values to the
+ * <code>*Bigs[]</code> arrays, so that lower crowding values
+ * actually yield more sparse grids.  That includes values that
+ * correspond to no grid lines at all (180/360 degrees for lat/lon).
  *
  * @author   Tom McGlynn
  * @author   Mark Taylor
@@ -14,7 +19,7 @@ import skyview.data.AngScale;
 public class AngScale2 extends AngScale {
    
     private final double deciBigs[] = {
-	120, 60, 30, 15, 5, 3, 1 
+	360, 180, 120, 60, 30, 15, 5, 3, 1 
     };
     
     private final double deciSmalls[] = {
@@ -22,13 +27,13 @@ public class AngScale2 extends AngScale {
     };
     
     private final double sexaBigs[]   = {
-	120, 60, 30, 15, 5, 2, 1, 
+	360, 180, 120, 60, 30, 15, 5, 2, 1, 
 	30/60., 20/60., 10/60., 5/60., 2/60., 1/60.,
 	30/3600., 20/3600., 10/3600., 5/3600., 2/3600., 1/3600.
     };
     
     private final double timeBigs[]   = {
-	6, 3, 2, 1, 
+	24, 12, 6, 3, 2, 1, 
 	30/60., 20/60., 10/60., 5/60., 2/60., 1/60.,
 	30/3600., 20/3600., 10/3600., 5/3600., 2/3600., 1/3600.
     };
@@ -89,7 +94,6 @@ public class AngScale2 extends AngScale {
     /** Get the desired starting values and scaling interval.
      *  @param  min  The minimum coordinate value.
      *  @param  max  The maximum coordinate value
-     *  @param  sexagesimal  Do we want sexagesimal coordinates.
      *  @return a two element vector giving the starting value and delta
      *           to be used.  .
      */

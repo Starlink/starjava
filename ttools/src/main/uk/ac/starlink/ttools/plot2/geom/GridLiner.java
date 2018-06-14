@@ -142,7 +142,9 @@ public class GridLiner  {
             fm.setZeroFill(true);
         }
         
-        AngScale ang = new AngScale();
+        // Use custom AngScale implementation that allows for sparser
+        // grid lines than the skyview one.
+        AngScale ang = new AngScale2();
         ang.setSexagesimal(sexagesimal);
         double[] latValues = scaling(ang, false, latLimits[0], latLimits[1], latCrowd);
         double[] lonValues;
@@ -180,7 +182,11 @@ public class GridLiner  {
         if (lonLimits[0] > lonLimits[1]) {
             lonMax += 360;
         }
-        
+
+        // Special handling for grid spacing values so sparse that grid
+        // lines should not be drawn.
+        boolean drawLon = lonValues[1] < 360;
+        boolean drawLat = latValues[1] < 180;
         
         Converter save = forward;
         
@@ -206,45 +212,49 @@ public class GridLiner  {
                   forward.add(imageScaler.inverse());
               }
               
-        for (double qlon=lonValues[0]; qlon <= lonMax; qlon += lonValues[1]) {
+        if (drawLon) {
+            for (double qlon=lonValues[0]; qlon <= lonMax; qlon += lonValues[1]) {
             
-            double lon = qlon;
+                double lon = qlon;
             
-            if (lon > 360) {
-                lon -= 360;
+                if (lon > 360) {
+                    lon -= 360;
+                }
+            
+                if (Math.abs(lon-360) < 1.e-8) {
+                    lon = 0;
+                }
+            
+                if (sexagesimal) {
+                    fm.setSeparators(new String[]{"h", "m", "s"});
+                    setLabel(fm.format(lon/15, lonPrec));
+                } else {
+                    fm.setSeparators(new String[]{"\u00B0", "'", "\""});
+                    setLabel(fm.format(lon, lonPrec));
+                }
+                // The lines of longitude that we tend to choose for
+                // drawing are likely to be ones that touch singularities
+                // in the projection.  This can cause instabilities
+                // in drawing the grid points.  So we draw the line
+                // infinitesimally above and below the requested
+                // longitude -- this will also accommodate cases
+                // where the longitude shows up on both sides of the map
+                // (e.g., lon=180 on a 0,0-centered Cartesian all-sky image).
+//              drawLine(lon, lon, latLimits[0], latLimits[1]);
+                drawLine(lon+1.e-10, lon+1.e-10, latLimits[0],latLimits[1]);
+                drawLine(lon-1.e-10, lon-1.e-10, latLimits[0],latLimits[1]);
             }
-            
-            if (Math.abs(lon-360) < 1.e-8) {
-                lon = 0;
-            }
-            
-            if (sexagesimal) {
-                fm.setSeparators(new String[]{"h", "m", "s"});
-                setLabel(fm.format(lon/15, lonPrec));
-            } else {
+        }
+        if (drawLat) {
+            for (double lat=latValues[0]; lat <= latLimits[1]; lat += latValues[1]) {
                 fm.setSeparators(new String[]{"\u00B0", "'", "\""});
-                setLabel(fm.format(lon, lonPrec));
+                setLabel(fm.format(lat, latPrec));
+                drawLine(lonLimits[0], lonLimits[1], lat, lat);
             }
-            // The lines of longitude that we tend to choose for
-            // drawing are likely to be ones that touch singularities
-            // in the projection.  This can cause instabilities
-            // in drawing the grid points.  So we draw the line
-            // infinitesimally above and below the requested
-            // longitude -- this will also accommodate cases
-            // where the longitude shows up on both sides of the map
-            // (e.g., lon=180 on a 0,0-centered Cartesian all-sky image).
-//            drawLine(lon, lon, latLimits[0], latLimits[1]);
-            drawLine(lon+1.e-10, lon+1.e-10, latLimits[0],latLimits[1]);
-            drawLine(lon-1.e-10, lon-1.e-10, latLimits[0],latLimits[1]);
-        }
-        for (double lat=latValues[0]; lat <= latLimits[1]; lat += latValues[1]) {
-            fm.setSeparators(new String[]{"\u00B0", "'", "\""});
-            setLabel(fm.format(lat, latPrec));
-            drawLine(lonLimits[0], lonLimits[1], lat, lat);
-        }
-          } 
         }
     }
+    }
+  }
 
     private double[] scaling(AngScale ang, boolean isTime, double min, double max, double crowd) {
         // The implementation of this method is informed by looking at the
