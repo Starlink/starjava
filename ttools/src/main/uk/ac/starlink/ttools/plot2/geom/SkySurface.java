@@ -287,7 +287,7 @@ public class SkySurface implements Surface {
      * @return   gridliner, or null on failure
      */
     private GridLiner createGridder() {
-        return createGridder( null, sexagesimal_, crowd_ );
+        return createGridder( null, sexagesimal_, crowd_, crowd_ );
     }
 
     /**
@@ -300,11 +300,12 @@ public class SkySurface implements Surface {
      *                    before grid lines are plotted;
      *                    may be null for no additional rotation
      * @param  sexagesimal  true for sexagesimal labels, false for decimal
-     * @param  crowd   tick mark crowding factor, 1 is normal
+     * @param  loncrowd   longitude tick mark crowding factor, 1 is normal
+     * @param  latcrowd   latitude tick mark crowding factor, 1 is normal
      * @return   gridliner, or null on failure
      */
     public GridLiner createGridder( Rotation rotation, boolean sexagesimal,
-                                    double crowd ) {
+                                    double loncrowd, double latcrowd ) {
         double[] rotmat = rotation == null
                         ? rotmat_
                         : Matrices.mmMult( rotmat_, rotation.getMatrix() );
@@ -325,8 +326,9 @@ public class SkySurface implements Surface {
             if ( plotBounds.width < 32 || plotBounds.height < 32 ) {
                 return null;
             }
-            GridLiner gl = new GridLiner( plotBounds, rotater, projecter,
-                                          scaler, sexagesimal, crowd, crowd );
+            GridLiner gl =
+                new GridLiner( plotBounds, rotater, projecter,
+                               scaler, sexagesimal, loncrowd, latcrowd );
             try {
                 gl.grid();
                 return gl;

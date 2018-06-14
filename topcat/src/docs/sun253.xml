@@ -9283,9 +9283,13 @@ with the following fields:
     along the grid lines.  Currently only two options,
     <label>Internal</label> and <label>None</label>.
     </p></dd>
-<dt>Grid Crowding</dt>
-<dd><p>Use the slider to control how closely packed grid lines are
-    on the axes.
+<dt>Longitude Grid Crowding</dt>
+<dd><p>Use the slider to control how closely longitudinal grid lines
+    (meridians) are packed.
+    </p></dd>
+<dt>Latitude Grid Crowding</dt>
+<dd><p>Use the slider to control how closely latitudinal grid lines
+    (parallels) are packed.
     </p></dd>
 </dl>
 </p>
@@ -12771,6 +12775,9 @@ appear.
 <dt>Grid Crowding</dt>
 <dd><p>Use the slider to control how closely packed grid lines are
     on the axes.
+    If you want to control the crowding separately on the two axes,
+    you can use the
+    <ref id="LayerControl_skygrid">SkyGrid layer control</ref> instead.
     </p></dd>
 <dt>Label Positioning</dt>
 <dd><p>Controls whether and where the numeric annotations of the lon/lat
@@ -26721,6 +26728,12 @@ introduced since the last version:
         section of this manual.</li>
     <li>Fix bug that failed to update the table row header
         when the content of a DataLink panel changed.</li>
+    <li>Provide independent grid crowding controls for longitude and latitude
+        in the <ref id="LayerControl_skygrid">SkyGrid layer control</ref>.
+        Previously there was one control that determined crowding
+        in both directions.
+        This change may have introduced slight changes to sky axis
+        grid line spacing at low crowding levels.</li>
     </ul>
     </p></dd>
 

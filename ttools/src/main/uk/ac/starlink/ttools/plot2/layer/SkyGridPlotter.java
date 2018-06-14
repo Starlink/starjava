@@ -56,9 +56,33 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
     public static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
 
-    /** Config key for grid line crowding. */
-    public static final ConfigKey<Double> CROWD_KEY =
-        SkySurfaceFactory.CROWD_KEY;
+    /** Config key for longitude grid line crowding. */
+    public static final ConfigKey<Double> LONCROWD_KEY =
+        StyleKeys.createCrowdKey(
+            new ConfigMeta( "loncrowd", "Longitude Grid Crowding" )
+           .setShortDescription( "Longitude grid line crowding" )
+           .setXmlDescription( new String[] {
+                "<p>Determines how closely sky longitude grid lines",
+                "(meridians) are spaced.",
+                "The default value is 1, meaning normal crowding.",
+                "Larger values result in more grid lines,",
+                "and smaller values in fewer grid lines.",
+                "</p>",
+            } ) );
+
+    /** Config key for latitude grid line crowding. */
+    public static final ConfigKey<Double> LATCROWD_KEY =
+        StyleKeys.createCrowdKey(
+            new ConfigMeta( "latcrowd", "Latitude Grid Crowding" )
+           .setShortDescription( "Latitude grid line crowding" )
+           .setXmlDescription( new String[] {
+                "<p>Determines how closely sky latitude grid lines",
+                "(parallels) are spaced.",
+                "The default value is 1, meaning normal crowding.",
+                "Larger values result in more grid lines,",
+                "and smaller values in fewer grid lines.",
+                "</p>",
+            } ) );
 
     /** Config key for grid sky system. */
     public static final ConfigKey<SkySys> GRIDSYS_KEY =
@@ -127,7 +151,8 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
             COLOR_KEY,
             TRANSPARENCY_KEY,
             LABELLER_KEY,
-            CROWD_KEY,
+            LONCROWD_KEY,
+            LATCROWD_KEY,
         };
     }
 
@@ -146,12 +171,13 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         Color color =
             StyleKeys.getAlphaColor( config, COLOR_KEY, TRANSPARENCY_KEY );
         SkyAxisLabeller labeller = config.get( LABELLER_KEY );
-        double crowd = config.get( CROWD_KEY ).doubleValue();
+        double loncrowd = config.get( LONCROWD_KEY ).doubleValue();
+        double latcrowd = config.get( LATCROWD_KEY ).doubleValue();
 
         /* Turn config items into a GridStyle instance. */
         Rotation rotation = Rotation.createRotation( gridsys, viewsys );
         return new GridStyle( rotation, color, labeller, captioner,
-                              sexagesimal, crowd, antialias );
+                              sexagesimal, loncrowd, latcrowd, antialias );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -188,7 +214,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
      */
     private void paintGrid( SkySurface surf, GridStyle style, Graphics g ) {
         GridLiner gl = surf.createGridder( style.rotation_, style.sexagesimal_,
-                                           style.crowd_ );
+                                           style.loncrowd_, style.latcrowd_ );
         if ( gl == null ) {
             return;
         }
@@ -222,7 +248,8 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         private final SkyAxisLabeller labeller_;
         private final Captioner captioner_;
         private final boolean sexagesimal_;
-        private final double crowd_;
+        private final double loncrowd_;
+        private final double latcrowd_;
         private final boolean antialias_;
 
         /**
@@ -233,19 +260,21 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
          * @param  labeller  grid line label positioner
          * @param  captioner grid line label captioner
          * @param  sexagesimal   true for sexagesimal, false for decimal
-         * @param  crowd     grid line crowding, 1 is normal
+         * @param  loncrowd     longitude grid line crowding, 1 is normal
+         * @param  latcrowd     latitude grid line crowding, 1 is normal
          * @param  antialias   true for antialiased lines
          */
         public GridStyle( Rotation rotation, Color color,
                           SkyAxisLabeller labeller, Captioner captioner,
-                          boolean sexagesimal, double crowd,
+                          boolean sexagesimal, double loncrowd, double latcrowd,
                           boolean antialias ) {
             rotation_ = rotation;
             color_ = color;
             labeller_ = labeller;
             captioner_ = captioner;
             sexagesimal_ = sexagesimal;
-            crowd_ = crowd;
+            loncrowd_ = loncrowd;
+            latcrowd_ = latcrowd;
             antialias_ = antialias;
         }
 
@@ -271,7 +300,8 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
             code = 23 * code + labeller_.hashCode();
             code = 23 * code + captioner_.hashCode();
             code = 23 * code + ( sexagesimal_ ? 11 : 13 );
-            code = 23 * code + Float.floatToIntBits( (float) crowd_ );
+            code = 23 * code + Float.floatToIntBits( (float) loncrowd_ );
+            code = 23 * code + Float.floatToIntBits( (float) latcrowd_ );
             code = 23 * code + ( antialias_ ? 17 : 29 );
             return code;
         }
@@ -285,7 +315,8 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
                     && this.labeller_.equals( other.labeller_ )
                     && this.captioner_.equals( other.captioner_ )
                     && this.sexagesimal_ == other.sexagesimal_
-                    && this.crowd_ == other.crowd_
+                    && this.loncrowd_ == other.loncrowd_
+                    && this.latcrowd_ == other.latcrowd_
                     && this.antialias_ == other.antialias_;
             }
             else {
