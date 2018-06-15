@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Component;
 import java.awt.Window;
 import java.io.IOException;
 import java.net.URL;
@@ -55,6 +56,7 @@ public class UrlOptions {
         UrlInvoker loadTable = createLoadTableInvoker( controlWin );
         UrlInvoker plotTable = createPlotTableInvoker( controlWin );
         UrlInvoker browser = createBrowserInvoker();
+        UrlInvoker download = createDownloadInvoker( dlPanel );
         UrlInvoker viewDatalink = createDatalinkInvoker( dlPanel );
         UrlInvoker sendFitsImage =
             createSampInvoker( "FITS Image", "image.load.fits" );
@@ -72,6 +74,7 @@ public class UrlOptions {
             sendFitsImage,
             sendSpectrum,
             sendTable,
+            download,
             browser,
         };
         Map<ResourceType,UrlInvoker> map =
@@ -204,8 +207,7 @@ public class UrlOptions {
                 }
                 Window window = isNewPanel
                               ? null
-                              : (Window) SwingUtilities
-                               .getAncestorOfClass( Window.class, dlPanel_ );
+                              : SwingUtilities.windowForComponent( dlPanel_ );
                 return ViewDatalinkActivationType
                       .invokeLocation( url.toString(), dlPanel_, window );
             }
@@ -240,6 +242,22 @@ public class UrlOptions {
             public Outcome invokeUrl( URL url ) {
                 Browsers.systemBrowser( url.toString() );
                 return Outcome.success( url.toString() );
+            }
+        };
+    }
+
+    /**
+     * Returns an invoker for downloading the URL to an interactively
+     * acquired local file.
+     *
+     * @return  new invoker
+     */
+    private static UrlInvoker createDownloadInvoker( Component parent ) {
+        final DownloadDialog dialog =
+            DownloadDialog.createSystemDialog( parent );
+        return new AbstractUrlInvoker( "Download URL" ) {
+            public Outcome invokeUrl( URL url ) {
+                return dialog.userDownload( url );
             }
         };
     }

@@ -7063,6 +7063,10 @@ listed resource.  The parts of this panel are:
         using SAMP to external table viewers
         (like the <ref id="SendTableActivationType">Send VOTable</ref> action)
         </li>
+    <li><strong>Download URL:</strong>
+        downloads the linked resource to a local file,
+        chosen using a popup filesystem browser
+        </li>
     <li><strong>Show Web Page:</strong>
         opens the linked resource in the system web browser
         (like the <ref id="BrowserActivationType">View in Web Browser</ref>
@@ -21138,6 +21142,10 @@ activated row.
         using SAMP to external table viewers
         (like <ref id="SendTableActivationType">Send VOTable</ref> action)
         </li>
+    <li><strong>Download URL:</strong>
+        downloads the linked resource to a local file,
+        chosen using a popup filesystem browser
+        </li>
     <li><strong>Show Web Page:</strong>
         opens the linked resource in the system web browser
         (like <ref id="BrowserActivationType">View in Web Browser</ref> action)
@@ -26734,6 +26742,10 @@ introduced since the last version:
         in both directions.
         This change may have introduced slight changes to sky axis
         grid line spacing at low crowding levels.</li>
+    <li>Add a <label>Download URL</label> action to the list of options in
+        the <ref id="ServiceActivationType">Invoke Service</ref>
+        activation action and the
+        <ref id="DatalinkWindow">DataLink Window</ref>.</li>
     </ul>
     </p></dd>
 
