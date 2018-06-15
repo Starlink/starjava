@@ -26719,6 +26719,8 @@ introduced since the last version:
     <li>Slight improvements to the
         <ref id="jdbcConfig">JDBC Configuration</ref>
         section of this manual.</li>
+    <li>Fix bug that failed to update the table row header
+        when the content of a DataLink panel changed.</li>
     </ul>
     </p></dd>
 

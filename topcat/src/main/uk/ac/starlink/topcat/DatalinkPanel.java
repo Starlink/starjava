@@ -35,6 +35,7 @@ public class DatalinkPanel extends JPanel {
 
     private final JTable jtable_;
     private final JScrollPane tscroller_;
+    private final TableRowHeader rowHeader_;
     private final LinkRowPanel linkPanel_;
     private LinksDoc linksDoc_;
     private Map<LinkColMap.ColDef<String>,String> selectionMap_;
@@ -93,7 +94,8 @@ public class DatalinkPanel extends JPanel {
         
         JComponent tablePanel = new JPanel( new BorderLayout() );
         tscroller_ = new JScrollPane( jtable_ );
-        tscroller_.setRowHeaderView( new TableRowHeader( jtable_ ) );
+        rowHeader_ = new TableRowHeader( jtable_ );
+        tscroller_.setRowHeaderView( rowHeader_ );
         tablePanel.add( tscroller_, BorderLayout.CENTER );
         tablePanel.setBorder( AuxWindow.makeTitledBorder( "DataLink Table" ) );
 
@@ -178,6 +180,7 @@ public class DatalinkPanel extends JPanel {
 
         /* Set the table model. */
         jtable.setModel( new StarTableModel( linksDoc.getResultTable() ) );
+        rowHeader_.modelChanged();
 
         /* Arrange the columns so that those with column names matching
          * the prepared column sequence come first.  Any others appear
