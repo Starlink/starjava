@@ -94,6 +94,9 @@ public class PlotUtil {
     /** Amount of padding added to data ranges for axis scaling. */
     private static final double PAD_FRACTION = 0.02;
 
+    /** Amount of padding added to data ranges for axis scaling near zero. */
+    private static final double TINY_FRACTION = 1e-7;
+
     /** Level at which plot reports are logged. */
     private static final Level REPORT_LEVEL = Level.INFO;
 
@@ -498,10 +501,10 @@ public class PlotUtil {
     }
 
     /**
-     * Pads a data range to provide a bit of extra space at each end.
-     * If one of the limits is near to zero, it is padded to zero
-     * instead of adding a fixed amount.
-     * A standard padding fraction is used.
+     * Pads a data range to provide a bit of extra space at each end
+     * using a standard padding fraction.
+     * If one of the limits extends nearly or exactly to zero,
+     * it is padded to (very nearly) zero instead of adding a fixed amount.
      *
      * @param  range  range to pad
      * @param  logFlag  true for logarithmic scaling, false for linear
@@ -512,6 +515,7 @@ public class PlotUtil {
         double hi = bounds[ 1 ];
         if ( lo < hi ) {
             double padFrac = PAD_FRACTION;
+            double tinyFrac = TINY_FRACTION;
             final boolean loNearZero;
             final boolean hiNearZero;
             if ( logFlag ) {
@@ -524,12 +528,18 @@ public class PlotUtil {
                 loNearZero = 0 - zfrac >= 0 && 0 - zfrac <= ztol;
                 hiNearZero = zfrac - 1 >= 0 && zfrac - 1 <= ztol;
             }
-            range.submit( loNearZero
-                          ? 0
-                          : scaleValue( lo, hi, 0 - padFrac, logFlag ) );
-            range.submit( hiNearZero
-                          ? 0
-                          : scaleValue( lo, hi, 1 + padFrac, logFlag ) );
+
+            /* Always add at least a tiny amount, even if we are trying to
+             * set the bound to a round number (zero).
+             * If you don't do that, then points with exactly the values
+             * on the boundary range may not get plotted (since calling
+             * Surface.dataToGraphics with visibleOnly=true may exclude them),
+             * so you can end up with an autoranged plot that does not
+             * include all the values from which the range was generated. */
+            double loPadFrac = loNearZero ? tinyFrac : padFrac; 
+            double hiPadFrac = hiNearZero ? tinyFrac : padFrac;
+            range.submit( scaleValue( lo, hi, 0 - loPadFrac, logFlag ) );
+            range.submit( scaleValue( lo, hi, 1 + hiPadFrac, logFlag ) );
         }
     }
 

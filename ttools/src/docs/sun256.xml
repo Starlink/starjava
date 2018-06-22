@@ -11709,6 +11709,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         grid line spacing at low crowding levels.</li>
     <li>Add <code>sortaxis</code> parameter to <ref id="layer-line">line</ref>
         plot layer.</li>
+    <li>Address long-standing plot auto-ranging issue;
+        when auto-ranging resulted in the bottom X limit or
+        right-hand Y limit being exactly equal to zero,
+        the corresponding zero-valued results were not plotted.
+        Auto-ranging has been slightly adjusted to avoid that.
+        This results in pixel-level changes to plot appearance
+        in some cases; these can be avoided by explicitly setting
+        <code>xmax</code>/<code>ymin</code> etc.</li>
     </ul>
     </p>
     </dd>

@@ -1048,7 +1048,7 @@ public class Plot2Example {
                 "*layer1=histogram", "*in1=" + TName.RR, "*x1=p1",
             } ),
             new Plot2Example( "layer-kde", c, PlotTask.PLANE, new String[] {
-                "*layer1=kde", "*in1=" + TName.RR, "*x1=p1",
+                "ymin=0", "*layer1=kde", "*in1=" + TName.RR, "*x1=p1",
             } ),
             new Plot2Example( "layer-knn", c, PlotTask.PLANE, new String[] {
                 "*layer1=knn", "*in1=" + TName.RR, "*x1=p1",
