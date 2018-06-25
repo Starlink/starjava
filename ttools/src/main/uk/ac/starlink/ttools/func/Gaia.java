@@ -75,6 +75,22 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  * Some value for this length scale, specified in parsec, must be supplied
  * to the functions as the <code>lpc</code> parameter.
  *
+ * <p><strong>Note</strong> that the values provided by these functions
+ * do <em>not</em> match those from the paper
+ * Bailer-Jones et al.
+ * "<em>Estimating Distances from Parallaxes IV:
+ *  Distances to 1.33 Billion stars in Gaia Data Release 2"</em>,
+ * accepted for AJ (2018)
+ * <a href="https://arxiv.org/abs/1804.10121"
+ *    >arXiv:1804.10121</a>.
+ * The calculations of that paper differ from the ones presented here in
+ * several ways:
+ * it uses a galactic model for the direction-dependent length scale
+ * not currently available here,
+ * it pre-applies a parallax correction of -0.029mas, and
+ * it uses different uncertainty measures and in some cases (bimodal PDF)
+ * a different best distance estimator.
+ *
  * <p><strong>Epoch Propagation</strong></p>
  *
  * <p>The Gaia source catalogue provides, for at least some sources,
