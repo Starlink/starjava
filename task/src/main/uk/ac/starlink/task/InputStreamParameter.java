@@ -39,7 +39,9 @@ public class InputStreamParameter extends Parameter<InputStream> {
             return DataSource.getInputStream( sval );
         }
         catch ( IOException e ) {
-            throw new ParameterValueException( this, e.getMessage() );
+            throw (ParameterValueException)
+                  new ParameterValueException( this, e.toString() )
+                 .initCause( e );
         }
     }
 }
