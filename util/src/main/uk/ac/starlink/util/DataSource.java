@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Represents a stream-like source of data.
@@ -704,7 +705,10 @@ public abstract class DataSource {
 
         /* Try it as a URL. */
         try {
-            return new URL( location ).openStream();
+            URL url = new URL( location );
+            URLConnection conn = url.openConnection();
+            conn = URLUtils.followRedirects( conn, null );
+            return conn.getInputStream();
         }
         catch ( MalformedURLException e ) {
         }

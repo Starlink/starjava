@@ -11717,6 +11717,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         This results in pixel-level changes to plot appearance
         in some cases; these can be avoided by explicitly setting
         <code>xmax</code>/<code>ymin</code> etc.</li>
+    <li>Fix some additional commands
+        (<code>votcopy</code>, <code>votlint</code>,
+         <code>datalinklint</code>)
+        so they follow HTTP 3xx redirects automatically in more cases
+        when given a URL for input.
+        Most STILTS commands already do this.</li>
     </ul>
     </p>
     </dd>

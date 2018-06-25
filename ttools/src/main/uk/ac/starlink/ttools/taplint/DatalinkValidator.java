@@ -23,7 +23,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
-import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.datalink.LinkColMap;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.vo.datalink.ServiceInvoker;
@@ -125,7 +125,7 @@ public class DatalinkValidator {
         int httpCode;
         try {
             conn = url.openConnection();
-            conn = TapQuery.followRedirects( conn );
+            conn = URLUtils.followRedirects( conn, null );
             conn.connect();
             httpCode = conn instanceof HttpURLConnection
                      ? ((HttpURLConnection) conn).getResponseCode()
