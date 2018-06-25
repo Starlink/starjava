@@ -1,14 +1,19 @@
 package uk.ac.starlink.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLStreamHandlerFactory;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -358,6 +363,105 @@ public class URLUtils {
         else {
             return null;
         }
+    }
+
+    /**
+     * Takes a URLConnection and repeatedly follows 3xx redirects
+     * until a non-redirect status is achieved.  Infinite loops are defended
+     * against.  The Accept-Encoding header, if present, is propagated
+     * to redirect targets.
+     *
+     * <p>Note that the
+     * {@link java.net.HttpURLConnection#setInstanceFollowRedirects}
+     * method does something like this, but it refuses to redirect
+     * between different URL protocols, for security reasons
+     * (see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4620571).
+     * Considering similar arguments, this method will direct HTTP->HTTPS,
+     * but not vice versa.
+     *
+     * @param  conn   initial URL connection
+     * @param  redirCodes  list of HTTP codes for which redirects should
+     *                     be followed; if null all suitable 3xx redirections
+     *                     will be followed (301, 302, 303, 307)
+     * @return   target URL connection
+     *           (if no redirects, the same as <code>hconn</code>)
+     */
+    public static URLConnection followRedirects( URLConnection conn,
+                                                 int[] redirCodes )
+            throws IOException {
+        if ( ! ( conn instanceof HttpURLConnection ) ) {
+            return conn;
+        }
+        HttpURLConnection hconn = (HttpURLConnection) conn;
+        Set<URL> urlSet = new HashSet<URL>();
+        urlSet.add( hconn.getURL() );
+        while ( isRedirect( hconn.getResponseCode(), redirCodes ) ) {
+            int hcode0 = hconn.getResponseCode();
+            URL url0 = hconn.getURL();
+            String loc = hconn.getHeaderField( "Location" );
+            if ( loc == null || loc.trim().length() == 0 ) {
+                throw new IOException( "No Location field for " + hcode0
+                                     + " response" );
+            }
+            URL url1;
+            try {
+                url1 = new URL( loc );
+            }
+            catch ( MalformedURLException e ) {
+                throw (IOException)
+                      new IOException( "Bad Location field for " + hcode0
+                                     + " response from " + url0 )
+                     .initCause( e );
+            }
+            if ( ! urlSet.add( url1 ) ) {
+                throw new IOException( "Recursive " + hcode0 + " redirect at "
+                                     + url1 );
+            }
+            String proto0 = url0.getProtocol().toLowerCase();
+            String proto1 = url1.getProtocol().toLowerCase();
+            if ( "https".equals( proto0 ) && ! "https".equals( proto1 ) ) {
+                throw new IOException( "Refuse to redirect " + proto0
+                                     + " URL to " + proto1 );
+            }
+            logger_.info( "HTTP " + hcode0 + " redirect to " + url1 );
+            URLConnection conn1 = url1.openConnection();
+            if ( ! ( conn1 instanceof HttpURLConnection ) ) {
+                return conn1;
+            }
+
+            /* Propagate any Accept-Encoding header, which may have been
+             * added by hand to the initial connection, to the redirect
+             * target, otherwise it will get lost. */
+            String acceptEncoding =
+                hconn.getRequestProperty( ContentCoding.ACCEPT_ENCODING );
+            hconn = (HttpURLConnection) conn1;
+            if ( acceptEncoding != null ) {
+                hconn.setRequestProperty( ContentCoding.ACCEPT_ENCODING,
+                                          acceptEncoding );
+            }
+        }
+        return hconn;
+    }
+
+    /**
+     * Indicates whether an HTTP response code should be interpreted
+     * as a request to redirect.
+     *
+     * @param  hcode  code to test
+     * @param  redirCodes  list of HTTP codes for which redirects should
+     *                     be followed; if null all suitable 3xx redirections
+     *                     will be followed (301, 302, 303, 307)
+     * @return  true iff hcode represents a redirect
+     */
+    private static boolean isRedirect( int hcode, int[] redirCodes ) {
+        int[] rcodes = redirCodes == null ? new int[] { 301, 302, 303, 307 }
+                                          : redirCodes;
+        for ( int i = 0; i < rcodes.length; i++ ) {
+            if ( hcode == rcodes[ i ] ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

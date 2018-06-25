@@ -5,13 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -32,6 +29,7 @@ import uk.ac.starlink.table.storage.LimitByteStore;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.HeadBufferInputStream;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
@@ -817,49 +815,6 @@ public class TapQuery {
      */
     public static URLConnection followRedirects( URLConnection conn )
             throws IOException {
-        if ( ! ( conn instanceof HttpURLConnection ) ) {
-            return conn;
-        }
-        HttpURLConnection hconn = (HttpURLConnection) conn;
-        Set urlSet = new HashSet<String>();
-        urlSet.add( hconn.getURL() );
-        while ( hconn.getResponseCode() ==
-                HttpURLConnection.HTTP_SEE_OTHER ) {   // 303
-            URL url0 = hconn.getURL();
-            String loc = hconn.getHeaderField( "Location" );
-            if ( loc == null || loc.trim().length() == 0 ) {
-                throw new IOException( "No Location field for 303 response"
-                                     + " from " + url0 );
-            }
-            URL url1;
-            try {
-                url1 = new URL( loc );
-            }
-            catch ( MalformedURLException e ) {
-                throw (IOException)
-                      new IOException( "Bad Location field for 303 response"
-                                     + " from " + url0 )
-                     .initCause( e );
-            }
-            if ( ! urlSet.add( url1 ) ) {
-                throw new IOException( "Recursive 303 redirect at " + url1 );
-            }
-            logger_.info( "HTTP 303 redirect to " + url1 );
-            URLConnection conn1 = url1.openConnection();
-            if ( ! ( conn1 instanceof HttpURLConnection ) ) {
-                return conn1;
-            }
-
-            /* Propagate the Accept-Encoding header to the redirect target,
-             * otherwise it will get lost. */
-            String acceptEncoding =
-                hconn.getRequestProperty( ContentCoding.ACCEPT_ENCODING );
-            hconn = (HttpURLConnection) conn1; 
-            if ( acceptEncoding != null ) {
-                hconn.setRequestProperty( ContentCoding.ACCEPT_ENCODING,
-                                          acceptEncoding );
-            }
-        }
-        return hconn;
+        return URLUtils.followRedirects( conn, new int[] { 303 } );
     }
 }
