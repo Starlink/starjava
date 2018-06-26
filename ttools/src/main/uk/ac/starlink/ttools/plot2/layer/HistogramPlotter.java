@@ -40,6 +40,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
+import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -136,7 +137,7 @@ public class HistogramPlotter
                 "that value multiplied by the bin width.",
                 "</p>",
             } )
-        , 0, 0, 1, false );
+        , 0, 0, 1, false, false, SliderSpecifier.TextOption.ENTER_ECHO );
 
     /**
      * Constructor.
