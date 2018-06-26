@@ -95,14 +95,37 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
      * @param  log  true for logarithmic slider scale, false for linear
      * @return  key
      */
-    public static DoubleConfigKey createSliderKey( ConfigMeta meta,
-                                                   final double dflt,
-                                                   final double lo,
-                                                   final double hi,
-                                                   final boolean log ) {
+    public static DoubleConfigKey createSliderKey( ConfigMeta meta, double dflt,
+                                                   double lo, double hi,
+                                                   boolean log ) {
+        return createSliderKey( meta, dflt, lo, hi, log, false,
+                                SliderSpecifier.TextOption.NONE );
+    }
+
+    /**
+     * Returns a key with a linear or logarithmic slider for a specifier,
+     * more options available.
+     * Note the lower and upper bounds configure only the slider range,
+     * they do not enforce a range when the value is set from a string value.
+     *
+     * @param   meta   metadata
+     * @param   dflt   default value
+     * @param   lo   slider lower bound
+     * @param   hi   slider upper bound
+     * @param  log  true for logarithmic slider scale, false for linear
+     * @param  flip  true to make slider values increase right to left
+     * @param  txtOpt  configures whether a text field should appear;
+     *                 null means NONE
+     * @return  key
+     */
+    public static DoubleConfigKey
+            createSliderKey( ConfigMeta meta, final double dflt,
+                             final double lo, final double hi,
+                             final boolean log, final boolean flip,
+                             final SliderSpecifier.TextOption txtOpt ) {
         return new DoubleConfigKey( meta, dflt ) {
             public Specifier<Double> createSpecifier() {
-                return new SliderSpecifier( lo, hi, log, dflt );
+                return new SliderSpecifier( lo, hi, log, dflt, flip, txtOpt );
             }
         };
     }
