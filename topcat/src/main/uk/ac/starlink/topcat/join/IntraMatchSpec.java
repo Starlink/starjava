@@ -95,8 +95,9 @@ public class IntraMatchSpec extends MatchSpec {
             msgType = JOptionPane.WARNING_MESSAGE;
         }
         else {
+            String name = "match(" + tupleSelector_.getTable().getID() + ")";
             TopcatModel tcModel = ControlWindow.getInstance()
-                                 .addTable( result_, "matched", true );
+                                 .addTable( result_, name, true );
             msg = new String[] { 
                 matchCount_ + " match groups located",
                 "New table created by match: " + tcModel,
