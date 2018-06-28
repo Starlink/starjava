@@ -16,7 +16,9 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -35,6 +37,7 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -59,10 +62,13 @@ public class TableViewerWindow extends AuxWindow {
     private final ListSelectionListener rowSelListener_;
     private final TableColumnModel colModel_;
     private final ViewerTableModel viewModel_;
+    private final StarTable dataModel_;
     private final ListSelectionModel rowSelectionModel_;
     private final TableColumnModel dummyColModel_;
     private final PropertyChangeListener viewbaseListener_;
     private final TableRowHeader rowHeader_;
+    private final JLabel nvisLabel_;
+    private final JLabel nselLabel_;
     private RowManager rowManager_;
     private int lastViewRowCount_;
     private boolean selfHighlighting_;
@@ -83,6 +89,7 @@ public class TableViewerWindow extends AuxWindow {
         tcModel_ = tcModel;
         colModel_ = tcModel.getColumnModel();
         viewModel_ = tcModel.getViewModel();
+        dataModel_ = tcModel.getDataModel();
         rowSelectionModel_ = new DefaultListSelectionModel();
         rowSelectionModel_.setSelectionMode( ListSelectionModel
                                             .MULTIPLE_INTERVAL_SELECTION );
@@ -119,8 +126,7 @@ public class TableViewerWindow extends AuxWindow {
                 return viewModel_.getBaseRow( irow ) + 1;
             }
         };
-        rowHeader_.setLongestNumber( (int) Math.min( tcModel.getDataModel()
-                                                            .getRowCount(),
+        rowHeader_.setLongestNumber( (int) Math.min( dataModel_.getRowCount(),
                                                      Integer.MAX_VALUE ) );
         rowHeader_.installOnScroller( scroller_ );
         viewbaseListener_ = new PropertyChangeListener() {
@@ -131,6 +137,23 @@ public class TableViewerWindow extends AuxWindow {
                 }
             }
         };
+
+        /* Set up status line. */
+        JComponent statusLine = Box.createHorizontalBox();
+        nvisLabel_ = new JLabel();
+        nselLabel_ = new JLabel();
+        statusLine.add( new JLabel( "Total: " ) );
+        statusLine.add( new JLabel( TopcatUtils
+                                   .formatLong( dataModel_.getRowCount() ) ) );
+        statusLine.add( Box.createHorizontalStrut( 20 ) );
+        statusLine.add( new JLabel( "Visible: " ) );
+        statusLine.add( nvisLabel_ );
+        statusLine.add( Box.createHorizontalStrut( 20 ) );
+        statusLine.add( new JLabel( "Selected: " ) );
+        statusLine.add( nselLabel_ );
+        nselLabel_.setText( "0" );
+        statusLine.add( Box.createHorizontalGlue() );
+        getMainArea().add( statusLine, BorderLayout.SOUTH );
 
         /* Configure for the current state of the apparent table and arrange
          * for reconfiguration if the row count changes. */
@@ -203,6 +226,8 @@ public class TableViewerWindow extends AuxWindow {
                     else {
                         lastActive = -1;
                     }
+                    int nsel = jtable_.getSelectedRowCount();
+                    nselLabel_.setText( TopcatUtils.formatLong( nsel ) );
                 }
             }
         };
@@ -344,6 +369,10 @@ public class TableViewerWindow extends AuxWindow {
         if ( tm0 != tm1 ) {
             rowHeader_.modelChanged();
         }
+
+        /* Update row count. */
+        nvisLabel_.setText( TopcatUtils
+                           .formatLong( viewModel_.getRowCount() ) );
 
         /* Sensible default position. */
         scroller_.getViewport().setViewPosition( new Point( 0, 0 ) );
@@ -513,7 +542,7 @@ public class TableViewerWindow extends AuxWindow {
      * @return  new bit vector
      */
     private BitSet getSelectionMask( boolean isInclude ) {
-        int nrow = (int) tcModel_.getDataModel().getRowCount();
+        int nrow = (int) dataModel_.getRowCount();
         int imin = rowSelectionModel_.getMinSelectionIndex();
         int imax = rowSelectionModel_.getMaxSelectionIndex();
         int[] rowMap = viewModel_.getRowMap();

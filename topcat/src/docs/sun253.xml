@@ -6056,6 +6056,21 @@ If the table has been <ref id="order">sorted</ref> these numbers
 may not be in order.
 </p>
 
+<p>The status line at the bottom displays three row counts:
+<ul>
+<li><strong>Total:</strong>
+    the number of rows in the table; this does not change</li>
+<li><strong>Visible:</strong>
+    the number of rows displayed in this window;
+    this is the row count of the current <ref id="subsets">subset</ref></li>
+<li><strong>Selected:</strong>
+    the number of rows selected in the displayed table;
+    rows appear highlighted when they are selected,
+    and can be selected/unselected by clicking on them,
+    and in some cases by other actions</li>
+</ul>
+</p>
+
 <p>Note that reordering the columns by dragging their headings around
 will change the order of columns in the table's 
 <ref id="columns">Column Set</ref> and hence the Apparent Table.
@@ -26772,6 +26787,9 @@ introduced since the last version:
     <li>Add option to set bin phase by text entry as well as by slider for
         <ref id="form-histogram">Histogram</ref> and
         <ref id="form-grid">Grid</ref> plot layers.</li>
+    <li>Add a status line at the bottom of the
+        <ref id="TableViewerWindow">Data Window</ref> displaying
+        total, visible and selected row counts.</li>
     </ul>
     </p></dd>
 
