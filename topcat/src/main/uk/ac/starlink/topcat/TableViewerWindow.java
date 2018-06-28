@@ -13,7 +13,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.BitSet;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -67,6 +66,7 @@ public class TableViewerWindow extends AuxWindow {
     private final TableColumnModel dummyColModel_;
     private final PropertyChangeListener viewbaseListener_;
     private final TableRowHeader rowHeader_;
+    private final ColumnSearchWindow searchWindow_;
     private final JLabel nvisLabel_;
     private final JLabel nselLabel_;
     private RowManager rowManager_;
@@ -191,6 +191,16 @@ public class TableViewerWindow extends AuxWindow {
         final Action includeAct = new SelectionSubsetAction( true );
         final Action excludeAct = new SelectionSubsetAction( false );
 
+        /* Prepare cell search action. */
+        searchWindow_ = new ColumnSearchWindow( this, tcModel );
+        Action searchAct = new BasicAction( "Search Column",
+                                            ResourceIcon.SEARCH,
+                                            "Search for value in cell" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                searchWindow_.setVisible( true );
+            }
+        };
+
         /* Configure a listener for row selection events. */
         rowSelListener_ = new ListSelectionListener() {
             long lastActive = -1;
@@ -284,17 +294,19 @@ public class TableViewerWindow extends AuxWindow {
         /* Add actions to the toolbar. */
         getToolBar().add( includeAct );
         getToolBar().add( excludeAct );
+        getToolBar().add( searchAct );
         getToolBar().addSeparator();
 
         /* Add print action to the File menu. */
         getWindowMenu().insert( printAct, 1 );
 
-        /* Add a subsets menu. */
-        JMenu subsetMenu = new JMenu( "Subsets" );
-        subsetMenu.setMnemonic( KeyEvent.VK_S );
-        getJMenuBar().add( subsetMenu );
-        subsetMenu.add( includeAct );
-        subsetMenu.add( excludeAct );
+        /* Add a rows menu. */
+        JMenu rowMenu = new JMenu( "Rows" );
+        rowMenu.setMnemonic( KeyEvent.VK_R );
+        getJMenuBar().add( rowMenu );
+        rowMenu.add( includeAct );
+        rowMenu.add( excludeAct );
+        rowMenu.add( searchAct );
         final OptionsListModel subsets = tcModel.getSubsets();
         Action applysubsetAct = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
@@ -320,17 +332,26 @@ public class TableViewerWindow extends AuxWindow {
         highlightsubsetMenu.setIcon( ResourceIcon.HIGHLIGHT );
         highlightsubsetMenu.setToolTipText( "Marks the rows of a selected "
                                           + "subset" );
-        subsetMenu.add( highlightsubsetMenu );
+        rowMenu.add( highlightsubsetMenu );
 
         /* This action, formerly known as "Apply Subset", is a bit dangerous,
          * since it changes the globally selected subset in a way that might
          * not be obvious.  Comment it out for now. */
         if ( false ) {
-            subsetMenu.add( applysubsetMenu );
+            rowMenu.add( applysubsetMenu );
         }
 
         /* Add help information. */
         addHelp( "TableViewerWindow" );
+    }
+
+    /**
+     * Returns the row selection model for this window's JTable.
+     *
+     * @return  row selection model
+     */
+    public ListSelectionModel getRowSelectionModel() {
+        return rowSelectionModel_;
     }
 
     /**
@@ -501,12 +522,15 @@ public class TableViewerWindow extends AuxWindow {
         }
 
         /* Action to search for a string. */
-        if ( ! rowHead && colInfo.getContentClass() == String.class ) {
+        if ( ! rowHead && searchWindow_.canSearchColumn( colInfo ) ) {
             Action searchAct =
                 new BasicAction( "Search Column", ResourceIcon.SEARCH,
-                                 "Search for regular expression in cell" ) {
+                                 "Search column for cell content" ) {
                     public void actionPerformed( ActionEvent evt ) {
-                        findRegex( tcol, jcol );
+                        if ( tcol != null ) {
+                            searchWindow_.setColumn( tcol );
+                        }
+                        searchWindow_.setVisible( true );
                     }
                 };
             popper.add( searchAct );
@@ -566,55 +590,12 @@ public class TableViewerWindow extends AuxWindow {
     }
 
     /**
-     * Pops up a window asking for a regular expression and selects the
-     * rows which match it in a given column.
-     *
-     * @param   table column for matching
-     * @param   index of the column index in the view model
-     */
-    private void findRegex( StarTableColumn tcol, int jcol ) {
-        Object[] msg = {
-             "Enter a regular expression (e.g. \".*XYZ.*\")",
-             "to select rows whose " + tcol.getColumnInfo().getName() +
-             " value match it",
-        };
-        String regex = JOptionPane
-                      .showInputDialog( this, msg, "Search Column",
-                                        JOptionPane.QUESTION_MESSAGE );
-        if ( regex != null && regex.trim().length() > 0 ) {
-            Pattern pat = Pattern.compile( regex );
-            int nfound = 0;
-            int first = -1;
-            int nrow = viewModel_.getRowCount();
-            for ( int irow = 0; irow < nrow; irow++ ) {
-                Object cell = viewModel_.getValueAt( irow, jcol );
-                if ( cell instanceof String ) {
-                    if ( pat.matcher( (String) cell ).matches() ) {
-                        if ( nfound == 0 ) {
-                            first = irow;
-                            rowSelectionModel_.clearSelection();
-                        }
-                        rowSelectionModel_.addSelectionInterval( irow, irow );
-                        nfound++;
-                    }
-                }
-            }
-            if ( nfound == 1 ) {
-                tcModel_.highlightRow( viewModel_.getBaseRow( first ) );
-            }
-            else if ( nfound > 1 ) {
-                scrollToRow( first );
-            }
-        }
-    }
-
-    /**
      * Scrolls the JTable so that the given row is visible in the centre
      * of the window.
      *
      * @param   viewRow  row index in the view model
      */
-    private void scrollToRow( int viewRow ) {
+    public void scrollToRow( int viewRow ) {
         rowManager_.scrollToRow( viewRow );
     }
 
@@ -624,7 +605,7 @@ public class TableViewerWindow extends AuxWindow {
      *
      * @param  viewCol  column index in the view model
      */
-    private void scrollToColumn( int viewCol ) {
+    public void scrollToColumn( int viewCol ) {
         Rectangle viewRect = jtable_.getCellRect( 0, viewCol, false );
         int xMid = viewRect.x + viewRect.width / 2;
         JScrollBar xBar = scroller_.getHorizontalScrollBar();

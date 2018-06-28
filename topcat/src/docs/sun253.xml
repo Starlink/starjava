@@ -61,6 +61,7 @@
   <!ENTITY FIG.ImageWindow '&figs;ImageWindow.png'>
   <!ENTITY FIG.Splat '&figs;Splat.png'>
   <!ENTITY FIG.HelpWindow '&figs;HelpWindow.png'>
+  <!ENTITY FIG.ColumnSearchWindow '&figs;ColumnSearchWindow.png'>
   <!ENTITY FIG.ParameterQueryWindow '&figs;ParameterQueryWindow.png'>
   <!ENTITY FIG.SyntheticColumnQueryWindow 
            '&figs;SyntheticColumnQueryWindow.png'>
@@ -6108,14 +6109,22 @@ by clicking on the relevant header.
     Control key down while dragging.
     This action is only available when some rows have been selected.
     </p></dd>
+
+<dt>&IMG.SEARCH; Search Column</dt>
+<dd><p>Pops up the <ref id="ColumnSearchWindow">Column Search Window</ref>
+    that allows you to locate a given text string in the cells of a
+    chosen column.  When invoked like this, you have to select the
+    column by hand.  The column popup menu described below can fill in
+    the column automatically.
+    </p></dd>
 </dl>
 </p>
 
-<p>The <label>Subsets</label> menu additionally contains the following item:
+<p>The <label>Rows</label> menu additionally contains the following item:
 <dl>
 <dt>&IMG.HIGHLIGHT; Highlight Subset</dt>
 <dd><p>This is a submenu in which all the currently defined row subsets
-    are listed.  Selecting one of them marks the rows corresponding to that
+    are listed.  Choosing one of them highlights the rows corresponding to that
     subset as if they have been selected.
     </p></dd>
 </dl>
@@ -6162,16 +6171,10 @@ way to do some things with the column in question:
     </p></dd>
 
 <dt>&IMG.SEARCH; Search Column</dt>
-<dd><p>For string-valued columns, this option allows you to search 
-    for values in a column.  If you select it you will be asked to enter
-    a regular expression, and then any row which matches that expression
-    in this column will be selected (highlighted).  If there's just one
-    matching column it will be <ref id="activation">activated</ref> as well.
-    The expression obeys normal 
-    <webref url="http://en.wikipedia.org/wiki/Regular_expression"
-            >regular expression</webref> syntax, so for instance
-    you'd enter "<code>.*XYZ.*</code>" to find all rows which contain 
-    the string "XYZ".
+<dd><p>Pops up the <ref id="ColumnSearchWindow">Column Search Window</ref>
+    that allows you to locate a given text string in the cells of a
+    chosen column.  When invoked like this, the column on which you
+    clicked to get the menu is filled in automatically.
     </p></dd>
 
 <dt>&IMG.EXPLODE; Explode Array Column</dt>
@@ -21855,6 +21858,104 @@ and paste from this using your platform's usual mechanisms for this.
 
 </subsubsect>
 
+<subsubsect id="ColumnSearchWindow">
+<subhead><title>Column Search Window</title></subhead>
+
+<figure>
+<caption><px>Column Search window</px></caption>
+<figureimage src="&FIG.ColumnSearchWindow;"/>
+</figure>
+
+<p>The Column Search window lets you search through the values
+in a chosen column to find occurrences of some particular text.
+It can be obtained using the <label>Search Column</label> (&IMG.SEARCH;)
+action from the <ref id="TableViewerWindow">Data Window</ref>
+in one of two ways:
+either using the toolbar button or menu item,
+in which case you have to choose the column of interest using the selector,
+or using the popup menu that appears when you right-click on a column,
+in which case the column in question is selected automatically.
+</p>
+
+<p>To perform a search, ensure that the column selector is filled in
+with the column you want to search,
+fill in the matching options,
+enter the text to search for,
+and hit the <label>Search</label> button.
+Any rows matching the query are highlighted in the <label>Data Window</label>,
+and the display is scrolled so that the first match, if any, is visible.
+You can see how many matches there were from the <label>Selected</label>
+value indicated at the bottom of the Data Window.
+If at least one match is found, the search window usually closes
+(though this can be inhibited with the
+<label>Stay Open</label> (&IMG.KEEP_OPEN;) option).
+</p>
+
+<p>The fields to fill in are as follows:
+<dl>
+<dt>Column:</dt>
+<dd><p>The column whose cell values will be matched against.
+    This may be filled in automatically (if you open the window using
+    the column popup menu), or you can select a column by hand.
+    </p></dd>
+<dt>Syntax:</dt>
+<dd><p>Controls the way that the search text is interpreted:
+    <ul>
+    <li><strong>Wildcard:</strong>
+        basic string matching with two special characters;
+        "<code>*</code>" matches any sequence of characters, and
+        "<code>?</code>" matches any single character</li>
+    <li><strong>Literal:</strong>
+        no special characters; the strings must match exactly</li>
+    <li><strong>Regex:</strong>
+        uses the powerful <em>regular expression</em> matching syntax</li>
+    </ul>
+    </p></dd>
+<dt>Scope:</dt>
+<dd><p>Determines which part of the cell text has to match the search text:
+    <ul>
+    <li><strong>Contains:</strong> the search text has to appear somewhere
+        in the cell content</li>
+    <li><strong>Complete:</strong> the search text has to match the whole
+        of the cell content</li>
+    </ul>
+    </p></dd>
+<dt>Case Sensitive:</dt>
+<dd><p>If checked, matching is case-sensitive,
+    otherwise, upper/lower case discrepancies are ignored. 
+    </p></dd>
+<dt>Search Text:</dt>
+<dd><p>The text to match cell values in the given column
+    according to the constraints defined by the other controls.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Search</label> button will only be enabled if the
+controls specify a legal search condition.
+If for instance the search text is empty,
+or <em>Regex</em> syntax is chosen and the search text is not
+a legal regular expression, it will be disabled.
+</p>
+
+<p>The search will usually complete straight away, but if the table
+is very long, and especially if there are many matches,
+it may take a significant amount of time.
+In this case progress is displayed with the progress bar
+at the bottom of the window, and you can interrupt the running search
+using the <label>Stop</label> button.
+</p>
+
+<p>This window is mainly intended for locating one or a few
+rows for immediate use based on cell content.
+In particular, if very many rows are matched, this operation
+can be quite slow.
+If you want to select many rows it may be more appropriate to
+define a <ref id="subsets">Row Subset</ref>.
+</p>
+
+</subsubsect>
+
 <subsubsect id="ParameterQueryWindow">
 <subhead><title>New Parameter Window</title></subhead>
 
@@ -26790,6 +26891,8 @@ introduced since the last version:
     <li>Add a status line at the bottom of the
         <ref id="TableViewerWindow">Data Window</ref> displaying
         total, visible and selected row counts.</li>
+    <li><ref id="ColumnSearchWindow">Column Search Window</ref> introduced
+        (replaces and upgrades similar action from column popup menu).</li>
     </ul>
     </p></dd>
 
