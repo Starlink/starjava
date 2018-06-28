@@ -1,7 +1,6 @@
 package uk.ac.starlink.util.gui;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,18 +15,18 @@ import javax.swing.event.ChangeListener;
  * @author   Mark Taylor
  * @since    11 Jan 2005
  */
-public class ValueButtonGroup extends ButtonGroup {
+public class ValueButtonGroup<T> extends ButtonGroup {
 
-    private final Map valueMap_;
-    private final List listeners_;
+    private final Map<AbstractButton,T> valueMap_;
+    private final List<ChangeListener> listeners_;
     private final ChangeListener buttonListener_;
 
     /**
      * Constructor.
      */
     public ValueButtonGroup() {
-        valueMap_ = new HashMap();
-        listeners_ = new ArrayList();
+        valueMap_ = new HashMap<AbstractButton,T>();
+        listeners_ = new ArrayList<ChangeListener>();
         buttonListener_ = new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 if ( evt.getSource() instanceof AbstractButton ) {
@@ -53,7 +52,7 @@ public class ValueButtonGroup extends ButtonGroup {
      * @param   button   button 
      * @param   value    associated value
      */
-    public void add( AbstractButton button, Object value ) {
+    public void add( AbstractButton button, T value ) {
         super.add( button );
         valueMap_.put( button, value );
         button.addChangeListener( buttonListener_ );
@@ -71,9 +70,8 @@ public class ValueButtonGroup extends ButtonGroup {
      *
      * @return   selected value
      */
-    public Object getValue() {
-        for ( Iterator it = buttons.iterator(); it.hasNext(); ) {
-            AbstractButton button = (AbstractButton) it.next();
+    public T getValue() {
+        for ( AbstractButton button : buttons ) {
             if ( button.isSelected() ) {
                 return valueMap_.get( button );
             }
@@ -88,10 +86,9 @@ public class ValueButtonGroup extends ButtonGroup {
      *
      * @param  value  new value
      */
-    public void setValue( Object value ) {
-        for ( Iterator it = valueMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            AbstractButton button = (AbstractButton) entry.getKey();
+    public void setValue( T value ) {
+        for ( Map.Entry<AbstractButton,T> entry : valueMap_.entrySet() ) {
+            AbstractButton button = entry.getKey();
             if ( value == null ? ( value == entry.getValue() ) 
                                : ( value.equals( entry.getValue() ) ) ) {
                 if ( ! button.isSelected() ) {
@@ -128,8 +125,8 @@ public class ValueButtonGroup extends ButtonGroup {
      */
     private void fireValueChanged() {
         ChangeEvent evt = new ChangeEvent( this );
-        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            ((ChangeListener) it.next()).stateChanged( evt );
+        for ( ChangeListener l : listeners_ ) {
+            l.stateChanged( evt );
         }
     }
 }
