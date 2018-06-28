@@ -18,6 +18,7 @@
 .Version 1.20c: FO: elementFormDefault="qualified" to stay compatible with 1.1
 .Version 1.3: MT: Added BINARY2 element
 .Version 1.3: MT: Further relaxed LINK content-role type to token
+.Version 1.3-Erratum-2 MT: Made slight change to precType pattern
 -->
 <xs:schema 
    xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
@@ -97,7 +98,7 @@
 
 <xs:simpleType name="precType">
   <xs:restriction base="xs:token">
-    <xs:pattern value="[EF]?[1-9][0-9]*"/>
+    <xs:pattern value="[EF]?[0-9][0-9]*"/>
   </xs:restriction>
 </xs:simpleType>
 
