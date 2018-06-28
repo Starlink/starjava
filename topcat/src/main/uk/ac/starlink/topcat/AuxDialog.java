@@ -16,6 +16,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 
 /**
@@ -33,7 +34,9 @@ import javax.swing.JToolBar;
 public class AuxDialog extends JDialog {
 
     private final JToolBar toolBar_;
+    private final JMenu windowMenu_;
     private final Action closeAct_;
+    private JMenu helpMenu_;
 
     /**
      * Constructor.
@@ -49,9 +52,9 @@ public class AuxDialog extends JDialog {
         /* Set up a basic menubar with a Window menu. */
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar( menuBar );
-        JMenu windowMenu = new JMenu( "Window" );
-        windowMenu.setMnemonic( KeyEvent.VK_W );
-        menuBar.add( windowMenu );
+        windowMenu_ = new JMenu( "Window" );
+        windowMenu_.setMnemonic( KeyEvent.VK_W );
+        menuBar.add( windowMenu_ );
         Action controlAct =
                 new BasicAction( "Control Window", ResourceIcon.CONTROL,
                                  "Ensure Control Window is visible" ) {
@@ -72,11 +75,11 @@ public class AuxDialog extends JDialog {
                 ControlWindow.getInstance().exit( true );
             }
         };
-        windowMenu.add( controlAct );
-        JMenuItem closeItem = windowMenu.add( closeAct_ );
+        windowMenu_.add( controlAct );
+        JMenuItem closeItem = windowMenu_.add( closeAct_ );
         closeItem.setMnemonic( KeyEvent.VK_C );
         if ( Driver.isStandalone() ) {
-            JMenuItem exitItem = windowMenu.add( exitAct );
+            JMenuItem exitItem = windowMenu_.add( exitAct );
             exitItem.setMnemonic( KeyEvent.VK_X );
         }
 
@@ -103,25 +106,25 @@ public class AuxDialog extends JDialog {
     protected void addHelp( String helpID ) {
 
         /* Add a new help menu. */
-        JMenu helpMenu = new JMenu( "Help" );
-        helpMenu.setMnemonic( KeyEvent.VK_H );
-        getJMenuBar().add( helpMenu );
+        helpMenu_ = new JMenu( "Help" );
+        helpMenu_.setMnemonic( KeyEvent.VK_H );
+        getJMenuBar().add( helpMenu_ );
 
         /* Add an action to activate the help browser. */
         Action helpAct = new HelpAction( helpID, this );
         toolBar_.add( helpAct );
 
         /* Add items to the help menu. */
-        helpMenu.add( new HelpAction( null, this ) );
+        helpMenu_.add( new HelpAction( null, this ) );
         if ( helpID != null ) {
-            helpMenu.add( helpAct );
+            helpMenu_.add( helpAct );
         }
-        helpMenu.add( BrowserHelpAction.createManualAction( this ) );
-        helpMenu.add( BrowserHelpAction.createManual1Action( this ) );
+        helpMenu_.add( BrowserHelpAction.createManualAction( this ) );
+        helpMenu_.add( BrowserHelpAction.createManual1Action( this ) );
         if ( helpID != null ) {
-            helpMenu.add( BrowserHelpAction.createIdAction( helpID, this ) );
+            helpMenu_.add( BrowserHelpAction.createIdAction( helpID, this ) );
         }
-        helpMenu.addSeparator();
+        helpMenu_.addSeparator();
 
         /* Add an About action. */
         Action aboutAct =
@@ -140,11 +143,24 @@ public class AuxDialog extends JDialog {
                                                ResourceIcon.getTopcatLogo() );
             }
         };
-        helpMenu.add( aboutAct );
+        helpMenu_.add( aboutAct );
 
         /* Add a close button. */
         toolBar_.add( closeAct_ );
         toolBar_.addSeparator();
+    }
+
+    /**
+     * Creates a JProgressBar and places it in the the window.
+     * It will replace any other progress bar which has been placed
+     * by an earlier call of this method.
+     *
+     * @return   the progress bar which has been placed
+     */
+    public JProgressBar placeProgressBar() {
+        JProgressBar progBar = new JProgressBar();
+        getContentPane().add( progBar, BorderLayout.SOUTH );
+        return progBar;
     }
 
     /**
@@ -156,5 +172,23 @@ public class AuxDialog extends JDialog {
      */
     public JToolBar getToolBar() {
         return toolBar_;
+    }
+
+    /**
+     * Returns this window's "Window" menu.
+     *
+     * @return  the window menu
+     */
+    public JMenu getWindowMenu() {
+        return windowMenu_;
+    }
+
+    /**
+     * Returns this window's "Help" menu.
+     *
+     * @return  the help menu
+     */
+    public JMenu getHelpMenu() {
+        return helpMenu_;
     }
 }
