@@ -21884,10 +21884,12 @@ enter the text to search for,
 and hit the <label>Search</label> button.
 Any rows matching the query are highlighted in the <label>Data Window</label>,
 and the display is scrolled so that the first match, if any, is visible.
+If exactly one matching row was found, it is also
+<ref id="activation">activated</ref>.
 You can see how many matches there were from the <label>Selected</label>
 value indicated at the bottom of the Data Window.
 If at least one match is found, the search window usually closes
-(though this can be inhibited with the
+(though this can be prevented with the
 <label>Stay Open</label> (&IMG.KEEP_OPEN;) option).
 </p>
 
@@ -21939,19 +21941,10 @@ a legal regular expression, it will be disabled.
 </p>
 
 <p>The search will usually complete straight away, but if the table
-is very long, and especially if there are many matches,
-it may take a significant amount of time.
+is very long it may take a significant amount of time.
 In this case progress is displayed with the progress bar
 at the bottom of the window, and you can interrupt the running search
 using the <label>Stop</label> button.
-</p>
-
-<p>This window is mainly intended for locating one or a few
-rows for immediate use based on cell content.
-In particular, if very many rows are matched, this operation
-can be quite slow.
-If you want to select many rows it may be more appropriate to
-define a <ref id="subsets">Row Subset</ref>.
 </p>
 
 </subsubsect>

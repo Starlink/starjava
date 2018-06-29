@@ -4,7 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,11 +27,11 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -201,6 +201,17 @@ public class ColumnSearchWindow extends AuxDialog {
     }
 
     /**
+     * Stringifies a cell value for pattern matching purposes.
+     *
+     * @param  cell value, assumed to be from a column for which
+     *         <code>canSearchColumn</code> returns true
+     * @return  stringified value
+     */
+    public String cellToString( Object cell ) {
+        return cell == null ? "" : cell.toString();
+    }
+
+    /**
      * Programmatically configures the column to be searched by this window.
      *
      * @param   tcol  column
@@ -301,13 +312,13 @@ public class ColumnSearchWindow extends AuxDialog {
         SearchScope scope = search.scope_;
         StarTable dataModel = tcModel_.getDataModel();
         final ViewerTableModel viewModel = tcModel_.getViewModel();
-        final ListSelectionModel rowSelModel =
-            viewWindow_.getRowSelectionModel();
         long nfind = 0;
         long irow0 = -1;
+
+        /* Clear selection. */
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                rowSelModel.clearSelection();
+                viewWindow_.setSelection( RowSubset.NONE );
             }
         } );
 
@@ -323,33 +334,14 @@ public class ColumnSearchWindow extends AuxDialog {
             }
         } );
 
-        /* We update the GUI as we go along.  If there are many matches,
-         * this can be much slower than doing them all at once at the end.
-         * However, it gives the user a chance to see progress and interrupt
-         * if required.  This window isn't really intended for large numbers
-         * of matches, so it's likely that the user will want to interrupt
-         * it if it takes a long time anyway. */
-        /* The alternative would be to identify all the matches and then
-         * update the ListSelectionModel at the end.  The elapsed time
-         * in that case *should* be much faster.
-         * One problem with that is that if there is a very large number of
-         * matches, that ListSelectionModel update can take a very long time,
-         * and ties up the EDT.  That must be down to the implementation of
-         * the DefaultListSelectionModel used for JTable row selection in the
-         * TableViewerWindow and (probably) the way it talks to its listeners.
-         * The ListSelectionModel itself only allows you to update content
-         * by multiple calls to addSelectionInterval, so many calls are
-         * potentially required.  To make these bulk updates in a safe way,
-         * it would probably be necessary to implement a custom
-         * ListSelectionModel that can be updated in bulk.
-         * That wouldn't be too hard: you could steal (e.g.) the OpenJDK-6
-         * DefaultListSelectionModel implementation which is based on a BitSet,
-         * and just provide a public method to update the BitSet content
-         * in one go. */
+        /* Iterate over rows in the view model (not the whole table). */
         long nextUpdate = System.currentTimeMillis();
         int krow = 0;
+        final IndexSet foundSet = new IndexSet( dataModel.getRowCount() );
         for ( Iterator<Long> irowIt = viewModel.getRowIndexIterator();
               irowIt.hasNext() && ! Thread.currentThread().isInterrupted(); ) {
+
+            /* Look for and record matching rows. */
             long irow = irowIt.next().longValue();
             Object cell;
             try {
@@ -359,43 +351,20 @@ public class ColumnSearchWindow extends AuxDialog {
                 cell = null;
             }
             if ( cell != null ) {
-                String txt = cell.toString();
+                String txt = cellToString( cell );
                 if ( scope.matches( pattern.matcher( txt ) ) ) {
-                    final int jrow = viewModel.getViewRow( irow );
+                    foundSet.addIndex( irow );
                     final boolean isFirst = nfind++ == 0;
                     if ( isFirst ) {
                         irow0 = irow;
-                    }
-
-                    /* Invoke the GUI update on the EDT synchronously.
-                     * Otherwise, in the case of many matches,
-                     * it tends to jam up the EDT with loads of
-                     * scheduled requests and responsiveness suffers. */
-                    try {
-                        SwingUtilities.invokeAndWait( new Runnable() {
-                            public void run() {
-                                rowSelModel.addSelectionInterval( jrow, jrow );
-                                if ( isFirst ) {
-                                    viewWindow_.scrollToRow( jrow );
-                                }
-                            }
-                        } );
-                    }
-                    catch ( InvocationTargetException e ) {
-                        throw new RuntimeException( e );
-                    }
-
-                    /* Very important not to swallow interruptions here. */
-                    catch ( InterruptedException e ) {
-                        Thread.currentThread().interrupt();
                     }
                 }
             }
 
             /* Update the progress bar if we haven't done it recently. */
             long time = System.currentTimeMillis();
-            if ( time >= nextUpdate ) {
-                nextUpdate = time + 200;
+            if ( time >= nextUpdate || krow == nrow - 1 ) {
+                nextUpdate = time + 100;
                 final int krow0 = krow;
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
@@ -406,8 +375,7 @@ public class ColumnSearchWindow extends AuxDialog {
             krow++;
         }
 
-        /* If we complete successfully, but not if the window is tacked
-         * or if no matches were found, consider disposing the window. */
+        /* If we complete successfully, update the selection. */
         if ( !Thread.currentThread().isInterrupted() ) {
             final long nfind0 = nfind;
             final long irow00 = irow0;
@@ -418,6 +386,14 @@ public class ColumnSearchWindow extends AuxDialog {
                     if ( nfind0 == 1 ) {
                         tcModel_.highlightRow( irow00 );
                     }
+                    else if ( nfind0 > 0 ) {
+                        viewWindow_.setSelection( foundSet.createRowSubset() );
+                        viewWindow_.scrollToRow( viewModel
+                                                .getViewRow( irow00 ) );
+                    }
+
+                    /* If at least one row was found, and the window is not
+                     * tacked, close the dialog. */
                     if ( nfind0 > 0 && ! tackModel_.isSelected() ) {
                         ColumnSearchWindow.this.dispose();
                     }
@@ -545,6 +521,44 @@ public class ColumnSearchWindow extends AuxDialog {
         @Override
         public String toString() {
             return name_;
+        }
+    }
+
+    /**
+     * Utility class to keep a set of row index values (long integers).
+     * The implementation could get cleverer, more efficient, more robust,
+     * (may be wasteful for finding few rows in large tables)
+     * but it's probably OK up to 2^31 rows.  Avoid premature optimisation
+     * for now.
+     */
+    private static class IndexSet {
+        final BitSet bitset_;
+
+        /**
+         * Constructor.
+         *
+         * @param   maximum index value that might be stored
+         */
+        IndexSet( long nrow ) {
+            bitset_ = new BitSet( (int) nrow );
+        }
+
+        /**
+         * Add an entry.
+         *
+         * @param  ix  row index
+         */
+        void addIndex( long ix ) {
+            bitset_.set( Tables.checkedLongToInt( ix ) );
+        }
+
+        /**
+         * Return a RowSubset corresponding to the values added so far.
+         *
+         * @return  row subset
+         */
+        RowSubset createRowSubset() {
+            return new BitsRowSubset( "Found", bitset_ );
         }
     }
 }

@@ -653,7 +653,7 @@ public class TableViewerWindow extends AuxWindow {
      *
      * @param   rset  row subset
      */
-    private void setSelection( RowSubset rset ) {
+    public void setSelection( RowSubset rset ) {
         rowSelectionModel_.setValueIsAdjusting( true );
         rowSelectionModel_.clearSelection();
         int nrow = (int) viewModel_.getRowCount();
