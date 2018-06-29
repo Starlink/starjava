@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -45,6 +46,8 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private static final int MIN = 0;
     private static final int MAX = 10000;
     private static final boolean DISPLAY_TEXT = false;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.config" );
 
     /**
      * Constructs a specifier with minimal options.
@@ -178,6 +181,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
             }
             else {
                 txtField_.setText( Float.toString( (float) dval ) );
+                txtField_.setCaretPosition( 0 );
             }
         }
     }
@@ -250,6 +254,8 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
                     return Double.parseDouble( numstr );
                 }
                 catch ( NumberFormatException e ) {
+                    logger_.info( "Parse of formatted number failed: "
+                                + numstr );
                 }
             }
         }
@@ -323,6 +329,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
         txtField_.setEnabled( ! sliderActive );
         if ( txtOpt_.isEchoValue_ && sliderActive ) {
             txtField_.setText( valueToString( getSpecifiedValue() ) );
+            txtField_.setCaretPosition( 0 );
         }
     }
 
