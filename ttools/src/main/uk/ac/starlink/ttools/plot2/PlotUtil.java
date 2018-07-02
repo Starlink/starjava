@@ -10,11 +10,13 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Point2D;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -917,6 +919,8 @@ public class PlotUtil {
 
     /**
      * Numeric formatting utility function.
+     * The output is not Locale-sensitive, so is suitable for formatting
+     * numbers that may be re-parsed as numbers (by non-Locale-sensitive code).
      *
      * @param  value  numeric value to format
      * @param  baseFmt  format string as for {@link java.text.DecimalFormat}
@@ -925,7 +929,9 @@ public class PlotUtil {
      */
     public static String formatNumber( double value, String baseFmt,
                                        int nFracDigits ) {
-        DecimalFormat fmt = new DecimalFormat( baseFmt );
+        DecimalFormat fmt =
+           new DecimalFormat( baseFmt,
+                              DecimalFormatSymbols.getInstance( Locale.UK ) );
         fmt.setMaximumFractionDigits( nFracDigits );
         fmt.setMinimumFractionDigits( nFracDigits );
         return fmt.format( value );

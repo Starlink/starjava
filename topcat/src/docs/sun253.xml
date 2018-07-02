@@ -22715,6 +22715,7 @@ Some of the notable contributers are these:
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>David Giaretta (Starlink, RAL)</li>
+<li>Bertrand Goldman (MPIA)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
 <li>Norman Gray (Starlink, Glasgow)</li>
 <li>Phil Hall (Son of Ken)</li>
@@ -26904,6 +26905,8 @@ introduced since the last version:
         total, visible and selected row counts.</li>
     <li><ref id="ColumnSearchWindow">Column Search Window</ref> introduced
         (replaces and upgrades similar action from column popup menu).</li>
+    <li>Fix i18n bug that caused slider text values to be reported with
+        unwanted precision in certain (e.g. fr, de) locales.</li>
     </ul>
     </p></dd>
 
