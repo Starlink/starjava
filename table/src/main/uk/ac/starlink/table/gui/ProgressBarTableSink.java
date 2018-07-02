@@ -2,6 +2,7 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
 import uk.ac.starlink.table.StarTable;
@@ -42,6 +43,10 @@ public class ProgressBarTableSink implements TableSink {
     public ProgressBarTableSink( JProgressBar progBar, int updateMillis,
                                  final int showTableIndex ) {
         progBar_ = progBar;
+
+        /* Use text formatting which typically (it is Locale-sensitive)
+         * adds separators every three digits for readability. */
+        final NumberFormat fmt = NumberFormat.getInstance();
         timer_ = new Timer( updateMillis, new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 progBar_.setValue( (int) Math.min( irow_, Integer.MAX_VALUE ) );
@@ -50,10 +55,10 @@ public class ProgressBarTableSink implements TableSink {
                     sbuf.append( itab_ )
                         .append( ": " );
                 }
-                sbuf.append( irow_ );
+                sbuf.append( fmt.format( irow_ ) );
                 if ( nrow_ > 0 ) {
                     sbuf.append( " / " )
-                        .append( nrow_ );
+                        .append( fmt.format( nrow_ ) );
                 }
                 progBar_.setString( sbuf.toString() );
             }

@@ -918,10 +918,10 @@ public class ControlWindow extends AuxWindow
             }
             public void acceptRow( Object[] row ) {
                 StringBuffer sbuf = new StringBuffer();
-                sbuf.append( ++irow );
+                sbuf.append( TopcatUtils.formatLong( ++irow ) );
                 if ( nrow > 0 ) {
                     sbuf.append( '/' );
-                    sbuf.append( nrow );
+                    sbuf.append( TopcatUtils.formatLong( nrow ) );
                 }
                 token.setProgress( sbuf.toString() );
             }

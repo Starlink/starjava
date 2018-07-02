@@ -26907,6 +26907,8 @@ introduced since the last version:
         (replaces and upgrades similar action from column popup menu).</li>
     <li>Fix i18n bug that caused slider text values to be reported with
         unwanted precision in certain (e.g. fr, de) locales.</li>
+    <li>Load progress reports now format long numbers to include
+        separators (e.g. commas every three digits).</li>
     </ul>
     </p></dd>
 
