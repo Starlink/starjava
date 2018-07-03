@@ -26909,6 +26909,11 @@ introduced since the last version:
         unwanted precision in certain (e.g. fr, de) locales.</li>
     <li>Load progress reports now format long numbers to include
         separators (e.g. commas every three digits).</li>
+    <li>The <label>Columns</label> metadata browser in the
+        <ref id="TapTableLoadDialog_query">TAP Window</ref>
+        now shows arraysize information if present in the
+        <label>Type</label> column,
+        and includes a new <label>Xtype</label> column (TAP 1.1).</li>
     </ul>
     </p></dd>
 

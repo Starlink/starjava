@@ -1034,9 +1034,29 @@ public class TableSetPanel extends JPanel {
                     return getCol( item ).getName();
                 }
             },
-            new ArrayTableColumn( "DataType", String.class ) {
+            new ArrayTableColumn( "Type", String.class ) {
                 public Object getValue( Object item ) {
-                    return getCol( item ).getDataType();
+                    ColumnMeta cmeta = getCol( item );
+                    String datatype = cmeta.getDataType();
+                    String arraysize = cmeta.getArraysize();
+                    StringBuffer sbuf = new StringBuffer();
+                    if ( datatype != null ) {
+                        sbuf.append( datatype );
+                    }
+                    if ( arraysize != null ) {
+                        String asize = arraysize.trim();
+                        if ( asize.length() > 0 && ! asize.equals( "1" ) ) {
+                            sbuf.append( '(' )
+                                .append( asize )
+                                .append( ')' );
+                         }
+                    }
+                    return sbuf.toString();
+                }
+            },
+            new ArrayTableColumn( "Unit", String.class ) {
+                public Object getValue( Object item ) {
+                    return getCol( item ).getUnit();
                 }
             },
             new ArrayTableColumn( "Indexed", Boolean.class ) {
@@ -1044,11 +1064,6 @@ public class TableSetPanel extends JPanel {
                     return Boolean
                           .valueOf( Arrays.asList( getCol( item ).getFlags() )
                                           .indexOf( "indexed" ) >= 0 );
-                }
-            },
-            new ArrayTableColumn( "Unit", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCol( item ).getUnit();
                 }
             },
             new ArrayTableColumn( "Description", String.class ) {
@@ -1064,6 +1079,11 @@ public class TableSetPanel extends JPanel {
             new ArrayTableColumn( "Utype", String.class ) {
                 public Object getValue( Object item ) {
                     return getCol( item ).getUtype();
+                }
+            },
+            new ArrayTableColumn( "Xtype", String.class ) {
+                public Object getValue( Object item ) {
+                    return getCol( item ).getXtype();
                 }
             },
             new ArrayTableColumn( "Flags", String.class ) {
