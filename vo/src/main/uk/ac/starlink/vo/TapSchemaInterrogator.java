@@ -72,6 +72,8 @@ public class TapSchemaInterrogator {
     public static final MetaQuerier<SchemaMeta> SCHEMA_QUERIER =
         createSchemaQuerier();
 
+    private static final AdqlSyntax syntax_ = AdqlSyntax.getInstance();
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -338,7 +340,14 @@ public class TapSchemaInterrogator {
         int ncol = table.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
             String name = table.getColumnInfo( icol ).getName();
-            if ( ! name.toLowerCase().matches( ".*size.*" ) ) {
+
+            /* Avoid the 'size' or '"size"' column here.  This is mandated
+             * for TAP_SCHEMA.columns in TAP 1.0, but it's a lot of trouble
+             * to deal with because it's an ADQL reserved word.
+             * In practice there is confusion about whether to delimit it
+             * or not.  Moreover, at least since ADQL 1.1 it is deprecated
+             * in favour of arraysize which contains more useful information. */
+            if ( ! "size".equals( syntax_.unquote( name ).toLowerCase() ) ) {
                 list.add( name );
             }
         }
