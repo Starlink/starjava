@@ -371,6 +371,17 @@ public class TapSchemaInterrogator {
     }
 
     /**
+     * Returns an untyped object cast to String, or null if it has
+     * some other run-time type.
+     * 
+     * @param  obj  object
+     * @return  <code>((String) obj)</code> or null
+     */
+    private static String stringOrNull( Object obj ) {
+        return obj instanceof String ? (String) obj : null;
+    }
+
+    /**
      * Returns a MetaQuerier for reading ForeignMeta.Link objects.
      *
      * @return   link querier
@@ -449,7 +460,12 @@ public class TapSchemaInterrogator {
             cPrincipal = "principal",
             cStd = "std",
         };
+
+        /* The following columns appear in TAP 1.1 but not 1.0, so it's
+         * not a good idea to specify them as mandatory. */
         final String cColumnIndex = "column_index";
+        final String cArraysize = "arraysize";
+        final String cXtype = "xtype";
         final String[] flagAtts = { cIndexed, cPrincipal, cStd };
         return new MetaQuerier<ColumnMeta>( "TAP_SCHEMA.columns", attCols,
                                             false, "table_name",
@@ -469,13 +485,11 @@ public class TapSchemaInterrogator {
                     }
                 }
                 cmeta.flags_ = flagList.toArray( new String[ 0 ] );
-                cmeta.extras_ = colset.getExtras( row );
-                for ( Iterator<String> it = cmeta.extras_.keySet().iterator();
-                      it.hasNext(); ) {
-                    if ( cColumnIndex.equalsIgnoreCase( it.next() ) ) {
-                        it.remove();
-                    }
-                }
+                Map<String,Object> extras = colset.getExtras( row );
+                extras.remove( cColumnIndex );
+                cmeta.arraysize_ = stringOrNull( extras.remove( cArraysize ) );
+                cmeta.xtype_ = stringOrNull( extras.remove( cXtype ) );
+                cmeta.extras_ = extras;
                 return cmeta;
             }
         };

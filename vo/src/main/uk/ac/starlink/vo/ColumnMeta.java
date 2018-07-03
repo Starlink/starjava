@@ -11,6 +11,8 @@ import java.util.Map;
  * @since    21 Jan 2011
  * @see  <a href="http://www.ivoa.net/Documents/VODataService/"
  *          >IVOA VODataService Recommendation</a>
+ * @see  <a href="http://www.ivoa.net/Documents/TAP/"
+ *          >IVOA TAP Recommendation</a>
  */
 public class ColumnMeta {
 
@@ -19,7 +21,9 @@ public class ColumnMeta {
     String unit_;
     String ucd_;
     String utype_;
-    String dataType_;  // has attributes, but content is a token
+    String dataType_;
+    String arraysize_;
+    String xtype_;
     String[] flags_;
     Map<String,Object> extras_;
 
@@ -90,6 +94,24 @@ public class ColumnMeta {
      */
     public String getDataType() {
         return dataType_;
+    }
+
+    /**
+     * Array size, normally in the form of a VOTable arraysize attribute.
+     *
+     * @return   arraysize string
+     */
+    public String getArraysize() {
+        return arraysize_;
+    }
+
+    /**
+     * Extended type, normally as for a VOTable xtype attribute.
+     *
+     * @return  xtype
+     */
+    public String getXtype() {
+        return xtype_;
     }
 
     /**
