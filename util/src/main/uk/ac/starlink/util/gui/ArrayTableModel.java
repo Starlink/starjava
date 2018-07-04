@@ -1,6 +1,8 @@
 package uk.ac.starlink.util.gui;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Comparator;
 import javax.swing.table.AbstractTableModel;
 
@@ -17,25 +19,20 @@ import javax.swing.table.AbstractTableModel;
  * @author   Mark Taylor
  * @since    14 Oct 2009
  */
-public class ArrayTableModel extends AbstractTableModel {
+public class ArrayTableModel<R> extends AbstractTableModel {
 
-    private ArrayTableColumn[] columns_;
-    private Object[] items_;
+    private ArrayTableColumn<R,?>[] columns_;
+    private R[] items_;
 
     /**
      * Constructs a model with no columns or rows.
      */
     public ArrayTableModel() {
-        this( new ArrayTableColumn[ 0 ], new Object[ 0 ] );
-    }
-
-    /**
-     * Constructs a model with a given set of columns and rows.
-     *
-     * @param   columns   array of column specifiers
-     * @param   items     array of row data objects
-     */
-    public ArrayTableModel( ArrayTableColumn[] columns, Object[] items ) {
+        @SuppressWarnings("unchecked")
+        ArrayTableColumn<R,?>[] columns =
+            (ArrayTableColumn<R,?>[]) new ArrayTableColumn<?,?>[ 0 ];
+        @SuppressWarnings("unchecked")
+        R[] items = (R[]) new Object[ 0 ];
         columns_ = columns;
         items_ = items;
     }
@@ -45,8 +42,13 @@ public class ArrayTableModel extends AbstractTableModel {
      *
      * @param   columns  column specifiers
      */
-    public void setColumns( ArrayTableColumn[] columns ) {
-        columns_ = columns;
+    public void setColumns( List<? extends ArrayTableColumn<? extends R,?>>
+                                 columns ) {
+        @SuppressWarnings("unchecked")
+        ArrayTableColumn<R,?>[] tcols =
+            (ArrayTableColumn<R,?>[])
+            columns.toArray( new ArrayTableColumn<?,?>[ 0 ] );
+        columns_ = tcols;
         fireTableStructureChanged();
     }
 
@@ -55,8 +57,8 @@ public class ArrayTableModel extends AbstractTableModel {
      *
      * @return   column specifiers
      */
-    public ArrayTableColumn[] getColumns() {
-        return columns_;
+    public List<ArrayTableColumn<R,?>> getColumns() {
+        return Collections.unmodifiableList( Arrays.asList( columns_ ) );
     }
 
     /**
@@ -64,7 +66,7 @@ public class ArrayTableModel extends AbstractTableModel {
      *
      * @param  items  row data items, one per row
      */
-    public void setItems( Object[] items ) {
+    public void setItems( R[] items ) {
         items_ = items;
         fireTableDataChanged();
     }
@@ -74,7 +76,7 @@ public class ArrayTableModel extends AbstractTableModel {
      *
      * @return  row data items, one per row
      */
-    public Object[] getItems() {
+    public R[] getItems() {
         return items_;
     }
 
@@ -87,9 +89,9 @@ public class ArrayTableModel extends AbstractTableModel {
      * @param  descending  true to sort down, false to sort up
      */
     public void sortByColumn( int icol, boolean descending ) {
-        ArrayTableColumn col = columns_[ icol ];
+        ArrayTableColumn<R,?> col = columns_[ icol ];
         if ( Comparable.class.isAssignableFrom( col.getContentClass() ) ) {
-            Comparator comparator = new ColumnComparator( col, descending );
+            Comparator<R> comparator = new ColumnComparator( col, descending );
             if ( needsSort( items_, comparator ) ) {
                 Arrays.sort( items_, comparator );
                 assert ! needsSort( items_, comparator );
@@ -105,7 +107,7 @@ public class ArrayTableModel extends AbstractTableModel {
      * @param  cmp   comparator
      * @return   true iff items is not in sorted order
      */
-    private static boolean needsSort( Object[] items, Comparator cmp ) {
+    private boolean needsSort( R[] items, Comparator<R> cmp ) {
         for ( int i = 1; i < items.length; i++ ) {
             if ( cmp.compare( items[ i - 1 ], items[ i ] ) > 0 ) {
                 return true;
@@ -130,15 +132,15 @@ public class ArrayTableModel extends AbstractTableModel {
         return columns_[ icol ].getName();
     }
 
-    public Class getColumnClass( int icol ) {
+    public Class<?> getColumnClass( int icol ) {
         return columns_[ icol ].getContentClass();
     }
 
     /**
      * Can compare two row data items according to the value of a column.
      */
-    private static class ColumnComparator implements Comparator {
-        private final ArrayTableColumn col_;
+    private class ColumnComparator implements Comparator<R> {
+        private final ArrayTableColumn<R,?> col_;
         private final int sense_;
 
         /**
@@ -148,14 +150,19 @@ public class ArrayTableModel extends AbstractTableModel {
          * @param   descending  false for ascending, true for descending;
          *                      nulls are always at the bottom
          */
-        public ColumnComparator( ArrayTableColumn col, boolean descending ) {
+        public ColumnComparator( ArrayTableColumn<R,?> col,
+                                 boolean descending ) {
             col_ = col;
             sense_ = descending ? -1 : +1;
         }
 
-        public int compare( Object o1, Object o2 ) {
-            Comparable c1 = (Comparable) col_.getValue( o1 );
-            Comparable c2 = (Comparable) col_.getValue( o2 );
+        public int compare( R r1, R r2 ) {
+            // Might throw a ClassCastException here, but that is a
+            // documented possibility for this method anyway.
+            // Enforcing this with generics is too horrible.
+            @SuppressWarnings("unchecked")
+            Comparable<Object> c1 = (Comparable<Object>) col_.getValue( r1 );
+            Object c2 = col_.getValue( r2 );
             boolean blank1 = isBlank( c1 );
             boolean blank2 = isBlank( c2 );
             if ( blank1 && blank2 ) {

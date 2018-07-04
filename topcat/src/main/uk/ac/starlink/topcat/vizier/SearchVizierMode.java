@@ -362,7 +362,7 @@ public abstract class SearchVizierMode implements VizierMode {
      *           the table as well as catalogues
      * @return   column list
      */
-    private static ArrayTableColumn[]
+    private static List<ArrayTableColumn>
             createCatalogColumns( boolean includeSubTables ) {
         List colList = new ArrayList();
         colList.add( new ArrayTableColumn( "Name", String.class ) {
@@ -407,8 +407,7 @@ public abstract class SearchVizierMode implements VizierMode {
                 return concat( ((VizierCatalog) item).getAstros() );
             }
         } );
-        return (ArrayTableColumn[])
-               colList.toArray( new ArrayTableColumn[ 0 ] );
+        return colList;
     }
 
     /**

@@ -189,8 +189,8 @@ public class TableSetPanel extends JPanel {
         useNameButt_.addActionListener( findParamListener );
         useDescripButt_.addActionListener( findParamListener );
 
-        colTableModel_ = new ArrayTableModel( colMetaColumns_,
-                                              new ColumnMeta[ 0 ] );
+        colTableModel_ = new ArrayTableModel();
+        colTableModel_.setColumns( Arrays.asList( colMetaColumns_ ) );
         colTable_ = new JTable( colTableModel_ );
         colTable_.setColumnSelectionAllowed( false );
         new ArrayTableSorter( colTableModel_ )
@@ -205,8 +205,9 @@ public class TableSetPanel extends JPanel {
         } );
         selectedColumns_ = new ColumnMeta[ 0 ];
 
-        foreignTableModel_ = new ArrayTableModel( createForeignMetaColumns(),
-                                                  new ColumnMeta[ 0 ] );
+        foreignTableModel_ = new ArrayTableModel();
+        foreignTableModel_.setColumns( Arrays
+                                      .asList( createForeignMetaColumns() ) );
         foreignTable_ = new JTable( foreignTableModel_ );
         foreignTable_.setColumnSelectionAllowed( false );
         foreignTable_.setRowSelectionAllowed( false );
@@ -747,8 +748,7 @@ public class TableSetPanel extends JPanel {
              * to keep if possible. */
             if ( ! new HashSet( Arrays.asList( colTableModel_.getColumns() ) )
                   .equals( new HashSet( colList ) ) ) {
-                colTableModel_
-                   .setColumns( colList.toArray( new ArrayTableColumn[ 0 ] ) );
+                colTableModel_.setColumns( colList );
             }
         }
         else {

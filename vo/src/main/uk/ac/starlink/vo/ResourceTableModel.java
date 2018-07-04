@@ -84,8 +84,7 @@ public class ResourceTableModel extends ArrayTableModel {
                 }
             } );
         }
-        setColumns( (ArrayTableColumn[])
-                    colList.toArray( new ArrayTableColumn[ 0 ] ) );
+        setColumns( colList );
         setItems( new RegResource[ 0 ] );
     }
 

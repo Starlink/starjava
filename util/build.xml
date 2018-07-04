@@ -350,6 +350,8 @@
            source="${source.version}"
            optimize="${optimize}">
 
+      <compilerarg value="-Xlint:unchecked"/>
+
       <classpath refid="classpath"/>
 
       <!-- Exclude any Java files in the source tree that should not be

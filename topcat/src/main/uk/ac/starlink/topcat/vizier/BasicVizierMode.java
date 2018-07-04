@@ -42,7 +42,7 @@ public abstract class BasicVizierMode implements VizierMode {
         name_ = name;
         panel_ = new JPanel( new BorderLayout() );
         tModel_ = new ArrayTableModel();
-        tModel_.setColumns( columns );
+        tModel_.setColumns( Arrays.asList( columns ) );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         ArrayTableSorter sorter = new ArrayTableSorter( tModel_ );

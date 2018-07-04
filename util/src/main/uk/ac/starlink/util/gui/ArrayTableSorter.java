@@ -22,20 +22,20 @@ import javax.swing.table.TableColumnModel;
  * @author   Mark Taylor
  * @since    14 Oct 2009
  */
-public class ArrayTableSorter {
+public class ArrayTableSorter<R> {
 
-    private final ArrayTableModel model_;
+    private final ArrayTableModel<R> model_;
     private final MouseListener mouseListener_;
     private int iSortcol_;
     private boolean descending_;
-    private Object[] unsortedItems_;
+    private R[] unsortedItems_;
 
     /**
      * Constructor.
      *
      * @param  model  table model
      */
-    public ArrayTableSorter( ArrayTableModel model ) {
+    public ArrayTableSorter( ArrayTableModel<R> model ) {
         model_ = model;
         unsortedItems_ = model.getItems().clone();
         mouseListener_ = new SortMouseListener();
@@ -118,9 +118,9 @@ public class ArrayTableSorter {
      * @param  items2  second array
      * @return  true iff both arrays contain the same elements
      */
-    private static boolean equalElements( Object[] items1, Object[] items2 ) {
-        List list1 = new ArrayList( Arrays.asList( items1 ) );
-        for ( Object item2 : items2 ) {
+    private boolean equalElements( R[] items1, R[] items2 ) {
+        List<R> list1 = new ArrayList<R>( Arrays.asList( items1 ) );
+        for ( R item2 : items2 ) {
             if ( ! list1.remove( item2 ) ) {
                 return false;
             }

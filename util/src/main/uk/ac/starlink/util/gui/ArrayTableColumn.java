@@ -7,10 +7,10 @@ package uk.ac.starlink.util.gui;
  * @author   Mark Taylor
  * @since    14 Oct 2009
  */
-public abstract class ArrayTableColumn {
+public abstract class ArrayTableColumn<R,C> {
 
     private final String name_;
-    private final Class clazz_;
+    private final Class<C> clazz_;
 
     /**
      * Constructor.
@@ -19,7 +19,7 @@ public abstract class ArrayTableColumn {
      * @param   clazz  class which all objects returned by the
      *                 {@link #getValue} method will be instances of (or null)
      */
-    public ArrayTableColumn( String name, Class clazz ) {
+    public ArrayTableColumn( String name, Class<C> clazz ) {
         name_ = name;
         clazz_ = clazz;
     }
@@ -31,7 +31,7 @@ public abstract class ArrayTableColumn {
      * @param  item  row data object
      * @return   cell value in this column
      */
-    public abstract Object getValue( Object item );
+    public abstract C getValue( R item );
 
     /**
      * Returns the name of this column.
@@ -47,7 +47,7 @@ public abstract class ArrayTableColumn {
      *
      * @return   content class
      */
-    public Class getContentClass() {
+    public Class<C> getContentClass() {
         return clazz_;
     }
 }
