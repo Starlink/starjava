@@ -236,7 +236,7 @@ public class VizierInfo {
                 icKrows = icol;
             }
         }
-        List itemList = new ArrayList();
+        List<InfoItem> itemList = new ArrayList<InfoItem>();
         RowSequence rseq = table.getRowSequence();
         while ( rseq.next() ) {
             Object[] row = rseq.getRow();
@@ -253,7 +253,7 @@ public class VizierInfo {
                           : null;
             itemList.add( new InfoItem( name, title, krows ) );
         }
-        return (InfoItem[]) itemList.toArray( new InfoItem[ 0 ] );
+        return itemList.toArray( new InfoItem[ 0 ] );
     }
 
     /**

@@ -57,8 +57,8 @@ public abstract class SearchVizierMode implements VizierMode {
     private final Action cancelSearchAction_;
     private final ToggleButtonModel includeSubModel_;
     private final ToggleButtonModel includeObsModel_;
-    private ArrayTableModel tModel_;
-    private ArrayTableSorter sorter_;
+    private ArrayTableModel<Queryable> tModel_;
+    private ArrayTableSorter<Queryable> sorter_;
     private VizierInfo vizinfo_;
     private Component panel_;
     private Component searchComponent_;
@@ -80,7 +80,7 @@ public abstract class SearchVizierMode implements VizierMode {
         name_ = name; 
         tld_ = tld;
         useSplit_ = useSplit;
-        tModel_ = new ArrayTableModel();
+        tModel_ = new ArrayTableModel<Queryable>();
         tModel_.setColumns( createCatalogColumns( false ) );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -362,49 +362,49 @@ public abstract class SearchVizierMode implements VizierMode {
      *           the table as well as catalogues
      * @return   column list
      */
-    private static List<ArrayTableColumn>
+    private static List<CatColumn<?>>
             createCatalogColumns( boolean includeSubTables ) {
-        List colList = new ArrayList();
-        colList.add( new ArrayTableColumn( "Name", String.class ) {
-            public Object getValue( Object item ) {
-                return ((VizierCatalog) item).getName();
+        List<CatColumn<?>> colList = new ArrayList<CatColumn<?>>();
+        colList.add( new CatColumn<String>( "Name", String.class ) {
+            public String getValue( VizierCatalog vcat ) {
+                return vcat.getName();
             }
         } );
         if ( includeSubTables ) {
-            colList.add( new ArrayTableColumn( "Tables", Integer.class ) {
-                public Object getValue( Object item ) {
-                    return ((VizierCatalog) item).getTableCount();
+            colList.add( new CatColumn<Integer>( "Tables", Integer.class ) {
+                public Integer getValue( VizierCatalog vcat ) {
+                    return vcat.getTableCount();
                 }
             } );
-            colList.add( new ArrayTableColumn( "Rows", Long.class ) {
-                public Object getValue( Object item ) {
-                    return ((VizierCatalog) item).getRowCount();
+            colList.add( new CatColumn<Long>( "Rows", Long.class ) {
+                public Long getValue( VizierCatalog vcat ) {
+                    return vcat.getRowCount();
                 }
             } );
         }
-        colList.add( new ArrayTableColumn( "Popularity", Integer.class ) {
-            public Object getValue( Object item ) {
-                return ((VizierCatalog) item).getCpopu();
+        colList.add( new CatColumn<Integer>( "Popularity", Integer.class ) {
+            public Integer getValue( VizierCatalog vcat ) {
+                return vcat.getCpopu();
             }
         } );
-        colList.add( new ArrayTableColumn( "Density", Integer.class ) {
-            public Object getValue( Object item ) {
-                return ((VizierCatalog) item).getDensity();
+        colList.add( new CatColumn<Integer>( "Density", Integer.class ) {
+            public Integer getValue( VizierCatalog vcat ) {
+                return vcat.getDensity();
             }
         } );
-        colList.add( new ArrayTableColumn( "Description", String.class ) {
-            public Object getValue( Object item ) {
-                return ((VizierCatalog) item).getDescription();
+        colList.add( new CatColumn<String>( "Description", String.class ) {
+            public String getValue( VizierCatalog vcat ) {
+                return vcat.getDescription();
             }
         } );
-        colList.add( new ArrayTableColumn( "Wavelengths", String.class ) {
-            public Object getValue( Object item ) {
-                return concat( ((VizierCatalog) item).getLambdas() );
+        colList.add( new CatColumn<String>( "Wavelengths", String.class ) {
+            public String getValue( VizierCatalog vcat ) {
+                return concat( vcat.getLambdas() );
             }
         } );
-        colList.add( new ArrayTableColumn( "Astronomy", String.class ) {
-            public Object getValue( Object item ) {
-                return concat( ((VizierCatalog) item).getAstros() );
+        colList.add( new CatColumn<String>( "Astronomy", String.class ) {
+            public String getValue( VizierCatalog vcat ) {
+                return concat( vcat.getAstros() );
             }
         } );
         return colList;
@@ -476,11 +476,11 @@ public abstract class SearchVizierMode implements VizierMode {
                         if ( sorter_ != null ) {
                             sorter_.uninstall( table_.getTableHeader() );
                         }
-                        tModel_ = new ArrayTableModel();
+                        tModel_ = new ArrayTableModel<Queryable>();
                         tModel_
                        .setColumns( createCatalogColumns( includeSubTables_ ) );
                         tModel_.setItems( qcats );
-                        sorter_ = new ArrayTableSorter( tModel_ );
+                        sorter_ = new ArrayTableSorter<Queryable>( tModel_ );
                         sorter_.install( table_.getTableHeader() );
                         sorter_.setSorting( 0, false );
                         table_.setModel( tModel_ );
@@ -533,7 +533,7 @@ public abstract class SearchVizierMode implements VizierMode {
          */
         private VizierCatalog[] attemptLoadCatalogs()
                 throws IOException, ParserConfigurationException, SAXException {
-            final List catList = new ArrayList();
+            final List<VizierCatalog> catList = new ArrayList<VizierCatalog>();
             progBar_.setString( "Found 0" );
             CatalogSaxHandler catHandler =
                     new CatalogSaxHandler( includeObsoletes_ ) {
@@ -548,7 +548,7 @@ public abstract class SearchVizierMode implements VizierMode {
             };
             parseCatalogQuery( target_, radius_, queryArgs_, includeSubTables_,
                                catHandler );
-            return (VizierCatalog[]) catList.toArray( new VizierCatalog[ 0 ] );
+            return catList.toArray( new VizierCatalog[ 0 ] );
         }
 
         /**
@@ -578,4 +578,21 @@ public abstract class SearchVizierMode implements VizierMode {
             return this == searchWorker_;
         }
     };
+
+    /**
+     * Utility sub-class of ArrayTableColumn for use with VizierCatalogs.
+     */
+    private static abstract class CatColumn<C>
+            extends ArrayTableColumn<VizierCatalog,C> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  column name
+         * @param  clazz  column content class
+         */
+        CatColumn( String name, Class<C> clazz ) {
+            super( name, clazz );
+        }
+    }
 }

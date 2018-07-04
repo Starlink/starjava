@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat.vizier;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 import org.xml.sax.Attributes;
@@ -149,9 +148,8 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         String[] asts = entry.getStringsValue( "-kw.Astronomy" );
         Integer cpopu = entry.getIntValue( "cpopu" );
         Float ipopu = entry.getFloatValue( "ipopu" );
-        SubTable[] subTables =
-            (SubTable[]) entry.tableList_.toArray( new SubTable[ 0 ] );
-        List catList = new ArrayList();
+        SubTable[] subTables = entry.tableList_.toArray( new SubTable[ 0 ] );
+        List<VizierCatalog> catList = new ArrayList<VizierCatalog>();
         int nsub = subTables.length;
         if ( nsub == 0 ) {
             catList.add( new VizierCatalog( name, desc, density,
@@ -181,7 +179,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
                 catList.add( scat );
             }
         }
-        return (VizierCatalog[]) catList.toArray( new VizierCatalog[ 0 ] );
+        return catList.toArray( new VizierCatalog[ 0 ] );
     }
 
     /**
@@ -191,8 +189,8 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
     private static class Entry {
         private String name_;
         private String description_;
-        private final List infoList_ = new ArrayList();
-        private final List tableList_ = new ArrayList();
+        private final List<String[]> infoList_ = new ArrayList<String[]>();
+        private final List<SubTable> tableList_ = new ArrayList<SubTable>();
 
         /**
          * Adds a name/value pair.  Note that it may be called multiple times
@@ -213,8 +211,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
          * @return   integer value, or null
          */
         public Integer getIntValue( String name ) {
-            for ( Iterator it = infoList_.iterator(); it.hasNext(); ) {
-                String[] info = (String[]) it.next();
+            for ( String[] info : infoList_ ) {
                 if ( name.equals( info[ 0 ] ) ) {
                     try {
                         return new Integer( Integer.parseInt( info[ 1 ] ) );
@@ -235,8 +232,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
          * @return  float value, or null
          */
         public Float getFloatValue( String name ) {
-            for ( Iterator it = infoList_.iterator(); it.hasNext(); ) {
-                String[] info = (String[]) it.next();
+            for ( String[] info : infoList_ ) {
                 if ( name.equals( info[ 0 ] ) ) {
                     try {
                         return new Float( Float.parseFloat( info[ 1 ] ) );
@@ -257,8 +253,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
          * @return  info value
          */
         public String getStringValue( String name ) {
-            for ( Iterator it = infoList_.iterator(); it.hasNext(); ) {
-                String[] info = (String[]) it.next();
+            for ( String[] info : infoList_ ) {
                 if ( name.equals( info[ 0 ] ) ) {
                     return info[ 1 ];
                 }
@@ -274,14 +269,13 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
          * @param   value list, possibly with zero elements
          */
         public String[] getStringsValue( String name ) {
-            List sList = new ArrayList();
-            for ( Iterator it = infoList_.iterator(); it.hasNext(); ) {
-                String[] info = (String[]) it.next();
+            List<String> sList = new ArrayList<String>();
+            for ( String[] info : infoList_ ) {
                 if ( name.equals( info[ 0 ] ) ) {
                     sList.add( info[ 1 ] );
                 }
             }
-            return (String[]) sList.toArray( new String[ 0 ] );
+            return sList.toArray( new String[ 0 ] );
         }
     }
 

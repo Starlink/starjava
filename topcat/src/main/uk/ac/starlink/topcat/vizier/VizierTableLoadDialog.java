@@ -82,7 +82,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
     private JTabbedPane tabber_;
     private JRadioButton allButt_;
     private JRadioButton coneButt_;
-    private Set dataReadSet_;
+    private Set<VizierMode> dataReadSet_;
     private VizierInfo vizinfo_;
     private final static ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
@@ -201,7 +201,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         };
 
         /* Tab pane, which presents one of the modes at any one time. */
-        dataReadSet_ = new HashSet();
+        dataReadSet_ = new HashSet<VizierMode>();
         tabber_ = new JTabbedPane( JTabbedPane.TOP );
         for ( int iv = 0; iv < vizModes_.length; iv++ ) {
             VizierMode vizMode = vizModes_[ iv ];

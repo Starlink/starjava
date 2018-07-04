@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.vizier;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.Arrays;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -28,7 +29,7 @@ public abstract class BasicVizierMode implements VizierMode {
     private final JComponent panel_;
     private final String name_;
     private final JTable table_;
-    private final ArrayTableModel tModel_;
+    private final ArrayTableModel<Queryable> tModel_;
     private VizierInfo vizinfo_;
 
     /**
@@ -38,14 +39,16 @@ public abstract class BasicVizierMode implements VizierMode {
      * @param   columns  array of Queryable-based columns for catalogue
      *          display
      */
-    public BasicVizierMode( String name, ArrayTableColumn[] columns ) {
+    public BasicVizierMode( String name,
+                            List<? extends ArrayTableColumn
+                                   <? extends Queryable,?>> columns ) {
         name_ = name;
         panel_ = new JPanel( new BorderLayout() );
-        tModel_ = new ArrayTableModel();
-        tModel_.setColumns( Arrays.asList( columns ) );
+        tModel_ = new ArrayTableModel<Queryable>();
+        tModel_.setColumns( columns );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-        ArrayTableSorter sorter = new ArrayTableSorter( tModel_ );
+        ArrayTableSorter sorter = new ArrayTableSorter<Queryable>( tModel_ );
         sorter.install( table_.getTableHeader() );
         sorter.setSorting( 0, false );
         panel_.add( new JScrollPane( table_,

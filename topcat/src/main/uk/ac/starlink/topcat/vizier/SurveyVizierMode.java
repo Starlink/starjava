@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.vizier;
 
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 
 /**
@@ -32,24 +34,24 @@ public class SurveyVizierMode extends BasicVizierMode {
      *
      * @return  column list
      */
-    private static ArrayTableColumn[] createSurveyColumns() {
-        return new ArrayTableColumn[] {
-            new ArrayTableColumn( "Name", String.class ) {
-                public Object getValue( Object item ) {
-                    return getInfo( item ).getName();
-                }
-            },
-            new ArrayTableColumn( "Description", String.class ) {
-                public Object getValue( Object item ) {
-                    return getInfo( item ).getTitle();
-                }
-            },
-            new ArrayTableColumn( "KRows", Integer.class ) {
-                public Object getValue( Object item ) {
-                    return getInfo( item ).getKrows();
-                }
-            },
-        };
+    private static List<SurveyColumn<?>> createSurveyColumns() {
+        List<SurveyColumn<?>> list = new ArrayList<SurveyColumn<?>>();
+        list.add( new SurveyColumn<String>( "Name", String.class ) {
+            public String getValue( SurveyQueryable survey ) {
+                return survey.item_.getName();
+            }
+        } );
+        list.add( new SurveyColumn<String>( "Description", String.class ) {
+            public String getValue( SurveyQueryable survey ) {
+                return survey.item_.getTitle();
+            }
+        } );
+        list.add( new SurveyColumn<Integer>( "KRows", Integer.class ) {
+            public Integer getValue( SurveyQueryable survey ) {
+                return survey.item_.getKrows();
+            }
+        } );
+        return list;
     }
 
     /**
@@ -84,6 +86,23 @@ public class SurveyVizierMode extends BasicVizierMode {
 
         public String getQueryId() {
             return item_.getName();
+        }
+    }
+
+    /**
+     * Utility sub-class of ArrayTableColumn for use with SurveyQueryables.
+     */
+    private static abstract class SurveyColumn<C>
+            extends ArrayTableColumn<SurveyQueryable,C> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  column name
+         * @param  clazz  column content class
+         */
+        SurveyColumn( String name, Class<C> clazz ) {
+            super( name, clazz );
         }
     }
 }

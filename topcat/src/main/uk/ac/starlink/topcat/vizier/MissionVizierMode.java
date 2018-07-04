@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.vizier;
 
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 
 /**
@@ -32,24 +34,24 @@ public class MissionVizierMode extends BasicVizierMode {
      *
      * @return   column list
      */
-    private static ArrayTableColumn[] createMissionColumns() {
-        return new ArrayTableColumn[] {
-            new ArrayTableColumn( "Name", String.class ) {
-                public Object getValue( Object item ) {
-                    return unlog( getInfo( item ).getName() );
-                }
-            },
-            new ArrayTableColumn( "Description", String.class ) {
-                public Object getValue( Object item ) {
-                    return getInfo( item ).getTitle();
-                }
-            },
-            new ArrayTableColumn( "KRows", Integer.class ) {
-                public Object getValue( Object item ) {
-                    return getInfo( item ).getKrows();
-                }
-            },
-        };
+    private static List<MissionColumn<?>> createMissionColumns() {
+        List<MissionColumn<?>> list = new ArrayList<MissionColumn<?>>();
+        list.add( new MissionColumn<String>( "Name", String.class ) {
+            public String getValue( MissionQueryable mq ) {
+                return unlog( mq.item_.getName() );
+            }
+        } );
+        list.add( new MissionColumn<String>( "Description", String.class ) {
+            public String getValue( MissionQueryable mq ) {
+                return mq.item_.getTitle();
+            }
+        } );
+        list.add( new MissionColumn<Integer>( "KRows", Integer.class ) {
+            public Integer getValue( MissionQueryable mq ) {
+                return mq.item_.getKrows();
+            }
+        } );
+        return list;
     }
 
     /**
@@ -62,17 +64,6 @@ public class MissionVizierMode extends BasicVizierMode {
     private static String unlog( String logName ) {
         return logName.startsWith( "log" ) ? logName.substring( 3 )
                                            : logName;
-    }
-
-    /**
-     * Obtains an InfoItem object from one of the queryables loaded by
-     * this object.
-     *
-     * @param  item   data item in suitable array table
-     * @return  InfoItem object
-     */
-    private static InfoItem getInfo( Object item ) {
-        return ((MissionQueryable) item).item_;
     }
 
     /**
@@ -96,6 +87,23 @@ public class MissionVizierMode extends BasicVizierMode {
 
         public String getQueryId() {
             return unlog( item_.getName() );
+        }
+    }
+
+    /**
+     * Utility sub-class of ArrayTableColumn for use with MissionQueryables.
+     */
+    private static abstract class MissionColumn<C>
+            extends ArrayTableColumn<MissionQueryable,C> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  column name
+         * @param  clazz  column content class
+         */
+        MissionColumn( String name, Class<C> clazz ) {
+            super( name, clazz );
         }
     }
 }
