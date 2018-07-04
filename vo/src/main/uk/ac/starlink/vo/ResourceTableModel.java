@@ -12,7 +12,7 @@ import uk.ac.starlink.util.gui.ArrayTableModel;
  * @author   Mark Taylor
  * @since    18 Dec 2008
  */
-public class ResourceTableModel extends ArrayTableModel {
+public class ResourceTableModel extends ArrayTableModel<RegResource> {
 
     /**
      * Constructs a ResourceTableModel with no AccessRef column.
@@ -36,48 +36,46 @@ public class ResourceTableModel extends ArrayTableModel {
      */
     public ResourceTableModel( boolean includeAcref ) {
         super();
-        List colList = new ArrayList( Arrays.asList( new ArrayTableColumn[] {
-            new ArrayTableColumn( "Short Name", String.class ) {
-                public Object getValue( Object item ) {
-                    return getResource( item ).getShortName();
-                }
-            },
-            new ArrayTableColumn( "Title", String.class ) {
-                public Object getValue( Object item ) {
-                    return getResource( item ).getTitle();
-                }
-            },
-            new ArrayTableColumn( "Subjects", String.class ) {
-                public Object getValue( Object item ) {
-                    return arrayToString( getResource( item ).getSubjects() );
-                }
-            },
-            new ArrayTableColumn( "Identifier", String.class ) {
-                public Object getValue( Object item ) {
-                    return getResource( item ).getIdentifier();
-                }
-            },
-            new ArrayTableColumn( "Publisher", String.class ) {
-                public Object getValue( Object item ) {
-                    return getResource( item ).getPublisher();
-                }
-            },
-            new ArrayTableColumn( "Contact", String.class ) {
-                public Object getValue( Object item ) {
-                    return getResource( item ).getContact();
-                }
-            },
-            new ArrayTableColumn( "Reference URL", String.class ) {
-                public Object getValue( Object item ) {
-                    return getResource( item ).getReferenceUrl();
-                }
-            },
-        } ) );
+        List<StringColumn> colList = new ArrayList<StringColumn>();
+        colList.add( new StringColumn( "Short Name" ) {
+            public String getValue( RegResource res ) {
+                return res.getShortName();
+            }
+        } );
+        colList.add( new StringColumn( "Title" ) {
+            public String getValue( RegResource res ) {
+                return res.getTitle();
+            }
+        } );
+        colList.add( new StringColumn( "Subjects" ) {
+            public String getValue( RegResource res ) {
+                return arrayToString( res.getSubjects() );
+            }
+        } );
+        colList.add( new StringColumn( "Identifier" ) {
+            public String getValue( RegResource res ) {
+                return res.getIdentifier();
+            }
+        } );
+        colList.add( new StringColumn( "Publisher" ) {
+            public String getValue( RegResource res ) {
+                return res.getPublisher();
+            }
+        } );
+        colList.add( new StringColumn( "Contact" ) {
+            public String getValue( RegResource res ) {
+                return res.getContact();
+            }
+        } );
+        colList.add( new StringColumn( "Reference URL" ) {
+            public String getValue( RegResource res ) {
+                return res.getReferenceUrl();
+            }
+        } );
         if ( includeAcref ) {
-            colList.add( new ArrayTableColumn( "soleAccessURL", String.class ) {
-                public Object getValue( Object item ) {
-                    RegCapabilityInterface[] caps =
-                        getResource( item ).getCapabilities();
+            colList.add( new StringColumn( "soleAccessURL" ) {
+                public String getValue( RegResource res ) {
+                    RegCapabilityInterface[] caps = res.getCapabilities();
                     return ( caps != null && caps.length == 1 )
                          ? caps[ 0 ].getAccessUrl()
                          : null;
@@ -85,7 +83,6 @@ public class ResourceTableModel extends ArrayTableModel {
             } );
         }
         setColumns( colList );
-        setItems( new RegResource[ 0 ] );
     }
 
     /**
@@ -103,17 +100,7 @@ public class ResourceTableModel extends ArrayTableModel {
      * @return  resource array
      */
     public RegResource[] getResources() {
-        return (RegResource[]) super.getItems();
-    }
-
-    /**
-     * Returns the RegResource object corresponding to a given row item.
-     *
-     * @param  row data object
-     * @return  resource
-     */
-    private RegResource getResource( Object item ) {
-        return (RegResource) item;
+        return super.getItems();
     }
 
     /**
@@ -137,5 +124,22 @@ public class ResourceTableModel extends ArrayTableModel {
             }
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Utility class that provides string-yielding columns for use with
+     * this model.
+     */
+    private static abstract class StringColumn
+            extends ArrayTableColumn<RegResource,String> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  column name
+         */
+        StringColumn( String name ) {
+            super( name, String.class );
+        }
     }
 }

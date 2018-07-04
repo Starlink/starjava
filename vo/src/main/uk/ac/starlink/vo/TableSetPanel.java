@@ -76,8 +76,8 @@ public class TableSetPanel extends JPanel {
     private final TreeSelectionModel selectionModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
-    private final ArrayTableModel colTableModel_;
-    private final ArrayTableModel foreignTableModel_;
+    private final ArrayTableModel<ColumnMeta> colTableModel_;
+    private final ArrayTableModel<ForeignMeta> foreignTableModel_;
     private final ResourceMetaPanel servicePanel_;
     private final SchemaMetaPanel schemaPanel_;
     private final TableMetaPanel tablePanel_;
@@ -93,7 +93,7 @@ public class TableSetPanel extends JPanel {
     private TapServiceKit serviceKit_;
     private SchemaMeta[] schemas_;
     private ColumnMeta[] selectedColumns_;
-    private static final ArrayTableColumn[] colMetaColumns_ =
+    private static final List<ColMetaColumn<?>> colMetaColumns_ =
         createColumnMetaColumns();
 
     /**
@@ -189,11 +189,11 @@ public class TableSetPanel extends JPanel {
         useNameButt_.addActionListener( findParamListener );
         useDescripButt_.addActionListener( findParamListener );
 
-        colTableModel_ = new ArrayTableModel();
-        colTableModel_.setColumns( Arrays.asList( colMetaColumns_ ) );
+        colTableModel_ = new ArrayTableModel<ColumnMeta>();
+        colTableModel_.setColumns( colMetaColumns_ );
         colTable_ = new JTable( colTableModel_ );
         colTable_.setColumnSelectionAllowed( false );
-        new ArrayTableSorter( colTableModel_ )
+        new ArrayTableSorter<ColumnMeta>( colTableModel_ )
            .install( colTable_.getTableHeader() );
         ListSelectionModel colSelModel = colTable_.getSelectionModel();
         colSelModel.setSelectionMode( ListSelectionModel
@@ -205,13 +205,12 @@ public class TableSetPanel extends JPanel {
         } );
         selectedColumns_ = new ColumnMeta[ 0 ];
 
-        foreignTableModel_ = new ArrayTableModel();
-        foreignTableModel_.setColumns( Arrays
-                                      .asList( createForeignMetaColumns() ) );
+        foreignTableModel_ = new ArrayTableModel<ForeignMeta>();
+        foreignTableModel_.setColumns( createForeignMetaColumns() );
         foreignTable_ = new JTable( foreignTableModel_ );
         foreignTable_.setColumnSelectionAllowed( false );
         foreignTable_.setRowSelectionAllowed( false );
-        new ArrayTableSorter( foreignTableModel_ )
+        new ArrayTableSorter<ForeignMeta>( foreignTableModel_ )
            .install( foreignTable_.getTableHeader() );
 
         tablePanel_ = new TableMetaPanel();
@@ -668,11 +667,12 @@ public class TableSetPanel extends JPanel {
         Collection<ColumnMeta> curSet = new HashSet<ColumnMeta>();
         ListSelectionModel selModel = colTable_.getSelectionModel();
         if ( ! selModel.isSelectionEmpty() ) {
+            ColumnMeta[] colmetas = colTableModel_.getItems();
             int imin = selModel.getMinSelectionIndex();
             int imax = selModel.getMaxSelectionIndex();
             for ( int i = imin; i <= imax; i++ ) {
                 if ( selModel.isSelectedIndex( i ) ) {
-                    curSet.add( (ColumnMeta) colTableModel_.getItems()[ i ] );
+                    curSet.add( colmetas[ i ] );
                 }
             }
         }
@@ -733,8 +733,8 @@ public class TableSetPanel extends JPanel {
                 }
             }
             extras = extrasMap.keySet().toArray( new String[ 0 ] );
-            List<ArrayTableColumn> colList = new ArrayList<ArrayTableColumn>();
-            colList.addAll( Arrays.asList( colMetaColumns_ ) );
+            List<ColMetaColumn<?>> colList = new ArrayList<ColMetaColumn<?>>();
+            colList.addAll( colMetaColumns_ );
             for ( Map.Entry<String,List<Object>> entry :
                   extrasMap.entrySet() ) {
                 colList.add( ExtraColumn.createInstance( entry.getKey(),
@@ -746,8 +746,8 @@ public class TableSetPanel extends JPanel {
              * But don't do it if it's not necessary, since it will wipe
              * out things like display column ordering, which it's nice
              * to keep if possible. */
-            if ( ! new HashSet( Arrays.asList( colTableModel_.getColumns() ) )
-                  .equals( new HashSet( colList ) ) ) {
+            if ( ! new HashSet<Object>( colTableModel_.getColumns() )
+                  .equals( new HashSet<Object>( colList ) ) ) {
                 colTableModel_.setColumns( colList );
             }
         }
@@ -990,28 +990,6 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
-     * Returns the ColumnMeta object associated with a given item
-     * in the column metadata table model.  It's just a cast.
-     *
-     * @param   item  table cell contents
-     * @return   column metadata object associated with <code>item</code>
-     */
-    private static ColumnMeta getCol( Object item ) {
-        return (ColumnMeta) item;
-    }
-
-    /**
-     * Returns the ForeignMeta object associated with a given item
-     * in the foreign key table model.  It's just a cast.
-     *
-     * @param  item   table cell contents
-     * @return   foreign key object associated with <code>item</code>
-     */
-    private static ForeignMeta getForeign( Object item ) {
-        return (ForeignMeta) item;
-    }
-
-    /**
      * Utility method to return a string representing the length of an array.
      *
      * @param  array  array object, or null
@@ -1027,84 +1005,82 @@ public class TableSetPanel extends JPanel {
      *
      * @return   column descriptions
      */
-    private static ArrayTableColumn[] createColumnMetaColumns() {
-        return new ArrayTableColumn[] {
-            new ArrayTableColumn( "Name", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCol( item ).getName();
+    private static List<ColMetaColumn<?>> createColumnMetaColumns() {
+        List<ColMetaColumn<?>> list = new ArrayList<ColMetaColumn<?>>();
+        list.add( new ColMetaColumn<String>( "Name", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                return col.getName();
+            }
+        } );
+        list.add( new ColMetaColumn<String>( "Type", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                String datatype = col.getDataType();
+                String arraysize = col.getArraysize();
+                StringBuffer sbuf = new StringBuffer();
+                if ( datatype != null ) {
+                    sbuf.append( datatype );
                 }
-            },
-            new ArrayTableColumn( "Type", String.class ) {
-                public Object getValue( Object item ) {
-                    ColumnMeta cmeta = getCol( item );
-                    String datatype = cmeta.getDataType();
-                    String arraysize = cmeta.getArraysize();
+                if ( arraysize != null ) {
+                    String asize = arraysize.trim();
+                    if ( asize.length() > 0 && ! asize.equals( "1" ) ) {
+                        sbuf.append( '(' )
+                            .append( asize )
+                            .append( ')' );
+                     }
+                }
+                return sbuf.toString();
+            }
+        } );
+        list.add( new ColMetaColumn<String>( "Unit", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                return col.getUnit();
+            }
+        } );
+        list.add( new ColMetaColumn<Boolean>( "Indexed", Boolean.class ) {
+            public Boolean getValue( ColumnMeta col ) {
+                return Boolean.valueOf( Arrays.asList( col.getFlags() )
+                                              .indexOf( "indexed" ) >= 0 );
+            }
+        } );
+        list.add( new ColMetaColumn<String>( "Description", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                return col.getDescription();
+            }
+        } );
+        list.add( new ColMetaColumn<String>( "UCD", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                return col.getUcd();
+            }
+        } );
+        list.add( new ColMetaColumn<String>( "Utype", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                return col.getUtype();
+            }
+        } );
+        list.add( new ColMetaColumn<String>( "Xtype", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                return col.getXtype();
+            }
+        } );
+        list.add( new ColMetaColumn<String>( "Flags", String.class ) {
+            public String getValue( ColumnMeta col ) {
+                String[] flags = col.getFlags();
+                if ( flags != null && flags.length > 0 ) {
                     StringBuffer sbuf = new StringBuffer();
-                    if ( datatype != null ) {
-                        sbuf.append( datatype );
-                    }
-                    if ( arraysize != null ) {
-                        String asize = arraysize.trim();
-                        if ( asize.length() > 0 && ! asize.equals( "1" ) ) {
-                            sbuf.append( '(' )
-                                .append( asize )
-                                .append( ')' );
-                         }
+                    for ( int i = 0; i < flags.length; i++ ) {
+                        if ( i > 0 ) {
+                            sbuf.append( ' ' );
+                        }
+                        sbuf.append( flags[ i ] );
                     }
                     return sbuf.toString();
                 }
-            },
-            new ArrayTableColumn( "Unit", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCol( item ).getUnit();
+                else {
+                    return null;
                 }
-            },
-            new ArrayTableColumn( "Indexed", Boolean.class ) {
-                public Object getValue( Object item ) {
-                    return Boolean
-                          .valueOf( Arrays.asList( getCol( item ).getFlags() )
-                                          .indexOf( "indexed" ) >= 0 );
-                }
-            },
-            new ArrayTableColumn( "Description", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCol( item ).getDescription();
-                }
-            },
-            new ArrayTableColumn( "UCD", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCol( item ).getUcd();
-                }
-            },
-            new ArrayTableColumn( "Utype", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCol( item ).getUtype();
-                }
-            },
-            new ArrayTableColumn( "Xtype", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCol( item ).getXtype();
-                }
-            },
-            new ArrayTableColumn( "Flags", String.class ) {
-                public Object getValue( Object item ) {
-                    String[] flags = getCol( item ).getFlags();
-                    if ( flags != null && flags.length > 0 ) {
-                        StringBuffer sbuf = new StringBuffer();
-                        for ( int i = 0; i < flags.length; i++ ) {
-                            if ( i > 0 ) {
-                                sbuf.append( ' ' );
-                            }
-                            sbuf.append( flags[ i ] );
-                        }
-                        return sbuf.toString();
-                    }
-                    else {
-                        return null;
-                    }
-                }
-            },
-        };
+            }
+        } );
+        return list;
     }
 
     /**
@@ -1113,40 +1089,40 @@ public class TableSetPanel extends JPanel {
      *
      * @return  column descriptions
      */
-    private static ArrayTableColumn[] createForeignMetaColumns() {
-        return new ArrayTableColumn[] {
-            new ArrayTableColumn( "Target Table", String.class ) {
-                public Object getValue( Object item ) {
-                    return getForeign( item ).getTargetTable();
-                }
-            },
-            new ArrayTableColumn( "Links", String.class ) {
-                public Object getValue( Object item ) {
-                    ForeignMeta.Link[] links = getForeign( item ).getLinks();
-                    StringBuffer sbuf = new StringBuffer();
-                    for ( int i = 0; i < links.length; i++ ) {
-                        ForeignMeta.Link link = links[ i ];
-                        if ( i > 0 ) {
-                            sbuf.append( "; " );
-                        }
-                        sbuf.append( link.getFrom() )
-                            .append( "->" )
-                            .append( link.getTarget() );
+    private static List<ForeignMetaColumn> createForeignMetaColumns() {
+        List<ForeignMetaColumn> list = new ArrayList<ForeignMetaColumn>();
+        list.add( new ForeignMetaColumn( "Target Table" ) {
+            public String getValue( ForeignMeta fm ) {
+                return fm.getTargetTable();
+            }
+        } );
+        list.add( new ForeignMetaColumn( "Links" ) {
+            public String getValue( ForeignMeta fm ) {
+                ForeignMeta.Link[] links = fm.getLinks();
+                StringBuffer sbuf = new StringBuffer();
+                for ( int i = 0; i < links.length; i++ ) {
+                    ForeignMeta.Link link = links[ i ];
+                    if ( i > 0 ) {
+                        sbuf.append( "; " );
                     }
-                    return sbuf.toString();
+                    sbuf.append( link.getFrom() )
+                        .append( "->" )
+                        .append( link.getTarget() );
                 }
-            },
-            new ArrayTableColumn( "Description", String.class ) {
-                public Object getValue( Object item ) {
-                    return getForeign( item ).getDescription();
-                }
-            },
-            new ArrayTableColumn( "Utype", String.class ) {
-                public Object getValue( Object item ) {
-                    return getForeign( item ).getUtype();
-                }
-            },
-        };
+                return sbuf.toString();
+            }
+        } );
+        list.add( new ForeignMetaColumn( "Description" ) {
+            public String getValue( ForeignMeta fm ) {
+                return fm.getDescription();
+            }
+        } );
+        list.add( new ForeignMetaColumn( "Utype" ) {
+            public String getValue( ForeignMeta fm ) {
+                return fm.getUtype();
+            }
+        } );
+        return list;
     }
 
     /**
@@ -1443,12 +1419,46 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Convenience ArrayTableColumn subclass for use with ColumnMeta objects.
+     */
+    private static abstract class ColMetaColumn<C>
+            extends ArrayTableColumn<ColumnMeta,C> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  column name
+         * @param  clazz  column content class
+         */
+        ColMetaColumn( String name, Class<C> clazz ) {
+            super( name, clazz );
+        }
+    }
+
+    /**
+     * Convenience ArrayTableColumn subclass for ForeignMeta objects.
+     */
+    private static abstract class ForeignMetaColumn
+            extends ArrayTableColumn<ForeignMeta,String> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  column name
+         * @param  clazz  column content class
+         */
+        ForeignMetaColumn( String name ) {
+            super( name, String.class );
+        }
+    }
+
+    /**
      * ArrayTableColumn for extracting "extra" non-standard column metadata.
      * Implements equals/hashCode.
      */
-    private static class ExtraColumn extends ArrayTableColumn {
+    private static class ExtraColumn<C> extends ColMetaColumn<C> {
         private final String key_;
-        private final Class clazz_;
+        private final Class<C> clazz_;
 
         /**
          * Constructor.
@@ -1456,26 +1466,15 @@ public class TableSetPanel extends JPanel {
          * @param  key   name of metadata key in ColumnMeta extras map
          * @param  clazz   class of object returned by getValue method
          */
-        ExtraColumn( String key, Class clazz ) {
+        ExtraColumn( String key, Class<C> clazz ) {
             super( key, clazz );
             key_ = key;
             clazz_ = clazz;
         }
 
-        public Object getValue( Object item ) {
-            Object value = getCol( item ).getExtras().get( key_ );
-            if ( value == null ) {
-                return null;
-            }
-            else if ( clazz_.isInstance( value ) ) {
-                return value;
-            }
-            else if ( String.class.equals( clazz_ ) ) {
-                return value.toString();
-            }
-            else {
-                return null;
-            }
+        public C getValue( ColumnMeta col ) {
+            Object value = col.getExtras().get( key_ );
+            return clazz_.isInstance( value ) ? clazz_.cast( value ) : null;
         }
 
         @Override
@@ -1510,21 +1509,23 @@ public class TableSetPanel extends JPanel {
          * @param    name   column name
          * @param    values  values that will be used
          */
-        static ExtraColumn createInstance( String name, List<Object> values ) {
-            Class clazz = null;
+        static ExtraColumn<?> createInstance( String name,
+                                              List<Object> values ) {
+            Class<?> clazz = null;
             for ( Object obj : values ) {
                 if ( obj != null ) {
-                    Class c = obj.getClass();
+                    Class<?> c = obj.getClass();
                     if ( clazz == null ) {
                         clazz = c;
                     }
                     else if ( ! clazz.equals( c ) ) {
-                        return new ExtraColumn( name, String.class );
+                        return new ExtraColumn<String>( name, String.class );
                     }
                 }
             }
-            return new ExtraColumn( name,
-                                    clazz == null ? String.class : clazz );
+            return clazz == null
+                 ? new ExtraColumn<Object>( name, Object.class )
+                 : new ExtraColumn<String>( name, String.class );
         }
     }
 
