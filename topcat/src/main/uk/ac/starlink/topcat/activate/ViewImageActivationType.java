@@ -1,17 +1,24 @@
 package uk.ac.starlink.topcat.activate;
 
-import java.awt.Image;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.Box;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.sog.SOG;
 import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
 import uk.ac.starlink.sog.SOGNavigatorImageDisplayFrame;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ImageWindow;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
@@ -27,24 +34,41 @@ import uk.ac.starlink.topcat.TopcatUtils;
  */
 public class ViewImageActivationType implements ActivationType {
 
+    private final boolean isRegion_;
     private final Viewer[] viewers_;
 
+    /**
+     * Constructs an instance with default (no) position highlighting.
+     */
     public ViewImageActivationType() {
-        viewers_ = createViewers();
+        this( false );
+    }
+
+    /**
+     * Constructs an instance with configurable position highlighting.
+     *
+     * @param  isRegion   true iff position highlighting is allowed
+     */
+    public ViewImageActivationType( boolean isRegion ) {
+        isRegion_ = isRegion;
+        viewers_ = isRegion ? createRegionViewers() : createViewers();
     }
 
     public String getName() {
-        return "Display image";
+        return isRegion_ ? "Display image region"
+                         : "Display image";
     }
 
     public String getDescription() {
-        return "Displays the content of a file or URL column as an image"
+        return ( isRegion_
+                 ? "Displays the content of a file or URL column as an image"
+                 : "Displays a region of an image referenced by a file or URL" )
              + " using an internal image display tool."
              + " At least FITS, JPEG and PNG are supported.";
     }
 
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
-        return new ImageColumnConfigurator( tinfo, viewers_ );
+        return new ImageColumnConfigurator( tinfo, isRegion_, viewers_ );
     }
 
     public Suitability getSuitability( TopcatModelInfo tinfo ) {
@@ -58,27 +82,59 @@ public class ViewImageActivationType implements ActivationType {
      */
     private static class ImageColumnConfigurator extends UrlColumnConfigurator {
         final TopcatModel tcModel_;
+        final boolean isRegion_;
         final JComboBox viewerSelector_;
+        final NumberSelector xoffSelector_;
+        final NumberSelector yoffSelector_;
+
         private static final String VIEWER_KEY = "viewer";
+        private static final String XOFF_KEY = "xoff";
+        private static final String YOFF_KEY = "yoff";
 
         /**
          * Constructor.
          *
          * @param   tinfo   table information
+         * @param  isRegion  true iff position highlighting is included
          * @param  viewers  available viewer windows
          */
-        ImageColumnConfigurator( TopcatModelInfo tinfo, Viewer[] viewers ) {
+        ImageColumnConfigurator( TopcatModelInfo tinfo, boolean isRegion,
+                                 Viewer[] viewers ) {
             super( tinfo, "Image",
                    new ColFlag[] { ColFlag.IMAGE, ColFlag.URL, } );
             tcModel_ = tinfo.getTopcatModel();
+            isRegion_ = isRegion;
+            JComponent queryPanel = getQueryPanel();
+            ActionListener forwarder = getActionForwarder();
+
             viewerSelector_ = new JComboBox( viewers );
+            viewerSelector_.addActionListener( forwarder );
+            xoffSelector_ = new NumberSelector( tcModel_, "X Offset" );
+            xoffSelector_.comboBox_.addActionListener( forwarder );
+            yoffSelector_ = new NumberSelector( tcModel_, "Y Offset" );
+            yoffSelector_.comboBox_.addActionListener( forwarder );
+            if ( isRegion ) {
+                queryPanel.add( xoffSelector_.createLine() );
+                queryPanel.add( Box.createVerticalStrut( 5 ) );
+                queryPanel.add( yoffSelector_.createLine() );
+                queryPanel.add( Box.createVerticalStrut( 5 ) );
+            }
             getQueryPanel().add( new LineBox( "Image Viewer",
                                               viewerSelector_ ) );
         }
-        public Activator createActivator( ColumnData cdata ) {
+        public Activator createActivator( ColumnData locCdata ) {
             Viewer viewer = getViewer();
-            String label = getWindowLabel( cdata );
-            return viewer.createActivator( cdata, label );
+            String label = getWindowLabel( locCdata );
+            if ( isRegion_ ) {
+                assert viewer instanceof RegionViewer;
+                ColumnData xoffCdata = xoffSelector_.getColumnData();
+                ColumnData yoffCdata = yoffSelector_.getColumnData();
+                return ((RegionViewer) viewer)
+                      .createActivator( label, locCdata, xoffCdata, yoffCdata );
+            }
+            else {
+                return viewer.createActivator( label, locCdata );
+            }
         }
         public String getConfigMessage( ColumnData cdata ) {
             return null;
@@ -86,11 +142,19 @@ public class ViewImageActivationType implements ActivationType {
         public ConfigState getState() {
             ConfigState state = getUrlState();
             state.saveSelection( VIEWER_KEY, viewerSelector_ );
+            if ( isRegion_ ) {
+                state.saveSelection( XOFF_KEY, xoffSelector_.comboBox_ );
+                state.saveSelection( YOFF_KEY, yoffSelector_.comboBox_ );
+            }
             return state;
         }
         public void setState( ConfigState state ) {
             setUrlState( state );
             state.restoreSelection( VIEWER_KEY, viewerSelector_ );
+            if ( isRegion_ ) {
+                state.restoreSelection( XOFF_KEY, xoffSelector_.comboBox_ );
+                state.restoreSelection( YOFF_KEY, yoffSelector_.comboBox_ );
+            }
         }
         public Safety getSafety() {
             return getViewer().getSafety();
@@ -116,6 +180,18 @@ public class ViewImageActivationType implements ActivationType {
     }
 
     /**
+     * Returns available region viewers.
+     *
+     * @return  region viewers
+     */
+    private static RegionViewer[] createRegionViewers() {
+        List<RegionViewer> list = new ArrayList<RegionViewer>();
+        list.add( new BasicViewer( false ) );
+        list.add( new BasicViewer( true ) );
+        return list.toArray( new RegionViewer[ 0 ] );
+    }
+
+    /**
      * Object capable of displaying an image on activation.
      */
     private static abstract class Viewer {
@@ -135,17 +211,17 @@ public class ViewImageActivationType implements ActivationType {
          * The label identifies the window; if the same label is used,
          * the viewing window will be re-used.
          *
-         * @param  cdata  column containing image location
          * @param  label   window label
+         * @param  locCdata  column containing image location
          * @return   new activator
          */
-        public abstract Activator createActivator( ColumnData cdata,
-                                                   String label );
+        public abstract Activator createActivator( String label,
+                                                   ColumnData locCdata );
 
         /**
          * Returns safety status of this viewer.
          *
-         * @return safety
+         * @return  safety
          */
         public abstract Safety getSafety();
 
@@ -156,9 +232,40 @@ public class ViewImageActivationType implements ActivationType {
     }
 
     /**
-     * Viewer implementation using ImageWindow.  No dependencies.
+     * Extends Viewer class to include position highlighting.
      */
-    private static class BasicViewer extends Viewer {
+    private static abstract class RegionViewer extends Viewer {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  suitable for presentation in GUI
+         */
+        RegionViewer( String name ) {
+            super( name );
+        }
+
+        /**
+         * Creates an activator that does the work for this viewer.
+         * The label identifies the window; if the same label is used,
+         * the viewing window will be re-used.
+         *
+         * @param  label   window label
+         * @param  locCdata  column containing image location
+         * @param  xoffCdata   X offset column
+         * @param  yoffCdata   Y offset column
+         * @return   new activator
+         */
+        public abstract Activator createActivator( String label,
+                                                   ColumnData locCdata,
+                                                   ColumnData xoffCdata,
+                                                   ColumnData yoffCdata );
+    }
+
+    /**
+     * RegionViewer implementation using ImageWindow.  No dependencies.
+     */
+    private static class BasicViewer extends RegionViewer {
         private final Map<String,ImageWindow> winMap_;
         private final boolean allowSystem_;
 
@@ -173,23 +280,38 @@ public class ViewImageActivationType implements ActivationType {
             allowSystem_ = allowSystem;
             winMap_ = new HashMap<String,ImageWindow>();
         }
-
-        public Activator createActivator( final ColumnData cdata,
-                                          final String label ) {
+        public Activator createActivator( String label, ColumnData locCdata ) {
+            return createActivator( label, locCdata, null, null );
+        }
+        public Activator createActivator( final String label,
+                                          final ColumnData locCdata,
+                                          final ColumnData xoffCdata,
+                                          final ColumnData yoffCdata ) {
             return new UrlColumnConfigurator
-                      .LocationColumnActivator( cdata, false ) {
+                      .LocationColumnActivator( locCdata, false ) {
                 protected Outcome activateLocation( String loc, long lrow ) {
                     final ImageWindow imwin = getImageWindow( label );
-                    final Image image;
+                    final BufferedImage image;
                     try {
                         image = imwin.createImage( loc, allowSystem_ );
                     }
                     catch ( IOException e ) {
                         return Outcome.failure( e );
                     }
+                    if ( image == null ) {
+                        return Outcome.failure( "No image " + loc );
+                    }
+                    double xoff = readNumber( xoffCdata, lrow );
+                    double yoff = readNumber( yoffCdata, lrow );
+                    int iw = image.getWidth();
+                    int ih = image.getHeight();
+                    final Point point =
+                          ( xoff >= 0 && xoff <= iw && yoff >= 0 && yoff <= ih )
+                        ? new Point( (int) xoff, (int) yoff )
+                        : null;
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            imwin.setImage( image );
+                            imwin.setImagePoint( image, point );
                         }
                     } );
                     return Outcome.success( loc );
@@ -230,19 +352,44 @@ public class ViewImageActivationType implements ActivationType {
             super( "SoG" );
             sogMap_ = new HashMap<String,SOGNavigatorImageDisplay>();
         }
-        public Activator createActivator( final ColumnData cdata,
-                                          final String label ) {
+        public Activator createActivator( final String label,
+                                          ColumnData locCdata ) {
             return new UrlColumnConfigurator
-                      .LocationColumnActivator( cdata, true ) {
+                      .LocationColumnActivator( locCdata, true ) {
                 protected Outcome activateLocation( String loc, long lrow ) {
+                    SOGNavigatorImageDisplay sogger = getSogger( label );
                     try {
                         /* The setFilename method takes a fileOrUrl. */
-                        getSogger( label ).setFilename( loc, false );
-                        return Outcome.success( loc );
+                        sogger.setFilename( loc, false );
                     }
                     catch ( Exception e ) {
                         return Outcome.failure( "Trouble loading " + loc );
                     }
+                    return Outcome.success( loc );
+
+                    /* I have attempted to do region highlighting in SoG
+                     * using classes in jsky.graphics, but I can't quite
+                     * make it work. */
+                    // double xoff = readNumber( xoffCdata, lrow );
+                    // double yoff = readNumber( yoffCdata, lrow );
+                    // final Point point =
+                    //    Double.isNaN( xoff ) || Double.isNaN( yoff )
+                    //     ? null
+                    //     : new Point( (int) xoff, (int) yoff );
+                    // Point2D.Double dp =
+                    //      new Point2D.Double( point.x, point.y );
+                    //  ImageCoordinateConverter converter =
+                    //      new ImageCoordinateConverter( sogger );
+                    //  converter.userToScreenCoords( dp, false );
+                    //  Shape shape =
+                    //      new Rectangle2D.Double( dp.x, dp.y, 20, 20 );
+                    //  CanvasGraphics cg = sogger.getCanvasGraphics();
+                    //  if ( fig_ != null ) {
+                    //      cg.remove( fig_ );
+                    //  }
+                    //  fig_ = cg.makeFigure( shape, null,
+                    //                        new Color( 0, 255, 0, 128 ), 1f );
+                    //  cg.add( fig_ );
                 }
             };
         }
@@ -283,6 +430,76 @@ public class ViewImageActivationType implements ActivationType {
                 SwingUtilities.windowForComponent( sogger ).setVisible( true );
             }
             return sogger;
+        }
+    }
+
+    /**
+     * Reads a numeric value from a data column.
+     *
+     * @param  cdata  column data
+     * @param  lrow   row index
+     * @return   numeric value, or NaN
+     */
+    private static double readNumber( ColumnData cdata, long lrow ) {
+        if ( cdata != null ) {
+            Object obj;
+            try {
+                obj = cdata.readValue( lrow );
+            }
+            catch ( IOException e ) {
+                return Double.NaN;
+            }
+            if ( obj instanceof Number ) {
+                return ((Number) obj).doubleValue();
+            }
+        }
+        return Double.NaN;
+    }
+
+    /**
+     * Component for choosing a numeric table column.
+     */
+    private static class NumberSelector {
+        final String label_;
+        final ColumnDataComboBoxModel model_;
+        final JComboBox comboBox_;
+
+        /**
+         * Constructor.
+         *
+         * @param  tcModel   topcat model
+         * @param  label    GUI name for component
+         */
+        NumberSelector( TopcatModel tcModel, String label ) {
+            label_ = label;
+            model_ =
+                new ColumnDataComboBoxModel( tcModel, Number.class, false );
+            comboBox_ = ColumnDataComboBoxModel.createComboBox();
+            comboBox_.setModel( model_ );
+        }
+
+        /**
+         * Returns the column data selected for this item.
+         *
+         * @return  numeric column data
+         */
+        ColumnData getColumnData() {
+            Object selValue = model_.getSelectedItem();
+            return selValue instanceof ColumnData ? (ColumnData) selValue
+                                                  : null;
+        }
+
+        /**
+         * Returns a line component containing this selector and its
+         * text label.
+         *
+         * @return  line component
+         */
+        JComponent createLine() {
+            JComponent line = Box.createHorizontalBox();
+            line.add( new JLabel( label_ + ": " ) );
+            line.add( comboBox_ );
+            return line;
         }
     }
 }
