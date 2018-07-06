@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -85,6 +86,29 @@ public class IconUtils {
         else {
             return new ImageIcon( createImage( icon ) );
         }
+    }
+
+    /**
+     * Returns an icon that paints a line of text.
+     *
+     * @param  line  text string
+     * @param  g    graphics context
+     * @return  icon
+     */
+    public static Icon createTextIcon( final String line, Graphics g ) {
+        final Rectangle bounds =
+            g.getFontMetrics().getStringBounds( line, g ).getBounds();
+        return new Icon() {
+            public int getIconWidth() {
+                return bounds.width;
+            }
+            public int getIconHeight() {
+                return bounds.height;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                g.drawString( line, -bounds.x, -bounds.y );
+            }
+        };
     }
 
     /**
