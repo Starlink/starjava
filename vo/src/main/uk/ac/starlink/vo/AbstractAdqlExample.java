@@ -1,10 +1,13 @@
 package uk.ac.starlink.vo;
 
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +30,9 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         Pattern.compile( "^pos.eq.dec[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
     };
     private static final TableMeta DUMMY_TABLE = createDummyTable();
+    private static final DecimalFormat ANGLE_FORMAT =
+        new DecimalFormat( "0.0##",
+                           DecimalFormatSymbols.getInstance( Locale.UK ) );
 
     /**
      * Constructor.
@@ -363,7 +369,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         return new AbstractAdqlExample( "Dummy", "Never enabled" ) {
             public String getText( boolean lineBreaks, String lang,
                                    TapCapability tcap, TableMeta[] tables,
-                                   TableMeta table ) {
+                                   TableMeta table, double[] skypos ) {
                 return null;
             }
         };
@@ -381,7 +387,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                      "All columns from a single table" ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     if ( table == null &&
                          tables != null && tables.length > 0 ) {
                         table = tables[ 0 ];
@@ -403,7 +409,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                    + "a single table" ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     TableMeta ptable = getPopulatedTable( table, tables );
                     Breaker breaker = createBreaker( lineBreaks );
                     TableRef tref = createTableRef( ptable, lang );
@@ -466,7 +472,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                      "Count the rows in a table" ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     if ( table == null &&
                          tables != null && tables.length > 0 ) {
                         table = tables[ 0 ];
@@ -486,7 +492,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                    + "RA/Dec position constraints" ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     TableWithCols[] rdTabs =
                         getRaDecTables( toTables( table, tables ), 1 );
                     if ( rdTabs.length == 0 ) {
@@ -498,6 +504,27 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     String decCol = radec[ 1 ];
                     Breaker breaker = createBreaker( lineBreaks );
                     TableRef tref = createTableRef( rdTab, lang );
+                    final String[] ras;
+                    final String[] decs;
+                    if ( skypos == null ) {   // HDF
+                        ras = new String[] { "189.1", "189.3" };
+                        decs = new String[] { "62.18", "62.25" };
+                    }
+                    else {
+                        double ra0 = skypos[ 0 ];
+                        double dec0 = skypos[ 1 ];
+                        double siz = 0.5;
+                        double raSiz = Math.abs(
+                            siz / Math.cos( Math.toRadians( dec0 ) ) );
+                        ras = new String[] {
+                            formatAngle( ra0 - raSiz, false ),
+                            formatAngle( ra0 + raSiz, false ),
+                        };
+                        decs = new String[] {
+                            formatAngle( dec0 - siz, true ),
+                            formatAngle( dec0 + siz, true ),
+                        };
+                    }
                     return new StringBuffer()
                         .append( "SELECT" )
                         .append( breaker.level( 1 ) )
@@ -512,12 +539,18 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "WHERE" )
                         .append( breaker.level( 2 ) )
                         .append( tref.getColumnName( raCol ) )
-                        .append( " BETWEEN 189.1 AND 189.3" )  // HDF
+                        .append( " BETWEEN " )
+                        .append( ras[ 0 ] )
+                        .append( " AND " )
+                        .append( ras[ 1 ] )
                         .append( breaker.level( 2 ) )
                         .append( "AND" )
                         .append( breaker.level( 2 ) )
                         .append( tref.getColumnName( decCol ) )
-                        .append( " BETWEEN 62.18 AND 62.25" )  // HDF
+                        .append( " BETWEEN " )
+                        .append( decs[ 0 ] )
+                        .append( " AND " )
+                        .append( decs[ 1 ] )
                         .toString();
                 }
             },
@@ -527,7 +560,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                    + "a sky position" ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     if ( isAdql1( lang ) ) {
                         return null;
                     }
@@ -560,7 +593,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( ")," )
                         .append( breaker.level( 2 ) )
                         .append( "           " )
-                        .append( "CIRCLE('ICRS', 189.2, 62.21, 0.05 )" )
+                        .append( "CIRCLE('ICRS', " )
+                        .append( formatCoord( skypos, false, 189.2 ) )
+                        .append( ", " )
+                        .append( formatCoord( skypos, true, 62.21 ) )
+                        .append( ", 0.05 )" )
                         .append( ")" )
                         .toString();
                 }
@@ -570,7 +607,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                      "Join two tables on sky position" ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     if ( isAdql1( lang ) ) {
                         return null;
                     }
@@ -737,7 +774,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         return new AbstractAdqlExample( name, description ) {
             public String getText( boolean lineBreaks, String lang,
                                    TapCapability tcap, TableMeta[] tables,
-                                   TableMeta table ) {
+                                   TableMeta table, double[] skypos ) {
                 if ( lineBreaks ) {
                     StringBuffer sbuf = new StringBuffer();
                     for ( String line : textLines ) {
@@ -758,6 +795,39 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 }
             }
         };
+    }
+
+    /**
+     * Formats one coordinate from an optional sky position array,
+     * falling back to a given default value if necessary.
+     *
+     * @param  skypos  2-element array giving (RA,Dec) in degrees,
+     *                 or null
+     * @param  isDec   false to use RA part (element 0),
+     *                 true to use Dec part (element 1)
+     * @param  dflt    default value to use if skypos is null
+     * @return  ADQL-ready numeric string
+     */
+    public static String formatCoord( double[] skypos, boolean isDec,
+                                      double dflt ) {
+        return formatAngle( skypos == null ? dflt : skypos[ isDec ? 1 : 0 ],
+                            isDec );
+    }
+
+    /**
+     * Formats an example angle value for presentation as part of
+     * ADQL query text.  If it's out of range, the value will be modified
+     * as necessary to make something legal (though not necessarily
+     * meaning the same thing).
+     *
+     * @param  value  angle in degrees
+     * @param  isDec  false for Right Ascension, true for Declination
+     * @return  ADQL-ready numeric string
+     */
+    private static String formatAngle( double value, boolean isDec ) {
+        return ANGLE_FORMAT
+              .format( isDec ? Math.max( -90, Math.min( 90, value ) )
+                             : Math.max( 0, Math.min( 360, value ) ) );
     }
 
     /**

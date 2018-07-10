@@ -17,7 +17,6 @@ public abstract class DataModelAdqlExample implements AdqlExample {
     private final String name_;
     private final String description_;
     private final URL infoUrl_;
-    private final String[] textLines_;
 
     /**
      * Constructor.
@@ -25,10 +24,9 @@ public abstract class DataModelAdqlExample implements AdqlExample {
      * @param   name  example name
      * @param   description   example short description
      * @param   infoUrl  URL for explanation
-     * @param   textLines  lines of ADQL text
      */
     protected DataModelAdqlExample( String name, String description,
-                                    String infoUrl, String[] textLines ) {
+                                    String infoUrl ) {
         name_ = name;
         description_ = description;
         try {
@@ -37,7 +35,6 @@ public abstract class DataModelAdqlExample implements AdqlExample {
         catch ( MalformedURLException e ) {
             throw new RuntimeException( "bad url: " + infoUrl, e );
         }
-        textLines_ = textLines;
     }
 
     /**
@@ -50,6 +47,14 @@ public abstract class DataModelAdqlExample implements AdqlExample {
      * @param  dm  data model identifier
      */
     public abstract boolean isDataModel( String dm );
+
+    /**
+     * Returns the lines of ADQL text for this example.
+     *
+    * @param  skypos  2-element array giving preferred (RA,Dec) sky position
+    *                 in degrees, or null if none preferred
+     */
+    protected abstract String[] getTextLines( double[] skypos );
 
     public String getName() {
         return name_;
@@ -64,11 +69,13 @@ public abstract class DataModelAdqlExample implements AdqlExample {
     }
 
     public String getText( boolean lineBreaks, String lang, TapCapability tcap,
-                           TableMeta[] tables, TableMeta table ) {
+                           TableMeta[] tables, TableMeta table,
+                           double[] skypos ) {
         if ( hasDataModel( tcap ) ) {
+            String[] textLines = getTextLines( skypos );
             if ( lineBreaks ) {
                 StringBuffer sbuf = new StringBuffer();
-                for ( String line : textLines_ ) {
+                for ( String line : textLines ) {
                     sbuf.append( line )
                         .append( '\n' );
                 }  
@@ -76,7 +83,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             }
             else {
                 StringBuffer sbuf = new StringBuffer();
-                for ( String line : textLines_ ) {
+                for ( String line : textLines ) {
                     if ( sbuf.length() != 0 ) {
                         sbuf.append( ' ' );
                     }
@@ -314,58 +321,83 @@ public abstract class DataModelAdqlExample implements AdqlExample {
     public static DataModelAdqlExample[] createObsTapExamples() {
         return new DataModelAdqlExample[] {
 
-            createObsTapExample(
-                "By Position",
-                "Find all observations that contain a given sky position",
-                new String[] {
-                    "SELECT * FROM ivoa.Obscore",
-                    "WHERE CONTAINS(POINT('ICRS', 16.0, 40.0),s_region)=1",
+            new ObsTapExample( "By Position",
+                               "Find all observations that contain"
+                               + " a given sky position" ) {
+                protected String[] getTextLines( double[] skypos ) {
+                    return new String[] {
+                        "SELECT * FROM ivoa.Obscore",
+                        "WHERE CONTAINS(POINT('ICRS', "
+                         + AbstractAdqlExample.formatCoord( skypos, false, 16. )
+                         + ", "
+                         + AbstractAdqlExample.formatCoord( skypos, true, 40. )
+                         + "), s_region)=1",
+                    };
                 }
-            ),
+            },
 
             // this one fixed - ObsTAP omits required parentheses here
-            createObsTapExample(
-                "By Spatial and Spectral",
-                "Find image observations with constraints on position, "
-                + "spatial resolution and filter",
-                new String[] {
-                    "SELECT * FROM ivoa.Obscore",
-                    "WHERE dataproduct_type='image'",
-                    "  AND s_resolution < 0.3",
-                    "  AND s_ra BETWEEN 240 AND 255",
-                    "  AND s_dec BETWEEN 10 AND 11",
-                    "  AND ((em_min >= 2.1e-06 AND em_max <= 2.4e-06) OR",
-                    "       (em_min >= 1.6e-06 AND em_max <= 1.8e-06) OR",
-                    "       (em_min >= 1.2e-06 AND em_max <= 1.4e-06))",
+            new ObsTapExample( "By Spatial and Spectral",
+                               "Find image observations with constraints on"
+                               + " position, spatial resolution and filter" ) {
+                protected String[] getTextLines( double[] skypos ) {
+                    final int[] ras;
+                    final int[] decs;
+                    if ( skypos == null ) {
+                        ras = new int[] { 240, 255 };
+                        decs = new int[] { 10, 11 };
+                    }
+                    else {
+                        int ra0 = (int) skypos[ 0 ];
+                        int dec0 = (int) skypos[ 1 ];
+                        ras = new int[] { ra0 - 4, ra0 + 4 };
+                        decs = new int[] { dec0 - 2, dec0 + 2 };
+                    }
+                    return new String[] {
+                        "SELECT * FROM ivoa.Obscore",
+                        "WHERE dataproduct_type='image'",
+                        "  AND s_resolution < 0.3",
+                        "  AND s_ra BETWEEN " + ras[ 0 ] + " AND " + ras[ 1 ],
+                        "  AND s_dec BETWEEN " + decs[ 0 ] + " AND " + decs[ 1],
+                        "  AND ((em_min >= 2.1e-06 AND em_max <= 2.4e-06) OR",
+                        "       (em_min >= 1.6e-06 AND em_max <= 1.8e-06) OR",
+                        "       (em_min >= 1.2e-06 AND em_max <= 1.4e-06))",
+                    };
                 }
-            ),
+            },
 
-            createObsTapExample(
-                "By Spatial, Spectral, Exposure",
-                "Find observatrinos with constraints on position, "
-                + "band and exposure time",
-                new String[] {
-                    "SELECT * FROM ivoa.Obscore",
-                    "WHERE em_min < 2.48E-10 AND em_max > 2.48E-10",
-                    " AND CONTAINS(POINT('ICRS',16.0,10.0),s_region) = 1",
-                    " AND t_exptime > 10000",
+            new ObsTapExample( "By Spatial, Spectral, Exposure",
+                               "Find observatrinos with constraints on"
+                               + " position, band and exposure time" ) {
+                protected String[] getTextLines( double[] skypos ) {
+                    return new String[] {
+                        "SELECT * FROM ivoa.Obscore",
+                        "WHERE em_min < 2.48E-10 AND em_max > 2.48E-10",
+                        " AND CONTAINS(POINT('ICRS', "
+                         + AbstractAdqlExample.formatCoord( skypos, false, 16. )
+                         + ", "
+                         + AbstractAdqlExample.formatCoord( skypos, true, 10. )
+                         + "), s_region) = 1",
+                        " AND t_exptime > 10000",
+                    };
                 }
-            ),
+            },
 
-            createObsTapExample(
-                "By Spectral, Resolution, Exposure",
-                "Find spectral observations with constraints on waveband, "
-                + "resolution and exposure time",
-                new String[] {
-                    "SELECT * from ivoa.Obscore",
-                    "WHERE dataproduct_type='spectrum'",
-                    "  AND em_min < 650E-9",
-                    "  AND em_max > 650E-9",
-                    "  AND em_res_power > 6500/15.",
-                    "  AND s_resolution < 2",
-                    "  AND t_exptime > 3600",
+            new ObsTapExample( "By Spectral, Resolution, Exposure",
+                               "Find spectral observations with constraints on"
+                               + " waveband, resolution and exposure time" ) {
+                protected String[] getTextLines( double[] skypos ) {
+                    return new String[] {
+                        "SELECT * from ivoa.Obscore",
+                        "WHERE dataproduct_type='spectrum'",
+                        "  AND em_min < 650E-9",
+                        "  AND em_max > 650E-9",
+                        "  AND em_res_power > 6500/15.",
+                        "  AND s_resolution < 2",
+                        "  AND t_exptime > 3600",
+                    };
                 }
-            ),
+            },
         };
     }
 
@@ -379,37 +411,39 @@ public abstract class DataModelAdqlExample implements AdqlExample {
      */
     private static DataModelAdqlExample
             createRegTapExample( String name, String description,
-                                 String regtapFrag, String[] textLines ) {
+                                 String regtapFrag, final String[] textLines ) {
         String regtapUrl =
             "http://www.ivoa.net/documents/RegTAP/20141208/REC-RegTAP-1.0.html";
         String url = regtapFrag != null ? ( regtapUrl + "#" + regtapFrag )
                                         : null;
-        return new DataModelAdqlExample( name, description, url, textLines ) {
+        return new DataModelAdqlExample( name, description, url ) {
             public boolean isDataModel( String dm ) {
                 return dm.toLowerCase()
                          .startsWith( "ivo://ivoa.net/std/regtap" );
+            }
+            protected String[] getTextLines( double[] skypos ) {
+                return textLines;
             }
         };
     }
 
     /**
-     * Constructs an example applicable to the ObsCore data model.
-     *
-     * @param   name  example name
-     * @param   description   example short description
-     * @param   textLines  lines of ADQL text
-     * @return   example
+     * AdqlExample implementation suitable for ObsCore-specific examples.
      */
-    private static DataModelAdqlExample
-            createObsTapExample( String name, String description,
-                                 String[] textLines ) {
-        String obstapUrl = "http://www.ivoa.net/documents/ObsCore/index.html";
-        return new DataModelAdqlExample( name, description, obstapUrl,
-                                         textLines ) {
-            public boolean isDataModel( String dm ) {
-                return dm.toLowerCase()
-                         .startsWith( "ivo://ivoa.net/std/obscore" );
-            }
-        };
+    private static abstract class ObsTapExample extends DataModelAdqlExample {
+
+        /**
+         * Constructor.
+         *
+         * @param   name  example name
+         * @param   description   example short description
+         */
+        ObsTapExample( String name, String description ) {
+            super( name, description,
+                   "http://www.ivoa.net/documents/ObsCore/index.html" );
+        }
+        public boolean isDataModel( String dm ) {
+            return dm.toLowerCase().startsWith( "ivo://ivoa.net/std/obscore" );
+        }
     }
 }

@@ -34,10 +34,11 @@ public class TapTester extends TestCase {
         String lang = langs != null && langs.length > 0
                     ? langs[ 0 ].getName()
                     : null;
+        double[] skypos = null;
         for ( int ie = 0; ie < examples.length; ie++ ) {
             AdqlExample example = examples[ ie ];
-            String exTxt =
-                example.getText( true, lang, tcap, tables, tables[ 0 ] );
+            String exTxt = example.getText( true, lang, tcap, tables,
+                                            tables[ 0 ], skypos );
             if ( exTxt != null ) {
                 System.out.println( example.getName() );
                 System.out.println( exTxt.replaceAll( "(?m)^", "   " ) );

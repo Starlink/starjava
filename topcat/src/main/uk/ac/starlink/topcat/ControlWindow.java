@@ -127,13 +127,9 @@ import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.util.gui.StringPaster;
-import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.DalLoader;
-import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
-import uk.ac.starlink.vo.SsapTableLoadDialog;
-import uk.ac.starlink.vo.TapTableLoadDialog;
 
 /**
  * Main window providing user control of the TOPCAT application.
@@ -1114,6 +1110,11 @@ public class ControlWindow extends AuxWindow
                 if ( tld instanceof SkyDalTableLoadDialog ) {
                     accepted = accepted
                             || ((SkyDalTableLoadDialog) tld)
+                              .acceptSkyPosition( raDegrees, decDegrees );
+                }
+                else if ( tld instanceof TopcatTapTableLoadDialog ) {
+                    accepted = accepted
+                            || ((TopcatTapTableLoadDialog) tld)
                               .acceptSkyPosition( raDegrees, decDegrees );
                 }
             }

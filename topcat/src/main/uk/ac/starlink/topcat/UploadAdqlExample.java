@@ -50,7 +50,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
 
     /**
      * Creates and returns a selection of examples for display in the TAP
-     * load dialgue which illustrate how to use table uploads from TOPCAT.
+     * load dialogue which illustrate how to use table uploads from TOPCAT.
      *
      * @param   tcList  JList of known TopcatModels
      */
@@ -62,7 +62,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                                    tcList ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     if ( ! TapCapabilityPanel.canUpload( tcap ) ||
                          tcList.getModel().getSize() < 1 ) {
                         return null;
@@ -77,7 +77,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                                    tcList ) {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table ) {
+                                       TableMeta table, double[] skypos ) {
                     if ( ! TapCapabilityPanel.canUpload( tcap ) ) {
                         return null;
                     } 

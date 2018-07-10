@@ -20401,9 +20401,13 @@ menu item to insert it into the list.
 <p>The <label>Use Sky Coordinates in TOPCAT</label>
 action causes the sky coordinates of an activated row
 to be communicated to certain other TOPCAT windows that have
-sky position entry widgets, for instance the 
+sky position entry widgets, for instance
+to update the query position in the
 <ref id="ConeSearchDialog">Cone Search</ref> and
-<ref id="SiapTableLoadDialog">Simple Image Access</ref> windows.
+<ref id="SiapTableLoadDialog">Simple Image Access</ref> windows,
+and to be used as the default position in certain queries from
+the <label>Examples</label> menu in the
+<ref id="TapTableLoadDialog_query">TAP</ref> window.
 </p>
 
 <p>This is in most cases useful behaviour
@@ -26914,6 +26918,9 @@ introduced since the last version:
         now shows arraysize information if present in the
         <label>Type</label> column,
         and includes a new <label>Xtype</label> column (TAP 1.1).</li>
+    <li>TAP example queries now use recently-used
+        (<ref id="TopcatSkyPosActivationType">activated</ref>) sky positions
+        where appropriate.</li>
     </ul>
     </p></dd>
 

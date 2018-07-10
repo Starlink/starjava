@@ -574,6 +574,18 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Returns the currently preferred sky position to use in examples.
+     * The default implementation returns null, which means examples
+     * must come up with some default themselves, but subclasses may
+     * override this.
+     *
+     * @return  2-element (RA,Dec) array, or null for no position
+     */
+    public double[] getSkyPos() {
+        return null;
+    }
+
+    /**
      * Creates a new menu for display of ADQL example queries.
      * Menu items not only install their own ADQL in the text panel,
      * they also configure the Previous/Next actions to invoke the
@@ -620,6 +632,7 @@ public class TapQueryPanel extends JPanel {
         String lang = tcapPanel_.getQueryLanguageName();
         TapCapability tcap = tcapPanel_.getCapability();
         SchemaMeta[] schemas = tmetaPanel_.getSchemas();
+        double[] skyPos = getSkyPos();
         final TableMeta[] tables;
         if ( schemas != null ) {
             List<TableMeta> tlist = new ArrayList<TableMeta>();
@@ -632,7 +645,7 @@ public class TapQueryPanel extends JPanel {
             tables = null;
         }
         TableMeta table = tmetaPanel_.getSelectedTable();
-        configureExamples( examplesMenu_, lang, tcap, tables, table );
+        configureExamples( examplesMenu_, lang, tcap, tables, table, skyPos );
     }
 
     /**
@@ -645,28 +658,33 @@ public class TapQueryPanel extends JPanel {
      * @param  tcap  TAP capability object
      * @param  tables  table metadata set
      * @param  table  currently selected table
+     * @param  skypos  2-element array giving preferred (RA,Dec) sky position,
+     *                 or null if none preferred
      * @return   number of descendents of the supplied menu that are
      *           enabled for use
      */
     private static int configureExamples( MenuElement menu, String lang,
                                           TapCapability tcap,
                                           TableMeta[] tables,
-                                          TableMeta table ) {
+                                          TableMeta table,
+                                          double[] skypos ) {
         int nActive = 0;
         for ( MenuElement el : menu.getSubElements() ) {
             if ( el instanceof JMenuItem ) {
                 Action act = ((JMenuItem) el).getAction();
                 if ( act instanceof AdqlExampleAction ) {
                     AdqlExampleAction exAct = (AdqlExampleAction) act;
-                    String adql = exAct.getExample()
-                                 .getText( true, lang, tcap, tables, table );
+                    String adql =
+                        exAct.getExample()
+                       .getText( true, lang, tcap, tables, table, skypos );
                     exAct.setAdqlText( adql );
                     if ( exAct.isEnabled() ) {
                         nActive++;
                     }
                 }
             }
-            int nSubActive = configureExamples( el, lang, tcap, tables, table );
+            int nSubActive =
+                configureExamples( el, lang, tcap, tables, table, skypos );
             if ( el instanceof JMenu ) {
                 ((JMenu) el).setEnabled( nSubActive > 0 );
             }
@@ -698,8 +716,8 @@ public class TapQueryPanel extends JPanel {
                 adqlExamples[ iex ] = new AbstractAdqlExample( name, null ) {
                     public String getText( boolean lineBreaks, String lang,
                                            TapCapability tcap,
-                                           TableMeta[] tables,
-                                           TableMeta table ) {
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                         return adql;
                     }
                     public URL getInfoUrl() {

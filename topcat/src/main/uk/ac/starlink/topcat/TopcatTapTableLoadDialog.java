@@ -61,6 +61,8 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
     private AdqlExample[] uploadExamples_;
     private UrlHandler urlHandler_;
+    private double[] skypos_;
+    private TapQueryPanel tqp_;
     private volatile DeletionPolicy deletionPolicy_;
 
     private static final Logger logger_ =
@@ -253,6 +255,19 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             && super.acceptResourceIdList( ivoids, msg );
     }
 
+    /**
+     * Notifies this object of a preferred sky position to use for examples.
+     * If this is done, then new ADQL examples should use the provided
+     * sky position rather than some more or less arbitrary position.
+     *
+     * @param  raDegrees   RA in degrees
+     * @param  decDegrees  Declination in degrees
+     */
+    public boolean acceptSkyPosition( double raDegrees, double decDegrees ) {
+        skypos_ = new double[] { raDegrees, decDegrees };
+        return true;
+    }
+
     protected StarTable getUploadTable( String upLabel ) {
 
         /* Get list of loaded tables. */
@@ -334,8 +349,13 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
-        final TapQueryPanel tqp = new TapQueryPanel( urlHandler_ );
-        tqp.addCustomExamples( "Upload", getUploadExamples() );
+        tqp_ = new TapQueryPanel( urlHandler_ ) {
+            @Override
+            public double[] getSkyPos() {
+                return TopcatTapTableLoadDialog.this.skypos_;
+            }
+        };
+        tqp_.addCustomExamples( "Upload", getUploadExamples() );
 
         /* Make sure the panel is kept up to date with the list of
          * tables known by the application. */
@@ -351,13 +371,13 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                 updateTopcatTables();
             }
             private void updateTopcatTables() {
-                if ( tqp != null ) {
-                    tqp.setExtraTables( createTopcatValidatorTables() );
+                if ( tqp_ != null ) {
+                    tqp_.setExtraTables( createTopcatValidatorTables() );
                 }
             }
         } );
-        tqp.setExtraTables( createTopcatValidatorTables() );
-        return tqp;
+        tqp_.setExtraTables( createTopcatValidatorTables() );
+        return tqp_;
     }
 
     /**
