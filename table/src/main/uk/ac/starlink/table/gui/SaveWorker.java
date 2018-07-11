@@ -58,11 +58,10 @@ public abstract class SaveWorker {
         location_ = location;
         progPopup_ = new JDialog( getFrame( parent ), "Saving...", true );
         progPopup_.setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
-        String descrip = tables.length == 1
-                       ? "table " + tables[ 0 ].getName()
-                       : tables.length + " tables";
-        progPopup_.setContentPane( createProgressPanel( progBar_, descrip,
-                                                        location ) );
+        String txt = "Saving "
+                 + ( tables.length == 1 ? "table" : "tables" )
+                 + " to " + location;
+        progPopup_.setContentPane( createProgressPanel( progBar_, txt ) );
         progPopup_.pack();
         progPopup_.setLocationRelativeTo( parent );
     }
@@ -197,12 +196,10 @@ public abstract class SaveWorker {
      * suitable text.
      *
      * @param  progBar  progress bar to use
-     * @param  descrip  short description of tables being saved
-     * @param  dest     destination string for tables to be saved
+     * @param  txt   text for presentation to the user
      * @return   panel containing progress bar
      */
-    private JComponent createProgressPanel( JProgressBar progBar,
-                                            String descrip, String dest ) {
+    private JComponent createProgressPanel( JProgressBar progBar, String txt ) {
         JComponent main = new JPanel( new BorderLayout() );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
 
@@ -221,8 +218,7 @@ public abstract class SaveWorker {
 
         JComponent midBox = Box.createVerticalBox();
         midBox.setBorder( gapBorder );
-        midBox.add( new JLabel( "Saving " + descrip ) );
-        midBox.add( new JLabel( "to " + dest ) );
+        midBox.add( new JLabel( txt ) );
         midBox.add( Box.createVerticalStrut( 5 ) );
         midBox.add( progBar );
         main.add( midBox, BorderLayout.CENTER );
