@@ -25,6 +25,7 @@ public class ActivationEntry {
     private final ActivationType atype_;
     private final ActivatorConfigurator configurator_;
     private final ActivationLogPanel logPanel_;
+    private boolean isBlocked_;
     private ExecutorService queue_;
     private Job lastJob_;
     private static final Logger logger_ =
@@ -72,6 +73,29 @@ public class ActivationEntry {
      */
     public JComponent getLogPanel() {
         return logPanel_;
+    }
+
+    /**
+     * Indicates whether this entry is considered a potential security risk.
+     * This class maintains this flag, but doesn't take any notice of it.
+     * The default status is unblocked.
+     *
+     * @return  true  iff setBlocked has been called with a true argument
+     *                (more recently than with a false argument)
+     */
+    public boolean isBlocked() {
+        return isBlocked_;
+    }
+
+    /**
+     * Sets whether this entry is considered a potential security risk.
+     * This class maintains this flag, but doesn't take any notice of it.
+     * The default status is unblocked.
+     *
+     * @param  isBlocked  blocking flag
+     */
+    public void setBlocked( boolean isBlocked ) {
+        isBlocked_ = isBlocked;
     }
 
     /**

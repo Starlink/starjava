@@ -245,6 +245,7 @@ public class ResourceIcon implements Icon {
         HISTO_SAVE = makeIcon( "histo-save.png" ),
         HISTO_IMPORT = makeIcon( "histo-import.png" ),
         WARNING = makeIcon( "warning_triangle.png" ),
+        APPROVE_ALL = makeIcon( "approve_all.png" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.png" ),

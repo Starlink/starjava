@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.activate;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -47,6 +48,9 @@ import javax.swing.JToolBar;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -57,6 +61,7 @@ import uk.ac.starlink.topcat.BasicCheckBoxList;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.MethodWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.ViewerTableModel;
@@ -76,12 +81,15 @@ public class ActivationWindow extends AuxWindow {
     private final JComponent configContainer_;
     private final JComponent outputContainer_;
     private final JTextArea descriptionLabel_;
+    private final JComponent securityContainer_;
+    private final JComponent securityPanel_;
     private final JLabel statusLabel_;
     private final InvokeAllAction invokeAllAct_;
     private final InvokeSingleAction invokeSingleAct_;
     private final SingleSequenceAction singleSeqAct_;
     private final AllSequenceAction allSeqAct_;
     private final CancelSequenceAction cancelSeqAct_;
+    private final ApproveAllAction approveAllAct_;
     private final ActionListener statusListener_;
     private final JProgressBar progBar_;
     private final ThreadFactory seqThreadFact_;
@@ -89,6 +97,8 @@ public class ActivationWindow extends AuxWindow {
     private long currentRow_;
     private ActivationEntry selectedEntry_;
     private String summary_;
+    private static final Color WARNING_FG = Color.RED;
+    private static final Color WARNING_BG = new Color( 0xffeeee );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.activate" );
 
@@ -123,6 +133,9 @@ public class ActivationWindow extends AuxWindow {
                 return thread;
             }
         };
+        final Color enabledFg = UIManager.getColor( "Label.foreground" );
+        final Color disabledFg =
+            UIManager.getColor( "Label.disabledForeground" );
         list_ = new BasicCheckBoxList<ActivationEntry>( ActivationEntry.class,
                                                         true ) {
             @Override
@@ -132,10 +145,20 @@ public class ActivationWindow extends AuxWindow {
                 ActivationType atype = item.getType();
                 ActivatorConfigurator configurator = item.getConfigurator();
                 boolean isEnabled = configurator.getActivator() != null;
+                boolean isChecked = list_.isChecked( item );
                 if ( entryRenderer instanceof JLabel ) {
                     JLabel label = (JLabel) entryRenderer;
                     label.setText( atype.getName() );
                     label.setEnabled( isEnabled );
+                    final Color fg;
+                    if ( isEnabled ) {
+                        fg = item.isBlocked() && isChecked ? WARNING_FG
+                                                           : enabledFg;
+                    }
+                    else {
+                        fg = disabledFg;
+                    }
+                    label.setForeground( fg );
                 }
                 else {
                     assert false;
@@ -292,6 +315,8 @@ public class ActivationWindow extends AuxWindow {
         singleSeqAct_ = new SingleSequenceAction();
         allSeqAct_ = new AllSequenceAction();
         cancelSeqAct_ = new CancelSequenceAction();
+        approveAllAct_ = new ApproveAllAction();
+
         list_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 if ( selectedEntry_ != null ) {
@@ -306,12 +331,16 @@ public class ActivationWindow extends AuxWindow {
                 removeAct.setEnabled( ! list_.isSelectionEmpty() );
                 configContainer_.removeAll();
                 outputContainer_.removeAll();
+                securityContainer_.removeAll();
                 if ( selectedEntry_ != null ) {
                     configContainer_.add( selectedEntry_.getConfigurator()
                                                         .getPanel() );
                     outputContainer_.add( selectedEntry_.getLogPanel() );
                     descriptionLabel_.setText( selectedEntry_.getType()
                                               .getDescription() );
+                    if ( selectedEntry_.isBlocked() ) {
+                        securityContainer_.add( securityPanel_ );
+                    }
                 }
                 else {
                     descriptionLabel_.setText( null );
@@ -323,9 +352,11 @@ public class ActivationWindow extends AuxWindow {
                 configContainer_.revalidate();
                 outputContainer_.revalidate();
                 descriptionLabel_.revalidate();
+                securityContainer_.revalidate();
                 configContainer_.repaint();
                 outputContainer_.repaint();
                 descriptionLabel_.repaint();
+                securityContainer_.repaint();
             }
         } );
 
@@ -354,9 +385,50 @@ public class ActivationWindow extends AuxWindow {
         resultsPanel.setBorder( makeTitledBorder( "Results" ) );
         resultsPanel.add( outputContainer_, BorderLayout.CENTER );
 
+        securityContainer_ = new JPanel( new BorderLayout() );
+        Action approveAct = new AbstractAction( "Approve" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                unblockSelected();
+            }
+        };
+        Action deleteAct = new AbstractAction( "Delete" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                removeAct.actionPerformed( evt );
+            }
+        };
+        securityPanel_ = Box.createVerticalBox();
+        Border securityBorder =
+            BorderFactory
+           .createTitledBorder( BorderFactory.createLineBorder( WARNING_FG ),
+                                "Security", TitledBorder.LEADING,
+                                TitledBorder.TOP, null, WARNING_FG );
+        securityPanel_.setBorder( securityBorder );
+        securityPanel_.setBackground( WARNING_BG );
+        securityPanel_.setOpaque( true );
+        JTextArea securityLabel = new JTextArea();
+        securityLabel.setEditable( false );
+        securityLabel.setOpaque( false );
+        securityLabel.setLineWrap( true );
+        securityLabel.setWrapStyleWord( true );
+        securityLabel.setForeground( WARNING_FG );
+        securityLabel.setText( new StringBuffer()
+            .append( "This action, loaded from external configuration, " )
+            .append( "may potentially contain insecure code. " )
+            .append( "Please review the configuration and approve " )
+            .append( "if you are happy with it." )
+            .toString() );
+        JComponent sbuttLine = Box.createHorizontalBox();
+        sbuttLine.add( Box.createHorizontalGlue() );
+        sbuttLine.add( new JButton( approveAct ) );
+        sbuttLine.add( Box.createHorizontalStrut( 10 ) );
+        sbuttLine.add( new JButton( deleteAct ) );
+        securityPanel_.add( securityLabel );
+        securityPanel_.add( sbuttLine );
+
         JComponent descriptionPanel = new JPanel( new BorderLayout() );
         descriptionPanel.setBorder( makeTitledBorder( "Description" ) );
         descriptionLabel_ = new JTextArea();
+        descriptionLabel_.setEditable( false );
         descriptionLabel_.setOpaque( false );
         descriptionLabel_.setLineWrap( true );
         descriptionLabel_.setWrapStyleWord( true );
@@ -374,13 +446,16 @@ public class ActivationWindow extends AuxWindow {
         statusPanel.add( statusLabel_ );
 
         JComponent entryPanel = new JPanel( new BorderLayout() );
-        entryPanel.add( descriptionPanel, BorderLayout.NORTH );
-        entryPanel.add( configScroller, BorderLayout.CENTER );
-        entryPanel.add( statusPanel, BorderLayout.SOUTH );
+        entryPanel.add( securityContainer_, BorderLayout.NORTH );
+        JComponent normalPanel = new JPanel( new BorderLayout() );
+        normalPanel.add( descriptionPanel, BorderLayout.NORTH );
+        normalPanel.add( configScroller, BorderLayout.CENTER );
+        normalPanel.add( statusPanel, BorderLayout.SOUTH );
+        entryPanel.add( normalPanel, BorderLayout.CENTER );
 
         /* Size and place components. */
-        listScroller.setPreferredSize( new Dimension( 200, 250 ) );
-        entryPanel.setPreferredSize( new Dimension( 400, 250 ) );
+        listScroller.setPreferredSize( new Dimension( 200, 300 ) );
+        entryPanel.setPreferredSize( new Dimension( 400, 300 ) );
         resultsPanel.setPreferredSize( new Dimension( 600, 120 ) );
         JSplitPane hsplitter =
             new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,
@@ -398,6 +473,7 @@ public class ActivationWindow extends AuxWindow {
         getJMenuBar().add( actMenu );
         actMenu.add( removeAct );
         actMenu.add( removeInactiveAct );
+        actMenu.add( approveAllAct_ );
         actMenu.addSeparator();
         actMenu.add( invokeSingleAct_ );
         actMenu.add( invokeAllAct_ );
@@ -452,8 +528,10 @@ public class ActivationWindow extends AuxWindow {
         invokeAllAct_.configure();
         invokeSingleAct_.configure();
         updateStatus();
-        for ( ActivationEntry entry : list_.getCheckedItems() ) {
-            entry.activateRowAsync( lrow, meta );
+        if ( checkAllUnblocked( list_.getCheckedItems() ) ) {
+            for ( ActivationEntry entry : list_.getCheckedItems() ) {
+                entry.activateRowAsync( lrow, meta );
+            }
         }
     }
 
@@ -549,7 +627,20 @@ public class ActivationWindow extends AuxWindow {
                 boolean isSelected = TRUE.equals( map.get( ISSELECTED_KEY ) );
                 ActivationEntry entry =
                     addActivationEntry( atype, tinfo, isActive );
-                entry.getConfigurator().setState( new ConfigState( map ) );
+                ActivatorConfigurator config = entry.getConfigurator();
+                config.setState( new ConfigState( map ) );
+
+                /* Any potentially unsafe actions which come configured ready
+                 * to work from this external source are marked blocked,
+                 * which means the user must explicitly approve them before
+                 * they will be invoked.  The thinking is that
+                 * a bad person may have prepared a session file such that
+                 * when a third party loads it, it executes harmful code.
+                 * Actions which the user has prepared from scratch are
+                 * not considered to be risky in this way. */
+                if ( config.getSafety() != Safety.SAFE ) {
+                    entry.setBlocked( true );
+                }
                 list_.setChecked( entry, isActive );
                 if ( isSelected ) {
                     selected = entry;
@@ -563,6 +654,7 @@ public class ActivationWindow extends AuxWindow {
             selected = (ActivationEntry) listModel_.getElementAt( 0 );
         }
         list_.setSelectedValue( selected, true );
+        approveAllAct_.configure();
     }
 
     /**
@@ -695,6 +787,59 @@ public class ActivationWindow extends AuxWindow {
     }
 
     /**
+     * Sets the currently selected ActivationEntry to unblocked.
+     */
+    private void unblockSelected() {
+        ActivationEntry entry = selectedEntry_;
+        if ( entry != null && entry.isBlocked() ) {
+            entry.setBlocked( false );
+            securityContainer_.removeAll();
+            securityContainer_.revalidate();
+            securityContainer_.repaint();
+        }
+        list_.repaint();
+    }
+
+    /**
+     * Indicates whether a given ActivationEntry is blocked from use.
+     * If it unblocked, true is returned.
+     * If it is blocked, then this window is made visible in such a way that
+     * the user can see the issue, and false is returned.
+     *
+     * @param  entry   entry to test
+     * @return   true iff activation is unblocked
+     */
+    private boolean checkUnblocked( ActivationEntry entry ) {
+        if ( entry == null || ! entry.isBlocked() ) {
+            return true;
+        }
+        else {
+            list_.setSelectedValue( entry, true );
+            makeVisible();
+            toFront();
+            return false;
+        }
+    }
+
+    /**
+     * Indicates whether all the given ActivationEntries are unblocked for use.
+     * If they are all unblocked, true is returned.
+     * If any is blocked, then this window is made visible in such a way that
+     * the user can see the issue, and false is returned.
+     * 
+     * @param  entries  entries to test
+     * @return   true iff activation is unblocked for all
+     */
+    private boolean checkAllUnblocked( List<ActivationEntry> entries ) {
+        for ( ActivationEntry entry : entries ) {
+            if ( ! checkUnblocked( entry ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Returns a list of activation types that should be available
      * for selection for a given table.
      *
@@ -749,7 +894,8 @@ public class ActivationWindow extends AuxWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            if ( entry_ != null && currentRow_ >= 0 ) {
+            if ( entry_ != null && currentRow_ >= 0 &&
+                 checkUnblocked( entry_ ) ) {
                 entry_.activateRowAsync( currentRow_, meta_ );
             }
         }
@@ -785,8 +931,11 @@ public class ActivationWindow extends AuxWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             if ( currentRow_ >= 0 ) {
-                for ( ActivationEntry entry : list_.getCheckedItems() ) {
-                    entry.activateRowAsync( currentRow_, meta_ );
+                List<ActivationEntry> entries = list_.getCheckedItems();
+                if ( checkAllUnblocked( entries ) ) {
+                    for ( ActivationEntry entry : entries ) {
+                        entry.activateRowAsync( currentRow_, meta_ );
+                    }
                 }
             }
         }
@@ -829,6 +978,51 @@ public class ActivationWindow extends AuxWindow {
     }
 
     /**
+     * Action that ensures all entries are marked unblocked
+     * without further user interaction.
+     */
+    private class ApproveAllAction extends BasicAction {
+        ApproveAllAction() {
+            super( "Approve All Actions", ResourceIcon.APPROVE_ALL,
+                   "Approve all potentially unsafe actions; use with care" );
+            configure();
+        }
+        public void actionPerformed( ActionEvent evt ) {
+            if ( selectedEntry_ != null && selectedEntry_.isBlocked() ) {
+                unblockSelected();
+            }
+            for ( ActivationEntry entry : getBlockedEntries() ) {
+                entry.setBlocked( false );
+            }
+            list_.repaint();
+            configure();
+        }
+
+        /**
+         * Should be called if anything affecting enabledness changes.
+         */
+        public void configure() {
+            setEnabled( ! getBlockedEntries().isEmpty() );
+        }
+
+        /**
+         * Returns a list of all the activation entries currently in the list
+         * that are marked blocked.
+         *
+         * @return  blocked list
+         */
+        private List<ActivationEntry> getBlockedEntries() {
+            List<ActivationEntry> list = new ArrayList<ActivationEntry>();
+            for ( ActivationEntry entry : list_.getItems() ) {
+                if ( entry.isBlocked() ) {
+                    list.add( entry );
+                }
+            }
+            return list;
+        }
+    }
+
+    /**
      * Action that invokes the currently selected activation action
      * on every row of the current apparent table.
      */
@@ -846,7 +1040,7 @@ public class ActivationWindow extends AuxWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             final ActivationEntry entry = getSelectedEntry();
-            if ( entry != null ) {
+            if ( entry != null && checkUnblocked( entry ) ) {
                 final Activator activator =
                     entry.getConfigurator().getActivator();
                 if ( activator != null ) {
@@ -946,11 +1140,15 @@ public class ActivationWindow extends AuxWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
+            List<ActivationEntry> entries = list_.getCheckedItems();
+            if ( ! checkAllUnblocked( entries ) ) {
+                return;
+            }
 
             /* Prepare a list of the activators to invoke at each row. */
             final Map<ActivationEntry,Activator> activators =
                 new LinkedHashMap<ActivationEntry,Activator>();
-            for ( ActivationEntry entry : list_.getCheckedItems() ) {
+            for ( ActivationEntry entry : entries ) {
                 Activator activator = entry.getConfigurator().getActivator();
                 if ( activator != null ) {
                     activators.put( entry, activator );
