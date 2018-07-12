@@ -42,7 +42,8 @@ public class BasicImageDisplay {
      * @return  short log message
      */
     public static String displayBasicImage( String label, String loc ) {
-        getImageWindow( label ).setImage( loc );
+        boolean allowSystem = false;
+        getImageWindow( label ).setImage( loc, allowSystem );
         return "viewImage(" + loc + ")";
     }
 

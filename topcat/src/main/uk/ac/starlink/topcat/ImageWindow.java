@@ -66,11 +66,14 @@ public class ImageWindow extends AuxWindow {
      * invoked on the Event Dispatch Thread.
      *
      * @param  location   file or URL
+     * @param  allowSystem  whether to allow system commands in location
+     *                      specification - has security implications
      * @return  image
      */
-    public Image createImage( String location ) throws IOException {
+    public Image createImage( String location, boolean allowSystem )
+            throws IOException {
         return ImageIO
-              .read( DataSource.makeDataSource( location ).getInputStream() );
+              .read( DataSource.getInputStream( location, allowSystem ) );
     }
 
     /**
@@ -91,8 +94,10 @@ public class ImageWindow extends AuxWindow {
      * an image.
      *
      * @param  location  image filename or URL
+     * @param  allowSystem  whether to allow system commands in location
+     *                      specification - has security implications
      */
-    public void setImage( final String location ) {
+    public void setImage( final String location, final boolean allowSystem ) {
 
         /* Read the stream out of the event dispatch thread and when the data
          * has arrived set the icon to display it.  I know that ImageIcon
@@ -108,7 +113,7 @@ public class ImageWindow extends AuxWindow {
             public void run() {
                 String txt;
                 try {
-                    im = createImage( location );
+                    im = createImage( location, allowSystem );
                     txt = null;
                 }
                 catch ( IOException e ) {

@@ -60,11 +60,14 @@ public class VotCopy implements Task {
     private final BooleanParameter hrefParam_;
     private final BooleanParameter nomagicParam_;
     private final StringParameter baseParam_;
+    private final boolean allowSystem_;
 
     /**
      * Constructor.
      */
     public VotCopy() {
+        allowSystem_ = true;
+
         inParam_ = new StringParameter( "in" );
         inParam_.setPosition( 1 );
         inParam_.setPrompt( "Input votable" );
@@ -322,7 +325,8 @@ public class VotCopy implements Task {
                 /* Get input stream. */
                 String systemId = inLoc_.equals( "-" ) ? "." : inLoc_;
                 in = new BufferedInputStream( DataSource
-                                             .getInputStream( inLoc_ ) );
+                                             .getInputStream( inLoc_,
+                                                              allowSystem_ ) );
 
                 /* Try to get an output VOTable version, from the input
                  * table if necessary. */

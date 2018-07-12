@@ -22,6 +22,7 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -109,22 +110,25 @@ public class LoadTableActivationType implements ActivationType {
             final boolean isSelect = false;
             final boolean isMultiple = multipleSelector_.isSelected();
             final boolean importParams = paramsSelector_.isSelected();
+            final boolean allowSystem = false;
             return new LocationColumnActivator( cdata, false ) {
                 final TopcatModel parentTable = getTopcatModel();
                 protected Outcome activateLocation( final String loc,
                                                     long lrow ) {
                     final List<StarTable> tables = new ArrayList<StarTable>();
                     try {
+                        DataSource datsrc =
+                            DataSource.makeDataSource( loc, allowSystem );
                         if ( isMultiple ) {
                             TableSequence tseq =
-                                tfact.makeStarTables( loc, format );
+                                tfact.makeStarTables( datsrc, format );
                             StarTable t;
                             while ( ( t = tseq.nextTable() ) != null ) {
                                 tables.add( t );
                             }
                         }
                         else {
-                            tables.add( tfact.makeStarTable( loc, format ) );
+                            tables.add( tfact.makeStarTable( datsrc, format ) );
                         }
                     }
                     catch ( IOException e ) {

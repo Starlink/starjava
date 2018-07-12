@@ -18,8 +18,11 @@ import uk.ac.starlink.util.DataSource;
  */
 public class InputStreamParameter extends Parameter<InputStream> {
 
+    private final boolean allowSystem_;
+
     public InputStreamParameter( String name ) {
         super( name, InputStream.class, true );
+        allowSystem_ = true;
         setUsage( "<location>" );
     }
 
@@ -36,7 +39,7 @@ public class InputStreamParameter extends Parameter<InputStream> {
             }
         }
         try {
-            return DataSource.getInputStream( sval );
+            return DataSource.getInputStream( sval, allowSystem_ );
         }
         catch ( IOException e ) {
             throw (ParameterValueException)

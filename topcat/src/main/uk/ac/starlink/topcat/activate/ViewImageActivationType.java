@@ -150,13 +150,14 @@ public class ViewImageActivationType implements ActivationType {
         }
         public Activator createActivator( final ColumnData cdata,
                                           final String label ) {
+            final boolean allowSystem = false;
             return new UrlColumnConfigurator
                       .LocationColumnActivator( cdata, false ) {
                 protected Outcome activateLocation( String loc, long lrow ) {
                     final ImageWindow imwin = getImageWindow( label );
                     final Image image;
                     try {
-                        image = imwin.createImage( loc );
+                        image = imwin.createImage( loc, allowSystem );
                     }
                     catch ( IOException e ) {
                         return Outcome.failure( e );

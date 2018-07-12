@@ -36,6 +36,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
 
     private InputFormatParameter formatParam_;
     private BooleanParameter streamParam_;
+    private final boolean allowSystem_ = true;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
     private static final String[] KNOWN_PREFIXES =
@@ -134,12 +135,15 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
         try {
             if ( loc.equals( "-" ) ) {
                 InputStream in =
-                    new BufferedInputStream( DataSource.getInputStream( loc ) );
+                    new BufferedInputStream( DataSource
+                                            .getInputStream( loc,
+                                                             allowSystem_ ) );
                 return getStreamedTable( tfact, in, fmt, null );
             }
             else if ( stream ) {
                 return getStreamedTable( tfact,
-                                         DataSource.makeDataSource( loc ),
+                                         DataSource
+                                        .makeDataSource( loc, allowSystem_ ),
                                          fmt );
             }
             else {
@@ -180,7 +184,9 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
             if ( loc.equals( "-" ) ) {
                 logger_.warning( streamWarning );
                 InputStream in =
-                    new BufferedInputStream( DataSource.getInputStream( loc ) );
+                    new BufferedInputStream( DataSource
+                                            .getInputStream( loc,
+                                                             allowSystem_ ) );
                 return new StarTable[] {
                     getStreamedTable( tfact, in, fmt, null )
                 };

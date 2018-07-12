@@ -562,25 +562,66 @@ public abstract class DataSource {
     }
 
     /**
-     * Attempts to make a source given a name identifying its location.
+     * Attempts to make a source given a string identifying its location
+     * as a file, URL or system command output.
      * This may be one of the following options:
      * <ul>
      * <li>filename</li>
      * <li>URL</li>
      * <li>a string preceded by "&lt;" or followed by "|",
-     *     giving a shell commandline (may not work on all platforms)</li>
+     *     giving a shell command line (may not work on all platforms)</li>
      * </ul>
      *
      * <p>If a '#' character exists in the string, text after it will be
      * interpreted as a position value.  Otherwise, the position is
      * considered to be <tt>null</tt>.
      *
+     * <p><strong>Note:</strong> this method presents a security risk if the
+     * <code>loc</code> string is vulnerable to injection.
+     * Consider using the variant method
+     * {@link #makeDataSource(java.lang.String,boolean)
+     *         makeDataSource}(loc,false) in such cases.
+     * This method just calls <code>makeDataSource(loc,true)</code>.
+     *
      * @param  loc  the location of the data, with optional position
-     * @return  a DataSource based on the data at <tt>name</tt>
-     * @throws  IOException  if <tt>name</tt> does not name
+     * @return  a DataSource based on the data at <tt>loc</tt>
+     * @throws  IOException  if <tt>loc</tt> does not name
      *          an existing readable file or valid URL
      */
     public static DataSource makeDataSource( String loc )
+            throws IOException {
+        return makeDataSource( loc, true );
+    }
+
+    /**
+     * Attempts to make a source given a string identifying its location
+     * as a file, URL or optionally a system command output.
+     *
+     * <p>The supplied <code>loc</code> may be one of the following:
+     * <ul>
+     * <li>filename</li>
+     * <li>URL</li>
+     * <li><em>only if</em> <code>allowSystem=true</code>:
+     *     a string preceded by "&lt;" or followed by "|",
+     *     giving a shell command line (may not work on all platforms)</li>
+     * </ul>
+     *
+     * <p>If a '#' character exists in the string, text after it will be
+     * interpreted as a position value.  Otherwise, the position is
+     * considered to be <tt>null</tt>.
+     *
+     * <p><strong>Note:</strong> setting <code>allowSystem=true</code> may
+     * introduce a security risk if the <code>loc</code> string is
+     * vulnerable to injection.
+     *
+     * @param  loc  the location of the data, with optional position
+     * @param  allowSystem  whether to allow system commands
+     *                      using the format above
+     * @return  a DataSource based on the data at <tt>loc</tt>
+     * @throws  IOException  if <tt>loc</tt> does not name
+     *          an existing readable file or valid URL
+     */
+    public static DataSource makeDataSource( String loc, boolean allowSystem )
             throws IOException {
 
         /* Extract any position part. */
@@ -603,13 +644,15 @@ public abstract class DataSource {
         }
 
         /* Try it as a shell command. */
-        String cmdLine = getShellCommandLine( name );
-        if ( cmdLine != null ) {
-            ProcessBuilder pb =
-                ProcessDataSource.createCommandLineProcessBuilder( cmdLine );
-            DataSource src = new ProcessDataSource( pb );
-            src.setPosition( position );
-            return src;
+        if ( allowSystem ) {
+            String cmdLine = getShellCommandLine( name );
+            if ( cmdLine != null ) {
+                ProcessBuilder pb = ProcessDataSource
+                                   .createCommandLineProcessBuilder( cmdLine );
+                DataSource src = new ProcessDataSource( pb );
+                src.setPosition( position );
+                return src;
+            }
         }
 
         /* Try it as a URL. */
@@ -620,8 +663,14 @@ public abstract class DataSource {
         }
 
         /* No luck. */
-        throw new FileNotFoundException( "No file, URL or command \""
-                                       + name + "\"" );
+        String msg = new StringBuffer()
+            .append( "No file" )
+            .append( allowSystem ? ", URL or command " : " or URL " )
+            .append( '"' )
+            .append( name )
+            .append( '"' )
+            .toString();
+        throw new FileNotFoundException( msg );
     }
 
     /**
@@ -656,19 +705,28 @@ public abstract class DataSource {
      * <li>filename</li>
      * <li>URL</li>
      * <li>"-" meaning standard input</li>
-     * <li>a string preceded by "&lt;" or followed by "|",
-     *     giving a shell commandline (may not work on all platforms)</li>
+     * <li><em>only if</em> <code>allowSystem=true</code>:
+     *     a string preceded by "&lt;" or followed by "|",
+     *     giving a shell command line (may not work on all platforms)</li>
      * </ul>
      *
+     * <p><strong>Note:</strong> setting <code>allowSystem=true</code> may
+     * introduce a security risk if the <code>loc</code> string is
+     * vulnerable to injection.
+     *
      * @param  location  URL, filename, "cmdline|"/"&lt;cmdline", or "-"
+     * @param  allowSystem  whether to allow system commands
+     *                      using the format above
      * @return  uncompressed stream containing the data at <tt>location</tt>
      * @throws  FileNotFoundException  if <tt>location</tt> cannot be
      *          interpreted as a source of bytes
      * @throws  IOException  if there is an error obtaining the stream
      */
-    public static InputStream getInputStream( String location )
+    public static InputStream getInputStream( String location,
+                                              boolean allowSystem )
             throws IOException {
-        return Compression.decompressStatic( getRawInputStream( location ) );
+        return Compression
+              .decompressStatic( getRawInputStream( location, allowSystem ) );
     }
 
     /**
@@ -676,12 +734,15 @@ public abstract class DataSource {
      * Possible location values are as for {@link #getInputStream}.
      *
      * @param  location  URL, filename, "cmdline|"/"&lt;cmdline", or "-"
+     * @param  allowSystem  whether to allow system commands
+     *                      using the format above
      * @return  stream containing the raw content at <tt>location</tt>
      * @throws  FileNotFoundException  if <tt>location</tt> cannot be
      *          interpreted as a source of bytes
      * @throws  IOException  if there is an error obtaining the stream
      */
-    private static InputStream getRawInputStream( String location )
+    private static InputStream getRawInputStream( String location,
+                                                  boolean allowSystem )
             throws IOException {
 
         /* Minus sign means standard input. */
@@ -696,11 +757,13 @@ public abstract class DataSource {
         }
 
         /* Try it as a shell command line. */
-        String cmdLine = getShellCommandLine( location );
-        if ( cmdLine != null ) {
-            ProcessBuilder pb =
-                ProcessDataSource.createCommandLineProcessBuilder( cmdLine );
-            return pb.start().getInputStream();
+        if ( allowSystem ) {
+            String cmdLine = getShellCommandLine( location );
+            if ( cmdLine != null ) {
+                ProcessBuilder pb = ProcessDataSource
+                                   .createCommandLineProcessBuilder( cmdLine );
+                return pb.start().getInputStream();
+            }
         }
 
         /* Try it as a URL. */
@@ -714,8 +777,14 @@ public abstract class DataSource {
         }
 
         /* No luck. */
-        throw new FileNotFoundException( "No file, URL or command \""
-                                       + location + "\"" );
+        String msg = new StringBuffer()
+            .append( "No file" )
+            .append( allowSystem ? ", URL or command " : " or URL " )
+            .append( '"' )
+            .append( location )
+            .append( '"' )
+            .toString();
+        throw new FileNotFoundException( msg );
     }
 
     /**

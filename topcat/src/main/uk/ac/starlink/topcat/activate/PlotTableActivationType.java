@@ -23,6 +23,7 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.plot2.PlotWindowType;
 import uk.ac.starlink.topcat.plot2.TablePlotDisplay;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -136,11 +137,14 @@ public class PlotTableActivationType implements ActivationType {
                 plotDisplay_ = plotDisplay;
             }
             return new LocationColumnActivator( cdata, false ) {
+                final boolean allowSystem = false;
                 final TopcatModel parentTable = getTopcatModel();
                 public Outcome activateLocation( final String loc, long lrow ) {
                     final StarTable table;
                     try {
-                        table = tfact_.makeStarTable( loc, format );
+                        DataSource datsrc =
+                            DataSource.makeDataSource( loc, allowSystem );
+                        table = tfact_.makeStarTable( datsrc, format );
                     }
                     catch ( IOException e ) {
                         return Outcome.failure( e );
