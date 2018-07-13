@@ -11,6 +11,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.IntSelector;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.SuperCosmos;
@@ -128,6 +129,10 @@ public class CutoutActivationType implements ActivationType {
 
         public String getSkyConfigMessage() {
             return null;
+        }
+
+        public Safety getSafety() {
+            return Safety.SAFE;
         }
 
         public ConfigState getState() {

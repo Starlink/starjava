@@ -4,6 +4,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 
 /**
  * Activation type which does nothing.
@@ -59,6 +60,9 @@ public class NopActivationType implements ActivationType {
             }
             public String getConfigMessage() {
                 return "Doesn't do anything";
+            }
+            public Safety getSafety() {
+                return Safety.SAFE;
             }
             public void addActionListener( ActionListener l ) {
             }

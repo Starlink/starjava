@@ -27,4 +27,11 @@ public interface UrlInvoker {
      * @return   outcome
      */
     public abstract Outcome invokeUrl( URL url );
+
+    /**
+     * Returns the safety status of invoking an unknown URL in this way.
+     *
+     * @return  safety
+     */
+    public Safety getSafety();
 }

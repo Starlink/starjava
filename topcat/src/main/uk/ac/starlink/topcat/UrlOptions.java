@@ -21,6 +21,7 @@ import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.plot2.PlotWindowType;
 import uk.ac.starlink.topcat.plot2.TablePlotDisplay;
+import uk.ac.starlink.util.DataSource;
 
 /**
  * Defines an action that consumes a URL.
@@ -34,6 +35,7 @@ public class UrlOptions {
 
     private final UrlInvoker[] invokers_;
     private final Map<ResourceType,UrlInvoker> dfltMap_;
+    private static final boolean allowSystem_ = false;
 
     public UrlOptions( UrlInvoker[] invokers,
                        Map<ResourceType,UrlInvoker> dfltMap ) {
@@ -59,12 +61,13 @@ public class UrlOptions {
         UrlInvoker download = createDownloadInvoker( dlPanel );
         UrlInvoker viewDatalink = createDatalinkInvoker( dlPanel );
         UrlInvoker sendFitsImage =
-            createSampInvoker( "FITS Image", "image.load.fits" );
+            createSampInvoker( "FITS Image", "image.load.fits", Safety.SAFE );
         UrlInvoker sendTable =
-            createSampInvoker( "Table", "table.load.votable" );
+            createSampInvoker( "Table", "table.load.votable", Safety.SAFE );
         // Note additional spectrum metadata is not supplied here.
         UrlInvoker sendSpectrum =
-            createSampInvoker( "Spectrum", "spectrum.load.ssa-generic" );
+            createSampInvoker( "Spectrum", "spectrum.load.ssa-generic",
+                               Safety.SAFE );
         UrlInvoker[] invokers = new UrlInvoker[] {
             reportUrl,
             viewImage,
@@ -98,7 +101,7 @@ public class UrlOptions {
      * @return  new invoker
      */
     private static UrlInvoker createReportInvoker() {
-        return new AbstractUrlInvoker( "Report URL" ) {
+        return new AbstractUrlInvoker( "Report URL", Safety.SAFE ) {
             public Outcome invokeUrl( URL url ) {
                 return url == null ? Outcome.failure( "No URL" )
                                    : Outcome.success( url.toString() );
@@ -116,12 +119,16 @@ public class UrlOptions {
             createLoadTableInvoker( final ControlWindow controlWin ) { 
         final boolean isSelect = true;
         final StarTableFactory tfact = controlWin.getTableFactory();
-        return new AbstractUrlInvoker( "Load Table" ) {
+        return new AbstractUrlInvoker( "Load Table",
+                                       allowSystem_ ? Safety.UNSAFE
+                                                    : Safety.SAFE ) {
             public Outcome invokeUrl( URL url ) {
                 final String loc = url.toString();
                 final StarTable table;
                 try {
-                    table = tfact.makeStarTable( loc );
+                    DataSource datsrc =
+                        DataSource.makeDataSource( loc, allowSystem_ );
+                    table = tfact.makeStarTable( datsrc );
                 }
                 catch ( IOException e ) {
                     return Outcome.failure( e );
@@ -156,12 +163,16 @@ public class UrlOptions {
         final TablePlotDisplay plotDisplay =
             new TablePlotDisplay( controlWin, PlotWindowType.PLANE,
                                   "Downloaded", false );
-        return new AbstractUrlInvoker( "Plot Table" ) {
+        return new AbstractUrlInvoker( "Plot Table",
+                                       allowSystem_ ? Safety.UNSAFE
+                                                    : Safety.SAFE ) {
             public Outcome invokeUrl( URL url ) {
                 String loc = url.toString();
                 final StarTable table;
                 try {
-                    table = tfact.makeStarTable( loc );
+                    DataSource datsrc =
+                        DataSource.makeDataSource( loc, allowSystem_ );
+                    table = tfact.makeStarTable( datsrc );
                 }
                 catch ( IOException e ) {
                     return Outcome.failure( e );
@@ -185,7 +196,7 @@ public class UrlOptions {
      */
     private static UrlInvoker
             createDatalinkInvoker( final DatalinkPanel dlPanel ) {
-        return new AbstractUrlInvoker( "View DataLink Table" ) {
+        return new AbstractUrlInvoker( "View DataLink Table", Safety.SAFE ) {
             private DatalinkPanel dlPanel_ = dlPanel;
             public Outcome invokeUrl( URL url ) {
                 final boolean isNewPanel;
@@ -220,7 +231,8 @@ public class UrlOptions {
      * @return   new invoker
      */
     private static UrlInvoker createViewImageInvoker() {
-        return new AbstractUrlInvoker( "View image internally" ) {
+        return new AbstractUrlInvoker( "View image internally",
+                                       Safety.SAFE ) {
             public Outcome invokeUrl( URL url ) {
                 String loc = url.toString();
                 String label = "Image";
@@ -238,7 +250,7 @@ public class UrlOptions {
      * @return  new invoker
      */
     private static UrlInvoker createBrowserInvoker() {
-        return new AbstractUrlInvoker( "Show web page" ) {
+        return new AbstractUrlInvoker( "Show web page", Safety.UNSAFE ) {
             public Outcome invokeUrl( URL url ) {
                 Browsers.systemBrowser( url.toString() );
                 return Outcome.success( url.toString() );
@@ -255,7 +267,10 @@ public class UrlOptions {
     private static UrlInvoker createDownloadInvoker( Component parent ) {
         final DownloadDialog dialog =
             DownloadDialog.createSystemDialog( parent );
-        return new AbstractUrlInvoker( "Download URL" ) {
+        // Safe as long as the user sees the dialogue window before the
+        // download happens.  If it was done without user intervention
+        // it should be marked as UNSAFE.
+        return new AbstractUrlInvoker( "Download URL", Safety.SAFE ) {
             public Outcome invokeUrl( URL url ) {
                 return dialog.userDownload( url );
             }
@@ -269,12 +284,14 @@ public class UrlOptions {
      *
      * @param   contentName  user-readable type for resource to be sent
      * @param   mtype   MType for message to send
+     * @param   safety   safety of MType
      * @return   new invoker
      */
     private static UrlInvoker createSampInvoker( final String contentName,
-                                                 final String mtype ) {
+                                                 final String mtype,
+                                                 Safety safety ) {
         final SampSender sender = new SampSender( mtype );
-        return new AbstractUrlInvoker( "Send " + contentName ) {
+        return new AbstractUrlInvoker( "Send " + contentName, safety ) {
             public Outcome invokeUrl( URL url ) {
                 Message message = new Message( mtype );
                 message.addParam( "url", url.toString() );
@@ -288,18 +305,24 @@ public class UrlOptions {
      */
     private static abstract class AbstractUrlInvoker implements UrlInvoker {
         private final String name_;
+        private final Safety safety_;
 
         /**
          * Constructor.
          *
          * @param  name  invoker name
          */
-        AbstractUrlInvoker( String name ) {
+        AbstractUrlInvoker( String name, Safety safety ) {
             name_ = name;
+            safety_ = safety;
         }
 
         public String getTitle() {
             return name_;
+        }
+
+        public Safety getSafety() {
+            return safety_;
         }
 
         @Override

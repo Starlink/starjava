@@ -19,6 +19,7 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.plot2.PlotWindowType;
@@ -62,6 +63,7 @@ public class PlotTableActivationType implements ActivationType {
         private final JComboBox formatSelector_;
         private final JComboBox ptypeSelector_;
         private final JCheckBox paramsSelector_;
+        private final boolean allowSystem_;
         private static final String FORMAT_KEY = "format";
         private static final String PLOTTYPE_KEY = "plotType";
         private static final String IMPORTPARAMS_KEY = "importParams";
@@ -73,6 +75,7 @@ public class PlotTableActivationType implements ActivationType {
          */
         PlotColumnConfigurator( TopcatModelInfo tinfo ) {
             super( tinfo, "Table", new ColFlag[] { ColFlag.URL, } );
+            allowSystem_ = false;
             tfact_ = ControlWindow.getInstance().getTableFactory();
             JComponent queryPanel = getQueryPanel();
             ActionForwarder forwarder = getActionForwarder();
@@ -137,13 +140,12 @@ public class PlotTableActivationType implements ActivationType {
                 plotDisplay_ = plotDisplay;
             }
             return new LocationColumnActivator( cdata, false ) {
-                final boolean allowSystem = false;
                 final TopcatModel parentTable = getTopcatModel();
                 public Outcome activateLocation( final String loc, long lrow ) {
                     final StarTable table;
                     try {
                         DataSource datsrc =
-                            DataSource.makeDataSource( loc, allowSystem );
+                            DataSource.makeDataSource( loc, allowSystem_ );
                         table = tfact_.makeStarTable( datsrc, format );
                     }
                     catch ( IOException e ) {
@@ -166,6 +168,10 @@ public class PlotTableActivationType implements ActivationType {
 
         protected String getConfigMessage( ColumnData cdata ) {
             return null;
+        }
+
+        public Safety getSafety() {
+            return allowSystem_ ? Safety.UNSAFE : Safety.SAFE;
         }
 
         public ConfigState getState() {

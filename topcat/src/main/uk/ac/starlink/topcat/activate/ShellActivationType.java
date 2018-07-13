@@ -28,6 +28,7 @@ import uk.ac.starlink.topcat.Executor;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
@@ -150,6 +151,15 @@ public class ShellActivationType implements ActivationType {
             catch ( CompilationException e ) {
                 return "Expression error: " + e.getMessage();
             }
+        }
+
+        public Safety getSafety() {
+            String arg0 = getCommand();
+            String[] exprs = getArgExpressions();
+            return ( arg0 == null || arg0.trim().length() == 0 )
+                && exprs.length == 0 
+                       ? Safety.SAFE
+                       : Safety.UNSAFE;
         }
 
         public ConfigState getState() {

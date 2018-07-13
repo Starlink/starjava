@@ -20,6 +20,7 @@ import uk.ac.starlink.table.gui.LocationTableLoadDialog;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.util.DataSource;
@@ -61,6 +62,7 @@ public class LoadTableActivationType implements ActivationType {
         private final JComboBox formatSelector_;
         private final JCheckBox multipleSelector_;
         private final JCheckBox paramsSelector_;
+        private final boolean allowSystem_;
         private static final String FORMAT_KEY = "format";
         private static final String MULTIPLE_KEY = "multiple";
         private static final String IMPORTPARAMS_KEY = "importParams";
@@ -72,6 +74,7 @@ public class LoadTableActivationType implements ActivationType {
          */
         TableColumnConfigurator( TopcatModelInfo tinfo ) {
             super( tinfo, "Table", new ColFlag[] { ColFlag.URL, } );
+            allowSystem_ = false;
             controlWindow_ = ControlWindow.getInstance();
             JComponent queryPanel = getQueryPanel();
             ActionForwarder forwarder = getActionForwarder();
@@ -110,7 +113,6 @@ public class LoadTableActivationType implements ActivationType {
             final boolean isSelect = false;
             final boolean isMultiple = multipleSelector_.isSelected();
             final boolean importParams = paramsSelector_.isSelected();
-            final boolean allowSystem = false;
             return new LocationColumnActivator( cdata, false ) {
                 final TopcatModel parentTable = getTopcatModel();
                 protected Outcome activateLocation( final String loc,
@@ -118,7 +120,7 @@ public class LoadTableActivationType implements ActivationType {
                     final List<StarTable> tables = new ArrayList<StarTable>();
                     try {
                         DataSource datsrc =
-                            DataSource.makeDataSource( loc, allowSystem );
+                            DataSource.makeDataSource( loc, allowSystem_ );
                         if ( isMultiple ) {
                             TableSequence tseq =
                                 tfact.makeStarTables( datsrc, format );
@@ -178,6 +180,10 @@ public class LoadTableActivationType implements ActivationType {
 
         protected String getConfigMessage( ColumnData cdata ) {
             return null;
+        }
+
+        public Safety getSafety() {
+            return allowSystem_ ? Safety.UNSAFE : Safety.SAFE;
         }
 
         public ConfigState getState() {

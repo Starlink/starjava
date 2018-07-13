@@ -8,6 +8,7 @@ import org.astrogrid.samp.SampUtils;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 
 /**
  * ActivationType implementation that sends sky coordinates to other
@@ -81,6 +82,10 @@ public class SendSkyPosActivationType implements ActivationType {
 
         public String getSkyConfigMessage() {
             return skySender_.getUnavailableText();
+        }
+
+        public Safety getSafety() {
+            return Safety.SAFE;
         }
 
         public ConfigState getState() {

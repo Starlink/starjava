@@ -23,6 +23,7 @@ import gnu.jel.Library;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
@@ -152,6 +153,10 @@ public class DownloadActivationType implements ActivationType {
             catch ( CompilationException e ) {
                 return "Filename expression error: " + e.getMessage();
             }
+        }
+
+        public Safety getSafety() {
+            return Safety.UNSAFE;
         }
 
         public ConfigState getState() {

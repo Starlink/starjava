@@ -10,6 +10,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.interop.TopcatSampControl;
 
 /**
@@ -88,6 +89,9 @@ public class SendIndexActivationType implements ActivationType {
                 else {
                     return null;
                 }
+            }
+            public Safety getSafety() {
+                return Safety.SAFE;
             }
             public ConfigState getState() {
                 return new ConfigState();

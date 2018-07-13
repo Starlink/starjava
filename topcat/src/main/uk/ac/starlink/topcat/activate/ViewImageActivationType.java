@@ -15,6 +15,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.ImageWindow;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 
@@ -75,7 +76,7 @@ public class ViewImageActivationType implements ActivationType {
                                               viewerSelector_ ) );
         }
         public Activator createActivator( ColumnData cdata ) {
-            Viewer viewer = (Viewer) viewerSelector_.getSelectedItem();
+            Viewer viewer = getViewer();
             String label = getWindowLabel( cdata );
             return viewer.createActivator( cdata, label );
         }
@@ -90,6 +91,12 @@ public class ViewImageActivationType implements ActivationType {
         public void setState( ConfigState state ) {
             setUrlState( state );
             state.restoreSelection( VIEWER_KEY, viewerSelector_ );
+        }
+        public Safety getSafety() {
+            return getViewer().getSafety();
+        }
+        private Viewer getViewer() {
+            return (Viewer) viewerSelector_.getSelectedItem();
         }
     }
 
@@ -133,6 +140,14 @@ public class ViewImageActivationType implements ActivationType {
          */
         public abstract Activator createActivator( ColumnData cdata,
                                                    String label );
+
+        /**
+         * Returns safety status of this viewer.
+         *
+         * @return safety
+         */
+        public abstract Safety getSafety();
+
         @Override
         public String toString() {
             return name_;
@@ -144,20 +159,21 @@ public class ViewImageActivationType implements ActivationType {
      */
     private static class BasicViewer extends Viewer {
         private final Map<String,ImageWindow> winMap_;
+        private final boolean allowSystem_;
         BasicViewer() {
             super( "Basic" );
+            allowSystem_ = false;
             winMap_ = new HashMap<String,ImageWindow>();
         }
         public Activator createActivator( final ColumnData cdata,
                                           final String label ) {
-            final boolean allowSystem = false;
             return new UrlColumnConfigurator
                       .LocationColumnActivator( cdata, false ) {
                 protected Outcome activateLocation( String loc, long lrow ) {
                     final ImageWindow imwin = getImageWindow( label );
                     final Image image;
                     try {
-                        image = imwin.createImage( loc, allowSystem );
+                        image = imwin.createImage( loc, allowSystem_ );
                     }
                     catch ( IOException e ) {
                         return Outcome.failure( e );
@@ -170,6 +186,10 @@ public class ViewImageActivationType implements ActivationType {
                     return Outcome.success( loc );
                 }
             };
+        }
+
+        public Safety getSafety() {
+            return allowSystem_ ? Safety.UNSAFE : Safety.SAFE;
         }
 
         /**
@@ -216,6 +236,10 @@ public class ViewImageActivationType implements ActivationType {
                     }
                 }
             };
+        }
+
+        public Safety getSafety() {
+            return Safety.SAFE;
         }
 
         /**

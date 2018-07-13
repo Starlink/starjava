@@ -8,6 +8,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 
 /**
@@ -85,6 +86,10 @@ public class SendImageActivationType implements ActivationType {
 
         protected String getConfigMessage( ColumnData cdata ) {
             return imageSender_.getUnavailableText();
+        }
+
+        public Safety getSafety() {
+            return Safety.SAFE;
         }
 
         public ConfigState getState() {

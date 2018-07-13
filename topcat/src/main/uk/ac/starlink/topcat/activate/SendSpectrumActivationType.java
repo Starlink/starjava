@@ -16,6 +16,7 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.util.URLUtils;
@@ -102,6 +103,10 @@ public class SendSpectrumActivationType implements ActivationType {
 
         protected String getConfigMessage( ColumnData cdata ) {
             return specSender_.getUnavailableText();
+        }
+
+        public Safety getSafety() {
+            return Safety.SAFE;
         }
 
         public ConfigState getState() {

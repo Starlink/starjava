@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.HtmlWindow;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
@@ -87,6 +88,10 @@ public class BrowserActivationType implements ActivationType {
             return browserChooser_.getSelectedItem() instanceof Browser
                  ? null
                  : "no browser??";
+        }
+
+        public Safety getSafety() {
+            return Safety.UNSAFE;
         }
 
         public ConfigState getState() {

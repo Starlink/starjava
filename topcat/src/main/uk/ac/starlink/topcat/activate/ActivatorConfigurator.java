@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.activate;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import javax.swing.JComponent;
+import uk.ac.starlink.topcat.Safety;
 
 /**
  * Defines a GUI component that the user can interact with to specify
@@ -82,4 +83,17 @@ public interface ActivatorConfigurator {
      * @param  state   stored state
      */
     void setState( ConfigState state );
+
+    /**
+     * Indicates whether an activator created by the current state
+     * of this configurator is known to be harmless.
+     *
+     * <p>Implementations should be cautious; if some slightly adjusted
+     * state might be dangerous, false could be returned as well
+     * (that's why this method is on ActivatorConfigurator and not
+     * Activator itself).
+     *
+     * @return  safety status of the currently configured state
+     */
+    Safety getSafety();
 }

@@ -15,6 +15,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
@@ -114,6 +115,13 @@ public class JelActivationType implements ActivationType {
             catch ( CompilationException e ) {
                 return "Expression error: " + e.getMessage();
             }
+        }
+
+        public Safety getSafety(){ 
+            String expr = textPanel_.getText();
+            return expr == null || expr.trim().length() == 0
+                         ? Safety.SAFE
+                         : Safety.UNSAFE;
         }
 
         public ConfigState getState() {

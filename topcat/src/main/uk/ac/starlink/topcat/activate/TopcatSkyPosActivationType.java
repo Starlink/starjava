@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.activate;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 
 /**
  * Activation type that sends sky coordinates to other windows in the
@@ -49,6 +50,9 @@ public class TopcatSkyPosActivationType implements ActivationType {
             }
             public String getSkyConfigMessage() {
                 return null;
+            }
+            public Safety getSafety() {
+                return Safety.SAFE;
             }
             public ConfigState getState() {
                 return getSkyPosState();

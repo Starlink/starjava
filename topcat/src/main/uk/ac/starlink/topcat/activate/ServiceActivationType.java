@@ -20,6 +20,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.ResourceType;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.ServiceParamPanel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.UrlInvoker;
@@ -154,6 +155,10 @@ public class ServiceActivationType implements ActivationType {
             else {
                 return null;
             }
+        }
+
+        public Safety getSafety() {
+            return invokePanel_.getUrlInvoker().getSafety();
         }
 
         public ConfigState getState() {

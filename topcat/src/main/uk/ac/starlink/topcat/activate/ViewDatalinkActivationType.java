@@ -8,6 +8,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.DatalinkPanel;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -108,6 +109,10 @@ public class ViewDatalinkActivationType implements ActivationType {
 
         protected String getConfigMessage( ColumnData cdata ) {
             return null;
+        }
+
+        public Safety getSafety() {
+            return Safety.SAFE;
         }
 
         public ConfigState getState() {

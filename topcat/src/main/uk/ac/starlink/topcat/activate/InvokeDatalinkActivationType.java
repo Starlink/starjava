@@ -13,6 +13,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.topcat.LinkRowPanel;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.UrlOptions;
@@ -136,6 +137,12 @@ public class InvokeDatalinkActivationType implements ActivationType {
             else {
                 return null;
             }
+        }
+
+        public Safety getSafety() {
+            // There's a very slight danger if the default action is
+            // displaying a web page, but ignore it here.
+            return Safety.SAFE;
         }
 
         public ConfigState getState() {
