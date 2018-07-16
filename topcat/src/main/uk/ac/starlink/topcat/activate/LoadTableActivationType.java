@@ -62,10 +62,11 @@ public class LoadTableActivationType implements ActivationType {
         private final JComboBox formatSelector_;
         private final JCheckBox multipleSelector_;
         private final JCheckBox paramsSelector_;
-        private final boolean allowSystem_;
+        private final JCheckBox allowsysSelector_;
         private static final String FORMAT_KEY = "format";
         private static final String MULTIPLE_KEY = "multiple";
         private static final String IMPORTPARAMS_KEY = "importParams";
+        private static final String ALLOWSYS_KEY = "allowSystem";
 
         /**
          * Constructor.
@@ -74,7 +75,6 @@ public class LoadTableActivationType implements ActivationType {
          */
         TableColumnConfigurator( TopcatModelInfo tinfo ) {
             super( tinfo, "Table", new ColFlag[] { ColFlag.URL, } );
-            allowSystem_ = false;
             controlWindow_ = ControlWindow.getInstance();
             JComponent queryPanel = getQueryPanel();
             ActionForwarder forwarder = getActionForwarder();
@@ -87,6 +87,9 @@ public class LoadTableActivationType implements ActivationType {
             paramsSelector_ = new JCheckBox();
             paramsSelector_.setSelected( true );
             paramsSelector_.addActionListener( forwarder );
+            allowsysSelector_ = new JCheckBox();
+            allowsysSelector_.setSelected( false );
+            allowsysSelector_.addActionListener( forwarder );
             Box formatBox = Box.createHorizontalBox();
             formatBox.add( new JLabel( "Table Format: " ) );
             formatBox.add( new ShrinkWrapper( formatSelector_ ) );
@@ -99,12 +102,17 @@ public class LoadTableActivationType implements ActivationType {
             paramsBox.add( new JLabel( "Import Parameters" ) );
             paramsBox.add( paramsSelector_ );
             paramsBox.add( Box.createHorizontalGlue() );
-            queryPanel.add( Box.createVerticalStrut( 5 ) );
+            Box allowsysBox = Box.createHorizontalBox();
+            allowsysBox.add( new JLabel( "Allow Preprocessing" ) );
+            allowsysBox.add( allowsysSelector_ );
+            allowsysBox.add( Box.createHorizontalGlue() );
             queryPanel.add( formatBox );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
             queryPanel.add( multiBox );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
             queryPanel.add( paramsBox );
+            queryPanel.add( Box.createVerticalStrut( 5 ) );
+            queryPanel.add( allowsysBox );
         }
 
         protected Activator createActivator( ColumnData cdata ) {
@@ -113,6 +121,7 @@ public class LoadTableActivationType implements ActivationType {
             final boolean isSelect = false;
             final boolean isMultiple = multipleSelector_.isSelected();
             final boolean importParams = paramsSelector_.isSelected();
+            final boolean allowSystem = allowsysSelector_.isSelected();
             return new LocationColumnActivator( cdata, false ) {
                 final TopcatModel parentTable = getTopcatModel();
                 protected Outcome activateLocation( final String loc,
@@ -120,7 +129,7 @@ public class LoadTableActivationType implements ActivationType {
                     final List<StarTable> tables = new ArrayList<StarTable>();
                     try {
                         DataSource datsrc =
-                            DataSource.makeDataSource( loc, allowSystem_ );
+                            DataSource.makeDataSource( loc, allowSystem );
                         if ( isMultiple ) {
                             TableSequence tseq =
                                 tfact.makeStarTables( datsrc, format );
@@ -183,7 +192,7 @@ public class LoadTableActivationType implements ActivationType {
         }
 
         public Safety getSafety() {
-            return allowSystem_ ? Safety.UNSAFE : Safety.SAFE;
+            return allowsysSelector_.isSelected() ? Safety.UNSAFE : Safety.SAFE;
         }
 
         public ConfigState getState() {
@@ -191,6 +200,7 @@ public class LoadTableActivationType implements ActivationType {
             state.saveSelection( FORMAT_KEY, formatSelector_ );
             state.saveFlag( MULTIPLE_KEY, multipleSelector_.getModel() );
             state.saveFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
+            state.saveFlag( ALLOWSYS_KEY, allowsysSelector_.getModel() );
             return state;
         }
 
@@ -199,6 +209,7 @@ public class LoadTableActivationType implements ActivationType {
             state.restoreSelection( FORMAT_KEY, formatSelector_ );
             state.restoreFlag( MULTIPLE_KEY, multipleSelector_.getModel() );
             state.restoreFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
+            state.restoreFlag( ALLOWSYS_KEY, allowsysSelector_.getModel() );
         }
     }
 }

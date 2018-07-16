@@ -63,10 +63,11 @@ public class PlotTableActivationType implements ActivationType {
         private final JComboBox formatSelector_;
         private final JComboBox ptypeSelector_;
         private final JCheckBox paramsSelector_;
-        private final boolean allowSystem_;
+        private final JCheckBox allowsysSelector_;
         private static final String FORMAT_KEY = "format";
         private static final String PLOTTYPE_KEY = "plotType";
         private static final String IMPORTPARAMS_KEY = "importParams";
+        private static final String ALLOWSYS_KEY = "allowSystem";
 
         /**
          * Constructor.
@@ -75,7 +76,6 @@ public class PlotTableActivationType implements ActivationType {
          */
         PlotColumnConfigurator( TopcatModelInfo tinfo ) {
             super( tinfo, "Table", new ColFlag[] { ColFlag.URL, } );
-            allowSystem_ = false;
             tfact_ = ControlWindow.getInstance().getTableFactory();
             JComponent queryPanel = getQueryPanel();
             ActionForwarder forwarder = getActionForwarder();
@@ -107,6 +107,9 @@ public class PlotTableActivationType implements ActivationType {
             paramsSelector_ = new JCheckBox();
             paramsSelector_.setSelected( true );
             paramsSelector_.addActionListener( forwarder );
+            allowsysSelector_ = new JCheckBox();
+            allowsysSelector_.setSelected( false );
+            allowsysSelector_.addActionListener( forwarder );
             queryPanel.add( new LineBox( "Plot Type",
                                       new ShrinkWrapper( ptypeSelector_ ) ) );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
@@ -116,11 +119,14 @@ public class PlotTableActivationType implements ActivationType {
             queryPanel.add( new LineBox( "Import Parameters",
                                          paramsSelector_ ) );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
+            queryPanel.add( new LineBox( "Allow Preprocessing",
+                                         allowsysSelector_ ) );
         }
 
         protected Activator createActivator( ColumnData cdata ) {
             final String format = (String) formatSelector_.getSelectedItem();
             final boolean importParams = paramsSelector_.isSelected();
+            final boolean allowSystem = allowsysSelector_.isSelected();
             PlotWindowType ptype =
                 (PlotWindowType) ptypeSelector_.getSelectedItem();
             final TablePlotDisplay plotDisplay;
@@ -139,13 +145,13 @@ public class PlotTableActivationType implements ActivationType {
                                                     "Activated", false );
                 plotDisplay_ = plotDisplay;
             }
+            final TopcatModel parentTable = getTopcatModel();
             return new LocationColumnActivator( cdata, false ) {
-                final TopcatModel parentTable = getTopcatModel();
                 public Outcome activateLocation( final String loc, long lrow ) {
                     final StarTable table;
                     try {
                         DataSource datsrc =
-                            DataSource.makeDataSource( loc, allowSystem_ );
+                            DataSource.makeDataSource( loc, allowSystem );
                         table = tfact_.makeStarTable( datsrc, format );
                     }
                     catch ( IOException e ) {
@@ -171,7 +177,7 @@ public class PlotTableActivationType implements ActivationType {
         }
 
         public Safety getSafety() {
-            return allowSystem_ ? Safety.UNSAFE : Safety.SAFE;
+            return allowsysSelector_.isSelected() ? Safety.UNSAFE : Safety.SAFE;
         }
 
         public ConfigState getState() {
@@ -179,6 +185,7 @@ public class PlotTableActivationType implements ActivationType {
             state.saveSelection( PLOTTYPE_KEY, ptypeSelector_ );
             state.saveSelection( FORMAT_KEY, formatSelector_ );
             state.saveFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
+            state.saveFlag( ALLOWSYS_KEY, allowsysSelector_.getModel() );
             return state;
         }
 
@@ -187,6 +194,7 @@ public class PlotTableActivationType implements ActivationType {
             state.restoreSelection( PLOTTYPE_KEY, ptypeSelector_ );
             state.restoreSelection( FORMAT_KEY, formatSelector_ );
             state.restoreFlag( IMPORTPARAMS_KEY, paramsSelector_.getModel() );
+            state.restoreFlag( ALLOWSYS_KEY, allowsysSelector_.getModel() );
         }
     }
 }

@@ -107,7 +107,8 @@ public class ViewImageActivationType implements ActivationType {
      */
     private static Viewer[] createViewers() {
         List<Viewer> list = new ArrayList<Viewer>();
-        list.add( new BasicViewer() );
+        list.add( new BasicViewer( false ) );
+        list.add( new BasicViewer( true ) );
         if ( TopcatUtils.canSog() ) {
             list.add( new SogViewer() );
         }
@@ -160,11 +161,19 @@ public class ViewImageActivationType implements ActivationType {
     private static class BasicViewer extends Viewer {
         private final Map<String,ImageWindow> winMap_;
         private final boolean allowSystem_;
-        BasicViewer() {
-            super( "Basic" );
-            allowSystem_ = false;
+
+        /**
+         * Constructor.
+         *
+         * @param  allowSystem  whether to allow (potentially insecure)
+         *                      system preprocessing commands in image location
+         */
+        BasicViewer( boolean allowSystem ) {
+            super( "Basic" + ( allowSystem ? " (allow preprocessing)" : "" ) );
+            allowSystem_ = allowSystem;
             winMap_ = new HashMap<String,ImageWindow>();
         }
+
         public Activator createActivator( final ColumnData cdata,
                                           final String label ) {
             return new UrlColumnConfigurator
