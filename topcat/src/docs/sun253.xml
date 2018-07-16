@@ -239,6 +239,8 @@
            '&figs;TopcatSkyPosActivationType.png'>
   <!ENTITY FIG.SendSkyPosActivationType '&figs;SendSkyPosActivationType.png'>
   <!ENTITY FIG.ViewImageActivationType '&figs;ViewImageActivationType.png'>
+  <!ENTITY FIG.RegionViewImageActivationType
+           '&figs;RegionViewImageActivationType.png'>
   <!ENTITY FIG.SendImageActivationType '&figs;SendImageActivationType.png'>
   <!ENTITY FIG.SendSpectrumActivationType
            '&figs;SendSpectrumActivationType.png'>
@@ -20547,6 +20549,74 @@ be more appropriate.
 
 </subsubsubsect>
 
+<subsubsubsect id="RegionViewImageActivationType">
+<subhead><title>Display Image Region</title></subhead>
+
+<figure>
+<caption><px>Configuration for Display Image Region action</px></caption>
+<figureimage src="&FIG.RegionViewImageActivationType;"/>
+</figure>
+
+<p>The <label>Display Image Region</label> action behaves like
+<ref id="ViewImageActivationType">Display Image</ref>,
+but additionally identifies an X/Y position on the displayed image,
+in pixel coordinates.
+This is currently done by scrolling the image if necessary to
+ensure the identified position is in view, and highlighting it
+with green crosshairs.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Image Location</dt>
+<dd><p>Gives the URL or filename of the image to display for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    </p></dd>
+<dt>X Offset</dt>
+<dd><p>Horizontal offset in pixels from the left of the image
+    for the position of interest.
+    In most cases you will select a column from the drop-down list,
+    but this could also be a constant or algebraic expression.
+    </p></dd>
+<dt>Y Offset</dt>
+<dd><p>Vertical offset in pixels from the top of the image
+    for the position of interest.
+    In most cases you will select a column from the drop-down list,
+    but this could also be a constant or algebraic expression.
+    For most image formats, Y values increasing downwards is the natural
+    direction; for FITS however Y is normally considered to increase upwards.
+    This viewer displays FITS images upside down so that the offsets probably
+    do what you want, but the images may be inverted.
+    This somewhat confusing behaviour may (or may not)
+    be changed in the future.
+    </p></dd>
+<dt>Image Viewer</dt>
+<dd><p>Selects which of the internal image viewers will be used for display.
+    The following options are available;
+    <ul>
+    <li><strong>Basic:</strong>
+        A minimal image viewer.
+        </li>
+    <li><strong>Basic (allow preprocessing):</strong>
+        The same image viewer as Basic, but the image location is permitted
+        to contain a preprocessing system command, for instance
+        "<code>&lt; convert " + filename + " -normalize png:-</code>",
+        using the ImageMagick <code>convert</code> command.
+        This rather advanced usage may only work on Un*x-like OSs.
+        This option is usually not required, and has security implications;
+        if it is used in an action loaded from a session file,
+        the <ref id="activationSecurity">security panel</ref>
+        will be displayed.
+        </li>
+     </ul>
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="SendImageActivationType">
 <subhead><title>Send FITS Image</title></subhead>
 
@@ -27068,6 +27138,8 @@ introduced since the last version:
     <li>Put <ref id="activationSecurity">security measures</ref>
         in place to defend against loading maliciously configured
         session files.</li>
+    <li><ref id="RegionViewImageActivationType">Display Image Region</ref>
+        activation action introduced.</li>
     </ul>
     </p></dd>
 
