@@ -43,6 +43,7 @@
   <!ENTITY FIG.SubsetWindow '&figs;SubsetWindow.png'>
   <!ENTITY FIG.StatsWindow '&figs;StatsWindow.png'>
   <!ENTITY FIG.ActivationWindow '&figs;ActivationWindow.png'>
+  <!ENTITY FIG.ActivationWindow_security '&figs;ActivationWindow_security.png'>
   <!ENTITY FIG.DatalinkWindow '&figs;DatalinkWindow.png'>
   <!ENTITY FIG.LoadWindow '&figs;LoadWindow.png'>
   <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.png'>
@@ -20303,6 +20304,10 @@ Each line contains four entries:
 </ul>
 </p>
 
+<p>A <label>Security panel</label> may occasionally also be visible.
+If you see this, consult <ref id="activationSecurity"/> for an explanation.
+</p>
+
 <p>The following items are available in the toolbar or menus:
 <dl>
 
@@ -20323,6 +20328,13 @@ Each line contains four entries:
     This can be useful to clear out the list and remove clutter.
     Any actions you want to restore can be added back later using the
     <label>Add Action</label> button.
+    </p></dd>
+<dt>&IMG.APPROVE_ALL; Approve All Actions</dt>
+<dd><p>Removes security blockers from all actions that currently have them.
+    This has security implications, and should only be used if you
+    are confident that the activation actions and corresponding data
+    have not been configured maliciously.
+    See <ref id="activationSecurity"/> for explanation.
     </p></dd>
 
 <dt>&IMG.REACTIVATE; Invoke Selected Action on Current Row</dt>
@@ -20484,6 +20496,10 @@ a column to provide a URL or filename giving the location of
 an image to display in an internal viewer.
 The image can be in a graphics format such as JPEG, PNG, or GIF,
 or it can be a FITS image.
+The standard image support is implemented by Java's ImageIO library,
+so the details of installation determine what formats are supported.
+Java version 9 has more extensive image format support than earlier
+Java versions.
 </p>
 
 <p>Note that for more sophisticated image handling,
@@ -20503,9 +20519,28 @@ be more appropriate.
     </p></dd>
 <dt>Image Viewer</dt>
 <dd><p>Selects which of the internal image viewers will be used for display. 
-    The <label>Basic</label> option is always available,
-    and <label>SoG</label> may be offered as well;
-    see <ref id="activationViewers"/>.
+    At least some of the following options will be available;
+    see <ref id="activationViewers"/> for more detail:
+    <ul>
+    <li><strong>Basic:</strong>
+        A minimal image viewer.
+        </li>
+    <li><strong>Basic (allow preprocessing):</strong>
+        The same image viewer as Basic, but the image location is permitted
+        to contain a preprocessing system command, for instance
+        "<code>&lt; convert " + filename + " -normalize png:-</code>",
+        using the ImageMagick <code>convert</code> command.
+        This rather advanced usage may only work on Un*x-like OSs.
+        This option is usually not required, and has security implications;
+        if it is used in an action loaded from a session file,
+        the <ref id="activationSecurity">security panel</ref>
+        will be displayed.
+        </li>
+    <li><strong>SoG</strong>:
+        The SoG image viewer provides more faciliites including zoom,
+        colour map manipulation etc.  It may or may not be available
+        depending on how TOPCAT is installed</li>
+    </ul>
     </p></dd>
 </dl>
 </p>
@@ -20744,6 +20779,15 @@ and loads that into TOPCAT as a new table.
     and accessed from the expression language using the
     <ref id="jelParams">param$<em>name</em></ref> syntax.
     </p></dd>
+<dt>Allow Preprocessing:</dt>
+<dd><p>If set, the "<code>&lt;syscmd</code>" or "<code>|syscmd</code>"
+    syntax described in <ref id="tableLocation"/> may be used to
+    preprocess the input stream before the table is loaded.
+    This option is usually not required, and has security implications;
+    if it is switched on in an action loaded from a session file,
+    the <ref id="activationSecurity">security panel</ref>
+    will be displayed.
+    </p></dd>
 </dl>
 </p>
 
@@ -20818,6 +20862,15 @@ are not included when a session is saved.
     That means they can accessed from the expression language
     (e.g. as coordinate expressions) using the
     <ref id="jelParams">param$<em>name</em></ref> syntax.
+    </p></dd>
+<dt>Allow Preprocessing:</dt>
+<dd><p>If set, the "<code>&lt;syscmd</code>" or "<code>|syscmd</code>"
+    syntax described in <ref id="tableLocation"/> may be used to
+    preprocess the input stream before the table is loaded.
+    This option is usually not required, and has security implications;
+    if it is switched on in an action loaded from a session file,
+    the <ref id="activationSecurity">security panel</ref>
+    will be displayed.
     </p></dd>
 </dl>
 </p>
@@ -20992,6 +21045,11 @@ in future releases.
 &activation.runtime.class.docs;
 </p>
 
+<p>Invoking certain activation functions configured by an unknown party
+has security implications.
+If this action is loaded from a session file,
+the <ref id="activationSecurity">security panel</ref> will be shown.
+</p>
 
 </subsubsubsect>
 
@@ -21060,6 +21118,12 @@ it may or may not work well on other OSs (user reports welcome!).
     application (and may appear on the console).
     </p></dd>
 </dl>
+</p>
+
+<p>Executing system commands configured by an unknown party
+has obvious security implications.
+If this action is loaded from a session file,
+the <ref id="activationSecurity">security panel</ref> will be shown.
 </p>
 
 </subsubsubsect>
@@ -21430,6 +21494,85 @@ which in most cases will behave better.
 </p>
 
 </subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="activationSecurity">
+<subhead><title>Activation Security</title></subhead>
+
+<p>Activation actions can be configured to perform a wide variety
+of user-defined actions, in some cases including actions that could
+have damaging consequences.
+For instance the <ref id="ShellActivationType">Run System Command</ref>
+action can execute arbitrary system (shell) commands with the
+permissions of the user running the TOPCAT application.
+As long as the TOPCAT user is the person who has configured these
+commands, this is no more dangerous than the same user sitting
+down at the keyboard to type shell commands.
+</p>
+
+<p>In the case of Activation Actions that have been loaded from
+a <ref id="sessionSave">Session</ref> file however, it is
+possible that the person who saved the session might have
+configured it to perform malicious actions affecting whoever
+re-loads it.
+TOPCAT can't determine whether an action is actually malicious,
+but it can identify actions which could be configured to do
+malicious things.  In the case that it detects an Activation
+Action that has been loaded from a Session file that <em>might</em>
+be doing something dangerous (invoking arbitrary system commands,
+or in general anything that has effects outside of the TOPCAT
+application itself, excepting some known-harmless SAMP messages)
+it will ask the user for explicit approval before invoking it.
+</p>
+
+<figure>
+<caption>
+  <px>Activation Window configured with security implications</px>
+</caption>
+<figureimage src="&FIG.ActivationWindow_security;"/>
+</figure>
+
+<p>This screenshot shows what happens.  When called upon to invoke
+a potentially dangerous pre-configured action,
+it displays the Security panel in red,
+and the user has to click the <label>Approve</label> button before
+the action will be invoked.  If you see this, you should, as instructed,
+check that the action configuration is not doing anything it shouldn't.
+Once you have approved it, the security panel will disappear and
+later invocations will take place with no further user interaction.
+</p>
+
+<p>If you know that the session file is harmless, and you don't
+want to be bothered by these approval messages, you can use the
+<label>Approve All Actions</label> (&IMG.APPROVE_ALL;) menu item
+in the <label>Actions</label> menu.
+</p>
+
+<p>The <ref id="ShellActivationType">Run System Command</ref>
+and <ref id="JelActivationType">Execute Code</ref>
+actions can trigger these warnings for fairly obvious reasons.
+They can however also be triggered under some circumstances by
+<ref id="ViewImageActivationType">Display Image</ref>,
+<ref id="LoadTableActivationType">Load Table</ref> and
+<ref id="PlotTableActivationType">Plot Table</ref>.
+That's because in some configurations these actions can allow
+file/URL location values that perform preprocessing of the input streams
+using the "<code>&lt;syscmd</code>" or "<code>syscmd|</code>" syntax
+described in <ref id="tableLocation"/>, and that means that referencing
+image/table locations either entered directly, or acquired from table data,
+could result in execution of arbitrary system commands.
+This preprocessing is always switched off by default,
+and you shouldn't switch it on unless you need it,
+so it will not apply unless you have turned it on explicitly or
+loaded it from a session file.
+</p>
+
+<p>In nearly all cases, you don't need to think about these issues,
+but if you are loading a session file that may have been prepared
+by somebody else, TOPCAT will warn you in case anything malicious
+<em>might</em> be capable of affecting you.
+</p>
 
 </subsubsect>
 
@@ -26921,6 +27064,9 @@ introduced since the last version:
     <li>TAP example queries now use recently-used
         (<ref id="TopcatSkyPosActivationType">activated</ref>) sky positions
         where appropriate.</li>
+    <li>Put <ref id="activationSecurity">security measures</ref>
+        in place to defend against loading maliciously configured
+        session files.</li>
     </ul>
     </p></dd>
 
