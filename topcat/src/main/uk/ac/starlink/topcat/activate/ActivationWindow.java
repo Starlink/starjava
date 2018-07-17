@@ -86,6 +86,7 @@ public class ActivationWindow extends AuxWindow {
     private final JLabel statusLabel_;
     private final InvokeAllAction invokeAllAct_;
     private final InvokeSingleAction invokeSingleAct_;
+    private final Action removeAct_;
     private final SingleSequenceAction singleSeqAct_;
     private final AllSequenceAction allSeqAct_;
     private final CancelSequenceAction cancelSeqAct_;
@@ -282,10 +283,10 @@ public class ActivationWindow extends AuxWindow {
 
         /* Add some more actions. */
         tinfo0 = null;  // do not keep around for re-use, may go out of date
-        final Action removeAct =
-                new BasicAction( "Remove Selected Action", ResourceIcon.DELETE,
-                                 "Remove currently selected "
-                               + "activation action" ) {
+        removeAct_ = new BasicAction( "Remove Selected Action",
+                                      ResourceIcon.DELETE,
+                                      "Remove currently selected "
+                                    + "activation action" ) {
             public void actionPerformed( ActionEvent evt ) {
                 int isel = list_.getSelectedIndex();
                 if ( isel >= 0 ) {
@@ -319,44 +320,7 @@ public class ActivationWindow extends AuxWindow {
 
         list_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                if ( selectedEntry_ != null ) {
-                    selectedEntry_.getConfigurator()
-                                  .removeActionListener( statusListener_ );
-                }
-                selectedEntry_ = getSelectedEntry();
-                if ( selectedEntry_ != null ) {
-                    selectedEntry_.getConfigurator()
-                                  .addActionListener( statusListener_ );
-                }
-                removeAct.setEnabled( ! list_.isSelectionEmpty() );
-                configContainer_.removeAll();
-                outputContainer_.removeAll();
-                securityContainer_.removeAll();
-                if ( selectedEntry_ != null ) {
-                    configContainer_.add( selectedEntry_.getConfigurator()
-                                                        .getPanel() );
-                    outputContainer_.add( selectedEntry_.getLogPanel() );
-                    descriptionLabel_.setText( selectedEntry_.getType()
-                                              .getDescription() );
-                    if ( selectedEntry_.isBlocked() ) {
-                        securityContainer_.add( securityPanel_ );
-                    }
-                }
-                else {
-                    descriptionLabel_.setText( null );
-                }
-                invokeSingleAct_.entry_ = selectedEntry_;
-                invokeSingleAct_.configure();
-                singleSeqAct_.configure();
-                updateStatus();
-                configContainer_.revalidate();
-                outputContainer_.revalidate();
-                descriptionLabel_.revalidate();
-                securityContainer_.revalidate();
-                configContainer_.repaint();
-                outputContainer_.repaint();
-                descriptionLabel_.repaint();
-                securityContainer_.repaint();
+                updateSelection();
             }
         } );
 
@@ -393,7 +357,7 @@ public class ActivationWindow extends AuxWindow {
         };
         Action deleteAct = new AbstractAction( "Delete" ) {
             public void actionPerformed( ActionEvent evt ) {
-                removeAct.actionPerformed( evt );
+                removeAct_.actionPerformed( evt );
             }
         };
         securityPanel_ = Box.createVerticalBox();
@@ -471,7 +435,7 @@ public class ActivationWindow extends AuxWindow {
 
         /* Add menus. */
         getJMenuBar().add( actMenu );
-        actMenu.add( removeAct );
+        actMenu.add( removeAct_ );
         actMenu.add( removeInactiveAct );
         actMenu.add( approveAllAct_ );
         actMenu.addSeparator();
@@ -485,7 +449,7 @@ public class ActivationWindow extends AuxWindow {
         /* Add tools. */
         JToolBar toolbar = getToolBar();
         toolbar.add( addPopupAct );
-        toolbar.add( removeAct );
+        toolbar.add( removeAct_ );
         toolbar.add( removeInactiveAct );
         toolbar.addSeparator();
         toolbar.add( invokeSingleAct_ );
@@ -654,6 +618,7 @@ public class ActivationWindow extends AuxWindow {
             selected = (ActivationEntry) listModel_.getElementAt( 0 );
         }
         list_.setSelectedValue( selected, true );
+        updateSelection();
         approveAllAct_.configure();
     }
 
@@ -736,9 +701,52 @@ public class ActivationWindow extends AuxWindow {
     }
 
     /**
-     * Updates the status panel.  Must be called when the selected
-     * entry, or the activator or config message it generates,
-     * may have changed.
+     * Updates the status panel when the selected entry or significant
+     * characteristics of it may have changed.
+     */
+    private void updateSelection() {
+        if ( selectedEntry_ != null ) {
+            selectedEntry_.getConfigurator()
+                          .removeActionListener( statusListener_ );
+        }
+        selectedEntry_ = getSelectedEntry();
+        if ( selectedEntry_ != null ) {
+            selectedEntry_.getConfigurator()
+                          .addActionListener( statusListener_ );
+        }
+        removeAct_.setEnabled( ! list_.isSelectionEmpty() );
+        configContainer_.removeAll();
+        outputContainer_.removeAll();
+        securityContainer_.removeAll();
+        if ( selectedEntry_ != null ) {
+            configContainer_.add( selectedEntry_.getConfigurator().getPanel() );
+            outputContainer_.add( selectedEntry_.getLogPanel() );
+            descriptionLabel_.setText( selectedEntry_.getType()
+                                      .getDescription() );
+            if ( selectedEntry_.isBlocked() ) {
+                securityContainer_.add( securityPanel_ );
+            }
+        }
+        else {
+            descriptionLabel_.setText( null );
+        }
+        invokeSingleAct_.entry_ = selectedEntry_;
+        invokeSingleAct_.configure();
+        singleSeqAct_.configure();
+        updateStatus();
+        configContainer_.revalidate();
+        outputContainer_.revalidate();
+        descriptionLabel_.revalidate();
+        securityContainer_.revalidate();
+        configContainer_.repaint();
+        outputContainer_.repaint();
+        descriptionLabel_.repaint();
+        securityContainer_.repaint();
+    }
+
+    /**
+     * Updates the status panel when the activator or config message
+     * it generates may have changed.
      */
     private void updateStatus() {
         final String message;

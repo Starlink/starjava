@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.activate;
 
+import gnu.jel.CompilationException;
 import java.awt.Component;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,6 +10,8 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.text.JTextComponent;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 
 /**
  * Object that can preserve the state of a collection of GUI components
@@ -169,8 +172,24 @@ public class ConfigState {
             if ( ix >= 0 ) {
                 selector.setSelectedIndex( ix );
             }
+            else if ( value == null || value.trim().length() == 0 ) {
+                selector.setSelectedItem( null );
+            }
             else if ( selector.isEditable() ) {
-                selector.setSelectedItem( value );
+                if ( selector.getModel() instanceof ColumnDataComboBoxModel ) {
+                    ColumnData cdata;
+                    try {
+                        cdata = ((ColumnDataComboBoxModel) selector.getModel())
+                               .stringToColumnData( value );
+                    }
+                    catch ( CompilationException e ) {
+                        cdata = null;
+                    }
+                    selector.setSelectedItem( cdata == null ? value : cdata );
+                }
+                else {
+                    selector.setSelectedItem( value );
+                }
             }
         }
     }
