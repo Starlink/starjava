@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.paper;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,16 +38,12 @@ public class SortedPaperType3D extends PaintPaperType
     }
 
     protected Paper createPaper( Graphics g, Rectangle bounds ) {
-        return new SortedPaper3D( this, g );
+        return new SortedPaper3D( this, (Graphics2D) g, bounds );
     }
 
     public void placeGlyph( Paper paper, double dx, double dy, double dz,
                             Glyph glyph, Color color ) {
-        assert dx >= Short.MIN_VALUE && dx <= Short.MAX_VALUE
-            && dy >= Short.MIN_VALUE && dy <= Short.MAX_VALUE : "uh-oh";
-        short gx = (short) dx;
-        short gy = (short) dy;
-        ((SortedPaper3D) paper).placeGlyph( gx, gy, dz, glyph, color );
+        ((SortedPaper3D) paper).placeGlyph( dx, dy, dz, glyph, color );
     }
 
     public void placeDecal( Paper paper, Decal decal ) {
@@ -62,7 +59,9 @@ public class SortedPaperType3D extends PaintPaperType
      */
     private static class SortedPaper3D implements Paper {
         final PaperType paperType_;
-        final Graphics graphics_;
+        final Graphics2D graphics_;
+        final Packer xPacker_;
+        final Packer yPacker_;
         List<PlacedGlyph> list_;
         int iseq_;
 
@@ -71,10 +70,14 @@ public class SortedPaperType3D extends PaintPaperType
          *
          * @param   paperType  paper type instance which created this paper
          * @param   graphics  graphics destination
+         * @param   bounds   plot bounds
          */
-        SortedPaper3D( PaperType paperType, Graphics graphics ) {
+        SortedPaper3D( PaperType paperType, Graphics2D graphics,
+                       Rectangle bounds ) {
             paperType_ = paperType;
             graphics_ = graphics;
+            xPacker_ = new Packer( bounds.x, bounds.width );
+            yPacker_ = new Packer( bounds.y, bounds.height );
             list_ = new ArrayList<PlacedGlyph>();
         }
 
@@ -82,9 +85,11 @@ public class SortedPaperType3D extends PaintPaperType
             return paperType_;
         }
 
-        void placeGlyph( short gx, short gy, double dz,
+        void placeGlyph( double gx, double gy, double dz,
                          Glyph glyph, Color color ) {
-            list_.add( new PlacedGlyph( glyph, gx, gy, dz, color, iseq_++ ) );
+            short sx = xPacker_.toShort( gx );
+            short sy = yPacker_.toShort( gy );
+            list_.add( new PlacedGlyph( glyph, sx, sy, dz, color, iseq_++ ) );
         }
 
         void placeDecal( Decal decal ) {
@@ -95,8 +100,8 @@ public class SortedPaperType3D extends PaintPaperType
             List<PlacedGlyph> points = getSortedPoints();
             Color color0 = graphics_.getColor();
             for ( PlacedGlyph pg : points ) {
-                int px = pg.gx_;
-                int py = pg.gy_;
+                double px = xPacker_.fromShort( pg.sx_ );
+                double py = yPacker_.fromShort( pg.sy_ );
                 graphics_.setColor( pg.color_ );
                 graphics_.translate( px, py );
                 pg.glyph_.paintGlyph( graphics_ );
@@ -156,8 +161,8 @@ public class SortedPaperType3D extends PaintPaperType
      * between many instances of this, reducing memory usage.
      */
     private static class PlacedGlyph extends Point3D {
-        final short gx_;
-        final short gy_;
+        final short sx_;
+        final short sy_;
         final Glyph glyph_;
         final Color color_;
 
@@ -165,20 +170,71 @@ public class SortedPaperType3D extends PaintPaperType
          * Constructor.
          *
          * @param  glyph  glyph
-         * @param  gx   X position in pixels
-         * @param  gy   Y position in pixels
+         * @param  sx   X position packed into a short
+         * @param  sy   Y position packed into a short
          * @param  dz   Z-buffer position
          * @param  color  colour
          * @param  iseq   sequence number,
          *                used as a tie-breaker for plotting order
          */
-        PlacedGlyph( Glyph glyph, short gx, short gy, double dz, Color color,
+        PlacedGlyph( Glyph glyph, short sx, short sy, double dz, Color color,
                      int iseq ) {
             super( iseq, dz );
-            gx_ = gx;
-            gy_ = gy;
+            sx_ = sx;
+            sy_ = sy;
             glyph_ = glyph;
             color_ = color;
+        }
+    }
+
+    /**
+     * Maps floating point values in a given range to short values.
+     */
+    private static class Packer {
+        final double s0_;
+        final double sFact_;
+        final double d0_;
+        final double dFact_;
+
+        /**
+         * Constructor.
+         *
+         * @param  dBase  minimum double value
+         * @param  dExtent   range of double value
+         */
+        Packer( double dBase, double dExtent ) {
+
+            /* Don't go right to the edge of the range, in case we need
+             * to work with some positions a bit outside of the bounding box,
+             * and stay within the positive range of short values since
+             * value truncation behaves in a sometimes surprising way
+             * either side of zero. */
+            double sBase = 0.1 * Short.MAX_VALUE;
+            double sExtent = 0.8 * Short.MAX_VALUE;
+            s0_ = sBase - ( dBase * sExtent / dExtent );
+            d0_ = dBase - ( sBase * dExtent / sExtent );
+            sFact_ = sExtent / dExtent;
+            dFact_ = dExtent / sExtent;
+        }
+
+        /**
+         * Maps a double value in the stated range to a short value.
+         *
+         * @param  d   unpacked
+         * @return  packed
+         */
+        short toShort( double d ) {
+            return (short) ( s0_ + sFact_ * d );
+        }
+
+        /**
+         * Unmaps a short value back to (close to) its double value.
+         *
+         * @param  s  packed
+         * @return  unpacked
+         */
+        double fromShort( short s ) {
+            return d0_ + dFact_ * s;
         }
     }
 }
