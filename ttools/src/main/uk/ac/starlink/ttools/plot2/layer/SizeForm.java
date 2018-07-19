@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
@@ -242,22 +243,20 @@ public class SizeForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point2D.Double gpos = new Point2D.Double();
-            final double[] zloc = new double[ 1 ];
+            final GPoint3D gpos = new GPoint3D();
             final int icSize = getSizeCoordIndex( geom );
             final double scale = scale_ * getBaseScale( surface, auxRanges );
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
                     if ( geom.readDataPos( tuple, 0, dpos ) &&
-                         surface.dataToGraphicZ( dpos, true, gpos, zloc ) ) {
+                         surface.dataToGraphicZ( dpos, true, gpos ) ) {
                         double size =
                             SIZE_COORD.readDoubleCoord( tuple, icSize );
                         if ( PlotUtil.isFinite( size ) ) {
                             int isize = (int) Math.round( size * scale );
-                            double dz = zloc[ 0 ];
                             Glyph glyph = getGlyph( isize );
-                            paperType.placeGlyph( paper, gpos.x, gpos.y, dz,
+                            paperType.placeGlyph( paper, gpos.x, gpos.y, gpos.z,
                                                   glyph, color );
                         }
                     }

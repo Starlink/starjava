@@ -40,6 +40,7 @@ import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.StringCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
@@ -457,20 +458,19 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                                           GridMask gridMask ) {
             Map<Point,DepthString> map = new LinkedHashMap<Point,DepthString>();
             double[] dpos = new double[ surface_.getDataDimCount() ];
-            Point2D.Double gp = new Point2D.Double();
+            GPoint3D gp = new GPoint3D();
             Point gpi = new Point();
-            double[] depthArr = new double[ 1 ];
             CubeSurface surf = (CubeSurface) surface_;
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             while ( tseq.next() ) {
                 if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                     surf.dataToGraphicZ( dpos, true, gp, depthArr ) ) {
+                     surf.dataToGraphicZ( dpos, true, gp ) ) {
                     PlotUtil.quantisePoint( gp, gpi );
                     if ( gridMask.isFree( gpi ) ) {
                         String label =
                             LABEL_COORD.readStringCoord( tseq, icLabel_ );
                         if ( label != null && label.trim().length() > 0 ) {
-                            double depth = depthArr[ 0 ];
+                            double depth = gp.z;
                             if ( ! map.containsKey( gp ) ||
                                  depth < map.get( gpi ).depth_ ) {
                                 map.put( new Point( gpi ),

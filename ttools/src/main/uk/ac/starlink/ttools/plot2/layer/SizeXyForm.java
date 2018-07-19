@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -297,8 +298,7 @@ public class SizeXyForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point2D.Double gpos = new Point2D.Double();
-            final double[] zloc = new double[ 1 ];
+            final GPoint3D gpos = new GPoint3D();
             final int icxSize = getSizeCoordIndex( geom, false );
             final int icySize = getSizeCoordIndex( geom, true );
             final double xscale =
@@ -312,18 +312,17 @@ public class SizeXyForm implements ShapeForm {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
                     if ( geom.readDataPos( tuple, 0, dpos ) &&
-                         surface.dataToGraphicZ( dpos, true, gpos, zloc ) ) {
+                         surface.dataToGraphicZ( dpos, true, gpos ) ) {
                         double xsize =
                             XSIZE_COORD.readDoubleCoord( tuple, icxSize );
                         double ysize =
                             YSIZE_COORD.readDoubleCoord( tuple, icySize );
                         if ( PlotUtil.isFinite( xsize ) &&
                              PlotUtil.isFinite( ysize ) ) {
-                            double dz = zloc[ 0 ];
                             short ixsize = sround( xsize * xscale, xmax );
                             short iysize = sround( ysize * yscale, ymax );
                             Glyph glyph = getGlyph( ixsize, iysize );
-                            paperType.placeGlyph( paper, gpos.x, gpos.y, dz,
+                            paperType.placeGlyph( paper, gpos.x, gpos.y, gpos.z,
                                                   glyph, color );
                         }
                     }

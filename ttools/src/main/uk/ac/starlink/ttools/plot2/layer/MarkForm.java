@@ -30,6 +30,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
@@ -427,14 +428,13 @@ public abstract class MarkForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point2D.Double gp = new Point2D.Double();
-            final double[] dz = new double[ 1 ];
+            final GPoint3D gp = new GPoint3D();
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
                     if ( geom.readDataPos( tuple, 0, dpos ) &&
-                         surface.dataToGraphicZ( dpos, true, gp, dz ) ) {
-                        paperType.placeGlyph( paper, gp.x, gp.y, dz[ 0 ],
+                         surface.dataToGraphicZ( dpos, true, gp ) ) {
+                        paperType.placeGlyph( paper, gp.x, gp.y, gp.z,
                                               glyph_, color );
                     }
                 }
@@ -508,16 +508,15 @@ public abstract class MarkForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point2D.Double gp = new Point2D.Double();
-            final double[] dz = new double[ 1 ];
+            final GPoint3D gp = new GPoint3D();
             final int npc = geom.getPosCoords().length;
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
                     for ( int ip = 0; ip < npos_; ip++ ) {
                         if ( geom.readDataPos( tuple, ip * npc, dpos ) &&
-                             surface.dataToGraphicZ( dpos, true, gp, dz ) ) {
-                            paperType.placeGlyph( paper, gp.x, gp.y, dz[ 0 ],
+                             surface.dataToGraphicZ( dpos, true, gp ) ) {
+                            paperType.placeGlyph( paper, gp.x, gp.y, gp.z,
                                                   glyph_, color );
                         }
                     }

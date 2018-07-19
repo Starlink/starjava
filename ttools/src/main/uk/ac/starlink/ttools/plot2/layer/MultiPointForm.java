@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
@@ -372,26 +373,24 @@ public abstract class MultiPointForm implements ShapeForm {
             final int nextra = extraCoordSet_.getPointCount();
             final double[] dpos0 = new double[ ndim ];
             final double[][] dposExtras = new double[ nextra ][ ndim ];
-            final Point2D.Double gpos0 = new Point2D.Double();
+            final GPoint3D gpos0 = new GPoint3D();
             final int icExtra = getExtrasCoordIndex( geom );
-            final double[] zloc = new double[ 1 ];
             double scale = scale_ * getBaseScale( surface, auxRanges );
             final Offsetter offsetter = createOffsetter( surface, scale );
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
                     if ( geom.readDataPos( tuple, 0, dpos0 ) &&
-                         surface.dataToGraphicZ( dpos0, true, gpos0, zloc ) &&
+                         surface.dataToGraphicZ( dpos0, true, gpos0 ) &&
                          extraCoordSet_.readPoints( tuple, icExtra, geom,
                                                     dpos0, dposExtras ) ) {
-                        double dz0 = zloc[ 0 ];
                         int[] xoffs = new int[ nextra ];
                         int[] yoffs = new int[ nextra ];
                         offsetter.calculateOffsets( dpos0, gpos0, dposExtras,
                                                     xoffs, yoffs );
                         Glyph glyph =
                             new MultiPointGlyph( renderer_, xoffs, yoffs );
-                        paperType.placeGlyph( paper, gpos0.x, gpos0.y, dz0,
+                        paperType.placeGlyph( paper, gpos0.x, gpos0.y, gpos0.z,
                                               glyph, color );
                     }
                 }

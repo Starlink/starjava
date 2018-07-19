@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
@@ -224,12 +225,10 @@ public class PairLinkForm implements ShapeForm {
             int ndim = surface.getDataDimCount();
             final double[] dpos1 = new double[ ndim ];
             final double[] dpos2 = new double[ ndim ];
-            final Point2D.Double gp1 = new Point2D.Double();
-            final Point2D.Double gp2 = new Point2D.Double();
+            final GPoint3D gp1 = new GPoint3D();
+            final GPoint3D gp2 = new GPoint3D();
             final Point gp1i = new Point();
             final Point gp2i = new Point();
-            final double[] dz1 = new double[ 1 ];
-            final double[] dz2 = new double[ 1 ];
             final int npc = geom.getPosCoords().length;
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
@@ -247,9 +246,9 @@ public class PairLinkForm implements ShapeForm {
                          geom.readDataPos( tuple, npc, dpos2 ) &&
                          ( surface.inRange( dpos1 ) ||
                            surface.inRange( dpos2 ) ) &&
-                         surface.dataToGraphicZ( dpos1, false, gp1, dz1 ) &&
-                         surface.dataToGraphicZ( dpos2, false, gp2, dz2 ) ) {
-                        double z = 0.5 * ( dz1[ 0 ] + dz2[ 0 ] );
+                         surface.dataToGraphicZ( dpos1, false, gp1 ) &&
+                         surface.dataToGraphicZ( dpos2, false, gp2 ) ) {
+                        double z = 0.5 * ( gp1.z + gp2.z );
                         PlotUtil.quantisePoint( gp1, gp1i );
                         PlotUtil.quantisePoint( gp2, gp2i );
                         Glyph glyph = getLineGlyph( gp2i.x - gp1i.x,

@@ -58,7 +58,6 @@ public class CubeSurface implements Surface {
     private final boolean frame_;
     private final boolean antialias_;
 
-    private final double[] dummyZ_;
     private final double gScale_;
     private final double gZoom_;
     private final int gXoff_;
@@ -131,7 +130,6 @@ public class CubeSurface implements Surface {
             assert PlotUtil.approxEquals( -flipMult, normalise( dlos_, id ) );
             assert PlotUtil.approxEquals( +flipMult, normalise( dhis_, id ) );
         }
-        dummyZ_ = new double[ 1 ];
     }
 
     /**
@@ -155,7 +153,7 @@ public class CubeSurface implements Surface {
 
     public boolean dataToGraphics( double[] dataPos, boolean visibleOnly,
                                    Point2D.Double gPos ) {
-        return dataToGraphicZ( dataPos, visibleOnly, gPos, dummyZ_ );
+        return dataToGraphics3D( dataPos, visibleOnly, gPos, false );
     }
 
     public boolean dataToGraphicsOffset( double[] dataPos0,
@@ -171,15 +169,31 @@ public class CubeSurface implements Surface {
      * @param  dataPos  3-element X,Y,Z position in data coordinates
      * @param  visibleOnly  true if only data points that will be visible
      *                      on this surface are of interest
-     * @param  gPos  the graphics position will be written into this point
+     * @param  gPos  the 3-d graphics position will be written into this point
      *               on success
-     * @param  zloc  the Z coordinate of the result will be written into the
-     *               first element of this array on success
      * @return  true  iff the conversion was successful
      * @see   #dataToGraphics
      */
     public boolean dataToGraphicZ( double[] dataPos, boolean visibleOnly,
-                                   Point2D.Double gPos, double[] zloc ) {
+                                   GPoint3D gPos ) {
+        return dataToGraphics3D( dataPos, visibleOnly, gPos, true );
+    }
+
+    /**
+     * Do the work for converting data to 3d graphics coordinates.
+     *
+     * @param  dataPos  3-element X,Y,Z position in data coordinates
+     * @param  visibleOnly  true if only data points that will be visible
+     *                      on this surface are of interest
+     * @param  gPos   the graphics position will be written into this point
+     *                on success
+     * @param  is3d   if true, then gPos must be a GPoint3D instance,
+     *                and the z coordinate will be written into it;
+     *                if false the z coordinate will be discarded
+     * @return  true  iff the conversion was successful
+     */
+    private boolean dataToGraphics3D( double[] dataPos, boolean visibleOnly,
+                                      Point2D.Double gPos, boolean is3d ) {
 
         /* Determine whether the given data position is in the data range. */
         final boolean knownInCube;
@@ -217,7 +231,9 @@ public class CubeSurface implements Surface {
              ( gx >= gxlo_ && gx < gxhi_ && gy >= gylo_ && gy < gyhi_ ) ) {
             gPos.x = gx;
             gPos.y = gy;
-            zloc[ 0 ] = ry;
+            if ( is3d ) {
+                ((GPoint3D) gPos).z = ry;
+            }
             return true;
         }
         else {
@@ -829,10 +845,8 @@ public class CubeSurface implements Surface {
     private void plotFrame( Graphics g, boolean front ) {
 
         /* Prepare workspace. */
-        Point2D.Double gp0 = new Point2D.Double();
-        Point2D.Double gp1 = new Point2D.Double();
-        double[] gz0 = new double[ 1 ];
-        double[] gz1 = new double[ 1 ];
+        GPoint3D gp0 = new GPoint3D();
+        GPoint3D gp1 = new GPoint3D();
 
         /* Identify the corner furthest away from the front.
          * The three edges that hit this corner will be the ones
@@ -842,9 +856,9 @@ public class CubeSurface implements Surface {
         for ( int ic = 0; ic < 8; ic++ ) {
             Corner corner = Corner.getCorner( ic );
             double[] dpos0 = getCornerDataPos( corner );
-            dataToGraphicZ( dpos0, false, gp0, gz0 );
-            if ( gz0[ 0 ] > zmax ) {
-                zmax = gz0[ 0 ];
+            dataToGraphicZ( dpos0, false, gp0 );
+            if ( gp0.z > zmax ) {
+                zmax = gp0.z;
                 backCorner = corner;
             }
         }
@@ -865,7 +879,6 @@ public class CubeSurface implements Surface {
         for ( int i0 = 0; i0 < 8; i0++ ) {
             Corner c0 = Corner.getCorner( i0 );
             double[] dpos0 = getCornerDataPos( c0 );
-            dataToGraphicZ( dpos0, false, gp0, gz0 );
             Corner[] friends = c0.getAdjacent();
             for ( int i1 = 0; i1 < friends.length; i1++ ) {
                 Corner c1 = friends[ i1 ];
@@ -1069,12 +1082,10 @@ public class CubeSurface implements Surface {
      * @param  dpos1   data space coordinates of line end
      */
     private void drawFrameLine( Graphics g, double[] dpos0, double[] dpos1 ) {
-        Point2D.Double gp0 = new Point2D.Double();
-        Point2D.Double gp1 = new Point2D.Double();
-        double[] dz0 = new double[ 1 ];
-        double[] dz1 = new double[ 1 ];
-        dataToGraphicZ( dpos0, false, gp0, dz0 );
-        dataToGraphicZ( dpos1, false, gp1, dz1 );
+        GPoint3D gp0 = new GPoint3D();
+        GPoint3D gp1 = new GPoint3D();
+        dataToGraphicZ( dpos0, false, gp0 );
+        dataToGraphicZ( dpos1, false, gp1 );
         g.drawLine( PlotUtil.ifloor( gp0.x ), PlotUtil.ifloor( gp0.y ),
                     PlotUtil.ifloor( gp1.x ), PlotUtil.ifloor( gp1.y ) );
     }
