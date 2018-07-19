@@ -241,6 +241,37 @@ public class CubeSurface implements Surface {
         }
     }
 
+    /**
+     * Converts normalised 3d coordinates to a graphics position plus Z
+     * coordinate.  The normalised positions are as returned by
+     * {@link #normalise normalise}.  If coordinates
+     * outside of the normalised range (-1,1) are submitted, the output
+     * position will be outside the visible cube.
+     *
+     * @param   sx   normalised X coordinate
+     * @param   sy   normalised Y coordinate
+     * @param   sz   normalised Z coordinate
+     * @param  gPos  the graphics position will be written into this point
+     */
+    public void normalisedToGraphicZ( double sx, double sy, double sz,
+                                      GPoint3D gPos ) {
+
+        /* Apply current aspect rotation matrix. */
+        double[] rot = rotmat_;
+        double rx = rot[ 0 ] * sx + rot[ 1 ] * sy + rot[ 2 ] * sz;
+        double ry = rot[ 3 ] * sx + rot[ 4 ] * sy + rot[ 5 ] * sz;
+        double rz = rot[ 6 ] * sx + rot[ 7 ] * sy + rot[ 8 ] * sz;
+
+        /* Apply graphics coordinates zoom and X/Y offsets,
+         * determine success, and return. */
+        double gx = gXoff_ + rx * gZoom_;
+        double gy = gYoff_ - rz * gZoom_;
+        double dz = ry;
+        gPos.x = gx;
+        gPos.y = gy;
+        gPos.z = dz;
+    }
+
     /** 
      * Determines whether a given data position is within the data space
      * cube represented by this surface.
@@ -266,7 +297,7 @@ public class CubeSurface implements Surface {
      * @param   idim   index of dimension to convert (0, 1 or 2)
      * @return  normalised coordinate
      */
-    private double normalise( double[] dataPos, int idim ) {
+    public double normalise( double[] dataPos, int idim ) {
         return dScales_[ idim ]
              * ( dOffs_[ idim ]
                    + ( logFlags_[ idim ] ? Math.log( dataPos[ idim ] )
