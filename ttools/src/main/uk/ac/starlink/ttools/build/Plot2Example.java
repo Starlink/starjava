@@ -993,6 +993,17 @@ public class Plot2Example {
                 "*layer2=line", "*y2=Bt", "zone2=B", null,
                 "*layer3=line", "*y3=Bn", "zone3=C",
             } ),
+            new Plot2Example( "layer-line3d", c, PlotTask.CUBE, new String[] {
+                "*in=" + TName.IERS, "*x=x", "*y=y", "*z=LOD", null,
+                "*layer1=line3d",
+                "*icmd1='select decYear>1963&&decYear<1964.5'",
+                "*thick1=3", "*aux1=LOD", null,
+                "layer2=mark", "shading2=translucent", "color2=cccc00",
+                "translevel2=0.35", null,
+                "auxmap=cyan-magenta", "auxvisible=false", "legend=false", null,
+                "phi=-150", "theta=25", "psi=180",
+                "xpix=400", "ypix=400",
+            } ),
             new Plot2Example( "layer-linearfit", c, PlotTask.PLANE,
                               new String[] {
                 "*in=" + TName.MINI6, "*x=RMAG", "*y=BMAG",

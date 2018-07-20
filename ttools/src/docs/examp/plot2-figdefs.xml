@@ -8,6 +8,7 @@
   <!ENTITY FIG.plot2-layer-xycorr 'plot2-layer-xycorr.png'>
   <!ENTITY FIG.plot2-layer-skycorr 'plot2-layer-skycorr.png'>
   <!ENTITY FIG.plot2-layer-line 'plot2-layer-line.png'>
+  <!ENTITY FIG.plot2-layer-line3d 'plot2-layer-line3d.png'>
   <!ENTITY FIG.plot2-layer-linearfit 'plot2-layer-linearfit.png'>
   <!ENTITY FIG.plot2-layer-label 'plot2-layer-label.png'>
   <!ENTITY FIG.plot2-layer-contour 'plot2-layer-contour.png'>
