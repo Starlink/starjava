@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
+import uk.ac.starlink.ttools.plot2.layer.Line3dPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
@@ -84,6 +85,7 @@ public class CubePlotType implements PlotType {
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter[] {
             new LabelPlotter(),
+            new Line3dPlotter(),
             new ContourPlotter( true ),
         } ) );
         return list.toArray( new Plotter[ 0 ] );
