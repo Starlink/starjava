@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.BasicStroke;
 import java.awt.Rectangle;
 import java.awt.Graphics;
 import uk.ac.starlink.ttools.plot2.Glyph;
@@ -17,6 +18,10 @@ import uk.ac.starlink.ttools.plot2.Pixer;
 public class LineXYShape extends XYShape {
 
     private static final LineXYShape instance_ = new LineXYShape();
+
+    /** Stroke effectively used by this shape. */
+    public static BasicStroke STROKE =
+        new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND );
 
     /**
      * Private constructor prevents instantiation.
