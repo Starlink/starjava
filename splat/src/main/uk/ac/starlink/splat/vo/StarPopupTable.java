@@ -395,7 +395,7 @@ private boolean isPreferedFormat(String format1, String format2){
 	
    }
    
-   public void setDataLink() { // this table has soda services
+   public void setDataLink() { // this table has Datalink services
 	   hasDatalinkService=true;
 	
    }
@@ -431,8 +431,7 @@ private boolean isPreferedFormat(String format1, String format2){
    
    
    public  String getAccessFormat(int row) { // get the access format value
-	   if (! hasDatalinkService) 
-		   return null;
+	
 	   
 	   StarTable table = this.getStarTable();
 
@@ -448,13 +447,12 @@ private boolean isPreferedFormat(String format1, String format2){
 			   } catch (IOException e) {}											     	    		   
 		   }    	    	  		   
 	   }
-	   return null; 
+	   return ""; 
    }
-      
-   public  String getAccessURL(int row) { // get the access format value
-	   if (! hasDatalinkService) 
-		   return null;
+   
 
+   public  String getAccessURL(int row) { // get the access format value
+	  
 	   StarTable table = this.getStarTable();
 
 	   for (int i=0;i<table.getColumnCount();i++) {
@@ -470,14 +468,24 @@ private boolean isPreferedFormat(String format1, String format2){
 
 	   return null; 
    }
+   
+   
      
    public boolean hasSodaService() { // this table has soda services
 	   return hasSodaService;
 	
    }
    
-   public boolean hasDataLinkService() { // this table has soda services
+   public boolean hasDataLinkService() { // this table has DataLink services
 	   return hasDatalinkService;
+	
+   }
+   
+   public boolean rowsHaveDataLinkFormat() { // this table's access_urls are datalink	
+	   String format = getAccessFormat(0);
+	   if (format != null)
+		   return format.contains("datalink");
+	   return false;
 	
    }
 

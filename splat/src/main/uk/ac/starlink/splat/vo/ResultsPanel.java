@@ -373,26 +373,32 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     
     protected void processDataLink( StarPopupTable table, int row ) {
    
-    	String server = resultsPane.getTitleAt(resultsPane.getSelectedIndex());
+    	
     	DataLinkResponse dlp;
     	String query = null;
     	String format = table.getAccessFormat(row);
     	if (format.contains("datalink"))
     		query = table.getAccessURL(row);
-    	String datalinkIDField = dataLinkFrame.getIdSource(server);
-    	String id = table.getDataLinkID(row, datalinkIDField);
-    	String datalinkurl = dataLinkFrame.getDataLinkLink(server);
     	
-    	if (id != null && datalinkurl != null) {
+    	String server = resultsPane.getTitleAt(resultsPane.getSelectedIndex());
+    	if (dataLinkFrame != null && dataLinkFrame.getServerParams(server) != null) {
+    		String datalinkIDField = dataLinkFrame.getIdSource(server);
+        	String id = table.getDataLinkID(row, datalinkIDField);
+        	String datalinkurl = dataLinkFrame.getDataLinkLink(server);
+    	
+        	if (id != null && datalinkurl != null) {
     		
-    		if (query == null ) {
-    			try {
-    				query = datalinkurl+"?ID="+URLEncoder.encode(id,"UTF-8");
-    			} catch (UnsupportedEncodingException e) {
-    				logger.warning("could not encode: "+e.getMessage());
-    				query=datalinkurl+"?ID="+id;
-    			}
-    		}
+        		if (query == null ) {
+        			try {
+        				query = datalinkurl+"?ID="+URLEncoder.encode(id,"UTF-8");
+        			} catch (UnsupportedEncodingException e) {
+        				logger.warning("could not encode: "+e.getMessage());
+        				query=datalinkurl+"?ID="+id;
+        			}
+        		}
+        	}
+    	}
+        	
     		try {
 			  dlp= new  DataLinkResponse(query);
 			 
@@ -414,7 +420,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     		 else dataLinkLinksFrame.changeContent(dlp);
     		dataLinkLinksFrame.setVisible(true);
     		
-    	}
+    	
     	    	
     }
    
@@ -510,7 +516,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
      */
     protected void addTab(String shortName, StarPopupTable table)
     {
-    	if (table.hasDataLinkService())
+    	if (table.hasDataLinkService() || table.rowsHaveDataLinkFormat())
     		table.setComponentPopupMenu(popupMenuWithDataLink);
     	else 
     		table.setComponentPopupMenu(popupMenu);
@@ -531,7 +537,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
   
     protected void addTab(String shortName, ImageIcon icon, StarPopupTable table)
     {
-    	if (table.hasDataLinkService())
+    	if (table.hasDataLinkService() || table.rowsHaveDataLinkFormat())
     		table.setComponentPopupMenu(popupMenuWithDataLink);
     	else 
     		table.setComponentPopupMenu(popupMenu);
