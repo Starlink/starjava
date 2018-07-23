@@ -317,7 +317,7 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 			service = dlparams.getDataLinkService(serviceDef);
 		}
 		
-		if (contentType != null && contentType.contains("html")) { // open link in browser
+		if (contentType != null && contentType.contains("html") || contentType.contains("pdf")) { // open link in browser
 			openbrowser(accessUrl);
 			return;
 		}
@@ -330,6 +330,7 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 			case thisdata:	    // #this - open spectrum
 				displaySpectrum(accessUrl, contentType, semantics);
 				break;
+			case progenitor:	// ??? try to open spectrum
 			case auxiliary:	// ??? try to open spectrum
 				displaySpectrum(accessUrl, contentType, semantics);
 				break;
@@ -465,7 +466,7 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 
 		} catch (MalformedURLException e) {
 			//do nothing - no preview
-		} catch (IOException e) {
+		} catch (Exception e) {
 			//do nothing - no preview
 		}
 		return null;

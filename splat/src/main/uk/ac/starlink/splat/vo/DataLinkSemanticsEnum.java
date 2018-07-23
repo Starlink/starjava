@@ -20,6 +20,7 @@ public enum DataLinkSemanticsEnum  {
 	preview ("#preview"), 
 	thisdata ("#this"), 
 	auxiliary ("#auxiliary"), 
+	progenitor ("#progenitor"),
 	proc ("#proc"), 
 	cutout ("#cutout"),
 	_default ("");
