@@ -2301,11 +2301,11 @@ public class PlotControl
     public boolean logXPossible() {
 
     	double[] xdata = getCurrentSpectrum().getXEndPoints();   
-    	return (xdata[0] >= 0 && xdata[2] >= 0 );
+    	return (xdata[0] > 0 && xdata[2] > 0 );
     }
     public boolean logYPossible() {
     	double[] ydata = getCurrentSpectrum().getYEndPoints();      	
-    	return (ydata[1] >= 0 && ydata[3] >= 0 );
+    	return (ydata[1] > 0 && ydata[3] > 0 );
     }
 
     public boolean getDefaultSpacingValue() {
