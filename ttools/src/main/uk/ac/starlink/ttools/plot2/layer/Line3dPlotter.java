@@ -4,6 +4,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -18,9 +20,12 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -35,6 +40,22 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
  */
 public class Line3dPlotter extends AbstractPlotter<LineStyle> {
 
+    private static final FloatingCoord SORT_COORD =
+        FloatingCoord.createCoord(
+            new InputMeta( "sort", "Sort" )
+           .setShortDescription( "Sorting sequence for plotted lines" )
+           .setXmlDescription( new String[] {
+                "<p>If supplied, this gives a value to define in what order",
+                "points are joined together.",
+                "If no value is given, the natural order is used,",
+                "i.e. the sequence of rows in the table.",
+                "</p>",
+                "<p>Note that if the required order is in fact the natural",
+                "order of the table, it is better to leave this value blank,",
+                "since sorting is a potentially expensive step.",
+                "</p>",
+            } )
+        , false );
     private static final boolean IS_OPAQUE = true;
     public static final ConfigKey<Integer> THICK_KEY =
        StyleKeys.createThicknessKey( 1 );
@@ -43,8 +64,8 @@ public class Line3dPlotter extends AbstractPlotter<LineStyle> {
      * Constructor.
      */
     public Line3dPlotter() {
-        super( "Line3d", ResourceIcon.PLOT_LINE,
-               CoordGroup.createSinglePositionCoordGroup(), false );
+        super( "Line3d", ResourceIcon.PLOT_LINE, 1,
+               new Coord[] { SORT_COORD } );
     }
 
     public String getPlotterDescription() {
@@ -105,13 +126,55 @@ public class Line3dPlotter extends AbstractPlotter<LineStyle> {
     private void paintLines3d( LineStyle style, CubeSurface surf, DataGeom geom,
                                DataSpec dataSpec, DataStore dataStore,
                                PaperType3D ptype, Paper paper ) {
-        int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
+        CoordGroup cgrp = getCoordGroup();
+        int icPos = cgrp.getPosCoordIndex( 0, geom );
+        int icSort = cgrp.getExtraCoordIndex( 0, geom );
         LineTracer3D tracer = style.createLineTracer3D( ptype, paper, surf );
-        double[] dpos = new double[ surf.getDataDimCount() ];
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, icPos, dpos ) ) {
-                tracer.addPoint( dpos );
+        final int ndim = surf.getDataDimCount();
+        assert ndim == 3;
+
+        /* No sorting, natural order. */
+        if ( dataSpec.isCoordBlank( icSort ) ) {
+            double[] dpos = new double[ ndim ];
+            while ( tseq.next() ) {
+                if ( geom.readDataPos( tseq, icPos, dpos ) ) {
+                    tracer.addPoint( dpos );
+                }
+            }
+        }
+
+        /* Sort coordinate is specified. */
+        else {
+
+            /* First acquire the 3d data position and sort coordinate
+             * for each valid point. */
+            List<double[]> plist = new ArrayList<double[]>();
+            double[] dpos = new double[ ndim ];
+            while ( tseq.next() ) {
+                double dsort = tseq.getDoubleValue( icSort );
+                if ( PlotUtil.isFinite( dsort ) &&
+                     geom.readDataPos( tseq, icPos, dpos ) ) {
+                    double[] dpos1 = new double[ ndim + 1 ];
+                    System.arraycopy( dpos, 0, dpos1, 0, ndim );
+                    dpos1[ ndim ] = dsort;
+                    plist.add( dpos1 );
+                }
+            }
+
+            /* Then sort them by the chosen coordinate.
+             * Note that Collections.sort is, according to its documentation,
+             * less efficient than explicitly converting to an array here. */
+            double[][] parray = plist.toArray( new double[ 0 ][ 0 ] );
+            Arrays.sort( parray, new Comparator<double[]>() {
+                public int compare( double[] p1, double[] p2 ) {
+                    return Double.compare( p1[ ndim ], p2[ ndim ] );
+                }
+            } );
+
+            /* Finally hand the points off in order to the line tracer. */
+            for ( double[] dpos1 : parray ) {
+                tracer.addPoint( dpos1 );
             }
         }
     }
