@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Utility class for use with Pixers.
@@ -37,6 +38,35 @@ public class Pixers {
             }
             public int getY() {
                 return ys[ ip ];
+            }
+        };
+    }
+
+    /**
+     * Takes a given pixer and copies its data, returning an object that
+     * can issue pixers that behave the same as the original.
+     * Since pixers are one-use iterators, this may be a useful caching
+     * operation for pixer generation methods that are potentially expensive
+     * to create and may be consumed multiple times.
+     *
+     * @param  pixer  input pixer
+     * @return   factory to create copies of pixer
+     */
+    public static PixerFactory createPixerCopier( Pixer pixer ) {
+        IntList xlist = new IntList();
+        IntList ylist = new IntList();
+        int ip = 0;
+        while ( pixer.next() ) {
+            xlist.add( pixer.getX() );
+            ylist.add( pixer.getY() );
+            ip++;
+        }
+        final int[] xs = xlist.toIntArray();
+        final int[] ys = ylist.toIntArray();
+        final int np = ip;
+        return new PixerFactory() {
+            public Pixer createPixer() {
+                return createArrayPixer( xs, ys, np );
             }
         };
     }
