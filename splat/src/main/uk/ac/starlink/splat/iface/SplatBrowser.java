@@ -2218,7 +2218,7 @@ public class SplatBrowser
 //                	spectra[i].setObjectType(props.getObjectType());
 //                }
                 props.apply( spectra[i] ); // warning - moved this line BEFORE addSpectrum (it was after). See if it affects something
-                addSpectrum( spectra[i] );
+                addSpectrum( spectra[i], props.getSourceType() );
                 if (str != null && str.startsWith("order"))
                     props.setShortName(shortname+" ["+str+"]");
                 //props.apply( spectra[i] );
@@ -2257,8 +2257,9 @@ public class SplatBrowser
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
 //                        spectrum.setObjectType(props.getObjectType());
+                       
                         props.apply( spectrum ); // need to test if moving this line before addSpectrum affects somethg
-                        addSpectrum( spectrum );
+                        addSpectrum( spectrum, props.getSourceType() );
                        // props.apply( spectrum );
                         
                     }
@@ -2364,6 +2365,9 @@ public class SplatBrowser
         //  Get the current top of SpecList.
         SpecList list = SpecList.getInstance();
         int top = list.specCount();
+        if (sourceType==null) {
+        	sourceType=SourceType.UNDEFINED;
+        }
 
         //  2D spectra may need reprocessing by collapsing or extracting
         //  many spectra. This is performed here. If any of ndAction, dispAxis
