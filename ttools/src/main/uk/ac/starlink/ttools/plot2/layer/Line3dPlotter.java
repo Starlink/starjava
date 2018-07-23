@@ -36,6 +36,8 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 public class Line3dPlotter extends AbstractPlotter<LineStyle> {
 
     private static final boolean IS_OPAQUE = true;
+    public static final ConfigKey<Integer> THICK_KEY =
+       StyleKeys.createThicknessKey( 1 );
 
     /**
      * Constructor.
@@ -56,12 +58,15 @@ public class Line3dPlotter extends AbstractPlotter<LineStyle> {
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
+        list.add( THICK_KEY );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
     public LineStyle createStyle( ConfigMap config ) {
         Color color = config.get( StyleKeys.COLOR );
-        Stroke stroke = new BasicStroke();
+        int thick = config.get( THICK_KEY );
+        Stroke stroke = new BasicStroke( thick, BasicStroke.CAP_ROUND,
+                                                BasicStroke.JOIN_ROUND );
         boolean antialias = false;
         return new LineStyle( color, stroke, antialias );
     }
@@ -101,8 +106,7 @@ public class Line3dPlotter extends AbstractPlotter<LineStyle> {
                                DataSpec dataSpec, DataStore dataStore,
                                PaperType3D ptype, Paper paper ) {
         int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
-        LineTracer3D tracer =
-            new LineTracer3D( ptype, paper, surf, style.getColor() );
+        LineTracer3D tracer = style.createLineTracer3D( ptype, paper, surf );
         double[] dpos = new double[ surf.getDataDimCount() ];
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {

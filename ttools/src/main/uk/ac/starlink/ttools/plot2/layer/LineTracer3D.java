@@ -57,13 +57,17 @@ public class LineTracer3D {
      * @param  paper     paper
      * @param  surf   3d plotting surface
      * @param  color  line colour
+     * @param  stroke   line drawing stroke
      */
     public LineTracer3D( PaperType3D paperType, Paper paper, CubeSurface surf,
-                         Color color ) {
+                         Color color, final Stroke stroke ) {
         paperType_ = paperType;
         paper_ = paper;
         surf_ = surf;
         color_ = color;
+        final XYShape lineShape = stroke.equals( LineXYShape.STROKE )
+                                ? LineXYShape.getInstance()
+                                : new StrokeXYShape( stroke );
 
         /* Prepare to generate glyphs in a different way for bitmapped and
          * vector contexts.  The bitmapped way is more efficient because
@@ -76,13 +80,14 @@ public class LineTracer3D {
         liner_ = paperType.isBitmap()
                ? new LineGlyphFactory() {
                      public Glyph getLineGlyph( double kx, double ky ) {
-                         return lineShape_.getGlyph( (short) Math.round( kx ),
-                                                     (short) Math.round( ky ) );
+                         return lineShape.getGlyph( (short) Math.round( kx ),
+                                                    (short) Math.round( ky ) );
                      }
                  }
                : new LineGlyphFactory() {
                      public Glyph getLineGlyph( double kx, double ky ) {
-                         return new DoubleLineGlyph( kx, ky );
+                         return new DoubleLineGlyph( kx, ky, lineShape,
+                                                     stroke );
                      }
                  };
     }
@@ -295,29 +300,34 @@ public class LineTracer3D {
     private static class DoubleLineGlyph implements Glyph {
         private final double kx_;
         private final double ky_;
-        private static final Stroke lineStroke_ =
-            new BasicStroke( 1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND );
+        private final XYShape shape_;
+        private final Stroke stroke_;
 
         /**
          * Constructor.
          *
          * @param  kx  X offset in pixels
          * @param  ky  Y offset in pixels
+         * @param  shape   drawing shape
+         * @param  stroke  drawing stroke
          */
-        public DoubleLineGlyph( double kx, double ky ) {
+        public DoubleLineGlyph( double kx, double ky, XYShape shape,
+                                Stroke stroke ) {
             kx_ = kx;
             ky_ = ky;
+            shape_ = shape;
+            stroke_ = stroke;
         }
 
         public Pixer createPixer( Rectangle clip ) {
-            return lineShape_.getGlyph( (short) kx_, (short) ky_ )
-                             .createPixer( clip );
+            return shape_.getGlyph( (short) kx_, (short) ky_ )
+                         .createPixer( clip );
         }
 
         public void paintGlyph( Graphics g ) {
             Graphics2D g2 = (Graphics2D) g;
             Stroke stroke0 = g2.getStroke();
-            g2.setStroke( lineStroke_ );
+            g2.setStroke( stroke_ );
             g2.draw( new Line2D.Double( 0, 0, kx_, ky_ ) );
             g2.setStroke( stroke0 );
         }
