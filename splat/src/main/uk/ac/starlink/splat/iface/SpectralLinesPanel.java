@@ -268,12 +268,13 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
                 fullrange[0]=lambda[0]; fullrange[1]=lambda[lambda.length-1];
                 SpecData sd=spectrum.getSect("copy", fullrange);
                 // convert X axis to meters
-                int msa = sd.getMostSignificantAxis();           
+                int msa = sd.getMostSignificantAxis();
                 try {
-                    FrameSet frameSet = sd.getFrameSet();       
+                    FrameSet frameSet = sd.getFrameSet();
                     logger.info("system=WAVE,unit("+msa+")=m" );
                     frameSet.set( "system=WAVE,unit("+msa+")=m" );
                     sd.initialiseAst();
+
                 } catch (SplatException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -307,12 +308,11 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
         SpecData sd=spectrum.getSect("copy", fullrange);
         // convert X axis to meters
         int msa = sd.getMostSignificantAxis();
-        FrameSet frameSet = sd.getFrameSet();       
-        frameSet.set( "system=WAVE,unit("+msa+")=m" );
         try {
+            FrameSet frameSet = sd.getFrameSet();
+            frameSet.set( "system=WAVE,unit("+msa+")=m" );
             sd.initialiseAst();
         } catch (SplatException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return null;
         }
