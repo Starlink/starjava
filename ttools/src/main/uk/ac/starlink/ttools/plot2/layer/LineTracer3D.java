@@ -42,7 +42,6 @@ public class LineTracer3D {
     private final PaperType3D paperType_;
     private final Paper paper_;
     private final CubeSurface surf_;
-    private final Color color_;
     private final LineGlyphFactory liner_;
     private NPoint lastPoint_;
     private static final int SEGMAX = 5;
@@ -56,15 +55,13 @@ public class LineTracer3D {
      * @param  paperType  paper type
      * @param  paper     paper
      * @param  surf   3d plotting surface
-     * @param  color  line colour
      * @param  stroke   line drawing stroke
      */
     public LineTracer3D( PaperType3D paperType, Paper paper, CubeSurface surf,
-                         Color color, final Stroke stroke ) {
+                         final Stroke stroke ) {
         paperType_ = paperType;
         paper_ = paper;
         surf_ = surf;
-        color_ = color;
         final XYShape lineShape = stroke.equals( LineXYShape.STROKE )
                                 ? LineXYShape.getInstance()
                                 : new StrokeXYShape( stroke );
@@ -99,8 +96,9 @@ public class LineTracer3D {
      *
      * @param  dpos  3-element array giving the vertex position
      *               in data coordinates
+     * @param  color   colour of line segment
      */
-    public void addPoint( double[] dpos ) {
+    public void addPoint( double[] dpos, Color color ) {
 
         /* Prepare a normalised point corresponding to the supplied data point.
          * This is in normalised coordinates, and limited so that the
@@ -111,7 +109,7 @@ public class LineTracer3D {
         double sx = limit( surf_.normalise( dpos, 0 ) );
         double sy = limit( surf_.normalise( dpos, 1 ) );
         double sz = limit( surf_.normalise( dpos, 2 ) );
-        NPoint point = new NPoint( sx, sy, sz );
+        NPoint point = new NPoint( sx, sy, sz, color );
         if ( lastPoint_ != null ) {
             traceLine( lastPoint_, point );
         }
@@ -123,15 +121,24 @@ public class LineTracer3D {
      *
      * @param  n0  start point
      * @param  n1  end point
+     * @param  color   colour of line segment
      */
     private void traceLine( NPoint n0, NPoint n1 ) {
         if ( n0.isSegmentVisible( n1 ) ) {
             GPoint3D g0 = n0.getGraphicsPoint();
             GPoint3D g1 = n1.getGraphicsPoint();
 
-            /* If the points are in the same graphics pixel, don't paint
-             * anything. */
-            if ( ! coincides( g0, g1 ) ) {
+            /* If the points are in the same graphics pixel, either draw
+             * a point if the colour has changed and the latest one is
+             * closer, or don't draw anything. */
+            if ( coincides( g0, g1 ) ) {
+                if ( g1.z < g0.z && ! n0.color_.equals( n1.color_ ) ) {
+                    paperType_.placeGlyph( paper_, g0.x, g0.y, g1.z,
+                                           liner_.getLineGlyph( 0, 0 ),
+                                           n1.color_ );
+                }
+            }
+            else {
                 double kx = g1.x - g0.x;
                 double ky = g1.y - g0.y;
 
@@ -141,7 +148,8 @@ public class LineTracer3D {
                     Glyph glyph = liner_.getLineGlyph( kx, ky );
                     paperType_.placeGlyph( paper_,
                                            g0.x, g0.y, 0.5 * ( g0.z + g1.z ),
-                                           glyph, color_ );
+                                           glyph,
+                                           bisect( n0.color_, n1.color_ ) );
                 }
 
                 /* Otherwise, split the line up into two parts and recurse. */
@@ -165,7 +173,29 @@ public class LineTracer3D {
     private NPoint bisect( NPoint n1, NPoint n2 ) {
         return new NPoint( 0.5 * ( n1.sx_ + n2.sx_ ),
                            0.5 * ( n1.sy_ + n2.sy_ ),
-                           0.5 * ( n1.sz_ + n2.sz_ ) );
+                           0.5 * ( n1.sz_ + n2.sz_ ),
+                           bisect( n1.color_, n2.color_ ) );
+    }
+
+    /**
+     * Finds the colour half way between two colours.
+     *
+     * @param   c1  first colour
+     * @param   c2  second colour
+     * @return   mean colour
+     */
+    private Color bisect( Color c1, Color c2 ) {
+        if ( c1 == null || c2 == null ) {
+            return null;
+        }
+        else if ( c1.equals( c2 ) ) {
+            return c1;
+        }
+        else {
+            return new Color( ( c1.getRed() + c2.getRed() ) >> 1,
+                              ( c1.getGreen() + c2.getGreen() ) >> 1, 
+                              ( c1.getBlue() + c2.getBlue() ) >> 1 );
+        }
     }
 
     /**
@@ -211,6 +241,7 @@ public class LineTracer3D {
         final double sx_;
         final double sy_;
         final double sz_;
+        final Color color_;
         final int regionX_;
         final int regionY_;
         final int regionZ_;
@@ -222,11 +253,13 @@ public class LineTracer3D {
          * @param   sx  normalised X coordinate
          * @param   sy  normalised Y coordinate
          * @param   sz  normalised Z coordinate
+         * @param   color  colour
          */
-        NPoint( double sx, double sy, double sz ) {
+        NPoint( double sx, double sy, double sz, Color color ) {
             sx_ = sx;
             sy_ = sy;
             sz_ = sz;
+            color_ = color;
             regionX_ = getRegion( sx_ );
             regionY_ = getRegion( sy_ );
             regionZ_ = getRegion( sz_ );

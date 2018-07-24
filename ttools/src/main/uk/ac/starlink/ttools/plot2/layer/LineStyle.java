@@ -9,9 +9,6 @@ import java.awt.Stroke;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Style;
-import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
-import uk.ac.starlink.ttools.plot2.paper.Paper;
-import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 
 /**
  * Plotting style for continuous lines.
@@ -106,19 +103,6 @@ public class LineStyle implements Style {
                                         int nwork, boolean isPixel ) {
         return new LineTracer( g, bounds, color_, stroke_, antialias_, nwork,
                                isPixel );
-    }
-
-    /**
-     * Convenience method to return a 3D line tracer that will use this style.
-     *
-     * @param  paperType  paper type
-     * @param  paper     paper
-     * @param  surf   3d plotting surface
-     * @return   new line tracer
-     */
-    public LineTracer3D createLineTracer3D( PaperType3D paperType, Paper paper,
-                                            CubeSurface surf ) {
-        return new LineTracer3D( paperType, paper, surf, color_, stroke_ );
     }
 
     @Override
