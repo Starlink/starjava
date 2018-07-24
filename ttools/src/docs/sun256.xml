@@ -11728,6 +11728,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
                 >VOTable 1.3 Erratum #2</webref> -
         <code>FIELD/@precision</code> attribute values
         "<code>F0</code>"/"<code>E0</code>" are now permitted.</li>
+    <li>New <ref id="layer-line3d">line3d</ref> plot layer
+        for plotting lines in <code>plot2cube</code> and
+        <code>plot2sphere</code>.</li>
     </ul>
     </p>
     </dd>

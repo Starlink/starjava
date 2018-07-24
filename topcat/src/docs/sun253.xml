@@ -174,6 +174,7 @@
   <!ENTITY FIG.form_xycorr '&figs;form_xycorr.png'>
   <!ENTITY FIG.form_skycorr '&figs;form_skycorr.png'>
   <!ENTITY FIG.form_line '&figs;form_line.png'>
+  <!ENTITY FIG.form_line3d '&figs;form_line3d.png'>
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.png'>
   <!ENTITY FIG.form_quantile '&figs;form_quantile.png'>
   <!ENTITY FIG.form_label '&figs;form_label.png'>
@@ -271,6 +272,7 @@
   <!ENTITY FIG.plot2-layer-xycorr '&figs;plot2-layer-xycorr.png'>
   <!ENTITY FIG.plot2-layer-skycorr '&figs;plot2-layer-skycorr.png'>
   <!ENTITY FIG.plot2-layer-line '&figs;plot2-layer-line.png'>
+  <!ENTITY FIG.plot2-layer-line3d '&figs;plot2-layer-line3d.png'>
   <!ENTITY FIG.plot2-layer-linearfit '&figs;plot2-layer-linearfit.png'>
   <!ENTITY FIG.plot2-layer-quantile '&figs;plot2-layer-quantile.png'>
   <!ENTITY FIG.plot2-layer-label '&figs;plot2-layer-label.png'>
@@ -337,6 +339,7 @@
   <!ENTITY FORM.skycorr '&IMG.FORM_ELLIPSE_CORR;
                         <ref id="form-skycorr">SkyCorr</ref>'>
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
+  <!ENTITY FORM.line3d '&IMG.PLOT_LINE; <ref id="form-line3d">Line3d</ref>'>
   <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
                           <ref id="form-linearfit">Linear Fit</ref>'>
   <!ENTITY FORM.quantile '&IMG.FORM_QUANTILE;
@@ -8479,6 +8482,7 @@ The following plot layers do this:
 <li><ref id="mode-weighted" plaintextref="yes">Weighted colour mode</ref></li>
 <li><ref id="form-grid" plaintextref="yes">Grid form</ref></li>
 <li><ref id="form-skydensity" plaintextref="yes">Sky Density form</ref></li>
+<li><ref id="form-line3d" plaintextref="yes">Line3d form</ref></li>
 </ul>
 These all colour parts of the plot in a way that is quantitatively
 significant, and the Aux Axis control gives you a chance to control
@@ -10031,6 +10035,58 @@ scribble on the screen.
     </p></dd>
 <dt>Antialiasing</dt>
 <dd><p>If true, pixels are blurred to give the line a smoother appearance.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-line3d">
+<subhead><title>Line3d Form</title></subhead>
+
+<p>The <label>Line3d</label> form (&IMG.PLOT_LINE;)
+draws a point-to-point line joining
+up the positions of the points in three dimensions.
+There are additional options to pre-sort the points
+by a given quantity before drawing the lines,
+and to colour the line along its length using an auxiliary coordinate.
+</p>
+
+<p>Note that the line positioning in 3d and the line segment aux colouring
+is somewhat approximate. In most cases it is good enough for visual
+inspection, but pixel-level examination may reveal discrepancies.
+</p>
+
+<figure>
+<caption><px>Example Line3d plot</px></caption>
+<figureimage src="&FIG.plot2-layer-line3d;"/>
+</figure>
+
+<figure>
+<caption><px>Line3d form configuration panel</px></caption>
+<figureimage src="&FIG.form_line3d;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Aux</dt>
+<dd><p>If supplied, this controls the colour of the line along its length
+    according to the value given here.
+    As for the <ref id="mode-aux">Aux shading mode</ref>,
+    the details of the colour mapping are controlled using the
+    <ref id="ShaderControl">Aux Axis control</ref>.
+    </p></dd>
+<dt>Sort</dt>
+<dd><p>If supplied, this gives a value to define in what order
+    points are joined together.
+    If no value is given, the natural order is used,
+    i.e. the sequence of rows in the table.
+    Note that if the required order is in fact the natural
+    order of the table, it's better to leave this value blank,
+    since sorting is a potentially expensive step.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Thickness of the line in pixels.
     </p></dd>
 </dl>
 </p>
@@ -12908,6 +12964,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
     <li>&FORM.label;</li>
+    <li>&FORM.line3d;</li>
     <li>&FORM.contour;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
@@ -13219,6 +13276,7 @@ In many respects this works like the
     <li>&FORM.size;</li>
     <li>&FORM.sizexy;</li>
     <li>&FORM.label;</li>
+    <li>&FORM.line3d;</li>
     <li>&FORM.contour;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
@@ -27140,6 +27198,8 @@ introduced since the last version:
         session files.</li>
     <li><ref id="RegionViewImageActivationType">Display Image Region</ref>
         activation action introduced.</li>
+    <li>New <ref id="form-line3d">Line3d</ref> plot form for plotting
+        lines in the Cube and Sphere plots.</li>
     </ul>
     </p></dd>
 
