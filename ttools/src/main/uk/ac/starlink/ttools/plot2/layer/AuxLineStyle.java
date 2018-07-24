@@ -41,7 +41,7 @@ public class AuxLineStyle extends LineStyle {
     /**
      * Returns the shader.
      *
-     * @retrun  shader
+     * @return  shader
      */
     public Shader getShader() {
         return shader_;
