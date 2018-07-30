@@ -1322,11 +1322,6 @@ item is still switched on in the plot window.
 To view a single spectrum quickly just double click on its row. This will
 download the spectrum and display it in its own plot window.\\
 
-\subheading{Server-side manipulation with DataLink}
-
-\SPLAT\ supports server-side manipulation through \textbf{DataLink}. After a SSAP Query is sent, \SPLAT\ checks the responding servers for  \textbf{DataLink} parameters, and marks them with a symbol (\inline{cutter}). If  at least one \textbf{DataLink} supporting server has been found, a \textbf{DataLink} button will appear below the query results. By clicking on it, \textbf{DataLink}. will be activated, and all results tabs will be deactivated except the results from servers that support \textbf{DataLink}. When you choose one of the active services, a window will appear, where the respective parameters for sever-side manipulation can be entered. The parameters will be set by clicking on the \textbf{set parameters} button. While  \textbf{dataLink} is activated and the parameters are set, the spectra you select and display or download will be manipulated using the chosen parameters. To deactivate \textbf{dataLink} and have retrieve the original spectra just click on the \textbf{dataLink} button again.
-
-\mainfigure{datalinkparams}
 
 \subheading{Implementation status}
 
@@ -1424,12 +1419,19 @@ ObsCore and TAP are  being developed by the IVOA
 \newpage
 \subsection{DataLink - more information about the data\xlabel{datalink}}
 
-
-SSAP and ObsCore services providing DataLink allows the user to access other resources available about the data.
-By right-cliking on a Spectrum from either an ObsCore or SSAP query result list, there should be an option "DataLink" in the pop-up menu.
+\SPLAT\ supports \textbf{DataLink} and \textbf{SODA} (server-side manipulation through \textbf{DataLink}).
+SSAP and ObsCore services providing  \textbf{DataLink} allows the user to access other resources available about the spectrum.
+If the service offers \textbf{Datalink}, by right-cliking on a Spectrum from either an ObsCore or SSAP query result list, there should be an option "DataLink" in the pop-up menu.
 When choosing this option, a new window will open with a list of links to resources about this data. This resources could be links to related publications, 
-a preview image, or the dataset in other formats, or link to functions to perform server-side operations on the data (like cutouts, normalisation, etc).
-If there's a link to a preview image then SPLAT will automatically display it on this window. If there are SODA (server-side operations) services provided, the interactive formular to  deal with the data is also displayed.
+a preview image, or the dataset in other formats, or link to functions to perform server-side operations ( \textbf{SODA}) on the data (like cutouts, normalisation, etc).
+If there's a link to a preview image then SPLAT will automatically display it on this window. If there are  \textbf{SODA}  services provided, the interactive formular to  deal with the data is also displayed.
+
+\subheading{Server-side manipulation with DataLink/SODA}
+
+A query response table may contain descriptions of  \textbf{SODA}  services, which can be either defined specifically for single spectra, or for all of the returned spectra. In both cases an input formular will be produced by \SPLAT\, where parameters can be entered. In the first case, the formular appears in the \textbf{Datalink} resources list when right-clicking one line from the query results list.  In the second case the soda operation can be submitted one or more selected spectra at once. This is done by clicking the Datalink button on the lower right side of the results table:
+ After a SSAP or ObsCore query is sent, \SPLAT\ checks the responding servers for  \textbf{SODA} definitions. Table-wide  \textbf{SODA} operations are present, service will be marked with  a symbol (\inline{cutter}). If  at least one \textbf{DataLink} supporting server has been found, a \textbf{DataLink} button will appear below the query results. By clicking on it, \textbf{DataLink}. will be activated, and all results tabs will be deactivated except the results from servers that support \textbf{DataLink}. When you choose one of the active services, a window will appear, where the respective parameters for sever-side manipulation can be entered. The parameters will be set by clicking on the \textbf{set parameters} button. While  \textbf{dataLink} is activated and the parameters are set, the spectra you select and display or download will be manipulated using the chosen parameters. To deactivate \textbf{dataLink} and have retrieve the original spectra just click on the \textbf{dataLink} button again.
+
+\mainfigure{datalinkparams}
 
 
 
