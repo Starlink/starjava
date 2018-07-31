@@ -21,6 +21,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1213,13 +1214,20 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         //  through the table and check if that row is the
                         //  next one in the selection (the selection is
                         //  sorted).
-                        rseq = starTable.getRowSequence();
-                        int k = 0; // Table row
+                    	
+                        rseq = starTable.getRowSequence();                        
+                        int k = 0; // Table row                    	
                         int l = 0; // selection index
+                        ArrayList<Integer> selectedRows = new ArrayList();
+                        for (int sel=0;sel<selection.length;sel++ ){
+                        	selectedRows.add(starJTable.convertRowIndexToModel(selection[sel]));
+                        }
+                        Collections.sort(selectedRows);
+                        		
                         while ( rseq.next() ) {
                                              
-                            if ( k == starJTable.convertRowIndexToModel(selection[l])) {
-
+                          //  if ( k == starJTable.convertRowIndexToModel(selection[l])) {
+                        	 if ( k == selectedRows.get(l)) {
                                 // Store this one as matches selection.
                                 if (rseq.getCell( linkcol ) != null)                                      
                                     value = ( (String)rseq.getCell( linkcol ).toString() );
@@ -1310,7 +1318,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                                 }
                             }
                             k++;
-                        }
+                        } // while rseq
                     } // if selected
                 } // try
                 catch (IOException ie) {
