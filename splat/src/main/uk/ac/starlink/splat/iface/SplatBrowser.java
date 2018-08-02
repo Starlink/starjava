@@ -75,12 +75,15 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import org.xml.sax.SAXException;
+
 //import org.astrogrid.acr.InvalidArgumentException;
 
 
 
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.NameParser;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -107,11 +110,13 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.VOTableBuilder;
 
-import uk.ac.starlink.splat.vo.DataLinkParams;
+
+import uk.ac.starlink.splat.vo.DataLinkResponse;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 import uk.ac.starlink.splat.vo.ObsCorePanel;
+//import uk.ac.starlink.splat.vo.SLAPBrowser;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -168,6 +173,11 @@ public class SplatBrowser
      *  Factory methods for creating SpecData instances.
      */
     protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
+
+    /**
+     *  Line ID manager.
+     */
+    protected LocalLineIDManager lineIDManager = LocalLineIDManager.getInstance();
 
     /**
      * UI preferences.
@@ -272,6 +282,11 @@ public class SplatBrowser
      * OBSCore browser.
      */
     protected ObsCorePanel obscorePanel = null; 
+
+    /**
+     * SLAP browser.
+     */
+   // protected SLAPBrowser spectralLinesBrowser  = null; 
 
     /**
      *  Stack open or save chooser.
@@ -543,7 +558,10 @@ public class SplatBrowser
                     }
                 });
         }
+ 
     }
+
+
 
     /**
      * Set the ndAction value to match a string description. Strings are
@@ -768,7 +786,7 @@ public class SplatBrowser
         toolBar.add( ssapAction );
 
        
-        // Add acion to go to use OBSCORE
+     // Add acion to go to use OBSCORE
         ImageIcon obscoreImage =
                 new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
         LocalAction obsCoreAction = new LocalAction( LocalAction.OBSCORE,
@@ -777,6 +795,16 @@ public class SplatBrowser
                                                      "Query VO using ObsCore TAP" );
         fileMenu.add(obsCoreAction);
         toolBar.add( obsCoreAction );
+        
+     // Add acion to go to use the SLAP Browser
+       // ImageIcon obscoreImage =
+        //        new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
+     //   LocalAction slapAction = new LocalAction( LocalAction.SLAP,
+    //                                                "Slap Browser", 
+    //                                                 null, 
+    //                                                 "Query VO for Spectral Lines" );
+    //    fileMenu.add(slapAction);
+       // toolBar.add( slapAction );
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
@@ -1039,7 +1067,7 @@ public class SplatBrowser
         menuBar.add( optionsMenu );
 
         //  Add any locally availabel line identifiers.
-        LocalLineIDManager.getInstance().populate( optionsMenu, this );
+        lineIDManager.populate( optionsMenu, this );
 
         //  Add the LookAndFeel selections.
         new SplatLookAndFeelManager( contentPane, optionsMenu );
@@ -1144,6 +1172,18 @@ public class SplatBrowser
             .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( specTransmitter.createSendMenu() )
             .setMnemonic( KeyEvent.VK_T );
+        
+        Transmitter binFITSTableTransmitter = 
+        		communicator.createBinFITSTableTransmitter(specList);
+        interopMenu.addSeparator();
+        interopMenu.add( binFITSTableTransmitter.getBroadcastAction() );
+        interopMenu.add( binFITSTableTransmitter.createSendMenu() );
+        
+        Transmitter voTableTransmitter = 
+        		communicator.createVOTableTransmitter(specList);
+        interopMenu.addSeparator();
+        interopMenu.add( voTableTransmitter.getBroadcastAction() );
+        interopMenu.add( voTableTransmitter.createSendMenu() );
         
         
         //  Add checkbox for opening the spectra from SAM to the same plot
@@ -1895,11 +1935,11 @@ public class SplatBrowser
     {
         if ( ssapBrowser == null ) {
             try {
-                ssapBrowser = new SSAQueryBrowser( new SSAServerList(), this );
+                ssapBrowser = new SSAQueryBrowser( new SSAServerList(true), this );
                 authenticator = ssapBrowser.getAuthenticator();
             }
             catch (SplatException e) {
-                ErrorDialog.showError( this, e );
+                ssapBrowser = new SSAQueryBrowser( null, this );
                 return;
             }
         } else {
@@ -1927,6 +1967,25 @@ public class SplatBrowser
 
     }
 
+    /**
+     * Open the SLAP Browser window
+     */
+    /*
+    public void showSlapBrowser()
+    {
+        if ( spectralLinesBrowser == null ) {
+            try {
+                spectralLinesBrowser = new SLAPBrowser(this);
+            }
+            catch (Exception e) {
+                ErrorDialog.showError( this, e );
+                return;
+            }
+        }
+        spectralLinesBrowser.setVisible( true );
+
+    }
+*/
     
     /**
      * Open and display all the spectra listed in the newFiles array. Uses a
@@ -2107,7 +2166,7 @@ public class SplatBrowser
         else {           
                
             try {
-                List<SpecData> spectra = specDataFactory.getAll( name, usertype );
+                List<SpecData> spectra = specDataFactory.getAll( name, usertype, null );
                 if (spectra != null) {
                     for (SpecData spectrum : spectra) {
                         addSpectrum( spectrum );
@@ -2155,10 +2214,16 @@ public class SplatBrowser
             String shortname=props.getShortName();
             for ( int i = 0; i < spectra.length; i++ ) {
                 String str = spectra[i].getShortName();
-                addSpectrum( spectra[i] );
+//                if (spectra[i].getObjectType() == null) {
+//                	spectra[i].setObjectType(props.getObjectType());
+//                }
+                props.apply( spectra[i] ); // warning - moved this line BEFORE addSpectrum (it was after). See if it affects something
+                addSpectrum( spectra[i], props.getSourceType() );
                 if (str != null && str.startsWith("order"))
                     props.setShortName(shortname+" ["+str+"]");
-                props.apply( spectra[i] );
+                //props.apply( spectra[i] );
+                
+                System.out.println("and146: SED or TABLE #" + i);
             }
         }
         else {
@@ -2168,23 +2233,34 @@ public class SplatBrowser
                 SpecData spectrum;
                 List<SpecData> spectra;
                     if (props.getType() == SpecDataFactory.DATALINK) {
-                        DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
-                        props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read 
-                        if (props.getDataLinkFormat() != null ) // see if user has changed the output format
-                            props.setType(SpecDataFactory.mimeToSPLATType(props.getDataLinkFormat()));                 
-                        else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
+                       
+                    	DataLinkResponse dlparams = new DataLinkResponse(props.getSpectrum()); // get SODA Params
+                        props.setSpectrum(dlparams.getThisLink()); // get the accessURL for the first service read 
+                        String stype = null;
+                        if (props.getDataLinkFormat() != null ) { // see if user has changed the output format
+                        	stype = props.getDataLinkFormat();
+                        	props.setType(SpecDataFactory.mimeToSPLATType(stype));
+                            //props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
+                        }
+                        else if ( dlparams.getThisContentType() == null || dlparams.getThisContentType().isEmpty()) //if not, use contenttype
                             props.setType(SpecDataFactory.GUESS);
-                        else 
-                            props.setType(SpecDataFactory.mimeToSPLATType(dlparams.getQueryContentType(0))); 
-                    }
-                    spectra = specDataFactory.get( props.getSpectrum(), props.getType() ); ///!!! IF it's a list???
+                        else { 
+                            stype = dlparams.getThisContentType();
+                        	props.setType(SpecDataFactory.mimeToSPLATType(stype));
+                        	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
+                        }
+                    } 
+                    spectra = specDataFactory.get( props.getSpectrum(), props.getType(), props.getObjectType() ); 
                     for (int s=0; s < spectra.size(); s++ ){
                         spectrum=spectra.get(s);
                         String sname = spectrum.getShortName();
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
-                        addSpectrum( spectrum );
-                        props.apply( spectrum );
+//                        spectrum.setObjectType(props.getObjectType());
+                       
+                        props.apply( spectrum ); // need to test if moving this line before addSpectrum affects somethg
+                        addSpectrum( spectrum, props.getSourceType() );
+                       // props.apply( spectrum );
                         
                     }
                 //}
@@ -2203,8 +2279,9 @@ public class SplatBrowser
                 if ( props.getType() == SpecDataFactory.FITS || se.getType() == SpecDataFactory.FITS) {
                     SpecData spectra[] = specDataFactory.expandFITSSED( specpath, se.getRows() );
                     for ( int i = 0; i < spectra.length; i++ ) {
+                        props.apply( spectra[i] ); // !!!!!!!
                         addSpectrum( spectra[i] );
-                        props.apply( spectra[i] );
+                       // props.apply( spectra[i] );
                     }
                 } 
                 //   }
@@ -2213,13 +2290,9 @@ public class SplatBrowser
                 //        else 
                 //                    throw new SplatException( se );
 
-            }
-            catch(SplatException sple) {
-                if (! sple.getMessage().contains("No TABLE element found")) 
-                    JOptionPane.showMessageDialog
-                    ( this, sple.getMessage(), "",
-                      JOptionPane.ERROR_MESSAGE );
-            }
+            } catch (SAXException e) {
+            	throw new SplatException(e.getMessage());
+			}
         }
     }
 
@@ -2270,6 +2343,14 @@ public class SplatBrowser
      * @param spectrum the SpecData object.
      */
     public void addSpectrum( SpecData spectrum ) {
+        if (spectrum.getClass() == (LineIDSpecData.class)) {
+            try {
+                lineIDManager.addSpectrum((LineIDSpecData) spectrum);
+            } catch (SplatException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
         addSpectrum(spectrum, SourceType.UNDEFINED);
     }
     /**
@@ -2284,6 +2365,9 @@ public class SplatBrowser
         //  Get the current top of SpecList.
         SpecList list = SpecList.getInstance();
         int top = list.specCount();
+        if (sourceType==null) {
+        	sourceType=SourceType.UNDEFINED;
+        }
 
         //  2D spectra may need reprocessing by collapsing or extracting
         //  many spectra. This is performed here. If any of ndAction, dispAxis
@@ -3264,6 +3348,8 @@ public class SplatBrowser
         }
         else {
             Utilities.saveFrameLocation( this, prefs, "SplatBrowser" );
+            if (communicator != null)
+            	communicator.disconnect();
             System.exit( 0 );
         }
     }
@@ -3276,8 +3362,13 @@ public class SplatBrowser
     protected void processWindowEvent( WindowEvent e )
     {
         super.processWindowEvent( e );
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         if ( e.getID() == WindowEvent.WINDOW_CLOSING ) {
-            exitApplicationEvent();
+                int PromptResult = JOptionPane.showConfirmDialog(null,"Are you sure you want to close SPLAT-VO?","SPLAT-VO",JOptionPane.YES_NO_OPTION);                
+                if(PromptResult==JOptionPane.YES_OPTION)
+                {
+                    exitApplicationEvent();
+                }           
         }
     }
 
@@ -3318,6 +3409,7 @@ public class SplatBrowser
         public static final int FITS_VIEWER = 27;
         public static final int EXIT = 28;
         public static final int OBSCORE = 29;
+        public static final int SLAP = 30;
 
         private int type = 0;
 
@@ -3508,7 +3600,13 @@ public class SplatBrowser
                    showObscorePanel();
                    break;
                }
-
+               
+            /*
+               case SLAP: {           
+                   showSlapBrowser();
+                   break;
+               }
+            */
                case EXIT: {
                    exitApplicationEvent();
                }
@@ -3652,4 +3750,20 @@ public class SplatBrowser
         
         return fileFormat;
     }
+
+
+    public void addLinesToCurrentPlot(LineIDSpecData data) {
+        int plotIndex=globalList.currentSpectrum;
+        this.displaySpectrum(data);
+        globalList.add( data, SourceType.UNDEFINED );
+        PlotControl current = globalList.getPlot(plotIndex);
+        current.loadLineIDs(false, false, lineIDManager);
+        
+    }
+
+	public void addSampResults(String location, String shortname) {
+		showSSAPBrowser();
+		ssapBrowser.addSampResults(location, "SAMP:"+shortname);
+		
+	}
 }

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import nom.tam.fits.Header;
-
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -480,7 +479,7 @@ public class SpecData
     /**
      * The spectrum plot style.
      */
-    protected int plotStyle = POLYLINE;
+    protected int plotStyle = POLYLINE; //and146: set this to POINT
 
     /**
      * Whether error bars should be drawn.
@@ -576,7 +575,7 @@ public class SpecData
      * Whether the Y offsets to coordinates should be applied.
      */
     private boolean applyYOffset = false;
-
+    
     //  ==============
     //  Public methods
     //  ==============
@@ -1787,7 +1786,26 @@ public class SpecData
         return SpecData.searchForSpecFrames;
     }
 
-
+    /**
+     * Getter for object type that identifies type of object (spectrum or timeseries)
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * @return
+     */
+    public ObjectTypeEnum getObjectType() {
+    	return impl.getObjectType();
+	}
+    
+    /**
+     * /**
+     * Setter for object type that identifies type of object (spectrum or timeseries)
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     
+     * @param objectType
+     */
+    public void setObjectType(ObjectTypeEnum objectType) {
+    	impl.setObjectType(objectType);
+	}
+    
     /**
      * Read the data from the spectrum into local arrays.  This also
      * initialises a suitable AST frameset to describe the coordinate system
@@ -1865,15 +1883,16 @@ public class SpecData
             checkForExtractionPosition( astref, sigaxis );
 
             //  Create a frameset that is suitable for displaying a
-            //  "spectrum". This has a coordinate X axis and a data Y
+            //  "spectrum" or a timeseries. This has a coordinate X axis and a data Y
             //  axis. The coordinates are chosen to run along the sigaxis (if
             //  input data has more than one dimension) and may be a distance,
             //  rather than absolute coordinate.
+            //  
             FrameSet specref = null;
             try {
                 specref = ast.makeSpectral( sigaxis, 0, yPos.length,
                                             getDataLabel(), getDataUnits(),
-                                            false, searchForSpecFrames );
+                                            false, searchForSpecFrames, impl.getObjectType()==ObjectTypeEnum.TIMESERIES );
             }
             catch (AstException e) {
                 throw new SplatException( "Failed to find a valid spectral " +
@@ -1903,6 +1922,13 @@ public class SpecData
                 xPos = tPos;
                 tPos = null;
 
+                if (impl.getObjectType()==ObjectTypeEnum.TIMESERIES ) {
+                    String ts = impl.getTimeSystem();
+                    if (ts != null && ! ts.isEmpty()) {
+                        FrameSet frameSet = astJ.getRef();
+                        frameSet.setC("System", impl.getTimeSystem());
+                    }
+                }
                 //  Set the apparent data units, if possible.
                 convertToApparentDataUnits();
 
@@ -1917,6 +1943,7 @@ public class SpecData
             catch (Exception e) {
                 throw new SplatException( e );
             }
+            
         }
     }
 
@@ -2722,6 +2749,35 @@ public class SpecData
         return bounds;
     }
 
+    public int getPreferredPlotType() {
+    	int plotType = SpecData.POLYLINE;
+    	
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		plotType = SpecData.POINT;
+    	}
+    	
+    	return plotType;
+    }
+    
+    public int getPreferredPointType() {
+    	int pointType = 0; // dot
+    	
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		pointType = 1; // cross
+    	}
+    	
+    	return pointType;
+    }
+    
+    public boolean getDefaultAxisSpacingBehavior() {
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		return true; 
+    	}
+   	
+    	return false;
+    }
+    
+    
     /**
      * Lookup the physical values (i.e.&nbsp;wavelength and data value) that
      * correspond to a graphics X coordinate. Value is returned as formatted
@@ -2896,6 +2952,7 @@ public class SpecData
         if ( isColumnMutable() ) {
             String currentName = getYDataColumnName();
             if ( ! currentName.equals( name ) ) {
+            	// and146: tady se nastavuje vse kolem osy y
                 impl.setDataColumnName( name );
                 readData();
                 return true;

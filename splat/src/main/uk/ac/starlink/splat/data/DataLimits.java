@@ -363,7 +363,7 @@ public class DataLimits
      */
     public void setFromString( String name, String value )
     {
-        if ( name.equals( "xAutoscaled" ) ) {
+    	if ( name.equals( "xAutoscaled" ) ) {
             setXAutoscaled( booleanFromString( value ) );
             return;
         }

@@ -1,11 +1,9 @@
-
 <?xml version='1.0' encoding='ISO-8859-1' ?>
 <!DOCTYPE map
   PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN"
          "http://java.sun.com/products/javahelp/map_1_0.dtd">
 
 <!-- This file maps help IDs into URIs -->
-7
 <map version="1.0">
 
   <mapID target="splat-help"                 url="sun243.htx/sun243.html"/>
@@ -22,6 +20,8 @@
   <mapID target="plot-window"                url="xref_plot_window"/>
   <mapID target="ssa-window"                 url="xref_ssap_window"/>
   <mapID target="obscore-window"             url="xref_obscore_window"/>
+  <mapID target="datalink"                   url="xref_datalink"/>
+  <mapID target="lines-browser"              url="xref_lines_browser"/>
   <mapID target="animation-window"           url="xref_animation_window"/>
   <mapID target="viewer"                     url="xref_view_modify_window"/>
   <mapID target="specxcoord-window"          url="xref_spectral_coords_window"/>

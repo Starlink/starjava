@@ -39,7 +39,15 @@ public class SSAQueryResultsTableSelectionMenu extends JMenu {
 		addMenuItems();
 	}
 	
-	private void addMenuItems() {
+	public SSAQueryResultsTableSelectionMenu( boolean notitle ) {
+	    super();
+	    if (! notitle)
+	    	this.setText(TITLE);
+		
+		addMenuItems();
+	}
+	
+	protected void addMenuItems() {
     	add(createCopyCurrentCellItem());
     	add(createCopyCurrentSelectionItem());
     	add(createCopyAllTableDataItem());

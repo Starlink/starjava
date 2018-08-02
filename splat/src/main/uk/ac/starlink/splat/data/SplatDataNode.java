@@ -176,7 +176,7 @@ public class SplatDataNode
                 }
                 if ( file != null ) {
                     specDataList.addAll(specFactory.getAll( file.getPath(),
-                            SpecDataFactory.FITS ));
+                            SpecDataFactory.FITS, null ));
                     return specDataList;
                 }
             }

@@ -934,7 +934,7 @@ public class SplatSelectedProperties
     {
         public RenProps()
         {
-            reset();
+        	reset();
         }
 
         private double alpha;
@@ -1015,16 +1015,20 @@ public class SplatSelectedProperties
 
         public void apply( SpecData spectrum ) 
         {
-            spectrum.setAlphaComposite( alpha );
+            // default properties - only some of them are used, the rest is customizable
+        	DefaultRenderingProperties defaultProperties = DefaultRenderingPropertiesFactory.create(spectrum);
+        	
+        	spectrum.setAlphaComposite( alpha );
             spectrum.setErrorColour( errorColour );
             spectrum.setErrorFrequency( errorFrequency );
             spectrum.setErrorNSigma( errorScale );
             spectrum.setLineColour( lineColour );
             spectrum.setLineStyle( lineStyle );
             spectrum.setLineThickness( lineThickness );
-            spectrum.setPlotStyle( plotStyle );
-            spectrum.setPointSize( pointSize );
-            spectrum.setPointType( pointType );
+//            System.out.println("and146: #3: " + plotStyle + " / " + spectrum.getPrefferedPlotType() + " [" + spectrum.getObjectType() + "]");
+            spectrum.setPlotStyle( defaultProperties.getPlotStyle() );
+            spectrum.setPointSize( defaultProperties.getPointSize() );
+            spectrum.setPointType( defaultProperties.getPointType() );
         }
     }
 }

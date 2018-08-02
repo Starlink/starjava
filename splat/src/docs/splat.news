@@ -1,9 +1,48 @@
 1 Starlink SPLAT news.
+   3.14
+   ========
+   - improved Datalink processing
+   - DataLink support also in Obscore
+   - VAMDC interface now works also for molecules
+   - improved timeseries detection and visualization
+   - sending/receiving query results tables via SAMP
+   - gives feedback to user in case of invalid values for log axes
+   - bugfixes
+
+   3.13
+   ====
+   - spectral lines query support from slap and vamdc services
+   - several fixes/improvements
+
+   3.12
+   ====
+   -  initial timeseries support: detection and handling of timeseries
+   -  several corrections
+
+   3.11-6
+   ======
+   - no more need for builtin server list. If no previously saved list found, ask user to query the registry. (ssap,obscore)
+   - ssap: bug corrections in metadata handling
+   - ssap: now keeping datalink parameters in memory after changing tabs
+   - ssap: better differentiation between theoretical and observation services input parameters
+   - improved/corrected download of several spectra (buttons behaviour, error messages)
+
+
+
+   3.11-5
+   ======
+   - changes in user interface structure (SSAP, Obscore)
+   - correction of Obscore simple search interface
+   - added data product type option to obscore simple search (allow timeseries or spectra)
+    
    3.11-4
    ======
 
    Fix a problem receiving local files from SAMP communicators.
-
+   - improvement on handling remote files (detecting file type, compression)
+   - Timeseries initial support
+   - sending spectra as table via SAMP
+   - Bug fix: sending SAMP results tableImprovements in the ObsCore interface
 
    3.11-3
    ======

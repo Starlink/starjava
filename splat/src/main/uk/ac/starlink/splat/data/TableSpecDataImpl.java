@@ -8,8 +8,11 @@
  */
 package uk.ac.starlink.splat.data;
 
+import java.util.Arrays;
 import java.util.List;
 import java.io.IOException;
+
+import org.apache.axis.utils.ArrayUtil;
 
 import nom.tam.fits.Header;
 import uk.ac.starlink.ast.FrameSet;
@@ -560,11 +563,32 @@ public class TableSpecDataImpl
     protected void readTable( long row )
         throws SplatException
     {
-        //  Access table columns and look for which to assign to the various
+    	// Detect timeseries
+    	for (Object oParam : starTable.getParameters()) {
+    		if (oParam instanceof DescribedValue) {
+    			DescribedValue param = (DescribedValue) oParam;
+    			if (param.getInfo().getName().toLowerCase().contains("dataproducttype")) {
+    				String value = (String) param.getValue();
+    				if (value != null && (value.equalsIgnoreCase("timeseries") || value.equalsIgnoreCase("lightcurve"))) {
+    					setObjectType(ObjectTypeEnum.TIMESERIES);
+    				}
+    			} else if (param.getInfo().getUtype() != null
+    					&& (param.getInfo().getUtype().toLowerCase().contains("dataproducttype") ||
+    					    param.getInfo().getUtype().toLowerCase().contains("spectrum.type"))) {
+    				String value = (String) param.getValue();
+    				if (value != null && (value.equalsIgnoreCase("timeseries") || value.equalsIgnoreCase("lightcurve"))) {
+    					setObjectType(ObjectTypeEnum.TIMESERIES);
+    				}
+    			}
+    		}
+    	}
+    	
+    	//  Access table columns and look for which to assign to the various
         //  data types. The default, if the matching fails, is to use the
         //  first and second (whatever that means) columns that are numeric
         //  types and do not look for any errors. Do not allow spaces in 
         //  column names. These cause trouble with lists of names.
+    	
         columnInfos = Tables.getColumnInfos( starTable );
         columnNames = new String[columnInfos.length];
         for ( int i = 0; i < columnNames.length; i++ ) {
@@ -909,8 +933,9 @@ public class TableSpecDataImpl
             }
         }
 
+        
         if ( desc != null && ! "".equals( desc ) ) {
-            astref.setLabel( 1, desc );
+            astref.setLabel( 1, desc.trim() );
         }
     }
 }

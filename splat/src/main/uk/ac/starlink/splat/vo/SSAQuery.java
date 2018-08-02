@@ -46,10 +46,10 @@ public class SSAQuery
     private String description = null;
 
     /** RA of the query */
-    private double queryRA = 0.0;
+    private Double queryRA = null;
 
     /** Dec of the query */
-    private double queryDec = 0.0;
+    private Double queryDec = null;
 
     /** name of the target object, used if RA or Dec are null */
     private String targetName = null;
@@ -88,13 +88,16 @@ public class SSAQuery
    // private GetDataTable getDataTable = null;
     
     /** The DataLink input parameters  */
-    private DataLinkParams dataLinkParams = null;
+    private  DataLinkServices dataLinkParams = null;
 
     /** Extended Query with metadata parameters  */
     private String extendedQuery = "";
 
     /** Extended Query with metadata parameters  */
     private String queryText = "";
+    
+    /** used to catch SAMP results table */
+    private boolean samp = false;
     
     /**
      * Create an instance with the given base URL for an SSA service.
@@ -103,7 +106,6 @@ public class SSAQuery
     {
         this.baseURL = baseURL;
         this.description = null;
-
  
     }
     /**
@@ -152,6 +154,11 @@ public class SSAQuery
         this.queryRA = queryRA;
         this.queryDec = queryDec;
     }
+    public void setNoPosition(  )
+    {
+        this.queryRA = null;
+        this.queryDec = null;
+    }
 
     /**
      * Set the position used for the query. The values are in sexigesimal
@@ -165,9 +172,8 @@ public class SSAQuery
             setPosition( hms.getVal() * 15.0, dms.getVal() );
         }
         else {
-            //  Null values, may be using targetName. Set some out of bounds
-            //  values to raise an error if these are used.
-            setPosition( -1.0, -91.0 );
+            //  Null values, may be using targetName.
+            setNoPosition();
         }
     }
 
@@ -189,7 +195,7 @@ public class SSAQuery
         this.queryRadius = queryRadius / 60.0;
     }
     /**
-     * Set the maximum numbre of records returned by the query
+     * Set the maximum number of records returned by the query
      */
     public void setMaxrec( int maxrec )
     {
@@ -312,7 +318,7 @@ public class SSAQuery
     /**
      * Set the DataLink parameters
      */
-    public void setDataLinkParams( DataLinkParams dlparams )
+    public void setDataLinkServices(  DataLinkServices dlparams )
     {
         this.dataLinkParams = dlparams;
     }
@@ -320,7 +326,7 @@ public class SSAQuery
     /**
      * Get then DataLink parameters, if defined, if not return null.
      */
-    public DataLinkParams getDataLinkParams()
+    public  DataLinkServices getDataLinkServices()
     {
         return dataLinkParams;
     }
@@ -360,7 +366,7 @@ public class SSAQuery
 
         //  Add basic search parameters, POS or TARGETNAME, FORMAT and SIZE.
         // TO DO this way you cannot search for objects in the position 0,0. Should be done in a more elegant way
-        if ( queryRA > 0.0 || queryDec > 0.0 ) {
+        if ( queryRA != null || queryDec != null ) {
             buffer.append( "&POS=" + queryRA + "," + queryDec );
         }
         else if ( targetName != null ) {
@@ -469,6 +475,9 @@ public class SSAQuery
             throws MalformedURLException, UnsupportedEncodingException
     {
         String newURL = this.baseURL;
+        if (this.description.startsWith("SAMP"))
+        	 return new URL(newURL);
+        
         if ( newURL.indexOf( '?' ) == -1 )  //  No ? in URL.
             newURL += ( "?" );
         else if ( !newURL.endsWith("?")  && !newURL.endsWith("&")) //? is not at the end
@@ -480,5 +489,15 @@ public class SSAQuery
         url.getQuery();
         return new URL(newURL);
         
+    }
+    
+    public void setSamp() {
+    	samp = true;
+    }
+    public boolean getSamp() {
+    	return samp;
+    }
+    public void unsetSamp() {
+    	samp = false;
     }
 }
