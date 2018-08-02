@@ -1218,15 +1218,13 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                         rseq = starTable.getRowSequence();                        
                         int k = 0; // Table row                    	
                         int l = 0; // selection index
-                        ArrayList<Integer> selectedRows = new ArrayList();
+                        ArrayList<Integer> selectedRows = new ArrayList<Integer>();
                         for (int sel=0;sel<selection.length;sel++ ){
                         	selectedRows.add(starJTable.convertRowIndexToModel(selection[sel]));
                         }
                         Collections.sort(selectedRows);
                         		
                         while ( rseq.next() ) {
-                                             
-                          //  if ( k == starJTable.convertRowIndexToModel(selection[l])) {
                         	 if ( k == selectedRows.get(l)) {
                                 // Store this one as matches selection.
                                 if (rseq.getCell( linkcol ) != null)                                      
