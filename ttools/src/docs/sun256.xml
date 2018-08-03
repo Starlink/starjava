@@ -11731,6 +11731,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New <ref id="layer-line3d">line3d</ref> plot layer
         for plotting lines in <code>plot2cube</code> and
         <code>plot2sphere</code>.</li>
+    <li><ref id="layer-contour">Contour</ref> level calculations improved;
+        in some cases this previously didn't work well
+        at low point density, resulting in missing contours.
+        The meaning of the <code>zero</code> parameter has also changed
+        slightly, it now defaults to 1 and is not phase folded.</li>
     </ul>
     </p>
     </dd>

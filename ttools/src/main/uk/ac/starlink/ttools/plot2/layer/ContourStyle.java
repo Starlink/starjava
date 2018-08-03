@@ -27,8 +27,7 @@ public class ContourStyle implements Style {
      *
      * @param  color  contour line colour
      * @param  nLevel  number of contours
-     * @param  offset  offset from zero of first contour;
-     *                 should be in the range 0..1
+     * @param  offset  offset from zero of first contour
      * @param  nSmooth  smoothing kernel width
      * @param  levelMode  level determination algorithm
      * @param  combiner   combination mode
@@ -64,7 +63,7 @@ public class ContourStyle implements Style {
     /**
      * Returns the offset of the first contour from zero.
      *
-     * @return  zero offset, expected in the range 0..1
+     * @return  zero offset
      */
     public double getOffset() {
         return offset_;

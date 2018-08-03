@@ -27200,6 +27200,11 @@ introduced since the last version:
         activation action introduced.</li>
     <li>New <ref id="form-line3d">Line3d</ref> plot form for plotting
         lines in the Cube and Sphere plots.</li>
+    <li><ref id="form-contour">Contour</ref> level calculations improved;
+        in some cases this previously didn't work well
+        at low point density, resulting in missing contours.
+        The zero point slider function has also changed slightly,
+        it is now not phase folded.</li>
     </ul>
     </p></dd>
 

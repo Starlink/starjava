@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -93,7 +94,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 "by a fixed amount) are drawn.",
                 "</p>",
             } )
-        , 0, -2, +2, false );
+        , 1, 0, 2, false, false, SliderSpecifier.TextOption.ENTER_ECHO );
 
     /** Config key for the smoothing combination mode. */
     public static final ConfigKey<Combiner> COMBINER_KEY =
@@ -229,8 +230,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         Color color = config.get( StyleKeys.COLOR );
         int nlevel = config.get( NLEVEL_KEY );
 
-        /* Map offset to the range 0..1. */
-        double offset = ( ( config.get( OFFSET_KEY ) % 1 ) + 1 ) % 1;
+        double offset = config.get( OFFSET_KEY );
         int nsmooth = config.get( SMOOTH_KEY );
         LevelMode levMode = config.get( StyleKeys.LEVEL_MODE );
         Combiner combiner = weightCoord_ == null
@@ -439,23 +439,16 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             Combiner combiner = style_.getCombiner();
             LevelMode lmode = style_.getLevelMode();
 
-            /* Calculate the levels from the data.  In general it makes
-             * sense to do that using the smoothed grid, since that's
-             * what is going to get plotted.  However, if the combiner
-             * is extensive, then blank areas outside of the smoothing width
-             * in the raw grid will have been converted to zero values
-             * in the smoothed grid.  All those zeroes are indistinguishable
-             * from real data, and can cause the level calculation to
-             * give unhelpful results.  So for extensive combiners, use
-             * the raw grid, which will contain NaNs for blank areas,
-             * to assign levels.  To a first order, it should give the
-             * same results as the smoothed one. */
-            NumberGrid grid = combiner.getType().isExtensive()
-                            ? plan.rawGrid_
-                            : plan.smoothGrid_;
-            boolean isCounts = ! hasWeight_
-                            || combiner.equals( Combiner.COUNT )
-                            || combiner.equals( Combiner.HIT );
+            /* Calculate the levels from the data.  We use the smoothed grid
+             * here since that's what's going to get plotted.
+             * To get the levels right it's important that the grid values
+             * are NaN and not just zero where there is no data
+             * (no contribution from the smoothed input grid). */
+            NumberGrid grid = plan.smoothGrid_;
+            boolean isCounts = plan.smooth_ == 1 
+                            && ( ! hasWeight_
+                                 || combiner.equals( Combiner.COUNT )
+                                 || combiner.equals( Combiner.HIT ) );
             double[] levels = lmode
                              .calculateLevels( grid, style_.getLevelCount(),
                                                style_.getOffset(), isCounts );
@@ -542,7 +535,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
      *
      * @param   inGrid  original grid data
      * @param   smooth   smoothing parameter
-     * @return  smoothed grid data
+     * @return  smoothed grid data, NaNs where no input contribution
      */
     private static NumberGrid smoothSum( NumberGrid inGrid, int smooth ) {
         Gridder gridder = inGrid.gridder_;
@@ -556,11 +549,19 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
         /* Since the Gaussian kernel is separable and we are just summing the
          * results, we can do two 1-d convolutions, which scales much
-         * better than one 2-d convolution.  Blank values in the input
-         * grid, which correspond to values with no input contributions,
+         * better than one 2-d convolution.
+         * When doing it like this, blank values in the input grid,
+         * which correspond to values with no input contributions,
          * just don't contribute (equivalent to contributing at zero weight)
-         * to output pixels. */
+         * to output pixels.  It's important (when calculating levels)
+         * that zero values are indistinguishable from values with no data,
+         * so we need to do extra work to write NaNs where there are no
+         * input contributions.  We do it by effectively convolving a mask
+         * (blank=0, non-blank=1) with the same kernel.
+         * Anywhere the mask convolution ends up zero corresponds to
+         * no input data contribution. */
         double[] a1 = new double[ npix ];
+        double[] b1 = new double[ npix ];
         for ( int qx = 0; qx < smooth; qx++ ) {
             double k = kernel[ qx ];
             int px = qx - smooth / 2;
@@ -571,12 +572,15 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                     int jx = ix - px;
                     double d = inGrid.getValue( gridder.getIndex( jx, iy ) );
                     if ( ! Double.isNaN( d ) ) {
-                        a1[ gridder.getIndex( ix, iy ) ] += k * d;
+                        int index1 = gridder.getIndex( ix, iy );
+                        a1[ index1 ] += k * d;
+                        b1[ index1 ] += k;
                     }
                 }
             }
         }
         double[] a2 = new double[ npix ];
+        double[] b2 = new double[ npix ];
         for ( int qy = 0; qy < smooth; qy++ ) {
             double k = kernel[ qy ];
             int py = qy - smooth / 2;
@@ -585,14 +589,17 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             for ( int iy = iy0; iy < iy1; iy++ ) {
                 for ( int ix = 0; ix < nx; ix++ ) {
                     int jy = iy - py;
-                    a2[ gridder.getIndex( ix, iy ) ] +=
-                        k * a1[ gridder.getIndex( ix, jy ) ];
+                    int index2 = gridder.getIndex( ix, iy );
+                    int index1 = gridder.getIndex( ix, jy );
+                    a2[ index2 ] += k * a1[ index1 ];
+                    b2[ index2 ] += k * b1[ index1 ];
                 }
             }
         }
         final double[] out = a2;
+        final double[] mask = b2;
 
-        /* Normalise. */
+        /* Calculate the normalisation factor. */
         double sk = 0;
         for ( int i = 0; i < smooth; i++ ) {
             for ( int j = 0; j < smooth; j++ ) {
@@ -600,8 +607,13 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             }
         }
         double factor = 1.0 / sk;
+
+        /* For each value in the convolved grid: apply the normalisation
+         * factor if the mask says it had contributions from the input,
+         * or set it NaN if the mask says it had no contributions. */
         for ( int i = 0; i < out.length; i++ ) {
-            out[ i ] *= factor;
+            out[ i ] = mask[ i ] > 0 ? out[ i ] * factor
+                                     : Double.NaN;
         }
 
         /* Return the result as a NumberGrid. */
@@ -617,7 +629,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
      *
      * @param  inGrid  input grid
      * @param  smooth  smoothing kernel size
-     * @return  smoothed grid
+     * @return  smoothed grid data, NaNs where no input contribution
      */
     private static NumberGrid smoothMean( NumberGrid inGrid, int smooth ) {
         Gridder gridder = inGrid.gridder_;
@@ -803,6 +815,8 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
     /**
      * Partial NumberArray implementation that knows about grid geometry.
+     * Note that the values must be NaN where there is no input data,
+     * not zero.
      */
     private static abstract class NumberGrid implements NumberArray {
         final Gridder gridder_;
@@ -878,6 +892,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 return this;
             }
             else {
+
+                /* Note that the smoothed grid, like the raw grid, must have
+                 * NaNs for missing data not zeros, otherwise contour level
+                 * calculation won't work correctly. */
                 final NumberGrid sgrid;
                 if ( smooth == 1 ) {
                     sgrid = rawGrid_;

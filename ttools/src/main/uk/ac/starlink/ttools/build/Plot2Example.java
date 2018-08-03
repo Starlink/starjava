@@ -1018,7 +1018,7 @@ public class Plot2Example {
                 "*x=phot_g_mean_mag", "*y=phot_g_mean_flux_error", null,
                 "ylog=true", "xmax=14", "ymin=10", null,
                 "layer1=mark", "shading1=density", "densemap1=greyscale", null,
-                "*layer2=contour", "*scaling2=log",
+                "*layer2=contour", "*scaling2=log", "*nlevel=6",
             } ),
             new Plot2Example( "layer-grid", c, PlotTask.PLANE, new String[] {
                 "*layer1=grid", "*in1=" + TName.HESS,
