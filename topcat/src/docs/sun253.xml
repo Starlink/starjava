@@ -27205,6 +27205,8 @@ introduced since the last version:
         at low point density, resulting in missing contours.
         The zero point slider function has also changed slightly,
         it is now not phase folded.</li>
+    <li>Slightly improved reporting of Service Descriptor descriptions
+        in Parameter Window.</li>
     </ul>
     </p></dd>
 

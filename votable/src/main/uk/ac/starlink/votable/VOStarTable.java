@@ -367,7 +367,11 @@ public class VOStarTable extends AbstractStarTable {
                     sdName = nsd == 1 ? "ServiceDescriptor"
                                       : "ServiceDescriptor" + ( isd + 1 );
                 }
-                ValueInfo sdInfo = new ServiceDescriptorInfo( sdName, this );
+                String sdDescrip = sd.getDescription() == null
+                                 ? null
+                                 : "Service Descriptor: " + sd.getDescription();
+                ValueInfo sdInfo =
+                    new ServiceDescriptorInfo( sdName, sdDescrip, this );
                 params.add( new DescribedValue( sdInfo, sd ) );
             }
 

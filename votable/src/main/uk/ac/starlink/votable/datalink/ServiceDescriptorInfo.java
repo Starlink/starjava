@@ -19,12 +19,16 @@ public class ServiceDescriptorInfo extends DefaultValueInfo {
      * Constructor.
      *
      * @param  name   descriptor name, should not be null
+     * @param  description   descriptor description, may be null
+     *                       if no relevant information is available
      * @param  table   table to which the values of this info refer;
      *                 may be null if inapplicable or unknown
      */
-    public ServiceDescriptorInfo( String name, StarTable table ) {
+    public ServiceDescriptorInfo( String name, String description,
+                                  StarTable table ) {
         super( name, ServiceDescriptor.class,
-               "Datalink-style service descriptor" );
+               description == null ? "Datalink-style service descriptor"
+                                   : description );
         table_ = table;
     }
 
