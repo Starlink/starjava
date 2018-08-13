@@ -306,7 +306,7 @@ public class DalMultiPanel extends JPanel {
         /* Service access parameters. */
         int maxpar = ParallelResultRowSequence.getMaxParallelism();
         parallelModel_ =
-            new SpinnerNumberModel( Math.min( 5, maxpar ), 1, maxpar, 1 );
+            new SpinnerNumberModel( Math.min( 3, maxpar ), 1, maxpar, 1 );
         JLabel parallelLabel = new JLabel( "Parallelism: " );
         JSpinner parallelSpinner = new JSpinner( parallelModel_ );
         cList.add( parallelLabel );
@@ -704,7 +704,7 @@ public class DalMultiPanel extends JPanel {
         plist.add( ConeErrorPolicy
                   .createAdviceAbortPolicy( "abort", abortAdvice ) );
         plist.add( ConeErrorPolicy.IGNORE );
-        int[] retries = new int[] { 1, 2, 3, 5, 10, };
+        int[] retries = new int[] { 1, 2, 3, 5, };
         for ( int i = 0; i < retries.length; i++ ) {
             int ntry = retries[ i ];
             plist.add( ConeErrorPolicy

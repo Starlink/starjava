@@ -11736,10 +11736,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         at low point density, resulting in missing contours.
         The meaning of the <code>zero</code> parameter has also changed
         slightly, it now defaults to 1 and is not phase folded.</li>
-    <li>Add a progressively increasing delay for <code>erract=retry*</code>
-        error handling modes in
-        <ref id="coneskymatch"><code>coneskymatch</code></ref> and friends,
-        to reduce likelihood of unintentional service overload.</li>
+    <li>Introduce a couple of measures to reduce the likelihood
+        of unintentional service overload from
+        <ref id="coneskymatch"><code>coneskymatch</code></ref> and friends:
+        add a progressively increasing delay for <code>erract=retry*</code>
+        error handling modes,
+        and decrease the soft maximum for the <code>parallel</code>
+        parameter to 5 (from 10).</li>
     </ul>
     </p>
     </dd>

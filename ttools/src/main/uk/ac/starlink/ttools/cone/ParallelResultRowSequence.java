@@ -42,7 +42,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      * @see  #MAXPAR_PROP
      * @see  #getMaxParallelism
      */
-    public static final int DEFAULT_MAXPAR = 10;
+    public static final int DEFAULT_MAXPAR = 5;
 
     /**
      * Name of system property {@value} which may be used to adjust the

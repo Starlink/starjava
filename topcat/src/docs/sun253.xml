@@ -19016,7 +19016,7 @@ are submitted to the remote service.
     make your multiple query run faster; or it might overload the server
     and make you unpopular with the service administrator, or result in
     your query taking longer or failing altogether, or both.
-    The default value of 5 is probably reasonable, but experiment with
+    The default value of 3 is probably reasonable, but experiment with
     adjusting it if you want.
     </p></dd>
 <dt>Error Handling</dt>
@@ -27209,10 +27209,12 @@ introduced since the last version:
         it is now not phase folded.</li>
     <li>Slightly improved reporting of Service Descriptor descriptions
         in Parameter Window.</li>
-    <li>Add a progressively increasing delay into
-        <ref id="DalMultiPanel">Multiple Positional Search Panel</ref>
-        <em>Retry</em> error handling mode options to reduce likelihood
-        of unintentional service overload.</li>
+    <li>Introduce a couple of measures to reduce the likelihood
+        of unintentional service overload from multicone-type queries
+        (<ref id="DalMultiPanel">Multiple Positional Search Panel</ref>):
+        add a progressive delay for <em>Retry</em> error handling modes,
+        and decrease parallelism default value to 3 (from 5)
+        and soft maximum to 5 (from 10).</li>
     </ul>
     </p></dd>
 
