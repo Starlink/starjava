@@ -19028,9 +19028,11 @@ are submitted to the remote service.
     <dt>ignore</dt>
     <dd><p>treat a failed query the same as one which returns zero rows</p></dd>
     <dt>retry N times</dt>
-    <dd><p>try N times to get a non-fail result</p></dd>
+    <dd><p>try N times (with increasing delays)
+           to get a non-fail result</p></dd>
     <dt>retry indefinitely</dt>
-    <dd><p>keep trying for a non-fail result</p></dd>
+    <dd><p>keep trying (with increasing delays)
+           for a non-fail result</p></dd>
     </dl>
     The best setting for this depends on the way the service is set up;
     the default is <label>abort</label>, but 
@@ -27207,6 +27209,10 @@ introduced since the last version:
         it is now not phase folded.</li>
     <li>Slightly improved reporting of Service Descriptor descriptions
         in Parameter Window.</li>
+    <li>Add a progressively increasing delay into
+        <ref id="DalMultiPanel">Multiple Positional Search Panel</ref>
+        <em>Retry</em> error handling mode options to reduce likelihood
+        of unintentional service overload.</li>
     </ul>
     </p></dd>
 

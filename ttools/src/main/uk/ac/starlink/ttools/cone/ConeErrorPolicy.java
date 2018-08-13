@@ -99,7 +99,9 @@ public abstract class ConeErrorPolicy {
 
     /**
      * Constructs an error policy which will retry the search a fixed
-     * number of times.
+     * number of times.  A backing-off policy applies so that progressively
+     * longer delays are introduced between successive attempts following
+     * failure.
      *
      * @param   name  policy name
      * @param   nTry  maximum number of attempts;
@@ -114,6 +116,11 @@ public abstract class ConeErrorPolicy {
                     throws IOException, InterruptedException {
                 IOException lastError = null;
                 for ( int nFail = 0; nTry <= 0 || nFail < nTry; nFail++ ) {
+                    int delay = getDelaySeconds( nFail );
+                    if ( delay > 0 ) {
+                        Thread.sleep( delay * 1000 );
+                        logger_.info( "Wait " + delay + " sec before retry" );
+                    }
                     try {
                         return invokeConeSearcher( cs, ra, dec, sr );
                     }
@@ -130,6 +137,30 @@ public abstract class ConeErrorPolicy {
                 throw (IOException)
                       new IOException( nTry + " attempts failed" )
                      .initCause( lastError );
+            }
+
+            /**
+             * Returns a delay in seconds to be applied if a given number
+             * of failures has already occurred before a given retry attempt.
+             *
+             * @param  nFail  number of failures so far
+             * @return   number of seconds to delay before next attempt
+             */
+            private int getDelaySeconds( int nFail ) {
+                switch ( nFail ) {
+                    case 0:
+                        return 0;
+                    case 1:
+                        return 1;
+                    case 2:
+                        return 5;
+                    case 3:
+                    case 4:
+                    case 5:
+                        return 10;
+                    default:
+                        return 30;
+                }
             }
         };
     }
