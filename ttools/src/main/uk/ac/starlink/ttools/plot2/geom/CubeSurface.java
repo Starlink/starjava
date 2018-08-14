@@ -290,6 +290,17 @@ public class CubeSurface implements Surface {
     }
 
     /**
+     * Returns the data range boundaries in a specified dimension.
+     *
+     * @param  idim  dimension index (0..2)
+     * @return   2-element array giving (lower,upper) limits in data coords
+     *           in the specified dimension
+     */
+    public double[] getDataLimits( int idim ) {
+        return new double[] { dlos_[ idim ], dhis_[ idim ] };
+    }
+
+    /**
      * Maps a data space coordinate to a normalised space coordinate.
      * Normalised coordinates are in the range -1..+1.
      *
