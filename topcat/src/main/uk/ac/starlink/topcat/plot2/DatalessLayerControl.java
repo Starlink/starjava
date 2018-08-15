@@ -66,6 +66,18 @@ public class DatalessLayerControl extends ConfigControl
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {
+        TopcatLayer[] tcLayers = getLayers();
+        PlotLayer layer = tcLayers.length == 1
+                        ? tcLayers[ 0 ].getPlotLayer()
+                        : null;
+        if ( layer != null ) {
+            ReportMap report = reports.get( LayerId.createLayerId( layer ) );
+            if ( report != null ) {
+                for ( Specifier<ConfigMap> cspec : getConfigSpecifiers() ) {
+                    cspec.submitReport( report );
+                }
+            }
+        }
     }
 
     public String getCoordLabel( String userCoordName ) {
