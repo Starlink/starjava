@@ -209,7 +209,7 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
                 Color baseColor = style.getColor();
                 Stroke stroke = style.getStroke();
                 LineTracer3D tracer =
-                    new LineTracer3D( ptype, paper, surf, stroke );
+                    LineTracer3D.createTracer( ptype, paper, surf, stroke );
                 TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                 final int ndim = surf.getDataDimCount();
                 assert ndim == 3;
