@@ -267,6 +267,9 @@ public class CubeSurfaceFactory
            .setStringUsage( "<pixels>" )
         , 0, -2, +2, false );
 
+    /** Proportional auto-ranging isotropic snap-to-origin threshold. */
+    public static final double ISO_CENTER_TOLERANCE = 0.1;
+
     /**
      * Constructs an isotropic or non-isotropic cube surface factory.
      *
@@ -473,33 +476,33 @@ public class CubeSurfaceFactory
                                            Range[] ranges ) {
         if ( isIso_ ) {
             double scale = config.get( SCALE_KEY );
-            double xc = config.get( XC_KEY );
-            double yc = config.get( YC_KEY );
-            double zc = config.get( ZC_KEY );
+            double xc0 = config.get( XC_KEY );
+            double yc0 = config.get( YC_KEY );
+            double zc0 = config.get( ZC_KEY );
             double[] xlimits = ranges[ 0 ].getFiniteBounds( false );
             double[] ylimits = ranges[ 1 ].getFiniteBounds( false );
             double[] zlimits = ranges[ 2 ].getFiniteBounds( false );
-            if ( Double.isNaN( xc ) ) {
-                xc = 0.5 * ( xlimits[ 0 ] + xlimits[ 1 ] );
-            }
-            if ( Double.isNaN( yc ) ) {
-                yc = 0.5 * ( ylimits[ 0 ] + ylimits[ 1 ] );
-            }
-            if ( Double.isNaN( zc ) ) {
-                zc = 0.5 * ( zlimits[ 0 ] + zlimits[ 1 ] );
-            }
+            double xlo = xlimits[ 0 ];
+            double xhi = xlimits[ 1 ];
+            double ylo = ylimits[ 0 ];
+            double yhi = ylimits[ 1 ];
+            double zlo = zlimits[ 0 ];
+            double zhi = zlimits[ 1 ];
+            double ctol = ISO_CENTER_TOLERANCE;
+            double xc = Double.isNaN( xc0 ) ? getCenter( xlo, xhi, ctol ) : xc0;
+            double yc = Double.isNaN( yc0 ) ? getCenter( ylo, yhi, ctol ) : yc0;
+            double zc = Double.isNaN( zc0 ) ? getCenter( zlo, zhi, ctol ) : zc0;
             assert ! Double.isNaN( xc + yc + zc );
             if ( Double.isNaN( scale ) ) {
-                scale = max3( Math.max( xlimits[ 1 ] - xc, xc - xlimits[ 0 ] ),
-                              Math.max( ylimits[ 1 ] - yc, yc - ylimits[ 0 ] ),
-                              Math.max( zlimits[ 1 ] - zc, zc - zlimits[ 0 ] ) )
-                      * 2;
+                scale = 2 * max3( Math.max( xhi - xc, xc - xlo ),
+                                  Math.max( yhi - yc, yc - ylo ),
+                                  Math.max( zhi - zc, zc - zlo ) );
             }
             assert ! Double.isNaN( scale );
             return new double[][] {
-                centerLimits( xlimits, xc, scale ),
-                centerLimits( ylimits, yc, scale ),
-                centerLimits( zlimits, zc, scale ),
+                centerLimits( xlo, xhi, xc, scale ),
+                centerLimits( ylo, yhi, yc, scale ),
+                centerLimits( zlo, zhi, zc, scale ),
             };
         }
         else {
@@ -518,19 +521,36 @@ public class CubeSurfaceFactory
     }
 
     /**
+     * Determines the axis center from an upper and lower limit.
+     * This is generally just the mean of the two supplied values,
+     * but if the answer comes out near to zero, zero is returned instead.
+     *
+     * @param   lo   lower limit
+     * @param   hi   upper limit
+     * @param   tolerance   proportional proximity to zero of basic center
+     *                      which will trigger a zero result
+     * @return   central value
+     */
+    private static double getCenter( double lo, double hi, double tolerance ) {
+        double c0 = 0.5 * ( lo + hi );
+        return Math.abs( c0 ) / ( hi - lo ) <= tolerance ? 0 : c0;
+    }
+
+    /**
      * Returns actual upper and lower data bounds for an axis given
      * suggested range and constraints on size and central position.
      *
-     * @param   limits  suggested limits
+     * @param   lo      suggested lower limit
+     * @param   hi      suggested upper limit
      * @param   center  suggested central position, or NaN
      * @param   scale   fixed size of output range
      * @return  2-element array giving lower,upper limits;
      *          <code>upper=lower+scale</code>
      */
-    private static double[] centerLimits( double[] limits, double center,
+    private static double[] centerLimits( double lo, double hi, double center,
                                           double scale ) {
         if ( Double.isNaN( center ) ) {
-            center = ( limits[ 0 ] + limits[ 1 ] ) * 0.5;
+            center = ( lo + hi ) * 0.5;
         }
         double s2 = scale * 0.5;
         return new double[] { center - s2, center + s2 };

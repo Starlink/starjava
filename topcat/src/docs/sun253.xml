@@ -27225,6 +27225,8 @@ introduced since the last version:
         from (e.g. Gaia) astrometric parameters.</li>
     <li>Fix minor bug in TAP Resume Job tab that continued
         unnecessary polling of ERROR/ABORTED status jobs.</li>
+    <li>The <ref id="SpherePlotWindow">sphere plot</ref> now centers
+        axes on zero if the center would otherwise be near zero.</li>
     </ul>
     </p></dd>
 

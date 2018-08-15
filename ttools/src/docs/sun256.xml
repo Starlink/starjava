@@ -3761,7 +3761,7 @@ For recommended plotting commands, see <ref id="plot2"/>.
 <p>From version 2.0 (October 2008), STILTS incorporated three table
 plotting commands:
 <ul>
-<li><ref id="plot2d"><code>plot2d</code></ref>: &plot3d-purpose;</li>
+<li><ref id="plot2d"><code>plot2d</code></ref>: &plot2d-purpose;</li>
 <li><ref id="plot3d"><code>plot3d</code></ref>: &plot3d-purpose;</li>
 <li><ref id="plothist"><code>plothist</code></ref>: &plothist-purpose;</li>
 </ul>
@@ -11752,6 +11752,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>.
         These can calculate Cartesian position and velocity components
         from (e.g. Gaia) astrometric parameters.</li>
+    <li>Sphere plot now centers axes on zero if the center would otherwise be
+        near zero.</li>
     </ul>
     </p>
     </dd>
