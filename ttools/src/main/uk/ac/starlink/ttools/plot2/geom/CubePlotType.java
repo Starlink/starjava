@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
+import uk.ac.starlink.ttools.plot2.layer.SphereGridPlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -87,6 +88,7 @@ public class CubePlotType implements PlotType {
             new LabelPlotter(),
             new Line3dPlotter(),
             new ContourPlotter( true ),
+            new SphereGridPlotter(),
         } ) );
         return list.toArray( new Plotter[ 0 ] );
     }
