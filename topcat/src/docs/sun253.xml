@@ -27215,6 +27215,14 @@ introduced since the last version:
         add a progressive delay for <em>Retry</em> error handling modes,
         and decrease parallelism default value to 3 (from 5)
         and soft maximum to 5 (from 10).</li>
+    <li>New functions
+        <code>polarXYZ</code>, <code>astromXYZ</code>,
+        <code>astromUVW</code>,
+        <code>icrsToGal</code>, <code>galToIcrs</code>,
+        <code>icrsToEcl</code>, <code>icrsToEcl</code>
+        added to class <ref id="Gaia">Gaia</ref>.
+        These can calculate Cartesian position and velocity components
+        from (e.g. Gaia) astrometric parameters.</li>
     </ul>
     </p></dd>
 

@@ -11743,6 +11743,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         error handling modes,
         and decrease the soft maximum for the <code>parallel</code>
         parameter to 5 (from 10).</li>
+    <li>New functions
+        <code>polarXYZ</code>, <code>astromXYZ</code>,
+        <code>astromUVW</code>,
+        <code>icrsToGal</code>, <code>galToIcrs</code>,
+        <code>icrsToEcl</code>, <code>eclToIcrs</code>
+        added to class 
+        <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>.
+        These can calculate Cartesian position and velocity components
+        from (e.g. Gaia) astrometric parameters.</li>
     </ul>
     </p>
     </dd>

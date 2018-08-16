@@ -12,7 +12,6 @@ import uk.ac.starlink.dpac.math.Edsd;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
@@ -73,9 +72,13 @@ public class GaiaTest extends TestCase {
      * order by random_index asc
      */
     private static final String tname = "ap2b.vot";
+    private StarTable table_;
 
-    public GaiaTest() {
+    public GaiaTest() throws IOException {
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        URL turl = GaiaTest.class.getResource( tname );
+        table_ = new StarTableFactory()
+                .makeStarTable( new URLDataSource( turl ) );
     }
 
     public void testDistanceGrid() {
@@ -167,9 +170,6 @@ public class GaiaTest extends TestCase {
     }
 
     public void testEpoch() throws IOException, TaskException {
-        URL turl = GaiaTest.class.getResource( tname );
-        StarTable table = new StarTableFactory()
-                         .makeStarTable( new URLDataSource( turl ) );
 
         // These manipulations are preparing columns in the same form
         // as the results of the func.Gaia epochProp and epochPropErr
@@ -268,7 +268,7 @@ public class GaiaTest extends TestCase {
             "addcol -shape 22 rdist22_g0 divide(dist22_g0,ast22_0);",
         } );
         MapEnvironment env = new MapEnvironment()
-           .setValue( "in", table )
+           .setValue( "in", table_ )
            .setValue( "cmd", cmd );
         new TablePipe().createExecutable( env ).execute();
         StarTable result = env.getOutputTable( "omode" );
@@ -305,6 +305,101 @@ public class GaiaTest extends TestCase {
         // that is actually distinct.
         assertArrayColumnNearZero( result, "rdiff6_1000", 1e-8 );
         assertArrayColumnNearZero( result, "rdiff22_1000", 1e-8 );
+    }
+
+    public void testXyz() throws IOException, TaskException {
+
+        // Perform various tests including propagating the velocities
+        // in astrometric coordinate space (epochProp function) and in
+        // 6-d Cartesian phase space and comparing the results.
+        // This should be a good test of the algebra in both coordinate
+        // systems, since the implementations are entirely separate.
+        String dT = "100";  // years
+        String cmd = DocUtils.join( new String[] {
+            "addcol radius 1000./parallax",
+            "addcol eXyz polarXYZ(ra,dec,radius)",
+            "addcol gXyz polarXYZ(l,b,radius)",
+            "addcol lXyz polarXYZ(ecl_lon,ecl_lat,radius)",
+            "addcol aeXyz astromXYZ(ra,dec,parallax)",
+
+            "addcol cgXyz icrsToGal(eXyz)",
+            "addcol clXyz icrsToEcl(eXyz)",
+            "addcol gceXyz galToIcrs(gXyz)",
+            "addcol lceXyz eclToIcrs(lXyz)",
+
+            "addcol dgeXyz subtract(eXyz,gceXyz)",
+            "addcol dleXyz subtract(eXyz,lceXyz)",
+            "addcol dgXyz subtract(gXyz,cgXyz)",
+            "addcol dlXyz subtract(lXyz,clXyz)",
+            "addcol daeXyz subtract(eXyz,aeXyz)",
+
+            "addcol asix0 array(ra,dec,parallax,pmra,pmdec,radial_velocity)",
+            "addcol asix1 epochProp(" + dT + ",asix0)",
+            "addcol uvw astromUVW(asix0)",
+            "addcol uvw1 astromUVW(asix1)",
+            "addcol dUvw subtract(uvw1,uvw)",
+
+            "addcol scXyz multiply(uvw," + dT + "/PC_YRKMS)",
+            "addcol aXyz1 astromXYZ(asix1[0],asix1[1],asix1[2])",
+            "addcol spXyz subtract(aXyz1,eXyz)",
+            "addcol cXyz1 add(eXyz,spXyz)",
+            "addcol rc hypot(scXyz)",
+            "addcol rp hypot(spXyz)",
+            "addcol dR array((rc-rp)/rp)",
+            "addcol dS multiply(subtract(scXyz,spXyz),1./rp)",
+
+            "addcol gUvw icrsToGal(uvw)",
+            "addcol sgXyz multiply(gUvw," + dT + "/PC_YRKMS)",
+            "addcol gXyz1 add(cgXyz,sgXyz)",
+            "addcol cgXyz1 icrsToGal(cXyz1)",
+            "addcol dgXyz1 subtract(gXyz1,cgXyz1)",
+        } );
+        MapEnvironment env = new MapEnvironment()
+           .setValue( "in", table_ )
+           .setValue( "cmd", cmd );
+        new TablePipe().createExecutable( env ).execute();
+        StarTable result = env.getOutputTable( "omode" );
+        if ( result != null ) {
+            Tables.checkTable( result );
+        }
+
+        assertArrayColumnNearZero( result, "dgeXyz", 1e-8 );    // pc
+        assertArrayColumnNearZero( result, "dleXyz", 1e-8 );    // pc
+        assertArrayColumnNearZero( result, "dgXyz", 1e-8 );     // pc
+        assertArrayColumnNearZero( result, "dlXyz", 1e-8 );     // pc
+        assertArrayColumnNearZero( result, "dUvw", 1e-8 );      // km/s
+        assertArrayColumnNearZero( result, "dR", 1e-8 );        // relative
+        assertArrayColumnNearZero( result, "dS", 1e-8 );        // relative
+        assertArrayColumnNearZero( result, "dgXyz1", 1e-8 );    // pc
+    }
+
+    public void testUvw() {
+
+        /* Compare values with UVW calculated in the literature.
+         * The comparison is with HD95418 (Beta UMa), considered in
+         * Johnson and Soderblom 1987 (1987AJ.....93..864J), which is
+         * a pedagogic paper about calculating UVW values.
+         * The position is taken from SIMBAD, the other four astrometric
+         * parameters are from J+S, as is the UVW vector calculated there.
+         * This comparison proves that the values I'm calculating are
+         * about right and match standard conventions (i.e. I'm not
+         * using a reversed coordinate system or something). */
+        double ra = 165.46037718;
+        double dec = +56.38245362;
+        double pmra = +83;
+        double pmdec = +29;
+        double parallax = 53.1;
+        double radial_velocity = -12.0;
+        double[] buma6 = { ra, dec, parallax, pmra, pmdec, radial_velocity };
+        double[] uvwGal = Gaia.icrsToGal( Gaia.astromUVW( buma6 ) );
+        assertEquals( +11.9, uvwGal[ 0 ], 0.1 );
+        assertEquals(  +1.1, uvwGal[ 1 ], 0.1 );
+        assertEquals(  -8.0, uvwGal[ 2 ], 0.2 );
+
+        /* Sanity check that it's about the right distance away. */
+        assertEquals( 19,
+                      Maths.hypot( Gaia.polarXYZ( ra, dec, 1000./parallax ) ),
+                      1.0 );
     }
 
     private void assertArrayColumnNearZero( StarTable t, String cname,

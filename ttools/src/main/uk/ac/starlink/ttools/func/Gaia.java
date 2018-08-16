@@ -10,6 +10,7 @@ import uk.ac.starlink.dpac.math.Edsd;
 import uk.ac.starlink.dpac.math.Function;
 import uk.ac.starlink.dpac.math.FuncUtils;
 import uk.ac.starlink.dpac.math.NumericFunction;
+import uk.ac.starlink.ttools.plot.Matrices;
 
 /**
  * Functions related to astrometry suitable for use with data from the
@@ -24,9 +25,45 @@ import uk.ac.starlink.dpac.math.NumericFunction;
  *         >http://gea.esac.esa.int/archive/</a>
  * and copies or mirrors.
  *
- * <p>There are currently two main sets of functions here,
- * distance estimation from parallaxes, and astrometry propagation to
- * different epochs.
+ * <p>There are currently three main sets of functions here:
+ * <ul>
+ * <li>position and velocity vector calculation and manipulation</li>
+ * <li>distance estimation from parallaxes</li>
+ * <li>astrometry propagation to different epochs</li>
+ * </ul>
+ *
+ * <p><strong>Position and velocity vectors</strong></p>
+ *
+ * <p>Functions are provided for converting the astrometric parameters
+ * contained in the Gaia catalogue to ICRS Cartesian position (XYZ)
+ * and velocity (UVW) vectors.  Functions are also provided to convert
+ * these vectors between ICRS and Galactic or Ecliptic coordinates.
+ * The calculations are fairly straightforward, and follow the
+ * equations laid out in section 1.5.6 of
+ * <em>The Hipparcos and Tycho Catalogues</em>,
+ * <a href="https://www.cosmos.esa.int/web/hipparcos/catalogues"
+ *    >ESA SP-1200</a> (1997)
+ * and also section 3.1.7 of the
+ * <a href="http://gea.esac.esa.int/archive/documentation/GDR2/"
+ *    >Gaia DR2 documentation</a> (2018).
+ *
+ * <p>These functions will often be combined; for instance to calculate
+ * the position and velocity in galactic coordinates from Gaia catalogue
+ * values, the following expressions may be useful:
+ * <pre>
+ *    xyz_gal = icrsToGal(astromXYZ(ra,dec,parallax))
+ *    uvw_gal = icrsToGal(astromUVW(array(ra,dec,parallax,pmra,pmdec,radial_velocity)))
+ * </pre>
+ * though note that these particular examples simply invert
+ * parallax to provide distance estimates, which is not generally valid.
+ * Note also that these functions do not attempt to correct for
+ * solar motion.  Such adjustments should be carried out by hand
+ * on the results of these functions if they are required.
+ *
+ * <p>Functions for calculating errors on the Cartesian components
+ * based on the error and correlation quantities from the Gaia catalogue
+ * are not currently provided.  They would require fairly complicated
+ * invocations.  If there is demand they may be implemented in the future.
  *
  * <p><strong>Distance estimation</strong></p>
  *
@@ -130,18 +167,344 @@ public class Gaia {
      * See the Hipparcos catalogue (ESA SP-1200) table 1.2.2 and Eq. 1.5.24.
      */
     public static final double AU_YRKMS = 4.740470446;
- 
+
+    /** Parsec in Astronomical Units, equal to 648000/PI. */
+    public static final double PC_AU = ( 180 / Math.PI ) * 60 * 60;
+
+    /** Parsec in units of km.yr/sec. */
+    public static final double PC_YRKMS = AU_YRKMS * PC_AU;
+
+    /** The speed of light in km/s (exact). */
+    public static final double C_KMS = 299792.458;
+
     private static final double RVNORM = AU_YRKMS;
     private static final double RVNORM1 = 1.0 / RVNORM;
+    private static final double C1_KMS = 1.0 / C_KMS;
     private static final double DEG2RAD = Math.PI / 180.;
     private static final double MAS2RAD = DEG2RAD / ( 3600. * 1000. );
     private static final double RAD2DEG = 1.0 / DEG2RAD;
     private static final double RAD2MAS = 1.0 / MAS2RAD;
 
     /**
+     * ICRS-Galactic transformation matrix, quoted from Gaia DR2
+     * documentation (http://gea.esac.esa.int/archive/documentation/GDR2/)
+     * Eq 3.61 (sec 3.1.7.1.1).  That refers back to Hipparcos Eq 1.5.11,
+     * which provides the transpose with fewer digits of precision.
+     */
+    private static final double[] AG_PRIME = new double[] {
+        -0.0548755604162154, -0.8734370902348850, -0.4838350155487132,
+        +0.4941094278755837, -0.4448296299600112, +0.7469822444972189,
+        -0.8676661490190047, -0.1980763734312015, +0.4559837761750669,
+    };
+    private static final double[] AG = Matrices.transpose( AG_PRIME );
+
+    /**
+     * ICRS-Ecliptic transformation matrix.
+     *
+     * <p>Although the Gaia DR2 documentation at time of writing claims the
+     * ecliptic transformation uses "the transformation defined in
+     * Section 1.5.3" of SP-1200, that's misleading since the coefficients
+     * and form of the A_K matrix differ from the Hipparcos document.
+     *
+     * <p>This matrix is GaiaParam.Nature.TRANSFORMATIONMATRIX_ICRSTOECLIPTIC
+     * from GaiaTools class gaia.cu1.params.GaiaParam a.k.a.
+     * gaia.cu1.params.BasicParam.  That contains (at DR2) the
+     * following detail:
+     * <blockquote>
+     *   Transformation matrix which transforms the unit-direction vector
+     *   r_ecl, expressed in ecliptic coordinates, into the unit-direction
+     *   vector r_equ in equatorial coordinates (ICRS): r_equ = A_K times
+     *   r_ecl (see also ESA, 1997, 'The Hipparcos and Tycho Catalogues',
+     *   ESA SP-1200, Volume 1, Section 1.5.3, inverse of Equation
+     *   1.5.12). Note that the ICRS origin is shifted in the equatorial
+     *   plane from \Gamma by \phi = 0.05542 arcsec, positive from \Gamma
+     *   to the ICRS origin (see J. Chapront, M. Chapront-Touze, G. Francou,
+     *   2002, 'A new determination of lunar orbital parameters, precession
+     *   constant, and tidal acceleration from LLR measurements', A&amp;A, 387,
+     *   700). The ICRS has an unambiguous definition with an origin in the
+     *   ICRF equator defined by the realisation of the ICRF. The ecliptic
+     *   system is less well-defined, potentially depending on additional
+     *   conventions in dynamical theories. The transformation quantified
+     *   here corresponds to the inertial mean ecliptic with obliquity (see
+     *   parameter :Nature:ObliquityOfEcliptic_J2000) and \Gamma defined by
+     *   reference to the ICRS equator (other possibilities include the mean
+     *   equator for J2000 or one of the JPL ephemerides equators). Both the
+     *   obliquity and the position of \Gamma on the ICRS equator with respect
+     *   to the ICRS origin have been obtained from LLR measurements. The
+     *   transformation quantified here has no time dependence (there is no
+     *   secular variation of the obliquity and no precession): it simply
+     *   defines the relative situation of the various planes at J2000.0
+     * </blockquote>
+     */
+    private static final double[] AK = new double[] {
+        +0.9999999999999639, +0.0000002465125329, -0.0000001068762105,
+        -0.0000002686837421, +0.9174821334228226, -0.3977769913529863,
+        +0.0000000000000000, +0.3977769913530006, +0.9174821334228557,
+    };
+    private static final double[] AK_PRIME = Matrices.transpose( AK );
+
+    /**
      * Private constructor prevents instantiation.
      */
     private Gaia() {
+    }
+
+    /**
+     * Converts from spherical polar to Cartesian coordinates.
+     *
+     * @example  <code>polarXYZ(ra, dec, distance_estimate)</code>
+     * @example  <code>polarXYZ(l, b, 3262./parallax)</code>
+     *           - calculates vector components in units of light year
+     *             in the galactic system, on the assumption that distance is
+     *             the inverse of parallax
+     *
+     * @param  phi    longitude in degrees
+     * @param  theta  latitude in degrees
+     * @param  r      radial distance
+     * @return  3-element vector giving Cartesian coordinates
+     */
+    public static double[] polarXYZ( double phi, double theta, double r ) {
+        double cosPhi = TrigDegrees.cosDeg( phi );
+        double sinPhi = TrigDegrees.sinDeg( phi );
+        double cosTheta = TrigDegrees.cosDeg( theta );
+        double sinTheta = TrigDegrees.sinDeg( theta );
+        return new double[] { 
+            r * cosTheta * cosPhi,
+            r * cosTheta * sinPhi,
+            r * sinTheta,
+        };
+    }
+
+    /**
+     * Calculates Cartesian components of position from RA, Declination and
+     * parallax.  This is a convenience function, equivalent to:
+     * <pre>
+     *    polarXYZ(ra, dec, 1000./parallax)
+     * </pre>
+     *
+     * <p>Note that this performs distance scaling using a simple
+     * inversion of parallax, which is not in general reliable
+     * for parallaxes with non-negligable errors.  Use at your own risk.
+     *
+     * @example  <code>astromXYZ(ra, dec, parallax)</code>
+     * @example  <code>icrsToGal(astromXYZ(ra, dec, parallax))</code>
+     *
+     * @param   ra   Right Ascension in degrees
+     * @param   dec  Declination in degrees
+     * @param   parallax  parallax in mas
+     * @return  3-element vector giving equatorial space coordinates in parsec
+     */
+    public static double[] astromXYZ( double ra, double dec, double parallax ) {
+        double r = 1000. / parallax;
+        return polarXYZ( ra, dec, r );
+    }
+
+    /**
+     * Converts a 3-element vector representing ICRS (equatorial) coordinates
+     * to galactic coordinates.
+     * This can be used with position or velocity vectors.
+     *
+     * <p>The input vector is multiplied by the matrix
+     * <strong>A<sub>G</sub>'</strong>,
+     * given in Eq. 3.61 of the Gaia DR2 documentation, following
+     * Eq. 1.5.13 of the Hipparcos catalogue.
+     *
+     * <p>The output coordinate system is right-handed,
+     * with the three components positive in the directions of
+     * the Galactic center, Galactic rotation, and the North Galactic Pole
+     * respectively.
+     *
+     * @example  <code>icrsToGal(polarXYZ(ra, dec, distance))</code>
+     *
+     * @param  xyz  3-element vector giving ICRS Cartesian components
+     * @return  3-element vector giving Galactic Cartesian components
+     */
+    public static double[] icrsToGal( double[] xyz ) {
+        return Matrices.mvMult( AG_PRIME, xyz );
+    }
+
+    /**
+     * Converts a 3-element vector representing galactic coordinates to
+     * ICRS (equatorial) coordinates.
+     * This can be used with position or velocity vectors.
+     *
+     * <p>The input vector is multiplied by the matrix
+     * <strong>A<sub>G</sub></strong>,
+     * given in Eq. 3.61 of the Gaia DR2 documentation, following
+     * Eq. 1.5.13 of the Hipparcos catalogue.
+     *
+     * <p>The input coordinate system is right-handed,
+     * with the three components positive in the directions of
+     * the Galactic center, Galactic rotation, and the North Galactic Pole
+     * respectively.
+     *
+     * @example  <code>galToIcrs(polarXYZ(l, b, distance))</code>
+     *
+     * @param  xyz  3-element vector giving Galactic Cartesian components
+     * @return  3-element vector giving ICRS Cartesian components
+     */
+    public static double[] galToIcrs( double[] xyz ) {
+        return Matrices.mvMult( AG, xyz );
+    }
+
+    /**
+     * Converts a 3-element vector representing ICRS (equatorial) coordinates
+     * to ecliptic coordinates.
+     * This can be used with position or velocity vectors.
+     *
+     * <p>The transformation corresponds to that between the coordinates
+     * <code>(ra,dec)</code> and <code>(ecl_lon,ecl_lat)</code> in the
+     * Gaia source catalogue (DR2).
+     *
+     * @example  <code>icrsToEcl(polarXYZ(ra, dec, distance))</code>
+     *
+     * @param  xyz  3-element vector giving ICRS Cartesian components
+     * @return  3-element vector giving ecliptic Cartesian components
+     */
+    public static double[] icrsToEcl( double[] xyz ) {
+        return Matrices.mvMult( AK_PRIME, xyz );
+    }
+
+    /**
+     * Converts a 3-element vector representing ecliptic coordinates to
+     * ICRS (equatorial) coordinates.
+     * This can be used with position or velocity vectors.
+     *
+     * <p>The transformation corresponds to that between the coordinates
+     * <code>(ecl_lon,ecl_lat)</code> and <code>(ra,dec)</code> in the
+     * Gaia source catalogue (DR2).
+     *
+     * @example  <code>eclToIcrs(polarXYZ(ecl_lon, ecl_lat, distance))</code>
+     *
+     * @param  xyz  3-element vector giving ecliptic Cartesian coordinates
+     * @return  3-element vector giving ICRS Cartesian coordinates
+     */
+    public static double[] eclToIcrs( double[] xyz ) {
+        return Matrices.mvMult( AK, xyz );
+    }
+
+    /**
+     * Calculates Cartesian components of velocity from quantities available
+     * in the Gaia source catalogue.
+     * The output is in the same coordinate system as the inputs,
+     * that is ICRS for the correspondingly-named Gaia quantities.
+     *
+     * <p>The input astrometry parameters are represented
+     * by a 6-element array, with the following elements:
+     * <pre>
+     * index  gaia_source name  unit    description
+     * -----  ----------------  ----    -----------
+     *   0:   ra                deg     right ascension
+     *   1:   dec               deg     declination
+     *   2:   parallax          mas     parallax
+     *   3:   pmra              mas/yr  proper motion in ra * cos(dec)
+     *   4:   pmdec             mas/yr  proper motion in dec
+     *   5:   radial_velocity   km/s    barycentric radial velocity
+     * </pre>
+     * The units used by this function are the units used in
+     * the <code>gaia_source</code> table.
+     *
+     * <p>This convenience function just invokes the 7-argument
+     * <code>astromUVW</code> function
+     * using the inverted parallax for the radial distance,
+     * and without invoking the Doppler correction.
+     * It is exactly equivalent to:
+     * <pre>
+     *    astromUVW(a[0], a[1], a[3], a[4], a[5], 1000./a[2], false)
+     * </pre>
+     * Note this naive inversion of parallax to estimate distance is not
+     * in general reliable for parallaxes with non-negligable errors.
+     *
+     * @example  <code>astromUVW(array(ra, dec, parallax, pmra, pmdec,
+     *                                 radial_velocity))</code>
+     * @example  <code>icrsToGal(astromUVW(array(ra, dec, parallax, pmra, pmdec,
+     *                                           radial_velocity))</code>
+     *
+     * @param   astrom6   vector of 6 astrometric parameters
+     *                    as provided by the Gaia source catalogue
+     * @return  3-element vector giving equatorial velocity components in km/s
+     */
+    public static double[] astromUVW( double[] astrom6 ) {
+        double ra = astrom6[ 0 ];
+        double dec = astrom6[ 1 ];
+        double parallax = astrom6[ 2 ];
+        double pmra = astrom6[ 3 ];
+        double pmdec = astrom6[ 4 ];
+        double radial_velocity = astrom6[ 5 ];
+        double r_parsec = 1000. / parallax;
+        return astromUVW( ra, dec, pmra, pmdec, radial_velocity, r_parsec,
+                          false );
+    }
+
+    /**
+     * Calculates Cartesian components of velocity from the observed
+     * position and proper motion, radial velocity and radial distance,
+     * with optional light-time correction.
+     * The output is in the same coordinate system as the inputs,
+     * that is ICRS for the correspondingly-named Gaia quantities.
+     *
+     * <p>The radial distance must be supplied using the <code>r_parsec</code>
+     * parameter.  A naive estimate from quantities in the Gaia
+     * source catalogue may be made with the expression
+     * <code>1000./parallax</code>,
+     * though note that this simple inversion of parallax
+     * is not in general reliable for parallaxes with non-negligable errors.
+     *
+     * <p>The calculations are fairly straightforward,
+     * following Eq. 1.5.74 from the Hipparcos catalogue.
+     * A (usually small) Doppler factor accounting for light-time effects
+     * can also optionally be applied.  The effect of this is to multiply
+     * the returned vector by a factor of <code>1/(1-radial_velocity/c)</code>,
+     * as discussed in Eq. 1.2.21 of the Hipparcos catalogue.
+     *
+     * <p>Note that no attempt is made to adjust for solar motion.
+     *
+     * @example  <code>astromUVW(ra, dec, pmra, pmdec,
+     *                           radial_velocity, dist, true)</code>
+     * @example  <code>icrsToGal(astromUVW(ra, dec, pmra, pmdec,
+     *                           radial_velocity, 1000./parallax, false))</code>
+     *
+     * @param  ra     Right Ascension in degrees
+     * @param  dec    Declination in degrees
+     * @param  pmra   proper motion in RA * cos(dec) in mas/yr
+     * @param  pmdec  proper motion in declination in mas/yr
+     * @param  radial_velocity  radial velocity in km/s
+     * @param  r_parsec   radial distance in parsec
+     * @param  useDoppler  whether to apply the Doppler factor to account
+     *                     for light-time effects
+     * @return  3-element vector giving equatorial velocity components in km/s
+     */
+    public static double[] astromUVW( double ra, double dec,
+                                      double pmra, double pmdec,
+                                      double radial_velocity,
+                                      double r_parsec, boolean useDoppler ) {
+        double cosRa = TrigDegrees.cosDeg( ra );
+        double sinRa = TrigDegrees.sinDeg( ra );
+        double cosDec = TrigDegrees.cosDeg( dec );
+        double sinDec = TrigDegrees.sinDeg( dec );
+        double px = -sinRa;
+        double qx = -sinDec * cosRa;
+        double rx =  cosDec * cosRa;
+        double py =  cosRa;
+        double qy = -sinDec * sinRa;
+        double ry =  cosDec * sinRa;
+        double pz =      0;
+        double qz =  cosDec;
+        double rz =  sinDec;
+        double v1 = pmra * AU_YRKMS * 0.001 * r_parsec;
+        double v2 = pmdec * AU_YRKMS * 0.001 * r_parsec;
+        double v3 = radial_velocity;
+        if ( useDoppler ) {
+            double kDoppler = 1.0 / ( 1.0 - C1_KMS * radial_velocity );
+            v1 *= kDoppler;
+            v2 *= kDoppler;
+            v3 *= kDoppler;
+        }
+        return new double[] {
+            px * v1 + qx * v2 + rx * v3,
+            py * v1 + qy * v2 + ry * v3,
+            pz * v1 + qz * v2 + rz * v3,
+        };
     }
 
     /**
