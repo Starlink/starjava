@@ -32,7 +32,7 @@ public class GaiaTest extends TestCase {
      *    dec_parallax_corr,dec_pmra_corr,dec_pmdec_corr,
      *    parallax_pmra_corr,parallax_pmdec_corr,
      *    pmra_pmdec_corr,
-     *    random_index,ref_epoch,
+     *    random_index,ref_epoch,l,b,ecl_lon,ecl_lat,
      *    astrometric_parameters(ra,dec,parallax,pmra,pmdec,radial_velocity)
      *       as ap,
      *    astrometric_parameter_error(
@@ -67,7 +67,7 @@ public class GaiaTest extends TestCase {
      *          pmra_pmdec_corr,
      *          parallax,radial_velocity,radial_velocity_error),
      *       2015.5,3015.5) as gc1000
-     * from user_dr2int6.gaia_source
+     * from gaiadr2.gaia_source
      * where parallax is not null
      * and radial_velocity is not null
      * order by random_index asc
