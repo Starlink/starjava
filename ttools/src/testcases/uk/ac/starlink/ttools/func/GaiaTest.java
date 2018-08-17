@@ -171,16 +171,6 @@ public class GaiaTest extends TestCase {
         StarTable table = new StarTableFactory()
                          .makeStarTable( new URLDataSource( turl ) );
 
-        // When this test was initially committed to a public repository,
-        // the DR2 test data was still under embargo.
-        // It has been used privately to run these tests,
-        // but in the initial public commit, all data rows have been
-        // removed from it.  Following DR2 the data rows will be restored.
-        if ( table.getRowCount() == 0 ) {
-            System.err.println( "No meaningful epochProp tests performed"
-                             +  " - requires embargoed DR2 data" );
-        }
-
         // These manipulations are preparing columns in the same form
         // as the results of the func.Gaia epochProp and epochPropErr
         // functions under test, arrived at by different means.
