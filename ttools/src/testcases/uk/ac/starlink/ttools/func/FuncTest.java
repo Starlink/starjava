@@ -765,6 +765,40 @@ public class FuncTest extends TestCase {
         assertEquals( "-90:00:00.000", CoordsDegrees.degreesToDms( -90, 3 ) );
     }
 
+    public void testShapes() {
+        assertTrue( Shapes.isInside(0.5,0.5, 0,0, 0,1, 1,1, 1,0) );
+        assertFalse( Shapes.isInside(0,0, Arrays.array(10,20, 20,20, 20,10)) );
+
+        assertEquals( 23, Shapes.polyLine( -100, new double[] { -5,23 } ) );
+        assertEquals( 23, Shapes.polyLine( +100, new double[] { -5,23 } ) );
+        assertEquals( 23, Shapes.polyLine( -5, new double[] { -5,23 } ) );
+
+        assertEquals( 1, Shapes.polyLine( 1, new double[] { 0,0, 2,2, } ) );
+        assertEquals( -1, Shapes.polyLine( -1, new double[] { Math.PI,Math.PI,
+                                                              -1e9,-1e9 } ) );
+        assertEquals( -2000, Shapes.polyLine( 1000, -5,10., 5,-10 ) );
+
+        double[] line = new double[] { 0,0, 1,1, 3,-1, 10,-1 };
+        for ( int i = 0; i < line.length / 2; i++ ) {
+            assertEquals( line[ 2 * i + 1 ],
+                          Shapes.polyLine( line[ 2 * i + 0 ], line ) );
+        }
+        assertEquals( -5, Shapes.polyLine( -5, line ) );
+        assertEquals( 0.1, Shapes.polyLine( 0.1, line ) );
+        assertEquals( 0.99, Shapes.polyLine( 0.99, line ) );
+        assertEquals( 0, Shapes.polyLine( 2, line ) );
+        assertEquals( -1, Shapes.polyLine( 4, line ) );
+        assertEquals( -1, Shapes.polyLine( 1e100, line ) );
+
+        double[] tri = new double[] { -1,-1, 1,1, -1,2, };
+        assertTrue( Shapes.isInside( -0.1, 0, tri ) );
+        assertTrue( !Shapes.isInside( +0.1, 0, tri ) );
+        assertTrue( Shapes.isInside( 0, 1, tri ) );
+        assertTrue( !Shapes.isInside( 0, 2, tri ) );
+        assertTrue( !Shapes.isInside( 0, -1, tri ) );
+        assertTrue( !Shapes.isInside( 1, 0, tri ) );
+    }
+
     public void testTilings() {
         final double pi4 = 4.0 * Math.PI;
         assertEquals( pi4, Tilings.healpixSteradians( 0 ) * 12 );

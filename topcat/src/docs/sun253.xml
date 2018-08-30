@@ -27332,6 +27332,9 @@ introduced since the last version:
         <code>$index0</code>/<code>$00</code>,
         <code>$nrow0</code> and <code>$ncol0</code> which operate
         on the apparent, rather than the base table.</li>
+    <li>New class <ref id="Shapes">Shapes</ref>
+        for working with polygons in the X,Y plane; has functions
+        <code>isInside</code> and <code>polyLine</code>.</li>
     </ul>
     </p></dd>
 

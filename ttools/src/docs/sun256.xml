@@ -11779,6 +11779,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New filter <ref id="collapsecols"><code>collapsecols</code></ref>
         can convert a run of adjacent scalar columns into an
         array column (the opposite of <code>explodecols</code>).</li>
+    <li>New class <ref id="uk.ac.starlink.ttools.func.Shapes">Shapes</ref>
+        for working with polygons in the X,Y plane; has functions
+        <code>isInside</code> and <code>polyLine</code>.</li>
     </ul>
     </p>
     </dd>
