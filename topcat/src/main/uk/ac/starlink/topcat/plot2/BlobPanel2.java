@@ -137,8 +137,8 @@ public abstract class BlobPanel2 extends JComponent {
         }
         isActive_ = active;
         blobAction_.putValue( Action.NAME,
-                              active ? "Finish Drawing Region"
-                                     : "Draw Subset Region" );
+                              active ? "Finish Drawing Blob"
+                                     : "Draw Subset Blob" );
         blobAction_.putValue( Action.SMALL_ICON,
                               active ? ResourceIcon.BLOB_SUBSET_END
                                      : ResourceIcon.BLOB_SUBSET );

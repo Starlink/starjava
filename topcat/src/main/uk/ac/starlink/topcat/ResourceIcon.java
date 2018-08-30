@@ -163,6 +163,8 @@ public class ResourceIcon implements Icon {
         XRANGE_SUBSET = makeIcon( "xrange1.png" ),
         BLOB_SUBSET = makeIcon( "blob2.png" ),
         BLOB_SUBSET_END = makeIcon( "ublob3b.png" ),
+        POLY_SUBSET = makeIcon( "poly2.png" ),
+        POLY_SUBSET_END = makeIcon( "unpoly2.png" ),
         RESIZE = makeIcon( "4way3.png" ),
         RESIZE_X = makeIcon( "ew_arrow.png" ),
         RESIZE_Y = makeIcon( "ns_arrow.png" ),
