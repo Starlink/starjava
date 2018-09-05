@@ -161,7 +161,7 @@ public class InterMatchSpec extends MatchSpec {
             irow++;
         }
         assert irow == nrow;
-        List subsetList = new ArrayList();
+        List<RowSubset> subsetList = new ArrayList<RowSubset>();
         for ( int i = 0; i < nTable; i++ ) {
             BitSet bset = bitsets[ i ];
             int ntrue = bset.cardinality();
@@ -172,7 +172,7 @@ public class InterMatchSpec extends MatchSpec {
                 subsetList.add( rset );
             }
         }
-        matchSubsets = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
+        matchSubsets = subsetList.toArray( new RowSubset[ 0 ] );
     }
 
     public void matchSuccess( Component parent ) {

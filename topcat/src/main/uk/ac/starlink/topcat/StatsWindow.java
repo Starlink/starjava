@@ -57,7 +57,7 @@ public class StatsWindow extends AuxWindow {
     private final TopcatModel tcModel_;
     private final StarTable dataModel_;
     private final TableColumnModel columnModel_;
-    private final OptionsListModel subsets_;
+    private final OptionsListModel<RowSubset> subsets_;
     private final Map calcMap_;
     private final JTable jtab_;
     private final JProgressBar progBar_;

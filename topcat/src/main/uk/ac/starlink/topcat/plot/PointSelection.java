@@ -102,24 +102,23 @@ public class PointSelection implements PlotData {
          * their table.  This corresponds (and must correspond) to the
          * sequence in which the points are returned by the getPoints()
          * method. */
-        List subsetList = new ArrayList();
-        List styleList = new ArrayList();
-        List idList = new ArrayList();
+        List<RowSubset> subsetList = new ArrayList<RowSubset>();
+        List<Style> styleList = new ArrayList<Style>();
+        List<SetId> idList = new ArrayList<SetId>();
         for ( int isub = 0; isub < subsetPointers.length; isub++ ) {
             int[] subsetPointer = subsetPointers[ isub ];
             int itab = subsetPointer[ 0 ];
             int itsub = subsetPointer[ 1 ];
-            RowSubset rset = (RowSubset)
-                             tcModels_[ itab ].getSubsets().get( itsub );
+            RowSubset rset = tcModels_[ itab ].getSubsets().get( itsub );
             rset = new OffsetRowSubset( rset, offsets[ itab ], nrows_[ itab ],
                                         subsetNames[ isub ] );
             subsetList.add( rset );
             styleList.add( selectors[ itab ].getStyle( itsub ) );
             idList.add( new SetId( selectors[ itab ], itsub ) );
         }
-        subsets_ = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
-        styles_ = (Style[]) styleList.toArray( new Style[ 0 ] );
-        setIds_ = (SetId[]) idList.toArray( new SetId[ 0 ] );
+        subsets_ = subsetList.toArray( new RowSubset[ 0 ] );
+        styles_ = styleList.toArray( new Style[ 0 ] );
+        setIds_ = idList.toArray( new SetId[ 0 ] );
 
         /* Set dummy points object. */
         points_ = getEmptyPoints();

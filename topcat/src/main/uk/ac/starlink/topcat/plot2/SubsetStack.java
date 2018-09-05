@@ -75,7 +75,7 @@ public class SubsetStack {
         subList_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 configHolder.removeAll();
-                RowSubset rset = (RowSubset) subList_.getSelectedValue();
+                RowSubset rset = subList_.getSelectedValue();
                 if ( rset != null ) {
                     configHolder.add( subManager_
                                      .getConfiggerComponent( rset ) );

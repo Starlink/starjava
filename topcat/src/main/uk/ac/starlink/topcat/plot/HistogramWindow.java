@@ -695,8 +695,7 @@ public class HistogramWindow extends GraphicsWindow {
                        .append( weightInfo.getName() )
                        .append( ' ' );
             }
-            RowSubset rset =
-                (RowSubset) tcModel.getSubsets().get( setId.getSetIndex() );
+            RowSubset rset = tcModel.getSubsets().get( setId.getSetIndex() );
             if ( rset != RowSubset.ALL ) {
                 descrip.append( "for row subset " )
                        .append( rset.getName() );
@@ -861,7 +860,7 @@ public class HistogramWindow extends GraphicsWindow {
                         sbuf.append( '_' );
                     }
                     if ( useSet ) {
-                        RowSubset rset = (RowSubset)
+                        RowSubset rset =
                             tcModel.getSubsets().get( setId.getSetIndex() );
                         sbuf.append( rset.getName() );
                     }

@@ -43,7 +43,7 @@ import uk.ac.starlink.util.gui.SizingScrollPane;
 public class SubsetWindow extends AuxWindow implements ListDataListener {
 
     private final TopcatModel tcModel;
-    private final OptionsListModel subsets;
+    private final OptionsListModel<RowSubset> subsets;
     private final Map subsetCounts;
     private final PlasticStarTable dataModel;
     private final MetaColumnTableModel subsetsTableModel;
@@ -465,7 +465,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      */
     private RowSubset getSubset( int irow ) {
         if ( irow < subsets.size() ) {
-            return (RowSubset) subsets.get( irow );
+            return subsets.get( irow );
         }
 
         /* Hack - sometimes this method gets called with an out of
@@ -729,8 +729,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             /* Prepare for the calculations. */
             final RowSubset[] rsets = subsets == null 
                                     ? new RowSubset[ 0 ]
-                                    : (RowSubset[]) 
-                                      subsets.toArray( new RowSubset[ 0 ] );
+                                    : subsets.toArray( new RowSubset[ 0 ] );
             final int nrset = rsets.length;
             final long[] counts = new long[ nrset ];
             long nrow = dataModel.getRowCount();

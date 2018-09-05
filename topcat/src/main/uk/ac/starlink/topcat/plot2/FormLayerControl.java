@@ -478,8 +478,7 @@ public abstract class FormLayerControl
             /* Work out if there are any subsets in the new table with
              * names matching those selected in the old table. */
             List<RowSubset> newSubsets = new ArrayList<RowSubset>();
-            for ( Object rs : tcModel_.getSubsets() ) {
-                RowSubset rset = (RowSubset) rs;
+            for ( RowSubset rset : tcModel_.getSubsets() ) {
                 if ( oldSelectedSubsetNames.contains( rset.getName() ) ) {
                     newSubsets.add( rset );
                 }
@@ -506,8 +505,7 @@ public abstract class FormLayerControl
                                    subsetManager_.getConfigger( rset ) );
                 }
             }
-            for ( Object rs : tcModel_.getSubsets() ) {
-                RowSubset rset = (RowSubset) rs;
+            for ( RowSubset rset : tcModel_.getSubsets() ) {
                 Configger configger = subconMap.get( rset.getName() );
                 if ( configger != null ) {
                     subsetManager_.setConfig( rset, configger.getConfig() );

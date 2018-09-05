@@ -576,9 +576,9 @@ public class TopcatCodec2 implements TopcatCodec {
         }
 
         /* Next do the algebraic subsets. */
-        OptionsListModel subsets = tcModel.getSubsets();
+        OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
         for ( int is = 0; is < subsets.size(); is++ ) {
-            RowSubset rset0 = (RowSubset) subsets.get( is );
+            RowSubset rset0 = subsets.get( is );
             String expr = rsetExprMap.get( rset0 );
             if ( expr != null ) {
                 String name = rset0.getName();
@@ -614,8 +614,7 @@ public class TopcatCodec2 implements TopcatCodec {
 
         /* Set current subset. */
         if ( iCurrentSubset >= 0 ) {
-            tcModel.applySubset( (RowSubset)
-                                 tcModel.getSubsets().get( iCurrentSubset ) );
+            tcModel.applySubset( tcModel.getSubsets().get( iCurrentSubset ) );
         }
 
         /* Set current sort order. */
@@ -741,7 +740,7 @@ public class TopcatCodec2 implements TopcatCodec {
      * @return   subset array indexed by identifier
      */
     private RowSubset[] getSubsetArray( TopcatModel tcModel ) {
-        OptionsListModel subsetModel = tcModel.getSubsets();
+        OptionsListModel<RowSubset> subsetModel = tcModel.getSubsets();
         int maxId = -1;
         for ( int ix = 0; ix < subsetModel.size(); ix++ ) {
             maxId = Math.max( maxId, subsetModel.indexToId( ix ) );
@@ -749,7 +748,7 @@ public class TopcatCodec2 implements TopcatCodec {
         RowSubset[] subsetArray = new RowSubset[ maxId + 1 ];
         for ( int id = 0; id < maxId + 1; id++ ) {
             int ix = subsetModel.idToIndex( id );
-            subsetArray[ id ] = ix >= 0 ? (RowSubset) subsetModel.get( ix )
+            subsetArray[ id ] = ix >= 0 ? subsetModel.get( ix )
                                         : DELETED_SUBSET;
         }
         return subsetArray;

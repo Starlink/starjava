@@ -135,7 +135,7 @@ public class PointSelector extends JPanel {
                  * it's set to plot and force a replot. */
                 else if ( code == TopcatEvent.SHOW_SUBSET ) {
                     RowSubset rset = (RowSubset) evt.getDatum();
-                    OptionsListModel subsets = tcModel_.getSubsets();
+                    OptionsListModel<RowSubset> subsets = tcModel_.getSubsets();
                     int nrsets = subsets.size();
                     for ( int is = 0; is < nrsets; is++ ) {
                         if ( subsets.get( is ) == rset ) {
@@ -617,7 +617,7 @@ public class PointSelector extends JPanel {
         }
 
         /* Install a new subset selector component. */
-        OptionsListModel subsets = tcModel.getSubsets();
+        OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
         DefaultListSelectionModel selModel = new DefaultListSelectionModel();
         annotator_ = new StyleAnnotator( subsets, selModel );
         CheckBoxStack subStack = new CheckBoxStack( subsets, annotator_ );
@@ -739,7 +739,7 @@ public class PointSelector extends JPanel {
             (SubsetFluff) subsetFluffs_.get( indexToKey( isub ) );
         String label = fluff == null ? null : fluff.label_;
         if ( label == null ) {
-            label = ((RowSubset) getTable().getSubsets().get( isub )).getName();
+            label = getTable().getSubsets().get( isub ).getName();
             if ( selectorLabel_ != null ) {
                 label = selectorLabel_ + "." + label;
             }
@@ -780,7 +780,7 @@ public class PointSelector extends JPanel {
      */
     private void setDefaultSubsetSelection() {
         RowSubset currentSet = tcModel_.getSelectedSubset();
-        OptionsListModel subsets = tcModel_.getSubsets();
+        OptionsListModel<RowSubset> subsets = tcModel_.getSubsets();
         subSelModel_.setValueIsAdjusting( true );
         subSelModel_.clearSelection();
         int nrsets = subsets.size();

@@ -28,22 +28,22 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class OptionsListModel extends AbstractList implements ListModel {
+public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
 
-    private final List<Entry> entryList_;
+    private final List<Entry<T>> entryList_;
     private final BasicListModel bmodel_;
     private int nextId_;
     
     public OptionsListModel() {
-        entryList_ = new ArrayList<Entry>();
+        entryList_ = new ArrayList<Entry<T>>();
         bmodel_ = new BasicListModel();
     }
 
-    public Object get( int index ) {
+    public T get( int index ) {
         return entryList_.get( index ).obj_;
     }
 
-    public Object getElementAt( int index ) {
+    public T getElementAt( int index ) {
         return get( index );
     }
 
@@ -55,23 +55,23 @@ public class OptionsListModel extends AbstractList implements ListModel {
         return size();
     }
 
-    public boolean add( Object obj ) {
+    public boolean add( T obj ) {
         int index = entryList_.size();
-        boolean ret = entryList_.add( new Entry( nextId_++, obj ) );
+        boolean ret = entryList_.add( new Entry<T>( nextId_++, obj ) );
         fireIntervalAdded( index, index );
         return ret;
     }
 
-    public Object set( int irow, Object obj ) {
-        Entry entry = entryList_.get( irow );
-        Object oldval = entry.obj_;
+    public T set( int irow, T obj ) {
+        Entry<T> entry = entryList_.get( irow );
+        T oldval = entry.obj_;
         entry.obj_ = obj;
         bmodel_.fireContentsChanged( bmodel_, irow, irow );
         return oldval;
     }
 
-    public Object remove( int irow ) {
-        Entry entry = entryList_.remove( irow );
+    public T remove( int irow ) {
+        Entry<T> entry = entryList_.remove( irow );
         bmodel_.fireIntervalRemoved( bmodel_, irow, irow );
         return entry.obj_;
     }
@@ -99,7 +99,7 @@ public class OptionsListModel extends AbstractList implements ListModel {
      */
     public int idToIndex( int id ) {
         int index = 0;
-        for ( Iterator<Entry> it = entryList_.iterator(); it.hasNext();
+        for ( Iterator<Entry<T>> it = entryList_.iterator(); it.hasNext();
               index++ ) {
             if ( it.next().id_ == id ) {
                 return index;
@@ -310,9 +310,9 @@ public class OptionsListModel extends AbstractList implements ListModel {
     /**
      * Struct type class which associates an object and a unique identifier.
      */
-    private static class Entry {
+    private static class Entry<T> {
         final int id_;
-        Object obj_;
+        T obj_;
 
         /**
          * Constructor.
@@ -320,7 +320,7 @@ public class OptionsListModel extends AbstractList implements ListModel {
          * @param  unique identifier
          * @param  option object
          */
-        Entry( int id, Object obj ) {
+        Entry( int id, T obj ) {
             id_ = id;
             obj_ = obj;
         }

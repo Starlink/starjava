@@ -307,17 +307,17 @@ public class TableViewerWindow extends AuxWindow {
         rowMenu.add( includeAct );
         rowMenu.add( excludeAct );
         rowMenu.add( searchAct );
-        final OptionsListModel subsets = tcModel.getSubsets();
+        final OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
         Action applysubsetAct = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
                 int index = evt.getID();
-                tcModel_.applySubset( (RowSubset) subsets.get( index ) );
+                tcModel_.applySubset( subsets.get( index ) );
             }
         };
         Action highlightsubsetAct = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
                 int index = evt.getID();
-                setSelection( (RowSubset) subsets.get( index ) );
+                setSelection( subsets.get( index ) );
             }
         };
         JMenu applysubsetMenu =

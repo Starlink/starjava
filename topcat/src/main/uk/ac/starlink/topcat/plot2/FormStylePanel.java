@@ -240,8 +240,7 @@ public class FormStylePanel extends JPanel {
             rsNameConfigs.put( rset.getName(),
                                template.subsetConfigs_.get( rset ) );
         }
-        for ( Object rs : tcModel_.getSubsets() ) {
-            RowSubset rset = (RowSubset) rs;
+        for ( RowSubset rset : tcModel_.getSubsets() ) {
             ConfigMap config = rsNameConfigs.get( rset.getName() );
             if ( config != null ) {
                 subsetConfigs_.put( rset, config );

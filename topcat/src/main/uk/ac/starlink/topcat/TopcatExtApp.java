@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -205,8 +204,7 @@ public class TopcatExtApp implements ExtApp {
         }
 
         /* If this is identical to any existing row subset, return that. */
-        for ( Iterator it = tcModel.getSubsets().iterator(); it.hasNext(); ) {
-            RowSubset subset = (RowSubset) it.next();
+        for ( RowSubset subset : tcModel.getSubsets() ) {
             if ( subset instanceof BitsRowSubset ) {
                 BitSet cmpBits = ((BitsRowSubset) subset).getBitSet();
                 if ( cmpBits.equals( included ) ) {

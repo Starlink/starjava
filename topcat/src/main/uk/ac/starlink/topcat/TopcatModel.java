@@ -73,7 +73,7 @@ public class TopcatModel {
     private final ViewerTableModel viewModel_;
     private final TableColumnModel columnModel_;
     private final ColumnList columnList_;
-    private final OptionsListModel subsets_;
+    private final OptionsListModel<RowSubset> subsets_;
     private final Map subsetCounts_;
     private final ComboBoxModel sortSelectionModel_;
     private final ComboBoxModel subsetSelectionModel_;
@@ -182,7 +182,7 @@ public class TopcatModel {
         sortSenseModel_ = new SortSenseModel();
 
         /* Initialise subsets list. */
-        subsets_ = new OptionsListModel();
+        subsets_ = new OptionsListModel<RowSubset>();
         subsets_.add( RowSubset.ALL );
 
         /* Set up the current subset selector. */
@@ -340,7 +340,7 @@ public class TopcatModel {
      *
      * @return   the RowSubset list model
      */
-    public OptionsListModel getSubsets() {
+    public OptionsListModel<RowSubset> getSubsets() {
         return subsets_;
     }
 
@@ -790,7 +790,7 @@ public class TopcatModel {
         RowSubset[] subsetArray = new RowSubset[ nset ];
         int[] subsetIds = new int[ nset ];
         for ( int isub = 0; isub < nset; isub++ ) {
-            subsetArray[ isub ] = (RowSubset) subsets_.get( isub );
+            subsetArray[ isub ] = subsets_.get( isub );
             subsetIds[ isub ] = subsets_.indexToId( isub );
         }
         return new TopcatJELRowReader( dataModel_, subsetArray, subsetIds );
@@ -810,7 +810,7 @@ public class TopcatModel {
         boolean done = false;
         int nset = subsets_.size();
         for ( int is = 0; is < nset && ! done; is++ ) {
-            RowSubset rs = (RowSubset) subsets_.get( is );
+            RowSubset rs = subsets_.get( is );
             if ( rset != RowSubset.ALL &&
                  rset.getName().equals( rs.getName() ) ) {
                 subsets_.set( is, rset );
@@ -838,7 +838,7 @@ public class TopcatModel {
         RandomJELRowReader jeller = createJELRowReader();
         int nset = subsets_.size();
         for ( int is = 0; is < nset; is++ ) {
-            RowSubset rs = (RowSubset) subsets_.get( is );
+            RowSubset rs = subsets_.get( is );
             if ( rs instanceof SyntheticRowSubset ) {
                 SyntheticRowSubset ss = (SyntheticRowSubset) rs;
                 try {
