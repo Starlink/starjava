@@ -14,7 +14,7 @@ import java.util.Iterator;
  * @author   Mark Taylor (Starlink)
  * @since    2 Mar 2005
  */
-public class ShapeIterator implements Iterator {
+public class ShapeIterator implements Iterator<int[]> {
     private final int[] shape_;
     private final int ndim_;
     private int[] pos_;
@@ -44,7 +44,7 @@ public class ShapeIterator implements Iterator {
         return pos_ != null;
     }
 
-    public Object next() { 
+    public int[] next() { 
         int[] next = (int[]) pos_.clone();
         for ( int j = 0; j < ndim_; j++ ) {
             if ( ++pos_[ j ] < shape_[ j ] ) {

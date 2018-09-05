@@ -449,9 +449,9 @@ public class Tables {
                 return null;
             }
         }
-        List labels = new ArrayList();
-        for ( Iterator it = new ShapeIterator( shape ); it.hasNext(); ) {
-            int[] pos = (int[]) it.next();
+        List<String> labels = new ArrayList<String>();
+        for ( Iterator<int[]> it = new ShapeIterator( shape ); it.hasNext(); ) {
+            int[] pos = it.next();
             StringBuffer sbuf = new StringBuffer();
             for ( int i = 0; i < pos.length; i++ ) {
                 sbuf.append( '_' )
@@ -459,7 +459,7 @@ public class Tables {
             }
             labels.add( sbuf.toString() );
         }
-        return (String[]) labels.toArray( new String[ 0 ] );
+        return labels.toArray( new String[ 0 ] );
     }
 
     /**

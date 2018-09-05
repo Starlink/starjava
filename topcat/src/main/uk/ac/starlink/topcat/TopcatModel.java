@@ -674,13 +674,13 @@ public class TopcatModel {
                                     new RowSubset[ 0 ], new int[ 0 ] );
         elInfo.setShape( null );
         int ipos = 0;
-        for ( Iterator it = new ShapeIterator( baseInfo.getShape() );
+        for ( Iterator<int[]> it = new ShapeIterator( baseInfo.getShape() );
               it.hasNext(); ipos++ ) {
-            int[] pos = (int[]) it.next();
+            int[] pos = it.next();
             StringBuffer postxt = new StringBuffer();
-            for ( int i = 0; i < pos.length; i++ ) {
+            for ( int coord : pos ) {
                 postxt.append( '_' );
-                postxt.append( Integer.toString( pos[ i ] + 1 ) );
+                postxt.append( Integer.toString( coord + 1 ) );
             }
             ColumnInfo colInfo = new ColumnInfo( elInfo );
             colInfo.setName( baseName + postxt.toString() );
