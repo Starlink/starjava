@@ -36,7 +36,6 @@ import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.CheckBoxMenu;
-import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatEvent;

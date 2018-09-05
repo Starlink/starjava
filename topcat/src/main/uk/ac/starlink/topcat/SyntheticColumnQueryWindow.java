@@ -24,7 +24,6 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 public class SyntheticColumnQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel;
-    private final OptionsListModel subsets;
     private final TableColumnModel columnModel;
     private JTextField nameField;
     private JTextField unitField;
@@ -49,7 +48,6 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         super( "Define Synthetic Column", parent );
         this.tcModel = tcModel;
         this.columnModel = tcModel.getColumnModel();
-        this.subsets = tcModel.getSubsets();
         LabelledComponentStack stack = getStack();
 
         /* Name field. */
