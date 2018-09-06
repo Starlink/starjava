@@ -18,7 +18,7 @@ import uk.ac.starlink.table.Tables;
  * symbols are understood:
  * <dl>
  * 
- * <dt>"$0" or "$Index" or (deprecated) "index" (case insensitive):
+ * <dt>"$0" or "$index" or (deprecated) "index" (case insensitive):
  * <dd>the 1-based index of the current row.
  *
  * <dt>"$ncol"</dt>
@@ -51,8 +51,8 @@ import uk.ac.starlink.table.Tables;
  *     The first matching column, or if there is none the first matching
  *     parameter value is returned.  UType matching is case-insensitive.
  *
- * <dt>"RANDOM":
- * <dd>The special token "RANDOM" evaluates to a double-precision random
+ * <dt>"$random" (case insensitive) or (deprecated) "RANDOM":
+ * <dd>The special token "$random" evaluates to a double-precision random
  *     number <code>0&lt;=x&lt;1</code> which is constant for a given row
  *     within this reader.  The quality of the random numbers may not
  *     be particularly good.
@@ -277,8 +277,8 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * <li>"$0", "index" or "$index" gives the (1-based) row number
      * <li>"$ncol" gives the number of columns in the table
      * <li>"$nrow" gives the number of rows in the table (null if unknown)
-     * <li>"RANDOM" returns a double random number, always the same for a
-     *     given row
+     * <li>"$random" or "RANDOM" returns a double random number,
+     *      always the same for a given row
      * </ul>
      */
     protected Constant getSpecialByName( String name ) {
@@ -294,7 +294,8 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 }
             };
         }
-        else if ( name.equals( "RANDOM" ) ) {
+        else if ( name.equalsIgnoreCase( "$random" ) ||
+                  name.equals( "RANDOM" ) ) {
             return new Constant() {
                 public Class getContentClass() {
                     return Double.class;
