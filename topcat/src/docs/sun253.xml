@@ -2900,22 +2900,30 @@ The following specials are column-like, in that they have a different value
 for each row:
 
 <dl>
-<dt><code>$index</code> or <code>$0</code>
-    (or <code>index</code>, deprecated)</dt>
-<dd><p>The value of this is the current row number in the unsorted
-    table (the first row is 1).
+<dt><code>$index</code> or <code>$0</code></dt>
+<dd><p>The current row number in the underlying table (the first row is 1).
     This is the value seen in the grey numbers at the left of the grid in the 
-    <ref id="TableViewerWindow">Data Window</ref>).
+    <ref id="TableViewerWindow">Data Window</ref>,
+    and is not affected by the current Row Subset or Row Order.
     Note that this value is a <code>long</code> (8-byte integer);
     when using it in certain expressions you may find it necessary to convert
     it to an <code>int</code> (4-byte integer) using the
     <code>toInteger()</code> function.
+    <em>The deprecated alias "<code>INDEX</code>" may also be used.</em>
     </p></dd>
 
-<dt><code>$random</code> (or <code>RANDOM</code>, deprecated)</dt>
-<dd><p>Evaluates to a double-precision random number <code>0&lt;=x&lt;1</code>
+<dt><code>$index0</code> or <code>$00</code></dt>
+<dd><p>The current row number in the <ref id="apparent">apparent table</ref>
+    (the first row is 1).
+    This value is sensitive to the current Row Subset and Row Order of
+    the table.  It has a null value for rows not in the current subset.
+    </p></dd>
+
+<dt><code>$random</code></dt>
+<dd><p>A double-precision random number <code>0&lt;=x&lt;1</code>
     with a value which is fixed for a given row in this expression.
     The quality of the random numbers may not be particularly good.
+    <em>The deprecated alias "<code>RANDOM</code>" may also be used.</em>
     </p></dd>
 </dl>
 </p>
@@ -2938,6 +2946,18 @@ not sensitive to the row:
 <dd><p>The number of columns in the table.
     This figure refers to the underlying table, not the apparent table,
     so it is not affected by hiding columns.
+    </p></dd>
+
+<dt><code>$nrow0</code></dt>
+<dd><p>The number of rows in the <ref id="apparent">apparent table</ref>.
+    This value may be less than <code>$nrow</code> if a non-default
+    current subset is selected.
+    </p></dd>
+
+<dt><code>$ncol0</code></dt>
+<dd><p>The number of columns in the <ref id="apparent">apparent table</ref>.
+    This value will be less than <code>$ncol</code> if some columns are
+    currently hidden.
     </p></dd>
 </dl>
 </p>
@@ -27308,6 +27328,10 @@ introduced since the last version:
         <ref id="jelSpecials"/>.
         This includes "<code>$random</code>", which was previously
         undocumented and named "<code>RANDOM</code>".</li>
+    <li>New <ref id="jelSpecials">special</ref> tokens
+        <code>$index0</code>/<code>$00</code>,
+        <code>$nrow0</code> and <code>$ncol0</code> which operate
+        on the apparent, rather than the base table.</li>
     </ul>
     </p></dd>
 

@@ -3,15 +3,16 @@ package uk.ac.starlink.topcat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.jel.Constant;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
- * Random JELRowReader which in addition to the variables recognised 
- * by the superclass, also recognises named row subsets 
- * (<tt>RowSubset</tt> inclusion flag vectors):
+ * Random JELRowReader with which recognises some expressions in addition
+ * to those of the superclass.
+ * 
  * <dl>
  * <dt>Row Subset _ID identifiers:
  * <dd>The character '_'
@@ -21,6 +22,23 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
  * <dt>Row Subset names:
  * <dd>The name of a subset (case-insensitive) returns true iff the current
  *     row is part of the named subset.
+ *
+ * <dt>Apparent table index:
+ * <dd>The tokens "<code>$index0</code>" or "<code>$00</code>"
+ *     (case insensitive)
+ *     are evaluated as the index of the current row in the apparent table;
+ *     this differs from <code>$index</code>/<code>$0</code>
+ *     if a non-default sort order or current subset is in force.
+ *
+ * <dt>Apparent table row count:
+ * <dd>The token "<code>$nrow0</code>" is the number of rows in the
+ *     apparent table; this differs from <code>$nrow</code> if a non-default
+ *     current subset is in force.
+ *
+ * <dt>Apparent table column count:
+ * <dd>The token "<code>$ncol0</code> is the number of columns in the
+ *     apparent table; this differs from <code>$ncol</code> if some
+ *     columns are hidden.
  *
  * </dl>
  *
@@ -230,6 +248,52 @@ public class TopcatJELRowReader extends RandomJELRowReader {
      */
     private RowSubset getSubset( int isub ) {
         return rdrSubsets_.get( isub );
+    }
+
+    @Override
+    protected Constant getSpecialByName( String name ) {
+
+        /* Add some specials based on the apparent table. */
+        if ( name.equalsIgnoreCase( "$index0" ) ||
+             name.equals( "$00" ) ) {
+            final ViewerTableModel viewModel = tcModel_.getViewModel();
+            return new Constant() {
+                public Class getContentClass() {
+                    return Integer.class;
+                }
+                public Object getValue() {
+                    int jrow = viewModel.getViewRow( getCurrentRow() );
+                    return jrow >= 0 ? new Integer( 1 + jrow ) : null;
+                }
+            };
+        }
+        else if ( name.equalsIgnoreCase( "$nrow0" ) ) {
+            final ViewerTableModel viewModel = tcModel_.getViewModel();
+            return new Constant() {
+                public Class getContentClass() {
+                    return Integer.class;
+                }
+                public Object getValue() {
+                    return new Integer( viewModel.getRowCount() );
+                }
+            };
+        }
+        else if ( name.equalsIgnoreCase( "$ncol0" ) ) {
+            final TableColumnModel colModel = tcModel_.getColumnModel();
+            return new Constant() {
+                public Class getContentClass() {
+                    return Integer.class;
+                }
+                public Object getValue() {
+                    return new Integer( colModel.getColumnCount() );
+                }
+            };
+        }
+
+        /* Otherwise fall back to superclass behaviour. */
+        else {
+            return super.getSpecialByName( name );
+        }
     }
 
     /**
