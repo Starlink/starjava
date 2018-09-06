@@ -2799,25 +2799,6 @@ You can do this in three ways:
 </dl>
 </p>
 
-<p>There is also a special column:
-<dl>
-<dt><code>$index</code></dt>
-<dd><p>The value of this is the current row number in the unsorted
-    table (the first row is 1).
-    This is the value seen in the grey numbers at the left of the grid in the 
-    <ref id="TableViewerWindow">Data Window</ref>).
-    You can alternatively use the form
-    <strong><code>&column.id.char;0</code></strong>.
-    (The form <strong><code>index</code></strong> is also permitted,
-    but deprecated).
-    Note that this value is a <code>long</code> (8-byte integer);
-    when using it in certain expressions you may find it necessary to convert
-    it to an <code>int</code> (4-byte integer) using the
-    <code>toInteger()</code> function.
-    </p></dd>
-</dl>
-</p>
-
 <p>The value of the variables so referenced will be a primitive
 (boolean, byte, short, char, int, long, float, double) if the
 column contains one of the corresponding types.  Otherwise it will
@@ -2908,14 +2889,42 @@ Note that if a parameter has a name in an unsuitable form (e.g. containing
 spaces) and has no UCD then it cannot be referenced in an expression.
 </p>
 
-<p>There are also a couple of special values:
+</subsect>
+
+<subsect id="jelSpecials">
+<subhead><title>Special Tokens</title></subhead>
+
+<p>There are a few pseudo-variables which have special functions
+in the expression language.
+The following specials are column-like, in that they have a different value
+for each row:
+
 <dl>
-<dt>$ncol</dt>
-<dd><p>The number of columns in the table.
-    This figure refers to the underlying table, not the apparent table,
-    so it is not affected by hiding columns.
+<dt><code>$index</code> or <code>$0</code>
+    (or <code>index</code>, deprecated)</dt>
+<dd><p>The value of this is the current row number in the unsorted
+    table (the first row is 1).
+    This is the value seen in the grey numbers at the left of the grid in the 
+    <ref id="TableViewerWindow">Data Window</ref>).
+    Note that this value is a <code>long</code> (8-byte integer);
+    when using it in certain expressions you may find it necessary to convert
+    it to an <code>int</code> (4-byte integer) using the
+    <code>toInteger()</code> function.
     </p></dd>
-<dt>$nrow</dt>
+
+<dt><code>$random</code> (or <code>RANDOM</code>, deprecated)</dt>
+<dd><p>Evaluates to a double-precision random number <code>0&lt;=x&lt;1</code>
+    with a value which is fixed for a given row in this expression.
+    The quality of the random numbers may not be particularly good.
+    </p></dd>
+</dl>
+</p>
+
+<p>The following specials are parameter-like, in that their value is
+not sensitive to the row:
+
+<dl>
+<dt><code>$nrow</code></dt>
 <dd><p>The number of rows in the table.
     This figure refers to the underlying table, not the apparent table,
     so it is not affected by the value of the current subset.
@@ -2924,9 +2933,14 @@ spaces) and has no UCD then it cannot be referenced in an expression.
     it to an <code>int</code> (4-byte integer) using the
     <code>toInteger()</code> function.
     </p></dd>
+
+<dt><code>$ncol</code></dt>
+<dd><p>The number of columns in the table.
+    This figure refers to the underlying table, not the apparent table,
+    so it is not affected by hiding columns.
+    </p></dd>
 </dl>
 </p>
-
 
 </subsect>
 
@@ -27289,6 +27303,11 @@ introduced since the last version:
         plot windows.</li>
     <li>Fix bug that reported wrong column name in column window
         for renamed synthetic columns loaded from a session file.</li>
+    <li>Rearrange expression language documentation slightly:
+        special tokens are now listed in the new section
+        <ref id="jelSpecials"/>.
+        This includes "<code>$random</code>", which was previously
+        undocumented and named "<code>RANDOM</code>".</li>
     </ul>
     </p></dd>
 
