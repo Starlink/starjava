@@ -28,6 +28,9 @@ public class ExplodeColsFilter extends BasicFilter {
             "though not all the arrays need to have the same number",
             "of elements.",
             "</p>",
+            "<p>This filter does the opposite of",
+            "<ref id='collapsecols'><code>collapsecols</code></ref>.",
+            "</p>",
             explainSyntax( new String[] { "colid-list", } ),
         };
     }

@@ -380,6 +380,33 @@ public class TablePipeTest extends TableTestCase {
         }
     }
 
+    public void testImplode() throws Exception {
+        assertArrayEquals(
+            new Object[] { new int[] {1,10}, new int[] {2,20},
+                           new int[] {3,30}, new int[] {4,0} },
+            getColData( apply( "collapsecols ab a 2" ), 0 ) );
+        assertArrayEquals(
+            new Object[] { new double[] {10,1}, new double[] {20,2},
+                           new double[] {30,3}, new double[] {Double.NaN,4} },
+            getColData( apply( "keepcols \"b a\";"
+                             + "collapsecols -keepscalars ba b 2" ), 2 ) );
+        assertArrayEquals(
+            new Object[] { new String[] { "Ma", "Mark" },
+                           new String[] { "Be", "Beauchamp" },
+                           new String[] { "Ta", "Taylor" },
+                           new String[] { null, null }, },
+            getColData( apply( "addcol xx substring(d,0,2);"
+                             + "keepcols \"xx d\";"
+                             + "collapsecols xxd $1 2" ), 0 ) );
+        assertArrayEquals(
+            new Object[] { new boolean[] { true, false },
+                           new boolean[] { true, false },
+                           new boolean[] { false, true },
+                           new boolean[] { false, true }, },
+            getColData( apply( "addcol -after c nc !c;"
+                             + "collapsecols flags c 2" ), 2 ) );
+    }
+
     public void testFixNames() throws Exception {
         assertSameData( inTable_, apply( "fixcolnames" ) );
         StarTable t1 = apply( "addcol 'a b c' 99" );

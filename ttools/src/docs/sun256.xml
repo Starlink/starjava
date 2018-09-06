@@ -11776,6 +11776,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="jel-special"/>.
         This includes "<code>$random</code>", which was previously
         undocumented and named "<code>RANDOM</code>".</li>
+    <li>New filter <ref id="collapsecols"><code>collapsecols</code></ref>
+        can convert a run of adjacent scalar columns into an
+        array column (the opposite of <code>explodecols</code>).</li>
     </ul>
     </p>
     </dd>
