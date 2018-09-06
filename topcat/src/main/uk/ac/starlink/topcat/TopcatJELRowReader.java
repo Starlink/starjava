@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.jel.Constant;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
@@ -14,11 +16,11 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
  * <dt>Row Subset _ID identifiers:
  * <dd>The character '_'
  *     followed by the 1-based index of a defined row subset
- *     returns true iff the current column is part of the subset.
+ *     returns true iff the current row is part of the subset.
  *
  * <dt>Row Subset names:
  * <dd>The name of a subset (case-insensitive) returns true iff the current
- *     column is part of the named subset.
+ *     row is part of the named subset.
  *
  * </dl>
  *
@@ -27,35 +29,24 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
  */
 public class TopcatJELRowReader extends RandomJELRowReader {
 
-    private final RowSubset[] subsets_;
-    private final int[] subsetIds_;
+    private final TopcatModel tcModel_;
+    private final List<RowSubset> rdrSubsets_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /** Prefix identifying a unique subset identifier. */
     public static final char SUBSET_ID_CHAR = '_';
 
     /**
-     * Constructs a new row reader for a random-access table.
+     * Constructs a new row reader for a TopcatModel.
      *
-     * @param   table  table object
-     * @param   subsets  array of {@link RowSubset} objects which 
-     *          this reader will recognise (may be null)
-     * @param   subsetIds  array of integer identifiers by which the
-     *          <code>subsets</code> array will be identified;
-     *          must be the same length as <code>subsets</code>
-     * @throws  IllegalArgumentException  if <tt>table.isRandom()</tt>
-     *          returns false
+     * @param   tcModel   topcat model
      */
-    public TopcatJELRowReader( StarTable table,
-                               RowSubset[] subsets, int[] subsetIds ) {
-        super( table );
-        if ( ! table.isRandom() ) {
-            throw new IllegalArgumentException( "Table is not random-access" );
-        }
-        subsets_ = subsets == null ? new RowSubset[ 0 ] : subsets;
-        subsetIds_ = subsetIds == null ? new int[ 0 ] : subsetIds;
-        if ( subsets_.length != subsetIds_.length ) {
-            throw new IllegalArgumentException( "arg length mismatch" );
-        }
+    public TopcatJELRowReader( TopcatModel tcModel ) {
+        super( tcModel.getDataModel() );
+        assert getTable().isRandom();
+        tcModel_ = tcModel;
+        rdrSubsets_ = new ArrayList<RowSubset>();
     }
 
     /**
@@ -126,7 +117,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
      *         <tt>RowSubset</tt> indicated at the current row
      */
     public boolean getBooleanProperty( short isub ) {
-        return subsets_[ (int) isub ].isIncluded( getCurrentRow() );
+        return getSubset( isub ).isIncluded( getCurrentRow() );
     }
 
     /**
@@ -139,25 +130,43 @@ public class TopcatJELRowReader extends RandomJELRowReader {
      * Note this method is only called during expression compilation,
      * so it doesn't need to be particularly efficient.
      *
+     * <p>If this method successfully identifies a subset
+     * (returns a non-negative value) that subset is saved in this object
+     * for later use.  Only subsets that have been retrieved using
+     * this method are available for later evaluation; the later
+     * evaluation does not examine the TopcatModel itself for subsets,
+     * it uses the ones stored in this object.  That protects
+     * expression evaluations from failing in the case that the subset
+     * has disappeared between expression compilation and evaluation;
+     * it also <em>may</em> (depending on the implementation of the subset
+     * in question) mean that the evaluation is based on the state
+     * of the named subset at compilation time rather than evaluation time
+     * (it's arguable which of those options is preferable).
+     * This scheme works because expression compilation is usually done
+     * near to the creation time of this object, and compilation triggers
+     * calls to this method as required for the subsets referenced.
+     * Evaluations may happen much later.
+     *
      * @param  name  subset identifier
      * @return  subset index into <tt>subsets</tt> list, or -1 if the
      *          subset was not known
      */
     private short getSubsetIndex( String name ) {
 
+        /* Get a list of the subsets in the topcat model.  If the named
+         * subset is one of those then (a) make sure that subset is stored
+         * in this object for later reference and (b) return an index
+         * that can refer to it. */
+        OptionsListModel<RowSubset> subsets = tcModel_.getSubsets();
+        int nsub = subsets.size();
+
         /* Try the '_' + number format. */
         if ( name.charAt( 0 ) == SUBSET_ID_CHAR ) {
             try {
                 int subsetId = Integer.parseInt( name.substring( 1 ) ) - 1;
-                for ( int isub = 0; isub < subsetIds_.length; isub++ ) {
-                    if ( subsetId == subsetIds_[ isub ] ) {
-                        if ( isub >= Short.MIN_VALUE &&
-                             isub <= Short.MAX_VALUE ) {
-                            return (short) isub;
-                        }
-                        else {
-                            /* 2^15 subsets have been defined?  Unlikely. */
-                        }
+                for ( int isub = 0; isub < nsub; isub++ ) {
+                    if ( subsetId == subsets.indexToId( isub ) ) {
+                        return getSubsetIndex( subsets.get( isub ) );
                     }
                 }
             }
@@ -167,15 +176,10 @@ public class TopcatJELRowReader extends RandomJELRowReader {
         }
 
         /* Try the subset name. */
-        for ( int isub = 0; isub < subsets_.length; isub++ ) {
-            if ( subsets_[ isub ].getName().equalsIgnoreCase( name ) ) {
-                if ( isub >= Short.MIN_VALUE &&
-                     isub <= Short.MAX_VALUE ) {
-                    return (short) isub;
-                }
-                else {
-                    /* 2^15 subsets have been defined?  Unlikely. */
-                }
+        for ( int isub = 0; isub < nsub; isub++ ) {
+            RowSubset rset = subsets.get( isub );
+            if ( rset.getName().equalsIgnoreCase( name ) ) {
+                return getSubsetIndex( rset );
             }
         }
 
@@ -184,11 +188,57 @@ public class TopcatJELRowReader extends RandomJELRowReader {
     }
 
     /**
+     * Returns an index into this object's list of subsets that identifies
+     * a given subset, adding it into that list if it's not already present.
+     *
+     * @param  rset  row subset required for later use
+     * @return   index using which the given subset can be retrieved later
+     */
+    private short getSubsetIndex( RowSubset rset ) {
+        int nsub = rdrSubsets_.size();
+
+        /* If we've already stored it, return the existing index. */
+        for ( int is = 0; is < nsub; is++ ) {
+            if ( rset == rdrSubsets_.get( is ) ) {
+                return (short) is;
+            }
+        }
+
+        /* Otherwise add it to the list and return the newly-occupied index. */
+        if ( nsub < Short.MAX_VALUE ) {
+            rdrSubsets_.add( rset );
+            assert (short) nsub == nsub;
+            return (short) nsub;
+        }
+
+        /** ... unless it's out of range (unlikely). */
+        else {
+            logger_.warning( ">" + Short.MAX_VALUE
+                           + " subsets in JEL expression??" );
+            return (short) -1;
+        }
+    }
+
+    /**
+     * Returns the subset at a given index.
+     * If the supplied index is the return value of an earlier call to the
+     * {@link #getSubsetIndex} method, this will return the subset that
+     * was passed to that method.
+     *
+     * @param  isub  subset index
+     * @return  subset stored under supplied index
+     */
+    private RowSubset getSubset( int isub ) {
+        return rdrSubsets_.get( isub );
+    }
+
+    /**
      * Returns a constant which is evaluated at runtime.
      * This is more appropriate than the inherited (evaluate at call time)
      * behaviour, since within TOPCAT the constant's value may change as a
      * result of user intervention during the lifetime of the returned object.
      */
+    @Override
     protected Constant createDescribedValueConstant( final
                                                      DescribedValue dval ) {
         final Class clazz = dval.getInfo().getContentClass();

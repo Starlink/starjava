@@ -669,9 +669,7 @@ public class TopcatModel {
         String baseExpr = baseInfo.getAuxDatum( TopcatUtils.COLID_INFO )
                                   .getValue().toString();
         ColumnInfo elInfo = new ColumnInfo( baseInfo );
-        RandomJELRowReader rowReader =
-            new TopcatJELRowReader( dataModel_,
-                                    new RowSubset[ 0 ], new int[ 0 ] );
+        RandomJELRowReader rowReader = createJELRowReader();
         elInfo.setShape( null );
         int ipos = 0;
         for ( Iterator<int[]> it = new ShapeIterator( baseInfo.getShape() );
@@ -786,14 +784,7 @@ public class TopcatModel {
      * @return  row reader
      */
     public RandomJELRowReader createJELRowReader() {
-        int nset = subsets_.size();
-        RowSubset[] subsetArray = new RowSubset[ nset ];
-        int[] subsetIds = new int[ nset ];
-        for ( int isub = 0; isub < nset; isub++ ) {
-            subsetArray[ isub ] = subsets_.get( isub );
-            subsetIds[ isub ] = subsets_.indexToId( isub );
-        }
-        return new TopcatJELRowReader( dataModel_, subsetArray, subsetIds );
+        return new TopcatJELRowReader( this );
     }
 
     /**
