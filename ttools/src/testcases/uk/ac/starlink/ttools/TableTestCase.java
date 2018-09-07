@@ -69,15 +69,15 @@ public class TableTestCase extends TestCase {
      * @param   icol    column index
      * @return   column data
      */
-    public static Object[] getColData( StarTable table, int icol ) 
+    public Object[] getColData( StarTable table, int icol ) 
             throws IOException {
         RowSequence rseq = table.getRowSequence();
         List dataList = new ArrayList();
         for ( long lrow = 0; rseq.next(); lrow++ ) {
             Object datum = rseq.getCell( icol );
-            assertEquals( datum, rseq.getRow()[ icol ] );
+            assertObjectEquals( datum, rseq.getRow()[ icol ] );
             if ( table.isRandom() ) {
-                assertEquals( datum, table.getCell( lrow, icol ) );
+                assertObjectEquals( datum, table.getCell( lrow, icol ) );
             }
             dataList.add( datum );
         }
@@ -177,6 +177,22 @@ public class TableTestCase extends TestCase {
         }
         else {
             throw new IllegalArgumentException( "Can't unbox " + clazz );
+        }
+    }
+
+    /**
+     * Assert that two objects, that may or may not be arrays, are equal.
+     *
+     * @param   o1  comparison object
+     * @param   o2  test object
+     * @throws   junit.framework.AssertionFailedError  if they don't match
+     */
+    public void assertObjectEquals( Object o1, Object o2 ) {
+        if ( o1 == null || o1.getClass().getComponentType() == null ) {
+            assertEquals( o1, o2 );
+        }
+        else {
+            assertArrayEquals( o1, o2 );
         }
     }
 }
