@@ -471,11 +471,11 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                 JComboBox cb = (JComboBox) c;              
                 dlp.setQueryParam(name, (String) cb.getSelectedItem());
             }
-            if (c instanceof JTextField) {
+            else if (c instanceof JTextField) {
                 JTextField tf = (JTextField) c;
                 dlp.setQueryParam(name, (String) tf.getText());
             }
-            if (c instanceof IntervalField) { // interval
+            else if (c instanceof IntervalField) { // interval
                 IntervalField intp = (IntervalField) c;
                 dlp.setQueryParam(name, intp.getLower(), intp.getUpper());
             }

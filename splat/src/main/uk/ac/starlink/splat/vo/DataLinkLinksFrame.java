@@ -233,7 +233,11 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 	            Logger.info(this,  "display Button clicked");
 	            String serviceDef = ((JButton) source).getName();
 	            DataLinkServiceResource service = dlparams.getDataLinkService(serviceDef);
-	            displaySpectrum( service.getAccessURL(), servicePanel.getContentType(), servicePanel.getSemantics(), 
+	            String format = service.getQueryFormat();
+	            if (format==null || format.isEmpty())
+	            	format = servicePanel.getContentType();
+	            
+	            displaySpectrum( service.getAccessURL(), format, servicePanel.getSemantics(), 
 	            		         service.getDataLinkRequest(), service.getFieldRefID()) ;
 	            
 	            return;
@@ -377,6 +381,7 @@ public class DataLinkLinksFrame extends JFrame implements ActionListener, MouseL
 			propList[0].setDataLinkRequest(dataLinkRequest);
 			propList[0].setIdValue(idsrc);
 			propList[0].setServerURL(accessUrl);
+			propList[0].setDataLinkFormat(contentType);
 			//accessUrl=null;
 		}
 		

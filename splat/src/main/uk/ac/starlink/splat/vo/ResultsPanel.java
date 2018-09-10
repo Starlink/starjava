@@ -643,8 +643,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             writer.newLine();
             writer.write( "xmlns=\"http://www.ivoa.net/xml/VOTable/v1.1\">" );
             writer.newLine();
-            writer.write( "<RESOURCE>" );
-            writer.newLine();
+            
            
             StarJTable starJTable = null;
             VOSerializer serializer = null;
@@ -667,12 +666,17 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                 int n = table.getColumnCount();
                 for ( int j = 0; j < n; j++ ) {
                     ColumnInfo ci = table.getColumnInfo( j );
-                    ci.setAuxDatum( new DescribedValue( VOStarTable.ID_INFO, null ) );
+                    DescribedValue idValue = ci.getAuxDatumByName("ID");
+         		   if (idValue == null)
+         			   idValue = ci.getAuxDatumByName("VOTable ID");
+         		   String val="";
+         		   if (idValue != null) 
+         			   val = idValue.getValueAsString(50);
+                    ci.setAuxDatum( new DescribedValue( VOStarTable.ID_INFO, val ) );
                 }
                 serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
                 serializer.writeInlineTableElement( writer );                
             }
-            writer.write( "</RESOURCE>" );
             writer.newLine();
             if (dataLinkFrame != null)
                 saveDataLinkParams(writer);

@@ -410,18 +410,17 @@ private boolean isPreferedFormat(String format1, String format2){
 
 	   for (int i=0;i<table.getColumnCount();i++) {
 		   ColumnInfo ci =  table.getColumnInfo(i);
-		   List<DescribedValue> data = ci.getAuxData();
-		   for (DescribedValue dv:data) {
-			   String info = dv.getInfo().getName();
-			   if (info.equalsIgnoreCase("ID") || info.equalsIgnoreCase("VOTable ID")) {
-				   String val = dv.getValueAsString(field.length()+1);
-				   if (val.equals(field)) {
-					   try {
-						   return  (String) table.getCell(row, i);
-					   } catch (IOException e) {}							
-				   }    	    		   
-			   }    	    	  
-		   }
+		   DescribedValue idValue = ci.getAuxDatumByName("ID");
+		   if (idValue == null)
+			   idValue = ci.getAuxDatumByName("VOTable ID");
+		   String val="";
+		   if (idValue != null) 
+			   val = idValue.getValueAsString(field.length()+1);
+		   if (val.equals(field)) {
+			   try {
+				   return  (String) table.getCell(row, i);
+			   } catch (IOException e) {}							
+		   }  
 	   }
 
 	   return null; 
