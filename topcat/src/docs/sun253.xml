@@ -27223,6 +27223,8 @@ introduced since the last version:
         added to class <ref id="Gaia">Gaia</ref>.
         These can calculate Cartesian position and velocity components
         from (e.g. Gaia) astrometric parameters.</li>
+    <li>Fix minor bug in TAP Resume Job tab that continued
+        unnecessary polling of ERROR/ABORTED status jobs.</li>
     </ul>
     </p></dd>
 

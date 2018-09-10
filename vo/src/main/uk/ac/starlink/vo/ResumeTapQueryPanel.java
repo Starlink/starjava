@@ -369,13 +369,16 @@ class ResumeTapQueryPanel extends JPanel {
             jobPanel_.setJobInfo( info );
             String phase = info == null ? null : info.getPhase();
             UwsStage stage = UwsStage.forPhase( phase );
-            if ( "COMPLETED".equals( phase ) ) {
-                loadResultAct_.setEnabled( true );
-                resumeAct_.setEnabled( false );
+            if ( stage == UwsStage.FINISHED ) {
                 phaseTimer_.stop();
+                resumeAct_.setEnabled( false );
+                if ( "COMPLETED".equals( phase ) ) {
+                    loadResultAct_.setEnabled( true );
+                }
             }
             else if ( stage == UwsStage.UNSTARTED ||
-                      stage == UwsStage.RUNNING ) {
+                      stage == UwsStage.RUNNING ||
+                      stage == UwsStage.UNKNOWN ) {
                 resumeAct_.setEnabled( true );
                 loadResultAct_.setEnabled( false );
             }
