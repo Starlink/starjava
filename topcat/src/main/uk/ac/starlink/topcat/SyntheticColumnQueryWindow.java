@@ -11,7 +11,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -238,7 +237,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         String expr = getExpression();
         String ucd = getUCD();
         Class clazz = getExpressionType();
-        DefaultValueInfo info = new DefaultValueInfo( name );
+        ColumnInfo info = new ColumnInfo( name );
         if ( desc != null ) {
             info.setDescription( desc );
         }

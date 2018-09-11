@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
@@ -41,7 +40,9 @@ public class SyntheticColumn extends ColumnData {
      * Constructs a new synthetic column from an algebraic expression 
      * applied to a table.
      *
-     * @param  vinfo  template for the new column
+     * @param  cinfo   metadata for the new column;
+     *                 note this object may be modified as required by
+     *                 the supplied expression
      * @param  expression  algebraic expression for the value of this
      *         column
      * @param  resultType  a Class for the result, presumably one of the
@@ -49,10 +50,10 @@ public class SyntheticColumn extends ColumnData {
      *         a suitable class is chosen automatically.
      * @param  rowReader  context for JEL expression evaluation
      */
-    public SyntheticColumn( ValueInfo vinfo, String expression,
+    public SyntheticColumn( ColumnInfo cinfo, String expression,
                             Class resultType, RandomJELRowReader rowReader )
             throws CompilationException {
-        super( vinfo );
+        super( cinfo );
         setExpression( expression, resultType, rowReader );
     }
 

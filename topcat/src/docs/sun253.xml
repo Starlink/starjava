@@ -27287,6 +27287,8 @@ introduced since the last version:
     <li>New <ref id="LayerControl_spheregrid">Sphere Grid</ref>
         layer control available from the Cube and Sphere
         plot windows.</li>
+    <li>Fix bug that reported wrong column name in column window
+        for renamed synthetic columns loaded from a session file.</li>
     </ul>
     </p></dd>
 
