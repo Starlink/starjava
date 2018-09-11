@@ -138,6 +138,7 @@
   <!ENTITY FIG.SpectrogramLayerControl_data
            '&figs;SpectrogramLayerControl_data.png'>
   <!ENTITY FIG.LayerControl_skygrid '&figs;LayerControl_skygrid.png'>
+  <!ENTITY FIG.LayerControl_spheregrid '&figs;LayerControl_spheregrid.png'>
   <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.png'>
   <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.png'>
   <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.png'>
@@ -322,6 +323,9 @@
   <!ENTITY CONTROL.skygrid
            '&IMG.PLOT_SKYGRID;
             <ref id="LayerControl_skygrid">SkyGrid Layer Control</ref>'>
+  <!ENTITY CONTROL.spheregrid
+           '&IMG.PLOT_SKYGRID;
+           <ref id="LayerControl_spheregrid">SphereGrid Layer Control</ref>'>
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
   <!ENTITY FORM.sizexy '&IMG.FORM_SIZEXY; <ref id="form-sizexy">SizeXY</ref>'>
@@ -9343,6 +9347,57 @@ with the following fields:
 
 </subsubsubsect>
 
+<subsubsubsect id="LayerControl_spheregrid">
+<subhead><title>SphereGrid Layer Control</title></subhead>
+
+<p>The <label>SphereGrid</label> layer control (&IMG.PLOT_SKYGRID;)
+is available from the
+<ref id="SpherePlotWindow">Sphere</ref> and
+<ref id="CubePlotWindow">Cube</ref> plot windows,
+and plots a spherical net centered on the coordinate origin.
+This is currently not labelled, but it can provide orientation
+to make clear for instance the position of a bounding unit sphere.
+Its radius can be controlled by a slider or by entering a
+fixed value.
+Since the sphere is always centered on the origin, if the whole visible
+cube is far from the origin, it may be that few or none of the grid lines
+show up on the plot.
+</p>
+
+<figure>
+<caption>
+<px>Plot of the XYZ vertices providing surface of an asteroid (48 Doris)
+with a spherical grid overplotted.
+</px>
+</caption>
+<figureimage src="&FIG.LayerControl_spheregrid;"/>
+</figure>
+
+<p>This control has only one tab, <label>Style</label>,
+with the following fields:
+<dl>
+<dt>Radius</dt>
+<dd><p>Defines the radius of the plotted sphere.
+    The slider adjusts the radius as a proportion of the visible plot cube,
+    and the text entry field allows you to enter the radius in data units.
+    </p></dd>
+<dt>Grid Color</dt>
+<dd><p>Colour of the plotted grid lines.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Thickness of the plotted grid lines.
+    </p></dd>
+<dt>Lon Count</dt>
+<dd><p>Determines the number of lines of longitude drawn.
+    </p></dd>
+<dt>Lat Count</dt>
+<dd><p>Determines the number of lines of latitude drawn.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="ShapeForm">
@@ -12972,6 +13027,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
+<li>&CONTROL.spheregrid;</li>
 </ul>
 Note that use of the
 <ref id="mode-auto">Auto</ref>,
@@ -13284,6 +13340,7 @@ In many respects this works like the
     <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
     </ul></li>
+<li>&CONTROL.spheregrid;</li>
 </ul>
 Note that use of the
 <ref id="mode-auto">Auto</ref>,
@@ -27227,6 +27284,9 @@ introduced since the last version:
         unnecessary polling of ERROR/ABORTED status jobs.</li>
     <li>The <ref id="SpherePlotWindow">sphere plot</ref> now centers
         axes on zero if the center would otherwise be near zero.</li>
+    <li>New <ref id="LayerControl_spheregrid">Sphere Grid</ref>
+        layer control available from the Cube and Sphere
+        plot windows.</li>
     </ul>
     </p></dd>
 

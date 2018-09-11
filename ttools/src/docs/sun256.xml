@@ -11754,6 +11754,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         from (e.g. Gaia) astrometric parameters.</li>
     <li>Sphere plot now centers axes on zero if the center would otherwise be
         near zero.</li>
+    <li>New plot layer <ref id="layer-spheregrid">spheregrid</ref> in
+        Cube and Sphere plots.</li>
     </ul>
     </p>
     </dd>
