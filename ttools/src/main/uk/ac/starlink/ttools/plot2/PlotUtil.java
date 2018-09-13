@@ -934,7 +934,10 @@ public class PlotUtil {
                               DecimalFormatSymbols.getInstance( Locale.UK ) );
         fmt.setMaximumFractionDigits( nFracDigits );
         fmt.setMinimumFractionDigits( nFracDigits );
-        return fmt.format( value );
+        String out = fmt.format( value );
+        return out.matches( "-0+\\.0+" )
+             ? out.substring( 1 )
+             : out;
     }
 
     /**
