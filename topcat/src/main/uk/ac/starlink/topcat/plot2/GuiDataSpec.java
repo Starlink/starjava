@@ -130,6 +130,16 @@ public class GuiDataSpec extends AbstractDataSpec {
     }
 
     /**
+     * Returns the GuiCoordContent corresponding to a particular coordinate.
+     *
+     * @param   ic   coord index
+     * @return   user-supplied coordinate information
+     */
+    public GuiCoordContent getGuiCoordContent( int ic ) {
+        return contents_[ ic ];
+    }
+
+    /**
      * Returns the strings supplied by the user to identify the user values
      * corresponding to a particular coordinate.
      *
