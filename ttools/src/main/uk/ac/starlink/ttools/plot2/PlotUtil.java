@@ -953,6 +953,9 @@ public class PlotUtil {
      * @return  formatted value
      */
     public static String formatNumber( double value, double epsilon ) {
+        if ( epsilon == 0 || Double.isNaN( epsilon ) ) {
+            return Double.toString( value );
+        }
         epsilon = Math.abs( epsilon );
 
         /* Work out the number of significant figures. */
