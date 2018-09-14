@@ -46,6 +46,9 @@ public abstract class BlobPanel2 extends JComponent {
     private Color pathColor_ = new Color( 0, 0, 0, 128 );
     private boolean isActive_;
 
+    /* Name of boolean property associated with isActive method. */
+    public static final String PROP_ACTIVE = "active";
+
     /**
      * Constructor.
      */
@@ -147,6 +150,7 @@ public abstract class BlobPanel2 extends JComponent {
                                        "region"
                                      : "Draw a region on the plot to define " +
                                        "a new row subset" );
+        blobAction_.putValue( PROP_ACTIVE, Boolean.valueOf( active ) );
         setListening( active );
         setVisible( active );
     }

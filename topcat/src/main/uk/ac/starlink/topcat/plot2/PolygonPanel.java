@@ -61,6 +61,9 @@ public abstract class PolygonPanel extends JComponent {
     private static final Color pathColor_ = new Color( 0, 0, 0, 128 );
     private static final PolygonMode DFLT_POLYGON_MODE = PolygonMode.BELOW;
 
+    /* Name of boolean property associated with isActive method. */
+    public static final String PROP_ACTIVE = "active";
+
     /**
      * Constructor.
      *
@@ -176,6 +179,7 @@ public abstract class PolygonPanel extends JComponent {
                                                "currently-drawn polygon"
                                              : "Draw a polygon on the plot " +
                                                "to define a new row subset" );
+        basicPolygonAction_.putValue( PROP_ACTIVE, Boolean.valueOf( active ) );
         for ( ModePolygonAction act : modePolygonActions_ ) {
             act.updateState();
         }
@@ -458,9 +462,12 @@ public abstract class PolygonPanel extends JComponent {
             putValue( SHORT_DESCRIPTION,
                       "Draw a polygon on the plot to define a row subset "
                     + pmode + " the drawn region" );
-            addPropertyChangeListener( new PropertyChangeListener() {
+            basicPolygonAction_.addPropertyChangeListener(
+                    new PropertyChangeListener() {
                 public void propertyChange( PropertyChangeEvent evt ) {
-                    if ( "enabled".equals( evt.getPropertyName() ) ) {
+                    String pname = evt.getPropertyName();
+                    if ( "enabled".equals( pname ) ||
+                         PROP_ACTIVE.equals( pname ) ) {
                         updateState();
                     }
                 }

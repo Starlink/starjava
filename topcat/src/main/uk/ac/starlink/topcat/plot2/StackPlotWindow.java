@@ -15,6 +15,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -52,10 +56,13 @@ import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.HelpAction;
 import uk.ac.starlink.topcat.LineBox;
+import uk.ac.starlink.topcat.MultiSubsetQueryWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetConsumer;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
+import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
@@ -96,6 +103,8 @@ import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
+import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 
 /**
@@ -132,10 +141,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final JLabel countLabel_;
     private final NavigationHelpPanel navPanel_;
     private final BlobPanel2 blobPanel_;
+    private final PolygonPanel polygonPanel_;
     private final Action blobAction_;
+    private final Action polygonAction_;
     private final Action fromVisibleAction_;
     private final Action resizeAction_;
     private final boolean canSelectPoints_;
+    private final boolean usePolygon_;
     private final JMenu exportMenu_;
     private final JMenu layerDataImportMenu_;
     private final JMenu layerDataSaveMenu_;
@@ -167,6 +179,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         zoneFact_ = plotTypeGui_.createZoneFactory();
         canSelectPoints_ = plotTypeGui.hasPositions();
         dfltZone_ = zoneFact_.getDefaultZone();
+
+        /* Determine whether to provide polygon plotting.
+         * This is basically applicable if there are positional points and
+         * the surface is planar.  However, there are currently issues
+         * with referencing time coordinates for use in JEL expressions,
+         * which means it won't work well for the (still experimental)
+         * Time plot, so exclude the time plot explicitly for now. */
+        usePolygon_ = canSelectPoints_ && plotTypeGui_.isPlanar()
+                   && ! ( plotType instanceof TimePlotType );
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
@@ -374,6 +395,56 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
         blobAction_ = blobPanel_.getBlobAction();
+        blobAction_.addPropertyChangeListener( new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                String pname = evt.getPropertyName();
+                if ( "enabled".equals( pname ) ||
+                     BlobPanel2.PROP_ACTIVE.equals( pname ) ) {
+                    updateSubsetActions();
+                }
+            }
+        } );
+
+        /* Prepare the action that allows the user to select points by
+         * hand-placed vertices. */
+        if ( usePolygon_ ) {
+            polygonPanel_ = new PolygonPanel( plotPanel_ ) {
+                protected void polygonCompleted( Point[] points,
+                                                 PolygonMode pmode, int iz ) {
+                    setListening( false );
+                    final PolygonPanel panel = this;
+                    Runnable tidier = new Runnable() {
+                        public void run() {
+                            panel.setActive( false );
+                        }
+                    };
+                    Surface surf = plotPanel_.getLatestSurface( iz );
+                    PlotLayer[] layers = plotPanel_.getPlotLayers( iz );
+                    if ( surf instanceof PlanarSurface && layers.length > 0 ) {
+                        addPolygonSubsets( points, pmode, (PlanarSurface) surf,
+                                           layers, tidier );
+                    }
+                    else {
+                        tidier.run();
+                    }
+                }
+            };
+            polygonAction_ = polygonPanel_.getBasicPolygonAction();
+            polygonAction_.addPropertyChangeListener(
+                    new PropertyChangeListener() {
+                public void propertyChange( PropertyChangeEvent evt ) {
+                    String pname = evt.getPropertyName();
+                    if ( "enabled".equals( pname ) ||
+                         PolygonPanel.PROP_ACTIVE.equals( pname ) ) {
+                        updateSubsetActions();
+                    }
+                }
+            } );
+        }
+        else {
+            polygonPanel_ = null;
+            polygonAction_ = null;
+        }
 
         /* Prepare the plot export action. */
         final PlotExporter plotExporter = PlotExporter.getInstance();
@@ -437,6 +508,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         JPanel displayPanel = new JPanel();
         displayPanel.setLayout( new OverlayLayout( displayPanel ) );
         displayPanel.add( blobPanel_ );
+        if ( usePolygon_ ) {
+            displayPanel.add( polygonPanel_ );
+        }
         displayPanel.add( plotPanel_ );
 
         /* Place position and count status panels at the bottom of the
@@ -513,6 +587,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             stackToolbar.add( floatModel.createToolbarButton() );
             stackToolbar.addSeparator();
         }
+        if ( usePolygon_ ) {
+            getToolBar().add( polygonAction_ );
+        }
         if ( canSelectPoints_ ) {
             getToolBar().add( blobAction_ );
         }
@@ -548,6 +625,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         subsetMenu.setMnemonic( KeyEvent.VK_S );
         if ( canSelectPoints_ ) {
             subsetMenu.add( blobAction_ );
+        }
+        if ( usePolygon_ ) {
+            subsetMenu.add( polygonAction_ );
+            subsetMenu.add( polygonPanel_.getModePolygonMenu() );
         }
         subsetMenu.add( fromVisibleAction_ );
         getJMenuBar().add( subsetMenu );
@@ -891,6 +972,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* If the blob drawing is active, kill it. */
         blobPanel_.setActive( false );
+        if ( polygonPanel_ != null ) {
+            polygonPanel_.setActive( false );
+        }
 
         /* The shader control is only visible in the stack when one of the
          * layers is making use of it. */
@@ -1490,6 +1574,50 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
     }
 
+    private void addPolygonSubsets( Point[] points, PolygonMode pmode,
+                                    PlanarSurface surf, PlotLayer[] layers,
+                                    final Runnable completionCallback ) {
+        TableCloud[] clouds =
+            TableCloud.createTableClouds( SubCloud
+                                         .createSubClouds( layers, true ) );
+        List<MultiSubsetQueryWindow.Entry> entlist =
+            new ArrayList<MultiSubsetQueryWindow.Entry>();
+        for ( TableCloud cloud : clouds ) {
+            TopcatModel tcModel = cloud.getTopcatModel();
+            RowSubset[] rsets = cloud.getRowSubsets();
+            GuiCoordContent xContent = cloud.getGuiCoordContent( 0 );
+            GuiCoordContent yContent = cloud.getGuiCoordContent( 1 );
+            String xvar = TopcatJELUtils.getDataExpression( tcModel, xContent );
+            String yvar = TopcatJELUtils.getDataExpression( tcModel, yContent );
+            if ( xvar != null && yvar != null ) {
+                String expr =
+                    pmode.createExpression( surf, points, xvar, yvar );
+                expr = TopcatJELUtils
+                      .combineSubsetsExpression( tcModel, expr, rsets );
+                entlist.add( new MultiSubsetQueryWindow.Entry( tcModel,
+                                                               expr ) );
+            }
+        }
+        MultiSubsetQueryWindow.Entry[] entries =
+            entlist.toArray( new MultiSubsetQueryWindow.Entry[ 0 ] );
+        MultiSubsetQueryWindow qw =
+            new MultiSubsetQueryWindow( "Add Polygon Subset(s)",
+                                        this, entries ) {
+            /* Constructor. */ {
+                addHelp( "PolygonPanel" );
+            }
+        };
+        qw.setVisible( true );
+        if ( completionCallback != null ) {
+            qw.addWindowListener( new WindowAdapter() {
+                @Override
+                public void windowClosed( WindowEvent evt ) {
+                    completionCallback.run();
+                }
+            } );
+        }
+    }
+
     /**
      * Invoked when the plot changes.  Status panels are updated.
      */
@@ -1498,13 +1626,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Update position immediately. */
         updatePositionDisplay( plotPanel_.getMousePosition() );
 
-        /* Work out if it makes any sense to do a blob or visibility
-         * selection. */
-        boolean hasAnyPoints = getBoundsInclusions( true ).length > 0;
-        boolean hasFullPoints = hasAnyPoints &&
-                                getBoundsInclusions( false ).length > 0;
-        blobAction_.setEnabled( hasFullPoints );
-        fromVisibleAction_.setEnabled( hasAnyPoints );
+        /* Update status of actions associated with subset definition. */
+        updateSubsetActions();
 
         /* Update plot reports. */
         Map<LayerId,ReportMap> reportsMap = new HashMap<LayerId,ReportMap>();
@@ -1568,6 +1691,25 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 }
             }
         } );
+    }
+
+    /**
+     * Makes sure that the enabledness of the subset definition actions
+     * is correct.  Should be invoked whenever anything that could affect the
+     * enablednesses might have changed.
+     */
+    private void updateSubsetActions() {
+        boolean hasAnyPoints = getBoundsInclusions( true ).length > 0;
+        fromVisibleAction_.setEnabled( hasAnyPoints );
+
+        boolean hasFullPoints = hasAnyPoints &&
+                                getBoundsInclusions( false ).length > 0;
+        blobAction_.setEnabled( hasFullPoints &&
+                                ! ( usePolygon_ && polygonPanel_.isActive() ) );
+        if ( usePolygon_ ) {
+            polygonAction_.setEnabled( hasFullPoints &&
+                                       ! blobPanel_.isActive() );
+        }
     }
 
     /**
