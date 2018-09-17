@@ -51,4 +51,17 @@ public class JELTest extends TestCase {
             }
         }
     }
+
+    public void testIdentifier() {
+        for ( String s : new String[] {
+                  " ab", "a b", "hello.world", "if", "1+2", "-3", "99",
+                  "false", "true", "null" } ) {
+            assertFalse( TopcatJELUtils.isJelIdentifier( s ) );
+        }
+        for ( String s : new String[] {
+                  "ab", "helloIamAVariable", "____", "$23001", "x", "xy", "x_y",
+                  "vfmnx", "gg99", "$index", "$00", } ) {
+            assertTrue( TopcatJELUtils.isJelIdentifier( s ) );
+        }
+    }
 }

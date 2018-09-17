@@ -3,13 +3,18 @@ package uk.ac.starlink.topcat;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import gnu.jel.CompilationException;
 import gnu.jel.Library;
 import gnu.jel.DVMap;
 import java.util.Date;
+import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
@@ -19,6 +24,7 @@ import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.func.SuperCosmos;
 import uk.ac.starlink.topcat.func.TwoQZ;
+import uk.ac.starlink.topcat.plot2.GuiCoordContent;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
@@ -34,6 +40,23 @@ public class TopcatJELUtils extends JELUtils {
     public static final String ACTIVATION_CLASSES_PROPERTY =
         "jel.classes.activation";
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
+
+    /** Taken from Java Language Specification (Java 6), sec 3.9. */
+    private static final Set<String> keywords_ =
+            Collections
+           .unmodifiableSet( new HashSet<String>( Arrays.asList( new String[] {
+        "abstract", "continue", "for",        "new",       "switch",
+        "assert",   "default",  "if",         "package",   "synchronized",
+        "boolean",  "do",       "goto",       "private",   "this",
+        "break",    "double",   "implements", "protected", "throw",
+        "byte",     "else",     "import",     "public",    "throws",
+        "case",     "enum",     "instanceof", "return",    "transient",
+        "catch",    "extends",  "int",        "short",     "try",
+        "char",     "final",    "interface",  "static",    "void",
+        "class",    "finally",  "long",       "strictfp",  "volatile",
+        "const",    "float",    "native",     "super",     "while",
+        "true",     "false",    "null",
+    } ) ) );
 
     /**
      * Returns a JEL Library suitable for expression evaluation.
@@ -204,4 +227,159 @@ public class TopcatJELUtils extends JELUtils {
         }
     }
 
+    /**
+     * Returns a JEL-friendly expression which may be used to reference a
+     * GuiCoordContent, if possible.
+     *
+     * @param  tcModel   topcat model
+     * @param  content   user specification for a plotted quantity
+     * @return  JEL-safe expression for referencing the quantity
+     */
+    public static String getDataExpression( TopcatModel tcModel,
+                                            GuiCoordContent content ) {
+        String[] labels = content.getDataLabels();
+        String label = labels.length == 1 ? labels[ 0 ] : null;
+        if ( label == null ) {
+            return null;
+        }
+
+        /* Look through column names for case-sensitive match,
+         * then case-insensitive match, otherwise interpret the
+         * value as a JEL expression in the usual way.
+         * {@see ColumnDataComboBoxModel#stringToColumnData}.
+         * If the string matches a column name, return the supplied
+         * string if it is syntactically permissible, otherwise the
+         * column $identifier.  There could be less roundabout,
+         * though possibly less robust, ways to do this by examining
+         * the GuiCoordContent and e.g. its ColumnDatas. */
+        TableColumnModel colModel = tcModel.getColumnModel();
+        int ncol = colModel.getColumnCount();
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            StarTableColumn tcol = (StarTableColumn) colModel.getColumn( ic );
+            String cname = tcol.getColumnInfo().getName();
+            if ( label.equals( cname ) ) {
+                return isJelIdentifier( cname ) ? cname : getColumnId( tcol );
+            }
+        }
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            StarTableColumn tcol = (StarTableColumn) colModel.getColumn( ic );
+            String cname = tcol.getColumnInfo().getName();
+            if ( label.equalsIgnoreCase( cname ) ) {
+                return isJelIdentifier( cname ) ? cname : getColumnId( tcol );
+            }
+        }
+        return label;
+    }
+
+    /**
+     * Returns a JEL-friendly expression which may be used to reference
+     * a RowSubset.
+     *
+     * @param   tcModel  topcat model
+     * @param   rset   row subset
+     * @return  JEL-safe expression for subset
+     */
+    public static String getSubsetExpression( TopcatModel tcModel,
+                                              RowSubset rset ) {
+        String name = rset.getName();
+        if ( isJelIdentifier( name ) ) {
+            return name;
+        }
+        else {
+            OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
+            int iset = subsets.indexOf( rset );
+            int id = iset >= 0 ? subsets.indexToId( iset ) : -1;
+            if ( id >= 0 ) {
+                return Character.toString( TopcatJELRowReader.SUBSET_ID_CHAR )
+                     + Integer.toString( 1 + id );
+            }
+            else {
+                return name;
+            }
+        }
+    }
+
+    /**
+     * Returns the JEL $Identifier for a given column.
+     *
+     * @param   tcol  table column from data model
+     * @return   "$nn" expression referencing column
+     */
+    public static String getColumnId( StarTableColumn tcol ) {
+        return Character.toString( JELRowReader.COLUMN_ID_CHAR )
+             + Integer.toString( 1 + tcol.getModelIndex() );
+    }
+
+    /**
+     * Indicates whether a given string is a syntactically legal Java
+     * identifier.  It has to have the right form and not be a reserved word.
+     *
+     * @param   label  text to test
+     * @return   true iff it can be used as an identifier in JEL expressions
+     */
+    public static boolean isJelIdentifier( String label ) {
+        int nc = label.length();
+        if ( nc == 0 ) {
+            return false;
+        }
+        if ( ! Character.isJavaIdentifierStart( label.charAt( 0 ) ) ) { 
+            return false;
+        }
+        for ( int i = 0; i < nc; i++ ) {
+            if ( ! Character.isJavaIdentifierPart( label.charAt( i ) ) ) {
+                return false;
+            }
+        }
+        if ( keywords_.contains( label ) ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns a JEL expression that represents the union of a given
+     * array of subsets ANDed with a given JEL expression.
+     *
+     * @param  tcModel  topcat model
+     * @param  expr     expression to AND with
+     * @param  rowSubsets   array of zero or more subsets composing union;
+     *                      if none are provided, ALL is assumed
+     * @return   combined expression
+     */
+    public static String combineSubsetsExpression( TopcatModel tcModel,
+                                                   String expr,
+                                                   RowSubset[] rowSubsets ) {
+        List<RowSubset> rsets =
+            new ArrayList<RowSubset>( Arrays.asList( rowSubsets ) );
+        if ( rsets.contains( RowSubset.ALL ) ) {
+            return expr;
+        }
+        rsets.remove( RowSubset.NONE );
+        int nset = rsets.size();
+        if ( nset == 0 ) {
+            return expr;
+        }
+        else {
+            StringBuffer sbuf = new StringBuffer();
+            if ( nset == 1 ) {
+                sbuf.append( getSubsetExpression( tcModel, rsets.get( 0 ) ) );
+            }
+            else {
+                sbuf.append( "(" );
+                for ( int is = 0; is < nset; is++ ) {
+                    if ( is > 0 ) {
+                        sbuf.append( " || " );
+                    }
+                    sbuf.append( getSubsetExpression( tcModel,
+                                                      rsets.get( is ) ) );
+                }
+                sbuf.append( ")" );
+            }
+            sbuf.append( " && " )
+                .append( "(" )
+                .append( expr )
+                .append( ")" );
+            return sbuf.toString();
+        }
+    }
 }
