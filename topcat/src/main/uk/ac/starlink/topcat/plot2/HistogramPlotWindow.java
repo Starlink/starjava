@@ -493,6 +493,9 @@ public class HistogramPlotWindow
         public boolean hasPositions() {
             return false;
         }
+        public boolean isPlanar() {
+            return true;
+        }
         public String getNavigatorHelpId() {
             return "histogramNavigation";
         }

@@ -80,6 +80,10 @@ public class SkyPlotWindow
             return true;
         }
 
+        public boolean isPlanar() {
+            return false;
+        }
+
         public GangerFactory getGangerFactory() {
             return SingleGanger.FACTORY;
         }

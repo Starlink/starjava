@@ -116,6 +116,9 @@ public class TimePlotWindow
         public boolean hasPositions() {
             return true;
         }
+        public boolean isPlanar() {
+            return true;
+        }
         public GangerFactory getGangerFactory() {
             return TimeStackGanger.FACTORY;
         }

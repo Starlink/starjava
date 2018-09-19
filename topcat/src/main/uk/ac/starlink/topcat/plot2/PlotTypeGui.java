@@ -36,6 +36,15 @@ public interface PlotTypeGui<P,A> {
     boolean hasPositions();
 
     /**
+     * Indicates whether this plot type's surface factory produces
+     * surfaces implementing the
+     * {@link uk.ac.starlink.ttools.plot2.geom.PlanarSurface} interface.
+     *
+     * @return   true for plane surface plot types
+     */
+    boolean isPlanar();
+
+    /**
      * Returns the GangerFactory used by this plot.
      * It controls how multi-zone plots are arranged.
      *

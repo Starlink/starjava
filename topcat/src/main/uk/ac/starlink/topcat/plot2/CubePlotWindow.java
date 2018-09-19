@@ -49,6 +49,9 @@ public class CubePlotWindow
         public boolean hasPositions() {
             return true;
         }
+        public boolean isPlanar() {
+            return false;
+        }
         public GangerFactory getGangerFactory() {
             return SingleGanger.FACTORY;
         }
