@@ -120,6 +120,7 @@
   <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.png'>
   <!ENTITY FIG.NavigationHelpPanel '&figs;NavigationHelpPanel.png'>
   <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.png'>
+  <!ENTITY FIG.StackPlotWindow_polygon '&figs;StackPlotWindow_polygon.png'>
   <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.png'>
   <!ENTITY FIG.PlotExporter '&figs;PlotExporter.png'>
   <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.png'>
@@ -810,24 +811,18 @@ various <ref id="plot2">plotting</ref>
     or the complement (&IMG.INVERT;) of an existing subset.
     </p></dd>
 
-<dt>Selected plotted points</dt>
-<dd><p>In most of the <ref id="plot2">plotting</ref>
-    (and <ref id="GraphicsWindow">old-style plotting</ref>)
-    windows you can use the <label>Draw Subset Region</label> 
-    (&IMG.BLOB_SUBSET;) button in some of the plotting windows.
-    This allows you 
-    to trace out with the mouse a region or regions of any shape, 
-    creating a new subset containing only those rows represented by 
-    the points within those regions.
-    </p></dd>
-
-<dt>Visible plotted points</dt>
-<dd><p>Most of the plot windows also provide a
-    <label>New Subset From Visible</label>
-    (&IMG.VISIBLE_SUBSET; or &IMG.RANGE_SUBSET;)
-    option; if you navigate (pan/zoom) to a view containing only
-    the rows of interest, this action creates a subset containing
-    only those points in that current field of view.
+<dt>Graphical selection</dt>
+<dd><p>There are several ways to indicate a region
+    in the plotting area of the
+    <ref id="plot2">plotting</ref>
+    (and <ref id="GraphicsWindow">old-style plotting</ref>) windows
+    which can be used to define subsets.
+    The options are
+    <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;),
+    <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;) and
+    <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;),
+    though not all are available for all plot types.
+    These are explained in <ref id="plot2-subsets"/>.
     </p></dd>
 
 <dt>Classifying by value</dt>
@@ -7470,7 +7465,7 @@ contains the following actions (repeated in the menus):
     by clicking this button again.
     </p></dd>
 
-<dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
+<dt>&IMG.BLOB_SUBSET; Draw Subset Blob</dt>
 <dd><p>Allows you to draw a region on the screen defining a new 
     <ref id="subsets">Row Subset</ref>.  When you have finished 
     drawing it, click this button again to indicate you're done.
@@ -7842,53 +7837,107 @@ generally contain two sub-panels for defining the style details,
 </subsubsubsect>
 
 <subsubsubsect id="plot2-subsets">
-<subhead><title>Defining Subsets by Region</title></subhead>
-<!-- see section plotSubsets -->
+<subhead><title>Defining Subsets Graphically</title></subhead>
 
 <p>The plot windows can be used to make new Row Subset selections.
+Depending on the type of plot, one or more of the following options
+will be available as toolbar/menu items:
+<ul>
+<li>&IMG.VISIBLE_SUBSET; New Subset From Visible</li>
+<li>&IMG.BLOB_SUBSET; Draw Subset Blob</li>
+<li>&IMG.POLY_SUBSET; Draw Subset Polygon</li>
+</ul>
+These are described below in more detail.
 </p>
 
-<p>If you have panned, zoomed, set the axes manually or 
-otherwise navigated the plot so that only the points currently
-visible in the plot are the ones you are interested in,
-you can click the
-<label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) toolbar button.
-This defines a subset consisting of all the
-points that are visible on the current plot.
+<p>The <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
+toolbar button creates a new subset containing all of the points
+that are visible on the current plot.
+When you click the button, you will be asked for a name
+for the new subset.
+This option can be useful if you have panned, zoomed, set the axes manually,
+or otherwise navigated the plot so that only the points currently visible
+are the ones you are interested in.
 This is only useful if the group you are interested in
 corresponds to a rectangular region in the plotting space.
 </p>
 
-<p>A more flexible way is to draw a region or regions
-on the plot which identify the points you are interested in.
-To do this, hit the
-<label>Draw Subset Region</label> (&IMG.BLOB_SUBSET;)
-toolbar button.  Having done this, you can drag the mouse around
-on the plot (keep the left mouse button down while you move)
-to encircle the points that you're interested in.
+<p>The <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;)
+button allows you to draw a region or regions on the plot
+containing the points you are interested in.
+When you click the toolbar button it will appear with a checkmark
+over it (&IMG.BLOB_SUBSET_END;) to indicate that you are in
+blob-drawing mode.
+You can then drag the mouse around on the plot
+(keep the left mouse button down while you move)
+to enclose the points that you're interested in.
 As you do so, a translucent grey blob will be left behind -
-anything inside the
-blob will end up in the subset.  You can draw one or many blobs,
-which may be overlapping or not.  If you make a mistake while
-drawing a sequence of blobs, you can click the right mouse button,
+anything inside the blob will end up in the subset.
+You can draw one or many blobs, which may be overlapping or not.
+If you make a mistake while
+drawing a sequence of blobs, you can right-click (or Ctrl-click)
 and the most recently added blob will disappear.
-When you're in this region-drawing mode,
-you can't zoom or resize the window or change the characteristics
-of the plot, and the <label>Draw Subset Region</label> button
-appears with a tick over it (&IMG.BLOB_SUBSET_END;) to remind you
-you're in it.  Here's what the plot looks like while you're drawing:
+When you've finished drawing your blob(s) click the
+&IMG.BLOB_SUBSET_END; button again,
+and you will be asked for a name for the subset.
+Here's what the plot looks like while you're drawing:
 </p>
 
 <figure>
-<caption><px>Region-Drawing Mode</px></caption>
+<caption><px>Defining a subset by blob drawing</px></caption>
 <figureimage src="&FIG.StackPlotWindow_blob;"/>
 </figure>
 
-<p>When you're happy with the region you've defined, click the
-&IMG.BLOB_SUBSET_END; toolbar button again.
+<p>The <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;) action
+is only available in the <ref id="PlanePlotWindow">Plane</ref> plot.
+It is similar to the blob-drawing, but differs in a few respects.
+When you click the button, a popup window will ask what 
+<em>inclusion mode</em> you want to use: one of INSIDE, OUTSIDE,
+ABOVE, BELOW, LEFT or RIGHT.
+Then instead of dragging the mouse, you click on points to define
+the vertices of a polygon, and the area thus defined
+(those points inside or outside the closed polygon,
+or above, below, left or right of the jagged line)
+will be highlighted in grey.
+A right-click (or Ctrl-click) will remove the most recently-added point.
+When you've finished, as for the blob, click on the 
+&IMG.POLY_SUBSET_END; button again, and you will be
+asked for the name of the subset.
+For the above/below/left/right options, line segments at either
+end of the line are considered to continue to infinity -
+it's easy to understand how this works by trying it out.
+Unlike the blob drawing, this mode gives you a subset defined by
+<strong>an algebraic expression</strong>, which is displayed at the end
+(if there are multiple tables plotted, multiple subset expressions
+are shown).
+An attempt is made to present this expression in the simplest
+form possible; if the shape is just a line, then only arithmetic
+operators are used, but if there are more than two points,
+one of the functions in the <ref id="Shapes">Shapes</ref> class
+will be used.  For the BELOW mode (and analogously for
+ABOVE, LEFT and RIGHT) , the expression will be of
+the form <code>x&lt;f(x)</code>;
+the reported function <code>f(x)</code> can be plotted directly
+using the <ref id="FunctionLayerControl">Function Layer Control</ref>
+if required.
+This polygon drawing may be a better option than the blob if you want to
+refer to the subset outside of the context of the current session,
+for instance in a STILTS command, or in a publication.
+Here's what the plot looks like while you're drawing:
 </p>
 
-<p>In either case, when you have indicated that you want to define a
+<figure>
+<caption>
+<px>Defining a subset by polygon drawing.
+In this case, mode <em>BELOW</em> is in use.
+The subset expression generated for this shape was:
+<code>log10(uwe) &lt;
+      polyLine(phot_g_mean_mag, 21.3,0.10, 19.0,0.10, 5.3,1.53)</code>.
+</px></caption>
+<figureimage src="&FIG.StackPlotWindow_polygon;"/>
+</figure>
+
+<p>In all these cases, when you have indicated that you want to define a
 new row subset, a dialogue box will pop up to ask you its name.
 As described in <ref id="subsetDef"/>, it's a good idea to use a
 name which is just composed of letters, numbers and underscores.
@@ -12502,6 +12551,18 @@ see the <label>Coords</label> tab of the
     </li>
 <li>&CONTROL.function;</li>
 </ul>
+</p>
+
+<p>In addition to the standard
+<label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) and
+<label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;) toolbar buttons,
+the Plane plot provides the
+<label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;) button,
+and a corresponding <label>Draw Subset Polygons</label> menu
+(with one item for each polygon inclusion mode),
+which can construct algebraic expressions corresponding to
+shapes you define by clicking.
+All these options are explained in <ref id="plot2-subsets"/>
 </p>
 
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
@@ -27337,6 +27398,10 @@ introduced since the last version:
     <li>New class <ref id="Shapes">Shapes</ref>
         for working with polygons in the X,Y plane; has functions
         <code>isInside</code> and <code>polyLine</code>.</li>
+    <li>New <label>Draw Subset Polygon</label> action added to Plane Plot.
+        This lets you draw a polygonal shape with mouse clicks,
+        and constructs the corresponding algebraic expression to
+        define subsets, see <ref id="plot2-subsets"/>.</li>
     </ul>
     </p></dd>
 
