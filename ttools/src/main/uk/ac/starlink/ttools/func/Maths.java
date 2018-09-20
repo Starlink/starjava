@@ -51,9 +51,6 @@ public class Maths {
      */
     public static final double RANDOM = Double.NaN;
 
-    private static double LOG10_FACTOR = 1.0 / Math.log( 10.0 );
-
-
     /**
      * Private constructor prevents instantiation.
      */
@@ -125,6 +122,16 @@ public class Maths {
     }
 
     /**
+     * Natural logarithm.
+     *
+     * @param  x  argument
+     * @return   log<sub>e</sub>(x)
+     */
+    public static double ln( double x ) {
+        return Math.log( x );
+    }
+
+    /**
      * Euler's number <em>e</em> raised to a power.
      *
      * @param   x   the exponent to raise <em>e</em> to.
@@ -142,17 +149,18 @@ public class Maths {
      * @return   log<sub>10</sub>(x)
      */
     public static double log10( double x ) {
-        return LOG10_FACTOR * Math.log( x );
+        return Math.log10( x );
     }
 
     /**
-     * Natural logarithm.
+     * Power of 10.
+     * This convenience function is identical to <code>pow(10,x)</code>.
      *
      * @param  x  argument
-     * @return   log<sub>e</sub>(x)
+     * @return  10<sup>x</sup>
      */
-    public static double ln( double x ) {
-        return Math.log( x );
+    public static double exp10( double x ) {
+        return Math.pow( 10, x );
     }
 
     /**

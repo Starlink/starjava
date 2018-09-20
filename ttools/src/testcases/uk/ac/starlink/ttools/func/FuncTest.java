@@ -490,6 +490,10 @@ public class FuncTest extends TestCase {
         assertEquals( Maths.E, Maths.exp( 1.0 ), TINY );
         assertEquals( 1.0, Maths.ln( Maths.E ), TINY );
         assertEquals( 2.0, Maths.log10( 100.0 ), TINY );
+        assertEquals( 1000, Maths.exp10( 3 ), TINY );
+        assertEquals( 0.001, Maths.exp10( -3 ), TINY );
+        assertEquals( Maths.PI, Maths.exp10( Maths.log10( Maths.PI ) ), TINY );
+        assertEquals( Maths.E, Maths.log10( Maths.exp10( Maths.E ) ), TINY );
 
         assertEquals( 256.0, Maths.pow( 2, 8 ) );
 
