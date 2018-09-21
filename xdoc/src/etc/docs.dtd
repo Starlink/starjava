@@ -121,7 +121,15 @@
   <!ATTLIST subsubsect id ID #IMPLIED
                        %sectatts;>
 
-  <!ELEMENT subsubsubsect ( subhead?, ( p | figure )* )>
+  <!ELEMENT subsubsubsect ( subhead?, ( p | figure | subsubsubsubsect )* )>
   <!ATTLIST subsubsubsect id ID #IMPLIED
                           %sectatts;>
+
+  <!ELEMENT subsubsubsubsect ( subhead?, ( p | figure | subsubsubsubsubsect )*)>
+  <!ATTLIST subsubsubsubsect id ID #IMPLIED
+                             %sectatts;>
+
+  <!ELEMENT subsubsubsubsubsect ( subhead?, ( p | figure )* )>
+  <!ATTLIST subsubsubsubsubsect id ID #IMPLIED
+                                %sectatts;>
 

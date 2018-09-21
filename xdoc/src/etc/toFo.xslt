@@ -451,7 +451,7 @@
     </fo:block>
   </xsl:template>
 
-  <xsl:template match="subsect|subsubsect|subsubsubsect">
+  <xsl:template match="subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
     <fo:block id="{generate-id()}">
       <xsl:apply-templates/>
     </fo:block>
@@ -487,8 +487,28 @@
   </xsl:template>
 
   <xsl:template
-      match="docbody/sect/subsect/subsubsect/subsubsubsect/subhead/title">
+      match="docbody/sect/subsect/subsubsect/subsubsubsect/subhead/title
+            |appendices/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subhead/title">
     <fo:block xsl:use-attribute-sets="subsubsubsect-title">
+      <xsl:apply-templates mode="ref" select="../.."/>
+      <xsl:text> </xsl:text>
+      <xsl:apply-templates/>
+    </fo:block>
+  </xsl:template>
+
+  <xsl:template
+      match="docbody/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subhead/title
+            |appendices/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subsubsubsubsubsect/subhead/title">
+    <fo:block xsl:use-attribute-sets="subsubsubsubsect-title">
+      <xsl:apply-templates mode="ref" select="../.."/>
+      <xsl:text> </xsl:text>
+      <xsl:apply-templates/>
+    </fo:block>
+  </xsl:template>
+
+  <xsl:template
+      match="docbody/sect/subsect/subsubsect/subsubsubsect/subsubsubsubhead/subsubsubsubsub/title">
+    <fo:block xsl:use-attribute-sets="subsubsubsubsubsect-title">
       <xsl:apply-templates mode="ref" select="../.."/>
       <xsl:text> </xsl:text>
       <xsl:apply-templates/>
@@ -524,9 +544,22 @@
     <xsl:number count="subsubsubsect"/>
   </xsl:template>
 
+  <xsl:template mode="ref" match="subsubsubsubsect">
+    <xsl:apply-templates mode="ref" select=".."/>
+    <xsl:text>.</xsl:text>
+    <xsl:number count="subsubsubsubsect"/>
+  </xsl:template>
+
+  <xsl:template mode="ref" match="subsubsubsubsubsect">
+    <xsl:apply-templates mode="ref" select=".."/>
+    <xsl:text>.</xsl:text>
+    <xsl:number count="subsubsubsubsubsect"/>
+  </xsl:template>
+
   <!-- Section type description -->
 
-  <xsl:template mode="sectype" match="sect|subsect|subsubsect|subsubsubsect">
+  <xsl:template mode="sectype"
+                match="sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
     <xsl:choose>
       <xsl:when test="ancestor::appendices">
         <xsl:text>Appendix</xsl:text>
@@ -619,8 +652,38 @@
   </xsl:template>
 
   <xsl:template mode="toc"
-                match="docbody/sect/subsect/subsubsect/subsubsubsect">
+                match="docbody/sect/subsect/subsubsect/subsubsubsect
+                      |appendices/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect">
     <fo:block xsl:use-attribute-sets="toc-subsubsubsect">
+      <xsl:apply-templates mode="ref" select="."/>
+      <xsl:text> </xsl:text>
+      <xsl:apply-templates mode="toc" select="subhead/title"/>
+      <fo:leader leader-pattern="dots"/>
+      <fo:page-number-citation ref-id="{generate-id()}"/>
+    </fo:block>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:apply-templates mode="toc" select="subsubsubsubsect"/>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template mode="toc"
+                match="docbody/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect
+                      |appendices/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subsubsubsubsubsect">
+    <fo:block xsl:use-attribute-sets="toc-subsubsubsubsect">
+      <xsl:apply-templates mode="ref" select="."/>
+      <xsl:text> </xsl:text>
+      <xsl:apply-templates mode="toc" select="subhead/title"/>
+      <fo:leader leader-pattern="dots"/>
+      <fo:page-number-citation ref-id="{generate-id()}"/>
+    </fo:block>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:apply-templates mode="toc" select="subsubsubsubsubsect"/>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template mode="toc"
+                match="docbody/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subsubsubsubsubsect">
+    <fo:block xsl:use-attribute-sets="toc-subsubsubsubsubsect">
       <xsl:apply-templates mode="ref" select="."/>
       <xsl:text> </xsl:text>
       <xsl:apply-templates mode="toc" select="subhead/title"/>
@@ -768,6 +831,22 @@
     <xsl:attribute name="color">black</xsl:attribute>
     <xsl:attribute name="keep-with-next">always</xsl:attribute>
   </xsl:attribute-set>
+  <xsl:attribute-set name="subsubsubsubsect-title">
+    <xsl:attribute name="space-before">1em</xsl:attribute>
+    <xsl:attribute name="space-after">0.5em</xsl:attribute>
+    <xsl:attribute name="font-size">small</xsl:attribute>
+    <xsl:attribute name="font-weight">bold</xsl:attribute>
+    <xsl:attribute name="color">black</xsl:attribute>
+    <xsl:attribute name="keep-with-next">always</xsl:attribute>
+  </xsl:attribute-set>
+  <xsl:attribute-set name="subsubsubsubsubsect-title">
+    <xsl:attribute name="space-before">1em</xsl:attribute>
+    <xsl:attribute name="space-after">0.5em</xsl:attribute>
+    <xsl:attribute name="font-size">small</xsl:attribute>
+    <xsl:attribute name="font-weight">bold</xsl:attribute>
+    <xsl:attribute name="color">black</xsl:attribute>
+    <xsl:attribute name="keep-with-next">always</xsl:attribute>
+  </xsl:attribute-set>
 
   <xsl:attribute-set name="toc-sect">
     <xsl:attribute name="font-weight">800</xsl:attribute>
@@ -782,6 +861,14 @@
     <xsl:attribute name="text-align-last">justify</xsl:attribute>
   </xsl:attribute-set>
   <xsl:attribute-set name="toc-subsubsubsect">
+    <xsl:attribute name="font-weight">200</xsl:attribute>
+    <xsl:attribute name="text-align-last">justify</xsl:attribute>
+  </xsl:attribute-set>
+  <xsl:attribute-set name="toc-subsubsubsubsect">
+    <xsl:attribute name="font-weight">200</xsl:attribute>
+    <xsl:attribute name="text-align-last">justify</xsl:attribute>
+  </xsl:attribute-set>
+  <xsl:attribute-set name="toc-subsubsubsubsubsect">
     <xsl:attribute name="font-weight">200</xsl:attribute>
     <xsl:attribute name="text-align-last">justify</xsl:attribute>
   </xsl:attribute-set>

@@ -335,7 +335,8 @@
   </xsl:template>
 
   <xsl:template
-       match="docbody/sect/subsect/subsubsect/subsubsubsect/subhead/title">
+      match="docbody/sect/subsect/subsubsect/subsubsubsect/subhead/title
+            |appendices/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subhead/title">
     <h4>
       <xsl:element name="a">
         <xsl:attribute name="name">
@@ -348,6 +349,39 @@
         <xsl:apply-templates/>
       </xsl:element>
     </h4>
+  </xsl:template>
+
+  <xsl:template
+      match="docbody/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subhead/title
+            |appendices/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subsubsubsubsubsect/subhead/title">
+    <h5>
+      <xsl:element name="a">
+        <xsl:attribute name="name">
+          <xsl:call-template name="getId">
+            <xsl:with-param name="node" select="../.."/>
+          </xsl:call-template>
+        </xsl:attribute>
+        <xsl:apply-templates mode="ref" select="../.."/>
+        <xsl:text> </xsl:text>
+        <xsl:apply-templates/>
+      </xsl:element>
+    </h5>
+  </xsl:template>
+
+  <xsl:template
+       match="docbody/sect/subsect/subsubsect/subsubsubsect/subsubsubsubsect/subsubsubsubsubsect/subhead/title">
+    <h5>
+      <xsl:element name="a">
+        <xsl:attribute name="name">
+          <xsl:call-template name="getId">
+            <xsl:with-param name="node" select="../.."/>
+          </xsl:call-template>
+        </xsl:attribute>
+        <xsl:apply-templates mode="ref" select="../.."/>
+        <xsl:text> </xsl:text>
+        <xsl:apply-templates/>
+      </xsl:element>
+    </h5>
   </xsl:template>
 
 
@@ -446,6 +480,46 @@
         <xsl:apply-templates mode="toc" select="subhead/title"/>
       </xsl:element>
     </li>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:if test="subsubsubsubsect">
+        <ul>
+          <xsl:apply-templates mode="toc" select="subsubsubsubsect"/>
+        </ul>
+      </xsl:if>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template mode="toc" match="subsubsubsubsect">
+    <li>
+      <xsl:element name="a">
+        <xsl:attribute name="href">
+          <xsl:call-template name="getRef"/>
+        </xsl:attribute>
+        <xsl:apply-templates mode="ref" select="."/>
+        <xsl:text> </xsl:text>
+        <xsl:apply-templates mode="toc" select="subhead/title"/>
+      </xsl:element>
+    </li>
+    <xsl:if test="not(@tocleaf='yes')">
+      <xsl:if test="subsubsubsubsubsect">
+        <ul>
+          <xsl:apply-templates mode="toc" select="subsubsubsubsubsect"/>
+        </ul>
+      </xsl:if>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template mode="toc" match="subsubsubsubsubsect">
+    <li>
+      <xsl:element name="a">
+        <xsl:attribute name="href">
+          <xsl:call-template name="getRef"/>
+        </xsl:attribute>
+        <xsl:apply-templates mode="ref" select="."/>
+        <xsl:text> </xsl:text>
+        <xsl:apply-templates mode="toc" select="subhead/title"/>
+      </xsl:element>
+    </li>
   </xsl:template>
 
 
@@ -477,10 +551,23 @@
     <xsl:number count="subsubsubsect"/>
   </xsl:template>
 
+  <xsl:template mode="ref" match="subsubsubsubsect">
+    <xsl:apply-templates mode="ref" select=".."/>
+    <xsl:text>.</xsl:text>
+    <xsl:number count="subsubsubsubsect"/>
+  </xsl:template>
+
+  <xsl:template mode="ref" match="subsubsubsubsubsect">
+    <xsl:apply-templates mode="ref" select=".."/>
+    <xsl:text>.</xsl:text>
+    <xsl:number count="subsubsubsubsubsect"/>
+  </xsl:template>
+
 
   <!-- named section reference -->
 
-  <xsl:template mode="nameref" match="sect|subsect|subsubsect|subsubsubsect">
+  <xsl:template mode="nameref"
+                match="sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
     <xsl:apply-templates mode="nameref" select="subhead/title"/>
   </xsl:template>
 
@@ -502,7 +589,8 @@
 
   <!-- section type description -->
 
-  <xsl:template mode="sectype" match="sect|subsect|subsubsect|subsubsubsect">
+  <xsl:template mode="sectype"
+                match="sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
     <xsl:choose>
       <xsl:when test="ancestor::appendices">
         <xsl:text>Appendix</xsl:text>
@@ -550,7 +638,9 @@
       <xsl:when test="name($node)='sect' or
                       name($node)='subsect' or
                       name($node)='subsubsect' or
-                      name($node)='subsubsubsect'">
+                      name($node)='subsubsubsect' or
+                      name($node)='subsubsubsubsect' or
+                      name($node)='subsubsubsubsubsect'">
         <xsl:text>sec</xsl:text>
         <xsl:apply-templates mode="ref" select="$node"/>
       </xsl:when>

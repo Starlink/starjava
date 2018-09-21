@@ -5,9 +5,9 @@
   <!ENTITY home.file "HelpTop.html">
   <!ENTITY searchconfig.file "search-config">
   <!ENTITY file.elements 
-           "abstract|sect|subsect|subsubsect|subsubsubsect">
+           "abstract|sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
   <!ENTITY file.descendents
-           ".//abstract|.//sect|.//subsect|.//subsubsect|.//subsubsubsect">
+           ".//abstract|.//sect|.//subsect|.//subsubsect|.//subsubsubsect|.//subsubsubsubsect|.//subsubsubsubsubsect">
 
   <!ENTITY map.pubid 
            "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN">

@@ -7,7 +7,7 @@
   <xsl:output method="xml"/>
 
   <xsl:key name="file" use="'true'" 
-           match="*/docinfo|*/abstract|*/sect|*/subsect|*/subsubsect|*/subsubsubsect"/>
+           match="*/docinfo|*/abstract|*/sect|*/subsect|*/subsubsect|*/subsubsubsect|*/subsubsubsubsect|*/subsubsubsubsubsect"/>
 
   <xsl:template match="sun">
     <multisection>
@@ -40,7 +40,7 @@
     </multisection>
   </xsl:template>
 
-  <xsl:template match="abstract|sect|subsect|subsubsect|subsubsubsect">
+  <xsl:template match="abstract|sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
     <xsl:text>&#x0a;</xsl:text>
     <hr/>
     <xsl:text>&#x0a;</xsl:text>
@@ -66,10 +66,10 @@
             <h2>Abstract</h2> 
           </xsl:if>
           <xsl:apply-templates select="subhead|p|px|figure"/>
-          <xsl:if test="sect|subsect|subsubsect|subsubsubsect">
+          <xsl:if test="sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
             <ul>
               <xsl:apply-templates mode="toc" 
-                               select="sect|subsect|subsubsect|subsubsubsect"/>
+                               select="sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect"/>
             </ul>
           </xsl:if>
           <hr/>
@@ -78,7 +78,7 @@
         </body>
       </html>
     </xsl:element>
-    <xsl:apply-templates select="sect|subsect|subsubsect|subsubsubsect"/>
+    <xsl:apply-templates select="sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect"/>
   </xsl:template>
 
   <xsl:template name="getRef">
