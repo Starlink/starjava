@@ -121,6 +121,7 @@
   <!ENTITY FIG.NavigationHelpPanel '&figs;NavigationHelpPanel.png'>
   <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.png'>
   <!ENTITY FIG.StackPlotWindow_polygon '&figs;StackPlotWindow_polygon.png'>
+  <!ENTITY FIG.MultiSubsetQueryWindow '&figs;MultiSubsetQueryWindow.png'>
   <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.png'>
   <!ENTITY FIG.PlotExporter '&figs;PlotExporter.png'>
   <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.png'>
@@ -812,17 +813,16 @@ various <ref id="plot2">plotting</ref>
     </p></dd>
 
 <dt>Graphical selection</dt>
-<dd><p>There are several ways to indicate a region
+<dd><p>There are several ways to
+    <ref id="plot2-subsets">indicate a region graphically</ref>
     in the plotting area of the
-    <ref id="plot2">plotting</ref>
-    (and <ref id="GraphicsWindow">old-style plotting</ref>) windows
+    <ref id="plot2">plotting</ref> windows.
     which can be used to define subsets.
     The options are
     <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;),
     <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;) and
     <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;),
     though not all are available for all plot types.
-    These are explained in <ref id="plot2-subsets"/>.
     </p></dd>
 
 <dt>Classifying by value</dt>
@@ -7469,14 +7469,14 @@ contains the following actions (repeated in the menus):
 <dd><p>Allows you to draw a region on the screen defining a new 
     <ref id="subsets">Row Subset</ref>.  When you have finished 
     drawing it, click this button again to indicate you're done.
-    See <ref id="plot2-subsets"/> for more details.
+    See <ref id="BlobPanel2"/> for more details.
     </p></dd>
 
 <dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
 <dd><p>Defines a new <label>Row Subset</label>
     consisting of only the points which
     are currently visible on the plotting surface.
-    See <ref id="plot2-subsets"/> for more explanation.
+    See <ref id="visible-subset"/> for more explanation.
     </p></dd>
 
 <dt>&IMG.REDO; Replot</dt>
@@ -7839,7 +7839,9 @@ generally contain two sub-panels for defining the style details,
 <subsubsubsect id="plot2-subsets">
 <subhead><title>Defining Subsets Graphically</title></subhead>
 
-<p>The plot windows can be used to make new Row Subset selections.
+<p>The plot windows can be used to define new
+<ref id="subsets">Row Subsets</ref>
+by indicating a screen region containing the points of interest.
 Depending on the type of plot, one or more of the following options
 will be available as toolbar/menu items:
 <ul>
@@ -7847,25 +7849,61 @@ will be available as toolbar/menu items:
 <li>&IMG.BLOB_SUBSET; Draw Subset Blob</li>
 <li>&IMG.POLY_SUBSET; Draw Subset Polygon</li>
 </ul>
-These are described below in more detail.
 </p>
+
+<p>In all these cases, when you have graphically specified a region,
+a dialogue box will pop up to ask you the name of the corresponding subset.
+As described in <ref id="subsetDef"/>, it's a good idea to use a
+name which is just composed of letters, numbers and underscores.
+You can optionally select a subset name which has been used before
+from the list, which will overwrite the former contents of that subset.
+When you enter a name and hit the <label>OK</label> button,
+the new subset will be created and added to the list shown in the
+<ref id="SubsetWindow">Subset Window</ref>,
+and the points in it will be
+shown straight away on the plot using a new symbol.
+As usual, you can toggle whether the points in this subset are displayed
+using the <label>Subsets</label> tab in the
+<ref id="GangLayerControl_single">table layer control</ref>.
+</p>
+
+<p>The different options for making these graphical selections
+are described in the following subsections.
+</p>
+
+<subsubsubsubsect id="visible-subset">
+<subhead><title>Subset from Visible Region</title></subhead>
 
 <p>The <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
 toolbar button creates a new subset containing all of the points
 that are visible on the current plot.
 When you click the button, you will be asked for a name
 for the new subset.
-This option can be useful if you have panned, zoomed, set the axes manually,
+</p>
+
+<p>This option can be useful if you have panned, zoomed, set the axes manually,
 or otherwise navigated the plot so that only the points currently visible
 are the ones you are interested in.
-This is only useful if the group you are interested in
+However, it is only suitable if the group you are interested in
 corresponds to a rectangular region in the plotting space.
 </p>
 
+</subsubsubsubsect>
+
+<subsubsubsubsect id="BlobPanel2">
+<subhead><title>Subset from Blob</title></subhead>
+
 <p>The <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;)
-button allows you to draw a region or regions on the plot
+button allows you to draw a freehand region or regions on the plot
 containing the points you are interested in.
-When you click the toolbar button it will appear with a checkmark
+</p>
+
+<figure>
+<caption><px>Defining a subset by blob drawing</px></caption>
+<figureimage src="&FIG.StackPlotWindow_blob;"/>
+</figure>
+
+<p>When you click the toolbar button it will appear with a checkmark
 over it (&IMG.BLOB_SUBSET_END;) to indicate that you are in
 blob-drawing mode.
 You can then drag the mouse around on the plot
@@ -7880,76 +7918,129 @@ and the most recently added blob will disappear.
 When you've finished drawing your blob(s) click the
 &IMG.BLOB_SUBSET_END; button again,
 and you will be asked for a name for the subset.
-Here's what the plot looks like while you're drawing:
 </p>
 
-<figure>
-<caption><px>Defining a subset by blob drawing</px></caption>
-<figureimage src="&FIG.StackPlotWindow_blob;"/>
-</figure>
+</subsubsubsubsect>
+
+<subsubsubsubsect id="PolygonPanel">
+<subhead><title>Subset from Polygon</title></subhead>
 
 <p>The <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;) action
-is only available in the <ref id="PlanePlotWindow">Plane</ref> plot.
-It is similar to the blob-drawing, but differs in a few respects.
-When you click the button, a popup window will ask what 
-<em>inclusion mode</em> you want to use: one of INSIDE, OUTSIDE,
-ABOVE, BELOW, LEFT or RIGHT.
-Then instead of dragging the mouse, you click on points to define
-the vertices of a polygon, and the area thus defined
-(those points inside or outside the closed polygon,
-or above, below, left or right of the jagged line)
-will be highlighted in grey.
-A right-click (or Ctrl-click) will remove the most recently-added point.
-When you've finished, as for the blob, click on the 
-&IMG.POLY_SUBSET_END; button again, and you will be
-asked for the name of the subset.
-For the above/below/left/right options, line segments at either
-end of the line are considered to continue to infinity -
-it's easy to understand how this works by trying it out.
-Unlike the blob drawing, this mode gives you a subset defined by
-<strong>an algebraic expression</strong>, which is displayed at the end
-(if there are multiple tables plotted, multiple subset expressions
-are shown).
-An attempt is made to present this expression in the simplest
-form possible; if the shape is just a line, then only arithmetic
-operators are used, but if there are more than two points,
-one of the functions in the <ref id="Shapes">Shapes</ref> class
-will be used.  For the BELOW mode (and analogously for
-ABOVE, LEFT and RIGHT) , the expression will be of
-the form <code>x&lt;f(x)</code>;
-the reported function <code>f(x)</code> can be plotted directly
-using the <ref id="FunctionLayerControl">Function Layer Control</ref>
-if required.
-This polygon drawing may be a better option than the blob if you want to
-refer to the subset outside of the context of the current session,
-for instance in a STILTS command, or in a publication.
-Here's what the plot looks like while you're drawing:
+allows you to mark out a region of the plot by clicking on the
+vertices of a polygonal shape, generating a corresponding
+<ref id="jel">algebraic expression</ref> to define a subset.
+This can be particularly useful
+(and a better option than the <ref id="BlobPanel2">blob</ref>)
+if you want to refer to the subset outside of the context
+of the current session,
+for instance in a STILTS command or a published paper.
+</p>
+
+<p>This action is currently only available in the
+<ref id="PlanePlotWindow">Plane</ref> plot.
 </p>
 
 <figure>
 <caption>
 <px>Defining a subset by polygon drawing.
 In this case, mode <em>BELOW</em> is in use.
-The subset expression generated for this shape was:
-<code>log10(uwe) &lt;
-      polyLine(phot_g_mean_mag, 21.3,0.10, 19.0,0.10, 5.3,1.53)</code>.
 </px></caption>
 <figureimage src="&FIG.StackPlotWindow_polygon;"/>
 </figure>
 
-<p>In all these cases, when you have indicated that you want to define a
-new row subset, a dialogue box will pop up to ask you its name.
-As described in <ref id="subsetDef"/>, it's a good idea to use a
-name which is just composed of letters, numbers and underscores.
-You can optionally select a subset name which has been used before
-from the list, which will overwrite the former contents of that subset.
-When you enter a name and hit the <label>OK</label> button,
-the new subset will be created and the points in it will be
-shown straight away on the plot using a new symbol.
-As usual, you can toggle whether the points in this subset are displayed
-using the <label>Subsets</label> tab in the
-<ref id="GangLayerControl_single">table layer control</ref>.
+<p>When you use a polygon to define a region of the plot,
+it operates in one of a number of <em>inclusion modes</em>:
+INSIDE, OUTSIDE, BELOW, ABOVE, LEFT and RIGHT.
+For the INSIDE and OUTSIDE modes, the points you supply
+define a closed polygon, and the region of interest is
+inside (or outside) that polygon;
+at least three points are required in this case.
+For BELOW and ABOVE, you draw a jagged line representing a
+continuous function of <m>x</m>
+(but with, in general, a discontinuous derivative),
+and the region of interest is all the area with a <m>y</m>
+value lower (or higher) than that function.
+LEFT and RIGHT do the same thing for a function of <m>y</m>
+instead of <m>x</m>.
 </p>
+
+<p>To start drawing a polygon, hit the &IMG.POLY_SUBSET; button in the toolbar,
+and a popup window will first ask you which inclusion mode you want to use.
+Alternatively, you can use one of the mode-specific sub-menu
+items in the <label>Subsets|Draw Subset Polygons</label> menu
+to choose a mode without the extra popup.
+</p>
+
+<p>Once in polygon drawing mode, the toolbar button will appear
+with a checkmark over it (&IMG.POLY_SUBSET_END;).
+You can then click on the plotting area to mark
+the vertices of a polygon, and the area thus defined
+(according to the mode you have chosen)
+will be shaded in grey.
+A right-click (or Ctrl-click) will remove the most recently-added point.
+For INSIDE and OUTSIDE modes, at least three points are required
+to define a polygon.
+For the other (function-like) modes, line segments at either end of
+the line are considered to continue to infinity - 
+it's easy to understand how this works by trying it out.
+As a special case, when you have only marked one point,
+the specified region is considered to be the whole area to one side
+of that point.
+</p>
+
+<p>When you've finished adding points,
+click on the &IMG.POLY_SUBSET_END; button again.
+This will pop up a window that displays the algebraic function
+corresponding to the region you have outlined.
+</p>
+
+<figure>
+<caption><px>Dialog window showing subset expressions to add</px></caption>
+<figureimage src="&FIG.MultiSubsetQueryWindow;"/>
+</figure>
+
+<p>If multiple datasets are present in the plot, the region will correspond
+to multiple algebraic expressions, and they will all be displayed here
+in separate rows.
+Each row corresponds to a subset that will be added for the
+table in question.
+The <label>Table</label> column indicates which table the subset
+will be added to,
+the <label>Create</label> column indicates whether that subset
+should be added; you can uncheck it if you don't want to add
+that subset.
+The <label>Expression</label> column gives the algebraic expression
+corresponding to the region you have outlined.
+You can edit this before accepting it if you like by double-clicking
+on the field in the usual way.
+If the expression contains a syntax error, it will be greyed out,
+and attempting to add it will cause an error; you can uncheck the
+Create checkbox if you want to exclude it.
+</p>
+
+<p>When constructing the algebraic expressions,
+an attempt is made to provide the simplest form possible;
+if the shape is just a line, then only arithmetic
+operators are used, but if there are more than two points,
+one of the functions in the <ref id="Shapes">Shapes</ref> class
+will be used.  For the BELOW mode (and analogously for
+ABOVE, LEFT and RIGHT) , the expression will be of
+the form <code>x&lt;f(x)</code>;
+the reported function <code>f(x)</code> can be plotted separately
+using the <ref id="FunctionLayerControl">Function Layer Control</ref>
+if required.
+Examples of expressions created by this mode are:
+<ul>
+<li><code>DEC &gt;= -20.5</code></li>
+<li><code>loggK &lt; -0.00081 * (TeffK - 4209) + 3.86</code></li>
+<li><code>log10(uwe) &lt;
+          polyLine(phot_g_mean_mag, 21.3,0.05, 18.9,0.06, 4.1,1.66)</code></li>
+<li><code>!isInside(BMAG-RMAG, BMAG,
+                    3.3,19.7, 3.0,14.7, 7.8,10.3, 8.1,14.9)</code></li>
+</ul>
+</p>
+
+</subsubsubsubsect>
 
 </subsubsubsect>
 
@@ -12553,16 +12644,11 @@ see the <label>Coords</label> tab of the
 </ul>
 </p>
 
-<p>In addition to the standard
-<label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) and
-<label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;) toolbar buttons,
-the Plane plot provides the
-<label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;) button,
-and a corresponding <label>Draw Subset Polygons</label> menu
-(with one item for each polygon inclusion mode),
-which can construct algebraic expressions corresponding to
-shapes you define by clicking.
-All these options are explained in <ref id="plot2-subsets"/>
+<p>As well as the standard actions,
+this window additionally provides the following toolbar button:
+<ul>
+<li>&IMG.POLY_SUBSET; <ref id="PolygonPanel">Draw Subset Polygon</ref></li>
+</ul>
 </p>
 
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
@@ -27398,10 +27484,11 @@ introduced since the last version:
     <li>New class <ref id="Shapes">Shapes</ref>
         for working with polygons in the X,Y plane; has functions
         <code>isInside</code> and <code>polyLine</code>.</li>
-    <li>New <label>Draw Subset Polygon</label> action added to Plane Plot.
+    <li>New <ref id="PolygonPanel">Draw Subset Polygon</ref>
+        action added to Plane Plot.
         This lets you draw a polygonal shape with mouse clicks,
         and constructs the corresponding algebraic expression to
-        define subsets, see <ref id="plot2-subsets"/>.</li>
+        define subsets.</li>
     </ul>
     </p></dd>
 
