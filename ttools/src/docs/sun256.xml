@@ -11784,6 +11784,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New class <ref id="uk.ac.starlink.ttools.func.Shapes">Shapes</ref>
         for working with polygons in the X,Y plane; has functions
         <code>isInside</code> and <code>polyLine</code>.</li>
+    <li>Fix <code>function</code> layer so that NaN values are
+        omitted rather than interpolated.</li>
     </ul>
     </p>
     </dd>

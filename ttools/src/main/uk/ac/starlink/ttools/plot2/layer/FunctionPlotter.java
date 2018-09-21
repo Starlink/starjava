@@ -366,7 +366,10 @@ public class FunctionPlotter extends
             for ( int ip = 0; ip < np; ip++ ) {
                 double x = xs[ ip ];
                 double f = function.evaluate( x );
-                if ( axis.xfToData( surface_, x, f, dpos ) &&
+                if ( Double.isNaN( f ) ) {
+                    tracer.flush();
+                }
+                else if ( axis.xfToData( surface_, x, f, dpos ) &&
                      surface_.dataToGraphics( dpos, false, gpos ) &&
                      PlotUtil.isPointReal( gpos ) ) {
                     tracer.addVertex( gpos.x, gpos.y );
