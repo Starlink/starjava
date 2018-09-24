@@ -196,6 +196,7 @@ public enum FixedCode implements ReportCode {
     W_UNPH( "UNKNOWN phase" ),
     W_UNSC( "Foreign schema used in validation" ),
     W_UPCS( "Custom upload method" ),
+    W_VUWS( "Unknown UWS version" ),
     W_WODM( "Incorrect ObsCore ID" ),
     W_ZRES( "Resolver not used?" ),
 
@@ -239,6 +240,7 @@ public enum FixedCode implements ReportCode {
     I_TMAX( "Table test count" ),
     I_TURL( "Reading table metadata" ),
     I_VURL( "Validation" ),
+    I_VUWS( "UWS job document version" ),
     I_VVNL( "Undeclared VOTable version" ),
     I_VVUN( "Unknown VOTable version" ),
 

@@ -37,18 +37,6 @@ public class JobStage implements Stage {
     private final MetadataHolder metaHolder_;
     private final long pollMillis_;
 
-    // This expression pinched at random without testing from
-    // "http://www.pelagodesign.com/blog/2009/05/20/" +
-    // "iso-8601-date-validation-that-doesnt-suck/"
-    private final static Pattern ISO8601_REGEX = Pattern.compile(
-        "^([\\+-]?\\d{4}(?!\\d{2}\\b))"
-      + "((-?)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))?"
-      + "|W([0-4]\\d|5[0-2])(-?[1-7])?"
-      + "|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6])))"
-      + "([T\\s]((([01]\\d|2[0-3])((:?)[0-5]\\d)?|24\\:?00)"
-      + "([\\.,]\\d+(?!:))?)?(\\17[0-5]\\d([\\.,]\\d+)?)?"
-      + "([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)?$"
-    );
     private static final ContentTypeOptions CTYPE_PLAIN =
         new ContentTypeOptions( new ContentType[] {
             new ContentType( "text", "plain" ),
@@ -388,6 +376,7 @@ public class JobStage implements Stage {
                                   "No job document found " + jobUrl );
                 return;
             }
+            UwsVersion version = getVersion( jobInfo );
 
             /* Check the job ID is consistent between the job URL and
              * job info content. */
@@ -404,6 +393,9 @@ public class JobStage implements Stage {
             /* Check the type of the quote resource. */
             URL quoteUrl = resourceUrl( job, "/quote" );
             String quote = readTextContent( quoteUrl, true );
+            if ( version.quoteIsIso8601_ ) {
+                checkDateTime( quoteUrl, quote, version );
+            }
           
             /* Check the type and content of the executionduration, and
              * whether it matches that in the job document. */
@@ -427,7 +419,7 @@ public class JobStage implements Stage {
              * whether it matches that in the job document. */
             URL destructUrl = resourceUrl( job, "/destruction" );
             String destruct = readTextContent( destructUrl, true );
-            checkDateTime( destructUrl, destruct );
+            checkDateTime( destructUrl, destruct, version );
             if ( ! equals( destruct, jobInfo.getDestruction() ) ) {
                 String msg = new StringBuilder()
                    .append( "Destruction time mismatch between job info " )
@@ -827,20 +819,23 @@ public class JobStage implements Stage {
          *
          * @param  url  source of text, for reporting
          * @param  txt  text content
+         * @param  version   UWS version, affects date time required format
          */
-        private void checkDateTime( URL url, String txt ) {
-            if ( txt != null ) {
-                if ( ! ISO8601_REGEX.matcher( txt ).matches() ) {
-                    String msg = new StringBuilder()
-                       .append( "Not ISO-8601 content " )
-                       .append( '"' )
-                       .append( txt )
-                       .append( '"' )
-                       .append( " from " )
-                       .append( url )
-                       .toString();
-                    reporter_.report( FixedCode.W_TFMT, msg );
-                }
+        private void checkDateTime( URL url, String txt, UwsVersion version ) {
+            if ( txt != null && txt.length() > 0 &&
+                 ! version.iso8601Regex_.matcher( txt ).matches() ) {
+                String msg = new StringBuilder()
+                      .append( "Not recommended UWS " )
+                      .append( version )
+                      .append( " ISO-8601 form" )
+                      .append( " (or empty string) " )
+                      .append( '"' )
+                      .append( txt )
+                      .append( '"' )
+                      .append( " from " )
+                      .append( url )
+                      .toString();
+                reporter_.report( FixedCode.W_TFMT, msg );
             }
         }
 
@@ -867,6 +862,48 @@ public class JobStage implements Stage {
                 return null;
             }
             return UwsJob.TRIM_TEXT ? txt.trim() : txt;
+        }
+
+        /**
+         * Indicates UWS version declared by UWS job document.
+         * 
+         * @param   reporter  reporter
+         * @param   jobInfo   job to test
+         * @return  best guess at version
+         */
+        private UwsVersion getVersion( UwsJobInfo jobInfo ) {
+            String version = jobInfo.getUwsVersion();
+            if ( version == null ) {
+                reporter_.report( FixedCode.I_VUWS,
+                                  "UWS job document implicitly V1.0" );
+                return UwsVersion.V10;
+            }
+            else if ( "1.0".equals( version ) ) {
+                reporter_.report( FixedCode.I_VUWS,
+                                  "UWS job document explicitly V1.0" );
+                return UwsVersion.V10;
+            }
+            else if ( "1.1".equals( version ) ) {
+                reporter_.report( FixedCode.I_VUWS,
+                                  "UWS job document explicitly V1.1" );
+                return UwsVersion.V11;
+            }
+            else {
+                reporter_.report( FixedCode.W_VUWS,
+                                  "Unknown UWS version \"" + version + "\"" );
+                UwsVersion vers;
+                try {
+                    vers = Double.parseDouble( version ) >= 1.1
+                         ? UwsVersion.V11
+                         : UwsVersion.V10;
+                }
+                catch ( NumberFormatException e ) {
+                    vers = UwsVersion.V10;
+                }
+                reporter_.report( FixedCode.I_VUWS,
+                                  "Treat UWS version as " + vers );
+                return vers;
+            }
         }
 
         /**
@@ -947,6 +984,53 @@ public class JobStage implements Stage {
                 reqType.checkType( reporter_, hconn.getContentType(), url );
             }
             return buf;
+        }
+    }
+
+    /**
+     * Enumerates known UWS versions.
+     */
+    private enum UwsVersion {
+
+        /* UWS Version 1.0. */
+        V10( "V1.0", false, "[T ]", "Z?" ),
+
+        /* UWS Version 1.1. */
+        V11( "V1.1", true, "T", "Z" );
+           
+        final String name_;
+        final boolean quoteIsIso8601_;
+        final Pattern iso8601Regex_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  user-visible name
+         * @param  quoteIsIso8601  whether quote endpoint is supposed to be
+         *                         and ISO-8601 string; this was modified
+         *                         (corrected) from v1.0 to v1.1
+         * @param  dateSep   ISO8601 date-time separator regex
+         * @param  dateTrail ISO8601 trailing time zone indicated regex
+         */
+        UwsVersion( String name, boolean quoteIsIso8601,
+                    String dateSep, String dateTrail ) {
+            name_ = name;
+            quoteIsIso8601_ = quoteIsIso8601;
+            iso8601Regex_ = Pattern.compile(
+                "([0-9]{4})-"
+              + "(0[1-9]|1[0-2])-"
+              + "(0[1-9]|[12][0-9]|3[01])"
+              + dateSep
+              + "(([01][0-9]|2[0-3])"
+              + "(:[0-5][0-9]"
+              + "(:[0-5][0-9]"
+              + "([.][0-9]*)?)?)?)?"
+              + dateTrail );
+        }
+
+        @Override
+        public String toString() {
+            return name_;
         }
     }
 }
