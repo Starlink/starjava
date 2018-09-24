@@ -36,6 +36,9 @@ public class IvoaSchemaResolver implements LSResourceResolver {
     /** Namespace URI for VOSI availability schema. */
     public static final String AVAILABILITY_URI;
 
+    /** Namespace URI for UWS schema. */
+    public static final String UWS_URI;
+
     private static final String TABLES_URI;
     private static final String VORESOURCE_URI;
     private static final String TAPREGEXT_URI;
@@ -81,6 +84,9 @@ public class IvoaSchemaResolver implements LSResourceResolver {
         map.put( VODATASERVICE10_URI =
                  "http://www.ivoa.net/xml/VODataService/v1.0",
                  base.getResource( "VODataService-v1.0.xsd" ) );
+        map.put( UWS_URI =
+                 "http://www.ivoa.net/xml/UWS/v1.0",
+                 base.getResource( "UWS-v1.1.xsd" ) );
         map.put( XLINK_URI =
                  "http://www.w3.org/1999/xlink",
                  base.getResource( "xlink.xsd" ) );
