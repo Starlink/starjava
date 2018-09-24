@@ -11786,6 +11786,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>isInside</code> and <code>polyLine</code>.</li>
     <li>Fix <code>function</code> layer so that NaN values are
         omitted rather than interpolated.</li>
+    <li>Improvements to taplint UWS stage: now validates job documents
+        against UWS schema, tests <code>uws:job/@version</code>
+        attribute, and does improved and version-sensitive
+        (UWS v1.0/v1.1) validation of UWS timestamps.
+        Also does more complete deletion of submitted jobs.</li>
     </ul>
     </p>
     </dd>
