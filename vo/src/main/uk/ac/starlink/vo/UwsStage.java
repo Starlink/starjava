@@ -21,7 +21,7 @@ public enum UwsStage {
     RUNNING( new String[] { "QUEUED", "EXECUTING", "SUSPENDED", } ),
 
     /** Job has finished successfully or otherwise; will not progress further.*/
-    FINISHED( new String[] { "COMPLETED", "ERROR", "ABORTED", } ),
+    FINISHED( new String[] { "COMPLETED", "ERROR", "ABORTED", "ARCHIVED", } ),
 
     /** UNKNOWN phase; may change in future. */
     UNKNOWN( new String[] { "UNKNOWN", } ),
