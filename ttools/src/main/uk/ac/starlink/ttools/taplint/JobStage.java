@@ -228,6 +228,7 @@ public class JobStage implements Stage {
             URL jobUrl = job.getJobUrl();
             checkEndpoints( job );
             checkPhase( job, "PENDING" );
+            validateJobDocument( job );
             if ( ! postPhase( job, "RUN" ) ) {
                 return;
             }
@@ -265,10 +266,12 @@ public class JobStage implements Stage {
                 reporter_.report( FixedCode.I_JOFI,
                                   "Job completed immediately - "
                                 + "can't test phase progression" );
-                delete( job );
-                return;
             }
-            waitForFinish( job );
+            else {
+                waitForFinish( job );
+            }
+            validateJobDocument( job );
+            delete( job );
         }
 
         /**
@@ -765,6 +768,22 @@ public class JobStage implements Stage {
             reporter_.report( FixedCode.I_CJOB,
                               "Created new job " + job.getJobUrl() );
             return job;
+        }
+
+        /**
+         * Runs schema validation on the UWS job document,
+         * reporting any validation messages as appropriate.
+         *
+         * @param  job   job object
+         */
+        private void validateJobDocument( UwsJob job ) {
+            URL url = job.getJobUrl();
+            if ( url != null ) {
+                boolean includeSummary = false;
+                XsdValidation.validateDoc( reporter_, url, "job",
+                                           IvoaSchemaResolver.UWS_URI,
+                                           includeSummary );
+            }
         }
 
         /**
