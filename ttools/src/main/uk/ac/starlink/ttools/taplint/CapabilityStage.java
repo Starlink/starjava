@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import uk.ac.starlink.vo.OutputFormat;
+import uk.ac.starlink.vo.TapCapabilitiesDoc;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapLanguageFeature;
@@ -69,11 +70,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
 
         /* Attempt to read a TapCapability object from the URL.
          * If it can't be done, give up now. */
-        final TapCapability tcap;
+        final TapCapabilitiesDoc tcapdoc;
         reporter.report( FixedCode.I_CURL,
                          "Reading capability metadata from " + capUrl );
         try {
-            tcap = TapCapability.readTapCapability( capUrl );
+            tcapdoc = TapCapabilitiesDoc.readCapabilities( capUrl );
         }
         catch ( SAXException e ) {
             reporter.report( FixedCode.E_CPSX,
@@ -83,6 +84,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         catch ( IOException e ) {
             reporter.report( FixedCode.E_CPIO,
                              "Error reading capabilities metadata", e );
+            return null;
+        }
+        TapCapability tcap = tcapdoc.getTapCapability();
+        if ( tcap == null ) {
+            reporter.report( FixedCode.E_CPIO, "No TAP capabilities found" );
             return null;
         }
 

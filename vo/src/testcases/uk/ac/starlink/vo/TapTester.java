@@ -22,9 +22,10 @@ public class TapTester extends TestCase {
         }
         TableMeta[] tables = tableList.toArray( new TableMeta[ 0 ] );
         TapCapability tcap =
-            TapCapability
-           .readTapCapability( TapTester.class
-                              .getResource( "gavo_capabilities.xml" ) );
+            TapCapabilitiesDoc
+           .readCapabilities( TapTester.class
+                             .getResource( "gavo_capabilities.xml" ) )
+           .getTapCapability();
         showExamples( examples, tables, tcap );
     }
 

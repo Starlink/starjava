@@ -212,7 +212,8 @@ public class TapServiceKit {
                 }
                 logger_.info( "Reading capability metadata from " + curl );
                 try {
-                    return TapCapability.readTapCapability( curl );
+                    return TapCapabilitiesDoc.readCapabilities( curl )
+                          .getTapCapability();
                 }
                 catch ( SAXException e ) {
                     throw (IOException)
