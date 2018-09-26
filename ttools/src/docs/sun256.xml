@@ -22,12 +22,6 @@
   <!ENTITY stiltsjavadocs "http://andromeda.star.bris.ac.uk/starjavadocs/">
   <!ENTITY starjavasrc "https://github.com/Starlink/starjava/blob/master/">
 
-  <!ENTITY flag-verbose '
-     <dt><code>-v[erbose]</code></dt>
-     <dd><p>May cause more information about progress to be written as
-         the command runs.
-         </p></dd>'>
-
   <!-- Short descriptions for each command. -->
   <!ENTITY % purpose-defs SYSTEM "purpose-defs.xml">
   %purpose-defs;
@@ -393,7 +387,8 @@ follows:
 <dd><p>Causes more verbose information to be written during operation.
     Specifically, what this does is to boost the logging level by 
     one notch.  It may be specified multiple times to increase verbosity
-    further.
+    further.  The flag <code>+verbose</code> can be used to do the opposite
+    (reduce the logging level by one notch).
     </p></dd>
 
 <dt><code>-allowunused</code></dt>
