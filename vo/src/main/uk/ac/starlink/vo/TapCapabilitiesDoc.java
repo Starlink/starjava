@@ -37,6 +37,7 @@ import uk.ac.starlink.util.URLUtils;
 public class TapCapabilitiesDoc {
 
     private final TapCapability tapCapability_;
+    private final StdCapabilityInterface[] intfs_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -45,9 +46,12 @@ public class TapCapabilitiesDoc {
      * Constructor.
      *
      * @param   tapCapability   describes TAPRegExt information
+     * @param   intfs      enumerates all known capability+interface pairs
      */
-    public TapCapabilitiesDoc( TapCapability tapCapability ) {
+    public TapCapabilitiesDoc( TapCapability tapCapability,
+                               StdCapabilityInterface[] intfs ) {
         tapCapability_ = tapCapability;
+        intfs_ = intfs;
     }
 
     /**
@@ -58,6 +62,17 @@ public class TapCapabilitiesDoc {
      */
     public TapCapability getTapCapability() {
         return tapCapability_;
+    }
+
+    /**
+     * Returns a list of capability,interface pairs found associated with
+     * this capabilities document.  Note this may include an entry
+     * associated with the TAPRegExt capability.
+     *
+     * @return  array of zero or more capability/interface specifications
+     */
+    public StdCapabilityInterface[] getInterfaces() {
+        return intfs_;
     }
 
     /**
@@ -124,6 +139,9 @@ public class TapCapabilitiesDoc {
         String elName = capsEl.getTagName().replaceFirst( ".*:", "" );
         boolean isCapabilities = elName.equals( "capabilities" );
 
+        /* Read the standard interfaces. */
+        StdCapabilityInterface[] intfs = getInterfaces( capsEl );
+
         /* Read the TAPRegExt capability. */
         TapCapability tapCap;
         try {
@@ -135,13 +153,13 @@ public class TapCapabilitiesDoc {
         }
 
         /* Return as a TapCapabilitiesDoc as appropriate. */
-        if ( tapCap != null ) {
-            return new TapCapabilitiesDoc( tapCap );
+        if ( tapCap != null || intfs.length > 0 ) {
+            return new TapCapabilitiesDoc( tapCap, intfs );
         }
         else {
             if ( isCapabilities ) {
                 logger_.warning( "No TAP capabilities content at " + capsUrl );
-                return new TapCapabilitiesDoc( tapCap );
+                return new TapCapabilitiesDoc( tapCap, intfs );
             }
             else {
                 throw new IOException( "Doesn't appear to be a TAP "
@@ -270,6 +288,87 @@ public class TapCapabilitiesDoc {
                      + "retentLimits: " + Arrays.asList( retentionLimits );
             }
         };
+    }
+
+    /**
+     * Extracts a list of zero or more standard interfaces from the
+     * capabilities element.
+     *
+     * @param  capsEl  capabilities element
+     * @return   capability/interface objects
+     */
+    public static StdCapabilityInterface[] getInterfaces( Element capsEl ) {
+        List<StdCapabilityInterface> intfList =
+            new ArrayList<StdCapabilityInterface>();
+        NodeList capEls = capsEl.getElementsByTagName( "capability" );
+        for ( int ic = 0; ic < capEls.getLength(); ic++ ) {
+            Element capEl = (Element) capEls.item( ic );
+            final String stdId = capEl.getAttribute( "standardID" );
+            final String capType = capEl.getAttribute( "xsi:type" );
+            Element descEl =
+                DOMUtils.getChildElementByName( capEl, "description" );
+            final String description = descEl == null
+                                     ? null
+                                     : DOMUtils.getTextContent( descEl );
+            NodeList intfEls = capEl.getElementsByTagName( "interface" );
+            for ( int ii = 0; ii < intfEls.getLength(); ii++ ) {
+                Element intfEl = (Element) intfEls.item( ii );
+                final String intfType = intfEl.getAttribute( "xsi:type" );
+                final String version = intfEl.getAttribute( "version" );
+                final String role = intfEl.getAttribute( "role" );
+                Element accessEl =
+                    DOMUtils.getChildElementByName( intfEl, "accessURL" );
+                final String accessUrl = accessEl == null
+                                       ? null
+                                       : DOMUtils.getTextContent( accessEl );
+                NodeList secEls =
+                    intfEl.getElementsByTagName( "securityMethod" );
+                List<String> smids = new ArrayList<String>();
+                for ( int is = 0; is < secEls.getLength(); is++ ) {
+                    Element secmethEl = (Element) secEls.item( is );
+                    smids.add( secmethEl.getAttribute( "standardID" ) );
+                }
+                final String[] secmethIds = smids.toArray( new String[ 0 ] );
+                intfList.add( new StdCapabilityInterface() {
+                    public String getStandardId() {
+                        return stdId;
+                    }
+                    public String getXsiType() {
+                        return capType;
+                    }
+                    public String getDescription() {
+                        return description;
+                    }
+                    public String getInterfaceType() {
+                        return intfType;
+                    }
+                    public String getAccessUrl() {
+                        return accessUrl;
+                    }
+                    public String[] getSecurityMethodIds() {
+                        return secmethIds;
+                    }
+                    public String getVersion() {
+                        return version;
+                    }
+                    public String getRole() {
+                        return role;
+                    }
+                    public String toString() {
+                        return new StringBuffer()
+                              .append( capType )
+                              .append( "; " )
+                              .append( intfType )
+                              .append( "; " )
+                              .append( Arrays.toString( secmethIds ) )
+                              .append( "; " )
+                              .append( accessUrl )
+                              .toString();
+                    }
+                } );
+            }
+        }
+        return intfList.toArray( new StdCapabilityInterface[ 0 ] );
     }
 
     /**
