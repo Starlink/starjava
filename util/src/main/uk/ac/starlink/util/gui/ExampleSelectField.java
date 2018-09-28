@@ -1,6 +1,7 @@
 package uk.ac.starlink.util.gui;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.BoxLayout;
@@ -97,6 +98,24 @@ public class ExampleSelectField extends JPanel {
             }
         }
         comboBox_.setSelectedItem( txt );
+    }
+
+    /**
+     * Adds an action listener.
+     *
+     * @param  l  listener to add
+     */
+    public void addActionListener( ActionListener l ) {
+        comboBox_.addActionListener( l );
+    }
+
+    /**
+     * Removes an actino listener.
+     *
+     * @param  l  previously-added listener
+     */
+    public void removeActionListener( ActionListener l ) {
+        comboBox_.removeActionListener( l );
     }
 
     /**
