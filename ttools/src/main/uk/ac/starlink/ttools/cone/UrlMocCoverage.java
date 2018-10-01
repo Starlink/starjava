@@ -34,8 +34,8 @@ public class UrlMocCoverage extends MocCoverage {
     public static final String FOOT_SERVICE_URL =
         "http://alasky.u-strasbg.fr/footprints";
 
-    private static final Map<URL,HealpixMoc> mocMap_ =
-        new HashMap<URL,HealpixMoc>();
+    private static final Map<String,HealpixMoc> mocMap_ =
+        new HashMap<String,HealpixMoc>();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
     private static HealpixImpl defaultHpi_ = PixtoolsHealpix.getInstance();
@@ -130,16 +130,17 @@ public class UrlMocCoverage extends MocCoverage {
      */
     private static synchronized HealpixMoc getMoc( URL mocUrl )
             throws IOException {
-        if ( ! mocMap_.containsKey( mocUrl ) ) {
+        String urlKey = mocUrl.toString();
+        if ( ! mocMap_.containsKey( urlKey ) ) {
             HealpixMoc moc = null;
             try {
                 moc = readMoc( mocUrl );
             }
             finally {
-                mocMap_.put( mocUrl, moc );
+                mocMap_.put( urlKey, moc );
             }
         }
-        return mocMap_.get( mocUrl );
+        return mocMap_.get( urlKey );
     }
 
     /**

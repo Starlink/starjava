@@ -11786,6 +11786,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         attribute, and does improved and version-sensitive
         (UWS v1.0/v1.1) validation of UWS timestamps.
         Also does more complete deletion of submitted jobs.</li>
+    <li>Small change to MOC handling that might possibly avoid some
+        network-related performance issues.</li>
     </ul>
     </p>
     </dd>

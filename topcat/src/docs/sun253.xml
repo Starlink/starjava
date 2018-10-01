@@ -27491,6 +27491,8 @@ introduced since the last version:
         define subsets.</li>
     <li>Fix function plotting so that NaN values are
         omitted rather than interpolated.</li>
+    <li>Small change to MOC handling that might possibly avoid some 
+        network-related performance issues.</li>
     </ul>
     </p></dd>
 
