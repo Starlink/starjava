@@ -12,6 +12,7 @@ import java.io.StringWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -73,7 +74,13 @@ public class QuickLookWindow extends JFrame {
                 setResultComponent( createLabelPanel( "Cancelled." ) );
             }
         } );
-        executor_ = Executors.newSingleThreadExecutor();
+        executor_ = Executors.newSingleThreadExecutor( new ThreadFactory() {
+            public Thread newThread( Runnable r ) {
+                Thread thread = new Thread( r, "TapQuickLook" );
+                thread.setDaemon( true );
+                return thread;
+            }
+        } );
 
         /* Set up window components. */
         tabber_ = new JTabbedPane();
