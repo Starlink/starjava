@@ -477,7 +477,7 @@ public class ExampleStage implements Stage {
         private final TestCount syntaxValidCount_;
         private final TestCount symbolValidCount_;
         private final TestCount executedCount_;
-        private final Set<URL> exampleDocUrls_;
+        private final Set<String> exampleDocUrls_;
         private int docCount_;
         private int exampleCount_;
         private AdqlValidatorKit vkit_;
@@ -498,7 +498,7 @@ public class ExampleStage implements Stage {
             tapRunner_ = tapRunner;
             capHolder_ = capHolder;
             metaHolder_ = metaHolder;
-            exampleDocUrls_ = new HashSet<URL>();
+            exampleDocUrls_ = new HashSet<String>();
             syntaxValidCount_ = new TestCount( "Syntax validity" );
             symbolValidCount_ = new TestCount( "Symbol validity" );
             executedCount_ = new TestCount( "Execution" );
@@ -769,7 +769,7 @@ public class ExampleStage implements Stage {
                     reporter_.report( FixedCode.E_EXCH, msg );
                 }
                 if ( url != null ) {
-                    if ( exampleDocUrls_.add( url ) ) {
+                    if ( exampleDocUrls_.add( url.toString() ) ) {
                         urls.add( url );
                     }
                     else {
