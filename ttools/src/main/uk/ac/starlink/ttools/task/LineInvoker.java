@@ -60,10 +60,15 @@ public class LineInvoker {
      * Invokes one of the known tasks given a string of command-line words.
      * The <code>args</code> string will typically come straight out of
      * a static <code>main()</code> method.
+     * A callback may be supplied to perform configuration that has to
+     * be done after logging configuration - presumably because it
+     * does some logging itself.  It is executed synchronously.
      * 
      * @param   args   argument list
+     * @param   loggedConfig   callback for configuration to be done after
+     *                         logging configuration (may be null)
      */
-    public int invoke( String[] args ) {
+    public int invoke( String[] args, Runnable loggedConfig ) {
         List argList = new ArrayList( Arrays.asList( args ) );
         LineTableEnvironment env = new LineTableEnvironment();
         int verbosity = 0;
@@ -252,7 +257,12 @@ public class LineInvoker {
         env.setOutputStream( out );
         env.setErrorStream( err );
 
+        /* Configure logging, then perform additional configuration
+         * that has to be done after that. */
         InvokeUtils.configureLogging( verbosity, env.isDebug() );
+        if ( loggedConfig != null ) {
+            loggedConfig.run();
+        }
 
         String taskName = (String) argList.remove( 0 );
         if ( taskFactory_.isRegistered( taskName ) ) {

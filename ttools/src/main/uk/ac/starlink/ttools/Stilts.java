@@ -38,11 +38,14 @@ public class Stilts {
         Loader.setHttpAgent( "STILTS" + "/" + getVersion() ); 
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
-        PropertyAuthenticator.installInstance( true );
-        URLUtils.installCustomHandlers();
-        FitsConstants.configureHierarch();
         LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
-        int status = invoker.invoke( args );
+        int status = invoker.invoke( args, new Runnable() {
+            public void run() {
+                URLUtils.installCustomHandlers();
+                FitsConstants.configureHierarch();
+                PropertyAuthenticator.installInstance( true );
+            }
+        } );
         if ( status != 0 ) {
             System.exit( status );
         }
