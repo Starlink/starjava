@@ -377,6 +377,12 @@ public class Driver {
         /* Install custom URL handlers. */
         URLUtils.installCustomHandlers();
 
+        /* Set up an authenticator for HTTP 401s.  If properties are
+         * supplied, use those, otherwise use one which will pop up a window. */
+        if ( ! PropertyAuthenticator.installInstance( false ) ) {
+            Authenticator.setDefault( new SwingHttpAuthenticator( null ) );
+        }
+
         /* Assemble pairs of (table name, handler name) to be loaded. */
         final List<DataSourceLoader> loaderList =
             new ArrayList<DataSourceLoader>();
@@ -441,12 +447,6 @@ public class Driver {
 
         /* Start up the GUI now. */
         final ControlWindow control = getControlWindow();
-
-        /* Set up an authenticator for HTTP 401s.  If properties are
-         * supplied, use those, otherwise use one which will pop up a window. */
-        if ( ! PropertyAuthenticator.installInstance( false ) ) {
-            Authenticator.setDefault( new SwingHttpAuthenticator( control ) );
-        }
 
         /* Start up with demo data if requested. */
         if ( demo ) {
