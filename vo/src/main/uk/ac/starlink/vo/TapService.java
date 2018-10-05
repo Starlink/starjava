@@ -73,4 +73,12 @@ public interface TapService {
      * @return  examples endpoint
      */
     URL getExamplesEndpoint();
+
+    /**
+     * Returns the version of the TAP protocol which this service
+     * is considered to implement.
+     *
+     * @return  TAP version
+     */
+    TapVersion getTapVersion();
 }

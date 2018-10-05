@@ -95,6 +95,9 @@ public class TapServices {
             public URL getExamplesEndpoint() {
                 return examples;
             }
+            public TapVersion getTapVersion() {
+                return TapVersion.V10;
+            }
         };
     }
 

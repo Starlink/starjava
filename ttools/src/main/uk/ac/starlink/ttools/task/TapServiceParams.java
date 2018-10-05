@@ -5,6 +5,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.TapVersion;
 
 /**
  * Manages a collection of parameters used to generate a TapService.
@@ -118,6 +119,9 @@ public class TapServiceParams {
             }
             public URL getExamplesEndpoint() {
                 return examplesUrl;
+            }
+            public TapVersion getTapVersion() {
+                return TapVersion.V10;
             }
         };
     }
