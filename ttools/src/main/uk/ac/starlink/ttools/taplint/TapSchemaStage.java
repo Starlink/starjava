@@ -48,6 +48,7 @@ public class TapSchemaStage extends TableMetadataStage {
 
     protected SchemaMeta[] readTableMetadata( Reporter reporter,
                                               TapService tapService ) {
+        boolean isTap11 = tapService.getTapVersion().is11();
 
         /* Work out the MAXREC value to use for metadata queries.
          * If this is not set, and the service default value is used,
@@ -122,14 +123,12 @@ public class TapSchemaStage extends TableMetadataStage {
 
         /* Put these together to form the hierarchical structure
          * described by the TAP_SCHEMA tables. */
-        ForeignMeta.Link[] l0 = new ForeignMeta.Link[ 0 ];
         for ( List<ForeignMeta> flist : fMap.values() ) {
             for ( ForeignMeta fmeta : flist ) {
                 tsi.populateForeignKey( fmeta, lMap );
             }
         }
         checkEmpty( reporter, lMap, FixedCode.W_FLUN, "key_columns" );
-        ForeignMeta[] f0 = new ForeignMeta[ 0 ];
         for ( List<TableMeta> tlist : tMap.values() ) {
             for ( TableMeta tmeta : tlist ) {
                 tsi.populateTable( tmeta, fMap, cMap );
@@ -142,6 +141,27 @@ public class TapSchemaStage extends TableMetadataStage {
                 tsi.populateSchema( smeta, tMap );
             }
             checkEmpty( reporter, tMap, FixedCode.W_TBUN, "tables" );
+        }
+
+        /* Check foreign keys - see TAP 1.1 sec 4.4. */
+        if ( isTap11 ) {
+            ForeignKeyChecker fkchecker =
+                new ForeignKeyChecker( reporter, "TAP_SCHEMA.",
+                                       new TableMap( sList ) );
+            fkchecker.checkLink( "tables", "schema_name",
+                                "schemas", "schema_name", true );
+            fkchecker.checkLink( "columns", "table_name",
+                                "tables", "table_name", true );
+            fkchecker.checkLink( "keys", "from_table",
+                                "tables", "table_name", true );
+            fkchecker.checkLink( "keys", "target_table",
+                                "tables", "table_name", true );
+            fkchecker.checkLink( "key_columns", "key_id",
+                                "keys", "key_id", true );
+            fkchecker.checkLink( "key_columns", "from_column",
+                                "columns", "column_name", false );
+            fkchecker.checkLink( "key_columns", "target_column",
+                                "columns", "column_name", false );
         }
 
         /* Return the schemas, if we managed to read any. */
@@ -248,6 +268,105 @@ public class TapSchemaStage extends TableMetadataStage {
             reporter.report( code,
                              "Unused entry in TAP_SCHEMA." + stName
                            + " table: " + key );
+        }
+    }
+
+    /**
+     * Checks the presence of given foreign keys.
+     */
+    private static class ForeignKeyChecker {
+        private final Reporter reporter_;
+        private final String tablePrefix_;
+        private final TableMap tmap_;
+
+        /**
+         * Constructor.
+         *
+         * @param  reporter  message sink
+         * @param  tablePrefix  string to be prefixed to all table names
+         *                      being checked
+         * @param  tmap  map  of tables by name
+         */
+        ForeignKeyChecker( Reporter reporter, String tablePrefix,
+                           TableMap tmap  ) {
+            reporter_ = reporter;
+            tablePrefix_ = tablePrefix;
+            tmap_ = tmap;
+        }
+
+        /**
+         * Checks for presence of a known link, and emits a report if
+         * it is not present.  The parameters are treated case-insensitively.
+         *
+         * @param  table1  source table, missing prefix
+         * @param  col1    column in source table
+         * @param  table   target table, missing prefix
+         * @param  col2    column in target table
+         * @param  isMust  true for MUST (error), false for SHOULD (warning)
+         */
+        void checkLink( String table1, String col1, String table2, String col2,
+                        boolean isMust ) {
+            String fqTable1 = tablePrefix_ + table1;
+            String fqTable2 = tablePrefix_ + table2;
+            TableMeta tmeta = tmap_.getTable( fqTable1.toLowerCase() );
+            if ( tmeta != null ) {
+                for ( ForeignMeta fmeta : tmeta.getForeignKeys() ) {
+                    if ( fqTable2.equalsIgnoreCase( fmeta.getTargetTable() ) ) {
+                        ForeignMeta.Link[] links = fmeta.getLinks();
+                        if ( links.length == 1 &&
+                             col1.equalsIgnoreCase( links[ 0 ].getFrom() ) &&
+                             col2.equalsIgnoreCase( links[ 0 ].getTarget() ) ) {
+                            return;
+                        }
+                    }
+                }
+                String msg = new StringBuffer() 
+                   .append( "Missing foreign key " )
+                   .append( fqTable1 )
+                   .append( "." )
+                   .append( col1 )
+                   .append( " -> " )
+                   .append( fqTable2 )
+                   .append( "." )
+                   .append( col2 )
+                   .toString();
+                reporter_.report( isMust ? FixedCode.E_TSLN
+                                         : FixedCode.W_TSLN,
+                                  msg );
+            }
+        }
+    }
+
+    /**
+     * Map from case-insensitive table name to TableMeta object.
+     */
+    private static class TableMap {
+        private final Map<String,TableMeta> tmap_;
+
+        /**
+         * Constructor.
+         *
+         * @param  schemaList  list of populated schema metadata objects
+         */
+        TableMap( List<SchemaMeta> schemaList ) {
+            tmap_ = new HashMap<String,TableMeta>();
+            if ( schemaList != null ) {
+                for ( SchemaMeta smeta : schemaList ) {
+                    for ( TableMeta tmeta : smeta.getTables() ) {
+                        tmap_.put( tmeta.getName().toLowerCase(), tmeta );
+                    }
+                }
+            }
+        }
+
+        /**
+         * Table metadata for given name.
+         *
+         * @param  name  case-insensitive table name
+         * @return  table metadata object, or null
+         */
+        TableMeta getTable( String name ) {
+            return tmap_.get( name.toLowerCase() );
         }
     }
 
