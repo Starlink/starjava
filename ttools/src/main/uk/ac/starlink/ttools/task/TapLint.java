@@ -18,7 +18,7 @@ import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TextOutputReporter;
 import uk.ac.starlink.ttools.taplint.TapLinter;
-import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * TAP Validator task.
@@ -30,7 +30,7 @@ public class TapLint implements Task {
 
     private final TapLinter tapLinter_;
     private final OutputReporterParameter reporterParam_;
-    private final TapEndpointParams endpointParams_;
+    private final TapServiceParams tapserviceParams_;
     private final StringMultiParameter stagesParam_;
     private final IntegerParameter maxtableParam_;
     private final Parameter[] params_;
@@ -41,8 +41,8 @@ public class TapLint implements Task {
     public TapLint() {
         List<Parameter> paramList = new ArrayList<Parameter>();
 
-        endpointParams_ = new TapEndpointParams( "tapurl" );
-        Parameter urlParam = endpointParams_.getBaseParameter();
+        tapserviceParams_ = new TapServiceParams( "tapurl" );
+        Parameter urlParam = tapserviceParams_.getBaseParameter();
         urlParam.setPosition( 1 );
         paramList.add( urlParam );
 
@@ -119,7 +119,7 @@ public class TapLint implements Task {
         paramList.add( reporterParam_ );
         paramList.addAll( Arrays.asList( reporterParam_
                                         .getReporterParameters() ) );
-        paramList.addAll( Arrays.asList( endpointParams_
+        paramList.addAll( Arrays.asList( tapserviceParams_
                                         .getOtherParameters() ) );
 
         params_ = paramList.toArray( new Parameter[ 0 ] );
@@ -134,7 +134,7 @@ public class TapLint implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        EndpointSet endpointSet = endpointParams_.getEndpointSet( env );
+        TapService tapService = tapserviceParams_.getTapService( env );
 
         Integer maxTablesObj = maxtableParam_.objectValue( env );
         int maxTestTables = maxTablesObj == null ? -1 : maxTablesObj.intValue();
@@ -153,7 +153,7 @@ public class TapLint implements Task {
             stageSet.add( sc );
         }
         OutputReporter reporter = reporterParam_.objectValue( env );
-        return tapLinter_.createExecutable( reporter, endpointSet, stageSet,
+        return tapLinter_.createExecutable( reporter, tapService, stageSet,
                                             maxTestTables );
     }
 }

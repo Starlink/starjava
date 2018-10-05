@@ -11,10 +11,10 @@ import java.util.Map;
 import uk.ac.starlink.util.CountMap;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * Validation stage for checking the content of parsed Table metadata.
@@ -75,14 +75,14 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      * Returns an array providing table metadata to check.
      *
      * @param  reporter   destination for validation messages
-     * @param  endpointSet  TAP service endpoints
+     * @param  tapService  TAP service description
      * @return   list of fully populated schema metadata elements
      */
     protected abstract SchemaMeta[]
-            readTableMetadata( Reporter reporter, EndpointSet endpointSet );
+            readTableMetadata( Reporter reporter, TapService tapService );
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
-        SchemaMeta[] smetas = readTableMetadata( reporter, endpointSet );
+    public void run( Reporter reporter, TapService tapService ) {
+        SchemaMeta[] smetas = readTableMetadata( reporter, tapService );
         checkSchemas( reporter, smetas );
         smetas_ = smetas;
     }

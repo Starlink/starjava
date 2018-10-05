@@ -4,15 +4,15 @@ import java.net.URL;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
-import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.TapService;
 
 /**
- * Manages a collection of parameters used to generate a TAP EndpointSet.
+ * Manages a collection of parameters used to generate a TapService.
  *
  * @author   Mark Taylor
  * @since    9 Aug 2016
  */
-public class TapEndpointParams {
+public class TapServiceParams {
 
     final URLParameter baseParam_;
     final EndpointParameter syncParam_;
@@ -29,7 +29,7 @@ public class TapEndpointParams {
      * @param  baseParamName  name of the parameter that specifies the
      *                        base TAP URL
      */
-    public TapEndpointParams( String baseParamName ) {
+    public TapServiceParams( String baseParamName ) {
         baseParam_ = new URLParameter( baseParamName );
         baseParam_.setPrompt( "Base URL of TAP service" );
         otherParams_ = new URLParameter[] {
@@ -82,13 +82,13 @@ public class TapEndpointParams {
     }
 
     /**
-     * Acquires an EndpointSet instance from the environment using the
+     * Acquires a TapService instance from the environment using the
      * parameters managed by this object.
      *
      * @param   env   execution environment
-     * @return   endpoint set
+     * @return   TAP service description
      */
-    public EndpointSet getEndpointSet( final Environment env )
+    public TapService getTapService( final Environment env )
             throws TaskException {
         final URL baseUrl = baseParam_.objectValue( env );
         final URL syncUrl = syncParam_.urlValue( env, baseUrl );
@@ -97,7 +97,7 @@ public class TapEndpointParams {
         final URL capabilitiesUrl = capabilitiesParam_.urlValue( env, baseUrl );
         final URL availabilityUrl = availabilityParam_.urlValue( env, baseUrl );
         final URL examplesUrl = examplesParam_.urlValue( env, baseUrl );
-        return new EndpointSet() {
+        return new TapService() {
             public String getIdentity() {
                 return baseUrl.toString();
             }

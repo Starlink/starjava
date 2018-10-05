@@ -283,7 +283,7 @@ public class TableSetPanel extends JPanel {
         }
         else {
             final String ivoid = serviceKit.getIvoid();
-            servicePanel_.setId( serviceKit.getEndpointSet().getIdentity(),
+            servicePanel_.setId( serviceKit.getTapService().getIdentity(),
                                  ivoid );
             serviceKit.acquireResource(
                            new ResultHandler<Map<String,String>>() {
@@ -432,7 +432,7 @@ public class TableSetPanel extends JPanel {
      */
     public void setHasExamples( boolean hasExamples ) {
         URL exampleUrl = hasExamples && serviceKit_ != null
-                       ? serviceKit_.getEndpointSet().getExamplesEndpoint()
+                       ? serviceKit_.getTapService().getExamplesEndpoint()
                        : null;
         String exurl = exampleUrl == null ? null : exampleUrl.toString();
         servicePanel_.setExamplesUrl( exurl );

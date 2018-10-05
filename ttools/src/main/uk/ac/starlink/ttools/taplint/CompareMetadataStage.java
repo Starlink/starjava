@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.vo.ColumnMeta;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * Validation stage for checking that two sets of table metadata
@@ -50,7 +50,7 @@ public class CompareMetadataStage implements Stage {
         return "Compare table metadata from " + srcDesc1_ + " and " + srcDesc2_;
     }
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
+    public void run( Reporter reporter, TapService tapService ) {
         SchemaMeta[] smetas1 = metaHolder1_.getTableMetadata();
         SchemaMeta[] smetas2 = metaHolder2_.getTableMetadata();
         if ( smetas1 == null || smetas2 == null ) {

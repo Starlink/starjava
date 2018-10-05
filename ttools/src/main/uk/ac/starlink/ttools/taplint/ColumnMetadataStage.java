@@ -12,10 +12,10 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.votable.VOStarTable;
 
 /**
@@ -62,7 +62,7 @@ public class ColumnMetadataStage implements Stage {
         return "Check table query result columns against declared metadata";
     }
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
+    public void run( Reporter reporter, TapService tapService ) {
         SchemaMeta[] smetas = metaHolder_.getTableMetadata();
         List<TableMeta> tlist = new ArrayList<TableMeta>();
         if ( smetas != null ) {
@@ -88,7 +88,7 @@ public class ColumnMetadataStage implements Stage {
                            + " tables" );
             tmetas = tms;
         }
-        new Checker( reporter, endpointSet, tapRunner_, tmetas ).run();
+        new Checker( reporter, tapService, tapRunner_, tmetas ).run();
         tapRunner_.reportSummary( reporter );
     }
 
@@ -120,7 +120,7 @@ public class ColumnMetadataStage implements Stage {
      */
     private static class Checker implements Runnable {
         private final Reporter reporter_;
-        private final EndpointSet endpointSet_;
+        private final TapService tapService_;
         private final TapRunner tRunner_;
         private final TableMeta[] tmetas_;
 
@@ -128,14 +128,14 @@ public class ColumnMetadataStage implements Stage {
          * Constructor.
          *
          * @param   reporter  validation message destination
-         * @param   endpointSet  locations of TAP endpoints
+         * @param   tapService  TAP service description
          * @param   tRunner  tap query executer
          * @param   tmetas  declared table metadata to check against
          */
-        Checker( Reporter reporter, EndpointSet endpointSet, TapRunner tRunner,
+        Checker( Reporter reporter, TapService tapService, TapRunner tRunner,
                  TableMeta[] tmetas ) {
             reporter_ = reporter;
-            endpointSet_ = endpointSet;
+            tapService_ = tapService;
             tRunner_ = tRunner;
             tmetas_ = tmetas;
         }
@@ -158,7 +158,7 @@ public class ColumnMetadataStage implements Stage {
             int ntop = 1;
             String tname = tmeta.getName();
             String adql = "SELECT TOP " + ntop + " * FROM " + tname;
-            TapQuery tq = new TapQuery( endpointSet_, adql, null );
+            TapQuery tq = new TapQuery( tapService_, adql, null );
             StarTable result;
             try {
                 result = tRunner_.attemptGetResultTable( reporter_, tq );

@@ -17,10 +17,10 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.ContentType;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.vo.UwsJobInfo;
 import uk.ac.starlink.vo.UwsStage;
@@ -64,7 +64,7 @@ public class JobStage implements Stage {
         return "Test asynchronous UWS/TAP behaviour";
     }
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
+    public void run( Reporter reporter, TapService tapService ) {
         SchemaMeta[] smetas = metaHolder_.getTableMetadata();
         TableMeta tmeta = getFirstTable( metaHolder_.getTableMetadata() );
         if ( tmeta == null ) {
@@ -74,7 +74,7 @@ public class JobStage implements Stage {
                            + " - will not attempt UWS tests" );
             return;
         }
-        new UwsRunner( reporter, endpointSet, tmeta, pollMillis_ ).run();
+        new UwsRunner( reporter, tapService, tmeta, pollMillis_ ).run();
     }
 
     /**
@@ -99,7 +99,7 @@ public class JobStage implements Stage {
      */
     private static class UwsRunner implements Runnable {
         private final Reporter reporter_;
-        private final EndpointSet endpointSet_;
+        private final TapService tapService_;
         private final TableMeta tmeta_;
         private final long poll_;
         private final String shortAdql_;
@@ -110,14 +110,14 @@ public class JobStage implements Stage {
          * Constructor.
          *
          * @param  reporter  destination for validation messages
-         * @param  endpointSet  locations of TAP services
+         * @param  tapService   TAP service description
          * @param  tmeta  example table metadata
          * @param  poll  number of milliseconds between polls when waiting
          */
-        UwsRunner( Reporter reporter, EndpointSet endpointSet, TableMeta tmeta,
+        UwsRunner( Reporter reporter, TapService tapService, TableMeta tmeta,
                    long poll ) {
             reporter_ = reporter;
-            endpointSet_ = endpointSet;
+            tapService_ = tapService;
             tmeta_ = tmeta;
             poll_ = poll;
             shortAdql_ = "SELECT TOP 100 * FROM " + tmeta.getName();
@@ -748,11 +748,11 @@ public class JobStage implements Stage {
         private UwsJob createJob( String adql ) {
             Map<String,String> paramMap = new LinkedHashMap<String,String>();
             paramMap.put( "RUNID", runId1_ );
-            TapQuery tq = new TapQuery( endpointSet_, adql, paramMap );
+            TapQuery tq = new TapQuery( tapService_, adql, paramMap );
             UwsJob job;
             try {
-                job = UwsJob.createJob( endpointSet_.getAsyncEndpoint()
-                                                    .toString(),
+                job = UwsJob.createJob( tapService_.getAsyncEndpoint()
+                                                   .toString(),
                                         tq.getStringParams(),
                                         tq.getStreamParams() );
             }

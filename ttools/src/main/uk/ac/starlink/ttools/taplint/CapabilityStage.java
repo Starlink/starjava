@@ -10,12 +10,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.OutputFormat;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapLanguageFeature;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TapService;
 import org.xml.sax.SAXException;
 
 /**
@@ -53,9 +53,9 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         return tcap_;
     }
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
+    public void run( Reporter reporter, TapService tapService ) {
         tcap_ = checkCapabilities( reporter,
-                                   endpointSet.getCapabilitiesEndpoint() );
+                                   tapService.getCapabilitiesEndpoint() );
     }
 
     /**

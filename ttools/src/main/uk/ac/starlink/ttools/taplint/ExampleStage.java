@@ -41,8 +41,8 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlValidator;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * Validation stage for testing TAP /examples document.
@@ -121,10 +121,10 @@ public class ExampleStage implements Stage {
         return "Check content of examples document";
     }
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
-        URL exUrl = endpointSet.getExamplesEndpoint();
+    public void run( Reporter reporter, TapService tapService ) {
+        URL exUrl = tapService.getExamplesEndpoint();
         ExampleRunner runner =
-            new ExampleRunner( reporter, endpointSet, tapRunner_,
+            new ExampleRunner( reporter, tapService, tapRunner_,
                                capHolder_, metaHolder_ );
         try {
             runner.checkExamplesDocument( exUrl );
@@ -470,7 +470,7 @@ public class ExampleStage implements Stage {
     private static class ExampleRunner {
 
         private final Reporter reporter_;
-        private final EndpointSet endpointSet_;
+        private final TapService tapService_;
         private final TapRunner tapRunner_;
         private final CapabilityHolder capHolder_;
         private final MetadataHolder metaHolder_;
@@ -485,16 +485,16 @@ public class ExampleStage implements Stage {
         /**
          * Constructor.
          * @param   reporter   reporter
-         * @param   endpointSet   TAP service endpoints
+         * @param   tapService    TAP service description
          * @param   tapRunner  runs TAP queries; if null, no queries attempted
          * @param   capHolder  provides capability metadata at runtime
          * @param   metaHolder provides table metadata at runtime
          */
-        ExampleRunner( Reporter reporter, EndpointSet endpointSet,
+        ExampleRunner( Reporter reporter, TapService tapService,
                        TapRunner tapRunner, CapabilityHolder capHolder,
                        MetadataHolder metaHolder ) {
             reporter_ = reporter;
-            endpointSet_ = endpointSet;
+            tapService_ = tapService;
             tapRunner_ = tapRunner;
             capHolder_ = capHolder;
             metaHolder_ = metaHolder;
@@ -1015,14 +1015,14 @@ public class ExampleStage implements Stage {
 
             /* Maybe attempt to execute the query. */
             final Boolean executed;
-            if ( ! hasUploads && tapRunner_ != null && endpointSet_ != null ) {
+            if ( ! hasUploads && tapRunner_ != null && tapService_ != null ) {
                 Map<String,String> extraParams =
                     new LinkedHashMap<String,String>();
                 if ( QUERY_MAXREC >= 0 ) {
                     extraParams.put( "MAXREC",
                                      Integer.toString( QUERY_MAXREC ) );
                 }
-                TapQuery tq = new TapQuery( endpointSet_, query, extraParams );
+                TapQuery tq = new TapQuery( tapService_, query, extraParams );
                 StarTable table;
                 try {
                     table = tapRunner_.attemptGetResultTable( reporter_, tq );

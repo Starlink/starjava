@@ -6,45 +6,45 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Utility class for working with EndpointSet instances.
+ * Utility class for working with TapService instances.
  *
  * @author   Mark Taylor
  * @since    18 Mar 2016
  */
-public class Endpoints {
+public class TapServices {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /** GAVO RegTAP service is pretty reliable. */
-    private static final EndpointSet REGTAP =
-        initDefaultTapEndpointSet( RegTapRegistryQuery.GAVO_REG );
+    private static final TapService REGTAP =
+        initDefaultTapService( RegTapRegistryQuery.GAVO_REG );
 
     /**
-     * Returns a default endpoint set corresponding to a Relational Registry
+     * Returns a default service  corresponding to a Relational Registry
      * (RegTAP) service.
      *
      * <p>The current implementation returns a hardcoded value,
      * the main GAVO registry service.  Perhaps it should be pluggable,
      * but the GAVO RegTAP service is expected to be pretty reliable.
      *
-     * @return  default RegTAP endponits
+     * @return  default RegTAP service
      */
-    public static EndpointSet getRegTapEndpointSet() {
+    public static TapService getRegTapService() {
         return REGTAP;
     }
 
     /**
-     * Creates a TAP endpoint set from a string giving the base URL,
+     * Creates a TAP service from a string giving the base URL,
      * with the endpoints in the default places.
      *
      * @param  baseUrl   base TAP URL
-     * @return   endpoints for standard (v1.0) TAP service
+     * @return   service using standard (v1.0) TAP endpoints
      * @throws   IllegalArgumentException  in case of a bad URL
      */
-    public static EndpointSet createDefaultTapEndpointSet( String baseUrl ) {
+    public static TapService createDefaultTapService( String baseUrl ) {
         try {
-            return createDefaultTapEndpointSet( new URL( baseUrl ) );
+            return createDefaultTapService( new URL( baseUrl ) );
         }
         catch ( MalformedURLException e ) {
             throw (RuntimeException)
@@ -54,7 +54,7 @@ public class Endpoints {
     }
 
     /**
-     * Creates a TAP endpoint set from a string giving the base URL,
+     * Creates a TAP service from a string giving the base URL,
      * with the endpoints in the default places.
      *
      * <p>This setup is more or less mandatory for
@@ -63,9 +63,9 @@ public class Endpoints {
      * purposes, for instance with different securityMethods.
      *
      * @param  baseUrl   base TAP URL
-     * @return   endpoints for standard (v1.0) TAP service
+     * @return   TAP service with standard (v1.0) endpoints
      */
-    public static EndpointSet createDefaultTapEndpointSet( URL baseUrl ) {
+    public static TapService createDefaultTapService( URL baseUrl ) {
         final String identity = baseUrl.toString();
         final URL sync = appendPath( baseUrl, "/sync" );
         final URL async = appendPath( baseUrl, "/async" );
@@ -73,7 +73,7 @@ public class Endpoints {
         final URL capabilities = appendPath( baseUrl, "/capabilities" );
         final URL availability = appendPath( baseUrl, "/availability" );
         final URL examples = appendPath( baseUrl, "/examples" );
-        return new EndpointSet() {
+        return new TapService() {
             public String getIdentity() {
                 return identity;
             }
@@ -118,15 +118,15 @@ public class Endpoints {
     }
 
     /**
-     * Initialises a default TAP endpoint set.
+     * Initialises a default TAP service.
      * If the URL is bad, a warning is logged, and null is returned.
      *
      * @param   baseUrl   base TAP URL
-     * @return   endpoints for standard (v1.0) TAP service
+     * @return   service with standard (v1.0) TAP endpoints
      */
-    private static EndpointSet initDefaultTapEndpointSet( String baseUrl ) {
+    private static TapService initDefaultTapService( String baseUrl ) {
         try {
-            return createDefaultTapEndpointSet( new URL( baseUrl ) );
+            return createDefaultTapService( new URL( baseUrl ) );
         }
         catch ( MalformedURLException e ) {
             logger_.log( Level.WARNING,

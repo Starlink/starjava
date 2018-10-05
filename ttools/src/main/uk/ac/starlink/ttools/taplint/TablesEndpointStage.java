@@ -14,10 +14,10 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ContentCoding;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TableSetSaxHandler;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * Validation stage for checking table metadata from the /tables endpoint
@@ -37,8 +37,8 @@ public class TablesEndpointStage extends TableMetadataStage {
     }
 
     protected SchemaMeta[] readTableMetadata( Reporter reporter,
-                                              EndpointSet endpointSet ) {
-        URL turl = endpointSet.getTablesEndpoint();
+                                              TapService tapService ) {
+        URL turl = tapService.getTablesEndpoint();
         reporter.report( FixedCode.I_TURL,
                          "Reading table metadata from " + turl );
 

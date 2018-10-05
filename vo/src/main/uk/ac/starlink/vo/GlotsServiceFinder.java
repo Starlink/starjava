@@ -30,7 +30,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class GlotsServiceFinder implements TapServiceFinder {
 
-    private final EndpointSet endpointSet_;
+    private final TapService glotsService_;
     private final ContentCoding coding_;
     private final AdqlSyntax syntax_;
     public static final String GAVO_DC_TAP_URL = "http://reg.g-vo.org/tap";
@@ -41,20 +41,19 @@ public class GlotsServiceFinder implements TapServiceFinder {
      * Constructs a default instance.
      */
     public GlotsServiceFinder() {
-        this( Endpoints.createDefaultTapEndpointSet( GAVO_DC_TAP_URL ),
+        this( TapServices.createDefaultTapService( GAVO_DC_TAP_URL ),
               ContentCoding.GZIP );
     }
 
     /**
      * Constructs an instance with custom configuration.
      *
-     * @param  glotsEndpointSet   TAP endpoints for a service
-     *                            containing GloTS tables
+     * @param  glotsService   TAP service description for a service
+     *                        containing GloTS tables
      * @param  coding   controls HTTP-level compression during TAP queries
      */
-    public GlotsServiceFinder( EndpointSet glotsEndpointSet,
-                               ContentCoding coding ) {
-        endpointSet_ = glotsEndpointSet;
+    public GlotsServiceFinder( TapService glotsService, ContentCoding coding ) {
+        glotsService_ = glotsService;
         coding_ = coding;
         syntax_ = AdqlSyntax.getInstance();
     }
@@ -96,7 +95,7 @@ public class GlotsServiceFinder implements TapServiceFinder {
             .append( ")" )
             .toString();
         logger_.info( "TAP Query: " + adql );
-        TapQuery tq = new TapQuery( endpointSet_, adql, null );
+        TapQuery tq = new TapQuery( glotsService_, adql, null );
         final List<Service> serviceList = new ArrayList<Service>();
         try { 
             boolean isTrunc = tq.executeSync( new TableSink() {
@@ -195,7 +194,7 @@ public class GlotsServiceFinder implements TapServiceFinder {
             sbuf.append( ")" );
         }
         logger_.info( "TAP Query: " + sbuf );
-        TapQuery tq = new TapQuery( endpointSet_, sbuf.toString(), null );
+        TapQuery tq = new TapQuery( glotsService_, sbuf.toString(), null );
         final List<Table> tableList = new ArrayList<Table>();
         try {
             boolean isTrunc = tq.executeSync( new TableSink() {

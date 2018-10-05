@@ -31,7 +31,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     /**
      * Constructor.
      *
-     * @param  endpointSet  TAP service locations
+     * @param  service  TAP service description
      * @param  maxrec   maximum number of records to be requested at once
      * @param  coding  configures HTTP compression
      * @param  populateSchemas   whether SchemaMeta objects will be
@@ -46,13 +46,13 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      * @param  preloadFkeys  if true, all foreign key info is loaded in one go,
      *                       if false it's read per-table as required
      */
-    public TapSchemaTapMetaReader( EndpointSet endpointSet, int maxrec,
+    public TapSchemaTapMetaReader( TapService service, int maxrec,
                                    ContentCoding coding,
                                    boolean populateSchemas,
                                    boolean populateTables,
                                    MetaNameFixer fixer,
                                    boolean preloadFkeys ) {
-        tsi_ = new TapSchemaInterrogator( endpointSet, maxrec, coding ) {
+        tsi_ = new TapSchemaInterrogator( service, maxrec, coding ) {
             @Override
             protected StarTable executeQuery( TapQuery tq ) throws IOException {
                 logger_.info( tq.getAdql() );
@@ -67,7 +67,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     }
 
     public String getSource() {
-        return tsi_.getEndpointSet().getIdentity();
+        return tsi_.getTapService().getIdentity();
     }
 
     public String getMeans() {

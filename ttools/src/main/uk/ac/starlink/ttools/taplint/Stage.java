@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
-import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * Represents a stage of validator processing.
@@ -21,7 +21,7 @@ public interface Stage {
      * Performs the validation checks for this stage.
      *
      * @param  reporter   destination for validation messages
-     * @param  endpointSet  locations of TAP service endpoints
+     * @param  tapService  TAP service description
      */
-    void run( Reporter reporter, EndpointSet endpointSet );
+    void run( Reporter reporter, TapService tapService );
 }

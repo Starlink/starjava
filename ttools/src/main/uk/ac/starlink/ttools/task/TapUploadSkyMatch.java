@@ -26,7 +26,7 @@ import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.TapUploadMatcher;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.util.ContentCoding;
-import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * Upload matcher that uses an external TAP service.
@@ -39,7 +39,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
     private final StringParameter inlonParam_;
     private final StringParameter inlatParam_;
     private final StringParameter srParam_;
-    private final TapEndpointParams endpointParams_;
+    private final TapServiceParams tapserviceParams_;
     private final StringParameter taptableParam_;
     private final StringParameter taplonParam_;
     private final StringParameter taplatParam_;
@@ -92,15 +92,15 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         } );
         paramList.add( inlatParam_ );
 
-        endpointParams_ = new TapEndpointParams( "tapurl" );
-        paramList.add( endpointParams_.getBaseParameter() );
+        tapserviceParams_ = new TapServiceParams( "tapurl" );
+        paramList.add( tapserviceParams_.getBaseParameter() );
 
         /* For now don't report the other endpoint parameters,
          * since most of them will have no effect in practice,
          * and they would confuse the documentation.
          * But they are present undocumented if necessary. */
         if ( false ) {
-            paramList.addAll( Arrays.asList( endpointParams_
+            paramList.addAll( Arrays.asList( tapserviceParams_
                                             .getOtherParameters() ) );
         }
 
@@ -292,7 +292,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         /* Interrogate environment for parameter values. */
         final String inlonString = inlonParam_.stringValue( env );
         final String inlatString = inlatParam_.stringValue( env );
-        EndpointSet endpointSet = endpointParams_.getEndpointSet( env );
+        TapService tapService = tapserviceParams_.getTapService( env );
         String taptable = taptableParam_.stringValue( env );
         String taplonString = taplonParam_.stringValue( env );
         String taplatString = taplatParam_.stringValue( env );
@@ -314,7 +314,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         }
         ContentCoding coding = codingParam_.codingValue( env );
         TapUploadMatcher umatcher =
-            new TapUploadMatcher( endpointSet, taptable,
+            new TapUploadMatcher( tapService, taptable,
                                   taplonString, taplatString, srString,
                                   isSync, tapcols, serviceMode,
                                   extraParams, coding );

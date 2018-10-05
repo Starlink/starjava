@@ -13,7 +13,7 @@ import java.util.Set;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
-import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.UserAgentUtil;
 
@@ -54,8 +54,8 @@ public class TapLinter {
         /* Create all known validation stages. */
         tmetaXsdStage_ = new XsdStage( IvoaSchemaResolver.VODATASERVICE_URI,
                                        "tableset", false, "table metadata" ) {
-            public URL getDocumentUrl( EndpointSet endpointSet ) {
-                return endpointSet.getTablesEndpoint();
+            public URL getDocumentUrl( TapService tapService ) {
+                return tapService.getTablesEndpoint();
             }
         };
         tmetaStage_ = new TablesEndpointStage();
@@ -77,15 +77,15 @@ public class TapLinter {
                        .createStage( tmetaStage_, tapSchemaStage_ );
         tcapXsdStage_ = new XsdStage( IvoaSchemaResolver.CAPABILITIES_URI,
                                       "capabilities", true, "capabilities" ) {
-            public URL getDocumentUrl( EndpointSet endpointSet ) {
-                return endpointSet.getCapabilitiesEndpoint();
+            public URL getDocumentUrl( TapService tapService ) {
+                return tapService.getCapabilitiesEndpoint();
             }
         };
         tcapStage_ = new CapabilityStage();
         availXsdStage_ = new XsdStage( IvoaSchemaResolver.AVAILABILITY_URI,
                                        "availability", false, "availability" ) {
-            public URL getDocumentUrl( EndpointSet endpointSet ) {
-                return endpointSet.getAvailabilityEndpoint();
+            public URL getDocumentUrl( TapService tapService ) {
+                return tapService.getAvailabilityEndpoint();
             }
         };
         getQueryStage_ =
@@ -162,7 +162,7 @@ public class TapLinter {
      * Creates and returns an executable for TAP validation.
      *
      * @param  reporter  validation message destination
-     * @param  endpointSet  locations of TAP services
+     * @param  tapService   TAP service description
      * @param  stageCodeSet  unordered collection of code strings indicating
      *         which stages should be run
      * @param  maxTestTables  limit on the number of tables to test,
@@ -170,7 +170,7 @@ public class TapLinter {
      * @return   tap validator executable
      */
     public Executable createExecutable( final OutputReporter reporter,
-                                        final EndpointSet endpointSet,
+                                        final TapService tapService,
                                         Set<String> stageCodeSet,
                                         int maxTestTables )
             throws TaskException {
@@ -215,7 +215,7 @@ public class TapLinter {
                         Stage stage = stageSet_.getStage( code );
                         assert stage != null;
                         reporter.startSection( code, stage.getDescription() );
-                        stage.run( reporter, endpointSet );
+                        stage.run( reporter, tapService );
                         reporter.summariseUnreportedMessages( code );
                         reporter.endSection();
                     }

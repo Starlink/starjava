@@ -31,7 +31,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class TapSchemaInterrogator {
 
-    private final EndpointSet endpointSet_;
+    private final TapService service_;
     private final Map<String,String> extraParams_;
     private final int maxrec_;
     private final ContentCoding coding_;
@@ -80,13 +80,13 @@ public class TapSchemaInterrogator {
     /**
      * Constructs an interrogator with explicit configuration.
      *
-     * @param  endpointSet  TAP service locations
+     * @param  service  TAP service description
      * @param  maxrec  maximum number of records to retrieve per query
      * @param  coding  configures HTTP compression
      */
-    public TapSchemaInterrogator( EndpointSet endpointSet, int maxrec,
+    public TapSchemaInterrogator( TapService service, int maxrec,
                                   ContentCoding coding ) {
-        endpointSet_ = endpointSet;
+        service_ = service;
         maxrec_ = maxrec;
         coding_ = coding;
         extraParams_ = new LinkedHashMap<String,String>();
@@ -97,12 +97,12 @@ public class TapSchemaInterrogator {
     }
 
     /**
-     * Returns the TAP endpoint locations used by this interrogator.
+     * Returns the TAP service used by this interrogator.
      *
-     * @return  TAP endpoints
+     * @return  TAP service description
      */
-    public EndpointSet getEndpointSet() {
-        return endpointSet_;
+    public TapService getTapService() {
+        return service_;
     }
 
     /**
@@ -289,7 +289,7 @@ public class TapSchemaInterrogator {
      * @return  query to execute
      */
     protected TapQuery createTapQuery( String adql ) {
-        return new TapQuery( endpointSet_, adql, extraParams_ );
+        return new TapQuery( service_, adql, extraParams_ );
     }
 
     /**
@@ -335,7 +335,7 @@ public class TapSchemaInterrogator {
         Map<String,String> extraParams = new HashMap<String,String>();
         extraParams.put( "MAXREC", "1" );
         StarTable table =
-            executeQuery( new TapQuery( endpointSet_, adql, extraParams ) );
+            executeQuery( new TapQuery( service_, adql, extraParams ) );
         List<String> list = new ArrayList<String>();
         int ncol = table.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
@@ -1024,12 +1024,12 @@ public class TapSchemaInterrogator {
      */
     public static void main( String[] args ) throws IOException {
         String url = args[ 0 ];
-        EndpointSet endpointSet =
-            Endpoints.createDefaultTapEndpointSet( new URL( url ) );
+        TapService service =
+            TapServices.createDefaultTapService( new URL( url ) );
         int maxrec = 100000;
         ContentCoding coding = ContentCoding.GZIP;
         SchemaMeta[] smetas =
-            new TapSchemaInterrogator( endpointSet, maxrec, coding )
+            new TapSchemaInterrogator( service, maxrec, coding )
            .readSchemas( true, true, true );
         for ( int is = 0; is < smetas.length; is++ ) {
             SchemaMeta smeta = smetas[ is ];

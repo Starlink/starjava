@@ -19,7 +19,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Times;
-import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapQuery;
@@ -58,7 +58,7 @@ public class UploadStage implements Stage {
         return "Make queries with table uploads";
     }
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
+    public void run( Reporter reporter, TapService tapService ) {
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null && ( tcap.getUploadMethods() == null ||
                                tcap.getUploadMethods().length == 0 ) ) {
@@ -67,7 +67,7 @@ public class UploadStage implements Stage {
                            + "will not attempt upload tests" );
             return;
         }
-        new UploadRunner( reporter, endpointSet, tcap, tapRunner_ ).run();
+        new UploadRunner( reporter, tapService, tcap, tapRunner_ ).run();
     }
 
     /**
@@ -75,7 +75,7 @@ public class UploadStage implements Stage {
      */
     private static class UploadRunner implements Runnable {
         private final Reporter reporter_;
-        private final EndpointSet endpointSet_;
+        private final TapService tapService_;
         private final TapCapability tcap_;
         private final TapRunner tRunner_;
 
@@ -83,14 +83,14 @@ public class UploadStage implements Stage {
          * Constructor.
          *
          * @param  reporter   validation message destination
-         * @param  endpointSet  TAP service endpoints
+         * @param  tapService  TAP service description
          * @param  tcap  TAP capability information object
          * @param  tapRunner   runs TAP queries
          */
-        UploadRunner( Reporter reporter, EndpointSet endpointSet,
+        UploadRunner( Reporter reporter, TapService tapService,
                       TapCapability tcap, TapRunner tapRunner ) {
             reporter_ = reporter;
-            endpointSet_ = endpointSet;
+            tapService_ = tapService;
             tcap_ = tcap;
             tRunner_ = tapRunner;
         }
@@ -125,7 +125,7 @@ public class UploadStage implements Stage {
             upMap.put( upName, upTable );
             TapQuery tq;
             try {
-                tq = new TapQuery( endpointSet_, adql, null, upMap,
+                tq = new TapQuery( tapService_, adql, null, upMap,
                                    -1, vowriter );
             }
             catch ( IOException e ) {

@@ -53,12 +53,12 @@ public abstract class RegRole {
      * Performs a RegTAP query to return all the role records corresponding
      * to a given registry resource (ivoid).
      *
-     * @param   regTapEndpointSet  TAP endpoints for RegTAP service
+     * @param   regtapService  RegTAP service description
      * @param   ivoid    identifier for resource
      * @param  coding  configures HTTP compression
      * @return  role records for resource
      */
-    public static RegRole[] readRoles( EndpointSet regTapEndpointSet,
+    public static RegRole[] readRoles( TapService regtapService,
                                        String ivoid, ContentCoding coding )
             throws IOException {
         final String NAME = "role_name";
@@ -79,7 +79,7 @@ public abstract class RegRole {
             .append( " WHERE ivoid='" )
             .append( ivoid )
             .append( "'" );
-        TapQuery tq = new TapQuery( regTapEndpointSet, sbuf.toString(), null );
+        TapQuery tq = new TapQuery( regtapService, sbuf.toString(), null );
         StarTable result =
             tq.executeSync( StoragePolicy.PREFER_MEMORY, coding );
         int nc = colNames.length;

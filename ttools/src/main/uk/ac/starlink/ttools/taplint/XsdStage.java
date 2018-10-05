@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.net.URL;
-import uk.ac.starlink.vo.EndpointSet;
+import uk.ac.starlink.vo.TapService;
 
 /**
  * Validation stage for validating a document against a given XML schema.
@@ -42,13 +42,13 @@ public abstract class XsdStage implements Stage {
      * Returns the URL of the document to validate, given the service URL
      * for the TAP service.
      *
-     * @param  endpointSet  TAP endpoint locations
+     * @param  tapService  TAP service description
      * @return   url of XML document to validate
      */
-    public abstract URL getDocumentUrl( EndpointSet endpointSet );
+    public abstract URL getDocumentUrl( TapService tapService );
 
-    public void run( Reporter reporter, EndpointSet endpointSet ) {
-        URL docUrl = getDocumentUrl( endpointSet );
+    public void run( Reporter reporter, TapService tapService ) {
+        URL docUrl = getDocumentUrl( tapService );
         reporter.report( FixedCode.I_VURL,
                          "Validating " + docUrl + " as "
                        + topElName_ + " (" + topElNamespaceUri_ + ")" );

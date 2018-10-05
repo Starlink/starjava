@@ -3,19 +3,20 @@ package uk.ac.starlink.vo;
 import java.net.URL;
 
 /**
- * Aggregates the set of related HTTP endpoints that together provide
- * services relating to a notional TAP service.
+ * Aggregates information about how to access a TAP service,
+ * in particular the bundle of related HTTP endpoints
+ * that together form a notional TAP service.
  * In general (though not necessarily for use in a particular context)
- * any of the various endpoints returned here may be null,
+ * any of the various endpoints provided here may be null,
  * if there is nowhere that such a resource can be found.
  * However, non-null endpoints do not guarantee that the corresponding
  * resource actually exists.
  *
  * @author   Mark Taylor
  * @since    18 Mar 2016
- * @see     Endpoints
+ * @see     TapServices
  */
-public interface EndpointSet {
+public interface TapService {
 
     /**
      * Returns a label for this service.

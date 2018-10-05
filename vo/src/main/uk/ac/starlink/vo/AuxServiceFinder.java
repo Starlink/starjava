@@ -24,7 +24,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class AuxServiceFinder implements TapServiceFinder {
 
-    private final EndpointSet regtapEndpointSet_;
+    private final TapService regtapService_;
     private final ContentCoding coding_;
     private final AdqlSyntax syntax_;
 
@@ -35,18 +35,17 @@ public class AuxServiceFinder implements TapServiceFinder {
      * Constructs a default instance.
      */
     public AuxServiceFinder() {
-        this( Endpoints.getRegTapEndpointSet(), ContentCoding.GZIP );
+        this( TapServices.getRegTapService(), ContentCoding.GZIP );
     }
 
     /**
      * Constructs an instance with custom configuration.
      *
-     * @param  regtapEndpointSet  TAP endpoints for RegTAP service
+     * @param  regtapService   RegTAP service description
      * @param  coding  controls HTTP-level compression during TAP queries
      */
-    public AuxServiceFinder( EndpointSet regtapEndpointSet,
-                             ContentCoding coding ) {
-        regtapEndpointSet_ = regtapEndpointSet;
+    public AuxServiceFinder( TapService regtapService, ContentCoding coding ) {
+        regtapService_ = regtapService;
         coding_ = coding;
         syntax_ = AdqlSyntax.getInstance();
     }
@@ -121,7 +120,7 @@ public class AuxServiceFinder implements TapServiceFinder {
         /* Execute this query and turn the result into a list of Service
          * objects. */
         logAdql( adql );
-        TapQuery tq = new TapQuery( regtapEndpointSet_, adql, null );
+        TapQuery tq = new TapQuery( regtapService_, adql, null );
         final List<Service> serviceList = new ArrayList<Service>();
         try {
             final int[] nrow = new int[ 1 ];
@@ -262,7 +261,7 @@ public class AuxServiceFinder implements TapServiceFinder {
 
         /* Execute the TAP query and turn it into a list of Table objects. */ 
         logAdql( adql );
-        TapQuery tq = new TapQuery( regtapEndpointSet_, adql, null );
+        TapQuery tq = new TapQuery( regtapService_, adql, null );
         final List<Table> tableList = new ArrayList<Table>();
         try {
             final int[] nrow = new int[ 1 ];

@@ -425,17 +425,17 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     }
 
     /**
-     * Returns the URL of the currently selected TAP service.
+     * Returns the currently selected TAP service.
      *
-     * @return  service endpoints for selected service, or null
+     * @return  TAP service description, or null
      */
-    public EndpointSet getEndpointSet() {
+    public TapService getTapService() {
         String surl = urlField_.getText();
         if ( surl == null || surl.trim().length() == 0 ) {
             return null;
         }
         try {
-            return Endpoints.createDefaultTapEndpointSet( new URL( surl ) );
+            return TapServices.createDefaultTapService( new URL( surl ) );
         }
         catch ( MalformedURLException e ) {
             return null;
@@ -470,8 +470,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      * @return   new loader
      */
     private TableLoader createQueryPanelLoader() {
-        final EndpointSet endpointSet = getEndpointSet();
-        if ( endpointSet == null ) {
+        final TapService service = getTapService();
+        if ( service == null ) {
             return null;
         }
         final String adql = tqPanel_.getAdql();
@@ -520,7 +520,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         final DescribedValue[] metas = new DescribedValue[ 0 ];
         TapQuery tq0;
         try {
-            tq0 = new TapQuery( endpointSet, adql, extraParams, uploadMap,
+            tq0 = new TapQuery( service, adql, extraParams, uploadMap,
                                 byteUploadLimit, vowriter_ );
         }
         catch ( IOException e ) {
@@ -687,11 +687,11 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      * @return  service kit, may be null if not ready
      */
     private TapServiceKit createServiceKit() {
-        EndpointSet endpointSet = getEndpointSet();
-        return endpointSet == null
+        TapService service = getTapService();
+        return service == null
              ? null
-             : new TapServiceKit( endpointSet,
-                                  searchPanel_.getIvoid( endpointSet
+             : new TapServiceKit( service,
+                                  searchPanel_.getIvoid( service
                                                         .getIdentity() ),
                                   metaPolicy_, coding_, META_QUEUE_LIMIT );
     }
@@ -712,7 +712,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             tqPanel_ = null;
         }
         if ( serviceKit != null ) {
-            String serviceUrl = serviceKit.getEndpointSet().getIdentity();
+            String serviceUrl = serviceKit.getTapService().getIdentity();
             urlField_.chooseText( serviceUrl );
 
             /* Construct, configure and cache a suitable query panel
@@ -850,7 +850,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             } );
             finderPanel_.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
-                    if ( getEndpointSet() != null ) {
+                    if ( getTapService() != null ) {
                         tabber_.setSelectedIndex( tqTabIndex_ );
                     }
                 }

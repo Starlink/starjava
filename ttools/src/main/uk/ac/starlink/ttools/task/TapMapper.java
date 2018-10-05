@@ -22,8 +22,8 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
-import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableVersion;
@@ -37,7 +37,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class TapMapper implements TableMapper {
 
-    private final TapEndpointParams endpointParams_;
+    private final TapServiceParams tapserviceParams_;
     private final StringParameter adqlParam_;
     private final BooleanParameter parseParam_;
     private final BooleanParameter syncParam_;
@@ -56,15 +56,15 @@ public class TapMapper implements TableMapper {
         paramList.add( createUploadNameParameter( VariableTablesInput
                                                  .NUM_SUFFIX ) );
 
-        endpointParams_ = new TapEndpointParams( "tapurl" );
-        paramList.add( endpointParams_.getBaseParameter() );
+        tapserviceParams_ = new TapServiceParams( "tapurl" );
+        paramList.add( tapserviceParams_.getBaseParameter() );
 
         /* For now don't report the other endpoint parameters,
          * since most of them will have no effect in practice,
          * and they would confuse the documentation.
          * But they are present undocumented if necessary. */
         if ( false ) {
-            paramList.addAll( Arrays.asList( endpointParams_
+            paramList.addAll( Arrays.asList( tapserviceParams_
                                             .getOtherParameters() ) );
         }
 
@@ -230,7 +230,7 @@ public class TapMapper implements TableMapper {
 
     public TableMapping createMapping( Environment env, final int nup )
             throws TaskException {
-        final EndpointSet endpointSet = endpointParams_.getEndpointSet( env );
+        final TapService tapService = tapserviceParams_.getTapService( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
             AdqlValidator validator = new AdqlValidator( null, null, null );
@@ -269,7 +269,7 @@ public class TapMapper implements TableMapper {
                 public StarTable mapTables( InputTableSpec[] inSpecs )
                         throws TaskException, IOException {
                     TapQuery tq =
-                        createTapQuery( endpointSet, adql, extraParams, upNames,
+                        createTapQuery( tapService, adql, extraParams, upNames,
                                         inSpecs, uploadLimit, vowriter );
                     return tq.executeSync( tfact.getStoragePolicy(), coding );
                 }
@@ -287,7 +287,7 @@ public class TapMapper implements TableMapper {
                 public StarTable mapTables( InputTableSpec[] inSpecs )
                         throws TaskException, IOException {
                     TapQuery tq =
-                        createTapQuery( endpointSet, adql, extraParams, upNames,
+                        createTapQuery( tapService, adql, extraParams, upNames,
                                         inSpecs, uploadLimit, vowriter );
                     UwsJob tapJob = tq.submitAsync();
                     if ( progress ) {
@@ -310,7 +310,7 @@ public class TapMapper implements TableMapper {
     /**
      * Returns a new TapQuery object from values available at execution time.
      *
-     * @param  endpointSet  location of TAP service endpoints
+     * @param  tapService   TAP service description
      * @param  adql   text of ADQL query
      * @param  extraParams  key->value map for optional parameters;
      *                      if any of these match the names of standard
@@ -324,8 +324,7 @@ public class TapMapper implements TableMapper {
      *                      if negative, no limit is applied
      * @return   new TAP query object
      */
-    private static TapQuery createTapQuery( EndpointSet endpointSet,
-                                            String adql,
+    private static TapQuery createTapQuery( TapService tapService, String adql,
                                             Map<String,String> extraParams,
                                             String[] upNames,
                                             InputTableSpec[] inSpecs,
@@ -337,7 +336,7 @@ public class TapMapper implements TableMapper {
         for ( int iu = 0; iu < nup; iu++ ) {
             uploadMap.put( upNames[ iu ], inSpecs[ iu ].getWrappedTable() );
         }
-        return new TapQuery( endpointSet, adql, extraParams, uploadMap, 
+        return new TapQuery( tapService, adql, extraParams, uploadMap, 
                              uploadLimit, vowriter );
     }
 

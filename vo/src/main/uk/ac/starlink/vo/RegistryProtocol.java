@@ -258,10 +258,10 @@ public abstract class RegistryProtocol {
         public String[] discoverRegistryUrls( String regUrl0 )
                 throws IOException {
             try {
-                EndpointSet endpointSet0 =
-                    Endpoints.createDefaultTapEndpointSet( new URL( regUrl0 ) );
+                TapService service0 =
+                    TapServices.createDefaultTapService( new URL( regUrl0 ) );
                 return RegTapRegistryQuery
-                      .getSearchableRegistries( endpointSet0 );
+                      .getSearchableRegistries( service0 );
             }
             catch ( MalformedURLException e ) {
                 return new String[ 0 ];
@@ -286,9 +286,8 @@ public abstract class RegistryProtocol {
             }
             sbuf.append( ")" );
             String idsWhere = sbuf.toString();
-            EndpointSet endpointSet =
-                Endpoints.createDefaultTapEndpointSet( regUrl );
-            return new RegTapRegistryQuery( endpointSet,
+            TapService service = TapServices.createDefaultTapService( regUrl );
+            return new RegTapRegistryQuery( service,
                                             capability.getStandardId()
                                                       .toLowerCase(),
                                             idsWhere );
@@ -334,9 +333,8 @@ public abstract class RegistryProtocol {
                                + failFields );
             }
             String keywordWhere = sbuf.toString();
-            EndpointSet endpointSet =
-                Endpoints.createDefaultTapEndpointSet( regUrl );
-            return new RegTapRegistryQuery( endpointSet,
+            TapService service = TapServices.createDefaultTapService( regUrl );
+            return new RegTapRegistryQuery( service,
                                             capability.getStandardId()
                                                       .toLowerCase(),
                                             keywordWhere );

@@ -31,7 +31,7 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class RegTapRegistryQuery implements RegistryQuery {
 
-    private final EndpointSet endpointSet_;
+    private final TapService tapService_;
     private final String adql_;
     private final ContentCoding coding_;
 
@@ -45,31 +45,31 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * that will crop up in an actual subject value. */
     private static final String SUBJECT_DELIM = ", ";
 
-    /** TAP endpoint for high-availablity GAVO registry (DNS pointer). */
+    /** TAP base URL for high-availablity GAVO registry (DNS pointer). */
     public static final String GAVO_REG = "http://reg.g-vo.org/tap";
 
-    /** TAP endpoint for GAVO registry hosted at ARI Heidelberg. */
+    /** TAP base URL for GAVO registry hosted at ARI Heidelberg. */
     public static final String ARI_REG = "http://dc.zah.uni-heidelberg.de/tap";
 
-    /** TAP endpoint for GAVO registry hosted at AIP. */
+    /** TAP base URL for GAVO registry hosted at AIP. */
     public static final String AIP_REG = "http://gavo.aip.de/tap";
 
-    /** TAP endpoint for registry hosted at ObsPM, synced with GAVO. */
+    /** TAP base URL for registry hosted at ObsPM, synced with GAVO. */
     public static final String PARIS_REG = "http://voparis-rr.obspm.fr/tap";
 
-    /** TAP endpoint for Euro-VO registry, currently hosted at ESAC. */
+    /** TAP base URL for Euro-VO registry, currently hosted at ESAC. */
     public static final String EUROVO_REG =
         "http://registry.euro-vo.org/regtap/tap";
 
-    /** TAP endpoint for STScI/VAO registry. */
+    /** TAP base URL for STScI/VAO registry. */
     public static final String STSCI_REG =
         "http://vao.stsci.edu/RegTAP/TapService.aspx";
 
-    /** TAP endpoint for INAF registry (not sure if this is permanent). */
+    /** TAP base URL for INAF registry (not sure if this is permanent). */
     public static final String INAF_REG =
         "http://ia2-vo.oats.inaf.it:8080/registry";
 
-    /** List of known registry TAP endpoints. */
+    /** List of known registry TAP base URLs. */
     public static final String[] REGISTRIES = new String[] {
         GAVO_REG,
         STSCI_REG,
@@ -82,7 +82,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
     /** Description of metadata item describing registry location. */
     public final static ValueInfo REGISTRY_INFO =
          new DefaultValueInfo( "Registry Location", URL.class,
-                               "TAP endpoint of registry queried" );
+                               "TAP base URL of registry queried" );
 
     /** Description of metadata item describing query text. */
     public final static ValueInfo ADQL_INFO =
@@ -115,16 +115,15 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * with some knowledge of the internals of this class, for instance
      * what columns are available.
      *
-     * @param  tapEndpointSet  TAP endpoints for service hosting
-     *                         relational registry
+     * @param  tapService  TAP service hosting relational registry
      * @param  standardId  required value of RR <code>standard_id</code> field,
      *                     or null if not resricted by service
      * @param   adqlWhere  text to be ANDed with existing ADQL WHERE clause,
      *                     or null for no further restriction
      */
-    public RegTapRegistryQuery( EndpointSet tapEndpointSet, String standardId,
+    public RegTapRegistryQuery( TapService tapService, String standardId,
                                 String adqlWhere ) {
-        endpointSet_ = tapEndpointSet;
+        tapService_ = tapService;
         coding_ = ContentCoding.GZIP;
 
         /* SELECT clause.  The columns are required both to support the
@@ -207,7 +206,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
 
     public URL getRegistry() {
         try {
-            return new URL( endpointSet_.getIdentity() );
+            return new URL( tapService_.getIdentity() );
         }
         catch ( MalformedURLException e ) {
             return null;
@@ -220,7 +219,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
 
     public RegResource[] getQueryResources() throws IOException {
         logger_.info( adql_ );
-        TapQuery query = new TapQuery( endpointSet_, adql_, null );
+        TapQuery query = new TapQuery( tapService_, adql_, null );
         QuerySink sink = new QuerySink();
         boolean overflow;
         try {
@@ -332,12 +331,11 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * Queries a given registry for searchable registries suitable for
      * use with this class.
      *
-     * @param  regtapEndpointSet  TAP endpoints for bootstrap
-     *                            relational registry
-     * @return   list of TAP endpoints for found relational registries
+     * @param  regtapService  TAP service description of
+     *                        bootstrap relational registry
+     * @return   list of TAP base URLs for found relational registries
      */
-    public static String[]
-            getSearchableRegistries( EndpointSet regtapEndpointSet )
+    public static String[] getSearchableRegistries( TapService regtapService )
             throws IOException {
 
         /* Copied from RegTAP 1.0 examples. */
@@ -352,7 +350,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
             .append( " AND 1=ivo_nocasematch(detail_value, " )
             .append(                        "'ivo://ivoa.net/std/regtap#1.0')" )
             .toString();
-        TapQuery query = new TapQuery( regtapEndpointSet, adql, null );
+        TapQuery query = new TapQuery( regtapService, adql, null );
         logger_.info( adql );
         StarTable table = query.executeSync( StoragePolicy.PREFER_MEMORY,
                                              ContentCoding.NONE );
