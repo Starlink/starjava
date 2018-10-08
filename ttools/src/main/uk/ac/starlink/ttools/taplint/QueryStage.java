@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,6 +62,8 @@ public class QueryStage implements Stage {
     }
 
     public void run( Reporter reporter, TapService tapService ) {
+
+        /* Acquire sufficient metadata to be able to write test queries. */
         SchemaMeta[] smetas = metaHolder_.getTableMetadata();
         String[] adqlLangs = capHolder_ == null
                            ? null
@@ -96,8 +99,17 @@ public class QueryStage implements Stage {
         TableMeta[] tmetas =
             ( dataTables.size() > 0 ? dataTables : allTables )
            .toArray( new TableMeta[ 0 ] );
+
+        /* Run some test queries that ought to succeed. */
         new Querier( reporter, tapService, tmetas, adqlLangs ).run();
-        runDuffQuery( reporter, tapService );
+
+        /* Run a test query that ought to fail. */
+        runErrorQuery( reporter,
+                       new TapQuery( tapService, "DUFF QUERY",
+                                     Collections.EMPTY_MAP ),
+                       "bad ADQL" );
+
+        /* Summarise. */
         tapRunner_.reportSummary( reporter );
     }
 
@@ -132,36 +144,40 @@ public class QueryStage implements Stage {
     }
 
     /**
-     * Runs a query with an intentionally nonsensical query string,
-     * performing checks on whether the service issues error reports
-     * in the correct way.
+     * Runs a query that ought to fail.  If it apparently succeeds,
+     * this method reports an error.  Reports are also made if the
+     * service does not issue flag the failure correctly.
      *
      * @param  reporter  validation message destination
-     * @param  tapService  TAP service description
+     * @param  tq   query expected to fail
+     * @param  errorType  short description of what's wrong with the query,
+     *                    to be used in reporting messages
      */
-    private void runDuffQuery( Reporter reporter, TapService tapService ) {
-        String duffAdql = "DUFF QUERY";
+    private void runErrorQuery( Reporter reporter, TapQuery tq,
+                                String errorType ) {
+        String pErrorType = " (" + errorType + ")";
         reporter.report( FixedCode.I_DUFF,
-                         "Submitting duff query: " + duffAdql );
+                         "Submitting query expected to fail" + pErrorType
+                       + ": " + tq.getAdql() );
         VOElement resultsEl;
         try {
-            TapQuery tq = new TapQuery( tapService, duffAdql, null );
             InputStream in = tapRunner_.readResultInputStream( reporter, tq );
             VODocument doc = tapRunner_.readResultDocument( reporter, in );
             resultsEl = tapRunner_.getResultsResourceElement( reporter, doc );
         }
         catch ( SAXException e ) {
             reporter.report( FixedCode.E_DFSF,
-                             "TAP result parse failed for \""
-                           + duffAdql + "\"", e );
+                             "TAP result parse failed for bad query"
+                           + pErrorType, e );
             return;
         }
         catch ( IOException e ) {
             reporter.report( FixedCode.E_DFIO,
-                             "TAP job failed for duff query", e );
+                             "TAP job failed for bad query" + pErrorType, e );
             return;
         }
         VOElement statusInfo = null;
+        boolean hasTable = false;
         for ( Node node = resultsEl.getFirstChild(); node != null;
               node = node.getNextSibling() ) {
             if ( node instanceof VOElement ) {
@@ -170,8 +186,9 @@ public class QueryStage implements Stage {
                 boolean isStatusInfo =
                     "INFO".equals( name ) &&
                     "QUERY_STATUS".equals( el.getAttribute( "name" ) );
-                boolean isTable =
-                    "TABLE".equals( name );
+                if ( "TABLE".equals( name ) ) {
+                    hasTable = true;
+                }
                 if ( isStatusInfo ) {
                     if ( statusInfo != null ) {
                         reporter.report( FixedCode.E_EST1,
@@ -180,23 +197,22 @@ public class QueryStage implements Stage {
                     }
                     statusInfo = el;
                 }
-                if ( isTable ) {
-                    reporter.report( FixedCode.W_HSTB,
-                                     "Return from duff query contains TABLE" );
-                }
             }
         }
         if ( statusInfo == null ) {
             reporter.report( FixedCode.E_DNST,
                              "Missing <INFO name='QUERY_STATUS'> element "
-                           + "for duff query" );
+                           + "for bad query" + pErrorType );
         }
         else {
             String status = statusInfo.getAttribute( "value" );
-            if ( "ERROR".equals( status ) ) {
 
-                /* Error (presumably parse error) reported as expected
-                 * for duff query. */
+            /* Error reported as expected for duff query - basically correct. */
+            if ( "ERROR".equals( status ) ) {
+                if ( hasTable ) {
+                    reporter.report( FixedCode.W_HSTB,
+                                     "ERROR response contains TABLE" );
+                }
                 String err = DOMUtils.getTextContent( statusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
                     reporter.report( FixedCode.W_NOMS,
@@ -205,10 +221,19 @@ public class QueryStage implements Stage {
                                    + "element has no message content" );
                 }
             }
+
+            /* Apparent query success, report trouble. */
             else if ( "OK".equals( status ) ) {
-                reporter.report( FixedCode.W_DSUC,
-                                 "Service reports OK from duff query" );
+                String msg = new StringBuffer()
+                    .append( hasTable ? "Apparent success"
+                                      : "Service reports OK (but no TABLE)" )
+                    .append( " from bad query" )
+                    .append( pErrorType )
+                    .toString();
+                reporter.report( FixedCode.E_DSUC, msg );
             }
+
+            /* Badly reported status. */
             else {
                 String msg = new StringBuffer()
                     .append( "QUERY_STATUS INFO has unknown value " )
