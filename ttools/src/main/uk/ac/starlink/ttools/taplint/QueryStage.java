@@ -103,11 +103,18 @@ public class QueryStage implements Stage {
         /* Run some test queries that ought to succeed. */
         new Querier( reporter, tapService, tmetas, adqlLangs ).run();
 
-        /* Run a test query that ought to fail. */
+        /* Run some test queries that ought to fail. */
         runErrorQuery( reporter,
                        new TapQuery( tapService, "DUFF QUERY",
                                      Collections.EMPTY_MAP ),
                        "bad ADQL" );
+        Map<String,String> extraParams = new HashMap<String,String>();
+        extraParams.put( "LANG", "OOBLECK" );
+        runErrorQuery( reporter,
+                       new TapQuery( tapService,
+                                     "SELECT TOP 1 * FROM TAP_SCHEMA.tables",
+                                     extraParams ),
+                       "unknown query language" );
 
         /* Summarise. */
         tapRunner_.reportSummary( reporter );
