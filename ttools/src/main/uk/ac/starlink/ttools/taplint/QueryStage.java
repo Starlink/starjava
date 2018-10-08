@@ -317,6 +317,38 @@ public class QueryStage implements Stage {
                 }
             }
 
+            /* Check that a spurious request parameter is ignored
+             * (TAP 1.0 sec 2.3, TAP 1.1 PR sec 2.7). */
+            if ( t1 != null ) {
+                Map<String,String> extraParams = new HashMap<String,String>();
+                String spuriousName = "DUMMY";
+                String spuriousValue = "ignore-me";
+                extraParams.put( spuriousName, spuriousValue );
+                TapQuery tq = new TapQuery( tapService_, tAdql, extraParams );
+                StarTable t1a = tapRunner_.getResultTable( reporter_, tq );
+                if ( t1a == null ) {
+                    String msg = new StringBuffer()
+                       .append( "Adding spurious request parameter " )
+                       .append( spuriousName )
+                       .append( "=" )
+                       .append( spuriousValue )
+                       .append( " breaks query" )
+                       .toString();
+                    reporter_.report( FixedCode.E_SPPA, msg );
+                }
+                else if ( t1a.getRowCount() != t1.getRowCount() ||
+                          t1a.getColumnCount() != t1.getColumnCount() ) {
+                    String msg = new StringBuffer()
+                       .append( "Adding spurious request parameter " )
+                       .append( spuriousName )
+                       .append( "=" )
+                       .append( spuriousValue )
+                       .append( " changes query result" )
+                       .toString();
+                    reporter_.report( FixedCode.W_SPPA, msg );
+                }
+            }
+
             /* Check that all known variants (typically "ADQL" and "ADQL-2.0")
              * work the same. */
             if ( adqlLangs_ != null && adqlLangs_.length > 1 ) {
