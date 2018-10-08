@@ -921,13 +921,13 @@ or in a file in your home directory named
 <code>name=value</code> line.
 Thus submitting the flag
 <verbatim>
-   -Dvotable.strict=true
+   -Dvotable.strict=false
 </verbatim>
 on the command line is equivalent to having the following in your
 <code>.starjava.properties</code> file:
 <verbatim>
    #  Force strict interpretation of the VOTable standard.
-   votable.strict=true
+   votable.strict=false
 </verbatim>
 </p>
 
@@ -1043,12 +1043,19 @@ on the command line is equivalent to having the following in your
     </p></dd>
 
 <dt><code>votable.strict</code></dt>
-<dd><p>Set <code>true</code> for strict enforcement of the VOTable standard
-    when parsing VOTables.  This prevents the parser from working round
-    certain common errors, such as missing <code>arraysize</code>
-    attributes on <code>FIELD</code> or <code>PARAM</code> 
-    elements with <code>datatype="char"</code>.
-    False by default.
+<dd><p>Controls the behaviour when encountering a VOTable
+    <code>FIELD</code> or <code>PARAM</code> element with
+    a <code>datatype</code> attribute of
+    <code>char</code>/<code>unicodeChar</code>,
+    and no <code>arraysize</code> attribute.
+    The VOTable standard says this indicates a single character,
+    but some VOTables omit arraysize specification by accident when
+    they intend <code>arraysize="*"</code>.
+    If <code>votable.strict</code> is set <code>true</code>,
+    a missing arraysize will be interpreted as meaning a single character,
+    and if <code>false</code>, it will be interpreted as a variable-length
+    array of characters (a string).
+    The default is <code>true</code>.
     </p></dd>
 
 <dt><code>votable.version</code></dt>

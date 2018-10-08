@@ -4658,11 +4658,19 @@ The following ones have special significance within TOPCAT:
     </p></dd>
 
 <dt><code>votable.strict</code></dt>
-<dd><p>Set <code>true</code> for strict enforcement of the VOTable standard
-    when parsing VOTables.  This prevents the parser from working round
-    certain common errors, such as missing <code>arraysize</code>
-    attributes on FIELD/PARAM elements with <code>datatype="char"</code>.
-    False by default.
+<dd><p>Controls the behaviour when encountering a VOTable
+    <code>FIELD</code> or <code>PARAM</code> element with
+    a <code>datatype</code> attribute of
+    <code>char</code>/<code>unicodeChar</code>,
+    and no <code>arraysize</code> attribute.
+    The VOTable standard says this indicates a single character,
+    but some VOTables omit arraysize specification by accident when
+    they intend <code>arraysize="*"</code>.
+    If <code>votable.strict</code> is set <code>true</code>,
+    a missing arraysize will be interpreted as meaning a single character,
+    and if <code>false</code>, it will be interpreted as a variable-length
+    array of characters (a string).
+    The default is <code>true</code>.
     </p></dd>
 
 <dt><code>votable.version</code></dt>
@@ -27493,6 +27501,12 @@ introduced since the last version:
         omitted rather than interpolated.</li>
     <li>Small change to MOC handling that might possibly avoid some 
         network-related performance issues.</li>
+    <li>Default value of <code>votable.strict</code>
+        <ref id="jvmProperties">system property</ref>
+        is now <code>true</code>.
+        That means that by default, missing <code>arraysize</code>
+        attributes on VOTable FIELD/PARAM elements are taken seriously
+        rather than being interpreted as <code>arraysize="*"</code>.</li>
     </ul>
     </p></dd>
 

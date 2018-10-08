@@ -193,7 +193,6 @@ public class Driver {
      */
     private static void runMain( String[] args )
             throws SampException, IOException {
-        VOElementFactory.STRICT_DEFAULT = false;
         tabfact = TopcatPreparation.createFactory();
         String cmdname;
         try {
