@@ -146,7 +146,9 @@ public class JobStage implements Stage {
             }
             URL jobUrl = job.getJobUrl();
             checkPhase( job, "PENDING" );
-            checkParameter( job, "REQUEST", "doQuery", true );
+            if ( ! tapService_.getTapVersion().is11() ) {
+                checkParameter( job, "REQUEST", "doQuery", true );
+            }
             checkParameter( job, "RUNID", runId1_, false );
             if ( postParameter( job, "runId", runId2_ ) ) {
                 checkParameter( job, "RUNID", runId2_, false );
@@ -310,7 +312,7 @@ public class JobStage implements Stage {
          *
          * @param  job  job to check
          * @param  name job parameter name
-         * @param  value  asserted parameter value
+         * @param  mustValue  asserted parameter value
          * @param  mandatory  true iff parameter must be supported by TAP
          *                    implementation
          */

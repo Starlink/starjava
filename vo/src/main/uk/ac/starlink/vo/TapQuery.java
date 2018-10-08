@@ -89,7 +89,9 @@ public class TapQuery {
 
         /* Prepare the parameter maps. */
         stringMap_ = new LinkedHashMap<String,String>();
-        stringMap_.put( "REQUEST", "doQuery" );
+        if ( ! service.getTapVersion().is11() ) {
+            stringMap_.put( "REQUEST", "doQuery" );
+        }
         stringMap_.put( "LANG", "ADQL" );
         stringMap_.put( "QUERY", adql );
         if ( extraParams != null ) {
