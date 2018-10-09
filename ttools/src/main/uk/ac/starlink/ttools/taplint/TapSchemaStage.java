@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.xml.sax.SAXException;
@@ -17,6 +18,7 @@ import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapSchemaInterrogator;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.TapVersion;
 import uk.ac.starlink.votable.VOStarTable;
 
 /**
@@ -48,7 +50,9 @@ public class TapSchemaStage extends TableMetadataStage {
 
     protected SchemaMeta[] readTableMetadata( Reporter reporter,
                                               TapService tapService ) {
-        boolean isTap11 = tapService.getTapVersion().is11();
+        TapVersion tapVersion = tapService.getTapVersion();
+        reporter.report( FixedCode.I_TAPV,
+                         "Validating for TAP version " + tapVersion );
 
         /* Work out the MAXREC value to use for metadata queries.
          * If this is not set, and the service default value is used,
@@ -142,12 +146,65 @@ public class TapSchemaStage extends TableMetadataStage {
             }
             checkEmpty( reporter, tMap, FixedCode.W_TBUN, "tables" );
         }
+        TableMap tmap = new TableMap( sList );
+
+        /* Check column constraints in TAP_SCHEMA metadata -
+         * see TAP 1.0 sec 2.6, TAP 1.1 sec 4.
+         * This effectively duplicates some work done by the superclass,
+         * but it includes some specifics laid out in the TAP_SCHEMA
+         * requirements for TAP. */
+        ColumnChecker colchecker =
+            new ColumnChecker( reporter, tapRunner_, tapService, tmap );
+        ColType tStr = ColType.STR;
+        ColType tInt = ColType.INT;
+        ColType tBool = ColType.BOOL;
+        colchecker.checkColumns( "TAP_SCHEMA.schemas", new ColReq[] {
+            new ColReq( "schema_name", tStr, true ),
+            new ColReq( "utype", tStr, false ),
+            new ColReq( "description", tStr, false ),
+            new ColReq( "schema_index", tInt, false, true ),
+        } );
+        colchecker.checkColumns( "TAP_SCHEMA.tables", new ColReq[] {
+            new ColReq( "schema_name", tStr, true ),
+            new ColReq( "table_name", tStr, true ),
+            new ColReq( "table_type", tStr, true ),
+            new ColReq( "utype", tStr, false ),
+            new ColReq( "description", tStr, false ),
+            new ColReq( "table_index", tInt, false, true ),
+        } );
+        colchecker.checkColumns( "TAP_SCHEMA.columns", new ColReq[] {
+            new ColReq( "table_name", tStr, true ),
+            new ColReq( "column_name", tStr, true ),
+            new ColReq( "datatype", tStr, true ),
+            new ColReq( "arraysize", tStr, false, true ),
+            new ColReq( "xtype", tStr, false, true ),
+            new ColReq( "\"size\"", tInt, false ),
+            new ColReq( "description", tStr, false ),
+            new ColReq( "utype", tStr, false ),
+            new ColReq( "unit", tStr, false ),
+            new ColReq( "ucd", tStr, false ),
+            new ColReq( "indexed", tBool, true ),
+            new ColReq( "principal", tBool, true ),
+            new ColReq( "std", tBool, true ),
+            new ColReq( "column_index", tInt, false, true ),
+        } );
+        colchecker.checkColumns( "TAP_SCHEMA.keys", new ColReq[] {
+            new ColReq( "key_id", tStr, true ),
+            new ColReq( "from_table", tStr, true ),
+            new ColReq( "target_table", tStr, true ),
+            new ColReq( "description", tStr, false ),
+            new ColReq( "utype", tStr, false ),
+        } );
+        colchecker.checkColumns( "TAP_SCHEMA.key_columns", new ColReq[] {
+            new ColReq( "key_id", tStr, true ),
+            new ColReq( "from_column", tStr, true ),
+            new ColReq( "target_column", tStr, true ),
+        } );
 
         /* Check foreign keys - see TAP 1.1 sec 4.4. */
-        if ( isTap11 ) {
+        if ( tapVersion.is11() ) {
             ForeignKeyChecker fkchecker =
-                new ForeignKeyChecker( reporter, "TAP_SCHEMA.",
-                                       new TableMap( sList ) );
+                new ForeignKeyChecker( reporter, "TAP_SCHEMA.", tmap );
             fkchecker.checkLink( "tables", "schema_name",
                                  "schemas", "schema_name" );
             fkchecker.checkLink( "columns", "table_name",
@@ -268,6 +325,152 @@ public class TapSchemaStage extends TableMetadataStage {
     }
 
     /**
+     * Performs some checking of the standard columns in a TAP_SCHEMA table.
+     */
+    private static class ColumnChecker {
+        private final Reporter reporter_;
+        private final TapRunner tapRunner_;
+        private final TapService tapService_;
+        private final TableMap tmap_;
+
+        /**
+         * Constructor.
+         *
+         * @param  reporter   message sink
+         * @param  tapRunner   TAP runner
+         * @param  tapService  TAP service
+         * @param  tapVersion  version of TAP protocol
+         * @param  tmap   map of TAP_SCHEMA-declared tables by name
+         */
+        ColumnChecker( Reporter reporter, TapRunner tapRunner,
+                       TapService tapService, TableMap tmap ) {
+            reporter_ = reporter;
+            tapRunner_ = tapRunner;
+            tapService_ = tapService;
+            tmap_ = tmap;
+        }
+
+        /**
+         * Checks a set of standard columns in a table.
+         *
+         * @param  tableName  TAP_SCHEMA table name to check
+         * @param  colReqs    list of required standard columns in table
+         */
+        void checkColumns( String tableName, ColReq[] colReqs ) {
+            boolean is11 = tapService_.getTapVersion().is11();
+
+            /* Check table exists and prepare data structures. */
+            TableMeta tmeta = tmap_.getTable( tableName );
+            if ( tmeta == null ) {
+                reporter_.report( FixedCode.E_TST0,
+                                  "Missing required table " + tableName );
+                return;
+            }
+            Map<String,ColumnMeta> colMap =
+                new LinkedHashMap<String,ColumnMeta>();
+            for ( ColumnMeta cmeta : tmeta.getColumns() ) {
+                colMap.put( cmeta.getName().toLowerCase(), cmeta );
+            }
+
+            /* Iterate over each column suitable for the specified
+             * TAP version. */
+            for ( ColReq colReq : colReqs ) {
+                if ( ! colReq.is11_ || is11 ) {
+                    String ctxt = "column " + tmeta.getName()
+                                + "." + colReq.name_;
+                    ColumnMeta cmeta =
+                        colMap.remove( colReq.name_.toLowerCase() );
+                    if ( cmeta == null ) {
+                        reporter_.report( FixedCode.E_TSC0,
+                                          "Missing required " + ctxt );
+                    }
+                    else {
+
+                        /* Check STD status declaration - all columns being
+                         * checked here are standard ones. */
+                        if ( ! cmeta.hasFlag( "std" ) ) { 
+                            reporter_.report( FixedCode.E_TSTD,
+                                              "Not declared STD " + ctxt );
+                        }
+
+                        /* Check declared datatype. */
+                        String datatype = cmeta.getDataType();
+                        String arraysize = cmeta.getArraysize();
+                        ColType reqType = colReq.type_;
+                        if ( is11 ) {
+                            if ( ! reqType.isCompatibleTap11( datatype,
+                                                              arraysize ) ) {
+                               String msg = new StringBuffer()
+                                  .append( "Type mismatch for " )
+                                  .append( ctxt )
+                                  .append( " datatype=" )
+                                  .append( datatype )
+                                  .append( " arraysize=" )
+                                  .append( arraysize )
+                                  .append( " is not " )
+                                  .append( reqType.name11_ )
+                                  .append( "-like" )
+                                  .append( " (TAP 1.1)" )
+                                  .toString();
+                               reporter_.report( FixedCode.E_TSCT, msg );
+                            }
+                        }
+                        else {
+                            if ( ! reqType.isCompatibleTap10( datatype ) ) {
+                               String msg = new StringBuffer()
+                                  .append( "Type mismatch for " )
+                                  .append( ctxt )
+                                  .append( ": datatype=" )
+                                  .append( datatype )
+                                  .append( " is not " )
+                                  .append( reqType.name10_ )
+                                  .append( "-like" )
+                                  .append( " (TAP 1.0)" )
+                                  .toString();
+                               reporter_.report( FixedCode.E_TSCT, msg );
+                            }
+                        }
+                    }
+
+                    /* Check non-nullable columns have no nulls values */
+                    if ( colReq.notNull_ ) {
+                        String adql = new StringBuffer()
+                           .append( "SELECT TOP 1 " )
+                           .append( colReq.name_ )
+                           .append( " FROM " )
+                           .append( tableName )
+                           .append( " WHERE " )
+                           .append( colReq.name_ )
+                           .append( " IS NULL" )
+                           .toString();
+                        TapQuery tq = new TapQuery( tapService_, adql, null );
+                        StarTable table =
+                            tapRunner_.getResultTable( reporter_, tq );
+                        TableData tdata =
+                            TableData.createTableData( reporter_, table );
+                        if ( tdata != null && tdata.getRowCount() > 0 ) {
+                            reporter_.report( FixedCode.E_TSNL,
+                                              "Non-null values in " + ctxt );
+                        }
+                    }
+                }
+            }
+
+            /* Report non-standard columns for information. */
+            if ( ! colMap.isEmpty() ) {
+                String msg = new StringBuffer()
+                   .append( colMap.size() )
+                   .append( " non-standard columns in " )
+                   .append( tableName )
+                   .append( ": " )
+                   .append( colMap.keySet() )
+                   .toString();
+                reporter_.report( FixedCode.I_TSNS, msg );
+            }
+        }
+    }
+
+    /**
      * Checks the presence of given foreign keys.
      */
     private static class ForeignKeyChecker {
@@ -361,6 +564,114 @@ public class TapSchemaStage extends TableMetadataStage {
         TableMeta getTable( String name ) {
             return tmap_.get( name.toLowerCase() );
         }
+    }
+
+    /**
+     * Defines requirements on a standard column.
+     */
+    private static class ColReq {
+        final String name_;
+        final ColType type_;
+        final boolean notNull_;
+        final boolean is11_;
+
+
+        /**
+         * Constructs a column that is standard for TAP v1.0 and v1.1.
+         *
+         * @param  name  column name
+         * @param  type  column type
+         * @param  notNull   true iff column is forbidden to contain null values
+         */
+        ColReq( String name, ColType type, boolean notNull ) {
+            this( name, type, notNull, false );
+        }
+
+        /**
+         * Constructs a column that is standard for TAP v1.0 and maybe v1.1.
+         *
+         * @param  name  column name
+         * @param  type  column type
+         * @param  notNull   true iff column is forbidden to contain null values
+         * @param  is11  true iff column is standard in TAP v1.1 but not v1.0
+         */
+        ColReq( String name, ColType type, boolean notNull, boolean is11 ) {
+            name_ = name;
+            type_ = type;
+            notNull_ = notNull;
+            is11_ = is11;
+        }
+    }
+
+    /**
+     * Enumeration of standard column data types.
+     */
+    private static enum ColType {
+        STR( "varchar", "string" ) {
+            boolean isCompatibleTap11( String datatype, String arraysize ) {
+                return ( "char".equals( datatype ) ||
+                         "unicodeChar".equals( datatype ) )
+                     && ( arraysize != null &&
+                          arraysize.matches( "[0-9]*[0-9*]" ) );
+            }
+            boolean isCompatibleTap10( String datatype ) {
+                return CompareMetadataStage
+                      .compatibleDataTypes( "varchar", datatype );
+            }
+        },
+        INT( "integer", "integer" ) {
+            boolean isCompatibleTap11( String datatype, String arraysize ) {
+                return ( "unsignedByte".equals( datatype ) ||
+                         "int".equals( datatype ) ||
+                         "short".equals( datatype ) ||
+                         "long".equals( datatype ) )
+                    && ( arraysize == null || "1".equals( arraysize ) );
+            }
+            boolean isCompatibleTap10( String datatype ) {
+                return CompareMetadataStage
+                      .compatibleDataTypes( "integer", datatype );
+            }
+        },
+        BOOL( "integer", "integer" ) {
+            boolean isCompatibleTap11( String datatype, String arraysize ) {
+                return INT.isCompatibleTap11( datatype, arraysize );
+            }
+            boolean isCompatibleTap10( String datatype ) {
+                return INT.isCompatibleTap10( datatype );
+            }
+        };
+        final String name10_;
+        final String name11_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name10  type name for TAP v1.0
+         * @param  name11  type name for TAP v1.1
+         */
+        ColType( String name10, String name11 ) {
+            name10_ = name10;
+            name11_ = name11;
+        }
+
+        /**
+         * Indicates whether this type is compatible with given values
+         * of the TAP v1.1 datatype and arraysize values.
+         *
+         * @param  datatype   value of datatype column in TAP_SCHEMA.columns
+         * @param  arraysize  value of arraysize column in TAP_SCHEMA.columns
+         * @return  true iff this type is compatible with the supplied metadta
+         */
+        abstract boolean isCompatibleTap11( String datatype, String arraysize );
+
+        /**
+         * Indicates whether this type is compatible with given values
+         * of the TAP v1.0 datatype value.
+         *
+         * @param  datatype   value of datatype column in TAP_SCHEMA.columns
+         * @return  true iff this type is compatible with the supplied metadta
+         */
+        abstract boolean isCompatibleTap10( String datatype );
     }
 
     /**
