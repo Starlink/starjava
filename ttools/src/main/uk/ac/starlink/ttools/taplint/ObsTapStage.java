@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
@@ -601,34 +600,7 @@ public class ObsTapStage implements Stage {
         private TableData runQuery( String adql ) {
             TapQuery tq = new TapQuery( tapService_, adql, null );
             StarTable table = tRunner_.getResultTable( reporter_, tq );
-            if ( table == null ) {
-                return null;
-            }
-            final List<Object[]> rowList = new ArrayList<Object[]>();
-            try {
-                RowSequence rseq = table.getRowSequence();
-                try {
-                    while ( rseq.next() ) {
-                        rowList.add( rseq.getRow() );
-                    }
-                }
-                finally {
-                    rseq.close();
-                }
-            }
-            catch ( IOException e ) {
-                reporter_.report( FixedCode.F_TIOF,
-                                  "Error reading result table", e );
-                return null;
-            }
-            return new TableData() {
-                public int getRowCount() {
-                    return rowList.size();
-                }
-                public Object getCell( int irow, int icol ) {
-                    return rowList.get( irow )[ icol ];
-                }
-            };
+            return TableData.createTableData( reporter_, table );
         }
     }
 
@@ -1025,28 +997,6 @@ public class ObsTapStage implements Stage {
      */
     private static String nameKey( String name ) {
         return name.toLowerCase();
-    }
-
-    /**
-     * Contains the data from a table in easy to digest form (no IOExceptions).
-     * Suitable for holding small tables.
-     */
-    private static abstract class TableData {
-
-        /**
-         * Returns number of rows.
-         *
-         * @return  row count
-         */
-        abstract int getRowCount();
-
-        /**
-         * Returns the value of a cell.
-         *
-         * @param  irow  row index
-         * @param  icol  column index
-         */
-        abstract Object getCell( int irow, int icol );
     }
 
     /**
