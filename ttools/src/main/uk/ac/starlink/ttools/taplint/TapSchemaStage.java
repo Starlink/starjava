@@ -217,6 +217,36 @@ public class TapSchemaStage extends TableMetadataStage {
                                  "keys", "key_id" );
         }
 
+        /* Check consistency of size and arraysize columns. */
+        if ( tapVersion.is11() ) {
+            String adql = "SELECT table_name, column_name, datatype, "
+                               + "arraysize, \"size\" "
+                        + "FROM TAP_SCHEMA.columns";
+            TapQuery tq = tsi.createTapQuery( adql );
+            StarTable table = tapRunner_.getResultTable( reporter, tq );
+            if ( table != null ) {
+                try {
+                    RowSequence rseq = table.getRowSequence();
+                    while ( rseq.next() ) {
+                        Object[] row = rseq.getRow();
+                        String tname = (String) row[ 0 ];
+                        String cname = (String) row[ 1 ];
+                        String dtype = (String) row[ 2 ];
+                        String arraysize = (String) row[ 3 ];
+                        Number size = (Number) row[ 4 ];
+                        boolean isCharacter = "char".equals( dtype )
+                                           || "unicodeChar".equals( dtype );
+                        checkArraysize( reporter, tname, cname,
+                                        arraysize, size, isCharacter );
+                    }
+                }
+                catch ( Throwable e ) {
+                    reporter.report( FixedCode.F_DTIO,
+                                     "Trouble checking size/arraysize", e );
+                }
+            }
+        }
+
         /* Return the schemas, if we managed to read any. */
         return sList == null ? null : sList.toArray( new SchemaMeta[ 0 ] );
     }
@@ -321,6 +351,77 @@ public class TapSchemaStage extends TableMetadataStage {
             reporter.report( code,
                              "Unused entry in TAP_SCHEMA." + stName
                            + " table: " + key );
+        }
+    }
+
+    /**
+     * Checks that the TAP_SCHEMA.columns columns arraysize and size
+     * are consistent, in accordance with the text in TAP 1.1 sec 4.3.
+     *
+     * @param  reporter   message destination
+     * @param  tname      table name, used for reporting
+     * @param  cname      column name, used for reporting
+     * @param  arraysize  value of arraysize column
+     * @param  size       value of size column
+     * @param  isCharacter  true for apparently character/string-like columns
+     */
+    private void checkArraysize( Reporter reporter, String tname, String cname,
+                                 String arraysize, Number size,
+                                 boolean isCharacter ) {
+        String context = new StringBuffer()
+            .append( tname )
+            .append( "." )
+            .append( cname )
+            .append( ": arraysize=" )
+            .append( arraysize )
+            .append( "; size=" )
+            .append( size )
+            .toString();
+        if ( arraysize == null ) {
+            if ( size != null ) {
+                reporter.report( FixedCode.E_TSSZ,
+                                 "Non-null size for null arraysize: "
+                               + context );
+            }
+        }
+        else if ( "*".equals( arraysize ) ) {
+            if ( size != null ) {
+                reporter.report( FixedCode.E_TSSZ,
+                                 "Arraysize/size mismatch: " + context );
+            }
+        }
+        else if ( arraysize.matches( "[0-9]+[*]?" ) ) {
+            String astxt = arraysize.endsWith( "*" )
+                         ? arraysize.substring( 0, arraysize.length() - 1 )
+                         : arraysize;
+            long asize = Long.parseLong( astxt );
+            if ( size == null || size.longValue() != asize ) {
+                reporter.report( FixedCode.E_TSSZ,
+                                 "Size does not match arraysize for vector: "
+                               + context );
+            }
+
+            /* TAP 1.1 sec 4.3 says 'both arraysize and "size" must be null
+             * for scalar numeric columns', so we exclude character-like
+             * columns here.  That also means that people who want to use
+             * arraysize=1 to get round problems with binary-encoded
+             * VOTables and STIL votable.strict issues don't get warnings. */
+            else if ( "1".equals( arraysize ) && ! isCharacter ) {
+                reporter.report( FixedCode.W_TSZ1,
+                                 "Questionable use of single-element array: "
+                               + context );
+            }
+        }
+        else if ( arraysize.matches( "([0-9]+x)+[0-9]*[0-9*]" ) ) {
+            if ( size != null ) {
+                reporter.report( FixedCode.E_TSSZ,
+                                 "Non-null size does not match arraysize: "
+                               + context );
+            }
+        }
+        else {
+            reporter.report( FixedCode.E_TSAZ,
+                             "Bad arraysize syntax: " + context );
         }
     }
 
@@ -781,6 +882,11 @@ public class TapSchemaStage extends TableMetadataStage {
             finally {
                 rseq.close();
             }
+        }
+
+        @Override
+        public TapQuery createTapQuery( String adql ) {
+            return super.createTapQuery( adql );
         }
     }
 }
