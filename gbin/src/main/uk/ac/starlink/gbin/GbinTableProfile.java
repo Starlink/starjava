@@ -73,10 +73,29 @@ public interface GbinTableProfile {
      * Only public instance methods of the form
      * <code>getXxx()</code> or <code>isXxx()</code>
      * are used in any case.
+     * The restrictions determined by {@link #getIgnoreMethodDeclaringClasses}
+     * also apply.
      *
      * @return   list of accessor method names to ignore
      */
     String[] getIgnoreMethodNames();
+
+    /**
+     * Returns the list of method-declaring classnames for which
+     * the corresponding methods will be ignored when coming up
+     * with a list of columns for an object.
+     * Any method <code>m</code> for which <code>m.getDeclaringClass()</code>
+     * returns a class whose name is returned by this method will not
+     * be used to generate columns in an output table.
+     * Only public instance methods of the form
+     * <code>getXxx()</code> or <code>isXxx()</code>
+     * are used in any case.
+     * The restrictions determined by {@link #getIgnoreMethodNames}
+     * also apply.
+     *
+     * @return  list of declaring classes whose methods are to be ignored
+     */
+    String[] getIgnoreMethodDeclaringClasses();
 
     /**
      * Returns an object which can represent a particular data type returned

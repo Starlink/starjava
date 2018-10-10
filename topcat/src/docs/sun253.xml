@@ -27507,6 +27507,9 @@ introduced since the last version:
         That means that by default, missing <code>arraysize</code>
         attributes on VOTable FIELD/PARAM elements are taken seriously
         rather than being interpreted as <code>arraysize="*"</code>.</li>
+    <li>GBIN reading fix to work around changed behaviour in recent
+        GaiaTools versions (19.4.*, &gt;=20.1.0 and &gt;=21.0.0)
+        that caused GBIN table reading to fail.</li>
     </ul>
     </p></dd>
 

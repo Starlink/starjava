@@ -100,6 +100,34 @@ public class DefaultGbinTableProfile implements GbinTableProfile {
         };
     }
 
+    /**
+     * This implementation returns the classnames
+     * <code>gaia.cu1.tools.dm.GaiaRoot</code> and
+     * <code>gaia.cu1.tools.dmimpl.GaiaRootImpl</code>.
+     * This behaviour addresses an issue that shows up in versions of
+     * GaiaTools 19.4.*, &gt;=20.1.0 and &gt;=21.0.0,
+     * where invoking the GaiaRoot <code>getSolutionId</code>
+     * method throws an exception.
+     *
+     * <p>The <code>getSolutionId</code> method is present in all
+     * <code>GaiaRoot</code> subtypes, but in some cases no
+     * <code>solutionId</code> field is defined.
+     * In that circumstance older GaiaTools versions simply returned
+     * a dummy value Long.MIN_VALUE, but more recent versions throw
+     * an exception, which caused the GbinStarTable construction to fail.
+     *
+     * <p>Avoiding attempts to turn the <code>getSolutionId</code> method
+     * into a GbinStarTable column can be done by checking whether
+     * the class declaring the method is GaiaRoot/GaiaRootImpl,
+     * as provided here.  This fix was suggested by Alexander Hutton (CU1).
+     */
+    public String[] getIgnoreMethodDeclaringClasses() {
+        return new String[] {
+            "gaia.cu1.tools.dm.GaiaRoot",
+            "gaia.cu1.tools.dmimpl.GaiaRootImpl",
+        };
+    }
+
     public Representation<?> createRepresentation( Class<?> clazz ) {
 
         /* If we have a specific representation for this type, use it. */

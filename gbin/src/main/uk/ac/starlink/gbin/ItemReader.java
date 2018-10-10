@@ -239,6 +239,10 @@ public class ItemReader {
         Collection<String> ignoreNames =
             new HashSet<String>( Arrays
                                 .asList( profile.getIgnoreMethodNames() ) );
+        Collection<String> ignoreMethodDeclaringClasses =
+            new HashSet<String>( Arrays
+                                .asList( profile
+                                        .getIgnoreMethodDeclaringClasses() ) );
 
         /* Get all methods provided by the parent class. */
         Method[] methods = parentClazz.getMethods();
@@ -255,47 +259,51 @@ public class ItemReader {
         /* For each method, if it looks like a data accessor, turn it into
          * an ItemReader or a hierarchy of them. */
         for ( Method method : methods ) {
-            String itemName = getItemName( method, ignoreNames );
-            if ( itemName != null ) {
-                Representation<?> repr =
-                    profile.createRepresentation( method.getReturnType() );
-                if ( repr == null ) {
-                    logger_.info( "Skip GBIN column " + itemName
-                                + ", return type "
-                                + method.getReturnType().getSimpleName()
-                                + " blocked by profile" );
-                }
-                else {
-                    Class<?> clazz = repr.getContentClass();
-                    ItemReader rdr =
-                        new ItemReader( parentRdr, method, itemName, repr );
-                    if ( repr.isColumn() ) {
-                        rdrList.add( rdr );
-                        logger_.config( new StringBuffer()
-                                      .append( "GBIN col: " )
-                                      .append( prefix )
-                                      .append( "  - " )
-                                      .append( rdr.getItemName() )
-                                      .append( "  (" )
-                                      .append( clazz.getSimpleName() )
-                                      .append( ")" )
-                                      .toString() );
+            if ( ! ignoreMethodDeclaringClasses
+                  .contains( method.getDeclaringClass().getName() ) ) {
+                String itemName = getItemName( method, ignoreNames );
+                if ( itemName != null ) {
+                    Representation<?> repr =
+                        profile.createRepresentation( method.getReturnType() );
+                    if ( repr == null ) {
+                        logger_.info( "Skip GBIN column " + itemName
+                                    + ", return type "
+                                    + method.getReturnType().getSimpleName()
+                                    + " blocked by profile" );
                     }
                     else {
-
-                        /* We have to be a bit careful here.
-                         * Don't add any object whose types have already
-                         * appeared higher up in the hierarchy,
-                         * since that will lead to infinite recursion. */
-                        if ( ! hasAncestorType( rdr.getParentReader(),
-                                                clazz ) ) {
-                            addItemReaders( clazz, rdr, rdrList, iLevel + 1,
-                                            profile );
+                        Class<?> clazz = repr.getContentClass();
+                        ItemReader rdr =
+                            new ItemReader( parentRdr, method, itemName, repr );
+                        if ( repr.isColumn() ) {
+                            rdrList.add( rdr );
+                            logger_.config( new StringBuffer()
+                                          .append( "GBIN col: " )
+                                          .append( prefix )
+                                          .append( "  - " )
+                                          .append( rdr.getItemName() )
+                                          .append( "  (" )
+                                          .append( clazz.getSimpleName() )
+                                          .append( ")" )
+                                          .toString() );
                         }
                         else {
-                            logger_.warning( "Skip GBIN column " + rdr
-                                           + " (" + clazz.getSimpleName() + ") "
-                                           + " to avoid infinite recursion" );
+
+                            /* We have to be a bit careful here.
+                             * Don't add any object whose types have already
+                             * appeared higher up in the hierarchy,
+                             * since that will lead to infinite recursion. */
+                            if ( ! hasAncestorType( rdr.getParentReader(),
+                                                    clazz ) ) {
+                                addItemReaders( clazz, rdr, rdrList, iLevel + 1,
+                                                profile );
+                            }
+                            else {
+                                logger_.warning( "Skip GBIN column " + rdr
+                                               + " (" + clazz.getSimpleName()
+                                               + ") to avoid"
+                                               + " infinite recursion" );
+                            }
                         }
                     }
                 }
