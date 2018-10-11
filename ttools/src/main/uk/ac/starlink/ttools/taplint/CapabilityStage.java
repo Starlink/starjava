@@ -1,8 +1,5 @@
 package uk.ac.starlink.ttools.taplint;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,13 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import uk.ac.starlink.vo.OutputFormat;
-import uk.ac.starlink.vo.TapCapabilitiesDoc;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapLanguageFeature;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
-import org.xml.sax.SAXException;
 
 /**
  * Stage for checking content of TAPRegExt capability metadata.
@@ -27,9 +22,9 @@ import org.xml.sax.SAXException;
  * @see     <a href="http://www.ivoa.net/Documents/TAPRegExt/index.html"
  *             >IVOA TAPRegExt Standard</a>
  */
-public class CapabilityStage implements Stage, CapabilityHolder {
+public class CapabilityStage implements Stage {
 
-    private TapCapability tcap_;
+    private final CapabilityHolder capHolder_;
 
     private static final String ADQL2_ID = "ivo://ivoa.net/std/ADQL#v2.0";
     private static final Pattern UDF_FORM_REGEX =
@@ -41,60 +36,27 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        + ")/" + TOKEN_REGEX + "\\s*(;.*)?",
                          Pattern.CASE_INSENSITIVE );
 
+    /**
+     * Constructor.
+     *
+     * @param  capHolder source for capabilities document
+     */
+    public CapabilityStage( CapabilityHolder capHolder ) {
+        capHolder_ = capHolder;
+    }
+
     public String getDescription() {
         return "Check content of TAPRegExt capabilities record";
     }
 
-    /**
-     * Returns the TAP capability record obtained by the last run of this stage.
-     *
-     * @return   tap capability object
-     */
-    public TapCapability getCapability() {
-        return tcap_;
-    }
-
     public void run( Reporter reporter, TapService tapService ) {
-        tcap_ = checkCapabilities( reporter,
-                                   tapService.getCapabilitiesEndpoint() );
-    }
-
-    /**
-     * Performs validation checks on a TAPRegExt document at a given URL.
-     *
-     * @param   reporter  destination for validation messages
-     * @param   capUrl  URL of a Capabilities document
-     */
-    public static TapCapability checkCapabilities( Reporter reporter,
-                                                   URL capUrl ) {
-
-        /* Attempt to read a TapCapability object from the URL.
-         * If it can't be done, give up now. */
-        final TapCapabilitiesDoc tcapdoc;
-        reporter.report( FixedCode.I_CURL,
-                         "Reading capability metadata from " + capUrl );
-        try {
-            tcapdoc = TapCapabilitiesDoc.readCapabilities( capUrl );
-        }
-        catch ( SAXException e ) {
-            reporter.report( FixedCode.E_CPSX,
-                             "Error parsing capabilities metadata", e );
-            return null;
-        }
-        catch ( IOException e ) {
-            reporter.report( FixedCode.E_CPIO,
-                             "Error reading capabilities metadata", e );
-            return null;
-        }
-        TapCapability tcap = tcapdoc.getTapCapability();
+        TapCapability tcap = capHolder_.getCapability();
         if ( tcap == null ) {
-            reporter.report( FixedCode.E_CPIO, "No TAP capabilities found" );
-            return null;
+            reporter.report( FixedCode.F_CAP0, "No TAP capabilities" );
         }
-
-        /* Do the work. */
-        new CapabilityRunner( reporter, tcap ).run();
-        return tcap;
+        else {
+            new CapabilityRunner( reporter, tcap ).run();
+        }
     }
 
     /**
@@ -418,23 +380,5 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                 }
             }
         }
-    }
-
-    /**
-     * Can be used for standalone validation of a Capabilities document
-     * at a given URL.
-     */
-    public static void main( String[] args ) throws MalformedURLException {
-        if ( args.length != 1 ) {
-            System.err.println( "Usage: "
-                              + CapabilityStage.class.getName() + ": "
-                              + "<cap-doc-url>" );
-            System.exit( 1 );
-        }
-        Reporter reporter =
-            new TextOutputReporter( System.out, ReportType.values(), 10,
-                                    false, 1024 );
-        URL capUrl = new URL( args[ 0 ] );
-        checkCapabilities( reporter, capUrl );
     }
 }

@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,9 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.vo.StdCapabilityInterface;
+import uk.ac.starlink.vo.TapCapabilitiesDoc;
+import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.UserAgentUtil;
@@ -42,6 +47,7 @@ public class TapLinter {
     private final ObsTapStage obstapStage_;
     private final ExampleStage exampleStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
+    private final CapabilitiesReader capabilitiesReader_;
 
     /** Name of the MDQ stage. */
     public static final String MDQ_NAME = "MDQ";
@@ -52,6 +58,7 @@ public class TapLinter {
     public TapLinter() {
 
         /* Create all known validation stages. */
+        capabilitiesReader_ = new CapabilitiesReader();
         tmetaXsdStage_ = new XsdStage( IvoaSchemaResolver.VODATASERVICE_URI,
                                        "tableset", false, "table metadata" ) {
             public URL getDocumentUrl( TapService tapService ) {
@@ -81,7 +88,7 @@ public class TapLinter {
                 return tapService.getCapabilitiesEndpoint();
             }
         };
-        tcapStage_ = new CapabilityStage();
+        tcapStage_ = new CapabilityStage( capabilitiesReader_ );
         availXsdStage_ = new XsdStage( IvoaSchemaResolver.AVAILABILITY_URI,
                                        "availability", false, "availability" ) {
             public URL getDocumentUrl( TapService tapService ) {
@@ -90,7 +97,7 @@ public class TapLinter {
         };
         getQueryStage_ =
             new QueryStage( VotLintTapRunner.createGetSyncRunner( true ),
-                            metaHolder, tcapStage_ );
+                            metaHolder, capabilitiesReader_ );
         postQueryStage_ =
             new QueryStage( VotLintTapRunner.createPostSyncRunner( true ),
                             metaHolder, null );
@@ -104,16 +111,16 @@ public class TapLinter {
                                      declaredMetaHolder, -1 );
         uploadStage_ =
             new UploadStage( VotLintTapRunner.createAsyncRunner( 500, true ),
-                             tcapStage_ );
+                             capabilitiesReader_ );
         obstapStage_ =
             new ObsTapStage( VotLintTapRunner.createGetSyncRunner( true ),
-                             tcapStage_,
+                             capabilitiesReader_,
                              new AnyMetadataHolder( new MetadataHolder[] {
                                  tapSchemaStage_, tmetaStage_,
                              } ) );
         exampleStage_ =
             new ExampleStage( VotLintTapRunner.createGetSyncRunner( true ),
-                              tcapStage_,
+                              capabilitiesReader_,
                               new AnyMetadataHolder( new MetadataHolder[] {
                                   tapSchemaStage_, tmetaStage_,
                               } ) );
@@ -199,6 +206,7 @@ public class TapLinter {
 
         /* Other initialisation. */
         tapSchemaMetadata_.setReporter( reporter );
+        capabilitiesReader_.init( reporter, tapService );
         colMetaStage_.setMaxTestTables( maxTestTables );
 
         /* Create and return an executable which will run the
@@ -332,6 +340,88 @@ public class TapLinter {
          */
         Stage getStage( String code ) {
             return stageMap_.get( code );
+        }
+    }
+
+    /**
+     * CapabilityHolder implementation.
+     * It reads the capabilities document, once, when it is first requested.
+     * The init method must be called before it is used.
+     */
+    private static class CapabilitiesReader implements CapabilityHolder {
+        private Reporter reporter_;
+        private TapService tapService_;
+        private TapCapabilitiesDoc capsDoc_;
+
+        /**
+         * Initialises for use.
+         *
+         * @param  reporter  reporter
+         * @param  tapService   target service
+         */
+        public void init( Reporter reporter, TapService tapService ) {
+            reporter_ = reporter;
+            tapService_ = tapService;
+        }
+
+        public TapCapability getCapability() {
+            return getCapabilitiesDoc().getTapCapability();
+        }
+
+        public StdCapabilityInterface[] getInterfaces() {
+            return getCapabilitiesDoc().getInterfaces();
+        }
+
+        /**
+         * Returns a lazily-read capabilities document.
+         * May be a dummy if reading fails, but will not be null.
+         *
+         * @return  capabilities document, not null
+         */
+        private TapCapabilitiesDoc getCapabilitiesDoc() {
+            if ( capsDoc_ == null ) {
+                capsDoc_ = readCapabilitiesDoc();
+            }
+            return capsDoc_;
+        }
+
+        /**
+         * Reads a capabilities document from the TAP service.
+         * May be a dummy if reading fails, but will not be null.
+         *
+         * @return  capabilities document, not null
+         */
+        private TapCapabilitiesDoc readCapabilitiesDoc() {
+            URL capUrl = tapService_.getCapabilitiesEndpoint();
+            reporter_.report( FixedCode.I_CURL,
+                              "Reading capability metadata from " + capUrl );
+            try {
+                return TapCapabilitiesDoc.readCapabilities( capUrl );
+            }
+            catch ( SAXException e ) {
+                reporter_.report( FixedCode.E_CPSX,
+                                  "Error parsing capabilities metadata", e );
+                return createDummy();
+            }
+            catch ( IOException e ) {
+                reporter_.report( FixedCode.E_CPIO,
+                                  "Error reading capabilities metadata", e );
+                return createDummy();
+            }
+        }
+
+        /**
+         * Returns a dummy capabilities document.
+         *
+         * @return  capabilities document with no content
+         */
+        private static TapCapabilitiesDoc createDummy() {
+
+            /* Strictly speaking supplying null for the list of interfaces
+             * violates the TapCapabilitiesDoc contract, but since it's only
+             * used internally here it's OK. */
+            return new TapCapabilitiesDoc( (TapCapability) null,
+                                           (StdCapabilityInterface[]) null );
         }
     }
 }

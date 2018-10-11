@@ -213,6 +213,7 @@ public enum FixedCode implements ReportCode {
     W_ZRES( "Resolver not used?" ),
 
     F_CAIO( "Bad capabilities service URL" ),
+    F_CAP0( "No capabilities available" ),
     F_CAPC( "XML parser error" ),
     F_DTIO( "Unexpected table read error" ),
     F_EXNO( "No examples document" ),

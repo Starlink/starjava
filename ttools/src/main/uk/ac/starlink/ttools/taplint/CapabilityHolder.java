@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
+import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapCapability;
 
 /**
@@ -11,9 +12,17 @@ import uk.ac.starlink.vo.TapCapability;
 public interface CapabilityHolder {
 
     /**
-     * Returns capabilities of a TAP service.
+     * Returns TAPRegExt capability information for a TAP service.
      *
-     * @return   table capabilities object
+     * @return   table capabilities object; may be null if not available
      */
     TapCapability getCapability();
+
+    /**
+     * Returns the list of declared capability/interface elements
+     * from a TAP service's capabilities endpoint.
+     *
+     * @return  interfaces, or null if not available
+     */
+    StdCapabilityInterface[] getInterfaces();
 }
