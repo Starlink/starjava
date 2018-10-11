@@ -15,6 +15,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.SchemaMeta;
+import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TableSetSaxHandler;
 import uk.ac.starlink.vo.TapService;
@@ -28,16 +29,37 @@ import uk.ac.starlink.vo.TapService;
  */
 public class TablesEndpointStage extends TableMetadataStage {
 
+    private final CapabilityHolder capHolder_;
     private final ContentCoding coding_;
 
-    public TablesEndpointStage() {
+    public TablesEndpointStage( CapabilityHolder capHolder ) {
         super( "/tables",
                new String[] { "indexed", "primary", "nullable" }, true );
+        capHolder_ = capHolder;
         coding_ = ContentCoding.NONE;
     }
 
     protected SchemaMeta[] readTableMetadata( Reporter reporter,
                                               TapService tapService ) {
+
+        /* Determine if tables endpoint is declared. */
+        StdCapabilityInterface[] intfs = capHolder_.getInterfaces();
+        Boolean declaresTables;
+        if ( intfs == null ) {
+            declaresTables = null;
+        }
+        else {
+            declaresTables = Boolean.FALSE; 
+            for ( StdCapabilityInterface intf : intfs ) {
+                String stdid = intf.getStandardId();
+                if ( stdid != null &&
+                     stdid.startsWith( "ivo://ivoa.net/std/VOSI#tables" ) ) {
+                    declaresTables = Boolean.TRUE;
+                }
+            }
+        }
+
+        /* Prepare to read tables document. */
         URL turl = tapService.getTablesEndpoint();
         reporter.report( FixedCode.I_TURL,
                          "Reading table metadata from " + turl );
@@ -76,6 +98,10 @@ public class TablesEndpointStage extends TableMetadataStage {
                    .append( turl )
                    .toString();
                 reporter.report( FixedCode.W_TBNF, msg );
+                if ( Boolean.TRUE.equals( declaresTables ) ) {
+                    reporter.report( FixedCode.E_TADH,
+                                     "Tables endpoint declared but absent" );
+                }
                 return null;
             }
             else if ( code != HttpURLConnection.HTTP_OK ) {
@@ -88,6 +114,18 @@ public class TablesEndpointStage extends TableMetadataStage {
                 reporter.report( FixedCode.E_FLIO, msg );
                 return null;
             }
+        }
+
+        /* Check if declaration matches presence. */
+        if ( Boolean.FALSE.equals( declaresTables ) ) {
+
+            /* TAP 1.1 (PR-20180830) mandates that the examples endpoint
+             * must be declared in the capabilities if it is present.
+             * TAP 1.0 doesn't (examples wasn't invented then).
+             * So adjust the report level in case of discrepancy. */
+            boolean is11 = tapService.getTapVersion().is11();
+            reporter.report( is11 ? FixedCode.E_TADH : FixedCode.W_TADH,
+                             "Tables endpoint present but undeclared" );
         }
 
         /* Get input stream. */

@@ -65,7 +65,7 @@ public class TapLinter {
                 return tapService.getTablesEndpoint();
             }
         };
-        tmetaStage_ = new TablesEndpointStage();
+        tmetaStage_ = new TablesEndpointStage( capabilitiesReader_ );
         tapSchemaStage_ =
             new TapSchemaStage( VotLintTapRunner.createGetSyncRunner( true ) );
         tapSchemaMetadata_ = new TapSchemaMetadataHolder();

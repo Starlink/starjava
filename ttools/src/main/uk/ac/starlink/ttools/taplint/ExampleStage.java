@@ -41,6 +41,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlValidator;
+import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
 
@@ -61,6 +62,8 @@ public class ExampleStage implements Stage {
     private final CapabilityHolder capHolder_;
     private final MetadataHolder metaHolder_;
 
+    private static final String EXAMPLES_STDID =
+        "ivo://ivoa.net/std/DALI#examples";
     private static final int QUERY_MAXREC = 10;
     private static final Pattern XMLNAME_REGEX = createXmlNameRegex();
     private static final Set<String> BODY_PLAINTEXT_PROPS = createStringSet(
@@ -126,13 +129,42 @@ public class ExampleStage implements Stage {
         ExampleRunner runner =
             new ExampleRunner( reporter, tapService, tapRunner_,
                                capHolder_, metaHolder_ );
+        boolean hasExamples;
         try {
             runner.checkExamplesDocument( exUrl );
-            runner.reportSummary();
+            hasExamples = true;
         }
         catch ( FileNotFoundException e ) {
             reporter.report( FixedCode.F_EXNO,
                              "No examples document at " + exUrl );
+            hasExamples = false;
+        }
+
+        /* Check the capabilities declaration matches the reality. */
+        StdCapabilityInterface[] intfs = capHolder_.getInterfaces();
+        if ( intfs != null ) {
+            boolean declaresExamples = false;
+            for ( StdCapabilityInterface intf : intfs ) {
+                if ( EXAMPLES_STDID.equals( intf.getStandardId() ) ) {
+                    declaresExamples = true;
+                }
+            }
+            if ( hasExamples && ! declaresExamples ) {
+                reporter.report( FixedCode.E_EXDH,
+                                 "Examples endpoint present but undeclared" );
+            }
+            else if ( declaresExamples && ! hasExamples ) {
+                reporter.report( FixedCode.E_EXDH,
+                                 "Examples endpoint declared but absent" );
+            }
+            else {
+                assert hasExamples == declaresExamples;
+            }
+        }
+
+        /* Summarise. */
+        if ( hasExamples ) {
+            runner.reportSummary();
         }
     }
 
