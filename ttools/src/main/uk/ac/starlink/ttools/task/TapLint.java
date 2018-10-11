@@ -62,7 +62,6 @@ public class TapLint implements Task {
                  .append( "</code>" )
                  .append( ": " )
                  .append( stage.getDescription() )
-                 .append( on ? " (on)" : "" )
                  .append( "</li>" )
                  .append( "\n" );
             if ( subuf.length() > 0 ) {
