@@ -824,18 +824,20 @@ public class JobStage implements Stage {
         private void checkDateTime( URL url, String txt, UwsVersion version ) {
             if ( txt != null && txt.length() > 0 &&
                  ! version.iso8601Regex_.matcher( txt ).matches() ) {
-                String msg = new StringBuilder()
+                StringBuffer sbuf = new StringBuffer()
                       .append( "Not recommended UWS " )
                       .append( version )
                       .append( " ISO-8601 form" )
-                      .append( " (or empty string) " )
-                      .append( '"' )
-                      .append( txt )
-                      .append( '"' )
-                      .append( " from " )
-                      .append( url )
-                      .toString();
-                reporter_.report( FixedCode.W_TFMT, msg );
+                      .append( " or empty string" );
+                if ( version.requireZ_ && ! txt.endsWith( "Z" ) ) {
+                    sbuf.append( " (missing trailing Z)" );
+                }
+                sbuf.append( " \"" )
+                    .append( txt )
+                    .append( '"' )
+                    .append( " from " )
+                    .append( url );
+                reporter_.report( FixedCode.W_TFMT, sbuf.toString() );
             }
         }
 
@@ -993,13 +995,14 @@ public class JobStage implements Stage {
     private enum UwsVersion {
 
         /* UWS Version 1.0. */
-        V10( "V1.0", false, "[T ]", "Z?" ),
+        V10( "V1.0", false, "[T ]", false ),
 
         /* UWS Version 1.1. */
-        V11( "V1.1", true, "T", "Z" );
+        V11( "V1.1", true, "T", true );
            
         final String name_;
         final boolean quoteIsIso8601_;
+        final boolean requireZ_;
         final Pattern iso8601Regex_;
 
         /**
@@ -1007,15 +1010,17 @@ public class JobStage implements Stage {
          *
          * @param  name  user-visible name
          * @param  quoteIsIso8601  whether quote endpoint is supposed to be
-         *                         and ISO-8601 string; this was modified
+         *                         an ISO-8601 string; this was modified
          *                         (corrected) from v1.0 to v1.1
          * @param  dateSep   ISO8601 date-time separator regex
+         * @param  requireZ  true iff trailing Z is required on ISO-8601 dates
          * @param  dateTrail ISO8601 trailing time zone indicated regex
          */
         UwsVersion( String name, boolean quoteIsIso8601,
-                    String dateSep, String dateTrail ) {
+                    String dateSep, boolean requireZ ) {
             name_ = name;
             quoteIsIso8601_ = quoteIsIso8601;
+            requireZ_ = requireZ;
             iso8601Regex_ = Pattern.compile(
                 "([0-9]{4})-"
               + "(0[1-9]|1[0-2])-"
@@ -1025,7 +1030,7 @@ public class JobStage implements Stage {
               + "(:[0-5][0-9]"
               + "(:[0-5][0-9]"
               + "([.][0-9]*)?)?)?)?"
-              + dateTrail );
+              + ( requireZ ? "Z" : "Z?" ) );
         }
 
         @Override
