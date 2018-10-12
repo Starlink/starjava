@@ -143,6 +143,7 @@ public class Base64InputStream extends FilterInputStream {
                 }
                 if( cur == '=' ) {
                     // pad character
+                    state = 4;
                     return -1;
                 }
                 if( table[cur] != -1 ) {
@@ -158,6 +159,7 @@ public class Base64InputStream extends FilterInputStream {
                 }
                 if( cur == '=' ) {
                     // pad character
+                    state = 1;
                     return -1;
                 }
                 if( table[cur] != -1 ) {
