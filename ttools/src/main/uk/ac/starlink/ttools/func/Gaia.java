@@ -418,7 +418,7 @@ public class Gaia {
      * @example  <code>astromUVW(array(ra, dec, parallax, pmra, pmdec,
      *                                 radial_velocity))</code>
      * @example  <code>icrsToGal(astromUVW(array(ra, dec, parallax, pmra, pmdec,
-     *                                           radial_velocity))</code>
+     *                                           radial_velocity)))</code>
      *
      * @param   astrom6   vector of 6 astrometric parameters
      *                    as provided by the Gaia source catalogue
