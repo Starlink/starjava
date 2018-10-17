@@ -30,7 +30,10 @@ then
    export CLASSPATH=$stilts_jar
    jython $pypath_def "$@"
 else
-   echo "jython is not on your PATH." 2>&1
-   echo "Install jython (www.jython.org) to run JyStilts" 2>&1
+   echo 2>&1
+   echo "   Jython is not on your PATH." 2>&1
+   echo "   Install jython (www.jython.org) to run JyStilts" 2>&1
+   echo "   (or download monolithic jystilts.jar file)" 2>&1
+   echo 2>&1
    exit 1
 fi
