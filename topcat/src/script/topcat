@@ -34,17 +34,15 @@
 #     MBT: Mark Taylor (Starlink)
 #-
 
-# Set locations of acceptable jar files (relative to this script).
-topcat_jars="\
- ../lib/topcat/topcat.jar\
- topcat-full.jar\
- topcat-lite.jar\
-"
-
 #  Find where this script is located.
 scriptname=`readlink -f $0 2>/dev/null`
 test -n "$scriptname" || scriptname=$0
 bindir="`dirname $scriptname`"
+
+# Set locations of acceptable jar files.
+topcat_jars="$bindir/topcat-full.jar \
+             $bindir/topcat-lite.jar \
+             $bindir/../lib/topcat/topcat.jar"
 
 # Mac-specific items.
 javaArgs0=""
@@ -52,15 +50,19 @@ if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
 
    # Look for the jar in the resource bundle, since we may have been
    # installed that way.
-   topcat_jars="$topcat_jars ../Contents/Resources/Java/topcat-full.jar ../TOPCAT.app/Contents/Resources/Java/topcat-full.jar"
+   bundle_jar_path="Contents/Resources/Java/topcat-full.jar"
+   topcat_jars="$topcat_jars \
+                $bindir/../$bundle_jar_path \
+                $bindir/../TOPCAT.app/$bundle_jar_path"
 
    # Look for an icon file and prepare to start java in such a way that
    # it gets used for the dock icon (rather than the generic java one).
-   icns_files="../TOPCAT.app/Contents/Resources/Topcat.icns ../lib/topcat/MacOS/Topcat.icns"
+   icns_files="$bindir/../TOPCAT.app/Contents/Resources/Topcat.icns \
+               $bindir/../lib/topcat/MacOS/Topcat.icns"
    icns_file=""
    for f in $icns_files; do
-      if test -r "$bindir/$f"; then
-         icns_file="$bindir/$f"
+      if test -r "$f"; then
+         icns_file="$f"
       fi
    done
    if test -r "$icns_file" && java -X | grep -q -- -Xdock:icon; then
@@ -68,18 +70,20 @@ if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
    fi
 
    # Set Mac application name.
-   javaArgs0="$javaArgs0 -Dcom.apple.mrj.application.apple.menu.about.name=TOPCAT"
+   javaArgs0="$javaArgs0 \
+              -Dcom.apple.mrj.application.apple.menu.about.name=TOPCAT"
 fi
 
 #  Locate the application jar file. 
 for j in $topcat_jars; do
-   if test -z "$appjar" -a -f "$bindir/$j"; then
-      appjar="$bindir/$j"
+   if test -z "$appjar" -a -f "$j"; then
+      appjar="$j"
    fi
 done
 if test ! -f "$appjar"
 then
-   echo 1>&2 "Can't find topcat classes in ${bindir} - looked for:$topcat_jars"
+   echo 1>&2 "Can't find topcat classes relative to ${scriptname} - looked for:"
+   echo " " "$topcat_jars" | sed 1>&2 's/  */\n   /g'
    exit 1
 fi
 

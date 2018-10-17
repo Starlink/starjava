@@ -38,32 +38,38 @@
 #     MBT: Mark Taylor (Starlink)
 #-
 
+#  Find where this script is located.
+scriptname=`readlink -f $0 2>/dev/null`
+test -n "$scriptname" || scriptname=$0
+bindir="`dirname $scriptname`"
+
 #  Set locations of acceptable jar files (relative to this script).
 stilts_jars="\
- stilts.jar\
- ../lib/ttools/stilts-app.jar\
- stilts-app.jar\
- topcat-full.jar\
- topcat-lite.jar\
+ $bindir/stilts.jar\
+ $bindir/../lib/ttools/stilts-app.jar\
+ $bindir/stilts-app.jar\
+ $bindir/topcat-full.jar\
+ $bindir/topcat-lite.jar\
 "
 
 # If we're on a Mac, look for the jar in the resource bundle.
 if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
-   stilts_jars="$stilts_jars ../Contents/Resources/Java/topcat-full.jar ../TOPCAT.app/Contents/Resources/Java/topcat-full.jar"
+   bundle_topcat_jar_path="Contents/Resources/Java/topcat-full.jar"
+   stilts_jars="$stilts_jars \
+                $bindir/../$bundle_topcat_jar_path \
+                $bindir/../TOPCAT.app/$bundle_topcat_jar_path"
 fi
-
-#  Find where this script is located.
-bindir="`dirname $0`"
 
 #  Locate the application jar file.
 for j in $stilts_jars; do
-   if test -z "$appjar" -a -f "$bindir/$j"; then
-      appjar="$bindir/$j"
+   if test -z "$appjar" -a -f "$j"; then
+      appjar="$j"
    fi
 done
 if test ! -f "$appjar"
 then
-   echo 1>&2 "Can't find stilts classes in ${bindir} - looked for:$stilts_jars"
+   echo 1>&2 "Can't find stilts classes relative to ${scriptname} - looked for:"
+   echo " " "$stilts_jars" | sed 1>&2 's/  */\n   /g'
    exit 1
 fi
 
