@@ -53,11 +53,13 @@ if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
    bundle_jar_path="Contents/Resources/Java/topcat-full.jar"
    topcat_jars="$topcat_jars \
                 $bindir/../$bundle_jar_path \
-                $bindir/../TOPCAT.app/$bundle_jar_path"
+                $bindir/../TOPCAT.app/$bundle_jar_path \
+                /Applications/TOPCAT.app/$bundle_jar_path"
 
    # Look for an icon file and prepare to start java in such a way that
    # it gets used for the dock icon (rather than the generic java one).
    icns_files="$bindir/../TOPCAT.app/Contents/Resources/Topcat.icns \
+               /Applications/TOPCAT.app/Contents/Resources/Topcat.icns \
                $bindir/../lib/topcat/MacOS/Topcat.icns"
    icns_file=""
    for f in $icns_files; do

@@ -27510,6 +27510,9 @@ introduced since the last version:
     <li>GBIN reading fix to work around changed behaviour in recent
         GaiaTools versions (19.4.*, &gt;=20.1.0 and &gt;=21.0.0)
         that caused GBIN table reading to fail.</li>
+    <li>Modified <code>topcat</code> startup script behaviour for OS X; 
+        it now also looks in
+        <code>/Applications/TOPCAT.app</code>.</li>
     </ul>
     </p></dd>
 
