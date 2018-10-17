@@ -67,7 +67,7 @@ if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
          icns_file="$f"
       fi
    done
-   if test -r "$icns_file" && java -X | grep -q -- -Xdock:icon; then
+   if test -r "$icns_file" && java -X 2>&1 | grep -q -- -Xdock:icon; then
       javaArgs0="$javaArgs0 "\'-Xdock:icon=$icns_file\'
    fi
 
