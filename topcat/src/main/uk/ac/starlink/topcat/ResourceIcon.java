@@ -716,23 +716,33 @@ public class ResourceIcon implements Icon {
         putMap( nameMap, "ADD_PLOT_HISTO", toAddIcon( PLOT_HISTO ) );
         putMap( nameMap, "ADD_FORM_MARK", toAddIcon( TTRI.FORM_MARK ) );
         putMap( nameMap, "ADD_FORM_SIZE", toAddIcon( TTRI.FORM_SIZE ) );
+        putMap( nameMap, "ADD_FORM_SIZEXY", toAddIcon( TTRI.FORM_SIZEXY ) );
         putMap( nameMap, "ADD_FORM_VECTOR", toAddIcon( TTRI.FORM_VECTOR ) );
         putMap( nameMap, "ADD_FORM_ERROR", toAddIcon( TTRI.FORM_ERROR ) );
         putMap( nameMap, "ADD_FORM_XYELLIPSE",
                          toAddIcon( TTRI.FORM_XYELLIPSE ) );
         putMap( nameMap, "ADD_FORM_SKYELLIPSE",
                          toAddIcon( TTRI.FORM_SKYELLIPSE ) );
+        putMap( nameMap, "ADD_FORM_ELLIPSE_CORR",
+                         toAddIcon( TTRI.FORM_ELLIPSE_CORR ) );
         putMap( nameMap, "ADD_PLOT_LINE", toAddIcon( TTRI.PLOT_LINE ) );
         putMap( nameMap, "ADD_FORM_LINEARFIT",
                          toAddIcon( TTRI.FORM_LINEARFIT ) );
+        putMap( nameMap, "ADD_FORM_QUANTILE", toAddIcon( TTRI.FORM_QUANTILE ) );
         putMap( nameMap, "ADD_PLOT_LABEL", toAddIcon( TTRI.PLOT_LABEL ) );
         putMap( nameMap, "ADD_PLOT_CONTOUR", toAddIcon( TTRI.PLOT_CONTOUR ) );
+        putMap( nameMap, "ADD_FORM_GRID", toAddIcon( TTRI.FORM_GRID ) );
+        putMap( nameMap, "ADD_FORM_SKYDENSITY",
+                         toAddIcon( TTRI.FORM_SKYDENSITY ) );
+        putMap( nameMap, "ADD_FORM_FILL", toAddIcon( TTRI.FORM_FILL ) );
         putMap( nameMap, "ADD_FORM_HISTOGRAM",
                          toAddIcon( TTRI.FORM_HISTOGRAM ) );
         putMap( nameMap, "ADD_FORM_KDE", toAddIcon( TTRI.FORM_KDE ) );
         putMap( nameMap, "ADD_FORM_KNN", toAddIcon( TTRI.FORM_KNN ) );
         putMap( nameMap, "ADD_FORM_DENSOGRAM",
                          toAddIcon( TTRI.FORM_DENSOGRAM ) );
+        putMap( nameMap, "ADD_FORM_GAUSSIAN",
+                         toAddIcon( TTRI.FORM_GAUSSIAN ) );
         putMap( nameMap, "ADD_FORM_MARKS2", toAddIcon( TTRI.FORM_MARKS2 ) );
         putMap( nameMap, "ADD_FORM_LINK2", toAddIcon( TTRI.FORM_LINK2 ) );
 
