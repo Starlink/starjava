@@ -8940,7 +8940,8 @@ wise at least to take a look at the input which caused them:
     <code>ID</code> where the reference makes no, or questionable sense
     (e.g. <code>FIELDref</code> references <code>FIELD</code> in a 
     different table)</li>
-<li>Multiple sibling elements (such as <code>FIELD</code>s) with the
+<li>Multiple sibling elements (such as <code>FIELD</code>s,
+    though not <code>INFO</code>s) with the
     same <code>name</code> attributes</li>
 </ul>
 </p>
@@ -11801,6 +11802,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Modified <code>stilts</code> startup script behaviour for OS X;
         it now also looks in
         <code>/Applications/TOPCAT.app</code>.</li>
+    <li>The VOTable validator in <code>votlint</code>
+        and <code>taplint</code> no longer complains about multiple
+        <code>INFO</code> elements in the same scope sharing the
+        same <code>name</code> attribute.</li>
     </ul>
     </p>
     </dd>

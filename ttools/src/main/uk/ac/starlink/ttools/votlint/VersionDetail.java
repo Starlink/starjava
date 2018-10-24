@@ -220,7 +220,11 @@ public abstract class VersionDetail {
             }
             else if ( "INFO".equals( name ) ) {
                 hasID = true;
-                hasName = true;
+
+                /* INFO has a name attribute.  However, we don't set hasName
+                 * here, since multiple INFOs with the same name in the same
+                 * scope is probably reasonable, so we don't want to emit
+                 * warnings in that case. */
             }
             else if ( "LINK".equals( name ) ) {
                 hasID = true;
