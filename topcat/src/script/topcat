@@ -35,7 +35,11 @@
 #-
 
 #  Find where this script is located.
-scriptname=`readlink -f $0 2>/dev/null`
+scriptname="$0"
+while [ -L "$scriptname" ]
+do
+   scriptname=`readlink "$scriptname" 2>/dev/null`
+done
 test -n "$scriptname" || scriptname=$0
 bindir="`dirname $scriptname`"
 
