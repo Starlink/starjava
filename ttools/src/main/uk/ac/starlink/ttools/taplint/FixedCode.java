@@ -194,7 +194,6 @@ public enum FixedCode implements ReportCode {
     W_TBUN( "Tables content" ),
     W_TFMT( "Non-ISO-8601 result" ),
     W_TSDL( "Bad time format in table data" ),
-    W_TSLN( "Missing TAP 1.1 TAP_SCHEMA foreign key" ),
     W_TYPI( "ObsCore datatype mismatch" ),
     W_UNPH( "UNKNOWN phase" ),
     W_UNSC( "Foreign schema used in validation" ),

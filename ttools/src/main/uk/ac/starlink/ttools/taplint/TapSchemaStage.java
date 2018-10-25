@@ -149,19 +149,15 @@ public class TapSchemaStage extends TableMetadataStage {
                 new ForeignKeyChecker( reporter, "TAP_SCHEMA.",
                                        new TableMap( sList ) );
             fkchecker.checkLink( "tables", "schema_name",
-                                "schemas", "schema_name", true );
+                                 "schemas", "schema_name" );
             fkchecker.checkLink( "columns", "table_name",
-                                "tables", "table_name", true );
+                                 "tables", "table_name" );
             fkchecker.checkLink( "keys", "from_table",
-                                "tables", "table_name", true );
+                                 "tables", "table_name" );
             fkchecker.checkLink( "keys", "target_table",
-                                "tables", "table_name", true );
+                                 "tables", "table_name" );
             fkchecker.checkLink( "key_columns", "key_id",
-                                "keys", "key_id", true );
-            fkchecker.checkLink( "key_columns", "from_column",
-                                "columns", "column_name", false );
-            fkchecker.checkLink( "key_columns", "target_column",
-                                "columns", "column_name", false );
+                                 "keys", "key_id" );
         }
 
         /* Return the schemas, if we managed to read any. */
@@ -302,10 +298,9 @@ public class TapSchemaStage extends TableMetadataStage {
          * @param  col1    column in source table
          * @param  table   target table, missing prefix
          * @param  col2    column in target table
-         * @param  isMust  true for MUST (error), false for SHOULD (warning)
          */
-        void checkLink( String table1, String col1, String table2, String col2,
-                        boolean isMust ) {
+        void checkLink( String table1, String col1,
+                        String table2, String col2 ) {
             String fqTable1 = tablePrefix_ + table1;
             String fqTable2 = tablePrefix_ + table2;
             TableMeta tmeta = tmap_.getTable( fqTable1.toLowerCase() );
@@ -330,9 +325,7 @@ public class TapSchemaStage extends TableMetadataStage {
                    .append( "." )
                    .append( col2 )
                    .toString();
-                reporter_.report( isMust ? FixedCode.E_TSLN
-                                         : FixedCode.W_TSLN,
-                                  msg );
+                reporter_.report( FixedCode.E_TSLN, msg );
             }
         }
     }
