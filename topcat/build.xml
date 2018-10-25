@@ -160,6 +160,8 @@
   <property name="dist.docs" value="${dist.dir}/docs"/>
   <property name="dist.etc" value="${dist.dir}/etc"/>
   <property name="dist.osx" value="${dist.dir}/osx-${name}"/>
+  <property name="dist.osx.bin"
+            value="${dist.osx}/${Name}.app/Contents/Resources/bin"/>
   <property name="dist.dmgfile" value="${dist.dir}/${name}-full.dmg"/>
 
   <property name="dist.bin.pkg" value="${dist.bin}"/>
@@ -810,13 +812,26 @@
       <fileset dir="${dist.docs}/${name}" excludes="javadocs javadocs/**"/>
     </copy>
 
-    <!-- Copy scripts into the release directory -->
+    <!-- Copy scripts into the release directory.  These used to just go
+     !   in /bin at the top.  However, the Homebrew people want it to
+     !   go inside TOPCAT.app, so it can get symlinked from ... somewhere.
+     !   So I've put them in /TOPCAT.app/Contents/Resources/bin as well
+     !   (I took advice on what the best place was and got various
+     !   different answers, but this seems fairly unobjectionable).
+     !   Possibly I should remove them from /bin now, but they've been
+     !   there a long time, so leave them be lest changing it breaks
+     !   some people's usage. -->
     <mkdir dir="${dist.osx}/bin"/>
     <copy todir="${dist.osx}/bin">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
     </copy>
+    <mkdir dir="${dist.osx.bin}"/>
+    <copy todir="${dist.osx.bin}">
+      <fileset dir="${star.bin}" includes="topcat stilts"/>
+    </copy>
     <chmod perm="ugo+x" type="file" failonerror="yes" maxparallel="50">
       <fileset dir="${dist.osx}/bin"/>
+      <fileset dir="${dist.osx.bin}"/>
     </chmod>
 
     <mkdir dir="${dist.osx}/README.rtfd"/>

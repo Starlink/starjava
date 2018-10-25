@@ -11806,6 +11806,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and <code>taplint</code> no longer complains about multiple
         <code>INFO</code> elements in the same scope sharing the
         same <code>name</code> attribute.</li>
+    <li>The <code>stilts</code> startup script now correctly follows
+        symlinks on some OSes where it didn't work before
+        (including OSX).</li>
     </ul>
     </p>
     </dd>

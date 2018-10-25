@@ -56,13 +56,14 @@ stilts_jars="\
  $bindir/topcat-lite.jar\
 "
 
-# If we're on a Mac, look for the jar in the resource bundle.
+# If we're on a Mac, look for the jar in the resource bundle,
+# since we may have been installed that way.  This is a bit of a mess,
+# because of historical changes in the locations of these scripts.
 if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
-   bundle_topcat_jar_path="Contents/Resources/Java/topcat-full.jar"
+   bundle_jar="Java/topcat-full.jar"
    stilts_jars="$stilts_jars \
-                $bindir/../$bundle_topcat_jar_path \
-                $bindir/../TOPCAT.app/$bundle_topcat_jar_path \
-                /Applications/TOPCAT.app/$bundle_topcat_jar_path"
+                $bindir/../$bundle_jar \
+                $bindir/../TOPCAT.app/Contents/Resources/$bundle_jar"
 fi
 
 #  Locate the application jar file.
