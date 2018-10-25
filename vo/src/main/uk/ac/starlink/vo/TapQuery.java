@@ -774,12 +774,12 @@ public class TapQuery {
                             sbuf.append( " ..." );
                         }
                     }
-                }
-                try {
-                    errStrm.close();
-                }
-                catch ( IOException e2 ) {
-                    // never mind
+                    try {
+                        errStrm.close();
+                    }
+                    catch ( IOException e2 ) {
+                        // never mind
+                    }
                 }
                 throw (IOException) new IOException( sbuf.toString() )
                                    .initCause( e );
