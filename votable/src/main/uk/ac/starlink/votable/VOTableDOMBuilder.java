@@ -150,10 +150,8 @@ public class VOTableDOMBuilder implements ContentHandler {
                      tableEl.setData( tdata );
                  }
                  catch ( IOException e ) {
-                     throw (SAXException)
-                           new SAXParseException( e.getMessage(),
-                                                  getLocator(), e )
-                          .initCause( e );
+                     throw new SAXParseException( e.getMessage(),
+                                                  getLocator(), e );
                  }
              }
         }
