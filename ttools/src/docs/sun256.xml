@@ -11709,107 +11709,142 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>New functions <code>urlEncode</code> and <code>urlDecode</code>
-        added to class
-        <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
-    <li>Slight improvements to the
-        <ref id="jdbcConfig">JDBC Configuration</ref>
-        section of this manual.</li>
-    <li>Minor improvements to <code>datalinklint</code> error reporting.</li>
-    <li>Replace <ref id="layer-skygrid">skygrid</ref> plot layer
-        parameter <code>crowd</code> with
-        two parameters, <code>loncrowd</code> and <code>latcrowd</code>
-        so you can control grid line spacing for meridians
-        and parallels independently.  Note this is a backwardly-incompatible
-        change, so could break existing scripts.
-        This change may have introduced slight changes to sky axis
-        grid line spacing at low crowding levels.</li>
-    <li>Add <code>sortaxis</code> parameter to <ref id="layer-line">line</ref>
-        plot layer.</li>
-    <li>Address long-standing plot auto-ranging issue;
-        when auto-ranging resulted in the bottom X limit or
-        right-hand Y limit being exactly equal to zero,
-        the corresponding zero-valued results were not plotted.
-        Auto-ranging has been slightly adjusted to avoid that.
-        This results in pixel-level changes to plot appearance
-        in some cases; these can be avoided by explicitly setting
-        <code>xmax</code>/<code>ymin</code> etc.</li>
-    <li>Fix some additional commands
-        (<code>votcopy</code>, <code>votlint</code>,
-         <code>datalinklint</code>)
-        so they follow HTTP 3xx redirects automatically in more cases
-        when given a URL for input.
-        Most STILTS commands already do this.</li>
-    <li><code>taplint</code> schema validation now takes account of
-        <webref url="http://wiki.ivoa.net/twiki/bin/view/IVOA/VOTable-1_3-Err-2"
-                >VOTable 1.3 Erratum #2</webref> -
-        <code>FIELD/@precision</code> attribute values
-        "<code>F0</code>"/"<code>E0</code>" are now permitted.</li>
-    <li>New <ref id="layer-line3d">line3d</ref> plot layer
-        for plotting lines in <code>plot2cube</code> and
-        <code>plot2sphere</code>.</li>
-    <li><ref id="layer-contour">Contour</ref> level calculations improved;
-        in some cases this previously didn't work well
-        at low point density, resulting in missing contours.
-        The meaning of the <code>zero</code> parameter has also changed
-        slightly, it now defaults to 1 and is not phase folded.</li>
-    <li>Introduce a couple of measures to reduce the likelihood
-        of unintentional service overload from
-        <ref id="coneskymatch"><code>coneskymatch</code></ref> and friends:
-        add a progressively increasing delay for <code>erract=retry*</code>
-        error handling modes,
-        and decrease the soft maximum for the <code>parallel</code>
-        parameter to 5 (from 10).</li>
-    <li>New functions
-        <code>polarXYZ</code>, <code>astromXYZ</code>,
-        <code>astromUVW</code>,
-        <code>icrsToGal</code>, <code>galToIcrs</code>,
-        <code>icrsToEcl</code>, <code>eclToIcrs</code>
-        added to class 
-        <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>.
-        These can calculate Cartesian position and velocity components
-        from (e.g. Gaia) astrometric parameters.</li>
-    <li>Sphere plot now centers axes on zero if the center would otherwise be
-        near zero.</li>
-    <li>New plot layer <ref id="layer-spheregrid">spheregrid</ref> in
-        Cube and Sphere plots.</li>
-    <li>Rearrange expression language documentation slightly:
-        special tokens are now listed in the new section
-        <ref id="jel-special"/>.
-        This includes "<code>$random</code>", which was previously
-        undocumented and named "<code>RANDOM</code>".</li>
-    <li>New filter <ref id="collapsecols"><code>collapsecols</code></ref>
-        can convert a run of adjacent scalar columns into an
-        array column (the opposite of <code>explodecols</code>).</li>
-    <li>New convenience function <code>exp10</code> in class
-        <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref>.</li>
-    <li>New class <ref id="uk.ac.starlink.ttools.func.Shapes">Shapes</ref>
-        for working with polygons in the X,Y plane; has functions
-        <code>isInside</code> and <code>polyLine</code>.</li>
-    <li>Fix <code>function</code> layer so that NaN values are
-        omitted rather than interpolated.</li>
-    <li>Improvements to taplint UWS stage: now validates job documents
-        against UWS schema, tests <code>uws:job/@version</code>
-        attribute, and does improved and version-sensitive
-        (UWS v1.0/v1.1) validation of UWS timestamps.
-        Also does more complete deletion of submitted jobs.</li>
-    <li>Small change to MOC handling that might possibly avoid some
-        network-related performance issues.</li>
-    <li>GBIN reading fix to work around changed behaviour in recent
-        GaiaTools versions (19.4.*, &gt;=20.1.0 and &gt;=21.0.0)
-        that caused GBIN table reading to fail.</li>
-    <li>Modified <code>stilts</code> startup script behaviour for OS X;
-        it now also looks in
-        <code>/Applications/TOPCAT.app</code>.</li>
-    <li>The VOTable validator in <code>votlint</code>
-        and <code>taplint</code> no longer complains about multiple
-        <code>INFO</code> elements in the same scope sharing the
-        same <code>name</code> attribute.</li>
-    <li>The <code>stilts</code> startup script now correctly follows
-        symlinks on some OSes where it didn't work before
-        (including OSX).</li>
-    </ul>
+    <dl>
+    <dt>Plotting:</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="layer-spheregrid">spheregrid</ref> plot layer,
+            for plotting a spherical net around the origin,
+            added to <code>plot2cube</code> and <code>plot2sphere</code>.</li>
+        <li>New <ref id="layer-line3d">line3d</ref> plot layer,
+            for plotting lines joining points in 3d,
+            added to <code>plot2cube</code> and <code>plot2sphere</code>.</li>
+        <li>New <code>sortaxis</code> parameter,
+            for joining out-of-sequence points,
+            added to <ref id="layer-line">line</ref> plot layer.</li>
+        <li>Replace <ref id="layer-skygrid">skygrid</ref> plot layer
+            parameter <code>crowd</code> with
+            two parameters, <code>loncrowd</code> and <code>latcrowd</code>,
+            so you can control grid line spacing for meridians
+            and parallels independently.  Note this is a backwardly-incompatible
+            change, so could break existing scripts.
+            This change may have introduced slight changes to sky axis
+            grid line spacing at low crowding levels.</li>
+        <li><ref id="layer-contour">Contour</ref> level calculations improved;
+            in some cases this previously didn't work well
+            at low point density, resulting in missing contours.
+            The meaning of the <code>zero</code> parameter has also changed
+            slightly, it now defaults to 1 and is not phase folded.</li>
+        <li>Sphere plot now centers axes on zero
+            if the center would otherwise be near zero.</li>
+        <li>Address long-standing plot auto-ranging issue;
+            when auto-ranging resulted in the bottom X limit or
+            right-hand Y limit being exactly equal to zero,
+            the corresponding zero-valued results were not plotted.
+            Auto-ranging has been slightly adjusted to avoid that.
+            This results in pixel-level changes to plot appearance
+            in some cases; these can be avoided by explicitly setting
+            <code>xmax</code>/<code>ymin</code> etc.</li>
+        </ul>
+        </p></dd>
+    <dt>Expression Language:</dt>
+    <dd><p>
+        <ul>
+        <li>New functions in class
+            <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>:
+            <code>polarXYZ</code>, <code>astromXYZ</code>,
+            <code>astromUVW</code>,
+            <code>icrsToGal</code>, <code>galToIcrs</code>,
+            <code>icrsToEcl</code>, <code>eclToIcrs</code>.
+            These can calculate Cartesian position and velocity components
+            from (e.g. Gaia) astrometric parameters.</li>
+        <li>New <ref id="uk.ac.starlink.ttools.func.Shapes">Shapes</ref>
+            class added for working with polygons in the X,Y plane;
+            has functions
+            <code>isInside</code> and <code>polyLine</code>.</li>
+        <li>Rearrange expression language documentation slightly:
+            there is a new section listing
+            <ref id="jel-special">Special Tokens</ref>.
+            This includes "<code>$random</code>", which was previously
+            undocumented and named "<code>RANDOM</code>".</li>
+        <li>New functions <code>urlEncode</code> and <code>urlDecode</code>
+            added to class
+            <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
+        <li>New convenience function <code>exp10</code> in class
+            <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Validators:</dt>
+    <dd><p>
+        <ul>
+        <li>Improvements to <code>taplint</code> UWS stage:
+            now validates job documents
+            against UWS schema, tests <code>uws:job/@version</code>
+            attribute, and does improved and version-sensitive
+            (UWS v1.0/v1.1) validation of UWS timestamps.
+            Also does more complete deletion of submitted jobs.</li>
+        <li><code>taplint</code> schema validation now takes account of
+            <webref
+               url="http://wiki.ivoa.net/twiki/bin/view/IVOA/VOTable-1_3-Err-2"
+                    >VOTable 1.3 Erratum #2</webref> -
+            <code>FIELD/@precision</code> attribute values
+            "<code>F0</code>"/"<code>E0</code>" are now permitted.</li>
+        <li>The VOTable validator in <code>votlint</code>
+            and <code>taplint</code> no longer complains about multiple
+            <code>INFO</code> elements in the same scope sharing the
+            same <code>name</code> attribute.</li>
+        <li>Minor improvements to <code>datalinklint</code>
+            error reporting.</li>
+        </ul>
+        </p></dd>
+    <dt>Miscellaneous Enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="collapsecols"><code>collapsecols</code></ref>
+            filter added,
+            to convert a run of adjacent scalar columns into an
+            array column (the opposite of <code>explodecols</code>).</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>GBIN read fix to work around changed behaviour in recent
+            GaiaTools (versions 19.4.*, &gt;=20.1.0 and &gt;=21.0.0)
+            that caused GBIN table reading to fail.</li>
+        <li>Fix some additional commands
+            (<code>votcopy</code>, <code>votlint</code>,
+             <code>datalinklint</code>)
+            so they follow HTTP 3xx redirects automatically in more cases
+            when given a URL for input.
+            Most STILTS commands already do this.</li>
+        <li>Introduce a couple of measures to reduce the likelihood
+            of unintentional service overload from
+            <ref id="coneskymatch"><code>coneskymatch</code></ref> and friends:
+            add a progressively increasing delay for <code>erract=retry*</code>
+            error handling modes,
+            and decrease the soft maximum for the <code>parallel</code>
+            parameter to 5 (from 10).</li>
+
+        <li>Slight improvements to the
+            <ref id="jdbcConfig">JDBC Configuration</ref>
+            section of this manual.</li>
+        <li>Small change to MOC handling that might possibly avoid some
+            network-related performance issues.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix <code>function</code> plot layer so that NaN values are
+            omitted rather than interpolated.</li>
+        <li>The <code>stilts</code> startup script now correctly follows
+            symlinks on some OSes where it didn't work before
+            (including OSX).  It also looks for jar files to use in
+            slightly different places on OS X.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p>
     </dd>
 
