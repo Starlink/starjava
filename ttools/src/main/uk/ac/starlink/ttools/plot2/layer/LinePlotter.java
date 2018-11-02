@@ -38,6 +38,8 @@ public class LinePlotter extends SimpleDecalPlotter<LinePlotter.LinesStyle> {
         new OptionConfigKey<AxisOpt>(
             new ConfigMeta( "sortaxis", "Sort Axis" )
            .setShortDescription( "Sort order for plotted points" )
+           .setStringUsage( "[" + AxisOpt.X.toString()
+                          + "|" + AxisOpt.Y.toString() + "]" )
            .setXmlDescription( new String[] {
                 "<p>May be set to",
                 "\"<code>" + AxisOpt.X.toString() + "</code>\" or",
