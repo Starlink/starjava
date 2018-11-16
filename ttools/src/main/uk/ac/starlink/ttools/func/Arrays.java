@@ -904,6 +904,141 @@ public class Arrays {
     }
 
     /**
+     * Returns the position in a supplied array at which a given item appears.
+     * The result is zero-based, so if the supplied <code>item</code>
+     * is the first entry in the <code>array</code>, the return value
+     * will be zero. 
+     *
+     * <p>If the item does not appear in the array, -1 is returned. 
+     * If it appears multiple times, the index of its first appearance
+     * is returned.
+     *
+     * <p>If <code>indexOf(array, item)==n</code>, then
+     * <code>array[n]</code> is equal to <code>item</code>.
+     *
+     * <p><strong>Note:</strong>
+     * This documents the <code>Object</code> version of the routine.
+     * Corresponding routines exist for other data types
+     * (<code>double</code>, <code>float</code>, <code>long</code>,
+     * <code>int</code>, <code>short</code>).
+     *
+     * @example <code>indexOf(stringArray("QSO", "BCG", "SNR"), "BCG")
+     *                = 1</code>
+     * @example <code>indexOf(stringArray("QSO", "BCG", "SNR"), "TLA")
+     *                = -1</code>
+     *
+     * @param  array  array which may contain the supplied item
+     * @param  item   entry to look for in the array
+     * @return   the index of <code>item</code> in <code>array</code>,
+     *           or -1
+     */
+    public static int indexOf( Object[] array, Object item ) {
+        if ( array != null ) {
+            int n = array.length;
+            if ( item == null ) {
+                for ( int i = 0; i < n; i++ ) {
+                    if ( array[ i ] == null ) {
+                        return i;
+                    }
+                }
+            }
+            else {
+                for ( int i = 0; i < n; i++ ) {
+                    if ( item.equals( array[ i ] ) ) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    @HideDoc
+    public static int indexOf( double[] array, double item ) {
+        if ( array != null ) {
+            int n = array.length;
+            if ( Double.isNaN( item ) ) {
+                for ( int i = 0; i < n; i++ ) {
+                    if ( Double.isNaN( array[ i ] ) ) {
+                        return i;
+                    }
+                }
+            }
+            else {
+                for ( int i = 0; i < n; i++ ) {
+                    if ( array[ i ] == item ) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    @HideDoc
+    public static int indexOf( float[] array, double item ) {
+        if ( array != null ) {
+            int n = array.length;
+            if ( Double.isNaN( item ) ) {
+                for ( int i = 0; i < n; i++ ) {
+                    if ( Float.isNaN( array[ i ] ) ) {
+                        return i;
+                    }
+                }
+            }
+            else {
+                float fitem = (float) item;
+                for ( int i = 0; i < n; i++ ) {
+                    if ( array[ i ] == fitem ) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    @HideDoc
+    public static int indexOf( long[] array, long item ) {
+        if ( array != null ) {
+            int n = array.length;
+            for ( int i = 0; i < n; i++ ) {
+                if ( array[ i ] == item ) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    @HideDoc
+    public static int indexOf( int[] array, int item ) {
+        if ( array != null ) {
+            int n = array.length;
+            for ( int i = 0; i < n; i++ ) {
+                if ( array[ i ] == item ) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    @HideDoc
+    public static int indexOf( short[] array, int item ) {
+        short sitem = (short) item;
+        if ( array != null && sitem == item ) {
+            int n = array.length;
+            for ( int i = 0; i < n; i++ ) {
+                if ( array[ i ] == item ) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Returns a floating point numeric array built from the given arguments.
      *
      * @param   values   one or more array elements

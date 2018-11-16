@@ -11851,6 +11851,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>New functions <code>indexOf</code> in class
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>
+        to find position of a given value in an array.</li>
     </ul>
     </p>
     </dd>

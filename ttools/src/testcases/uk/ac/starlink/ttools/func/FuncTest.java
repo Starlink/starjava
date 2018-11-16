@@ -291,6 +291,19 @@ public class FuncTest extends TestCase {
         }
         assertArrayEquals( new String[] { "Armadillo", "Scout", },
                            Arrays.pick( sa, 1, -1 ) );
+
+        assertEquals( 1, Arrays.indexOf( sa, "Armadillo" ) );
+        assertEquals( -1, Arrays.indexOf( sa, "Housepop" ) );
+        assertEquals( 5, Arrays.indexOf( da, 15 ) );
+        assertEquals( -1, Arrays.indexOf( da, Double.NaN ) );
+        assertEquals( -1, Arrays.indexOf( da, 99.e9 ) );
+        assertEquals( 5, Arrays.indexOf( ia, 15 ) );
+        assertEquals( -1, Arrays.indexOf( ia, (short) -1 ) );
+
+        assertEquals( 1, Arrays.indexOf(Arrays.stringArray("QSO", "BCG", "SNR"),
+                                        "BCG"));
+        assertEquals(-1, Arrays.indexOf(Arrays.stringArray("QSO", "BCG", "SNR"),
+                                        "TLA"));
     }
 
     public void testConversions() {
