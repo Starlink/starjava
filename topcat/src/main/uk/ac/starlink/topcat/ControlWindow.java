@@ -68,6 +68,7 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListDataEvent;
@@ -84,6 +85,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumnModel;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import uk.ac.starlink.plastic.PlasticUtils;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -91,6 +93,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
@@ -204,6 +207,7 @@ public class ControlWindow extends AuxWindow
     private final JLabel locLabel_ = new JLabel();
     private final JLabel nameLabel_ = new JLabel();
     private final JLabel rowsLabel_ = new JLabel();
+    private final JLabel qstatusLabel_ = new JLabel();
     private final JLabel colsLabel_ = new JLabel();
     private final JComboBox subsetSelector_ = new JComboBox();
     private final JComboBox sortSelector_ = new JComboBox();
@@ -260,12 +264,18 @@ public class ControlWindow extends AuxWindow
         } );
 
         /* Set up a panel displaying table information. */
+        JComponent rowsLine = Box.createHorizontalBox();
+        rowsLine.add( rowsLabel_ );
+        rowsLine.add( Box.createHorizontalStrut( 5 ) );
+        rowsLine.add( qstatusLabel_ );
+        qstatusLabel_.setForeground( UIManager
+                                    .getColor( "Label.disabledForeground" ) );
         InfoStack info = new InfoStack();
         info.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
         info.addLine( "Label", idField_ );
         info.addLine( "Location", locLabel_ );
         info.addLine( "Name", nameLabel_ );
-        info.addLine( "Rows", rowsLabel_ );
+        info.addLine( "Rows", rowsLine );
         info.addLine( "Columns", colsLabel_ );
         info.addLine( "Sort Order", new Component[] { sortSenseButton_,
                                                       sortSelector_ } );
@@ -1264,6 +1274,7 @@ public class ControlWindow extends AuxWindow
                               ? ""
                               : " (" + TopcatUtils.formatLong( visRows )
                                      + " apparent)" ) );
+            qstatusLabel_.setText( getQueryStatus( dataModel ) );
             colsLabel_.setText( totCols +
                                 ( ( visCols == totCols )
                                             ? ""
@@ -1428,6 +1439,60 @@ public class ControlWindow extends AuxWindow
     }
     public void intervalRemoved( ListDataEvent evt ) {
         updateControls();
+    }
+
+    /**
+     * Returns a string giving additional query status information for a
+     * given table.  This extracts information that may have been present in
+     * DALI-style INFO/@name="QUERY_STATUS" nodes in the original VOTable
+     * and flattens them into a user-readable form.  An empty string
+     * is returned if there's nothing to say (table apparently loaded OK).
+     * The return value is (just about) always an empty string for
+     * tables that have not originated from a VOTable source.
+     *
+     * <p>This is not bulletproof - table parameters named QUERY_STATUS
+     * originating from some source other than a DALI-compliant INFO
+     * could also show up here.  But it's unlikely to happen often.
+     *
+     * @param  table  table
+     * @return  query status string; may be empty, but not null
+     * @see   <a href="http://www.ivoa.net/documents/DALI/">DALI</a>
+     */
+    private static String getQueryStatus( StarTable table ) {
+        for ( Object param : table.getParameters() ) {
+            if ( param instanceof DescribedValue ) {
+                DescribedValue dval = (DescribedValue) param;
+                ValueInfo info = dval.getInfo();
+                if ( "QUERY_STATUS".equals( info.getName() ) ) {
+                    Object vobj = dval.getValue();
+
+                    /* According to DALI, the only values of interest here
+                     * would be OVERFLOW and ERROR.  However, if something
+                     * else other than OK is present, it's probably worth
+                     * reporting anyway; most likely it's a misspelling or
+                     * something, that the user may be able to make of. */
+                    if ( vobj instanceof String ) {
+                        String status = ((String) vobj).trim();
+                        if ( ! "OK".equals( status ) &&
+                             status.length() > 0 ) {
+                            StringBuffer sbuf = new StringBuffer()
+                                .append( " " )
+                                .append( "(" )
+                                .append( status );
+                            String descrip = info.getDescription();
+                            if ( descrip != null &&
+                                 descrip.trim().length() > 0 ) {
+                                sbuf.append( ": " )
+                                    .append( descrip.trim() );
+                            }
+                            sbuf.append( ")" );
+                            return sbuf.toString();
+                        }
+                    }
+                }
+            }
+        }
+        return "";
     }
 
     /**

@@ -5470,7 +5470,7 @@ is happening.
 
 </subsubsect>
 
-<subsubsect>
+<subsubsect id="controlProps">
 <subhead><title>Current Table Properties panel</title></subhead>
 
 <p>The <label>Current Table Properties</label> panel on the right hand
@@ -5506,6 +5506,16 @@ Here is what the individual items mean:
     If the current <ref id="subsets">Row Subset</ref> does not include all the
     rows, then an indication of how many are visible within that subset
     will be given too.
+    In certain circumstances, some other information may be presented here:
+    the table metadata may contain a flag indicating that an error or
+    overflow occurred when generating the result of a (VO) query.
+    In particular, if the text "<label>OVERFLOW</label>" appears,
+    it means that you may not have got all the rows that you asked for
+    because of size limits applied by the service.
+    (In technical terms: the content of non-<code>OK</code>
+    <code>INFO/@name="QUERY_STATUS"</code> VOTable nodes is summarised here,
+    in accordance with the
+    <webref url="http:///www.ivoa.net/documents/DALI/">DALI</webref> standard).
     </p></dd>
 
 <dt>Columns</dt>
@@ -27573,6 +27583,11 @@ introduced since the last version:
     <li>New functions <code>indexOf</code> in class
         <ref id="Arrays">Arrays</ref>
         to find position of a given value in an array.</li>
+    <li>Overflow or error flags indicated by DALI
+        <code>&lt;INFO name="QUERY_STATUS"/&gt;</code> elements
+        in loaded VOTables are now reported in the <label>Rows</label>
+        line of the Control Window
+        <ref id="controlProps">properties panel</ref>.</li>
     </ul>
     </p></dd>
 
