@@ -159,6 +159,7 @@ public class ResourceIcon implements Icon {
         UNSORT = makeIcon( "arrow_level.png" ),
         DELETE_COLUMN = makeIcon( "ColumnDelete24.png" ),
         VISIBLE_SUBSET = makeIcon( "spoints5.png" ),
+        JEL_VISIBLE_SUBSET = makeIcon( "jelvis.png" ),
         RANGE_SUBSET = makeIcon( "sbars0.png" ),
         XRANGE_SUBSET = makeIcon( "xrange1.png" ),
         BLOB_SUBSET = makeIcon( "blob2.png" ),

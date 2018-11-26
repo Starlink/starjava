@@ -820,6 +820,7 @@ various <ref id="plot2">plotting</ref>
     which can be used to define subsets.
     The options are
     <label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;),
+    <label>Algebraic Subset From Visible</label> (&IMG.JEL_VISIBLE_SUBSET;),
     <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;) and
     <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;),
     though not all are available for all plot types.
@@ -7864,6 +7865,7 @@ Depending on the type of plot, one or more of the following options
 will be available as toolbar/menu items:
 <ul>
 <li>&IMG.VISIBLE_SUBSET; Subset From Visible</li>
+<li>&IMG.JEL_VISIBLE_SUBSET; Algebraic Subset From Visible</li>
 <li>&IMG.BLOB_SUBSET; Draw Subset Blob</li>
 <li>&IMG.POLY_SUBSET; Draw Subset Polygon</li>
 </ul>
@@ -7904,6 +7906,39 @@ or otherwise navigated the plot so that only the points currently visible
 are the ones you are interested in.
 However, it is only suitable if the group you are interested in
 corresponds to a rectangular region in the plotting space.
+</p>
+
+</subsubsubsubsect>
+
+<subsubsubsubsect id="jel-visible-subset">
+<subhead><title>Algebraic Subset From Visible</title></subhead>
+
+<p>The <label>Algebraic Subset From Visible</label>
+(&IMG.JEL_VISIBLE_SUBSET;) action
+(available in the <label>Subsets</label> menu of the
+<ref id="PlanePlotWindow">Plane</ref> and <ref id="CubePlotWindow">Cube</ref>
+plot windows)
+creates subsets containing all of the points that are visible
+on the current plot.
+The subset content of this is the same as for the
+<ref id="visible-subset">Subset From Visible</ref> action,
+but this action defines the subset as an algebraic expression
+based on the axis limits
+rather than just marking the points that can currently be seen.
+This can be more useful, for instance if you want to use the
+subset definition in some other context.
+However, it is only available for some plot types (Plane and Cube),
+since in other cases the rectangular visibility
+region does not correspond to a straightforward algebraic expression.
+</p>
+
+<p>When you hit this button, the
+<ref id="MultiSubsetQueryWindow">Multi Algebraic Subset Window</ref>
+will be displayed,
+showing the algebraic function(s) corresponding to the currently visible
+region, and offering to create a new subset
+(or, if there are multiple datasets plotted, several new subsets)
+from it.
 </p>
 
 </subsubsubsubsect>
@@ -12648,6 +12683,11 @@ this window additionally provides the following toolbar button:
 <ul>
 <li>&IMG.POLY_SUBSET; <ref id="PolygonPanel">Draw Subset Polygon</ref></li>
 </ul>
+and <label>Subsets</label> menu item
+<ul>
+<li>&IMG.JEL_VISIBLE_SUBSET;
+    <ref id="jel-visible-subset">Algebraic Subset From Visible</ref></li>
+</ul>
 </p>
 
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
@@ -13209,7 +13249,18 @@ see the <label>Coords</label> tab of the
     </ul></li>
 <li>&CONTROL.spheregrid;</li>
 </ul>
-Note that use of the
+</p>
+
+<p>As well as the standard actions,
+this window additionally provides the following
+<label>Subsets</label> menu item:
+<ul>
+<li>&IMG.JEL_VISIBLE_SUBSET;
+    <ref id="jel-visible-subset">Algebraic Subset From Visible</ref></li>
+</ul>
+</p>
+
+<p>Note that use of the
 <ref id="mode-auto">Auto</ref>,
 <ref id="mode-density">Density</ref> and
 <ref id="mode-weighted">Weighted</ref>
@@ -22726,8 +22777,9 @@ problem.
 <p>The Multi Algebraic Subset Window is displayed when an action
 can create more than one subset with algebraic definitions at once.
 This happens on completion of the
-<label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;)
-action;
+<label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;) or
+<label>Algebraic Subset From Visible</label> (&IMG.JEL_VISIBLE_SUBSET;)
+actions;
 more than one subset may result if more than one data set is plotted.
 If there is more than one subset to be added, they will be shown here
 in separate rows.
@@ -27651,6 +27703,9 @@ introduced since the last version:
     <li>Modify the <ref id="PolygonPanel">Subset from polygon</ref>
         toolbar icon slightly by putting a little "=" sign at the bottom;
         this is to indicate that it produces an algebraic result.</li>
+    <li>Action
+        <ref id="jel-visible-subset">Algebraic Subset From Visible</ref>
+        added to Plane and Cube plot window Subsets menu.</li>
     </ul>
     </p></dd>
 

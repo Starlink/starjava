@@ -28,6 +28,7 @@ import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.func.SuperCosmos;
 import uk.ac.starlink.topcat.func.TwoQZ;
 import uk.ac.starlink.topcat.plot2.GuiCoordContent;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
@@ -538,5 +539,44 @@ public class TopcatJELUtils extends JELUtils {
                 .append( ")" );
             return sbuf.toString();
         }
+    }
+
+    /**
+     * Returns a JEL expression that characterises a univariate range of values.
+     *
+     * @param   expr  JEL expression whose value is to be constrained
+     * @param   lo    lowest permissible bound for expr
+     * @param   hi    highest permissible bound for expr
+     * @param   isLog  true for logarithmic range, false for linear
+     * @param   npix   approximate number of pixels covered by the range
+     * @return  JEL expression with the meaning <code>lo&lt;=expr&lt;=hi</code>
+     */
+    public static String betweenExpression( String expr,
+                                            double lo, double hi, boolean isLog,
+                                            int npix ) {
+        String exprTxt = isJelIdentifier( expr )
+                       ? expr
+                       : "(" + expr + ")";
+        final String loFmt;
+        final String hiFmt;
+        if ( isLog ) {
+            double dl = ( Math.log( hi ) - Math.log( lo ) ) / npix;
+            loFmt = PlotUtil.formatNumber( lo, Math.min( lo * dl, lo / dl ) );
+            hiFmt = PlotUtil.formatNumber( hi, Math.min( hi * dl, hi / dl ) );
+        }
+        else {
+            double eps = ( hi - lo ) / npix;
+            loFmt = PlotUtil.formatNumber( lo, eps );
+            hiFmt = PlotUtil.formatNumber( hi, eps );
+        }
+        return new StringBuffer()
+              .append( exprTxt )
+              .append( " >= " )
+              .append( loFmt )
+              .append( " && " )
+              .append( exprTxt )
+              .append( " <= " )
+              .append( hiFmt )
+              .toString();
     }
 }

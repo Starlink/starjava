@@ -145,6 +145,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final Action blobAction_;
     private final Action polygonAction_;
     private final Action fromVisibleAction_;
+    private final Action fromVisibleJelAction_;
     private final Action resizeAction_;
     private final boolean canSelectPoints_;
     private final boolean usePolygon_;
@@ -178,6 +179,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotTypeGui_ = plotTypeGui;
         zoneFact_ = plotTypeGui_.createZoneFactory();
         canSelectPoints_ = plotTypeGui.hasPositions();
+        final CartesianRanger cartRanger = plotTypeGui.getCartesianRanger();
         dfltZone_ = zoneFact_.getDefaultZone();
 
         /* Determine whether to provide polygon plotting.
@@ -187,7 +189,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * which means it won't work well for the (still experimental)
          * Time plot, so exclude the time plot explicitly for now. */
         usePolygon_ = canSelectPoints_ && plotTypeGui_.isPlanar()
-                   && ! ( plotType instanceof TimePlotType );
+                 && ! ( plotType instanceof TimePlotType );
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
@@ -369,7 +371,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }, false );
 
-        /* Prepare the action that allows the user to select the currently
+        /* Prepare the actions that allow the user to select the currently
          * visible points. */
         fromVisibleAction_ =
                 new BasicAction( "Subset from visible",
@@ -380,6 +382,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 addMaskSubsets( getBoundsInclusions( true ), null );
             }
         };
+        if ( cartRanger != null ) {
+            fromVisibleJelAction_ =
+                    new BasicAction( "Algebraic subset from visible",
+                                     ResourceIcon.JEL_VISIBLE_SUBSET,
+                                     "Define a new row subset "
+                                   + "by algebraic expression containing only "
+                                   + "currently visible points" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    addVisibleJelSubsets( cartRanger );
+                }
+            };
+        }
+        else {
+            fromVisibleJelAction_ = null;
+        }
 
         /* Prepare the action that allows the user to select points by
          * hand-drawn region. */
@@ -631,6 +648,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             subsetMenu.add( polygonPanel_.getModePolygonMenu() );
         }
         subsetMenu.add( fromVisibleAction_ );
+        if ( fromVisibleJelAction_ != null ) {
+            subsetMenu.add( fromVisibleJelAction_ );
+        }
         getJMenuBar().add( subsetMenu );
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
@@ -1574,6 +1594,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
     }
 
+    /**
+     * Takes a set of points and a polygon inclusion mode and does
+     * what's required to create and install corresponding RowSubsets
+     * for the TopcatModels in the currently visible plot layers.
+     *
+     * @param  points  polygon vertices
+     * @param  pmode   polygon shape mode
+     * @param  surf    plot surface
+     * @param  layer   layers for which to create subsets
+     * @param  completionCallback  runnable which will be executed
+     *                             unconditionally on the
+     *                             Event Dispatch Thread after the
+     *                             asynchronous operation has completed
+     */
     private void addPolygonSubsets( Point[] points, PolygonMode pmode,
                                     PlanarSurface surf, PlotLayer[] layers,
                                     final Runnable completionCallback ) {
@@ -1611,6 +1645,76 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     completionCallback.run();
                 }
             } );
+        }
+    }
+
+    /**
+     * Creates and installs synthetic RowSubsets corresponding to all the
+     * points currently visible in the currently plotted layers,
+     * by constructing JEL expressions based on the coordinate limits
+     * for the N-dimensional hypercube corresponding to the current plot view.
+     *
+     * @param  ranger   object that can characterise this window's
+     *                  plot surfaces as hypercubes in data coordinates
+     */
+    private void addVisibleJelSubsets( CartesianRanger ranger ) {
+        List<MultiSubsetQueryWindow.Entry> entList =
+            new ArrayList<MultiSubsetQueryWindow.Entry>();
+        int nz = plotPanel_.getZoneCount();
+        for ( int iz = 0; iz < nz; iz++ ) {
+            Surface surf = plotPanel_.getLatestSurface( iz );
+            PlotLayer[] layers = plotPanel_.getPlotLayers( iz );
+            if ( layers.length > 0 ) {
+                int ndim = ranger.getDimCount();
+                double[][] dlims = ranger.getDataLimits( surf );
+                boolean[] logFlags = ranger.getLogFlags( surf );
+                int[] npixs = ranger.getPixelDims( surf );
+                TableCloud[] clouds =
+                    TableCloud
+                   .createTableClouds( SubCloud
+                                      .createSubClouds( layers, true ) );
+                for ( TableCloud cloud : clouds ) {
+                    TopcatModel tcModel = cloud.getTopcatModel();
+                    RowSubset[] rsets = cloud.getRowSubsets();
+                    String[] jelVars = new String[ ndim ];
+                    boolean isBlank = false;
+                    for ( int idim = 0; idim < ndim; idim++ ) {
+                        GuiCoordContent content =
+                            cloud.getGuiCoordContent( idim );
+                        jelVars[ idim ] =
+                            TopcatJELUtils
+                           .getDataExpression( tcModel, content );
+                        isBlank = isBlank || jelVars[ idim ] == null;
+                    }
+                    if ( ! isBlank ) {
+                        StringBuffer sbuf = new StringBuffer();
+                        for ( int idim = 0; idim < ndim; idim++ ) {
+                            if ( idim > 0 ) {
+                                sbuf.append( " && " );
+                            }
+                            sbuf.append( TopcatJELUtils
+                                        .betweenExpression( jelVars[ idim ],
+                                                            dlims[ idim ][ 0 ],
+                                                            dlims[ idim ][ 1 ],
+                                                            logFlags[ idim ],
+                                                            npixs[ idim ] ) );
+                        }
+                        String expr =
+                            TopcatJELUtils
+                           .combineSubsetsExpression( tcModel, sbuf.toString(),
+                                                      rsets );
+                        entList.add( new MultiSubsetQueryWindow
+                                        .Entry( tcModel, expr ) );
+                    }
+                }
+            }
+        }
+        if ( entList.size() > 0 ) {
+            MultiSubsetQueryWindow.Entry[] entries =
+                entList.toArray( new MultiSubsetQueryWindow.Entry[ 0 ] );
+            new MultiSubsetQueryWindow( "Add Visible Subset(s)",
+                                        this, entries )
+               .setVisible( true );
         }
     }
 
@@ -1697,6 +1801,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private void updateSubsetActions() {
         boolean hasAnyPoints = getBoundsInclusions( true ).length > 0;
         fromVisibleAction_.setEnabled( hasAnyPoints );
+        if ( fromVisibleJelAction_ != null ) {
+            fromVisibleJelAction_.setEnabled( hasAnyPoints );
+        }
 
         boolean hasFullPoints = hasAnyPoints &&
                                 getBoundsInclusions( false ).length > 0;
