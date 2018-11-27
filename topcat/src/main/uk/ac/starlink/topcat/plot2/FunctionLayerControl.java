@@ -1,11 +1,16 @@
 package uk.ac.starlink.topcat.plot2;
 
+import gnu.jel.CompilationException;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import javax.swing.UIManager;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.ReportMap;
@@ -17,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.config.TextFieldSpecifier;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 
 /**
@@ -59,7 +65,7 @@ public class FunctionLayerControl extends ConfigControl
         otherKeyList.removeAll( Arrays.asList( funcKeys ) );
         final ConfigKey[] otherKeys =
             otherKeyList.toArray( new ConfigKey[ 0 ] );
-        final ConfigSpecifier funcSpecifier = new ConfigSpecifier( funcKeys );
+        final FuncSpecifier funcSpecifier = new FuncSpecifier( funcKeys );
         final ConfigSpecifier otherSpecifier = new ConfigSpecifier( otherKeys );
 
         /* Fix it so the default value of the legend label is the
@@ -68,13 +74,16 @@ public class FunctionLayerControl extends ConfigControl
         funcSpecifier.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 FunctionPlotter.FunctionStyle style;
+                ConfigException error;
                 try {
                     style = plotter_.createStyle( getConfig() );
+                    error = null;
                 }
                 catch ( ConfigException e ) {
-                    funcSpecifier.reportError( e );
                     style = null;
+                    error = e;
                 }
+                funcSpecifier.setError( error );
                 labelSpecifier.setAutoValue( style == null
                                            ? plotter_.getPlotterName()
                                            : style.toString() );
@@ -154,6 +163,88 @@ public class FunctionLayerControl extends ConfigControl
         }
         catch ( ConfigException e ) {
             return null;
+        }
+    }
+
+    /**
+     * Specifier for the function expression and related configuration items.
+     * This provides special handling for display of the,
+     * possibly uncompilable, function expression.
+     */
+    private static class FuncSpecifier extends ConfigSpecifier {
+        final static ConfigKey<String> FEXPR_KEY = FunctionPlotter.FEXPR_KEY;
+        final JTextField fexprField_;
+        final Color okColor_;
+        final Color errColor_;
+
+        /**
+         * Constructor.
+         *
+         * @param   funcKeys  keys  config keys for this specifier;
+         *                    should include FEXPR_KEY
+         */
+        FuncSpecifier( ConfigKey[] funcKeys ) {
+            super( funcKeys );
+
+            /* Prepare to do special manipulation of the text field
+             * used for configuring the function expression. */
+            Specifier<String> fexprSpecifier = getSpecifier( FEXPR_KEY );
+            if ( fexprSpecifier instanceof TextFieldSpecifier ) {
+                fexprField_ = ((TextFieldSpecifier) fexprSpecifier)
+                             .getTextField();
+            }
+            else {
+                assert false : "FuncSpecifier unexpected type";
+                fexprField_ = null;
+            }
+            okColor_ = UIManager.getColor( "TextField.foreground" );
+            errColor_ = UIManager.getColor( "TextField.inactiveForeground" );
+            setError( null );
+        }
+
+        /**
+         * Call this method when it's time to evaluate the expression.
+         * The argument should be the error if there was one, or null
+         * if a style could be created.
+         *
+         * @param  err  configuration error, or null
+         */
+        public void setError( ConfigException err ) {
+            boolean isCompilationError = isCompilationError( err );
+            if ( fexprField_ != null ) {
+                fexprField_.setForeground( isCompilationError ? errColor_
+                                                              : okColor_ );
+            }
+            if ( isCompilationError ) {
+                String name = FEXPR_KEY.getMeta().getLongName();
+                Object msg = new String[] {
+                    name + " error:",
+                    err.getMessage(),
+                };
+                JOptionPane.showMessageDialog( getComponent(), msg,
+                                               name + "Error",
+                                               JOptionPane.ERROR_MESSAGE ); 
+            }
+        }
+
+        /**
+         * Indicates whether a JEL compilation error is present somewhere
+         * in the stack trace for a given throwable.
+         *
+         * @param  err  exception to test
+         * @return   true iff a gnu.jel.CompilationException
+         *           is in the stack trace
+         */
+        private static boolean isCompilationError( Throwable err ) {
+            if ( err == null ) {
+                return false;
+            }
+            else if ( err instanceof CompilationException ) {
+                return true;
+            }
+            else {
+                return isCompilationError( err.getCause() );
+            }
         }
     }
 }

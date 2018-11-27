@@ -60,4 +60,13 @@ public class TextFieldSpecifier<V> extends SpecifierPanel<V> {
 
     public void submitReport( ReportMap report ) {
     }
+
+    /**
+     * Returns the text field used by this specifier.
+     *
+     * @return  text field
+     */
+    public JTextField getTextField() {
+        return txtField_;
+    }
 }

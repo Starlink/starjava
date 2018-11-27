@@ -27588,6 +27588,11 @@ introduced since the last version:
         in loaded VOTables are now reported in the <label>Rows</label>
         line of the Control Window
         <ref id="controlProps">properties panel</ref>.</li>
+    <li>If an expression with bad syntax is entered in the
+        <ref id="FunctionLayerControl">Function Layer Control</ref>
+        Function Expression field, it is now greyed out like in
+        column selectors rather than deleted.
+        This makes it easier to enter function expressions.</li>
     </ul>
     </p></dd>
 
