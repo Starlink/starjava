@@ -68,7 +68,8 @@ public class FunctionPlotter extends
     public static final FunctionPlotter PLANE =
             new FunctionPlotter( PlaneAxis.values() );
 
-    private static final ConfigKey<String> XNAME_KEY =
+    /** Config key for the independent variable name. */
+    public static final ConfigKey<String> XNAME_KEY =
         new StringConfigKey(
             new ConfigMeta( "xname", "Independent Variable Name" )
            .setStringUsage( "<name>" )
@@ -85,7 +86,9 @@ public class FunctionPlotter extends
                 "</p>",
             } )
         , "x" );
-    private static final ConfigKey<String> FEXPR_KEY =
+
+    /** Config key for the function expression. */
+    public static final ConfigKey<String> FEXPR_KEY =
         new StringConfigKey(
             new ConfigMeta( "fexpr", "Function Expression" )
            .setStringUsage( "<expr>" )
@@ -100,6 +103,7 @@ public class FunctionPlotter extends
                 "</p>",
             } )
         , null );
+
     private final ConfigKey<FuncAxis> axisKey_;
 
     /**
