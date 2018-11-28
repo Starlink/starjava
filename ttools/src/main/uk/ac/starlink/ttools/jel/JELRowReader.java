@@ -64,7 +64,7 @@ import java.util.List;
 public abstract class JELRowReader extends DVMap {
 
     private final Object[] args_;
-    private List constantList_;
+    private final List<NamedConstant> constantList_;
     private boolean isNullExpression_;
     private boolean failOnNull_;
 
@@ -109,7 +109,7 @@ public abstract class JELRowReader extends DVMap {
      */
     public JELRowReader() {
         args_ = new Object[] { this };
-        constantList_ = new ArrayList();
+        constantList_ = new ArrayList<NamedConstant>();
     }
 
     /**
@@ -299,8 +299,7 @@ public abstract class JELRowReader extends DVMap {
             return NULL_EXPRESSION_CONST;
         }
         else if ( getNullConstantIndex( name ) >= 0 ) {
-            Object value = ((NamedConstant)
-                            constantList_.get( getNullConstantIndex( name ) ))
+            Object value = constantList_.get( getNullConstantIndex( name ) )
                           .getValue();
             return value == null ? TRUE_CONST
                                  : FALSE_CONST;
@@ -366,7 +365,7 @@ public abstract class JELRowReader extends DVMap {
         /* See if it's a known special, and treat it specially if so. */
         int ispecial = getSpecialIndex( name );
         if ( ispecial >= 0 ) {
-            return getTypeName( ((NamedConstant) constantList_.get( ispecial ))
+            return getTypeName( constantList_.get( ispecial )
                                .getContentClass() );
         }
 
@@ -400,8 +399,7 @@ public abstract class JELRowReader extends DVMap {
         /* See if it's a known constant, and treat it specially if so. */
         int iconst = getConstantIndex( name );
         if ( iconst >= 0 ) {
-            return getTypeName( ((NamedConstant) constantList_.get( iconst ))
-                               .getContentClass() );
+            return getTypeName( constantList_.get( iconst ).getContentClass() );
         }
 
         /* If we haven't got it yet, we don't know what it is. */
@@ -579,7 +577,7 @@ public abstract class JELRowReader extends DVMap {
          * this name that has been encountered before.
          * If one is found return the index. */
         for ( int i = 0; i < constantList_.size(); i++ ) {
-            String cname = ((NamedConstant) constantList_.get( i )).getName();
+            String cname = constantList_.get( i ).getName();
             if ( cname.equals( name ) ) {
                 return i;
             }
@@ -651,7 +649,7 @@ public abstract class JELRowReader extends DVMap {
      * @return  value as an Object
      */
     private Object getConstantValue( int iconst ) {
-        return ((NamedConstant) constantList_.get( iconst )).getValue();
+        return constantList_.get( iconst ).getValue();
     }
 
     /**
