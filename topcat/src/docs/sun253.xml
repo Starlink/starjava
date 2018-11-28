@@ -27593,6 +27593,13 @@ introduced since the last version:
         Function Expression field, it is now greyed out like in
         column selectors rather than deleted.
         This makes it easier to enter function expressions.</li>
+    <li>Fix bug/misfeature in CDF table parameter construction:
+        CDF global attributes were ignored
+        (with a "WARNING: Omitting complicated global attribute" message)
+        if they contained any null entries.
+        Now such entries are just ignored and the table parameter is
+        constructed from the global attribute using the
+        non-null entries.</li>
     </ul>
     </p></dd>
 

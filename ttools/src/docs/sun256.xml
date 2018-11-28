@@ -11854,6 +11854,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New functions <code>indexOf</code> in class
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>
         to find position of a given value in an array.</li>
+    <li>Fix bug/misfeature in CDF table parameter construction:
+        CDF global attributes were ignored
+        (with a "WARNING: Omitting complicated global attribute" message)
+        if they contained any null entries.
+        Now such entries are just ignored and the table parameter is
+        constructed from the global attribute using the
+        non-null entries.</li>
     </ul>
     </p>
     </dd>

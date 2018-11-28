@@ -231,7 +231,15 @@ public class CdfStarTable extends AbstractStarTable {
      */
     private static DescribedValue createParameter( GlobalAttribute gatt ) {
         String name = gatt.getName();
-        AttributeEntry[] entries = gatt.getEntries();
+
+        /* Construct the list of non-blank entries for this atttribute. */
+        List<AttributeEntry> entryList = new ArrayList<AttributeEntry>();
+        for ( AttributeEntry ent : gatt.getEntries() ) {
+            if ( ent != null ) {
+                entryList.add( ent );
+            }
+        }
+        AttributeEntry[] entries = entryList.toArray( new AttributeEntry[ 0 ] );
         int nent = entries.length;
 
         /* No entries, treat as a blank value. */
@@ -305,7 +313,7 @@ public class CdfStarTable extends AbstractStarTable {
         }
         else {
             Class elClass = dtype.getArrayElementClass();
-            Object array = Array.newInstance( elClass, nent );
+            Object array =Array.newInstance( elClass, nent );
             for ( int i = 0; i < nent; i++ ) {
                 Array.set( array, i, entries[ i ].getShapedValue() );
             }
