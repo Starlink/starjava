@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.DescribedValue;
@@ -49,6 +51,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
 
     private final TopcatModel tcModel_;
     private final List<RowSubset> rdrSubsets_;
+    private final Set<Integer> translatedSubsetIds_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -65,6 +68,16 @@ public class TopcatJELRowReader extends RandomJELRowReader {
         assert getTable().isRandom();
         tcModel_ = tcModel;
         rdrSubsets_ = new ArrayList<RowSubset>();
+        translatedSubsetIds_ = new LinkedHashSet<Integer>();
+    }
+
+    /**
+     * Returns the topcat model on which this row reader is based.
+     *
+     * @return  topcat model
+     */
+    public TopcatModel getTopcatModel() {
+        return tcModel_;
     }
 
     /**
@@ -107,6 +120,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
      *          know how to evaluate
      * @see    "JEL manual"
      */
+    @Override
     public Object translate( String name ) {
 
         /* If the superclass implementation recognises it, use that. */
@@ -124,6 +138,29 @@ public class TopcatJELRowReader extends RandomJELRowReader {
 
         /* Otherwise, it is unrecognised. */
         return null;
+    }
+
+    /**
+     * Returns a set (no duplicated elements) of the subset IDs
+     * for which this RowReader has been asked to provide translation values.
+     * In practice that means the ID
+     * (in the sense of the <code>OptionsListModel</code> returned by
+     * <code>TopcatModel.getSubsets</code>)
+     * of every RowSubset which has been directly referenced in a JEL
+     * expression which this RowReader has been used to compile.
+     *
+     * @return   list of distinct subset IDs which this row reader has had to
+     *           reference in compiling JEL expressions
+     */
+    public int[] getTranslatedSubsetIds() {
+        int ns = translatedSubsetIds_.size();
+        int[] ids = new int[ ns ];
+        int i = 0;
+        for ( Integer id : translatedSubsetIds_ ) {
+            ids[ i++ ] = id.intValue();
+        }
+        assert i == ns;
+        return ids;
     }
 
     /**
@@ -184,6 +221,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
                 int subsetId = Integer.parseInt( name.substring( 1 ) ) - 1;
                 for ( int isub = 0; isub < nsub; isub++ ) {
                     if ( subsetId == subsets.indexToId( isub ) ) {
+                        translatedSubsetIds_.add( new Integer( subsetId ) );
                         return getSubsetIndex( subsets.get( isub ) );
                     }
                 }
@@ -197,6 +235,8 @@ public class TopcatJELRowReader extends RandomJELRowReader {
         for ( int isub = 0; isub < nsub; isub++ ) {
             RowSubset rset = subsets.get( isub );
             if ( rset.getName().equalsIgnoreCase( name ) ) {
+                translatedSubsetIds_.add( new Integer( subsets
+                                                      .indexToId( isub ) ) );
                 return getSubsetIndex( rset );
             }
         }
