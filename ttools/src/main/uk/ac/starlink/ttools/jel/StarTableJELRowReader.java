@@ -140,7 +140,9 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     }
 
     protected Class getColumnClass( int icol ) {
-        return table_.getColumnInfo( icol ).getContentClass();
+        return icol < table_.getColumnCount()
+             ? table_.getColumnInfo( icol ).getContentClass()
+             : null;
     }
 
     protected int getColumnIndexByName( String name ) {

@@ -27604,6 +27604,9 @@ introduced since the last version:
         users are prevented from supplying an algebraic expression
         which references itself.  Such recursive definitions cannot
         be evaluated and lead to bad behaviour of the application.</li>
+    <li>Fix expressions so that <code>$ID</code> column references
+        referring to nonexistent columns are rejected at compile time
+        rather than causing trouble during evaluation.</li>
     </ul>
     </p></dd>
 

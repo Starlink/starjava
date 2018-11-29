@@ -164,9 +164,10 @@ public abstract class JELRowReader extends DVMap {
 
     /**
      * Returns the class of values returned by a given column.
+     * If no column with the given index exists, null should be returned.
      *
-     * @param  icol   column index
-     * @return  value class
+     * @param  icol   non-negative column index
+     * @return  value class, or null for non-existent column
      */
     protected abstract Class getColumnClass( int icol );
 
@@ -383,7 +384,10 @@ public abstract class JELRowReader extends DVMap {
         /* See if it's a known column, and get the return value type if so. */
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
-            return getTypeName( getColumnClass( icol ) );
+            Class clazz = getColumnClass( icol ); 
+            if ( clazz != null ) {
+                return getTypeName( clazz );
+            }
         }
 
         /* See if it's an object-valued column indicator, and return an Object

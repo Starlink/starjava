@@ -11861,6 +11861,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Now such entries are just ignored and the table parameter is
         constructed from the global attribute using the
         non-null entries.</li>
+    <li>Fix expressions so that <code>$ID</code> column references
+        referring to nonexistent columns are rejected at compile time 
+        rather than causing trouble during evaluation.</li>
     </ul>
     </p>
     </dd>

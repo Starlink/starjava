@@ -73,7 +73,7 @@ public class ResultSetJELRowReader extends JELRowReader {
     }
 
     protected Class getColumnClass( int icol ) {
-        return colClazzes_[ icol ];
+        return icol < colClazzes_.length ? colClazzes_[ icol ] : null;
     }
 
     protected boolean getBooleanColumnValue( int icol ) {

@@ -18,7 +18,7 @@ public class TablelessJELRowReader extends JELRowReader {
     }
 
     protected Class getColumnClass( int icol ) {
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     protected int getColumnIndexByName( String name ) {
