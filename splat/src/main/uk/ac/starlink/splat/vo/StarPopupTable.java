@@ -221,7 +221,7 @@ public class StarPopupTable extends  BasicStarPopupTable  {
 	   for(int i=1; i<rowCount;i++){
 		    String pubdid = (String) this.getValueAt(i, pubdidcol);
 		    String format = (String) this.getValueAt(i, formatcol);
-		    if (pubdid.equals(prevPubdid)) {
+		    if (pubdid != null && pubdid.equals(prevPubdid)) {
 		    	if (isPreferedFormat(format,prevFormat)) {
 		    		this.removeRowSelectionInterval(i-1, i-1);
 		    		prevFormat=format;

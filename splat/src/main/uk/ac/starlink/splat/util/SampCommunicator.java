@@ -460,27 +460,26 @@ public class SampCommunicator
       
       
         //  Check parameter QUERY_STATUS, this should be set to OK
-        //  when the query
+        // 
         String queryOK = null;
 
         // TO DO 
         // parse further to recognise if result is ssap or obscore result
         //
-        String queryDescription = null;
+        // String queryDescription = null;
         try {
             queryOK = starTable
                     .getParameterByName( "QUERY_STATUS" )
                     .getValueAsString( 100 );
-            queryDescription = starTable
-                    .getParameterByName( "QUERY_STATUS" )
-                    .getInfo().getDescription();
+            //queryDescription = starTable
+            //        .getParameterByName( "QUERY_STATUS" )
+            //        .getInfo().getDescription();
         }
         catch (NullPointerException ne) {
-            // Whoops, that's not good, but see what we can do.
+            // Probably QUERY_STATUS does not exist -> not a results table
             return false;
         }
         if ( queryOK != null && (! "OK".equalsIgnoreCase( queryOK ) && ! "OVERFLOW".equalsIgnoreCase( queryOK ) ) ) {
-          
            return false;
         }
         
