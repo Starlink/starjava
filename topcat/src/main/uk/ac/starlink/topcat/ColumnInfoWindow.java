@@ -256,11 +256,26 @@ public class ColumnInfoWindow extends AuxWindow {
                 return getSyntheticColumn( irow ) != null;
             }
             public void setValue( int irow, Object value ) {
+                int icol = getModelIndexFromRow( irow );
+                String expr = (String) value;
+                if ( TopcatJELUtils
+                    .isColumnReferenced( tcModel, icol, expr ) ) {
+                     String[] msg = new String[] {
+                         "Recursive column expression disallowed:",
+                         "\"" + expr + "\"" +
+                         " directly or indirectly references column " + 
+                         dataModel.getColumnData( icol )
+                                  .getColumnInfo().getName(),
+                     };
+                     JOptionPane.showMessageDialog( ColumnInfoWindow.this, msg,
+                                                    "Expression Error",
+                                                    JOptionPane.ERROR_MESSAGE );
+                     return;
+                }
                 try { 
                     getSyntheticColumn( irow )
-                   .setExpression( (String) value, null,
-                                   tcModel.createJELRowReader() );
-                    super.setValue( irow, value );
+                   .setExpression( expr, null, tcModel.createJELRowReader() );
+                    super.setValue( irow, expr );
 
                     /* Message the table that its data may have changed.
                      * Since every cell in one column is changing, 
@@ -280,6 +295,7 @@ public class ColumnInfoWindow extends AuxWindow {
                     JOptionPane.showMessageDialog( ColumnInfoWindow.this, msg,
                                                    "Expression Syntax Error",
                                                    JOptionPane.ERROR_MESSAGE );
+                    return;
                 }
             }
         } );

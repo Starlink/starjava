@@ -168,12 +168,22 @@ public class MultiSubsetQueryWindow extends QueryWindow {
         int nfail = 0;
         for ( Entry entry : entries_ ) {
             if ( entry.create_ ) {
-                try {
-                    rsetMap.put( entry.tcModel_, entry.createSubset( name ) );
-                }
-                catch ( CompilationException e ) {
+                if ( entry.referencesSymbol( name ) ) {
                     nfail++;
-                    messages.add( e.getMessage() );
+                    messages.add( "Recursive subset expression disallowed:\n" +
+                                  "\"" + entry.expr_ + "\"\n" +
+                                  "directly or indirectly references subset " +
+                                  name );
+                }
+                else {
+                    try {
+                        rsetMap.put( entry.tcModel_,
+                                     entry.createSubset( name ) );
+                    }
+                    catch ( CompilationException e ) {
+                        nfail++;
+                        messages.add( e.getMessage() );
+                    }
                 }
             }
         }
@@ -182,12 +192,17 @@ public class MultiSubsetQueryWindow extends QueryWindow {
          * any subsets. */
         if ( nfail > 0 ) {
             List<JLabel> msgList = new ArrayList<JLabel>();
+            boolean isMulti = messages.size() > 1;
             msgList.add( new JLabel( "Expression error"
-                                   + ( messages.size() == 1 ? ":" : "s:" ) ) );
+                                   + ( isMulti ? ":" : "" ) + ":" ) );
             for ( String msg : messages ) {
-                msgList.add( new JLabel( msg ) );
+                for ( String line : msg.split( "\\n" ) ) {
+                    msgList.add( new JLabel( "   " + line ) );
+                }
+                if ( isMulti ) {
+                    msgList.add( new JLabel( " " ) );
+                }
             }
-            messages.add( 0, "Expression errors:" );
             JOptionPane.showMessageDialog( this, msgList.toArray(),
                                            "Subset Creation Error",
                                            JOptionPane.ERROR_MESSAGE );
@@ -248,6 +263,29 @@ public class MultiSubsetQueryWindow extends QueryWindow {
             tcModel_ = tcModel;
             create_ = true;
             setExpression( expr );
+        }
+
+        /**
+         * Determines whether this entry's current expression
+         * references a given JEL token.
+         *
+         * @param  name  token to test
+         * @return  true iff this entry's expression references the given
+         *          symbol directly or indirectly
+         */
+        private boolean referencesSymbol( String name ) {
+            OptionsListModel<RowSubset> subsets = tcModel_.getSubsets();
+            for ( int is = 0; is < subsets.size(); is++ ) {
+                RowSubset rset = subsets.get( is );
+                if ( rset.getName().equals( name ) ) {
+                    int id = subsets.indexToId( is );
+                    if ( TopcatJELUtils
+                        .isSubsetReferenced( tcModel_, id, expr_ ) ) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /**

@@ -402,8 +402,23 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 return getSubset( irow ) instanceof SyntheticRowSubset;
             }
             public void setValue( int irow, Object value ) {
+                String expr = value.toString();
                 SyntheticRowSubset rset =
                    (SyntheticRowSubset) getSubset( irow );
+                int rsetId = subsets.indexToId( irow );
+                if ( TopcatJELUtils
+                    .isSubsetReferenced( tcModel, rsetId, expr ) ) {
+                    String[] msg = new String[] {
+                        "Recursive subset expression disallowed:",
+                        "\"" + expr + "\"" +
+                        " directly or indirectly references subset " +
+                        rset.getName(),
+                    };
+                    JOptionPane.showMessageDialog( SubsetWindow.this, msg,
+                                                   "Expression Error",
+                                                   JOptionPane.ERROR_MESSAGE );
+                    return;
+                }
                 try {
                     rset.setExpression( value.toString(),
                                         tcModel.createJELRowReader() );

@@ -27600,6 +27600,10 @@ introduced since the last version:
         Now such entries are just ignored and the table parameter is
         constructed from the global attribute using the
         non-null entries.</li>
+    <li>Fix synthetic column and subset definition GUIs so that
+        users are prevented from supplying an algebraic expression
+        which references itself.  Such recursive definitions cannot
+        be evaluated and lead to bad behaviour of the application.</li>
     </ul>
     </p></dd>
 
