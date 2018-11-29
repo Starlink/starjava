@@ -5,7 +5,9 @@ import gnu.jel.DVMap;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An object which is able to read cell values by column name or number.
@@ -65,6 +67,7 @@ public abstract class JELRowReader extends DVMap {
 
     private final Object[] args_;
     private final List<NamedConstant> constantList_;
+    private final Set<Integer> translatedIcols_;
     private boolean isNullExpression_;
     private boolean failOnNull_;
 
@@ -110,6 +113,7 @@ public abstract class JELRowReader extends DVMap {
     public JELRowReader() {
         args_ = new Object[] { this };
         constantList_ = new ArrayList<NamedConstant>();
+        translatedIcols_ = new LinkedHashSet<Integer>();
     }
 
     /**
@@ -440,18 +444,21 @@ public abstract class JELRowReader extends DVMap {
         /* See if it corresponds to a null column indicator. */
         int inul = getNullColumnIndex( name );
         if ( inul >= 0 ) {
+            translatedIcols_.add( new Integer( inul ) );
             return new Long( inul );
         }
 
         /* See if it corresponds to a column. */
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
+            translatedIcols_.add( new Integer( icol ) );
             return new Integer( icol );
         }
 
         /* See if it corresponds to an object-valued column. */
         int iobj = getObjectColumnIndex( name );
         if ( iobj >= 0 ) {
+            translatedIcols_.add( new Integer( iobj ) );
             return new Integer( iobj );
         }
 
@@ -464,6 +471,27 @@ public abstract class JELRowReader extends DVMap {
         /* It is an error if the column name doesn't exist, since the
          * variable substitution isn't going to come from anywhere else. */
         return null;
+    }
+
+    /**
+     * Returns a set (no duplicated elements) of the column indices
+     * for which this RowReader has been asked to provide translation values.
+     * In practice that means the index of every table column which has
+     * been directly referenced in a JEL expression which this RowReader
+     * has been used to compile.
+     *
+     * @return  list of distinct column indices which this row reader
+     *          has had to reference in compiling JEL expressions
+     */
+    public int[] getTranslatedColumns() {
+        int ncol = translatedIcols_.size();
+        int[] icols = new int[ ncol ];
+        int i = 0;
+        for ( Integer ic : translatedIcols_ ) {
+            icols[ i++ ] = ic.intValue();
+        }
+        assert i == ncol;
+        return icols;
     }
 
     /**
