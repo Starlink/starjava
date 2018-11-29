@@ -95,6 +95,16 @@ public class SyntheticColumn extends ColumnData {
         colinfo.setAuxDatum( new DescribedValue( exprInfo, expression ) );
     }
 
+    /**
+     * Returns the JEL expression that provides this column's value.
+     *
+     * @return  expression
+     */
+    public String getExpression() {
+        return getColumnInfo().getAuxDatum( TopcatUtils.EXPR_INFO )
+              .getValue().toString();
+    }
+
     public Object readValue( long lrow ) throws IOException {
         try {
             return rowReader_.evaluateAtRow( compEx_, lrow );

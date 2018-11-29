@@ -6,14 +6,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import gnu.jel.CompilationException;
 import gnu.jel.Library;
 import gnu.jel.DVMap;
+import gnu.jel.Evaluator;
 import java.util.Date;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Browsers;
@@ -36,7 +39,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
  */
 public class TopcatJELUtils extends JELUtils {
 
-    private static List activationStaticClasses;
+    private static List<Class> activationStaticClasses;
     public static final String ACTIVATION_CLASSES_PROPERTY =
         "jel.classes.activation";
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -57,6 +60,12 @@ public class TopcatJELUtils extends JELUtils {
         "const",    "float",    "native",     "super",     "while",
         "true",     "false",    "null",
     } ) ) );
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    private TopcatJELUtils() {
+    }
 
     /**
      * Returns a JEL Library suitable for expression evaluation.
@@ -225,6 +234,127 @@ public class TopcatJELUtils extends JELUtils {
         catch ( ClassNotFoundException e ) {
             return null;
         }
+    }
+
+    /**
+     * Indicates whether a given JEL expression makes direct or indirect
+     * reference to an existing column in a given table.
+     * If the expression cannot be compiled, false is returned
+     *
+     * @param  tcModel   topcat model
+     * @param  icol      column index to test
+     * @param  expr      JEL expression
+     * @return  true iff expr references the column with index icol
+     */
+    public static boolean isColumnReferenced( TopcatModel tcModel, int icol,
+                                              String expr ) {
+
+        /* Compile the expression using a RowReader that we can later
+         * interrogate to find out which symbols the expression referenced. */
+        TopcatJELRowReader rdr = new TopcatJELRowReader( tcModel );
+        Library lib = getLibrary( rdr, false );
+        try {
+            Evaluator.compile( expr, lib );
+        }
+        catch ( CompilationException e ) {
+            return false;
+        }
+
+        /* Look for direct references to the test column. */
+        for ( int ic : rdr.getTranslatedColumns() ) {
+            if ( ic == icol ) {
+                return true;
+            }
+        }
+
+        /* If there were no direct references, look recursively for
+         * references in the symbols that were referenced. */
+        for ( String subExpr : getReferencedExpressions( rdr ) ) {
+            if ( isColumnReferenced( tcModel, icol, subExpr ) ) {
+                return true;
+            }
+        }
+
+        /* Otherwise, we can conclude there were no references. */
+        return false;
+    }
+
+    /**
+     * Indicates whether a given JEL expression makes direct or indirect
+     * reference to an existing subset in a given topcat model.
+     * If the expression cannot be compiled, false is returned.
+     *
+     * @param  tcModel  topcat model
+     * @param  rsetId    ID of row subset to test
+     * @param  expr  JEL expression
+     * @return  true iff expr references the subset with index irset
+     */
+    public static boolean isSubsetReferenced( TopcatModel tcModel, int rsetId,
+                                              String expr ) {
+
+        /* Compile the expression using a RowReader that we can later
+         * interrogate to find out which symbols the expression referenced. */
+        TopcatJELRowReader rdr = new TopcatJELRowReader( tcModel );
+        Library lib = getLibrary( rdr, false );
+        try {
+            Evaluator.compile( expr, lib );
+        }
+        catch ( CompilationException e ) {
+            return false;
+        }
+
+        /* Look for direct references to the test subset. */
+        for ( int id : rdr.getTranslatedSubsetIds() ) {
+            if ( id == rsetId ) {
+                return true;
+            }
+        }
+
+        /* If there were no direct references, look recursively for
+         * references in the symbols that were referenced. */
+        for ( String subExpr : getReferencedExpressions( rdr ) ) {
+            if ( isSubsetReferenced( tcModel, rsetId, subExpr ) ) {
+                return true;
+            }
+        }
+
+        /* Otherwise, we can conclude there were no references. */
+        return false;
+    }
+
+    /**
+     * Returns a list of all the JEL expressions corresponding to symbols
+     * referenced by the expression(s) a row reader has been used to compile.
+     * These expressions can then be examined recursively to see what
+     * symbols they reference.
+     *
+     * @param   rdr   a row reader that has been used to compile one or more
+     *                JEL expressions; its list of referenced columns and
+     *                subsets is examined to find ones that correspond to
+     *                subordinate expressions
+     * @return  list of distinct expressions corresponding to parsed symbols
+     */
+    private static String[] getReferencedExpressions( TopcatJELRowReader rdr ) {
+        Set<String> exprs = new LinkedHashSet<String>();
+        TopcatModel tcModel = rdr.getTopcatModel();
+        PlasticStarTable dataModel = tcModel.getDataModel();
+        for ( int ic : rdr.getTranslatedColumns() ) {
+            ColumnData cdata = dataModel.getColumnData( ic );
+            if ( cdata instanceof SyntheticColumn ) {
+                exprs.add( ((SyntheticColumn) cdata).getExpression() );
+            }
+        }
+        OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
+        for ( int id : rdr.getTranslatedSubsetIds() ) {
+            int isub = subsets.idToIndex( id );
+            if ( isub >= 0 ) {
+                RowSubset rset = subsets.get( isub );
+                if ( rset instanceof SyntheticRowSubset ) {
+                    exprs.add( ((SyntheticRowSubset) rset).getExpression() );
+                }
+            }
+        }
+        return exprs.toArray( new String[ 0 ] );
     }
 
     /**
