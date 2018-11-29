@@ -68,6 +68,7 @@ public class TableColumnChooser
         addCoordNamePattern( "pos.*" );
         addCoordNamePattern( "x*." );
         addCoordNamePattern( "time*." );
+        addCoordNamePattern( "loglam" );
 
         coordUtypePatterns = new ArrayList();
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP

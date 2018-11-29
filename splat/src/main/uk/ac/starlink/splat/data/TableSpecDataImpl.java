@@ -673,6 +673,12 @@ public class TableSpecDataImpl
                 readColumn( errors, errorColumn );
             }
         }
+        
+        // FOR SDSS Spectra
+        if ("loglam".equals(columnNames[coordColumn])) {
+        	for (int i=0;i<dims[0];i++)
+        		coords[i]=Math.pow(10, coords[i]);
+        }
 
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
