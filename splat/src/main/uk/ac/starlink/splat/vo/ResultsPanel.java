@@ -405,15 +405,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
 			 
 			} catch (IOException e) {
 				logger.warning("could not open Datalink: "+e.getMessage());
-				logger.warning("query: "+query);
-			
+				logger.warning("query: "+query);			
 				e.printStackTrace();
+				ErrorDialog.showError( this, "Could not open Datalink:\n",e );
 				return;
 			} catch (SAXException e) {
 				logger.warning("could not open Datalink: "+e.getMessage());
 				logger.warning("query: "+query);
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				ErrorDialog.showError( this, "Could not open Datalink:\n", e );
 				return;
 			}  
     		 if (dataLinkLinksFrame == null)				  
