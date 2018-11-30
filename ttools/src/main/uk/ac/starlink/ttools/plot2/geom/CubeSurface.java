@@ -301,6 +301,26 @@ public class CubeSurface implements Surface {
     }
 
     /**
+     * Indicates the scaling along the three axes.
+     *
+     * @return  3-element array giving X, Y, Z scaling flags:
+     *          false for linear, true for logarithmic
+     */
+    public boolean[] getLogFlags() {
+        return logFlags_;
+    }
+
+    /**
+     * Indicates which axes are reversed.
+     *
+     * @return  3-element array giving X, Y, Z flip flags;
+     *          true to invert normal plot direction
+     */
+    public boolean[] getFlipFlags() {
+        return flipFlags_;
+    }
+
+    /**
      * Maps a data space coordinate to a normalised space coordinate.
      * Normalised coordinates are in the range -1..+1.
      *
