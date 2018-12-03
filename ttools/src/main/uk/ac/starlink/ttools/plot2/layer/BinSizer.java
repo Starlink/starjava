@@ -162,8 +162,9 @@ public abstract class BinSizer {
 
         public double getWidth( boolean xlog, double xlo, double xhi,
                                 Rounding rounding ) {
-            double width0 = xlog ? Math.exp( Math.log( xhi / xlo ) / nbin_ )
-                                 : ( xhi - xlo ) / nbin_;
+            double width0 = xlog
+                ? Math.exp( ( Math.log( xhi ) - Math.log( xlo ) ) / nbin_ )
+                : ( xhi - xlo ) / nbin_;
             return rounding == null
                  ? width0
                  : rounding.getRounder( xlog ).round( width0 );

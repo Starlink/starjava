@@ -856,8 +856,9 @@ public class PlotUtil {
     public static double scaleValue( double min, double max, double frac,
                                      boolean isLog ) {
         return isLog
-             ? min * Math.pow( ( max / min ), frac )
-             : min + ( max - min ) * frac;
+             ? Math.exp( Math.log( min ) * ( 1. - frac )
+                       + Math.log( max ) * frac )
+             : min * ( 1. - frac ) + max * frac;
     }
 
     /**

@@ -154,7 +154,7 @@ public abstract class LevelMode {
         if ( ! ( max > min ) ) {
             return new double[ 0 ];
         }
-        double step = Math.log( max / min ) / nLevel;
+        double step = ( Math.log( max ) - Math.log( min ) ) / nLevel;
         double[] levels = new double[ nLevel ];
         for ( int il = 0; il < nLevel; il++ ) {
             levels[ il ] = min * Math.exp( step * ( il + offset ) );

@@ -135,7 +135,7 @@ public abstract class BinMapper {
         private final double width_;
         private final double floor_;
         private final double logWidth1_;
-        private final double floor1_;
+        private final double logFloor_;
 
         /**
          * Constructor.
@@ -151,13 +151,13 @@ public abstract class BinMapper {
             }
             int n = (int) Math.floor( log( point ) / log( width ) );
             floor_ = Math.pow( width, n + phase );
-            assert Math.abs( log( floor_ / point ) ) <= width;
+            logFloor_ = log( floor_ );
+            assert Math.abs( logFloor_ - log( point ) ) <= width;
             logWidth1_ = 1. / log( width );
-            floor1_ = 1. / floor_;
         }
 
         public int getBinIndex( double value ) {
-            return (int) Math.floor( log( value * floor1_ ) * logWidth1_ );
+            return (int) Math.floor( (log( value ) - logFloor_) * logWidth1_ );
         }
 
         public double[] getBinLimits( int index ) {
