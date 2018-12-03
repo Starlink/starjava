@@ -339,7 +339,7 @@ public class HistogramPlotter
                             }
                             BinBag binBag =
                                 readBins( xlog, binWidth, binPhase, combiner,
-                                          xlo, dataSpec, dataStore );
+                                          xlo, xhi, dataSpec, dataStore );
                             return new HistoPlan( binBag, dataSpec );
                         }
                         public void paintData( Object plan, Paper paper,
@@ -398,7 +398,7 @@ public class HistogramPlotter
                     double binWidth = sizer.getWidth( xlog, xlo, xhi, xround );
                     BinBag binBag =
                         readBins( xlog, binWidth, binPhase, combiner,
-                                  xlo, dataSpec, dataStore );
+                                  xlo, xhi, dataSpec, dataStore );
 
                     /* Assume y=0 is always of interest for a histogram. */
                     yRange.submit( 0 );
@@ -445,13 +445,15 @@ public class HistogramPlotter
      * @param   binWidth  additive/multiplicative bin width
      * @param   binPhase   bin reference point, 0..1
      * @param   combiner   bin aggregation mode
-     * @param   point     representative data value along axis
+     * @param   xlo       representative lower value along axis
+     * @param   xhi       representative upper value along axis
      * @param   dataSpec  specification for histogram data values
      * @param   dataStore  data storage
      */
     private BinBag readBins( boolean xlog, double binWidth, double binPhase,
-                             Combiner combiner, double point, DataSpec dataSpec,
-                             DataStore dataStore ) {
+                             Combiner combiner, double xlo, double xhi,
+                             DataSpec dataSpec, DataStore dataStore ) {
+        double point = PlotUtil.scaleValue( xlo, xhi, 0.5, xlog );
         BinBag binBag = new BinBag( xlog, binWidth, binPhase, combiner, point );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         if ( weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ ) ) {
