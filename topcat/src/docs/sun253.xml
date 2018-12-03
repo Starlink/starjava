@@ -27607,6 +27607,8 @@ introduced since the last version:
     <li>Fix expressions so that <code>$ID</code> column references
         referring to nonexistent columns are rejected at compile time
         rather than causing trouble during evaluation.</li>
+    <li>Fix some bugs relating to plotting values close to the limits
+        of the double precision range.</li>
     </ul>
     </p></dd>
 
