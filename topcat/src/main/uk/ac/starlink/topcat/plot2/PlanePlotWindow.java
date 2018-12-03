@@ -1,11 +1,14 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import java.awt.Rectangle;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
@@ -19,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 public class PlanePlotWindow
              extends StackPlotWindow<PlaneSurfaceFactory.Profile,PlaneAspect> {
     private static final PlanePlotType PLOT_TYPE = PlanePlotType.getInstance();
+    private static final CartesianRanger PLANE_RANGER = new PlaneRanger();
     private static final PlanePlotTypeGui PLOT_GUI = new PlanePlotTypeGui();
 
     /**
@@ -59,8 +63,30 @@ public class PlanePlotWindow
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;
         } 
+        public CartesianRanger getCartesianRanger() {
+            return PLANE_RANGER;
+        }
         public String getNavigatorHelpId() {
             return "planeNavigation";
+        }
+    }
+
+    /**
+     * CartesianRanger implementation for plane plot.
+     */
+    private static class PlaneRanger implements CartesianRanger {
+        public int getDimCount() {
+            return 2;
+        }
+        public double[][] getDataLimits( Surface surf ) {
+            return ((PlanarSurface) surf).getDataLimits();
+        }
+        public boolean[] getLogFlags( Surface surf ) {
+            return ((PlanarSurface) surf).getLogFlags();
+        }
+        public int[] getPixelDims( Surface surf ) {
+            Rectangle bounds = surf.getPlotBounds();
+            return new int[] { bounds.width, bounds.height };
         }
     }
 }

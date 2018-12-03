@@ -1,12 +1,15 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import java.awt.Rectangle;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
 import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
+import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
 
 /**
@@ -18,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
 public class CubePlotWindow
        extends StackPlotWindow<CubeSurfaceFactory.Profile,CubeAspect> {
     private static final CubePlotType PLOT_TYPE = CubePlotType.getInstance();
+    private static final CubeRanger CUBE_RANGER = new CubeRanger();
     private static final CubePlotTypeGui PLOT_GUI = new CubePlotTypeGui();
 
     /**
@@ -58,8 +62,36 @@ public class CubePlotWindow
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;
         }
+        public CartesianRanger getCartesianRanger() {
+            return CUBE_RANGER;
+        }
         public String getNavigatorHelpId() {
             return "cubeNavigation";
+        }
+    }
+
+    /**
+     * CartesianRanger implementation for cube plot.
+     */
+    private static class CubeRanger implements CartesianRanger {
+        public int getDimCount() {
+            return 3;
+        }
+        public double[][] getDataLimits( Surface surf ) {
+            CubeSurface csurf = (CubeSurface) surf;
+            return new double[][] {
+                csurf.getDataLimits( 0 ),
+                csurf.getDataLimits( 1 ),
+                csurf.getDataLimits( 2 ),
+            };
+        }
+        public boolean[] getLogFlags( Surface surf ) {
+            return ((CubeSurface) surf).getLogFlags();
+        }
+        public int[] getPixelDims( Surface surf ) {
+            Rectangle bounds = ((CubeSurface) surf).getPlotBounds();
+            int npix = Math.max( bounds.width, bounds.height );
+            return new int[] { npix, npix, npix };
         }
     }
 }

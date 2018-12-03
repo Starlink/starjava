@@ -59,6 +59,9 @@ public class SpherePlotWindow
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;
         } 
+        public CartesianRanger getCartesianRanger() {
+            return null;
+        }
         public String getNavigatorHelpId() {
             return "sphereNavigation";
         }

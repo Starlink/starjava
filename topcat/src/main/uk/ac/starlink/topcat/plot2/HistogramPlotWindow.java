@@ -490,6 +490,9 @@ public class HistogramPlotWindow
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;
         }
+        public CartesianRanger getCartesianRanger() {
+            return null;
+        }
         public boolean hasPositions() {
             return false;
         }

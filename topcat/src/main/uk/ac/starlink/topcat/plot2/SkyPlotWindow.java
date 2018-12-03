@@ -92,6 +92,10 @@ public class SkyPlotWindow
             return ZoneFactories.FIXED;
         } 
 
+        public CartesianRanger getCartesianRanger() {
+            return null;
+        }
+
         public String getNavigatorHelpId() {
             return "skyNavigation";
         }

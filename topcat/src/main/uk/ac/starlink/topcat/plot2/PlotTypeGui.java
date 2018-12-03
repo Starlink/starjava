@@ -62,6 +62,15 @@ public interface PlotTypeGui<P,A> {
     ZoneFactory createZoneFactory();
 
     /**
+     * Returns an object that can characterise surfaces used by this plot type
+     * as hypercubes in data coordinate space.
+     * If it can't be done, null is returned.
+     *
+     * @return  Cartesian ranger for this plot type, or null
+     */
+    public CartesianRanger getCartesianRanger();
+
+    /**
      * Returns the help ID describing the navigation actions for this plot.
      *
      * @return  navigator help id

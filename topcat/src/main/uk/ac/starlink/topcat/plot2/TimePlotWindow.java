@@ -125,6 +125,9 @@ public class TimePlotWindow
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.createIntegerZoneFactory( true );
         }
+        public CartesianRanger getCartesianRanger() {
+            return null;
+        }
         public String getNavigatorHelpId() {
             return "timeNavigation";
         }
