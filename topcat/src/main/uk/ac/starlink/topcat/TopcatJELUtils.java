@@ -287,7 +287,7 @@ public class TopcatJELUtils extends JELUtils {
      * @param  tcModel  topcat model
      * @param  rsetId    ID of row subset to test
      * @param  expr  JEL expression
-     * @return  true iff expr references the subset with index irset
+     * @return  true iff expr references the subset with index rsetId
      */
     public static boolean isSubsetReferenced( TopcatModel tcModel, int rsetId,
                                               String expr ) {
@@ -319,6 +319,33 @@ public class TopcatJELUtils extends JELUtils {
         }
 
         /* Otherwise, we can conclude there were no references. */
+        return false;
+    }
+
+    /**
+     * Indicates whether a given JEL expression makes direct or indirect
+     * reference to a named subset in a given topcat model.
+     * If the expression cannot be compiled, or no subset with the given
+     * name exists, false is returned.
+     *
+     * @param  tcModel  topcat model
+     * @param  rsetName    name of row subset to test
+     * @param  expr  JEL expression
+     * @return  true iff expr references the subset with name rsetName
+     */
+    public static boolean isSubsetReferenced( TopcatModel tcModel,
+                                              String rsetName,
+                                              String expr ) {
+        OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
+        for ( int is = 0; is < subsets.size(); is++ ) {
+            RowSubset rset = subsets.get( is );
+            if ( rset.getName().equalsIgnoreCase( rsetName ) ) {
+                int id = subsets.indexToId( is );
+                if ( isSubsetReferenced( tcModel, id, expr ) ) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

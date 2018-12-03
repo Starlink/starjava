@@ -109,21 +109,44 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
                     ? ((RowSubset) selected).getName()
                     : selected.toString();
 
-        /* Construct a new RowSubset with the given name and add it to the
-         * model. */
-        try {
-            tcModel_.addSubset(
-                new SyntheticRowSubset( name, expr,
-                                        tcModel_.createJELRowReader() ) );
+        /* Try to construct a synthetic row subset as requested. */
+        SyntheticRowSubset exprSubset;
+        if ( TopcatJELUtils.isSubsetReferenced( tcModel_, name, expr ) ) {
+            exprSubset = null;
+            String[] msg = new String[] {
+                "Recursive subset expression disallowed:",
+                "\"" + expr + "\"" +
+                " directly or indirectly references subset " + name,
+            };
+            JOptionPane.showMessageDialog( this, msg, "Expression Error",
+                                           JOptionPane.ERROR_MESSAGE );
+        }
+        else {
+            try {
+                exprSubset =
+                    new SyntheticRowSubset( name, expr,
+                                            tcModel_.createJELRowReader() );
+            }
+            catch ( CompilationException e ) {
+                exprSubset = null;
+                String[] msg = new String[] {
+                    "Syntax error in algebraic subset expression" 
+                    + " \"" + expr + "\":",
+                    e.getMessage(),
+                };
+                JOptionPane.showMessageDialog( this, msg,
+                                               "Expression Syntax Error",
+                                               JOptionPane.ERROR_MESSAGE );
+            }
+        }
+
+        /* If successful, construct a new RowSubset with the given name
+         * and add it to the model. */
+        if ( exprSubset != null ) {
+            tcModel_.addSubset( exprSubset );
             return true;
         }
-        catch ( CompilationException e ) {
-            String[] msg = new String[] {
-                "Syntax error in algebraic subset expression \"" + expr + "\":",
-                e.getMessage(),
-            };
-            JOptionPane.showMessageDialog( this, msg, "Expression Syntax Error",
-                                           JOptionPane.ERROR_MESSAGE );
+        else {
             return false;
         }
     }
