@@ -444,7 +444,7 @@ public abstract class BasicTicker implements Ticker {
      * @return   <code>pow(10,exp)</code>
      */
     private static double exp10( int exp ) {
-       return Math.pow( 10, exp );
+        return Math.pow( 10, exp );
     }
 
     /**
@@ -491,6 +491,8 @@ public abstract class BasicTicker implements Ticker {
 
         /**
          * Returns the axis value identified by a given major tick mark index.
+         * Note the result may be infinite if the relevant value cannot
+         * be represented by a double.
          *
          * @param  index  major tick index
          * @return  axis value for major tick
@@ -644,6 +646,8 @@ public abstract class BasicTicker implements Ticker {
      */
     private static class DecadeLogRule implements Rule {
         private final int nDecade_;
+        private final int absFloor_;
+        private final int absCeil_;
         private final double[] minors_;
 
         /**
@@ -653,6 +657,10 @@ public abstract class BasicTicker implements Ticker {
          */
         public DecadeLogRule( int nDecade ) {
             nDecade_ = nDecade;
+            absFloor_ =
+                (int) Math.ceil( Math.log10( Double.MIN_VALUE ) / nDecade );
+            absCeil_ =
+                (int) Math.floor( Math.log10( Double.MAX_VALUE ) / nDecade );
             if ( nDecade == 1 ) {
                 minors_ = new double[] { 2, 3, 4, 5, 6, 7, 8, 9 };
             }
@@ -674,13 +682,16 @@ public abstract class BasicTicker implements Ticker {
         }
 
         public long floorIndex( double value ) {
-            return (long) Math.floor( Math.log10( value ) / nDecade_ );
+            return (long)
+                   Math.max( Math.floor( Math.log10( value ) / nDecade_ ),
+                             absFloor_ );
         }
 
         public double indexToValue( long index ) {
             double value = exp10( (int) index * nDecade_ );
-            assert floorIndex( value * Math.pow( 10, nDecade_ * 1e-8 ) )
-                   == index;
+            assert ( floorIndex( value * Math.pow( 10, nDecade_ * 1e-8 ) )
+                     == index )
+                || isExtremeIndex( index );
             return value;
         }
 
@@ -695,6 +706,18 @@ public abstract class BasicTicker implements Ticker {
 
         public String indexToLabel( long index ) {
             return logLabel( 1, (int) index * nDecade_ );
+        }
+
+        /**
+         * Tests whether the given index is so near the end of the double
+         * precision range that weird things might happen.
+         * This method is currently only used in assertions.
+         * 
+         * @param  index  index to test
+         * @return  true iff index is extremely small or big
+         */
+        private boolean isExtremeIndex( long index ) {
+            return index < absFloor_ || index > absCeil_;
         }
     }
 
