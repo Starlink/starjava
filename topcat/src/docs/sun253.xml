@@ -8008,32 +8008,13 @@ of that point.
 
 <p>When you've finished adding points,
 click on the &IMG.POLY_SUBSET_END; button again.
-This will pop up a window that displays the algebraic function
-corresponding to the region you have outlined.
-</p>
-
-<figure>
-<caption><px>Dialog window showing subset expressions to add</px></caption>
-<figureimage src="&FIG.MultiSubsetQueryWindow;"/>
-</figure>
-
-<p>If multiple datasets are present in the plot, the region will correspond
-to multiple algebraic expressions, and they will all be displayed here
-in separate rows.
-Each row corresponds to a subset that will be added for the
-table in question.
-The <label>Table</label> column indicates which table the subset
-will be added to,
-the <label>Create</label> column indicates whether that subset
-should be added; you can uncheck it if you don't want to add
-that subset.
-The <label>Expression</label> column gives the algebraic expression
-corresponding to the region you have outlined.
-You can edit this before accepting it if you like by double-clicking
-on the field in the usual way.
-If the expression contains a syntax error, it will be greyed out,
-and attempting to add it will cause an error; you can uncheck the
-Create checkbox if you want to exclude it.
+This will pop up the 
+<ref id="MultiSubsetQueryWindow">Multi Algebraic Subset Window</ref>,
+which displays the algebraic function
+corresponding to the region you have outlined,
+and offering to create a new subset
+(or, if there are multiple datasets plotted, several new subsets)
+from it.
 </p>
 
 <p>When constructing the algebraic expressions,
@@ -22737,6 +22718,64 @@ problem.
 </p>
 
 </subsubsect>
+
+
+<subsubsect id="MultiSubsetQueryWindow">
+<subhead><title>Multi Algebraic Subset Window</title></subhead>
+
+<p>The Multi Algebraic Subset Window is displayed when an action
+can create more than one subset with algebraic definitions at once.
+This happens on completion of the
+<label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;)
+action;
+more than one subset may result if more than one data set is plotted.
+If there is more than one subset to be added, they will be shown here
+in separate rows.
+Often however, only one subset will be presented.
+</p>
+
+<figure>
+<caption><px>Multi Algebraic Subset Window showing a subset expression to add
+         </px></caption>
+<figureimage src="&FIG.MultiSubsetQueryWindow;"/>
+</figure>
+
+<p>The <label>Subset Name</label> selector gives the name of the subset
+that will be added.  You can type in a new name, or select one from
+the list of existing subsets if you wish to redefine one (re-use an
+existing subset name).
+Note: if you re-use an existing name, the expression must not reference
+that name directly or indirectly.  If it does, an error will be
+displayed, and you will have to choose again.
+</p>
+
+<p>Each row has the following entries:
+<dl>
+<dt>Create</dt>
+<dd><p>Indicates whether the subset should be added;
+    you can uncheck it if you don't want to add that subset.
+    </p></dd>
+<dt>Table</dt>
+<dd><p>Indicates which table the subset will be added to.
+    </p></dd>
+<dt>Expression</dt>
+<dd><p>Gives the algebraic expression
+    corresponding to the region you have defined.
+    You can edit this before accepting it if you like by double-clicking
+    on the field in the usual way.
+    If the expression contains a syntax error, it will be greyed out,
+    and attempting to add it will cause an error; you can uncheck the
+    Create checkbox if you want to exclude it.
+    </p></dd>
+</dl>
+</p>
+
+<p>Once you are happy with the configuration, hit the <label>OK</label>
+button and the subset(s) will be created.
+</p>
+
+</subsubsect>
+
 
 <subsubsect id="ClassifyWindow">
 <subhead><title>Column Classification Window</title></subhead>

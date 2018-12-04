@@ -122,6 +122,9 @@ public class MultiSubsetQueryWindow extends QueryWindow {
         /* Add actions. */
         getToolBar().add( MethodWindow.getWindowAction( this, false ) );
         getToolBar().addSeparator();
+
+        /* Add help. */
+        addHelp( "MultiSubsetQueryWindow" );
     }
 
     /**

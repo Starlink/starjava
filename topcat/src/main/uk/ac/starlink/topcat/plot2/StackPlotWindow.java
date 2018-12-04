@@ -1602,11 +1602,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             entlist.toArray( new MultiSubsetQueryWindow.Entry[ 0 ] );
         MultiSubsetQueryWindow qw =
             new MultiSubsetQueryWindow( "Add Polygon Subset(s)",
-                                        this, entries ) {
-            /* Constructor. */ {
-                addHelp( "PolygonPanel" );
-            }
-        };
+                                        this, entries );
         qw.setVisible( true );
         if ( completionCallback != null ) {
             qw.addWindowListener( new WindowAdapter() {
