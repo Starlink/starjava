@@ -819,7 +819,7 @@ various <ref id="plot2">plotting</ref>
     <ref id="plot2">plotting</ref> windows.
     which can be used to define subsets.
     The options are
-    <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;),
+    <label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;),
     <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;) and
     <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;),
     though not all are available for all plot types.
@@ -7863,7 +7863,7 @@ by indicating a screen region containing the points of interest.
 Depending on the type of plot, one or more of the following options
 will be available as toolbar/menu items:
 <ul>
-<li>&IMG.VISIBLE_SUBSET; New Subset From Visible</li>
+<li>&IMG.VISIBLE_SUBSET; Subset From Visible</li>
 <li>&IMG.BLOB_SUBSET; Draw Subset Blob</li>
 <li>&IMG.POLY_SUBSET; Draw Subset Polygon</li>
 </ul>
@@ -7890,9 +7890,9 @@ are described in the following subsections.
 </p>
 
 <subsubsubsubsect id="visible-subset">
-<subhead><title>Subset from Visible Region</title></subhead>
+<subhead><title>Subset from Visible</title></subhead>
 
-<p>The <label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
+<p>The <label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
 toolbar button creates a new subset containing all of the points
 that are visible on the current plot.
 When you click the button, you will be asked for a name
@@ -14704,7 +14704,7 @@ you can set the axis ranges (either manually or by zooming with the
 mouse - see <ref id="axisConfig"/>) 
 so that only the points you want to identify are visible,
 and then click the 
-<label>New Subset From Visible</label> toolbar button
+<label>Subset From Visible</label> toolbar button
 (the icon is &IMG.VISIBLE_SUBSET;, &IMG.RANGE_SUBSET; or &IMG.XRANGE_SUBSET; 
 depending on the plot type).
 This defines a subset consisting of all the 

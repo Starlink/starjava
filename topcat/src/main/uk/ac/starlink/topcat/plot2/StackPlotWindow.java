@@ -372,7 +372,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Prepare the action that allows the user to select the currently
          * visible points. */
         fromVisibleAction_ =
-                new BasicAction( "New subset from visible",
+                new BasicAction( "Subset from visible",
                                  ResourceIcon.VISIBLE_SUBSET,
                                  "Define a new row subset containing only "
                                + "currently visible points" ) {
