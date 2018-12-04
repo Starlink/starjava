@@ -27648,6 +27648,9 @@ introduced since the last version:
         rather than causing trouble during evaluation.</li>
     <li>Fix some bugs relating to plotting values close to the limits
         of the double precision range.</li>
+    <li>Modify the <ref id="PolygonPanel">Subset from polygon</ref>
+        toolbar icon slightly by putting a little "=" sign at the bottom;
+        this is to indicate that it produces an algebraic result.</li>
     </ul>
     </p></dd>
 
