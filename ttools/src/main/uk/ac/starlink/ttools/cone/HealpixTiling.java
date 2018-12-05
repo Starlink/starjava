@@ -41,6 +41,24 @@ public class HealpixTiling implements SkyTiling {
         resolution_ = pixTools_.PixRes( nside_ ) / 3600;
     }
 
+    /**
+     * Returns the HEALpix level.
+     *
+     * @return  log2(nside)
+     */
+    public int getHealpixK() {
+        return k_;
+    }
+
+    /**
+     * Indicates HEALPix ordering scheme.
+     *
+     * @return   true for NEST, false for RING
+     */
+    public boolean isNest() {
+        return nest_;
+    }
+
     public long getPixelCount() {
         return 12 * nside_ * nside_;
     }
