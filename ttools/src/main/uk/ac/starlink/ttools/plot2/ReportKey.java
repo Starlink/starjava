@@ -171,8 +171,10 @@ public abstract class ReportKey<T> {
         return new ReportKey<StarTable>( meta, StarTable.class,
                                          isGeneralInterest ) {
             public String toText( StarTable table ) {
-                return "table " + table.getColumnCount()
-                     + " x " + table.getRowCount();
+                return table == null
+                     ? "null"
+                     : ( "table " + table.getColumnCount()
+                       + " x " + table.getRowCount() );
             }
         };
     }

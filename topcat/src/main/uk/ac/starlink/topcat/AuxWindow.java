@@ -460,6 +460,13 @@ public class AuxWindow extends JFrame {
                                 " as a new table" ) {
             public void actionPerformed( ActionEvent evt ) {
                 StarTable table = tSrc.getStarTable();
+                if ( table == null ) {
+                    JOptionPane
+                   .showMessageDialog( AuxWindow.this, "No table to export",
+                                       "Export Failure",
+                                       JOptionPane.ERROR_MESSAGE );
+                    return;
+                }
 
                 /* Ensure the table is random access, since TOPCAT requires
                  * this. */
