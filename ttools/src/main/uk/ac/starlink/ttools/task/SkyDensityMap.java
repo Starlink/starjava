@@ -10,6 +10,8 @@ import java.util.List;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -22,6 +24,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.cone.HealpixTiling;
 import uk.ac.starlink.ttools.cone.SkyTiling;
 import uk.ac.starlink.ttools.cone.TilingParameter;
 import uk.ac.starlink.ttools.jel.JELQuantity;
@@ -261,6 +264,18 @@ public class SkyDensityMap extends SingleMapperTask {
         final SingleTableMapping mapping =
             new SkyMapMapping( lonString, latString, tiling, complete, aqs,
                                countIndex );
+        final DescribedValue[] params;
+        if ( tiling instanceof HealpixTiling ) {
+            HealpixTiling hpx = (HealpixTiling) tiling;
+            HealpixTableInfo.HpxCoordSys csys = null;
+            HealpixTableInfo hpxInfo =
+                new HealpixTableInfo( hpx.getHealpixK(), hpx.isNest(),
+                                      hpx.getIndexInfo().getName(), csys );
+            params = hpxInfo.toParams();
+        }
+        else {
+            params = new DescribedValue[ 0 ];
+        }
         final TableProducer inProd = createInputProducer( env );
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
@@ -385,13 +400,14 @@ public class SkyDensityMap extends SingleMapperTask {
             for ( Binner binner : binners ) {
                 binsTable.addColumn( binner.createColumnData( tiling_ ) );
             }
+            final StarTable outTable;
 
-            /* Either output the table as is, with one row for each pixel. */
+            /* Either use the table as is, with one row for each pixel. */
             if ( complete_ ) {
-                return binsTable;
+                outTable = binsTable;
             }
 
-            /* Or output a compressed version, where only those rows with
+            /* Or prepare a compressed version, where only those rows with
              * some data in the non-pixel-index columns are included. */
             else {
                 int icolOffset = 1; // pixel index column
@@ -406,9 +422,22 @@ public class SkyDensityMap extends SingleMapperTask {
                         testIcols[ i ] = icolOffset + i;
                     }
                 }
-                return new UnsparseTable( binsTable, minIndex, maxIndex,
-                                          testIcols );
+                outTable = new UnsparseTable( binsTable, minIndex, maxIndex,
+                                              testIcols );
             }
+
+            /* Add HEALPix-specific metadata if applicable. */
+            if ( tiling_ instanceof HealpixTiling ) {
+                HealpixTiling hpxTiling = (HealpixTiling) tiling_;
+                HealpixTableInfo hpxInfo =
+                    new HealpixTableInfo( hpxTiling.getHealpixK(),
+                                          hpxTiling.isNest(),
+                                          hpxTiling.getIndexInfo().getName(),
+                                          (HealpixTableInfo.HpxCoordSys) null );
+                outTable.getParameters()
+                        .addAll( Arrays.asList( hpxInfo.toParams() ) );
+            }
+            return outTable;
         }
     }
 

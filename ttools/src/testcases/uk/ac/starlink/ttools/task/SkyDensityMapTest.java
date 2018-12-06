@@ -9,6 +9,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -41,7 +42,7 @@ public class SkyDensityMapTest extends TestCase {
         assertEquals( dummyUcd_, t.getColumnInfo( 1 ).getUCD() );
 
         for ( int level = 0; level < 4; level++ ) {
-            int npix = 12<<2*level;
+            long npix = 12L<<2*level;
             StarTable tm1 = runMap( t, level, true );
             assertEquals( tm1.getRowCount(), npix );
             StarTable tm2 = runMap( t, level, false );
@@ -78,6 +79,7 @@ public class SkyDensityMapTest extends TestCase {
         double[] maxs = new double[ ncol ];
         Arrays.fill( maxs, Double.NEGATIVE_INFINITY );
         RowSequence rseq = skymap.getRowSequence();
+        long nr = 0;
         for ( int ir = 0; rseq.next(); ir++ ) {
             Object[] row = rseq.getRow();
             if ( isComplete ) {
@@ -91,11 +93,27 @@ public class SkyDensityMapTest extends TestCase {
                     maxs[ ic ] = Math.max( maxs[ ic ], d );
                 }
             }
+            nr++;
         }
         rseq.close();
         assertEquals( t.getRowCount(), sums[ 1 ] );
         assertEquals( 352.25, maxs[ 3 ], 0.001 );
         assertEquals( 13.5, maxs[ 4 ] );
+
+        HealpixTableInfo hpxInfo =
+            HealpixTableInfo.fromParams( skymap.getParameters() );
+        assertEquals( level, hpxInfo.getLevel() );
+        assertEquals( true, hpxInfo.isNest() );
+        assertEquals( skymap.getColumnInfo( 0 ).getName(),
+                      hpxInfo.getPixelColumnName() );
+        long nsky = 12L << 2*level;
+        if ( isComplete ) {
+            assertEquals( nsky, nr );
+        }
+        else {
+            assertTrue( nr < nsky );
+        }
+
         return skymap;
     }
 
@@ -104,7 +122,7 @@ public class SkyDensityMapTest extends TestCase {
         // Table with the same value in every HEALPix cell at a given level.
         final int tLevel = 4;
         double cval = 6;
-        int nrow = 12 << ( 2 * tLevel );
+        int nrow = (int) ( 12L << ( 2 * tLevel ) );
         ColumnStarTable t = ColumnStarTable.makeTableWithRows( nrow );
         t.addColumn( new ColumnData( new ColumnInfo( "ra", Double.class,
                                                      null ) ) {
