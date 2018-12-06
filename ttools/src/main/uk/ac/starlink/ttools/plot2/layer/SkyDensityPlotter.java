@@ -4,16 +4,22 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.HealpixTableInfo;
+import uk.ac.starlink.table.IteratorRowSequence;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -87,8 +93,8 @@ public class SkyDensityPlotter
     private static final ReportKey<Integer> ABSLEVEL_REPKEY =
         ReportKey
        .createIntegerKey( new ReportMeta( "abs_level",
-                                          "Absolute HEALPix Level" ),
-                          false );
+                                          "HEALPix Level" ),
+                          true );
     private static final ReportKey<Integer> RELLEVEL_REPKEY =
         ReportKey
        .createIntegerKey( new ReportMeta( "rel_level",
@@ -713,50 +719,141 @@ public class SkyDensityPlotter
 
         /**
          * Returns a StarTable containing the HEALPix bin information
-         * based on a given plan.  Calling this method is not expensive.
+         * based on a given plan.  Calling this method is not expensive,
+         * though serializing the resulting table may be.
+         *
+         * <p>Note that the exported table is based on the HEALPix level
+         * currently plotted, which may not be what the user asked for
+         * (since it doesn't bother to prepare pixels that are too small
+         * to see).
          *
          * @param   splan  plan representing plotted density map
          * @return   table suitable for export
          */
         private StarTable createExportTable( SkyDensityPlan splan ) {
             int level = splan.level_;
-            if ( level > 13 ) {
-                return null;
-            }
-            SkyPixer skyPixer = new SkyPixer( level );
+            final BinList.Result binResult = splan.binResult_;
+            SkyPixer pixer = new SkyPixer( level );
+            boolean isNested = pixer.isNested();
+            HealpixTableInfo.HpxCoordSys csys =
+                HealpixSys.fromGeom( geom_.getViewSystem() );
             DataSpec dataSpec = splan.dataSpec_;
-            Combiner combiner = splan.combiner_;
-            BinList.Result binResult = splan.binResult_;
+            long nsky = pixer.getPixelCount();
+            final long ndata = binResult.getBinCount();
+            final ColumnData dataCol =
+                BinResultColumnData
+               .createInstance( getCombinedInfo( dataSpec ), binResult,
+                                getBinFactor( level ) );
 
-            /* Construct a column containing HEALPix bin indices.
-             * In fact this is a bit superfluous, since the bin indices
-             * are just the same as the row numbers. */
-            String indexDescrip = "HEALPix index, level " + level + ", "
-                                + ( skyPixer.isNested() ? "Nested" : "Ring" )
-                                + " scheme";
-            ColumnInfo indexInfo =
-                new ColumnInfo( "hpx" + level, Integer.class, indexDescrip );
-            ColumnData indexCol = new ColumnData( indexInfo ) {
-                public Object readValue( long irow ) {
-                    return new Integer( (int) irow );
-                }
-            };
+            /* Full sky table. */
+            if ( ndata * 1.0 / nsky > 0.5 && nsky <= Integer.MAX_VALUE ) {
+                int nrow = (int) nsky;
+                assert nrow == nsky;
+                ColumnStarTable table =
+                    ColumnStarTable.makeTableWithRows( nrow );
+                table.addColumn( dataCol );
+                HealpixTableInfo hpxInfo =
+                    new HealpixTableInfo( level, isNested, null, csys );
+                table.getParameters()
+                     .addAll( Arrays.asList( hpxInfo.toParams() ) );
+                return table;
+            }
 
-            /* Construct a column containing bin contents, given that the
-             * bin index is row number. */
-            ValueInfo dataInfo = getCombinedInfo( dataSpec );
-            ColumnData dataCol =
-                BinResultColumnData.createInstance( dataInfo, binResult,
-                                                    getBinFactor( level ) );
+            /* Partial sky table. */
+            else {
+                String indexDescrip = "HEALPix index, level " + level + ", "
+                                    + ( isNested ? "Nested" : "Ring" )
+                                    + " scheme";
+                final boolean isLong = nsky > Integer.MAX_VALUE;
+                ColumnInfo indexInfo =
+                    new ColumnInfo( "hpx" + level,
+                                    isLong ? Long.class : Integer.class,
+                                    indexDescrip );
+                final ColumnInfo[] infos = new ColumnInfo[] {
+                    indexInfo,
+                    dataCol.getColumnInfo(),
+                };
+                StarTable table = new AbstractStarTable() {
+                    public ColumnInfo getColumnInfo( int icol ) {
+                        return infos[ icol ];
+                    }
+                    public int getColumnCount() {
+                        return infos.length;
+                    }
+                    public long getRowCount() {
+                        return ndata;
+                    }
+                    public RowSequence getRowSequence() {
+                        Iterator<Object[]> rowIt =
+                            new BinRowIterator( binResult.indexIterator(),
+                                                dataCol, isLong );
+                        return new IteratorRowSequence( rowIt );
+                    }
+                };
+                HealpixTableInfo hpxInfo =
+                    new HealpixTableInfo( level, isNested, indexInfo.getName(),
+                                          csys );
+                table.getParameters()
+                     .addAll( Arrays.asList( hpxInfo.toParams() ) );
+                return table;
+            }
+        }
+    }
 
-            /* Combine these into a table and return. */
-            final long nrow = skyPixer.getPixelCount();
-            assert (int) nrow == nrow;
-            ColumnStarTable table =
-                ColumnStarTable.makeTableWithRows( (int) nrow );
-            table.addColumn( indexCol );
-            table.addColumn( dataCol );
-            return table;
+    /**
+     * Iterator over Object[2] values giving an (index, value) pair
+     * for each non-blank entry in a BinList.Result.
+     * Suitable for use in an IteratorRowSequence;
+     */
+    private static class BinRowIterator implements Iterator<Object[]> {
+        private final Iterator<Long> indexIt_;
+        private final ColumnData dataCol_;
+        private final boolean isLong_;
+
+        /**
+         * Constructor.
+         *
+         * @param  indexIt  iterator over pixel indices to include
+         * @param  dataCol  contains data values at the row of each pixel index
+         * @param  isLong   if true, output index number is a Long;
+         *                  if false, it's an Integer
+         */
+        BinRowIterator( Iterator<Long> indexIt, ColumnData dataCol,
+                        boolean isLong ) {
+            indexIt_ = indexIt;
+            dataCol_ = dataCol;
+            isLong_ = isLong;
+        }
+
+        public Object[] next() {
+            Long index = indexIt_.next();
+            long ix = index.longValue();
+            final Object ixObj;
+
+            /* Careful: silent unboxing can do horrible things here.
+             * Evaluating "ixObj = isLong_ ? index : new Integer( (int) ix )"
+             * gives you a Long even when isLong_ false!! */
+            if ( isLong_ ) {
+                ixObj = index;
+            }
+            else {
+                ixObj = new Integer( (int) ix );
+            }
+
+            final Object dataObj;
+            try {
+                dataObj = dataCol_.readValue( ix );
+            }
+            catch ( IOException e ) {  // shouldn't happen
+                throw new IteratorRowSequence.PackagedIOException( e );
+            }
+            return new Object[] { ixObj, dataObj };
+        }
+        public boolean hasNext() {
+            return indexIt_.hasNext();
+        }
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
 
