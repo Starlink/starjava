@@ -39,6 +39,7 @@ public class CoordPanel {
     private final ActionForwarder forwarder_;
     private final JComboBox[][] colSelectors_;
     private final JComponent panel_;   
+    private TopcatModel tcModel_;
 
     /**
      * Constructs a CoordPanel for selecting just Coords.
@@ -209,6 +210,7 @@ public class CoordPanel {
      *                        can't be used or are absent
      */
     public void setTable( TopcatModel tcModel, boolean autoPopulate ) {
+        tcModel_ = tcModel;
         int is = 1;
         int ninRequired = 0;
         int ninPopulated = 0;
@@ -288,6 +290,15 @@ public class CoordPanel {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the currently configured topcat model.
+     *
+     * @return  table from most recent call to setTable
+     */
+    public TopcatModel getTable() {
+        return tcModel_;
     }
 
     /**
