@@ -1,9 +1,13 @@
 package uk.ac.starlink.topcat.plot2;
 
+import gnu.jel.CompilationException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TypedListModel;
@@ -19,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.geom.SkySurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.SkySys;
 import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
 import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
+import uk.ac.starlink.ttools.plot2.layer.HealpixSys;
 
 /**
  * LayerControl for plotting Healpix tile sets.
@@ -120,6 +125,8 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
             /* Assemble GUI components we may be able to fill in. */
             Specifier<Integer> levelSpecifier =
                 getConfigSpecifier().getSpecifier( DATALEVEL_KEY );
+            Specifier<SkySys> sysSpecifier =
+                getConfigSpecifier().getSpecifier( DATASYS_KEY );
             ColumnDataComboBoxModel hpxSelector = getColumnSelector( 0, 0 );
             ColumnDataComboBoxModel valueSelector = getColumnSelector( 1, 0 );
             boolean hasSelectors = hpxSelector != null
@@ -127,19 +134,62 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
                                 && levelSpecifier != null;
             assert hasSelectors;
 
-            /* Try to identify a column containing healpix indices,
-             * and if so fill the GUI components in accordingly. */
-            HpxCol hcol = hasSelectors ? getHealpixColumn( hpxSelector ) : null;
-            if ( hcol != null && hcol.cdata_ != null ) {
-                int level = hcol.level_;
-                if ( level >= 0 && level <= HealpixPlotter.MAX_LEVEL ) {
-                    levelSpecifier.setSpecifiedValue( new Integer( level ) );
+            /* If the table is marked up with Healpix metadata, use that
+             * to populate the fields. */
+            List<DescribedValue> tparams =
+                getTable().getDataModel().getParameters();
+            if ( HealpixTableInfo.isHealpix( tparams ) ) {
+                HealpixTableInfo hpxInfo = 
+                    HealpixTableInfo.fromParams( tparams );
+                String ipixColname = hpxInfo.getPixelColumnName();
+                int level = hpxInfo.getLevel();
+                boolean isNest = hpxInfo.isNest();
+                HealpixTableInfo.HpxCoordSys csys = hpxInfo.getCoordSys();
+                SkySys skySys = HealpixSys.toGeom( csys );
+                if ( skySys != null ) {
+                    sysSpecifier.setSpecifiedValue( skySys );
                 }
-                ColumnData hpxData = hcol.cdata_;
+                ColumnData hpxData = null;
+                if ( ipixColname != null ) {
+                    String hpxExpr = ipixColname;
+                    if ( ! hpxInfo.isNest() && level >= 0 ) {
+                        hpxExpr = "healpixRingToNest(" + level + ", "
+                                                    + hpxExpr + ")";
+                    }
+                    try {
+                        hpxData = hpxSelector.stringToColumnData( hpxExpr );
+                        hpxSelector.setSelectedItem( hpxData );
+                    }
+                    catch ( CompilationException e ) {
+                        // oh well.
+                    }
+                }
+                levelSpecifier.setSpecifiedValue( Integer.valueOf( level ) );
                 hpxSelector.setSelectedItem( hpxData );
                 ColumnData valData = getOtherColumn( valueSelector, hpxData );
                 if ( valData != null ) {
                     valueSelector.setSelectedItem( valData );
+                }
+            }
+ 
+            /* Otherwise employ some guesswork to try to identify
+             * Healpix index column and level. */
+            else {
+                HpxCol hcol = hasSelectors ? getHealpixColumn( hpxSelector )
+                                           : null;
+                if ( hcol != null && hcol.cdata_ != null ) {
+                    int level = hcol.level_;
+                    if ( level >= 0 && level <= HealpixPlotter.MAX_LEVEL ) {
+                        levelSpecifier
+                       .setSpecifiedValue( Integer.valueOf( level ) );
+                    }
+                    ColumnData hpxData = hcol.cdata_;
+                    hpxSelector.setSelectedItem( hpxData );
+                    ColumnData valData =
+                        getOtherColumn( valueSelector, hpxData );
+                    if ( valData != null ) {
+                        valueSelector.setSelectedItem( valData );
+                    }
                 }
             }
         }
@@ -195,10 +245,14 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
          */
         private static boolean isDifferent( ColumnData cdata1,
                                             ColumnData cdata2 ) {
-            String cname1 = cdata1.getColumnInfo().getName();
-            String cname2 = cdata2.getColumnInfo().getName();
-            return cname1 != null && cname2 != null
-                && ! cname1.equals( cname2 );
+            String cname1 = cdata1 == null
+                          ? null
+                          : cdata1.getColumnInfo().getName();
+            String cname2 = cdata2 == null
+                          ? null
+                          : cdata2.getColumnInfo().getName();
+            return cname1 == null ? cname2 != null
+                                  : !cname1.equalsIgnoreCase( cname2 );
         }
 
         /**
