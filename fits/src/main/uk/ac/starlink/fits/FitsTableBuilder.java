@@ -41,6 +41,14 @@ import uk.ac.starlink.util.IOUtils;
  * file location as a URL (e.g. "file:spec23.fits" rather than "spec23.fits"),
  * which fools the handler into thinking that it can't be mapped.
  *
+ * <p>Limited support is provided for the
+ * <a href="https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf"
+ *    >HEALPix-FITS</a> convention;
+ * the relevant {@link uk.ac.starlink.table.HealpixTableInfo} table parameters
+ * are added, but any BAD_DATA keyword value is ignored,
+ * and the 1024-element array-valued column variant of the format is not
+ * understood.
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {

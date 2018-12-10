@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
@@ -15,6 +16,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
@@ -34,6 +36,14 @@ import uk.ac.starlink.table.ValueInfo;
  * insstances are garbage collected, you can call the {@link #close}
  * method to release them.  Attempting to read data following
  * such a call may result in an exception.
+ *
+ * <p>Limited support is provided for the
+ * <a href="https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf"
+ *    >HEALPix-FITS</a> convention;
+ * the relevant {@link uk.ac.starlink.table.HealpixTableInfo} table parameters
+ * are added, but any BAD_DATA keyword value is ignored,
+ * and the 1024-element array-valued column variant of the format is not
+ * understood.
  *
  * @author   Mark Taylor
  */
@@ -363,6 +373,22 @@ public abstract class BintableStarTable extends AbstractStarTable
             setName( tname );
         }
 
+        /* Look for headers specific to the HEALPix-FITS encoding. */
+        if ( "HEALPIX".equals( cards.getStringValue( "PIXTYPE" ) ) ) {
+            HealpixTableInfo hpxInfo = null;
+            try {
+                hpxInfo = extractHealpixInfo( cards, colInfos_ );
+            }
+            catch ( Exception e ) {
+                logger_.log( Level.WARNING,
+                             "HEALPix header parse failure: " + e.getMessage(),
+                             e );
+            }
+            if ( hpxInfo != null ) {
+                getParameters().addAll( Arrays.asList( hpxInfo.toParams() ) );
+            }
+        }
+
         /* Any unused header cards become table parameters. */
         getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
     }
@@ -490,6 +516,98 @@ public abstract class BintableStarTable extends AbstractStarTable
         if ( over > 0 ) {
             input.skip( over );
         }
+    }
+
+    /**
+     * Investigates headers for cards specific to the HEALPix-FITS convention.
+     * If it looks like the headers describe a HEALPix map,
+     * a corresponding HealpixTableInfo object is returned,
+     * otherwise a RuntimeException with an informative message is thrown.
+     *
+     * @param  cards  header
+     * @param  infos  column metadata
+     * @return   healpix metadata object if the headers look appropriate
+     * @throws   RuntimeException  if the headers don't look appropriate
+     * @see <a
+     href="https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf"
+     *         >HEALPix-FITS convention</a>
+     */
+    private static HealpixTableInfo extractHealpixInfo( HeaderCards cards,
+                                                        ColumnInfo[] infos ) {
+
+        /* Get NSIDE/level value. */
+        Long nSide = cards.getLongValue( "NSIDE" );
+        long nside = nSide.longValue();
+        if ( nSide == null ) {
+            throw new IllegalStateException( "No HEALPix NSIDE header" );
+        }
+        final int level = Long.numberOfTrailingZeros( nside );
+        if ( 1 << level != nside ) {
+            throw new IllegalStateException( "Invalid HEALPix header value "
+                                           + "NSIDE=" + nside );
+        }
+
+        /* Get ordering scheme. */
+        final boolean isNest;
+        String ordering = cards.getStringValue( "ORDERING" );
+        if ( ordering == null ) {
+            throw new IllegalStateException( "Missing HEALPix header "
+                                           + "ORDERING" );
+        }
+        else if ( "NESTED".equals( ordering ) ) {
+            isNest = true;
+        }
+        else if ( "RING".equals( ordering ) ) {
+            isNest = false;
+        }
+        else {
+            throw new IllegalStateException( "Unrecognised HEALPix header "
+                                           + "ORDERING='" + ordering + "'" );
+        }
+
+        /* Get HEALPix index column, if any. */
+        final String ipixColName;
+        String indxschm = cards.getStringValue( "INDXSCHM" );
+        if ( indxschm == null ) {
+            logger_.warning( "Missing nominally required HEALPix header "
+                           + "INDXSCHM, assuming IMPLICIT" );
+            ipixColName = null;
+        }
+        else if ( "IMPLICIT".equals( indxschm ) ) {
+            ipixColName = null;
+        }
+        else if ( "EXPLICIT".equals( indxschm ) ) {
+            ipixColName = infos[ 0 ].getName();
+        }
+        else {
+            throw new IllegalStateException( "Unrecognised HEALPix header "
+                                           + "INDXSCHM='" + indxschm + "'" );
+        }
+
+        /* Get coordinate system indicator, if any. */
+        final HealpixTableInfo.HpxCoordSys csys;
+        String coordsys = cards.getStringValue( "COORDSYS" );
+        if ( coordsys != null ) {
+            csys = coordsys.length() == 1
+                 ? HealpixTableInfo.HpxCoordSys
+                                   .fromCharacter( coordsys.charAt( 0 ) )
+                 : null;
+            if ( csys == null ) {
+                logger_.warning( "Unknown HEALPix header COORDSYS='"
+                               + coordsys + "'" );
+            }
+        }
+        else {
+            csys = null;
+        }
+
+        /* Note that the nominally required BAD_DATA value is currently
+         * ignored.  It is against the spirit of normal FITS bad value
+         * handling, and would require considerable complication
+         * and inefficiency to handle correctly. */
+
+        /* Return a new metadata object. */
+        return new HealpixTableInfo( level, isNest, ipixColName, csys );
     }
 
     /**
