@@ -1,7 +1,6 @@
 package uk.ac.starlink.table;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -18,7 +17,7 @@ import java.util.List;
  */
 public class ColumnInfo extends DefaultValueInfo {
 
-    private List auxData = new ArrayList();
+    private List<DescribedValue> auxData = new ArrayList<DescribedValue>();
 
     /**
      * Constructs a <tt>ColumnInfo</tt> object.
@@ -61,18 +60,18 @@ public class ColumnInfo extends DefaultValueInfo {
      */
     public ColumnInfo( ColumnInfo base ) {
         super( base );
-        this.setAuxData( new ArrayList( base.getAuxData() ) );
+        this.setAuxData( new ArrayList<DescribedValue>( base.getAuxData() ) );
     }
 
     /**
-     * Returns a list of auxiliary metadata {@link DescribedValue} objects
+     * Returns a list of auxiliary metadata objects
      * pertaining to this column.
      * This is intended as a repository for metadata which is not
      * defined in the <tt>ValueInfo</tt> interface.
      *
      * @return   a List of <tt>DescribedValue</tt> items
      */
-    public List getAuxData() {
+    public List<DescribedValue> getAuxData() {
         return auxData;
     }
 
@@ -85,13 +84,9 @@ public class ColumnInfo extends DefaultValueInfo {
      *          or <tt>null</tt> if none exists
      */
     public DescribedValue getAuxDatumByName( String name ) {
-        for ( Iterator it = auxData.iterator(); it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue ) {
-                DescribedValue dv = (DescribedValue) item;
-                if ( dv.getInfo().getName().equals( name ) ) {
-                    return dv;
-                }
+        for ( DescribedValue dv : auxData ) {
+            if ( dv.getInfo().getName().equals( name ) ) {
+                return dv;
             }
         }
         return null;
@@ -185,7 +180,7 @@ public class ColumnInfo extends DefaultValueInfo {
      *
      * @param   auxData  a list of <tt>DescribedValue</tt> objects
      */
-    public void setAuxData( List auxData ) {
+    public void setAuxData( List<DescribedValue> auxData ) {
         this.auxData = auxData;
     }
 }
