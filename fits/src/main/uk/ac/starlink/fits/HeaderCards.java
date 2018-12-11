@@ -26,7 +26,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class HeaderCards {
 
     private final Header hdr_;
-    private final Collection usedSet_;
+    private final Collection<String> usedSet_;
 
     /** Keywords which are never used as table parameters. */
     public final String[] BORING_KEYS = {
@@ -45,7 +45,7 @@ public class HeaderCards {
      */
     public HeaderCards( Header hdr ) {
         hdr_ = hdr;
-        usedSet_ = new HashSet();
+        usedSet_ = new HashSet<String>();
     }
 
     /**
@@ -140,14 +140,15 @@ public class HeaderCards {
     public DescribedValue[] getUnusedParams() {
 
         /* Get ready to ignore some keys. */
-        Collection excludes = new HashSet( usedSet_ );
+        Collection<String> excludes = new HashSet<String>( usedSet_ );
         excludes.addAll( Arrays.asList( BORING_KEYS ) );
 
         /* Go through all cards turning them into DescribedValues. */
-        List paramList = new ArrayList();
-        Map paramMap = new HashMap();
-        for ( Iterator it = hdr_.iterator(); it.hasNext(); ) {
-            HeaderCard card = (HeaderCard) it.next();
+        List<DescribedValue> paramList = new ArrayList<DescribedValue>();
+        Map<String,DescribedValue> paramMap =
+            new HashMap<String,DescribedValue>();
+        for ( Iterator<HeaderCard> it = hdr_.iterator(); it.hasNext(); ) {
+            HeaderCard card = it.next();
             String name = card.getKey();
 
             /* HISTORY and COMMENT cards are special - they are multi-valued.
@@ -166,7 +167,7 @@ public class HeaderCards {
                     paramList.add( dval );
                 }
                 else {
-                    DescribedValue dval = (DescribedValue) paramMap.get( name );
+                    DescribedValue dval = paramMap.get( name );
                     ((StringBuffer) dval.getValue()).append( '\n' )
                                                     .append( value );
                 }
@@ -186,8 +187,7 @@ public class HeaderCards {
         }
 
         /* Turn any StringBuffer-valued parameters into String-valued ones. */
-        DescribedValue[] params =
-            (DescribedValue[]) paramList.toArray( new DescribedValue[ 0 ] );
+        DescribedValue[] params = paramList.toArray( new DescribedValue[ 0 ] );
         for ( int i = 0; i < params.length; i++ ) {
             if ( params[ i ].getInfo().getContentClass()
                  == StringBuffer.class ) {
