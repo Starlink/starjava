@@ -122,7 +122,7 @@ public interface StarTable {
     ColumnInfo getColumnInfo( int icol );
 
     /**
-     * Returns an ordered list of {@link ValueInfo} objects representing 
+     * Returns an ordered list of ValueInfo objects representing 
      * the auxiliary metadata returned by 
      * <tt>getColumnInfo(int).getAuxData()</tt> calls.
      * The idea is that the resulting list can be used to find out 
@@ -140,7 +140,7 @@ public interface StarTable {
      * @return  an unmodifiable ordered set of known metadata keys
      * @see  ColumnInfo#getAuxData
      */
-    List getColumnAuxDataInfos();
+    List<ValueInfo> getColumnAuxDataInfos();
 
     /**
      * Returns an object which can iterate over all the rows in the table
