@@ -134,13 +134,10 @@ public class MetadataFilter extends BasicFilter {
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) {
                 MapGroup group = metadataMapGroup( base );
+
                 List<ValueInfo> seq = new ArrayList<ValueInfo>();
                 seq.addAll( Arrays.asList( DEFAULT_INFOS ) );
-                for ( Object aux : base.getColumnAuxDataInfos() ) {
-                    if ( aux instanceof ValueInfo ) {
-                        seq.add( (ValueInfo) aux );
-                    }
-                }
+                seq.addAll( base.getColumnAuxDataInfos() );
                 group.setKeyOrder( seq );
                 group.setKnownKeys( Arrays.asList( getKeys( group, items ) ) );
                 AbstractStarTable table = new ValueInfoMapGroupTable( group );
@@ -167,23 +164,17 @@ public class MetadataFilter extends BasicFilter {
 
         /* Compile a name->ValueInfo map of auxiliary metadata items which
          * appear in any of the columns. */
-        Map auxInfos = new HashMap();
+        Map<String,ValueInfo> auxInfos = new HashMap<String,ValueInfo>();
         for ( int icol = 0; icol < ncol; icol++ ) {
-            for ( Iterator it = table.getColumnInfo( icol ).getAuxData()
-                                                           .iterator();
-                  it.hasNext(); ) {
-                Object item = it.next();
-                if ( item instanceof DescribedValue ) {
-                    DescribedValue dval = (DescribedValue) item;
-                    ValueInfo info = dval.getInfo();
-                    String name = info.getName();
-                    if ( auxInfos.containsKey( name ) ) {
-                        info = DefaultValueInfo
-                              .generalise( (ValueInfo) auxInfos.get( name ),
-                                           info );
-                    }
-                    auxInfos.put( name, info );
+            for ( DescribedValue dval :
+                  table.getColumnInfo( icol ).getAuxData() ) {
+                ValueInfo info = dval.getInfo();
+                String name = info.getName();
+                if ( auxInfos.containsKey( name ) ) {
+                    info = DefaultValueInfo
+                          .generalise( auxInfos.get( name ), info );
                 }
+                auxInfos.put( name, info );
             }
         }
 
@@ -191,7 +182,7 @@ public class MetadataFilter extends BasicFilter {
          * add it to the group. */
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
-            Map map = new HashMap();
+            Map<ValueInfo,Object> map = new HashMap<ValueInfo,Object>();
 
             /* Add standard metadata items. */
             map.put( INDEX_INFO, new Integer( icol + 1 ) );
@@ -217,15 +208,10 @@ public class MetadataFilter extends BasicFilter {
 
             /* Add auxiliary items if there are any. */
             if ( ! auxInfos.isEmpty() ) {
-                for ( Iterator it = info.getAuxData().iterator();
-                      it.hasNext(); ) {
-                    Object item = it.next();
-                    if ( item instanceof DescribedValue ) {
-                        DescribedValue dval = (DescribedValue) item;
-                        ValueInfo auxInfo = (ValueInfo)
-                            auxInfos.get( dval.getInfo().getName() );
-                        map.put( auxInfo, dval.getValue() );
-                    }
+                for ( DescribedValue dval : info.getAuxData() ) {
+                    ValueInfo auxInfo =
+                        auxInfos.get( dval.getInfo().getName() );
+                    map.put( auxInfo, dval.getValue() );
                 }
             }
             group.addMap( map );

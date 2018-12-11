@@ -117,7 +117,8 @@ public class VOStarTable extends AbstractStarTable {
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
     private final static ValueInfo ubyteInfo = Tables.UBYTE_FLAG_INFO;
 
-    private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
+    private final static List<ValueInfo> auxDataInfos =
+            Arrays.asList( new ValueInfo[] {
         DATATYPE_INFO, nullInfo, XTYPE_INFO,
         COOSYS_SYSTEM_INFO, COOSYS_EPOCH_INFO, COOSYS_EQUINOX_INFO,
         ubyteInfo, WIDTH_INFO, PRECISION_INFO, ID_INFO, REF_INFO, TYPE_INFO,
@@ -172,7 +173,7 @@ public class VOStarTable extends AbstractStarTable {
 
                 /* Set up auxiliary metadata for this column according to the
                  * attributes that the FIELD element has. */
-                List auxdata = cinfo.getAuxData();
+                List<DescribedValue> auxdata = cinfo.getAuxData();
 
                 if ( field.hasAttribute( "ID" ) ) {
                     String id = field.getAttribute( "ID" );
@@ -389,7 +390,7 @@ public class VOStarTable extends AbstractStarTable {
         return super.getParameters();
     }
 
-    public List getColumnAuxDataInfos() {
+    public List<ValueInfo> getColumnAuxDataInfos() {
         return auxDataInfos;
     }
 

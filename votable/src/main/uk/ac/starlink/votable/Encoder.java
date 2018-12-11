@@ -4,7 +4,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -152,9 +151,7 @@ abstract class Encoder {
         /* URL-type auxiliary metadata can be encoded as LINK elements. */
         if ( info instanceof ColumnInfo ) {
             StringBuffer linksBuf = new StringBuffer();
-            for ( Iterator it = ((ColumnInfo) info).getAuxData().iterator();
-                  it.hasNext(); ) {
-                DescribedValue dval = (DescribedValue) it.next();
+            for ( DescribedValue dval : ((ColumnInfo) info).getAuxData() ) {
                 ValueInfo linkInfo = dval.getInfo();
                 if ( URL.class.equals( linkInfo.getContentClass() ) ) {
                     String linkName = linkInfo.getName();

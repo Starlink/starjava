@@ -2,7 +2,6 @@ package uk.ac.starlink.table;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.util.MapGroup;
@@ -116,13 +115,8 @@ public class ValueInfoMapGroup extends MapGroup {
      */
     public void addColumnAuxDataKeys( StarTable startab ) {
         List order = getKeyOrder();
-        for ( Iterator it = startab.getColumnAuxDataInfos().iterator();
-              it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof ValueInfo ) {
-                ValueInfo info = (ValueInfo) item;
-                order.add( info.getName() );
-            }
+        for ( ValueInfo info : startab.getColumnAuxDataInfos() ) {
+            order.add( info.getName() );
         }
         setKeyOrder( order );
     }
@@ -135,15 +129,11 @@ public class ValueInfoMapGroup extends MapGroup {
      * @param  colinfo  the ColumnInfo to make a map from
      * @return  new map
      */
-    public static Map makeMap( ColumnInfo colinfo ) {
+    public static Map<String,ValueInfo> makeMap( ColumnInfo colinfo ) {
         Map map = makeMap( (ValueInfo) colinfo );
-        for ( Iterator it = colinfo.getAuxData().iterator(); it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) item;
-                map.put( dval.getInfo().getName(),
-                         dval.getValueAsString( MAX_STRING_LENGTH ) );
-            }
+        for ( DescribedValue dval : colinfo.getAuxData() ) {
+            map.put( dval.getInfo().getName(),
+                     dval.getValueAsString( MAX_STRING_LENGTH ) );
         }
         return map;
     }

@@ -77,7 +77,8 @@ public class FitsStarTable extends RandomStarTable {
         "Format code",
         String.class,
         "Data type code (TFORMn card)" );
-    private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
+    private final static List<ValueInfo> auxDataInfos =
+            Arrays.asList( new ValueInfo[] {
         tnullInfo, tscalInfo, tzeroInfo, tdispInfo, tbcolInfo, tformInfo,
     } );
 
@@ -102,7 +103,7 @@ public class FitsStarTable extends RandomStarTable {
         for ( int icol = 0; icol < ncol; icol++ ) {
             int jcol = icol + 1;
             ColumnInfo cinfo = new ColumnInfo( thdu.getColumnName( icol ) );
-            List auxdata = cinfo.getAuxData();
+            List<DescribedValue> auxdata = cinfo.getAuxData();
             colinfos[ icol ] = cinfo;
 
             /* Units. */
@@ -236,7 +237,7 @@ public class FitsStarTable extends RandomStarTable {
         return colinfos[ icol ];
     }
 
-    public List getColumnAuxDataInfos() {
+    public List<ValueInfo> getColumnAuxDataInfos() {
         return auxDataInfos;
     }
 

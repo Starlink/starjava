@@ -146,7 +146,7 @@ public abstract class BintableStarTable extends AbstractStarTable
                 ? wide.createExtendedHeader( ncolStd, jcol )
                 : BintableColumnHeader.createStandardHeader( jcol );
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
-            List auxdata = cinfo.getAuxData();
+            List<DescribedValue> auxdata = cinfo.getAuxData();
             colInfos_[ icol ] = cinfo;
 
             /* Name. */
@@ -379,7 +379,7 @@ public abstract class BintableStarTable extends AbstractStarTable
         return colInfos_[ icol ];
     }
 
-    public List getColumnAuxDataInfos() {
+    public List<ValueInfo> getColumnAuxDataInfos() {
         return Arrays.asList( AUX_DATA_INFOS );
     }
 

@@ -9,7 +9,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -360,7 +359,8 @@ public class ColumnInfoWindow extends AuxWindow {
         } );
 
         /* Get the list of aux metadata columns. */
-        List auxInfos = new ArrayList( dataModel.getColumnAuxDataInfos() );
+        List<ValueInfo> auxInfos =
+            new ArrayList<ValueInfo>( dataModel.getColumnAuxDataInfos() );
 
         /* Remove any from this list which we have already added explicitly
          * or otherwise don't want to show up. */
@@ -368,8 +368,8 @@ public class ColumnInfoWindow extends AuxWindow {
         auxInfos.remove( TopcatUtils.COLID_INFO );
         
         /* Add all the remaining aux columns. */
-        for ( Iterator it = auxInfos.iterator(); it.hasNext(); ) {
-            metas.add( new ValueInfoMetaColumn( (ValueInfo) it.next(), true ) );
+        for ( ValueInfo auxInfo : auxInfos ) {
+            metas.add( new ValueInfoMetaColumn( auxInfo, true ) );
         }
 
         /* Make a table model from the metadata columns.  This model has
