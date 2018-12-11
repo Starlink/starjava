@@ -414,7 +414,7 @@ public class ParameterWindow extends AuxWindow
                                      "Delete the selected parameter" ) {
             public void actionPerformed( ActionEvent evt ) {
                 TopcatModel tcm = ParameterWindow.this.tcModel;
-                List removals = new ArrayList();
+                List<DescribedValue> removals = new ArrayList<DescribedValue>();
                 for ( int irow = rowSelectionModel.getMinSelectionIndex();
                       irow <= rowSelectionModel.getMaxSelectionIndex();
                       irow++ ) {
@@ -434,8 +434,8 @@ public class ParameterWindow extends AuxWindow
                 if ( ! removals.isEmpty() ) {
                     rowSelectionModel.clearSelection();
                 }
-                for ( Iterator it = removals.iterator(); it.hasNext(); ) {
-                    tcm.removeParameter( (DescribedValue) it.next() );
+                for ( DescribedValue dval : removals ) {
+                    tcm.removeParameter( dval );
                 }
             }
         };
@@ -460,7 +460,7 @@ public class ParameterWindow extends AuxWindow
     }
 
     private DescribedValue getParam( int irow ) {
-        return (DescribedValue) params.get( irow );
+        return params.get( irow );
     }
 
     private ValueInfo getParamInfo( int irow ) {
@@ -543,7 +543,6 @@ public class ParameterWindow extends AuxWindow
             }
             removeAct.setEnabled( active );
             detailPanel.setItem( index,
-                                 (DescribedValue)
                                  ( index >= 0
                                    ? params.get( toUnsortedIndex( index ) )
                                    : null ) );
@@ -554,13 +553,13 @@ public class ParameterWindow extends AuxWindow
      * Helper class that holds two lists together - one list of 'pseudo'
      * parameters and one list of 'normal' ones.
      */
-    private static class ParamList extends AbstractList {
-        private final List pseudoParams;
-        private final List normalParams;
+    private static class ParamList extends AbstractList<DescribedValue> {
+        private final List<DescribedValue> pseudoParams;
+        private final List<DescribedValue> normalParams;
 
-        ParamList( List normalParams ) {
+        ParamList( List<DescribedValue> normalParams ) {
             this.normalParams = normalParams;
-            this.pseudoParams = new ArrayList();
+            this.pseudoParams = new ArrayList<DescribedValue>();
         }
 
         public void addPseudoParameter( DescribedValue dval ) {
@@ -571,7 +570,7 @@ public class ParameterWindow extends AuxWindow
             return pseudoParams.size() + normalParams.size();
         }
 
-        public Object get( int index ) {
+        public DescribedValue get( int index ) {
             if ( isPseudoParam( index ) ) {
                 return pseudoParams.get( index );
             }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Iterator;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -109,8 +108,7 @@ public class TstTableWriter extends StreamStarTableWriter {
         /* Write parameters. */
         if ( ! st.getParameters().isEmpty() ) {
             printLine( out, "# Table parameters" );
-            for ( Iterator it = st.getParameters().iterator(); it.hasNext(); ) {
-                DescribedValue dval = (DescribedValue) it.next();
+            for ( DescribedValue dval : st.getParameters() ) {
                 String name = dval.getInfo().getName();
                 Object value = dval.getValue();
                 if ( name != null && name.trim().length() > 0 &&

@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
@@ -465,9 +464,7 @@ public class SphericalAxesSelector implements AxesSelector {
     private static ColumnData guessTanerrParam( TopcatModel tcModel ) {
         ColumnData bestCol = null;
         int bestScore = 0;
-        List paramList = tcModel.getDataModel().getParameters();
-        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-            DescribedValue dval = (DescribedValue) it.next();
+        for ( DescribedValue dval : tcModel.getDataModel().getParameters() ) {
             ValueInfo info = dval.getInfo();
             Object value = dval.getValue();
             if ( value instanceof Number ) {

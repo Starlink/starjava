@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -145,16 +144,11 @@ public class TopcatCodec1 implements TopcatCodec {
 
         /* Copy parameters from the input table.
          * Be paranoid about possible name clashes. */
-        for ( Iterator it = dataModel.getParameters().iterator();
-              it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) item;
-                String name = dval.getInfo().getName();
-                String utype = dval.getInfo().getUtype();
-                if ( ! isCodecUtype( utype ) ) {
-                    paramList.add( dval );
-                }
+        for ( DescribedValue dval : dataModel.getParameters() ) {
+            String name = dval.getInfo().getName();
+            String utype = dval.getInfo().getUtype();
+            if ( ! isCodecUtype( utype ) ) {
+                paramList.add( dval );
             }
         }
 
@@ -481,9 +475,7 @@ public class TopcatCodec1 implements TopcatCodec {
             codecParamMap_ = new HashMap<String,DescribedValue>();
             List<DescribedValue> dataParamList =
                 new ArrayList<DescribedValue>();
-            for ( Iterator it = inTable.getParameters().iterator();
-                  it.hasNext(); ) {
-                DescribedValue param = (DescribedValue) it.next();
+            for ( DescribedValue param : inTable.getParameters() ) {
                 String utype = param.getInfo().getUtype();
                 if ( isCodecUtype( utype ) ) {
                     codecParamMap_.put( utype, param );

@@ -10,7 +10,6 @@ import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,7 @@ public abstract class VOSerializer {
 
     private final StarTable table_;
     private final DataFormat format_;
-    private final List paramList_;
+    private final List<DescribedValue> paramList_;
     private final String ucd_;
     private final String utype_;
     private final String description_;
@@ -75,41 +74,36 @@ public abstract class VOSerializer {
         /* Doctor the table's parameter list.  Take out items which are
          * output specially so that only the others get output as PARAM
          * elements. */
-        paramList_ = new ArrayList();
+        paramList_ = new ArrayList<DescribedValue>();
         String description = null;
         String ucd = null;
         String utype = null;
         List<ServiceDescriptor> sdList = new ArrayList<ServiceDescriptor>();
-        for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
-            Object obj = it.next();
-            if ( obj instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) obj;
-                ValueInfo pinfo = dval.getInfo();
-                String pname = pinfo.getName();
-                Class pclazz = pinfo.getContentClass();
-                Object value = dval.getValue();
-                if ( pname != null && pclazz != null ) {
-                    if ( pname.equalsIgnoreCase( "description" ) &&
-                         pclazz == String.class ) {
-                        description = (String) value;
+        for ( DescribedValue dval : table.getParameters() ) {
+            ValueInfo pinfo = dval.getInfo();
+            String pname = pinfo.getName();
+            Class pclazz = pinfo.getContentClass();
+            Object value = dval.getValue();
+            if ( pname != null && pclazz != null ) {
+                if ( pname.equalsIgnoreCase( "description" ) &&
+                     pclazz == String.class ) {
+                    description = (String) value;
+                }
+                else if ( pname.equals( VOStarTable.UCD_INFO.getName() )
+                       && pclazz == String.class ) {
+                    ucd = (String) value;
+                }
+                else if ( pname.equals( VOStarTable.UTYPE_INFO.getName() ) 
+                       && pclazz == String.class ) {
+                    utype = (String) value;
+                }
+                else if ( ServiceDescriptor.class.isAssignableFrom( pclazz ) ) {
+                    if ( value instanceof ServiceDescriptor ) {
+                        sdList.add( (ServiceDescriptor) value );
                     }
-                    else if ( pname.equals( VOStarTable.UCD_INFO.getName() )
-                           && pclazz == String.class ) {
-                        ucd = (String) value;
-                    }
-                    else if ( pname.equals( VOStarTable.UTYPE_INFO.getName() ) 
-                           && pclazz == String.class ) {
-                        utype = (String) value;
-                    }
-                    else if ( ServiceDescriptor.class
-                             .isAssignableFrom( pclazz ) ) {
-                        if ( value instanceof ServiceDescriptor ) {
-                            sdList.add( (ServiceDescriptor) value );
-                        }
-                    }
-                    else {
-                        paramList_.add( dval );
-                    }
+                }
+                else {
+                    paramList_.add( dval );
                 }
             }
         }
@@ -234,8 +228,7 @@ public abstract class VOSerializer {
      * @param   writer  destination stream
      */
     public void writeParams( BufferedWriter writer ) throws IOException {
-        for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
-            DescribedValue param = (DescribedValue) it.next();
+        for  ( DescribedValue param : paramList_ ) {
             ValueInfo pinfo0 = param.getInfo();
             DefaultValueInfo pinfo = pinfo0 instanceof ColumnInfo
                                    ? new ColumnInfo( (ColumnInfo) pinfo0 )

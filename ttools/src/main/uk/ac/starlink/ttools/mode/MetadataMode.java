@@ -4,7 +4,6 @@ import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -72,9 +71,7 @@ public class MetadataMode implements ProcessingMode {
             out.println();
             out.println( "Parameters" );
             out.println( "----------" );
-            for ( Iterator it = table.getParameters().iterator();
-                  it.hasNext(); ) {
-                DescribedValue param = (DescribedValue) it.next();
+            for ( DescribedValue param : table.getParameters() ) {
                 outMeta( out, param.getInfo().getName(), param.getValue() );
             }
         }

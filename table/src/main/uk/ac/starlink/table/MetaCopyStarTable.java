@@ -20,7 +20,7 @@ public class MetaCopyStarTable extends WrapperStarTable {
 
     private String name_;
     private URL url_;
-    private List paramList_;
+    private List<DescribedValue> paramList_;
     private ColumnInfo[] colInfos_;
 
     /**
@@ -32,14 +32,10 @@ public class MetaCopyStarTable extends WrapperStarTable {
         super( base );
         name_ = base.getName();
         url_ = base.getURL();
-        paramList_ = new ArrayList();
-        for ( Iterator it = base.getParameters().iterator(); it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) item;
-                paramList_.add( new DescribedValue( dval.getInfo(),
-                                                    dval.getValue() ) );
-            }
+        paramList_ = new ArrayList<DescribedValue>();
+        for ( DescribedValue dval : base.getParameters() ) {
+            paramList_.add( new DescribedValue( dval.getInfo(),
+                                                dval.getValue() ) );
         }
         int ncol = base.getColumnCount();
         colInfos_ = new ColumnInfo[ ncol ];
@@ -64,7 +60,7 @@ public class MetaCopyStarTable extends WrapperStarTable {
         url_ = url;
     }
 
-    public List getParameters() {
+    public List<DescribedValue> getParameters() {
         return paramList_;
     }
 
@@ -73,11 +69,9 @@ public class MetaCopyStarTable extends WrapperStarTable {
     }
 
     public DescribedValue getParameterByName( String name ) {
-        for ( Iterator it = getParameters().iterator(); it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue &&
-                 name.equals( ((DescribedValue) item).getInfo().getName() ) ) {
-                return (DescribedValue) item;
+        for ( DescribedValue dval : getParameters() ) {
+            if ( name.equals( dval.getInfo().getName() ) ) {
+                return dval;
             }
         }
         return null;
@@ -85,11 +79,11 @@ public class MetaCopyStarTable extends WrapperStarTable {
 
     public void setParameter( DescribedValue dval ) {
         String name = dval.getInfo().getName();
-        List paramList = getParameters();
-        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue &&
-                 name.equals( ((DescribedValue) item).getInfo().getName() ) ) {
+        List<DescribedValue> paramList = getParameters();
+        for ( Iterator<DescribedValue> it = paramList.iterator();
+              it.hasNext(); ) {
+            DescribedValue param = it.next();
+            if ( name.equals( param.getInfo().getName() ) ) {
                 it.remove();
             }
         }

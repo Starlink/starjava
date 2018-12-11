@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -47,29 +46,24 @@ public class PlasticStarTable extends ColumnStarTable {
 
         /* Clone table metadata so that changes to this table don't affect
          * derived tables. */
-        List paramList = new ArrayList();
-        for ( Iterator it = baseTable.getParameters().iterator();
-              it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) item;
-                Object value = dval.getValue();
-                ValueInfo info = dval.getInfo();
-                if ( info instanceof DefaultValueInfo ) {
-                    final ValueInfo info0 = info;
-                    info = new DefaultValueInfo( info0 ) {
-                        @Override
-                        public String formatValue( Object value, int maxLeng ) {
-                            return info0.formatValue( value, maxLeng );
-                        }
-                        @Override
-                        public Object unformatString( String rep ) {
-                            return info0.unformatString( rep );
-                        }
-                    };
-                }
-                paramList.add( new DescribedValue( info, value ) );
+        List<DescribedValue> paramList = new ArrayList<DescribedValue>();
+        for ( DescribedValue dval : baseTable.getParameters() ) {
+            Object value = dval.getValue();
+            ValueInfo info = dval.getInfo();
+            if ( info instanceof DefaultValueInfo ) {
+                final ValueInfo info0 = info;
+                info = new DefaultValueInfo( info0 ) {
+                    @Override
+                    public String formatValue( Object value, int maxLeng ) {
+                        return info0.formatValue( value, maxLeng );
+                    }
+                    @Override
+                    public Object unformatString( String rep ) {
+                        return info0.unformatString( rep );
+                    }
+                };
             }
+            paramList.add( new DescribedValue( info, value ) );
         }
         setParameters( paramList );
 

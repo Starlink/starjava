@@ -174,12 +174,10 @@ public abstract class LinksDoc {
      */
     public static ServiceDescriptor[] getServiceDescriptors( StarTable table ) {
         List<ServiceDescriptor> sdList = new ArrayList<ServiceDescriptor>();
-        for ( Object param : table.getParameters() ) {
-            if ( param instanceof DescribedValue ) {
-                Object value = ((DescribedValue) param).getValue();
-                if ( value instanceof ServiceDescriptor ) {
-                    sdList.add( (ServiceDescriptor) value );
-                }
+        for ( DescribedValue param : table.getParameters() ) {
+            Object value = param.getValue();
+            if ( value instanceof ServiceDescriptor ) {
+                sdList.add( (ServiceDescriptor) value );
             }
         }
         return sdList.toArray( new ServiceDescriptor[ 0 ] );

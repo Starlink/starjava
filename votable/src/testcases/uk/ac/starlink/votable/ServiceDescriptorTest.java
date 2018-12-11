@@ -61,8 +61,8 @@ public class ServiceDescriptorTest extends TestCase {
     private static ServiceDescriptor[]
             getServiceDescriptors( StarTable table ) {
         List<ServiceDescriptor> sdList = new ArrayList<ServiceDescriptor>();
-        for ( Object dval : table.getParameters() ) {
-            Object value = ((DescribedValue) dval).getValue();
+        for ( DescribedValue dval : table.getParameters() ) {
+            Object value = dval.getValue();
             if ( value instanceof ServiceDescriptor ) {
                 sdList.add( (ServiceDescriptor) value );
             }

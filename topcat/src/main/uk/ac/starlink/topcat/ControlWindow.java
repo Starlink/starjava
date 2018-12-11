@@ -1459,35 +1459,32 @@ public class ControlWindow extends AuxWindow
      * @see   <a href="http://www.ivoa.net/documents/DALI/">DALI</a>
      */
     private static String getQueryStatus( StarTable table ) {
-        for ( Object param : table.getParameters() ) {
-            if ( param instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) param;
-                ValueInfo info = dval.getInfo();
-                if ( "QUERY_STATUS".equals( info.getName() ) ) {
-                    Object vobj = dval.getValue();
+        for ( DescribedValue dval : table.getParameters() ) {
+            ValueInfo info = dval.getInfo();
+            if ( "QUERY_STATUS".equals( info.getName() ) ) {
+                Object vobj = dval.getValue();
 
-                    /* According to DALI, the only values of interest here
-                     * would be OVERFLOW and ERROR.  However, if something
-                     * else other than OK is present, it's probably worth
-                     * reporting anyway; most likely it's a misspelling or
-                     * something, that the user may be able to make of. */
-                    if ( vobj instanceof String ) {
-                        String status = ((String) vobj).trim();
-                        if ( ! "OK".equals( status ) &&
-                             status.length() > 0 ) {
-                            StringBuffer sbuf = new StringBuffer()
-                                .append( " " )
-                                .append( "(" )
-                                .append( status );
-                            String descrip = info.getDescription();
-                            if ( descrip != null &&
-                                 descrip.trim().length() > 0 ) {
-                                sbuf.append( ": " )
-                                    .append( descrip.trim() );
-                            }
-                            sbuf.append( ")" );
-                            return sbuf.toString();
+                /* According to DALI, the only values of interest here
+                 * would be OVERFLOW and ERROR.  However, if something
+                 * else other than OK is present, it's probably worth
+                 * reporting anyway; most likely it's a misspelling or
+                 * something, that the user may be able to make of. */
+                if ( vobj instanceof String ) {
+                    String status = ((String) vobj).trim();
+                    if ( ! "OK".equals( status ) &&
+                         status.length() > 0 ) {
+                        StringBuffer sbuf = new StringBuffer()
+                            .append( " " )
+                            .append( "(" )
+                            .append( status );
+                        String descrip = info.getDescription();
+                        if ( descrip != null &&
+                             descrip.trim().length() > 0 ) {
+                            sbuf.append( ": " )
+                                .append( descrip.trim() );
                         }
+                        sbuf.append( ")" );
+                        return sbuf.toString();
                     }
                 }
             }

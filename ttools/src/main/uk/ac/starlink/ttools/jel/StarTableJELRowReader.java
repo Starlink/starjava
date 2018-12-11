@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.jel;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -197,14 +196,13 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * by Utype (using the {@link #UTYPE_PREFIX} prefix).
      */
     protected Constant getConstantByName( String name ) {
-        List paramList = table_.getParameters();
+        List<DescribedValue> paramList = table_.getParameters();
 
         /* Try it as a UCD specification. */
         String ucdSpec = stripPrefix( name, UCD_PREFIX );
         if ( ucdSpec != null ) {
             Pattern ucdRegex = getUcdRegex( ucdSpec );
-            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-                DescribedValue dval = (DescribedValue) it.next();
+            for ( DescribedValue dval : paramList ) {
                 String ucd = dval.getInfo().getUCD();
                 if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
                     return createDescribedValueConstant( dval );
@@ -217,8 +215,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         String utypeSpec = stripPrefix( name, UTYPE_PREFIX );
         if ( utypeSpec != null ) {
             Pattern utypeRegex = getUtypeRegex( utypeSpec );
-            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-                DescribedValue dval = (DescribedValue) it.next();
+            for ( DescribedValue dval : paramList ) {
                 String utype = dval.getInfo().getUtype();
                 if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
                     return createDescribedValueConstant( dval );
@@ -231,14 +228,12 @@ public abstract class StarTableJELRowReader extends JELRowReader {
          * case-insensitive. */
         String pname = stripPrefix( name, PARAM_PREFIX );
         if ( pname != null ) {
-            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-                DescribedValue dval = (DescribedValue) it.next();
+            for ( DescribedValue dval : paramList ) {
                 if ( pname.equals( dval.getInfo().getName() ) ) {
                     return createDescribedValueConstant( dval );
                 }
             }
-            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-                DescribedValue dval = (DescribedValue) it.next();
+            for ( DescribedValue dval : paramList ) {
                 if ( pname.equalsIgnoreCase( dval.getInfo().getName() ) ) {
                     return createDescribedValueConstant( dval );
                 }

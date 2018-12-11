@@ -280,7 +280,7 @@ public class VOStarTable extends AbstractStarTable {
         return colinfos[ icol ];
     }
 
-    public List getParameters() {
+    public List<DescribedValue> getParameters() {
 
         /* Lazily construct parameter list. */
         if ( ! doneParams ) {

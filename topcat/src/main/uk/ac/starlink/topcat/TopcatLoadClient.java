@@ -109,11 +109,12 @@ public class TopcatLoadClient implements TableLoadClient {
          * since they have no further use and should not be propagated or
          * otherwise visible in the application. */
         String location = null;
-        List paramList = table.getParameters();
         int nsrc = 0;
         try {
-            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-                DescribedValue dval = (DescribedValue) it.next();
+            for ( Iterator<DescribedValue> it =
+                      table.getParameters().iterator();
+                  it.hasNext(); ) {
+                DescribedValue dval = it.next();
                 ValueInfo info = dval.getInfo();
                 if ( TableLoader.SOURCE_INFO.getName()
                                             .equals( info.getName() ) ) {

@@ -129,18 +129,19 @@ public class TableTestCase extends TestCase {
         }
     }
 
-    void assertValueSetEquals( List dvals1, List dvals2 ) {
+    void assertValueSetEquals( List<DescribedValue> dvals1,
+                               List<DescribedValue> dvals2 ) {
         if ( dvals1 == null && dvals2 == null ) {
             return;
         }
         int nparam = dvals1.size();
-        Comparator sorter = new DescribedValueComparator();
+        Comparator<DescribedValue> sorter = new DescribedValueComparator();
         Collections.sort( dvals1, sorter );
         Collections.sort( dvals2, sorter );
         assertEquals( nparam, dvals2.size() );
         for ( int i = 0; i < nparam; i++ ) {
-            DescribedValue dv1 = (DescribedValue) dvals1.get( i );
-            DescribedValue dv2 = (DescribedValue) dvals2.get( i );
+            DescribedValue dv1 =  dvals1.get( i );
+            DescribedValue dv2 =  dvals2.get( i );
             assertScalarOrArrayEquals( dv1.getValue(), dv2.getValue() );
             assertValueInfoEquals( dv1.getInfo(), dv2.getInfo() );
         }
@@ -272,10 +273,11 @@ public class TableTestCase extends TestCase {
         }
     }
 
-    static class DescribedValueComparator implements Comparator {
-        public int compare( Object o1, Object o2 ) {
-            return ((DescribedValue) o1).getInfo().getName()
-                  .compareTo( ((DescribedValue) o2).getInfo().getName() );
+    static class DescribedValueComparator
+            implements Comparator<DescribedValue> {
+        public int compare( DescribedValue dval1, DescribedValue dval2 ) {
+            return dval1.getInfo().getName()
+                  .compareTo( dval2.getInfo().getName() );
         }
     }
 

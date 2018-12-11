@@ -21,7 +21,7 @@ import java.util.TreeMap;
  */
 public abstract class AbstractStarTable implements StarTable {
 
-    private List parameters_ = new ArrayList();
+    private List<DescribedValue> parameters_ = new ArrayList<DescribedValue>();
     private String name_;
     private URL url_;
 
@@ -66,7 +66,7 @@ public abstract class AbstractStarTable implements StarTable {
         return Collections.unmodifiableList( new ArrayList( auxMap.values() ) );
     }
 
-    public List getParameters() {
+    public List<DescribedValue> getParameters() {
         return parameters_;
     }
 
@@ -78,13 +78,13 @@ public abstract class AbstractStarTable implements StarTable {
      * @param  parameters   a List of <tt>DescribedValue</tt>s pertaining
      *         to this table
      */
-    public void setParameters( List parameters ) {
+    public void setParameters( List<DescribedValue> parameters ) {
         parameters_ = parameters;
     }
 
     public void setParameter( DescribedValue dval ) {
         DescribedValue old = getParameterByName( dval.getInfo().getName() );
-        List parameters = getParameters();
+        List<DescribedValue> parameters = getParameters();
         if ( old != null ) {
             parameters.remove( old );
         }
@@ -118,13 +118,9 @@ public abstract class AbstractStarTable implements StarTable {
     }
 
     public DescribedValue getParameterByName( String parname ) {
-        for ( Iterator it = getParameters().iterator(); it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) item;
-                if ( parname.equals( dval.getInfo().getName() ) ) {
-                    return dval;
-                }
+        for ( DescribedValue dval : getParameters() ) {
+            if ( parname.equals( dval.getInfo().getName() ) ) {
+                return dval;
             }
         }
         return null;

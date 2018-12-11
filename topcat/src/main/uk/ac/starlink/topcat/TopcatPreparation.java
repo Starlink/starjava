@@ -67,25 +67,22 @@ public class TopcatPreparation implements TablePreparation {
      * is removed from its list, if possible.
      */
     public static TableBuilder removeFormatParameter( StarTable table ) {
-        List<DescribedValue> params = table.getParameters();
         TableBuilder tformat = null;
-        for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
-            Object obj = it.next();
-            if ( obj instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) obj;
-                if ( FORMAT_INFO.equals( dval.getInfo() ) ) {
-                    Object val = dval.getValue();
-                    if ( val instanceof TableBuilder ) {
-                        tformat = (TableBuilder) val;
-                    }
-                    try {
-                        it.remove();
-                    }
-                    catch ( UnsupportedOperationException e ) {
-                        logger_.log( Level.WARNING,
-                                     "Failed to remove info " + dval
-                                   + " from immutable param list", e );
-                    }
+        for ( Iterator<DescribedValue> it = table.getParameters().iterator();
+              it.hasNext(); ) {
+            DescribedValue dval = it.next();
+            if ( FORMAT_INFO.equals( dval.getInfo() ) ) {
+                Object val = dval.getValue();
+                if ( val instanceof TableBuilder ) {
+                    tformat = (TableBuilder) val;
+                }
+                try {
+                    it.remove();
+                }
+                catch ( UnsupportedOperationException e ) {
+                    logger_.log( Level.WARNING,
+                                 "Failed to remove info " + dval
+                               + " from immutable param list", e );
                 }
             }
         }

@@ -283,13 +283,10 @@ public class TopcatCodec2 implements TopcatCodec {
 
         /* Copy parameters from the input table.
          * Be paranoid about possible name clashes. */
-        for ( Object item : dataModel.getParameters() ) {
-            if ( item instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) item;
-                String utype = dval.getInfo().getUtype();
-                if ( ! isCodecUtype( utype ) ) {
-                    paramList.add( dval );
-                }
+        for ( DescribedValue dval : dataModel.getParameters() ) {
+            String utype = dval.getInfo().getUtype();
+            if ( ! isCodecUtype( utype ) ) {
+                paramList.add( dval );
             }
         }
 
@@ -882,16 +879,13 @@ public class TopcatCodec2 implements TopcatCodec {
              * for later retrieval.  These parameters should all have
              * custom and easily-identifiable topcat-specific utypes. */
             codecParamMap_ = new LinkedHashMap<String,DescribedValue>();
-            for ( Object item : params ) {
-                if ( item instanceof DescribedValue ) {
-                    DescribedValue dval = (DescribedValue) item;
-                    String utype = dval.getInfo().getUtype();
-                    if ( isCodecUtype( utype ) ) {
-                        codecParamMap_.put( utype, dval );
-                    }
-                    else {
-                        dataParamList_.add( dval );
-                    }
+            for ( DescribedValue dval : params ) {
+                String utype = dval.getInfo().getUtype();
+                if ( isCodecUtype( utype ) ) {
+                    codecParamMap_.put( utype, dval );
+                }
+                else {
+                    dataParamList_.add( dval );
                 }
             }
         }

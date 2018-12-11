@@ -75,26 +75,21 @@ public class ClearParameterFilter extends BasicFilter {
             patterns[ iname ] =
                 ColumnIdentifier.globToRegex( pnames[ iname ], false );
         }
-        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-            Object obj = it.next();
-            if ( obj instanceof DescribedValue ) {
-                DescribedValue dval = (DescribedValue) obj;
-                String pname = dval.getInfo().getName();
-                for ( int iname = 0; iname < nname; iname++ ) {
-                    if ( patterns[ iname ] == null ) {
-                        if ( pnames[ iname ].equalsIgnoreCase( pname ) ) {
-                            it.remove();
-                        }
-                    }
-                    else {
-                        if ( patterns[ iname ].matcher( pname ).matches() ) {
-                            it.remove();
-                        }
+        for ( Iterator<DescribedValue> it = paramList.iterator();
+              it.hasNext(); ) {
+            DescribedValue dval = it.next();
+            String pname = dval.getInfo().getName();
+            for ( int iname = 0; iname < nname; iname++ ) {
+                if ( patterns[ iname ] == null ) {
+                    if ( pnames[ iname ].equalsIgnoreCase( pname ) ) {
+                        it.remove();
                     }
                 }
-            }
-            else {
-                it.remove();  // shouldn't be there in the first place
+                else {
+                    if ( patterns[ iname ].matcher( pname ).matches() ) {
+                        it.remove();
+                    }
+                }
             }
         }
     }

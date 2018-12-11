@@ -74,7 +74,7 @@ public class FixNamesFilter extends BasicFilter implements ProcessingStep {
     private class FixNamesTable extends WrapperStarTable {
 
         private final ColumnInfo[] colInfos_;
-        private final List paramList_;
+        private final List<DescribedValue> paramList_;
 
         /**
          * Constructor.
@@ -94,16 +94,11 @@ public class FixNamesFilter extends BasicFilter implements ProcessingStep {
             }
 
             /* Doctor parameter names. */
-            DescribedValue[] params =
-                (DescribedValue[])
-                base.getParameters().toArray( new DescribedValue[ 0 ] );
-            paramList_ = new ArrayList( params.length );
-            for ( int ip = 0; ip < params.length; ip++ ) {
-                DefaultValueInfo info =
-                    new DefaultValueInfo( params[ ip ].getInfo() );
+            paramList_ = new ArrayList<DescribedValue>();
+            for ( DescribedValue param : base.getParameters() ) {
+                DefaultValueInfo info = new DefaultValueInfo( param.getInfo() );
                 info.setName( fixName( info.getName() ) );
-                Object value = params[ ip ].getValue();
-                paramList_.add( new DescribedValue( info, value ) );
+                paramList_.add( new DescribedValue( info, param.getValue() ) );
             }
         }
 
@@ -111,13 +106,12 @@ public class FixNamesFilter extends BasicFilter implements ProcessingStep {
             return colInfos_[ icol ];
         }
 
-        public List getParameters() {
+        public List<DescribedValue> getParameters() {
             return paramList_;
         }
 
         public DescribedValue getParameterByName( String parName ) {
-            for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
-                DescribedValue param = (DescribedValue) it.next();
+            for ( DescribedValue param : paramList_ ) {
                 if ( param.getInfo().getName().equals( parName ) ) {
                     return param;
                 }

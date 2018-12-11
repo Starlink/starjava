@@ -140,9 +140,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
             if ( name != null && name.trim().length() > 0 ) {
                 printParam( strm, "Table name", name, String.class );
             }
-            for ( Iterator it = startab.getParameters().iterator();
-                  it.hasNext(); ) {
-                DescribedValue param = (DescribedValue) it.next();
+            for ( DescribedValue param : startab.getParameters() ) {
                 ValueInfo info = param.getInfo();
                 printParam( strm, info.getName(),
                             param.getValueAsString( maxleng ),

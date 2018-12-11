@@ -498,19 +498,16 @@ public class Tables {
      * @param   info   key giving the value you want
      * @return  matching value  
      */
-    public static Object getValue( Collection dvals, ValueInfo info ) {
+    public static Object getValue( Collection<DescribedValue> dvals,
+                                   ValueInfo info ) {
         String iname = info.getName();
         Class iclazz = info.getContentClass();
         if ( iname != null && iclazz != null ) {
-            for ( Iterator it = dvals.iterator(); it.hasNext(); ) {
-                Object obj = it.next();
-                if ( obj instanceof DescribedValue ) {
-                    DescribedValue dval = (DescribedValue) obj;
-                    ValueInfo dinfo = dval.getInfo();
-                    if ( iname.equals( dinfo.getName() ) &&
-                         iclazz.equals( dinfo.getContentClass() ) ) {
-                        return dval.getValue();
-                    }
+            for ( DescribedValue dval : dvals ) {
+                ValueInfo dinfo = dval.getInfo();
+                if ( iname.equals( dinfo.getName() ) &&
+                     iclazz.equals( dinfo.getContentClass() ) ) {
+                    return dval.getValue();
                 }
             }
         }
