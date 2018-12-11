@@ -193,20 +193,20 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     public DescribedValue[] getMatchParameters() {
-        List params = new ArrayList();
+        List<DescribedValue> params = new ArrayList<DescribedValue>();
         for ( int i = 0; i < nPart; i++ ) {
             params.addAll( Arrays.asList( engines[ i ].getMatchParameters() ) );
         }
-        return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
+        return params.toArray( new DescribedValue[ 0 ] );
     }
 
     public DescribedValue[] getTuningParameters() {
-        List params = new ArrayList();
+        List<DescribedValue> params = new ArrayList<DescribedValue>();
         for ( int i = 0; i < nPart; i++ ) {
             params.addAll( Arrays.asList( engines[ i ]
                                          .getTuningParameters() ) );
         }
-        return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
+        return params.toArray( new DescribedValue[ 0 ] );
     }
 
     public boolean canBoundMatch() {
