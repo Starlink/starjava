@@ -244,7 +244,7 @@ public abstract class DalTableLoadDialog
      */
     public DescribedValue[] getMetadata( RegResource resource,
                                          RegCapabilityInterface cap ) {
-        List metadata = new ArrayList();
+        List<DescribedValue> metadata = new ArrayList<DescribedValue>();
         addMetadatum( metadata, resource.getShortName(),
                       "Service short name",
                       "Short name for " + protoName_ + " service" );
@@ -263,21 +263,21 @@ public abstract class DalTableLoadDialog
         addMetadatum( metadata, resource.getContact(),
                       "Contact person",
                       "Individual to contact about this service" );
-        return (DescribedValue[]) metadata.toArray( new DescribedValue[ 0 ] );
+        return metadata.toArray( new DescribedValue[ 0 ] );
     }
 
     public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
         RegistryProtocol regProto =
             getQueryFactory().getRegistrySelector().getModel().getProtocol();
         RegCapabilityInterface[] caps = super.getCapabilities( resource );
-        List capList = new ArrayList();
+        List<RegCapabilityInterface> capList =
+            new ArrayList<RegCapabilityInterface>();
         for ( int i = 0; i < caps.length; i++ ) {
             if ( regProto.hasCapability( capability_, caps[ i ] ) ) {
                 capList.add( caps[ i ] );
             }
         }
-        return (RegCapabilityInterface[])
-               capList.toArray( new RegCapabilityInterface[ 0 ] );
+        return capList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
     /**
@@ -289,7 +289,8 @@ public abstract class DalTableLoadDialog
      * @param  name      the name of the object
      * @param  description  the description of the object
      */
-    private static void addMetadatum( List metadata, String value, String name,
+    private static void addMetadatum( List<DescribedValue> metadata,
+                                      String value, String name,
                                       String description ) {
         if ( value != null && value.trim().length() > 0 ) {
             ValueInfo info = new DefaultValueInfo( name, String.class,
