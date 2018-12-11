@@ -290,8 +290,8 @@ class IpacReader implements RowSequence {
      */
     private static DescribedValue[] readParameters( LineSequence lseq )
             throws IOException {
-        List comments = new ArrayList();
-        List params = new ArrayList();
+        List<String> comments = new ArrayList<String>();
+        List<DescribedValue> params = new ArrayList<DescribedValue>();
         boolean done = false;
         for ( String line; ! done && ( line = lseq.nextLine() ) != null; ) {
             line = line.trim();
@@ -312,8 +312,8 @@ class IpacReader implements RowSequence {
         }
         if ( comments.size() > 0 ) {
             StringBuffer comBuf = new StringBuffer();
-            for ( Iterator it = comments.iterator(); it.hasNext(); ) {
-                comBuf.append( (String) it.next() );
+            for ( Iterator<String> it = comments.iterator(); it.hasNext(); ) {
+                comBuf.append( it.next() );
                 if ( it.hasNext() ) {
                     comBuf.append( '\n' );
                 }
@@ -321,7 +321,7 @@ class IpacReader implements RowSequence {
             params.add( new DescribedValue( IpacTableBuilder.COMMENT_INFO,
                                             comBuf.toString() ) );
         }
-        return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
+        return params.toArray( new DescribedValue[ 0 ] );
     }
 
     /**
