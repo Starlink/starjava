@@ -84,15 +84,14 @@ public interface StarTable {
     void setName( String name );
 
     /**
-     * Returns a list of table parameters, that is items which pertain to
-     * the entire table.  Each element of this list must be a 
-     * {@link DescribedValue} object.
+     * Returns a list of table parameters, that is metadata items
+     * which pertain to the entire table.
      *
      * @return  a <tt>List</tt> of <tt>DescribedValue</tt> objects 
      *          constituting table-wide metadata not covered elsewhere 
      *          in this interface
      */
-    List getParameters();
+    List<DescribedValue> getParameters();
 
     /**
      * Returns a parameter (table-wide metadata item) of this table located
