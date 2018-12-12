@@ -3,15 +3,21 @@ package uk.ac.starlink.fits;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCard;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -21,7 +27,15 @@ import uk.ac.starlink.table.Tables;
  * Array-valued columns are all written as fixed size arrays.
  * This class does the hard work for FitsTableWriter.
  *
+ * <p>When writing tables that are marked up using the headers defined in
+ * {@link uk.ac.starlink.table.HealpixTableInfo},
+ * this serializer will attempt to insert FITS headers corresponding
+ * to the HEALPix-FITS convention.
+ *
  * @author   Mark Taylor (Starlink)
+ * @see
+ * <a href="https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf"
+ *    >HEALPix-FITS convention</a>
  */
 public class StandardFitsTableSerializer implements FitsTableSerializer {
 
@@ -368,6 +382,29 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             AbstractWideFits.logWideWrite( logger, nStdCol, nUseCol );
         }
 
+        /* If the table is explicitly annotated as a HEALPix map,
+         * add HEALPix-specific headers according to the HEALPix-FITS
+         * convention. */
+        List<DescribedValue> tparams = table.getParameters();
+        if ( HealpixTableInfo.isHealpix( tparams ) ) {
+            HealpixTableInfo hpxInfo = HealpixTableInfo.fromParams( tparams );
+            HeaderCard[] hpxCards = null;
+            try {
+                hpxCards = getHealpixHeaders( hpxInfo );
+            }
+            catch ( TableFormatException e ) {
+                logger.log( Level.WARNING,
+                            "Failed to write HEALPix-specific FITS headers: "
+                            + e.getMessage(), e );
+            }
+            if ( hpxCards != null && hpxCards.length > 0 ) {
+                logger.info( "Adding HEALPix-specific FITS headers" );
+                for ( HeaderCard c : hpxCards ) {
+                    hdr.addValue( c.getKey(), c.getValue(), c.getComment() );
+                }
+            }
+        }
+
         /* Add HDU metadata describing columns. */
         int jcol = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
@@ -710,6 +747,101 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 }
             }
         }
+    }
+
+    /**
+     * Returns FITS headers specific for a table containing a HEALPix map.
+     * If this method is called the assumption is that the table looks like
+     * it should be a HEALPix map of some sort.  If there are problems
+     * with the metadata that prevent a consistent set of headers from
+     * being generated, a TableFormatException with an informative
+     * message should be thrown.
+     *
+     * @param  hpxInfo  non-null healpix description
+     * @return   array of FITS headers describing healpix information
+     * @throws  TableFormatException  if HEALPix headers could not be generated
+     */
+    protected HeaderCard[] getHealpixHeaders( HealpixTableInfo hpxInfo )
+            throws TableFormatException, HeaderCardException {
+        String ipixColName = hpxInfo.getPixelColumnName();
+        int level = hpxInfo.getLevel();
+        String ordering = hpxInfo.isNest() ? "NESTED" : "RING";
+        HealpixTableInfo.HpxCoordSys csys = hpxInfo.getCoordSys();
+
+        /* Work out if we have explicit or implicit HEALPix pixel indices. */
+        final boolean isExplicit;
+        if ( ipixColName == null ) {
+            isExplicit = false;
+        }
+        else if ( ipixColName.equals( table.getColumnInfo( 0 ).getName() ) ) {
+            isExplicit = true;
+        }
+        else {
+             throw new TableFormatException( "HEALPix pixel index column \""
+                                           + ipixColName + "\""
+                                           + " is not first column" );
+        }
+
+        /* Check we have or can guess the HEALPix level (hence NSIDE),
+         * and that the table row count is not inconsistent with it. */
+        long nrow = rowCount;
+        assert nrow >= 0;
+        if ( level < 0 && ! isExplicit ) {
+            int clevel = Long.numberOfTrailingZeros( nrow / 12 ) / 2;
+            if ( 12 * ( 1L << ( 2 * clevel ) ) == nrow ) {
+                level = clevel;
+                logger.warning( "Inferred HEALPix level " + clevel );
+            }
+        }
+        if ( level < 0 ) {
+            throw new TableFormatException( "No HEALPix level specified" );
+        }
+        if ( ! isExplicit ) {
+            long npix = 12 * ( 1L << ( 2 * level ) );
+            if ( npix != nrow ) {
+                throw new TableFormatException( "Row count does not match level"
+                                              + " for implicitly indexed"
+                                              + " HEALPix table ("
+                                              + nrow + " != " + npix + ")" );
+            }
+        }
+        final long npix = 12 * ( 1L << ( 2 * level ) );
+        final long nside = 1L << level;
+
+        /* Prepare HEALPix format FITS headers. */
+        List<HeaderCard> cards = new ArrayList<HeaderCard>();
+        cards.add( new HeaderCard( "PIXTYPE", "HEALPIX", "HEALPix map" ) );
+        cards.add( new HeaderCard( "NSIDE", nside,
+                                   "HEALPix level parameter" ) );
+        cards.add( new HeaderCard( "ORDERING", ordering,
+                                   "HEALPix index ordering scheme" ) );
+        if ( csys != null ) {
+            cards.add( new HeaderCard( "COORDSYS", csys.getCharString(),
+                                       "HEALPix coordinate system "
+                                     + csys.getWord() ) );
+        }
+        if ( isExplicit ) {
+            cards.add( new HeaderCard( "INDXSCHM", "EXPLICIT",
+                                       "HEALPix indices given explicitly" ) );
+            cards.add( new HeaderCard( "OBS_NPIX", nrow,
+                                       "HEALPix pixel count" ) );
+            if ( nrow < npix ) {
+                cards.add( new HeaderCard( "OBJECT", "PARTIAL",
+                                           "HEALPix sky coverage "
+                                         + "is partial" ) );
+            }
+        }
+        else {
+            cards.add( new HeaderCard( "INDXSCHM", "IMPLICIT",
+                                       "HEALPix indices given implicitly" ) );
+            cards.add( new HeaderCard( "FIRSTPIX", 0,
+                                       "First HEALPix index" ) );
+            cards.add( new HeaderCard( "LASTPIX", npix - 1,
+                                       "Last HEALPix index" ) );
+            cards.add( new HeaderCard( "OBJECT", "FULLSKY",
+                                       "HEALPix sky coverage is full" ) );
+        }
+        return cards.toArray( new HeaderCard[ 0 ] );
     }
 
     /**
