@@ -135,12 +135,6 @@ public class ObsTapStage implements Stage {
      * Determines whether a table capability reports conformance to the
      * ObsCore data model.  If not, an appropriate report is made.
      *
-     * <p>If both are declared, only return v1.1.
-     * According to PR-ObsCore-v1.1-20160330, ObsCore 1.1 is supposed
-     * to be a superset of ObsCore 1.0, although in fact it is not.
-     * This code needs revisiting when that has been sorted out in
-     * the standard document.
-     *
      * @param  reporter   reporter
      * @param  tcap    tap capability object
      * @return   version of ObsCore model indicated, or null if no ObsCore
