@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.HealpixTableInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.cone.HealpixTiling;
 import uk.ac.starlink.ttools.func.Tilings;
@@ -250,12 +253,24 @@ public class HealpixPlotter
 
     public PlotLayer createLayer( DataGeom geom, final DataSpec dataSpec,
                                   HealpixStyle style ) {
-        int dataLevel = style.dataLevel_ >= 0
-                  ? style.dataLevel_
-                  : guessDataLevel( dataSpec.getSourceTable().getRowCount() );
         if ( ! (geom instanceof HealpixDataGeom) ) {
             throw new IllegalArgumentException( "DataGeom not Healpix: "
                                               + geom );
+        }
+        StarTable table = dataSpec.getSourceTable();
+        List<DescribedValue> tparams = table.getParameters();
+        HealpixTableInfo hpxInfo = HealpixTableInfo.isHealpix( tparams )
+                                 ? HealpixTableInfo.fromParams( tparams )
+                                 : null;
+        int dataLevel = -1;
+        if ( dataLevel < 0 && style.dataLevel_ >= 0 ) {
+            dataLevel = style.dataLevel_;
+        }
+        if ( dataLevel < 0 && hpxInfo != null ) {
+            dataLevel = hpxInfo.getLevel();
+        }
+        if ( dataLevel < 0 ) {
+            dataLevel = guessDataLevel( table.getRowCount() );
         }
         if ( dataLevel >= 0 ) {
             final int nside = 1 << dataLevel;
