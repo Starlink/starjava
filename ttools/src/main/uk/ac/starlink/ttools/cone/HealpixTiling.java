@@ -21,6 +21,9 @@ public class HealpixTiling implements SkyTiling {
     private final PixTools pixTools_;
     private final double resolution_;
 
+    /** Maximum healpix level permitted by PixTools implementation (20). */
+    public static final int MAX_LEVEL = 20;
+
     /**
      * Constructor.
      *
@@ -28,7 +31,7 @@ public class HealpixTiling implements SkyTiling {
      * @param  nest  true for nesting scheme, false for ring scheme
      */
     public HealpixTiling( int k, boolean nest ) {
-        if ( k > 29 ) {
+        if ( k > MAX_LEVEL ) {
             throw new IllegalArgumentException( "k " + k + " too large" );
         }
         k_ = k;
