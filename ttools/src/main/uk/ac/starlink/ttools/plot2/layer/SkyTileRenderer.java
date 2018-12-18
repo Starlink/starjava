@@ -74,7 +74,7 @@ public abstract class SkyTileRenderer {
             reason = "sky bounds are visible";
         }
         else {
-            double srPerTile = 4 * Math.PI / ( 12 << 2 * viewLevel );
+            double srPerTile = 4 * Math.PI / ( 12L << 2 * viewLevel );
             double srPerPixel = surface.pixelAreaSteradians();
             int pixelsPerTile = (int) ( srPerTile / srPerPixel );
             if ( pixelsPerTile >= MIN_PAINT_PIXELS ) {
