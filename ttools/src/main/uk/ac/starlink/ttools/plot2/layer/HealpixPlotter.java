@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.cone.HealpixTiling;
 import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
@@ -47,9 +48,9 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
-import uk.ac.starlink.ttools.plot2.data.IntegerCoord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 import uk.ac.starlink.ttools.plot2.geom.SkySurfaceFactory;
@@ -71,28 +72,11 @@ public class HealpixPlotter
     private final int icHealpix_;
     private final int icValue_;
 
-    /** Maximum HEALPix level supported by this plotter. */
-    /* 13 is the largest value for which 32-bit pixel indices will suffice.
-     * Getting round that is not so hard, but some parts of the
-     * implementation are not efficient for finer grids, so other
-     * implementation work would have to be done to increase this value.
-     * In fact even at 13 performance is pretty poor at present. */
-    public static final int MAX_LEVEL = 13;
+    /** Currently always works with HEALPix NESTED scheme. */
+    public static final boolean IS_NEST = true;
 
-    /** Coordinate for HEALPix index. */
-    public static final IntegerCoord HEALPIX_COORD =
-        new IntegerCoord(
-            new InputMeta( "healpix", "HEALPix index" )
-           .setShortDescription( "HEALPix index" )
-           .setXmlDescription( new String[] {
-                "<p>HEALPix index indicating the sky position of the tile",
-                "whose value is plotted.",
-                "If not supplied, the assumption is that the supplied table",
-                "contains one row for each HEALPix tile at a given level,",
-                "in ascending order.",
-                "</p>",
-            } )
-        , false, IntegerCoord.IntType.INT );
+    /** Maximum HEALPix level supported by this plotter. */
+    public static final int MAX_LEVEL = HealpixTiling.MAX_LEVEL;
 
     /** Coordinate for value determining tile colours. */
     public static final FloatingCoord VALUE_COORD =
@@ -200,8 +184,7 @@ public class HealpixPlotter
      */
     public HealpixPlotter( boolean transparent ) {
         super( "Healpix", ResourceIcon.PLOT_HEALPIX,
-               CoordGroup.createCoordGroup( 0, new Coord[] { HEALPIX_COORD,
-                                                             VALUE_COORD } ),
+               CoordGroup.createCoordGroup( 1, new Coord[] { VALUE_COORD } ),
                false );
         icHealpix_ = 0;
         icValue_ = 1;
@@ -265,12 +248,17 @@ public class HealpixPlotter
                                  combiner, angle );
     }
 
-    public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
+    public PlotLayer createLayer( DataGeom geom, final DataSpec dataSpec,
                                   HealpixStyle style ) {
         int dataLevel = style.dataLevel_ >= 0
                   ? style.dataLevel_
                   : guessDataLevel( dataSpec.getSourceTable().getRowCount() );
+        if ( ! (geom instanceof HealpixDataGeom) ) {
+            throw new IllegalArgumentException( "DataGeom not Healpix: "
+                                              + geom );
+        }
         if ( dataLevel >= 0 ) {
+            final int nside = 1 << dataLevel;
             IndexReader rdr =
                   dataSpec.isCoordBlank( icHealpix_ )
                 ? new IndexReader() {
@@ -280,8 +268,8 @@ public class HealpixPlotter
                   }
                 : new IndexReader() {
                       public long getHealpixIndex( Tuple tuple ) {
-                          return HEALPIX_COORD.readIntCoord( tuple,
-                                                             icHealpix_ );
+                          return HealpixDataGeom.HEALPIX_COORD
+                                .readLongCoord( tuple, icHealpix_ );
                       }
                   };
             return new BinsHealpixLayer( geom, dataSpec, style,
@@ -471,6 +459,7 @@ public class HealpixPlotter
             assert hstyle.degrade_ >= 0;
         }
 
+        @Override
         public Map<AuxScale,AuxReader> getAuxRangers() {
             Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
             map.put( SCALE, new AuxReader() {

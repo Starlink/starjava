@@ -8,14 +8,16 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
-import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
-import uk.ac.starlink.ttools.plot2.data.IntegerCoord;
+import uk.ac.starlink.ttools.plot2.geom.SkySurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.SkySys;
+import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
 import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 
 /**
@@ -38,9 +40,8 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
                                 TypedListModel<TopcatModel> tablesModel,
                                 Specifier<ZoneId> zsel,
                                 Configger baseConfigger ) {
-        super( plotter, zsel, new HealpixCoordPanel(), tablesModel,
-               baseConfigger, true );
-        assert plotter.getCoordGroup().getPositionCount() == 0;
+        super( plotter, zsel, new HealpixCoordPanel( baseConfigger ),
+               tablesModel, baseConfigger, true );
     }
 
     public LegendEntry[] getLegendEntries() {
@@ -86,11 +87,9 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
     /**
      * CoordPanel implementation for HealpixLayerControl.
      */
-    private static class HealpixCoordPanel extends SimplePositionCoordPanel {
-        private static final IntegerCoord HEALPIX_COORD =
-            HealpixPlotter.HEALPIX_COORD;
-        private static final FloatingCoord VALUE_COORD =
-            HealpixPlotter.VALUE_COORD;
+    private static class HealpixCoordPanel extends PositionCoordPanel {
+        private final Configger globalConfigger_;
+
         private static final ConfigKey<SkySys> DATASYS_KEY =
             HealpixPlotter.DATASYS_KEY;
         private static final ConfigKey<Integer> DATALEVEL_KEY =
@@ -105,10 +104,15 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
 
         /**
          * Constructor.
+         *
+         * @param  globalConfigger  configger that can supply global options,
+         *                          in particular the view sky system
          */
-        HealpixCoordPanel() {
-            super( new Coord[] { HEALPIX_COORD, VALUE_COORD },
-                   new ConfigKey[] { DATASYS_KEY, DATALEVEL_KEY }, null );
+        HealpixCoordPanel( Configger globalConfigger ) {
+            super( new Coord[] { HealpixDataGeom.HEALPIX_COORD,
+                                 HealpixPlotter.VALUE_COORD },
+                   new ConfigKey[] { DATASYS_KEY, DATALEVEL_KEY } );
+            globalConfigger_ = globalConfigger;
         }
 
         public void autoPopulate() {
@@ -137,6 +141,24 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
                 if ( valData != null ) {
                     valueSelector.setSelectedItem( valData );
                 }
+            }
+        }
+
+        public DataGeom getDataGeom() {
+            ConfigMap layerConfig = getConfig();
+            Integer iLevel = layerConfig.get( DATALEVEL_KEY );
+            SkySys dataSys = layerConfig.get( DATASYS_KEY );
+            if ( iLevel == null ) {
+                return null;
+            }
+            else {
+                ConfigMap globalConfig = globalConfigger_.getConfig();
+                SkySys viewSys = globalConfig
+                                .get( SkySurfaceFactory.VIEWSYS_KEY );
+                assert viewSys != null;
+                return HealpixDataGeom
+                      .createGeom( iLevel.intValue(), HealpixPlotter.IS_NEST,
+                                   dataSys, viewSys );
             }
         }
 

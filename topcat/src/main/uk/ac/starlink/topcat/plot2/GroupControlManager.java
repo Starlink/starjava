@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -482,7 +483,23 @@ public class GroupControlManager implements ControlManager {
         public static CoordsType getInstance( Plotter plotter ) {
             CoordGroup cgrp = plotter.getCoordGroup();
             int npos = cgrp.getPositionCount();
-            if ( npos == 1 ) {
+
+            /* Treat HealpixPlotter as a special case since although it has
+             * positional coordinates, they are not the standard coordinates
+             * for its plot type (it's a pixel index, not a lon/lat pair).
+             * This special handling is a bit messy and should really be
+             * generalised, but since it's the only such special case so far,
+             * it's not clear how best to do that generalisation.
+             * If other instances of this kind of requirement come up,
+             * consider this more carefully and generalise the handling
+             * as appropriate. */
+            if ( plotter instanceof HealpixPlotter ) {
+                return CoordsType.MISC;
+            }
+
+            /* For other layer types, examine their declared characteristics
+             * to decide how they are categorised. */
+            else if ( npos == 1 ) {
                 return CoordsType.SINGLE_POS;
             }
             else if ( npos == 2 ) {

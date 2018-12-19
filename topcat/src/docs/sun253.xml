@@ -9074,6 +9074,7 @@ and represents that as a density map on the healpix grid by gathering
 the rows up into bins.  The control described here works on a table
 for which that binning has already been done,
 for instance as a prepared sky map data product,
+by exporting from a SkyDensity layer,
 or by executing a suitable (GROUP BY healpix_index) database query.
 </p>
 
@@ -9102,7 +9103,7 @@ containing the healpix tile data.  It has the following fields:
     </p></dd>
 <dt>HEALPix Data Level</dt>
 <dd><p>HEALPix level of the (implicit or explicit) tile indices.
-    Only values up to 13 are currently supported.
+    Values up to 20 are currently supported.
     This must be the value assumed by the data in the input table.
     If <label>-1</label> is selected, an attempt is made to determine
     the correct level from the data; this may or may not be successful.
@@ -9115,6 +9116,9 @@ containing the healpix tile data.  It has the following fields:
     i.e. pixel #0 is assumed to be in the first row etc.
     This only works if the input table has full sky coverage and the
     rows are in the correct sequence.
+    Note this value is zero-based, unlike the row index yielded
+    by the special <code>$0</code> or <code>$index</code> token,
+    you would have to write e.g. <code>$index-1</code>.
     </p></dd>
 <dt>Value</dt>
 <dd><p>The column, or other expression, giving the colour to plot
@@ -27706,6 +27710,16 @@ introduced since the last version:
     <li>Action
         <ref id="jel-visible-subset">Algebraic Subset From Visible</ref>
         added to Plane and Cube plot window Subsets menu.</li>
+    <li>Improvements to the
+        <ref id="HealpixLayerControl">Healpix plot</ref>.
+        It can now plot HEALPix levels up to 20 (previously the
+        maximum was 13);
+        autoranging now works properly, so the plot is correctly
+        centered on the data if it only covers part of the sky; 
+        and you can now select subsets and activate points
+        corresponding to (the centers of) HEALPix pixels in the same
+        way as for markers.
+        </li>
     </ul>
     </p></dd>
 
