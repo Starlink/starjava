@@ -239,7 +239,10 @@ public class PlaneSurfaceFactory
                                DataStore dataStore ) {
         boolean[] logFlags = profile.getLogFlags();
         assert logFlags.length == 2;
-        return PlotUtil.readCoordinateRanges( layers, 2, logFlags, dataStore );
+        Range[] ranges = new Range[] { new Range(), new Range() };
+        PlotUtil.extendCoordinateRanges( layers, ranges, logFlags, true,
+                                         dataStore );
+        return ranges;
     }
 
     public ConfigKey[] getNavigatorKeys() {

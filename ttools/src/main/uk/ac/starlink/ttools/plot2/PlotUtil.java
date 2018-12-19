@@ -436,34 +436,26 @@ public class PlotUtil {
     }
 
     /**
-     * Determines range information for a set of layers which have
-     * Cartesian (or similar) coordinates.
-     *
-     * <p>The <code>logFlags</code> array can flag whether
-     * some of the data dimensions have logarithmic scaling.
-     * This may not make sense in all cases, if not, supply null.
+     * Extends existing range objects using range information
+     * for a set of layers which have Cartesian (or similar) coordinates.
      *
      * @param   layers   plot layers
-     * @param   nDataDim  dimensionality of data points
+     * @param   ranges   <code>nDataDim</code>-element array of range objects
+     *                   to extend
      * @param   logFlags  <code>nDataDim</code>-element array indicating
      *                    whether data dimensions are
-     *                    linear (false) or logarithmic (true)
+     *                    linear (false) or logarithmic (true),
+     * @param   doPad    whether to add a small standard amount of padding
+     *                   to the result
      * @param   dataStore  data storage
-     * @return   <code>nDataDim</code>-element array of ranges, each containing
-     *           the range of data position coordinate values for
-     *           the corresponding dimension
      */
     @Slow
-    public static Range[] readCoordinateRanges( PlotLayer[] layers,
-                                                int nDataDim,
-                                                boolean[] logFlags,
-                                                DataStore dataStore ) {
-
-        /* Set up an array of range objects, one for each data dimension. */
-        Range[] ranges = new Range[ nDataDim ];
-        for ( int idim = 0; idim < nDataDim; idim++ ) {
-            ranges[ idim ] = new Range();
-        }
+    public static void extendCoordinateRanges( PlotLayer[] layers,
+                                               Range[] ranges,
+                                               boolean[] logFlags,
+                                               boolean doPad,
+                                               DataStore dataStore ) {
+        int nDataDim = ranges.length;
 
         /* Create a point cloud containing all the data coordinates
          * represented by the supplied layers.  If there are several
@@ -487,19 +479,16 @@ public class PlotUtil {
 
         /* If any of the layers wants to supply non-data-position points
          * to mark out additional space, take account of those too. */
-        boolean[] lflags = logFlags == null ? new boolean[ nDataDim ]
-                                            : logFlags;
         for ( int il = 0; il < layers.length; il++ ) {
-            layers[ il ].extendCoordinateRanges( ranges, lflags, dataStore );
+            layers[ il ].extendCoordinateRanges( ranges, logFlags, dataStore );
         }
 
         /* Pad the ranges with a bit of space. */
-        for ( int idim = 0; idim < nDataDim; idim++ ) {
-            padRange( ranges[ idim ], logFlags[ idim ] );
+        if ( doPad ) {
+            for ( int idim = 0; idim < nDataDim; idim++ ) {
+                padRange( ranges[ idim ], logFlags[ idim ] );
+            }
         }
-
-        /* Return the ranges. */
-        return ranges;
     }
 
     /**

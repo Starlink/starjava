@@ -403,7 +403,10 @@ public class CubeSurfaceFactory
                                DataStore dataStore ) {
         boolean[] logFlags = profile.getLogFlags();
         assert logFlags.length == 3;
-        return PlotUtil.readCoordinateRanges( layers, 3, logFlags, dataStore );
+        Range[] ranges = new Range[] { new Range(), new Range(), new Range() };
+        PlotUtil.extendCoordinateRanges( layers, ranges, logFlags, true,
+                                         dataStore );
+        return ranges;
     }
 
     public ConfigKey[] getNavigatorKeys() {

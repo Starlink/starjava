@@ -212,7 +212,10 @@ public class TimeSurfaceFactory
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
         boolean[] logFlags = new boolean[] { false, profile.getYLog() };
-        return PlotUtil.readCoordinateRanges( layers, 2, logFlags, dataStore );
+        Range[] ranges = new Range[] { new Range(), new Range() };
+        PlotUtil.extendCoordinateRanges( layers, ranges, logFlags, true,
+                                         dataStore );
+        return ranges;
     }
 
     public ConfigKey[] getNavigatorKeys() {
