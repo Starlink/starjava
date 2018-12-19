@@ -9,8 +9,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PointCloud;
-import uk.ac.starlink.ttools.plot2.SubCloud;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -22,8 +21,12 @@ import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.EmptyTupleSequence;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
+import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.WrapperTupleSequence;
 
 /**
  * Surface factory for plotting on the surface of the celestial sphere.
@@ -292,22 +295,48 @@ public class SkySurfaceFactory
     }
 
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
-                               DataStore dataStore ) {
-        PointCloud pointCloud =
-            new PointCloud( SubCloud.createSubClouds( layers, true ) );
-        Range[] ranges = new Range[] { new Range(), new Range(), new Range() };
-        long ip = 0;
-        for ( double[] dpos : pointCloud.createDataPosIterable( dataStore ) ) {
-            for ( int idim = 0; idim < 3; idim++ ) {
-                ranges[ idim ].submit( dpos[ idim ] );
-            }
+                               final DataStore dataStore ) {
 
-            /* Periodically check if the whole sky is covered.
-             * If so, don't bother carrying on. */
-            if ( ++ip % 10000 == 0 && isAllSky( ranges ) ) {
-                return ranges;
+        /* We will call a utility method to turn the layer data into ranges,
+         * which in turn are used to auto-range the data so presenting only
+         * part of the sky for viewing (auto-ranged aspect).
+         * But modify the way the data is passed to it: provide a DataStore
+         * implementation that stops dispensing data when enough of the sky
+         * is covered that looking at more of it will not make a significant
+         * difference to the results.  This avoids doing more work than
+         * we have to. */
+        final Range[] ranges = { new Range(), new Range(), new Range() };
+        DataStore lazyStore = new DataStore() {
+            public boolean hasData( DataSpec dataSpec ) {
+                return dataStore.hasData( dataSpec );
             }
-        }
+            public TupleSequence getTupleSequence( DataSpec dataSpec ) {
+                if ( isFullSky() ) {
+                    return new EmptyTupleSequence();
+                }
+                else {
+                    final TupleSequence baseSeq =
+                         dataStore.getTupleSequence( dataSpec );
+                    return new WrapperTupleSequence( baseSeq ) {
+                        int ip = 0;
+                        @Override
+                        public boolean next() {
+                            return ( ip++ % 10000 == 0 && isFullSky() )
+                                 ? false
+                                 : baseSeq.next();
+                        }
+                    };
+                }
+            }
+            private boolean isFullSky() {
+                return ranges[ 0 ].isFinite()
+                    && ranges[ 1 ].isFinite()
+                    && ranges[ 2 ].isFinite()
+                    && isAllSky( ranges );
+            }
+        };
+        PlotUtil.extendCoordinateRanges( layers, ranges, new boolean[ 3 ],
+                                         false, lazyStore );
         return ranges;
     }
 
