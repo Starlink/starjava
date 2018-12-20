@@ -11866,6 +11866,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         rather than causing trouble during evaluation.</li>
     <li>Fix some bugs relating to plotting values close to the limits
         of the double precision range.</li>
+    <li>Fix misleading error message about <code>seq</code> parameter
+        for underconfigured plot layers in <code>plot2*</code>
+        commands.</li>
     </ul>
     </p>
     </dd>

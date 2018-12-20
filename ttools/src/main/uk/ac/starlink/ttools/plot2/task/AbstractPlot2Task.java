@@ -1402,7 +1402,15 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         for ( int il = 0; il < nl; il++ ) {
             String suffix = suffixSeq[ il ];
             PlotLayer layer = layerMap.get( suffix );
-            if ( layer == null ) {
+            if ( layer != null ) {
+                layers[ il ] = layerMap.get( suffix );
+            }
+            else if ( layerMap.containsKey( suffix ) ) {
+                String msg = "No plot produced for layer \"" + suffix + "\""
+                           + " (underspecified?)";
+                throw new ExecutionException( msg );
+            }
+            else {
                 String msg = new StringBuffer()
                     .append( "No specification for layer \"" )
                     .append( suffix )
@@ -1411,9 +1419,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     .append( layerMap.keySet() )
                     .toString();
                 throw new ParameterValueException( seqParam_, msg );
-            }
-            else {
-                layers[ il ] = layer;
             }
         }
         return layers;
