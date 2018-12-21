@@ -901,60 +901,63 @@ public class SpecDataFactory
       
 
         //  Check if this is a VOTable first (signature easier to check).
+        StarTable starTable = null;
+        DataSource datsrc = null;
         Exception tableException = null;
         try {
-            DataSource datsrc = null;
-            if ( isRemote ) {
-                datsrc = new URLDataSource( url );               
-            }
-            else {
-                datsrc = new FileDataSource( specspec );             
-            }
-            
-            StarTable starTable =
-                new VOTableBuilder().makeStarTable( datsrc, true,
-                		storagePolicy );
-            
-            
-            if ( starTable.getRowCount() == 0 )
-                throw new Exception( "The TABLE is empty");
-            if ( starTable != null ) {
-                //is it a line id table?
-                if (islineIDTable(starTable))
-                    return new LineIDTableSpecDataImpl( starTable );
-                else {
-                	
-                	 VODMLReader vodml = new VODMLReader( datsrc );
-                	 String productType = vodml.getDataProductType(); 
-                     String timeSystem = vodml.getTimeFrameKindParameter();
-                     impl = new TableSpecDataImpl(starTable);
-                     if (productType.equalsIgnoreCase("TIMESERIES")) {
-                         impl.setObjectType(ObjectTypeEnum.TIMESERIES);
-                         if (timeSystem != null && ! timeSystem.isEmpty() )
-                             impl.setTimeSystem(timeSystem);
-                     }
-                     return impl;
-                }
-            }
-            
+        
+        	if ( isRemote ) {
+        		datsrc = new URLDataSource( url );               
+        	}
+        	else {
+        		datsrc = new FileDataSource( specspec );             
+        	}
+
+        	starTable =
+        			new VOTableBuilder().makeStarTable( datsrc, true,
+        					storagePolicy );
+
+
+        	if ( starTable.getRowCount() == 0 )
+        		throw new SplatException( "The TABLE is empty");
         }
-        catch (SplatException e) {
-        	throw e;
+        catch (IOException e) {
+        	tableException = e;
+        	if (e.getMessage().contains("No TABLE element found")) {
+        		impl=null;
+        		logger.info( "VOTABLE returned no table" );
+        		throw new SplatException (tableException);
+        	}
+        	if (e.getMessage().contains("TABLE is empty")) {
+        		impl=null;
+        		logger.info( e.getMessage() );
+        		throw new SplatException (tableException);
+        	}
         }
-        catch (Exception e) {
-            tableException = e;
-            if (e.getMessage().contains("No TABLE element found")) {
-                impl=null;
-                logger.info( "VOTABLE returned no table" );
-                throw new SplatException (tableException);
-            }
-            if (e.getMessage().contains("TABLE is empty")) {
-                impl=null;
-                logger.info( e.getMessage() );
-                throw new SplatException (tableException);
-            }
+        if ( starTable != null ) {
+        	//is it a line id table?
+        	if (islineIDTable(starTable))
+        		return new LineIDTableSpecDataImpl( starTable );
+        	else { // is it a time series??
+    			impl = new TableSpecDataImpl(starTable);
+        		try {
+
+        			VODMLReader vodml = new VODMLReader( datsrc );
+        			String productType = vodml.getDataProductType(); 
+        			String timeSystem = vodml.getTimeFrameKindParameter();                	
+        			
+        			if (productType.equalsIgnoreCase("TIMESERIES")) {
+        				impl.setObjectType(ObjectTypeEnum.TIMESERIES);
+        				if (timeSystem != null && ! timeSystem.isEmpty() )
+        					impl.setTimeSystem(timeSystem);
+        			}
+        		} catch (SplatException e) {
+        			logger.info(e.getMessage());
+        		}
+        		return impl;
+        	}
         }
-       
+      
         try {
             if ( isRemote ) {
                 impl = new NDXSpecDataImpl( url );

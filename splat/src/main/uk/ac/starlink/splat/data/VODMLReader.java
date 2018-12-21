@@ -34,18 +34,19 @@ public class VODMLReader  {
         xPath =  XPathFactory.newInstance().newXPath();       
     }
     
-    VODMLReader(DataSource datasrc) throws SplatException {
+    VODMLReader(DataSource datasrc) throws SplatException  {
         //  Access the VOTable.
         VOElement root = null;
         try {
-        	root = new VOElementFactory().makeVOElement(datasrc);                       
+        	root = new VOElementFactory().makeVOElement(datasrc);  
+        	VOElement element = root.getChildByName("VODML");
+            doc = (VODocument) element.getOwnerDocument();
+            xPath =  XPathFactory.newInstance().newXPath();  
         }
         catch (Exception e) {
             throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
         }
-        VOElement element = root.getChildByName("VODML");
-        doc = (VODocument) element.getOwnerDocument();
-        xPath =  XPathFactory.newInstance().newXPath();    
+         
     }
  
     public String getDataProductType() {
