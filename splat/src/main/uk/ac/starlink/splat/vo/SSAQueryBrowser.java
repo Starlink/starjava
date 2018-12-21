@@ -84,7 +84,6 @@ import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.iface.AbstractServerPanel;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
 import uk.ac.starlink.splat.iface.SpectrumIO;
@@ -646,24 +645,24 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 
     public JPanel initServerComponents()
     {
-        JPanel sp = new JPanel();
-        sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
-        sp.setAlignmentY((float) 1.);
+    	JPanel sp = new JPanel();
+    	sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
+    	sp.setAlignmentY((float) 1.);
 
-        if (serverList==null) {
-            SSAServerTable tmp = new SSAServerTable();
-            StarTable table = tmp.queryRegistryWhenServersNotFound();  
-            this.serverList=new SSAServerList(table);        
-            serverPanel=new SSAServerTable( serverList );
-	    firePropertyChange("changeServerlist", false, true);
-	} else 
-	    serverPanel=new SSAServerTable( serverList );
-	
-        serverPanel.addPropertyChangeListener(this);
-        sp.add(serverPanel);
-        return sp;
+    	if (serverList==null) {
+    		SSAServerTable tmp = new SSAServerTable();
+    		StarTable table = tmp.queryRegistryWhenServersNotFound();  
+    		this.serverList=new SSAServerList(table);        
+    		serverPanel=new SSAServerTable( serverList );
+    		firePropertyChange("changeServerlist", false, true);
+    	} else 
+    		serverPanel=new SSAServerTable( serverList );
+
+    	serverPanel.addPropertyChangeListener(this);
+    	sp.add(serverPanel);
+    	return sp;
     }
-    
+
     
     /**
      * Initialise the menu bar, action bar and related actions.
@@ -1542,128 +1541,134 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         });
 
         worker.start();  
-	}
+    }
 
-	/**
+    /**
      * Do a query to an SSAP server.
      */
     private void runProcessQuery( SSAQuery ssaQuery, ProgressPanel progressPanel ) throws InterruptedException
     {
-        boolean failed = false;
-        boolean overflow = false;
+    	boolean failed = false;
+    	boolean overflow = false;
+    	boolean is_samp = false;
 
-        //  We just download VOTables, so avoid attempting to build the other
-        //  formats.
-        StarTable starTable = null;
+    	//  We just download VOTables, so avoid attempting to build the other
+    	//  formats.
+    	StarTable starTable = null;
 
-        DataLinkServices dataLinkParams = null;
-      
-        URL queryURL = null;
+    	DataLinkServices dataLinkParams = null;
 
-        logger.info( "Querying: " + queryURL );
-        progressPanel.logMessage( ssaQuery.getBaseURL() );
-      
-        try {             
-                queryURL = ssaQuery.getRequestURL();             
-                logger.info( "Query string " + queryURL.toString() );
-        }   
-        catch ( MalformedURLException mue ) {
-            progressPanel.logMessage( mue.getMessage() );
-            logger.info( "Malformed URL "+queryURL );
-            failed = true;
-            return;
-        }
-        catch ( UnsupportedEncodingException uee) {
-            progressPanel.logMessage( uee.getMessage() );
-            logger.info( "URL Encoding Exception "+queryURL );
-            failed = true;
-            return;
-        }
-        
-        //  Do the query and get the result as a StarTable. Uses this
-        //  method for efficiency as non-result tables are ignored.
-        try {
-            
-            
-            URLConnection con =  queryURL.openConnection();
-            //  Handle redirects
-            if ( con instanceof HttpURLConnection ) {
-                int code = ((HttpURLConnection)con).getResponseCode();
-                
-               
-                if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
-                     code == HttpURLConnection.HTTP_MOVED_TEMP ||
-                     code == HttpURLConnection.HTTP_SEE_OTHER ) {
-                    String newloc = con.getHeaderField( "Location" );
-                    ssaQuery.setServer(newloc);
-                    URL newurl = ssaQuery.getRequestURL();
-                    con = newurl.openConnection();
-                }
-                
-            }
-           
-            con.setConnectTimeout(10 * 1000); // 10 seconds
-            con.setReadTimeout(30*1000);
-            con.connect();
-            
-            InputSource inSrc = new InputSource( con.getInputStream() );
-                 
-            // inSrc.setSystemId( ssaQuery.getBaseURL() );
-            inSrc.setSystemId( queryURL.toString());
-            
-            VOElementFactory vofact = new VOElementFactory();
-            VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
-            
-            if (ssaQuery.getSamp()) {
-            	starTable = DalResourceXMLFilter.getResourceTable( voe );
-            } else {
-            	starTable = DalResourceXMLFilter.getDalResultTable( voe );
-            }
-            // if the VOTable contains datalink service definitions, add to the SSAQuery.
-            dataLinkParams =  DalResourceXMLFilter.getDalGetServiceElement(voe); 
-            if (dataLinkParams != null) {
-                ssaQuery.setDataLinkServices( dataLinkParams );
-            }
+    	URL queryURL = null;
 
-          
-            //  Check parameter QUERY_STATUS, this should be set to OK
-            //  when the query
-            String queryOK = null;
-            String queryDescription = null;
-            try {
-                queryOK = starTable
-                        .getParameterByName( "QUERY_STATUS" )
-                        .getValueAsString( 100 );
-                queryDescription = starTable
-                        .getParameterByName( "QUERY_STATUS" )
-                        .getInfo().getDescription();
-            }
-            catch (NullPointerException ne) {
-                // Whoops, that's not good, but see what we can do.
-                queryOK = "FAILED";
-            }
-            if ( "OK".equalsIgnoreCase( queryOK ) ) {
-                ssaQuery.setStarTable( starTable );
-                progressPanel.logMessage( "Done" );
-            }
-            else if ("OVERFLOW".equalsIgnoreCase( queryOK ) ) {
-                ssaQuery.setStarTable( starTable );
-                progressPanel.logMessage( queryDescription );
-                logger.info( queryDescription);
-                overflow=true;
-            }
-            else {
-                //  Some problem with the service, report that.
-                progressPanel.logMessage( "Query failed: " + queryOK );
-                logger.info( "Query failed: " + queryOK );
-                if ( queryDescription != null ) {
-                    progressPanel.logMessage( queryDescription );
-                    logger.info( queryDescription);
-                }
-                failed = true;
-            }
-           
-        }
+    	logger.info( "Querying: " + queryURL );
+    	progressPanel.logMessage( ssaQuery.getBaseURL() );
+
+    	try {             
+    		queryURL = ssaQuery.getRequestURL();             
+    		logger.info( "Query string " + queryURL.toString() );
+    	}   
+    	catch ( MalformedURLException mue ) {
+    		progressPanel.logMessage( mue.getMessage() );
+    		logger.info( "Malformed URL "+queryURL );
+    		failed = true;
+    		return;
+    	}
+    	catch ( UnsupportedEncodingException uee) {
+    		progressPanel.logMessage( uee.getMessage() );
+    		logger.info( "URL Encoding Exception "+queryURL );
+    		failed = true;
+    		return;
+    	}
+
+    	//  Do the query and get the result as a StarTable. Uses this
+    	//  method for efficiency as non-result tables are ignored.
+    	try {
+
+
+    		URLConnection con =  queryURL.openConnection();
+    		//  Handle redirects
+    		if ( con instanceof HttpURLConnection ) {
+    			int code = ((HttpURLConnection)con).getResponseCode();
+
+
+    			if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+    					code == HttpURLConnection.HTTP_MOVED_TEMP ||
+    					code == HttpURLConnection.HTTP_SEE_OTHER ) {
+    				String newloc = con.getHeaderField( "Location" );
+    				ssaQuery.setServer(newloc);
+    				URL newurl = ssaQuery.getRequestURL();
+    				con = newurl.openConnection();
+    			}
+
+    		}
+
+    		con.setConnectTimeout(10 * 1000); // 10 seconds
+    		con.setReadTimeout(30*1000);
+    		con.connect();
+
+    		InputSource inSrc = new InputSource( con.getInputStream() );
+
+    		// inSrc.setSystemId( ssaQuery.getBaseURL() );
+    		inSrc.setSystemId( queryURL.toString());
+
+    		VOElementFactory vofact = new VOElementFactory();
+    		VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
+
+    		if (ssaQuery.getSamp()) {
+    			is_samp=true;
+    			starTable = DalResourceXMLFilter.getResourceTable( voe );
+    			ssaQuery.setStarTable( starTable );
+    		} else {
+    			starTable = DalResourceXMLFilter.getDalResultTable( voe );
+    		}
+    		// if the VOTable contains datalink service definitions, add to the SSAQuery.
+    		dataLinkParams =  DalResourceXMLFilter.getDalGetServiceElement(voe); 
+    		if (dataLinkParams != null) {
+    			ssaQuery.setDataLinkServices( dataLinkParams );
+    		}
+
+    		if ( ! is_samp ) {
+    			//  Check parameter QUERY_STATUS, this should be set to OK
+    			//  when the query
+    			String queryOK = null;
+    			String queryDescription = null;
+    			try {
+    				queryOK = starTable
+    						.getParameterByName( "QUERY_STATUS" )
+    						.getValueAsString( 100 );
+    				queryDescription = starTable
+    						.getParameterByName( "QUERY_STATUS" )
+    						.getInfo().getDescription();
+    			}
+    			catch (NullPointerException ne) {
+    				// Whoops, that's not good, but see what we can do.
+    				queryOK = "FAILED";
+    			}
+    			if ( "OK".equalsIgnoreCase( queryOK ) ) {
+    				ssaQuery.setStarTable( starTable );
+    				progressPanel.logMessage( "Done" );
+    			}
+    			else if ("OVERFLOW".equalsIgnoreCase( queryOK ) ) {
+    				ssaQuery.setStarTable( starTable );
+    				progressPanel.logMessage( queryDescription );
+    				logger.info( queryDescription);
+    				overflow=true;
+    			}
+    			else {
+    				//  Some problem with the service, report that.
+    				progressPanel.logMessage( "Query failed: " + queryOK );
+    				logger.info( "Query failed: " + queryOK );
+    				if ( queryDescription != null ) {
+    					progressPanel.logMessage( queryDescription );
+    					logger.info( queryDescription);
+    				}
+    				failed = true;
+    			}
+    		} else {// if is samp
+    			failed=false;
+    		}
+
+    	}
         catch (TableFormatException te) {
             progressPanel.logMessage( te.getMessage() );
             logger.info( ssaQuery.getDescription() + ": " + te.getMessage() );
@@ -1724,14 +1729,16 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         SSAQuery ssaQuery = null;
         StarPopupTable table = null;
         StarTable starTable = null;
-         DataLinkServices  dataLinkParams = null;
+        DataLinkServices  dataLinkParams = null;
         String shortName = null;
+        boolean fromFile=false;
      
         //boolean hasParams = false;
        
         ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
    
         if ( next instanceof SSAQuery && next != null ) {
+        	
             ssaQuery = (SSAQuery) next; 
             starTable = ssaQuery.getStarTable();
             // check for duplicate pubdid and different mimetypes
@@ -1761,6 +1768,9 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
             else {
                 shortName = (String)dValue.getValue();
             }
+            if (resultsPanel.getDataLinkFrame() != null )
+            	dataLinkParams = resultsPanel.getDataLinkFrame().getServerParams(shortName);
+            fromFile=true;
             
         }
         else {
@@ -1779,9 +1789,10 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
                     if ( dataLinkFrame == null ) {
                          dataLinkFrame = new DataLinkQueryFrame();
                     } 
-                   
-                    dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
-                    resultsPanel.enableDataLink(dataLinkFrame);
+                    if ( ! fromFile ) {
+                    	dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
+                    	resultsPanel.enableDataLink(dataLinkFrame);
+                    }
                     if (dataLinkParams.hasDataLinkService()) {
                     	table.setDataLink();
                     }
@@ -2804,6 +2815,14 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 		//query.setServer(shortname);
 		query.setDescription(shortname);
     	processQuery(query);    	
+	}
+
+	public void setCoords(String ra, String dec) {
+		
+		raField.setText(ra);
+		decField.setText(dec);
+		
+		
 	}
     
 }

@@ -3,6 +3,7 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -30,6 +31,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -64,6 +66,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 
 
 public abstract class AbstractServerPanel extends JPanel implements PropertyChangeListener  {
+
     
     protected static JPanel serverPanel;
     protected static JPanel controlPanel;
@@ -211,8 +214,8 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         gbc.gridy=2;
      //   gbc.fill = GridBagConstraints.BOTH;
         add(serverPanel, gbc);
-        
-        updateUI();
+        this.repaint();
+       
     }
     
     /**
@@ -1239,6 +1242,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     
     private class resizeListener extends ComponentAdapter {
         public void componentResized(ComponentEvent e) {
+        	//repaint();
             updateUI();
         }
     }

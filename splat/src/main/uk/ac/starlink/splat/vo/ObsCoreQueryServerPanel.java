@@ -1,12 +1,15 @@
 package uk.ac.starlink.splat.vo;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 import javax.swing.BorderFactory;
@@ -48,6 +51,9 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     private static int WIDTH;
     private static int HEIGHT;
     private static int optionsHeight = 370;
+    private static int SIMPLESEARCH_INDEX=0;
+    private static int ADQLSEARCH_INDEX=1;
+    
     
     // Service type string
     private static String serviceType="ObsCore";
@@ -140,7 +146,13 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         WIDTH=size.width;
         HEIGHT=size.height;
  
-        initUI (initOptionsPanel(), initServerPanel());
+        optionsPanel = initOptionsPanel();
+        serverPanel= initServerPanel();
+        initUI (optionsPanel, serverPanel);
+        this.updateUI();
+        this.repaint();
+        
+        this.setVisible(true);
 
      //   initFilters();
     //    setFilters();
@@ -150,9 +162,13 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     private JPanel initOptionsPanel() {
 
         queryTabPanel = new JTabbedPane();
-        queryTabPanel.add("Simple search", initSimpleQueryPanel());        
-        queryTabPanel.add("ADQL search", initQueryADQLPanel());
-        queryTabPanel.setPreferredSize(new Dimension(WIDTH,optionsHeight-100));
+      //  queryTabPanel.setPreferredSize(new Dimension(WIDTH,optionsHeight-100));
+      
+        queryTabPanel.add( initSimpleQueryPanel(), SIMPLESEARCH_INDEX ); 
+        queryTabPanel.setTitleAt( SIMPLESEARCH_INDEX, "Simple search" );
+        queryTabPanel.add( initQueryADQLPanel(), ADQLSEARCH_INDEX );
+        queryTabPanel.setTitleAt(ADQLSEARCH_INDEX, "ADQL search");
+
         JButton getButton = new JButton("Send Query");
         getButton.addActionListener( this );
         getButton.setActionCommand( "QUERY" );    
@@ -171,7 +187,7 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         gbcOptions.anchor = GridBagConstraints.NORTHWEST;
         gbcOptions.fill = GridBagConstraints.HORIZONTAL;
         gbcOptions.weightx=.5;
-        gbcOptions.weighty=1;
+        gbcOptions.weighty=.5;
         gbcOptions.gridx=0;
         gbcOptions.gridy=0;
         
@@ -201,19 +217,22 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
       
       
         JPanel queryParamPanel = new JPanel();
-        JPanel querySearchPanel = new JPanel();
-        querySearchPanel.setBorder(BorderFactory.createTitledBorder("Query"));
-        querySearchPanel.setLayout( new BoxLayout(querySearchPanel, BoxLayout.PAGE_AXIS ));
-        querySearchPanel.setPreferredSize(new Dimension(310,300));
+     //   JPanel querySearchPanel = new JPanel();
+   //     querySearchPanel.setBorder(BorderFactory.createTitledBorder("Query"));
+   //     querySearchPanel.setLayout( new BoxLayout(querySearchPanel, BoxLayout.PAGE_AXIS ));
+        //queryTabPanel.setPreferredSize(new Dimension(WIDTH,optionsHeight-100));
+       // querySearchPanel.setPreferredSize(new Dimension(310,300));
 
-        querySearchPanel.setLayout( new GridBagLayout());
+       // querySearchPanel.setLayout( new GridBagLayout());
       
         queryParamPanel.setLayout(new GridBagLayout());
+        queryParamPanel.setBorder(BorderFactory.createTitledBorder("Query xxx Parameters"));
+       // queryParamPanel.setPreferredSize(queryTabPanel.getPreferredSize());
         GridBagConstraints c = new GridBagConstraints();
-        c.fill=GridBagConstraints.BOTH;
+        c.fill=GridBagConstraints.HORIZONTAL;
         c.anchor=GridBagConstraints.NORTHWEST;
         c.weightx=.5;
-        c.weighty=1.;
+        c.weighty=0;
         c.gridx = 0;
         c.gridy = 0;
         
@@ -221,17 +240,17 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         simpleQueryPanel.setLayout(new BorderLayout());
         simpleQueryPanel.setBorder(BorderFactory.createTitledBorder("Query Parameters"));
       
-        queryParamPanel.add(simpleQueryPanel, c);
+      
         
-        c.weightx = 0.5;
-        c.gridx = 1;
-        c.gridy = 0;
+     //   c.weightx = 0.5;
+    //    c.gridx = 1;
+     //   c.gridy = 0;
        
        
         
         // The simple query panel           
         GridBagLayouter layouter =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
-
+      
         //  Object name. Arrange for a resolver to look up the coordinates of
         //  the object name, when return or the lookup button are pressed.
         JLabel nameLabel = new JLabel( "Object:" );
@@ -255,10 +274,8 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         gbcs.ipadx = 15;
         objPanel.add(nameField, gbcs);
         objPanel.add(nameLookup, gbcs);
-        layouter.add( nameLabel, false );
-     
-        layouter.add(objPanel, true);
- 
+        layouter.add( nameLabel, false );     
+        layouter.add(objPanel, true); 
         layouter.eatLine();
 
        
@@ -268,14 +285,18 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         JLabel raLabel = new JLabel( "RA:" );
         raField = new JTextField( 10 );
         raField.addActionListener(this);
+        raField.setActionCommand("NEWCoord");
         raField.getDocument().putProperty("owner", raField); //set the owner
         raField.getDocument().addDocumentListener( this );
+        raField.setText("");
 
         JLabel decLabel = new JLabel( "Dec:" );
         decField = new JTextField( 10 );
         decField.addActionListener(this);
+        decField.setActionCommand("NEWCoord");
         decField.getDocument().putProperty("owner", decField); //set the owner
         decField.getDocument().addDocumentListener( this );
+        decField.setText("");
 
         JPanel posPanel = new JPanel( new GridBagLayout() );
         GridBagConstraints gbc = new GridBagConstraints();
@@ -424,54 +445,10 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         layouter.add(dataProductTypeLabel,false);
         layouter.add(dataProductTypePanel, true);
         
-        //
-        
-        // format and calibration options:
-    //    JPanel calibOptions = new JPanel(new GridLayout(3,2));        
-    //    layouter.eatSpare();
-        
-     //   simpleQueryPanel.add(simpleQuery1, BorderLayout.LINE_START);
-     //   simpleQueryPanel.add(calibOptions, BorderLayout.LINE_END);
-   
-  
-         
-        // the query string display Panel
-/*      
-        goButton = new JButton( "    SEND QUERY    " );
-      //  goButton.setBackground(Color.green);
-        goButton.addActionListener( this );*/
-      
-  //      showQueryButton = new JButton( "Query: ");
-  //      showQueryButton.setToolTipText("show/update query string");
-  //      showQueryButton.addActionListener( this );
-   //     JPanel sendQueryPanel = new JPanel(new BorderLayout());
-     //   sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
-  //      sendQueryPanel.add(showQueryButton, BorderLayout.LINE_START);
-    //    queryText = new JTextArea(2,25);
-   //     JScrollPane queryScroller = new JScrollPane();
-  //      queryScroller.add(queryText);
-     //   queryScroller.setV
-   //     queryText.setEditable(false);
-   //     sendQueryPanel.add(queryText);
-   //     queryText.setLineWrap(true);     
-  //      sendQueryPanel.add(goButton, BorderLayout.PAGE_END); // LINE_END
-       
- //       c.fill=GridBagConstraints.BOTH;
-  //      c.anchor=GridBagConstraints.NORTHWEST;
-  //      c.weighty=.5;
-  //      c.gridx = 0;
-  //      c.gridy = 0;
-        
-  //      querySearchPanel.add(queryParamPanel, c);
-    //    c.gridy=1;
-      //  querySearchPanel.add( sendQueryPanel, c);
-       
-     //   centrePanel.add( queryPanel, gbcentre );
-       
-        
-        // add query text to query text area
-     //   updateQueryText();
-        return queryParamPanel;
+        layouter.eatSpare();         
+        return simpleQueryPanel;
+       //queryParamPanel.add(simpleQueryPanel, c);
+       //return queryParamPanel;
         
     }
     
@@ -780,13 +757,16 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         if ( command.equals( "CLEAR" ) ) {
             {             
                 int index=queryTabPanel.getSelectedIndex();
-                if (queryTabPanel.getTitleAt(index).equals("Simple search")) {
-                    queryTabPanel.remove(index);
-                    queryTabPanel.addTab("Simple search", initSimpleQueryPanel());                   
+                
+                if (index==SIMPLESEARCH_INDEX) {
+                    queryTabPanel.remove(SIMPLESEARCH_INDEX);
+                    queryTabPanel.add( initSimpleQueryPanel(), SIMPLESEARCH_INDEX ); 
+                    queryTabPanel.setTitleAt( SIMPLESEARCH_INDEX, "Simple search" );                                 
                 } 
                 else {
-                    queryTabPanel.remove(index);
-                    queryTabPanel.addTab("ADQL search", initQueryADQLPanel());
+                    queryTabPanel.remove(ADQLSEARCH_INDEX);
+                    queryTabPanel.add( initQueryADQLPanel(), ADQLSEARCH_INDEX );
+                    queryTabPanel.setTitleAt(ADQLSEARCH_INDEX, "ADQL search");
                 } 
                 queryTabPanel.setSelectedIndex(index==0?1:0); // back to the right tab
             }        
@@ -857,7 +837,12 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         {         
             updateServers();           
         }
-        //querySearchPanel.updateUI();
+        if ( command.equals( "NEWCoord" ) ) // query registry - refresh server table
+        {         
+        	queryTabPanel.setSelectedIndex(SIMPLESEARCH_INDEX);	
+            queryTabPanel.updateUI();      
+        }
+       // querySearchPanel.updateUI();
       //  queryADQLPanel.updateUI();
     }
 
@@ -905,7 +890,7 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
                 }                            
             }
             maxrecField.setForeground(Color.BLACK);               
-        }
+        }  
         
     }
 
@@ -953,11 +938,21 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     }
 
     @Override
-    public String getTagsFilename() {
-        
+    public String getTagsFilename() {       
         return tagsFile;
     }
 
-   
+    public void setCoords(String ra, String dec) {
+
+    	 raField.setText(ra);
+      	 decField.setText(dec);
+    	// need to do this so that the panel is correctly updated.
+    	// queryTabPanel.remove(SIMPLESEARCH_INDEX);
+       //  queryTabPanel.add( initSimpleQueryPanel(), SIMPLESEARCH_INDEX ); 
+       //  queryTabPanel.setTitleAt( SIMPLESEARCH_INDEX, "Simple search" );   
+     	 //queryTabPanel.setSelectedIndex(SIMPLESEARCH_INDEX);	
+     	
+ 	}
+ 
 
 }

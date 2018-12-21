@@ -134,16 +134,22 @@ public class ObsCorePanel extends JFrame implements VOBrowser, PropertyChangeLis
         getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.LINE_AXIS) );
         initMenubar();
         Boolean found = initComponents();
+        //queryPanel.updateUI();
       
-        setVisible(true);
+       
         if (! found ) {
             StarTable table = queryPanel.queryRegistryWhenServersNotFound();  
             queryPanel.setServerList(new ObsCoreServerList(table));
             
         }
+        
+        //pack();
+        //setVisible(true);
     }
     
-    /**
+  
+
+	/**
      *  Initialise the Menubar .
      */
     private void initMenubar() {
@@ -575,5 +581,10 @@ public class ObsCorePanel extends JFrame implements VOBrowser, PropertyChangeLis
             }
         }
     }
+
+	public void setCoords(String ra, String dec) {
+		queryPanel.setCoords( ra,dec );	
+
+	}
 
 }

@@ -262,6 +262,7 @@ public class SampCommunicator
         	subs.addMType( "table.load.votable" );
             subs.addMType( "spectrum.load.ssa-generic" );
             subs.addMType( "table.load.fits" );
+            subs.addMType( "coord.pointAt.sky");
             
            // subs.addMType( "table.load.votable" );
             propsMap = Collections.synchronizedMap( new IdentityHashMap() );
@@ -280,9 +281,15 @@ public class SampCommunicator
         		String senderId, Message message )
         {
         	  		
-        
-        	String location = (String) message.getRequiredParam( "url" );
-        	if (isResultsTable(location)) {        		
+        	String mtype = message.getMType();
+        	
+           	if (mtype.equalsIgnoreCase("coord.pointat.sky")) {
+        		logger.info("got coords "+message.toString());        	
+        		browser.addSampCoords(message.getParams());
+        		return;
+        	}
+           	String location = (String) message.getRequiredParam( "url" );
+        	if (mtype.equalsIgnoreCase("table.load.votable") && ! browser.getPreference("handleVOTableAsSpectra", false)) {        		
         		browser.addSampResults(location, (String) message.getParam( "name" ));
         	} else {        		
         		SpectrumIO.Props props = createProps( message );
@@ -301,10 +308,16 @@ public class SampCommunicator
         public void receiveCall( HubConnection connection, String senderId,
         		String msgId, Message message )
         {
-        	
+        	String mtype = message.getMType();
+        	if (mtype.equalsIgnoreCase("coord.pointat.sky")) {
+        		logger.info("got coords "+message.toString());
+        		browser.addSampCoords(message.getParams());
+        		return;
+        	}
         	
         	String location = (String) message.getRequiredParam( "url" );
-        	if (isResultsTable(location)) {        		
+        	
+        	if (mtype.equalsIgnoreCase("table.load.votable") && ! browser.getPreference("SplatBrowser_handleVOTableAsSpectra", false)) {        		
         		browser.addSampResults(location, (String) message.getParam( "name" ));
         	} else { 
         		SpectrumIO.Props props = createProps( message );
@@ -407,7 +420,8 @@ public class SampCommunicator
 		URL source;
 		URLConnection con;
 		InputSource inSrc;
-		boolean isQueryTable=true;
+		boolean isSpectrum=browser.getPreference("handleVOTableAsSpectra", false);
+		
 		
 		try {
 			source = new URL(location);

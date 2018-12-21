@@ -48,16 +48,20 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -146,7 +150,7 @@ import uk.ac.starlink.table.TableFormatException;
  * and {@link DivaPlot}).
  *
  * @author Peter W. Draper
- * @author Mark Taylor
+ * @author Mark Taylor, Margarida Castro Neves
  * @version $Id$
  *
  * @see GlobalSpecPlotList
@@ -282,6 +286,7 @@ public class SplatBrowser
      * OBSCore browser.
      */
     protected ObsCorePanel obscorePanel = null; 
+    protected JFrame obscoreFrame = null; 
 
     /**
      * SLAP browser.
@@ -403,6 +408,12 @@ public class SplatBrowser
      */
     protected JCheckBoxMenuItem plotSampSpectraToSameWindowItem = null;
     protected boolean plotSampSpectraToSameWindow = false;
+    
+    /**
+     * Whether to handle SAMP Mtype table.load.votable as results or spectra
+     */
+    protected JCheckBoxMenuItem handleVOTableAsSpectraItem = null;
+    protected boolean  handleVOTableAsSpectra = false;
 
     /**
      * Controls communications for SAMP interoperability.
@@ -685,6 +696,9 @@ public class SplatBrowser
 
         // showing spectra from SAMP in the same window
         setPlotSampSpectraToSameWindow( true );
+        
+     // tread samp tables as spectra
+        setHandleVOTableAsSpectra( false );
 
         
         //  Set up split pane.
@@ -1192,6 +1206,11 @@ public class SplatBrowser
         interopMenu.add( plotSampSpectraToSameWindowItem );
         plotSampSpectraToSameWindowItem.setToolTipText( "Show spectra from SAMP in the same window" );
         plotSampSpectraToSameWindowItem.addItemListener( this );
+        //  Add checkbox for opening the spectra from SAM to the same plot
+        handleVOTableAsSpectraItem = new JCheckBoxMenuItem( "Handle table.load.votable as Spectra" );
+        interopMenu.add( handleVOTableAsSpectraItem );
+        handleVOTableAsSpectraItem.setToolTipText( "SAMP type table.load.votable are handled as spectra instead of results tables" );
+        handleVOTableAsSpectraItem.addItemListener( this );
  
     }
 
@@ -1304,6 +1323,20 @@ public class SplatBrowser
         if (plotSampSpectraToSameWindow)
             globalList.setLastPlotForSourceType(SourceType.SAMP, null);
         setPreference( "SplatBrowser_plotsampspectratosamewindow", plotSampSpectraToSameWindow );
+    }
+    
+    /**
+     * Set whether to show spectra from SAMP in the same window
+     */
+    protected void setHandleVOTableAsSpectra( boolean init )
+    {
+        if ( init ) {
+            // TODO: add this to the preferences?
+            boolean state = false;
+            handleVOTableAsSpectraItem.setSelected( state );
+        }
+        handleVOTableAsSpectra = handleVOTableAsSpectraItem.isSelected();
+        setPreference( "SplatBrowser_handleVOTableAsSpectra", handleVOTableAsSpectra);
     }
 
 
@@ -1948,6 +1981,7 @@ public class SplatBrowser
         }
         ssapBrowser.setVisible( true );
     }
+    
 
     /**
      * Open the OBSCORE window
@@ -1962,10 +1996,10 @@ public class SplatBrowser
                 ErrorDialog.showError( this, e );
                 return;
             }
-        }
+        }        
         obscorePanel.setVisible( true );
-
     }
+ 
 
     /**
      * Open the SLAP Browser window
@@ -3643,6 +3677,9 @@ public class SplatBrowser
         else if ( source.equals( plotSampSpectraToSameWindowItem ) ) {
             setPlotSampSpectraToSameWindow( false );
         }
+        else if ( source.equals( handleVOTableAsSpectraItem ) ) {
+            setHandleVOTableAsSpectra( false );
+        }
     }
 
     //
@@ -3766,4 +3803,18 @@ public class SplatBrowser
 		ssapBrowser.addSampResults(location, "SAMP:"+shortname);
 		
 	}
+
+	public void addSampCoords(Map coords) {
+		String ra = (String) coords.get("ra");
+		String dec = (String) coords.get("dec");
+		showSSAPBrowser();
+		ssapBrowser.setCoords(ra, dec);
+		ssapBrowser.repaint();
+		showObscorePanel();
+    	obscorePanel.setCoords(ra, dec);
+    	obscorePanel.repaint();
+		
+	}
+
+	
 }

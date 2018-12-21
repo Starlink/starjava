@@ -632,9 +632,10 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             {
 
         String xmlDec = VOTableWriter.DEFAULT_XML_DECLARATION;
-    
+        VOTableWriter votw = new VOTableWriter();
+      	
         try {
-            writer.write( xmlDec );
+    /*        writer.write( xmlDec );
             writer.newLine();
             writer.write( "<VOTABLE version=\"1.1\"" );
             writer.newLine();
@@ -643,16 +644,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             writer.write( "xsi:schemaLocation=\"http://www.ivoa.net/xml/VOTable/v1.1\"" );
             writer.newLine();
             writer.write( "xmlns=\"http://www.ivoa.net/xml/VOTable/v1.1\">" );
-            writer.newLine();
-            
-           
+            writer.newLine();*/
+                    
             StarJTable starJTable = null;
             VOSerializer serializer = null;
-            StarTable table = null;
+            StarTable [] tables = new StarTable [resultsPane.getTabCount()];
+          
             
-
             for (int i=0;i<resultsPane.getTabCount(); i++ ) {
-                  
+ //           	 writer.write( "<RESOURCE>" );
+ //                writer.newLine();
                 Component comp = resultsPane.getComponentAt(i);
                 if (comp.getClass()==JScrollPane.class) {
                     JScrollPane pane = (JScrollPane) comp;               
@@ -660,10 +661,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                 } else {
                     starJTable = (StarJTable) comp;
                 }
-                table = starJTable.getStarTable();
-                table.setName(resultsPane.getTitleAt(i));
-               
-                //String name = table.getName();
+                tables[i] = starJTable.getStarTable();
+                tables[i].setName(resultsPane.getTitleAt(i));
+            }
+            votw.writeInlineStarTables(tables, writer);
+              /*
                 int n = table.getColumnCount();
                 for ( int j = 0; j < n; j++ ) {
                     ColumnInfo ci = table.getColumnInfo( j );
@@ -676,13 +678,16 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
                     ci.setAuxDatum( new DescribedValue( VOStarTable.ID_INFO, val ) );
                 }
                 serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
-                serializer.writeInlineTableElement( writer );                
+                serializer.writeInlineTableElement( writer );  
+               
+                writer.write( "</RESOURCE>" );
+                writer.newLine();
+                
             }
-            writer.newLine();
-            if (dataLinkFrame != null)
-                saveDataLinkParams(writer);
-            writer.write( "</VOTABLE>" );
-            writer.newLine();
+            */
+       
+           // writer.write( "</VOTABLE>" );
+           // writer.newLine();
             writer.close();
             
         }
@@ -691,20 +696,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         }
     }
     
-    protected void saveDataLinkParams( BufferedWriter writer ) throws IOException 
-    {
-    	
-    	// TODO Review later
-        
-/*        String [] servers = dataLinkFrame.getServers();
-        for (int i=0;i<servers.length; i++) {
-            DataLinkParams dlp = dataLinkFrame.getServerParams(servers[i]);
-            if ( dlp.getServiceCount() > 0 )
-                dlp.writeParamToFile(writer, servers[i]);            
-        } 
-        */
-
-    }
+  
 
     /**
      *  Restore a set of previous query results that have been written to a
@@ -741,70 +733,57 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
             throws SplatException
     {
     
+    	ArrayList<VOStarTable> tableList = new ArrayList<VOStarTable>();
         DataLinkQueryFrame newFrame = null;
         VOElement rootElement = null;
-        try {
-             rootElement = new VOElementFactory().makeVOElement( file );
-        } catch (IOException e) {
-            throw new SplatException( "Failed to open query results file", e );
-        } catch (SAXException e) {
-            //TODO Auto-generated catch block
-            e.printStackTrace();
-        }
        
-        //  First element should be a RESOURCE.
-        VOElement[] resource = rootElement.getChildren();
-        VOStarTable table = null;
-        ArrayList<VOStarTable> tableList = new ArrayList<VOStarTable>();
-        String tagName = null;        
         
-        for ( int i = 0; i < resource.length; i++ ) {
-            tagName = resource[i].getTagName();
-            if ( "RESOURCE".equals( tagName ) ) {
-               String utype=resource[i].getAttribute("utype");
-                //  Look for the TABLEs.
-                VOElement child[] = resource[i].getChildren();
-                for ( int j = 0; j < child.length; j++ ) {
-                    tagName = child[j].getTagName();
-                    if ( "TABLE".equals( tagName ) ) {
-                        try {
-                            table = new VOStarTable( (TableElement) child[j] );
-                            
-                        }
-                        catch (IOException e) {
-                            throw new SplatException( "Failed to read query result", e );
-                        }
-                        tableList.add( table );
-                    }
-                    else if (utype!= null && utype.equals("adhoc:service")) {
-                        String name=resource[i].getAttribute("name");
-                         DataLinkServices dlp = new  DataLinkServices(resource[i]);
-                        if ( newFrame == null ) {
-                            newFrame = new DataLinkQueryFrame();
-                           // if (datatype==SSAP)
-                           //     newFrame.addPropertyChangeListener("datalinkParamsChanged", (SSAQueryBrowser) this.browser);
-                       } 
-                       newFrame.addServer(name, dlp);  // associate this datalink service information to the current server
-                       //datalinkValues.put(name, newFrame.getParams());
-                    }
-                }
-            }
-        }
+		try {
+			rootElement = new VOElementFactory().makeVOElement( file );
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  
+		
+      
+		for ( VOElement resource : rootElement.getChildrenByName("RESOURCE") ) {
+			VOStarTable starTable = null;
+			DataLinkServices dataLinkParams = null;
+			try {
+				starTable = DalResourceXMLFilter.getStarTable( resource );
+				dataLinkParams = DalResourceXMLFilter.getDalGetServiceElement(resource);
+			} catch (IOException e) {
+				starTable=null;
+				dataLinkParams = null;
+			}
+
+			if ( starTable != null && starTable.getRowCount() > 0 ) {
+				if ( dataLinkParams != null ) {					
+					if (newFrame == null)
+						newFrame = new DataLinkQueryFrame();
+					newFrame.addServer(starTable.getName(), dataLinkParams);        	
+				}
+				tableList.add(starTable);
+			}
+		} // for 
+	       	
+       
         if ( tableList.size() > 0 ) {
-            
-            if (newFrame != null) {
-                enableDataLink(newFrame);
-                deactivateDataLinkSupport();
-            }
-            else {
-                dataLinkButton.setVisible(false);
-            }
+        	if (newFrame != null) {
+    			enableDataLink(newFrame);
+    			deactivateDataLinkSupport();
+    		}
+    		else {
+    			dataLinkButton.setVisible(false);
+    		}
             return tableList ;
         }
         else {
             throw new SplatException( "No query results found" );
-        }
-       
+        }       
      }
     
     protected DataLinkQueryFrame getDataLinkFrame() {

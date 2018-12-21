@@ -325,7 +325,7 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
      *  returns table element as vostartable
      * @throws IOException 
      */
-    private static VOStarTable getStarTable( VOElement voEl ) throws IOException {
+    static VOStarTable getStarTable( VOElement voEl ) throws IOException {
     	/* Locate result TABLE element. */
     	 NodeList tableNodes = voEl.getElementsByVOTagName( "TABLE" );
     	 int nTable = tableNodes.getLength();
