@@ -167,7 +167,7 @@ public class UnitUtilities
         if ( "1.0E-17 erg/cm/s/Angstrom".equals( result ) ||
              "10^(-17)ergcm^(-2)s^(-1)Angstrom(-1)".equals( result ) ||
              "10^(-17) erg cm^(-2) s^(-1) Angstrom(-1)".equals( result ) ) {
-            result = "10E-17 erg/cm^2/s/Angstrom";
+            result = "1E-17 erg/cm^2/s/Angstrom";
         }
         
         // 

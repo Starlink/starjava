@@ -47,7 +47,7 @@ import org.xml.sax.SAXException;
 
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
-
+import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
@@ -789,9 +789,15 @@ public class SpecDataFactory
     	boolean singleDish = false;
     	SpecDataImpl implGlobal = null;
     	boolean success=true;
+    	boolean sdssfits=false;
+    	
     	
         implGlobal = new FITSSpecDataImpl( specspec );
-    //    if (is_sdfits(implGlobal))
+        if (((FITSSpecDataImpl) implGlobal).isSDSSFITSHeader()) {
+        	// get the spectrum
+        	SDSSFITSSpecDataHandler  sdsshandler = new SDSSFITSSpecDataHandler((FITSSpecDataImpl) implGlobal, specspec);        	
+        	return sdsshandler.getImpls();        	
+        }
         
         for (int i = 0; i < ((FITSSpecDataImpl)implGlobal).hdurefs.length; i++) {
             singleDish = false;

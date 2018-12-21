@@ -673,13 +673,6 @@ public class TableSpecDataImpl
                 readColumn( errors, errorColumn );
             }
         }
-        
-        // FOR SDSS Spectra
-        if ("loglam".equals(columnNames[coordColumn])) {
-        	for (int i=0;i<dims[0];i++)
-        		coords[i]=Math.pow(10, coords[i]);
-        }
-
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
         createAst();
@@ -904,7 +897,8 @@ public class TableSpecDataImpl
         
         //  Coordinate units.
         astref.setCurrent( current );
-        if (dataColumn >=0)
+        //if (dataColumn >=0)
+        if (coordColumn >=0)
             guessUnitsDescription( coordColumn );
     }
 
@@ -923,7 +917,7 @@ public class TableSpecDataImpl
         // If the description doesn't exist, then try for a UCD
         // description, if that doesn't exist just use the column name.
         String desc = columnInfos[column].getDescription();
-        if ( desc == null ) {
+        if ( desc == null || desc.isEmpty()) {
             desc = columnInfos[column].getUCD();
             if ( desc != null ) {
                 UCD ucd = UCD.getUCD( desc );
@@ -934,7 +928,7 @@ public class TableSpecDataImpl
                     desc = ucd.getDescription();
                 }
             }
-            if ( desc == null ) {
+            if ( desc == null || desc.isEmpty() ) {
                 desc = columnInfos[column].getName();
             }
         }
@@ -942,6 +936,6 @@ public class TableSpecDataImpl
         
         if ( desc != null && ! "".equals( desc ) ) {
             astref.setLabel( 1, desc.trim() );
-        }
+        } 
     }
 }

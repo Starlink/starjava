@@ -68,7 +68,8 @@ public class TableColumnChooser
         addCoordNamePattern( "pos.*" );
         addCoordNamePattern( "x*." );
         addCoordNamePattern( "time*." );
-        addCoordNamePattern( "loglam" );
+        addCoordNamePattern( "loglam" ); // SDSS spectra
+        addCoordNamePattern( "linewave"); // SDSS Lines 
 
         coordUtypePatterns = new ArrayList();
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP
@@ -98,6 +99,7 @@ public class TableColumnChooser
         addLabelNamePattern( "identifiers.*" );
         addLabelNamePattern( "label.*" );
         addLabelNamePattern( "name.*" );
+        addLabelNamePattern( "linename" ); // SDSS Lines
        
 
         labelUtypePatterns = new ArrayList();

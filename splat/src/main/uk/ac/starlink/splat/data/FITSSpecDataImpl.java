@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import nom.tam.fits.BasicHDU;
+import nom.tam.fits.Data;
 import nom.tam.fits.Fits;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
@@ -827,37 +828,60 @@ public class FITSSpecDataImpl
      */
     protected FrameSet checkForNonStandardFormat( Header header )
     {
-        HeaderCard testCard = header.findCard( "TELESCOP" );
-        if ( testCard != null ) {
-            if ( testCard.getValue().startsWith( "SDSS" ) ) {
+    	if (isSDSSFITSHeader() ) {
+    		Header header0 = hdurefs[0].getHeader();
+    		HeaderCard ycard= header0.findCard("BUNIT");
+    		String yunits=ycard.getValue();
+    		//  SDSS format, in fact these may just need CTYPE1=WAVE-LOG
+    		//  but that didn't seem to work (presumably conflict with
+    		//  another header).
+    		     		 
+    		HeaderCard c0 = header.findCard( "COEFF0" );
+    		HeaderCard c1 = header.findCard( "COEFF1" );
+    		if ( c0 != null && c1 != null ) {
+    			String c0s = c0.getValue();
+    			String c1s = c1.getValue();
 
-                //  SDSS format, in fact these may just need CTYPE1=WAVE-LOG
-                //  but that didn't seem to work (presumably conflict with
-                //  another header).
-                HeaderCard c0 = header.findCard( "COEFF0" );
-                HeaderCard c1 = header.findCard( "COEFF1" );
-                if ( c0 != null && c1 != null ) {
-                    String c0s = c0.getValue();
-                    String c1s = c1.getValue();
+    			//  Formulae are w = 10**(c0+c1*i)
+    			//               i = (log(w)-c0)/c1
+    			String fwd[] = {
+    					"w = 10**(" + c0s + " + ( i * " + c1s + " ) )" };
+    			String inv[] = {
+    					"i = ( log10( w ) - " + c0s + ")/" + c1s };
 
-                    //  Formulae are w = 10**(c0+c1*i)
-                    //               i = (log(w)-c0)/c1
-                    String fwd[] = {
-                        "w = 10**(" + c0s + " + ( i * " + c1s + " ) )" };
-                    String inv[] = {
-                        "i = ( log10( w ) - " + c0s + ")/" + c1s };
+    			MathMap sdssMap = new MathMap( 1, 1, fwd, inv );
+    			Frame frame = new Frame( 1 );
+    			FrameSet frameset = new FrameSet( new Frame( 1 ) );   			
+    			SpecFrame specFrame = new SpecFrame();
+    			frameset.addFrame( 1, sdssMap, new SpecFrame() );
+    			return frameset;
+    		}
 
-                    MathMap sdssMap = new MathMap( 1, 1, fwd, inv );
-                    Frame frame = new Frame( 1 );
-                    FrameSet frameset = new FrameSet( new Frame( 1 ) );
-                    SpecFrame specFrame = new SpecFrame();
-                    frameset.addFrame( 1, sdssMap, new SpecFrame() );
-                    return frameset;
-                }
-            }
-        }
-        return null;
+    	}
+    	return null;
     }
+
+    
+
+	
+
+	/** 
+     * Check if it's a SDSS FITS format
+     */
+    public boolean isSDSSFITSHeader() {
+    	
+        return isSDSSFITSHeader(hdurefs[0].getHeader());
+    }
+    
+    public static boolean isSDSSFITSHeader(Header header) {
+    	HeaderCard testCard = header.findCard( "TELESCOP" );
+        if ( testCard != null ) {
+            if ( testCard.getValue().startsWith( "SDSS" ) ) 
+            	return true;
+        }
+        return false;
+    }
+    
 
     /**
      * Create a dummy AST frameset for the current HDU. Used when FITS headers
