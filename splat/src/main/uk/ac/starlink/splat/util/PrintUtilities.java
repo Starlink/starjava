@@ -29,7 +29,9 @@ import javax.print.attribute.standard.JobName;
 import javax.print.attribute.standard.MediaSizeName;
 import javax.print.attribute.standard.OrientationRequested;
 
-import org.jibble.epsgraphics.EpsGraphics2D;
+import uk.ac.starlink.ttools.plot.FixedEpsGraphics2D;
+
+//import org.jibble.epsgraphics.EpsGraphics2D;
 
 /**
  * Utility class to contain various functions related to printing.
@@ -109,8 +111,8 @@ public class PrintUtilities
             try {
                 BufferedOutputStream ostrm =
                     new BufferedOutputStream( new FileOutputStream(fileName) );
-                EpsGraphics2D g2 =
-                    new EpsGraphics2D( fileName, ostrm,
+                FixedEpsGraphics2D g2 =
+                    new FixedEpsGraphics2D( fileName, ostrm,
                                        bounds.x, bounds.y,
                                        bounds.x + bounds.width,
                                        bounds.y + bounds.height );
