@@ -1,4 +1,13 @@
 1 Starlink SPLAT news.
+
+   3.15
+   ========
+   - support for SDSS spectra
+   - SAMP - now it's also possible to send coordinates to SPLAT
+   - SAMP - option to receive result tables
+   - improved Datalink and timeseries processing
+   - bugfixes
+
    3.14
    ========
    - improved Datalink processing
