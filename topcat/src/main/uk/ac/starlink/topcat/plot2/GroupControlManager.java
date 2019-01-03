@@ -127,6 +127,7 @@ public class GroupControlManager implements ControlManager {
                 stackActList.add( new LayerControlAction( actName,
                                                           ctyp.getIcon(),
                                                           actDescrip,
+                                                          (Plotter) null,
                                                           stack_ ) {
                     public LayerControl createLayerControl() {
                         return createGroupControl( ctyp0, true );

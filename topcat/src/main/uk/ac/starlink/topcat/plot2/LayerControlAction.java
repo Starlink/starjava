@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 
 /**
- * Action for adding a single-plotter layer control to the plot stack.
+ * Action for adding a layer control to the plot stack.
  *
  * @author   Mark Taylor
  * @since    25 Jul 2013
@@ -24,6 +24,7 @@ import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 public abstract class LayerControlAction extends BasicAction {
 
     private final ControlStack stack_;
+    private final Plotter plotter_;
 
     /**
      * Constructs a LayerControlAction from name, icon and description.
@@ -33,12 +34,15 @@ public abstract class LayerControlAction extends BasicAction {
      *                      will add; it may get doctored to generate the
      *                      icon for this action
      * @param   descrip  action description
+     * @param   plotter  single plotter associated with this layer control,
+     *                   may be null
      * @param   stack   plot stack
      */
     public LayerControlAction( String name, Icon layerIcon, String descrip,
-                               ControlStack stack ) {
+                               Plotter plotter, ControlStack stack ) {
         super( name, ResourceIcon.toAddIcon( layerIcon ), descrip );
         stack_ = stack;
+        plotter_ = plotter;
     }
 
     /**
@@ -52,7 +56,7 @@ public abstract class LayerControlAction extends BasicAction {
               plotter.getPlotterIcon(),
               "Add a new " + plotter.getPlotterName().toLowerCase()
                            + " layer control to the stack",
-              stack );
+              plotter, stack );
     }
 
     /**
@@ -64,6 +68,16 @@ public abstract class LayerControlAction extends BasicAction {
 
     public void actionPerformed( ActionEvent evt ) {
         stack_.addControl( createLayerControl() );
+    }
+
+    /**
+     * Returns the single plotter associated with this action, if any.
+     * For instances with no single plotter, null is returned.
+     *
+     * @return  plotter for this action, or null
+     */
+    public Plotter getPlotter() {
+        return plotter_;
     }
 
     /**
