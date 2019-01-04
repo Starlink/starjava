@@ -99,7 +99,7 @@ public class MemoryMonitor extends JComponent {
     /**
      * Sets bar movement to the opposite sense.
      *
-     * @param   true to set the zero level to the non-default end
+     * @param  reverse   true to set the zero level to the non-default end
      */
     public void setReverse( boolean reverse ) {
         reverse_ = reverse;

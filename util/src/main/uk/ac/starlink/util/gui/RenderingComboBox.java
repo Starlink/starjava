@@ -15,7 +15,7 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  * This convenience class allows you to do your own rendering without having
  * to provide an actual implementation of {@link javax.swing.ListCellRenderer},
  * which is mildly fiddly.
- * Just override {@link #getRendererLabel} and/or {@link #getRendererIcon}.
+ * Just override {@link #getRendererText} and/or {@link #getRendererIcon}.
  *
  * @author   Mark Taylor
  * @since    12 Jan 2006
@@ -67,7 +67,7 @@ public class RenderingComboBox extends JComboBox implements ListCellRenderer {
      * The default implementation returns null.
      *
      * @param   item   item
-     * @param   graphic label for item
+     * @return   graphic label for item
      */
     protected Icon getRendererIcon( Object item ) {
         return null;

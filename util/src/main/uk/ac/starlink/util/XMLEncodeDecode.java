@@ -17,7 +17,7 @@ import org.w3c.dom.Element;
  * that support this interface see 
  * {@link PrimitiveXMLEncodeDecode} and for one that also supports
  * awt primitives (Fonts and Colors) see
- * {@link uk.ac.starlink.ast.gui.AbstractPlotControlsModel}.
+ * <code>uk.ac.starlink.ast.gui.AbstractPlotControlsModel</code>.
  *
  * @since $Date$
  * @since 26-JUL-2001

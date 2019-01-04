@@ -18,14 +18,17 @@ import javax.swing.JComboBox;
 import javax.swing.JList;
 
 /**
- * FileNameListCellRenderer is a {@link ListCellRenderer} that displays a
- * {@link File} or {@link String} truncated to the left, not right, so that
+ * FileNameListCellRenderer is a {@link javax.swing.ListCellRenderer}
+ * that displays a
+ * {@link java.io.File} or {@link java.lang.String} truncated to the left,
+ * not right, so that
  * the most meaningful parts of a file name are shown. For instance the string
  * "/some/where/file.ext" could be rendered as ".../where/file.ext", depending
  * on the component width.
  * <p>
- * This class can also make sure that the width of the {@link JList}
- * associated with a {@link JComboBox} are matched (for long names JComboBoxes
+ * This class can also make sure that the width of the {@link javax.swing.JList}
+ * associated with a {@link javax.swing.JComboBox} are matched
+ * (for long names JComboBoxes
  * tend to just expand the drop-down JList to whatever size is needed, so if
  * you're using this renderer with JComboBox you'll need to use this option).
  *

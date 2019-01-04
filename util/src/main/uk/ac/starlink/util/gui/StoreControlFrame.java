@@ -44,7 +44,7 @@ import uk.ac.starlink.util.images.ImageHolder;
  * that the configuration was created (or maybe last updated).
  * <p>
  * An instance of this class should be associated with a 
- * {@link SourceSource} implementation that acts as a view for the restored
+ * {@link StoreSource} implementation that acts as a view for the restored
  * configuration and a model for the current configuration. The actual
  * interaction with the XML store is performed by a StoreConfiguration
  * object. 

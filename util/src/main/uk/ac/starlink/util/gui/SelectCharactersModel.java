@@ -12,7 +12,6 @@ import javax.swing.table.AbstractTableModel;
  * @since 03-NOV-2000
  * @version $Id$
  * @author Peter W. Draper
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  *
  */
 public class SelectCharactersModel 

@@ -33,7 +33,7 @@ public class MultiplexInvocationHandler<T> implements InvocationHandler {
     /**
      * Sets the list of delegate implementations.
      *
-     * @return  targets  target instances
+     * @param  targets  target instances
      */
     public void setTargets( T[] targets ) {
         targets_ = targets;

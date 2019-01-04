@@ -61,7 +61,7 @@ public class StoreFileUtils
      * directory.
      *
      * @param applicationName name of the application (same as for
-     *                        {@link getConfigDirectory})
+     *                        {@link #getConfigDirectory})
      * @param name the name of the file to be stored/located in the
      *             the configuration directory.
      */

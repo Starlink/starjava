@@ -10,7 +10,6 @@ import java.util.EventListener;
  * @since 04-OCT-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
 public interface SelectCharactersListener 
     extends EventListener 

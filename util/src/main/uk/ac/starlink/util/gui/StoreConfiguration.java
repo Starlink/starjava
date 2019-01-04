@@ -62,7 +62,6 @@ import uk.ac.starlink.util.SourceReader;
  * the configuration to write its state to a new Element.
  *
  * @author Peter W. Draper
- * @copyright Copyright (C) 2001-2004 Central Laboratory of the Research Councils
  * @see Element
  * @see StoreControlFrame
  * @see StoreSource
@@ -114,7 +113,7 @@ public class StoreConfiguration
      * get a default configuration using a getResource()). If you use
      * this method it is not possible to save to backing store.
      *
-     * @param stream InputStream that contains an XML description of a
+     * @param inputStream InputStream that contains an XML description of a
      *               series of configurations (i.e. a wrapped backing
      *               store file).
      *

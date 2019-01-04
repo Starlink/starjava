@@ -78,7 +78,7 @@ public abstract class SortingHeaderRenderer implements TableCellRenderer {
      * Returns an icon suitable for marking a column as sorted.
      *
      * @param  isDescending  false for sort up, true for sort down
-     * @param  icon size, for instance font size of associated text
+     * @param  size  icon size, for instance font size of associated text
      * @return  icon
      */
     public static Icon createArrowIcon( boolean isDescending, int size ) {

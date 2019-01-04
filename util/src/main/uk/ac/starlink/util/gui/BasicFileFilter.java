@@ -15,10 +15,11 @@ import java.util.Hashtable;
 import javax.swing.filechooser.FileFilter;
 
 /**
- * A FileFilter for configuring a {@link JFileChooser} to only show
+ * A FileFilter for configuring a {@link javax.swing.JFileChooser} to only show
  * files that have one of a set of file extensions. Also implements
  * FilenameFilter to provide similar services for filtering directory
- * contents using the {@link File} class (see {@link File.listFiles}.
+ * contents using the {@link java.io.File} class
+ * (see {@link java.io.File#listFiles}).
  * <p>
  * Example - create filters for HDS and FITS files and use with a
  * BasicFileChooser.

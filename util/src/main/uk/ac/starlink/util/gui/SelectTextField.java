@@ -27,8 +27,6 @@ import uk.ac.starlink.util.images.ImageHolder;
  * @since 06-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research
- *            Councils
 */
 public class SelectTextField 
     extends JPanel

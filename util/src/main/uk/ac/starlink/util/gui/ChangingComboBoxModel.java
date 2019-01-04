@@ -48,7 +48,7 @@ public class ChangingComboBoxModel extends DefaultComboBoxModel {
     }
 
     /**
-     * Removes a listener previously added by {@link #addListener}.
+     * Removes a listener previously added by {@link #addChangeListener}.
      *
      * @param   listener  listener to remove
      */
@@ -66,7 +66,7 @@ public class ChangingComboBoxModel extends DefaultComboBoxModel {
     }
 
     /**
-     * Removes a listener previously added by {@link #addListener}.
+     * Removes a listener previously added by {@link #addActionListener}.
      *
      * @param   listener  listener to remove
      */

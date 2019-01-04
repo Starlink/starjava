@@ -44,8 +44,7 @@ import uk.ac.starlink.util.images.ImageHolder;
  * @since 03-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- * @see InsertCharacters, SelectCharactersModel
+ * @see SelectCharactersModel
  */
 public class SelectCharacters 
     extends JDialog
