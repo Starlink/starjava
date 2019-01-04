@@ -1,5 +1,5 @@
 /*
- * Copyright© 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,7 +46,6 @@ package uk.ac.starlink.util.gui;
 import java.io.File;
 import java.io.FileNotFoundException;
 import javax.swing.JFileChooser;
-import sun.awt.shell.ShellFolder;
 
 /**
  * A JFileChooser that attempts to do something useful with windows
@@ -57,18 +56,21 @@ import sun.awt.shell.ShellFolder;
  * then set either the selected file or directory to the one the
  * shortcut contains.
  * <p>
- * Note this class depends on the sun.awt.shell.ShellFolder class
- * which not part of the standard API, so can be changed without
- * notification and is therefore likely to break. In this case fix it
- * up or switch it to go back to the standard JFileChooser behaviour.
- * Also note that it doesn't work when multiple files are selected
- * (although it does work for a single file when multiple selections
- * are enabled).
- * <p>
  * The original code was copied from Bug Id: 4356160 on the SUN web
  * site so is also copyright SUN.
+ * <p>
+ * This class originally made use of the non-standard class
+ * sun.awt.shell.ShellFolder to do some cleverer things with
+ * Windows .lnk files.  Since use of that non-standard class
+ * caused build problems with some java versions, references
+ * to that class, including the corresponding functionality,
+ * have been removed.  That probably means there is no point
+ * in using this class any more, and client code should just
+ * use JFileChooser instead.  It's possible that the underlying
+ * problem has been fixed in any case since Java 1.4.1.
  *
  * @author Peter W. Draper
+ * @author Mark Taylor
  * @version $Id$
  */      
 public class BasicFileChooser
@@ -99,10 +101,6 @@ public class BasicFileChooser
     public BasicFileChooser( String defaultDirectory )
     {
         super( defaultDirectory );
-
-        // For JDK1.4.2 we need to disable directory listing speed ups
-        // for shortcuts to be recognised by ShellFolder.
-        System.setProperty( "swing.disableFileChooserSpeedFix", "true" );
     }
 
     public void approveSelection() 
@@ -132,31 +130,7 @@ public class BasicFileChooser
             else {
                 selectedFile = getSelectedFile();
             }
-            
-            //  Is this a windows shortcut file?
-            if ( selectedFile.getPath().endsWith( ".lnk" ) ) {
-                File linkedTo = null;
-                try {
-                    linkedTo = ShellFolder
-                        .getShellFolder( selectedFile ).getLinkLocation();
-                } 
-                catch ( FileNotFoundException ignore ) {
-                    //  Do nothing.
-                }
-                if ( linkedTo != null ) {
-                    if ( linkedTo.isDirectory() ) {
-                        setCurrentDirectory( linkedTo );
-                        return;
-                    } 
-                    else if ( ! linkedTo.equals( selectedFile ) ) {
-                        if ( isMultiSelectionEnabled() ) {
-                            setSelectedFiles( new File[] { linkedTo } );
-                        }
-                        setSelectedFile( linkedTo );
-                    }
-                }
-            }
         }
         super.approveSelection();
     }
-}    
+}
