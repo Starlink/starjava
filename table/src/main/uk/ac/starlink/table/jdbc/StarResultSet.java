@@ -159,7 +159,7 @@ public class StarResultSet {
      * @see   uk.ac.starlink.table.StarTable#getColumnAuxDataInfos
      * @return  an unmodifiable ordered set of known metadata keys
      */
-    public List getColumnAuxDataInfos() {
+    public List<ValueInfo> getColumnAuxDataInfos() {
         return typeMapper_.getColumnAuxDataInfos();
     }
 

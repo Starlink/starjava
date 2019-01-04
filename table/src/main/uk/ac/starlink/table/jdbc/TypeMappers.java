@@ -304,7 +304,7 @@ public class TypeMappers {
                 throws SQLException {
             return createIdentityValueHandler( meta, jcol1 );
         }
-        public List getColumnAuxDataInfos() {
+        public List<ValueInfo> getColumnAuxDataInfos() {
             return Collections.unmodifiableList( Arrays
                                                 .asList( new ValueInfo[] {
                 JDBC_LABEL_INFO,
@@ -417,7 +417,7 @@ public class TypeMappers {
             }
         }
 
-        public List getColumnAuxDataInfos() {
+        public List<ValueInfo> getColumnAuxDataInfos() {
             return Collections.unmodifiableList( Arrays
                                                 .asList( new ValueInfo[] {
                 JDBC_LABEL_INFO,

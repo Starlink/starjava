@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RandomStarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * StarTable implementation based on a random-access {@link java.sql.ResultSet}.
@@ -68,7 +69,7 @@ public class RandomResultSetStarTable extends RandomStarTable {
         return srset_.getRowCount();
     }
 
-    public List getColumnAuxDataInfos() {
+    public List<ValueInfo> getColumnAuxDataInfos() {
         return srset_.getColumnAuxDataInfos();
     }
 

@@ -8,6 +8,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.UnrepeatableSequenceException;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * StarTable implementation based on a {@link java.sql.ResultSet}.
@@ -66,7 +67,7 @@ public class SequentialResultSetStarTable extends AbstractStarTable {
         return -1L;
     }
 
-    public List getColumnAuxDataInfos() {
+    public List<ValueInfo> getColumnAuxDataInfos() {
         return srset_.getColumnAuxDataInfos();
     }
 

@@ -3,6 +3,7 @@ package uk.ac.starlink.table.jdbc;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Determines how JDBC types are mapped to java types.
@@ -32,5 +33,5 @@ public interface TypeMapper {
      * @see   uk.ac.starlink.table.StarTable#getColumnAuxDataInfos
      * @return  an unmodifiable ordered set of known metadata keys
      */
-    List getColumnAuxDataInfos();
+    List<ValueInfo> getColumnAuxDataInfos();
 }

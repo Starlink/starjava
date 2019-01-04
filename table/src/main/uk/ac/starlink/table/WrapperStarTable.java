@@ -95,7 +95,7 @@ public class WrapperStarTable implements StarTable {
         return baseTable.getColumnInfo( icol );
     }
 
-    public List getColumnAuxDataInfos() {
+    public List<ValueInfo> getColumnAuxDataInfos() {
         return baseTable.getColumnAuxDataInfos();
     }
 
