@@ -46,11 +46,12 @@ public class RepeatFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         boolean byrow = false;
         String countStr = null;
         while ( argIt.hasNext() && countStr == null ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-row" ) ) {
                 argIt.remove();
                 byrow = true;

@@ -98,7 +98,8 @@ public class PixSampleFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
 
         /* Parse arguments. */
         String sRadius = null;
@@ -109,19 +110,19 @@ public class PixSampleFilter extends BasicFilter {
         List<String> unknownFlags = new ArrayList<String>();
         while ( argIt.hasNext() &&
                 ( sLon == null || sLat == null || sPixfile == null ) ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-radius" ) && argIt.hasNext() ) {
                 argIt.remove();
-                sRadius = (String) argIt.next();
+                sRadius = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-systems" ) && argIt.hasNext() ) {
                 argIt.remove();
                 List<String> syslist = new ArrayList<String>();
-                syslist.add( (String) argIt.next() );
+                syslist.add( argIt.next() );
                 argIt.remove();
                 if ( argIt.hasNext() ) {
-                    syslist.add( (String) argIt.next() );
+                    syslist.add( argIt.next() );
                     argIt.remove();
                 }
                 sysStrings = syslist.toArray( new String[ 0 ] );

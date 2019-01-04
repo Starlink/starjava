@@ -25,9 +25,10 @@ public class TailFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         if ( argIt.hasNext() ) {
-            String countStr = (String) argIt.next();
+            String countStr = argIt.next();
             argIt.remove();
             long count;
             try {

@@ -45,16 +45,17 @@ public class ExplodeAllFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
 
         /* Collect flags. */
         int ndim = -1;
         int[] shape = null;
         while ( argIt.hasNext() ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( "-ifndim".equals( arg ) && ndim < 0 && argIt.hasNext() ) {
                 argIt.remove();
-                String txt = (String) argIt.next();
+                String txt = argIt.next();
                 argIt.remove();
                 try {
                     ndim = Integer.parseInt( txt );
@@ -69,7 +70,7 @@ public class ExplodeAllFilter extends BasicFilter {
             else if ( "-ifshape".equals( arg ) && shape == null 
                       && argIt.hasNext() ) {
                 argIt.remove();
-                String txt = (String) argIt.next();
+                String txt = argIt.next();
                 argIt.remove();
                 try {
                     String[] txts = txt.split( "( +|,)" );

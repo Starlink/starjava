@@ -27,9 +27,10 @@ public class DeleteColumnFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         if ( argIt.hasNext() ) {
-            String colIdList = (String) argIt.next();
+            String colIdList = argIt.next();
             argIt.remove();
             return new DeleteColumnStep( colIdList );
         }

@@ -53,7 +53,8 @@ public class AddColumnFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String posId = null;
         String colName = null;
         String expr = null;
@@ -66,44 +67,44 @@ public class AddColumnFilter extends BasicFilter {
         
         boolean after = false;
         while ( argIt.hasNext() && ( colName == null || expr == null ) ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-after" ) && posId == null && 
                  argIt.hasNext() ) {
                 argIt.remove();
                 after = true;
-                posId = (String) argIt.next();
+                posId = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-before" ) && posId == null &&
                       argIt.hasNext() ) {
                 argIt.remove();
                 after = false;
-                posId = (String) argIt.next();
+                posId = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-units" ) && argIt.hasNext() ) {
                 argIt.remove();
-                units = (String) argIt.next();
+                units = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-ucd" ) && argIt.hasNext() ) {
                 argIt.remove();
-                ucd = (String) argIt.next();
+                ucd = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-utype" ) && argIt.hasNext() ) {
                 argIt.remove();
-                utype = (String) argIt.next();
+                utype = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
                 argIt.remove();
-                description = (String) argIt.next();
+                description = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-shape" ) && argIt.hasNext() ) {
                 argIt.remove();
-                String shapeTxt = (String) argIt.next();
+                String shapeTxt = argIt.next();
                 argIt.remove();
                 try {
                     shape = DefaultValueInfo.unformatShape( shapeTxt );
@@ -115,7 +116,7 @@ public class AddColumnFilter extends BasicFilter {
             }
             else if ( arg.equals( "-elsize" ) && argIt.hasNext() ) {
                 argIt.remove();
-                String elsizeTxt = (String) argIt.next();
+                String elsizeTxt = argIt.next();
                 argIt.remove();
                 try {
                     elsize = Integer.parseInt( elsizeTxt );

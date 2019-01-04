@@ -34,12 +34,13 @@ public class ReplaceValueFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String oldStr = null;
         String newStr = null;
         String colIdList = null;
         while ( argIt.hasNext() ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( oldStr == null ) {
                 oldStr = arg;
                 argIt.remove();

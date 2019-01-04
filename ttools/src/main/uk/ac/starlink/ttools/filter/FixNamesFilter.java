@@ -37,7 +37,7 @@ public class FixNamesFilter extends BasicFilter implements ProcessingStep {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt ) {
         return this;
     }
 

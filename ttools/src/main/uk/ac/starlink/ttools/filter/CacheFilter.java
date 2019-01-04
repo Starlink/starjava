@@ -42,7 +42,7 @@ public class CacheFilter extends BasicFilter implements ProcessingStep {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator<String> argIt ) {
         return this;
     }
 

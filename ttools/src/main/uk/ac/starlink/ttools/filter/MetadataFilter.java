@@ -86,10 +86,10 @@ public class MetadataFilter extends BasicFilter {
     }
 
     protected String[] getDescriptionLines() {
-        Collection extras = new ArrayList( Arrays.asList( KNOWN_INFOS ) );
+        Collection<ValueInfo> extras =
+            new ArrayList<ValueInfo>( Arrays.asList( KNOWN_INFOS ) );
         extras.removeAll( Arrays.asList( DEFAULT_INFOS ) );
-        ValueInfo[] extraKnownInfos =
-            (ValueInfo[]) extras.toArray( new ValueInfo[ 0 ] );
+        ValueInfo[] extraKnownInfos = extras.toArray( new ValueInfo[ 0 ] );
         return new String[] {
             "<p>Provides information about the metadata for each column.",
             "This filter turns the table sideways, so that each row",
@@ -118,22 +118,23 @@ public class MetadataFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         final String[] items;
         if ( argIt.hasNext() ) {
-            List itemList = new ArrayList();
+            List<String> itemList = new ArrayList<String>();
             while ( argIt.hasNext() ) {
                 itemList.add( argIt.next() );
                 argIt.remove();
             }
-            items = (String[]) itemList.toArray( new String[ 0 ] );
+            items = itemList.toArray( new String[ 0 ] );
         }
         else {
             items = null;
         }
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) {
-                MapGroup group = metadataMapGroup( base );
+                MapGroup<ValueInfo,Object> group = metadataMapGroup( base );
 
                 List<ValueInfo> seq = new ArrayList<ValueInfo>();
                 seq.addAll( Arrays.asList( DEFAULT_INFOS ) );
@@ -153,11 +154,12 @@ public class MetadataFilter extends BasicFilter {
      * @param  table  the table for which to extract metadata
      * @return  mapgroup containing column metadata
      */
-    public static MapGroup metadataMapGroup( StarTable table ) {
+    public static MapGroup<ValueInfo,Object>
+            metadataMapGroup( StarTable table ) {
 
         /* Initialise table with a sensible key order for standard metadata
          * items. */
-        MapGroup group = new MapGroup();
+        MapGroup<ValueInfo,Object> group = new MapGroup<ValueInfo,Object>();
 
         /* Count columns in the original table. */
         int ncol = table.getColumnCount();
@@ -230,29 +232,25 @@ public class MetadataFilter extends BasicFilter {
      *          may be null for default items
      * @return  array of ValueInfo keys corresponding to <code>itemNames</code>
      */
-    private static ValueInfo[] getKeys( MapGroup group, String[] itemNames ) {
-        Map[] maps = (Map[]) group.getMaps().toArray( new Map[ 0 ] );
+    private static ValueInfo[] getKeys( MapGroup<ValueInfo,Object> group,
+                                        String[] itemNames ) {
+        List<Map<ValueInfo,Object>> maps = group.getMaps();
         ValueInfo[] keys;
 
         /* For a null list of names, ascertain the columns from the non-empty
          * known keys of the map group. */
         if ( itemNames == null ) {
-            List keyList = new ArrayList();
-            for ( Iterator it = group.getKnownKeys().iterator();
-                  it.hasNext(); ) {
-                ValueInfo info = (ValueInfo) it.next();
+            List<ValueInfo> keyList = new ArrayList<ValueInfo>();
+            for ( ValueInfo info : group.getKnownKeys() ) {
                 boolean hasSome = false;
-                for ( int imap = 0; ! hasSome && imap < maps.length;
-                      imap++ ) {
-                    hasSome =
-                        hasSome ||
-                        ( ! Tables.isBlank( maps[ imap ].get( info ) ) );
+                for ( Map<ValueInfo,Object> map : maps ) {
+                    hasSome = hasSome || ( !Tables.isBlank( map.get( info ) ) );
                 }
                 if ( hasSome ) {
                     keyList.add( info );
                 }
             }
-            keys = (ValueInfo[]) keyList.toArray( new ValueInfo[ 0 ] );
+            keys = keyList.toArray( new ValueInfo[ 0 ] );
         }
 
         /* For a non-null list of names, construct the list of columns
@@ -265,10 +263,9 @@ public class MetadataFilter extends BasicFilter {
 
                 /* Try to find a ValueInfo in the group keys which corresponds
                  * to the given item name. */
-                for ( Iterator it = group.getKnownKeys().iterator();
-                      it.hasNext() && itemInfo == null; ) {
-                    ValueInfo info = (ValueInfo) it.next();
-                    if ( info.getName().equalsIgnoreCase( item ) ) {
+                for ( ValueInfo info : group.getKnownKeys() ) {
+                    if ( itemInfo == null &&
+                         info.getName().equalsIgnoreCase( item ) ) {
                         itemInfo = info;
                     }
                 }

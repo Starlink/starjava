@@ -115,10 +115,10 @@ public class StatsFilter extends BasicFilter {
     /** All known per-column quantities (statistical and metadata). */
     private static final ValueInfo[] ALL_KNOWN_INFOS;
     static {
-        List known = new ArrayList();
+        List<ValueInfo> known = new ArrayList<ValueInfo>();
         known.addAll( Arrays.asList( MetadataFilter.KNOWN_INFOS ) );
         known.addAll( Arrays.asList( KNOWN_INFOS ) );
-        ALL_KNOWN_INFOS = (ValueInfo[]) known.toArray( new ValueInfo[ 0 ] );
+        ALL_KNOWN_INFOS = known.toArray( new ValueInfo[ 0 ] );
     }
 
     /** Quantities calculated by default. */
@@ -139,10 +139,10 @@ public class StatsFilter extends BasicFilter {
     }
 
     protected String[] getDescriptionLines() {
-        Collection extras = new ArrayList( Arrays.asList( KNOWN_INFOS ) );
+        Collection<ValueInfo> extras =
+            new ArrayList<ValueInfo>( Arrays.asList( KNOWN_INFOS ) );
         extras.removeAll( Arrays.asList( DEFAULT_INFOS ) );
-        ValueInfo[] extraKnownInfos =
-            (ValueInfo[]) extras.toArray( new ValueInfo[ 0 ] );
+        ValueInfo[] extraKnownInfos = extras.toArray( new ValueInfo[ 0 ] );
         return new String[] {
             "<p>Calculates statistics on the data in the table.",
             "This filter turns the table sideways, so that each row",
@@ -176,21 +176,22 @@ public class StatsFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         final ValueInfo[] colInfos;
         if ( argIt.hasNext() ) {
-            Map infoMap = new HashMap();
+            Map<String,ValueInfo> infoMap = new HashMap<String,ValueInfo>();
             for ( int i = 0; i < ALL_KNOWN_INFOS.length; i++ ) {
                 ValueInfo info = ALL_KNOWN_INFOS[ i ];
                 infoMap.put( info.getName().toLowerCase(), info );
             }
-            List infoList = new ArrayList();
+            List<ValueInfo> infoList = new ArrayList<ValueInfo>();
             while ( argIt.hasNext() ) {
-                String name = (String) argIt.next();
+                String name = argIt.next();
                 argIt.remove();
                 String lname = name.toLowerCase();
                 if ( infoMap.containsKey( lname ) ) {
-                    infoList.add( (ValueInfo) infoMap.get( lname ) );
+                    infoList.add( infoMap.get( lname ) );
                 }
                 else if ( name.matches( "^[qQ]\\.[0-9]+$" ) ) {
                     double quant = Double.parseDouble( name.substring( 1 ) );
@@ -221,14 +222,15 @@ public class StatsFilter extends BasicFilter {
                     throw new ArgException( msg.toString() );
                 }
             }
-            colInfos = (ValueInfo[]) infoList.toArray( new ValueInfo[ 0 ] );
+            colInfos = infoList.toArray( new ValueInfo[ 0 ] );
         }
         else {
             colInfos = DEFAULT_INFOS;
         }
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
-                MapGroup group = statsMapGroup( base, colInfos );
+                MapGroup<ValueInfo,Object> group =
+                    statsMapGroup( base, colInfos );
                 group.setKnownKeys( Arrays.asList( colInfos ) );
                 AbstractStarTable table = new ValueInfoMapGroupTable( group );
                 table.setParameters( base.getParameters() );
@@ -244,7 +246,8 @@ public class StatsFilter extends BasicFilter {
      * @param   table   input table
      * @return  mapgroup containing column statistics
      */
-    private static MapGroup statsMapGroup( StarTable table, ValueInfo[] infos )
+    private static MapGroup<ValueInfo,Object> statsMapGroup( StarTable table,
+                                                             ValueInfo[] infos )
             throws IOException {
 
         /* Work out if we need to calculate cardinalities. */
@@ -255,15 +258,15 @@ public class StatsFilter extends BasicFilter {
                      || Arrays.asList( infos ).contains( SMAD_INFO );
 
         /* Work out if we need to calculate quantiles. */
-        List quantInfoList = new ArrayList();
+        List<QuantileInfo> quantInfoList = new ArrayList<QuantileInfo>();
         for ( int i = 0; i < infos.length; i++ ) {
             if ( infos[ i ] instanceof QuantileInfo ) {
-                quantInfoList.add( infos[ i ] );
+                quantInfoList.add( (QuantileInfo) infos[ i ] );
             }
         }
         boolean doQuant = ! quantInfoList.isEmpty() || doMad;
         QuantileInfo[] quantInfos = doQuant
-            ? (QuantileInfo[]) quantInfoList.toArray( new QuantileInfo[ 0 ] )
+            ? quantInfoList.toArray( new QuantileInfo[ 0 ] )
             : null;
 
         long nrow = table.getRowCount();
@@ -307,7 +310,8 @@ public class StatsFilter extends BasicFilter {
 
             /* Get a MapGroup representing column metadata (the option is 
              * provided to output this alongside the statistical results). */
-            MapGroup group = MetadataFilter.metadataMapGroup( table );
+            MapGroup<ValueInfo,Object> group =
+                MetadataFilter.metadataMapGroup( table );
 
             /* Augment the metadata with the relevant statistical results for
              * each column. */
@@ -344,7 +348,7 @@ public class StatsFilter extends BasicFilter {
 
                 /* Add statistical quantities to the column's
                  * info->values map. */
-                Map map = (Map) group.getMaps().get( icol );
+                Map<ValueInfo,Object> map = group.getMaps().get( icol );
                 map.put( NGOOD_INFO, new Long( count ) );
                 map.put( NBAD_INFO, new Long( irow - count ) );
                 map.put( SUM_INFO, new Double( sum1 ) );
@@ -489,7 +493,7 @@ public class StatsFilter extends BasicFilter {
     private static class CardinalityChecker {
 
         final int maxCard_;
-        Set items_ = new HashSet();
+        Set<Object> items_ = new HashSet<Object>();
 
         /**
          * Constructor.

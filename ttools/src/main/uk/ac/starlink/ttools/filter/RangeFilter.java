@@ -43,12 +43,13 @@ public class RangeFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
 
         /* Get first index. */
         long ifirst;
         if ( argIt.hasNext() ) {
-            String iStr = (String) argIt.next();
+            String iStr = argIt.next();
             argIt.remove();
             if ( iStr.matches( "[1-9][0-9]*" ) ) {
                 ifirst = Long.parseLong( iStr );
@@ -65,7 +66,7 @@ public class RangeFilter extends BasicFilter {
         /* Get last index. */
         long ilast;
         if ( argIt.hasNext() ) {
-            String iStr = (String) argIt.next();
+            String iStr = argIt.next();
             argIt.remove();
             if ( iStr.matches( "\\+[0-9]+" ) ) {
                 ilast = ifirst + Long.parseLong( iStr.substring( 1 ) ) - 1;

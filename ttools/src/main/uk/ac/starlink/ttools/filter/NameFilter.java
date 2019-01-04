@@ -22,9 +22,10 @@ public class NameFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         if ( argIt.hasNext() ) {
-            final String name = (String) argIt.next();
+            final String name = argIt.next();
             argIt.remove();
             return new ProcessingStep() {
                 public StarTable wrap( StarTable base ) {

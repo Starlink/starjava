@@ -48,10 +48,11 @@ public class TransposeFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String namcol = null;
         while ( argIt.hasNext() ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-namecol" ) && argIt.hasNext() ) {
                 argIt.remove();
                 namcol = (String) argIt.next();

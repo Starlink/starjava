@@ -38,17 +38,18 @@ public class ClearParameterFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
-        List pnameList = new ArrayList();
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
+        List<String> pnameList = new ArrayList<String>();
         while ( argIt.hasNext() ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             pnameList.add( arg );
             argIt.remove();
         }
         if ( pnameList.isEmpty() ) {
             throw new ArgException( "No parameter names supplied" );
         }
-        final String[] pnames = (String[]) pnameList.toArray( new String[ 0 ] );
+        final String[] pnames = pnameList.toArray( new String[ 0 ] );
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) {
                 removeParameters( base.getParameters(), pnames );

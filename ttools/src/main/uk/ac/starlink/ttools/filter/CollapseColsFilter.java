@@ -64,14 +64,15 @@ public class CollapseColsFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String colName = null;
         String colId0 = null;
         int ncol = -1;
         boolean keepScalars = false;
         while ( argIt.hasNext() &&
                 ( colName == null || colId0 == null || ncol < 0 ) ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.toLowerCase().startsWith( "-keepscalar" ) ) {
                 argIt.remove();
                 keepScalars = true;

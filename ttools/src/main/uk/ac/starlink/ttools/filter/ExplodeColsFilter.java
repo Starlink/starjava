@@ -35,9 +35,10 @@ public class ExplodeColsFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         if ( argIt.hasNext() ) {
-            final String colIdList = (String) argIt.next();
+            final String colIdList = argIt.next();
             argIt.remove();
             return new ProcessingStep() {
                 public StarTable wrap( StarTable base ) throws IOException {

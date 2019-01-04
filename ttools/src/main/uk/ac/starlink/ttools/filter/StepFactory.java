@@ -100,7 +100,7 @@ public class StepFactory {
     /**
      * Creates a processing filter from a line of text.
      * The general format for the line is 
-     * <code>&lt;filter-name&gt; &lt;ilter-args&gt;</code>
+     * <code>&lt;filter-name&gt; &lt;filter-args&gt;</code>
      *
      * @param   line  line of text representing filter commands
      * @return  processing step; may be null if <code>line</code>

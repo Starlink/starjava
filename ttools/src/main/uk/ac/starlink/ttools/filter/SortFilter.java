@@ -55,12 +55,13 @@ public class SortFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         boolean up = true;
         boolean nullsLast = true;
         String exprs = null;
         while ( argIt.hasNext() && exprs == null ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-down" ) ) {
                 argIt.remove();
                 up = false;

@@ -43,11 +43,9 @@ public interface ProcessingFilter {
      *
      * <p>If the argument list is badly-formed as far as this filter is
      * concerned, an {@link ArgException} should be thrown.
-     * If its <code>usageFrament</code> is blank, it will be filled in
-     * later using this mode's usage text.
      *
      * @param  argIt  iterator over command-line arguments positioned
      *         at the first one
      */
-    ProcessingStep createStep( Iterator argIt ) throws ArgException;
+    ProcessingStep createStep( Iterator<String> argIt ) throws ArgException;
 }

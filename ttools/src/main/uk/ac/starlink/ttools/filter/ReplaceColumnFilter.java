@@ -39,7 +39,8 @@ public class ReplaceColumnFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String colId = null;
         String expr = null;
         String rename = null;
@@ -48,30 +49,30 @@ public class ReplaceColumnFilter extends BasicFilter {
         String utype = null;
         String description = null;
         while ( argIt.hasNext() && ( colId == null || expr == null ) ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-name" ) && argIt.hasNext() ) {
                 argIt.remove();
-                rename = (String) argIt.next();
+                rename = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-units" ) && argIt.hasNext() ) {
                 argIt.remove();
-                units = (String) argIt.next();
+                units = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-ucd" ) && argIt.hasNext() ) {
                 argIt.remove();
-                ucd = (String) argIt.next();
+                ucd = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-utype" ) && argIt.hasNext() ) {
                 argIt.remove();
-                utype = (String) argIt.next();
+                utype = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
                 argIt.remove();
-                description = (String) argIt.next();
+                description = argIt.next();
                 argIt.remove();
             }
             else if ( colId == null ) {

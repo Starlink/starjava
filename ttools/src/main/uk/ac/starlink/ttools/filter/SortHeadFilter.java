@@ -69,14 +69,15 @@ public class SortHeadFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         boolean up = true;
         boolean nullsLast = true;
         boolean keepHead = true;
         int nrows = -1;
         String exprs = null;
         while ( argIt.hasNext() || nrows < 0 || exprs == null ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-tail" ) ) {
                 argIt.remove();
                 keepHead = false;
@@ -164,7 +165,8 @@ public class SortHeadFilter extends BasicFilter {
             /* Prepare a SortedMap which will keep the top nrows rows.
              * The map keys are the Object arrays of sort key values, and the
              * map values are the full row Object arrays. */
-            SortedMap headMap = new TreeMap();
+            SortedMap<SortKey,Object[]> headMap =
+                new TreeMap<SortKey,Object[]>();
 
             /* Iterate over rows in the input table. */
             while ( rseq.next() ) {
@@ -182,9 +184,8 @@ public class SortHeadFilter extends BasicFilter {
                  * than the current most marginal item, replace that
                  * with this one. */
                 else {
-                    SortKey marginal = 
-                        (SortKey) ( keepHead_ ? headMap.lastKey()
-                                              : headMap.firstKey() );
+                    SortKey marginal = keepHead_ ? headMap.lastKey()
+                                                 : headMap.firstKey();
                     if ( ( marginal.compareTo( sortKey ) 
                            * ( keepHead_ ? +1 : -1 ) ) > 0 ) {
                         assert headMap.size() == nrows_;
@@ -198,9 +199,9 @@ public class SortHeadFilter extends BasicFilter {
             /* Prepare and return a new table containing the rows from
              * the retention map in order. */
             RowListStarTable outTable = new RowListStarTable( baseTable );
-            for ( Iterator it = headMap.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                outTable.addRow( (Object[]) entry.getValue() );
+            for ( Iterator<Map.Entry<SortKey,Object[]>> it =
+                      headMap.entrySet().iterator(); it.hasNext(); ) {
+                outTable.addRow( it.next().getValue() );
                 it.remove();
             }
             return outTable;

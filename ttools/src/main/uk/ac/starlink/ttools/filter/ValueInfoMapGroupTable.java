@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.filter;
 
+import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RandomStarTable;
@@ -17,7 +18,7 @@ import uk.ac.starlink.util.MapGroup;
 public class ValueInfoMapGroupTable extends RandomStarTable {
 
     private final ValueInfo[] keys_;
-    private final Map[] maps_;
+    private final List<Map<ValueInfo,Object>> maps_;
 
     /**
      * Constructor.
@@ -26,10 +27,9 @@ public class ValueInfoMapGroupTable extends RandomStarTable {
      *          elements of group.getKnownKeys() must all be 
      *          {@link uk.ac.starlink.table.ValueInfo} objects
      */
-    ValueInfoMapGroupTable( MapGroup group ) {
-        maps_ = (Map[]) group.getMaps().toArray( new Map[ 0 ] );
-        keys_ = (ValueInfo[]) group.getKnownKeys()
-                                   .toArray( new ValueInfo[ 0 ] );
+    ValueInfoMapGroupTable( MapGroup<ValueInfo,Object> group ) {
+        maps_ = group.getMaps();
+        keys_ = group.getKnownKeys().toArray( new ValueInfo[ 0 ] );
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
@@ -37,7 +37,7 @@ public class ValueInfoMapGroupTable extends RandomStarTable {
     }
 
     public long getRowCount() {
-        return maps_.length;
+        return maps_.size();
     }
 
     public int getColumnCount() {
@@ -45,11 +45,11 @@ public class ValueInfoMapGroupTable extends RandomStarTable {
     }
 
     public Object getCell( long irow, int icol ) {
-        return maps_[ checkedLongToInt( irow ) ].get( keys_[ icol ] );
+        return maps_.get( checkedLongToInt( irow ) ).get( keys_[ icol ] );
     }
 
     public Object[] getRow( long irow ) {
-        Map map = maps_[ checkedLongToInt( irow ) ];
+        Map map = maps_.get( checkedLongToInt( irow ) );
         int ncol = keys_.length;
         Object[] row = new Object[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {

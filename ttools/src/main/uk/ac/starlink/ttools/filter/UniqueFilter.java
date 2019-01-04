@@ -48,11 +48,11 @@ public class UniqueFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) {
+    public ProcessingStep createStep( Iterator<String> argIt ) {
         String testIds = null;
         boolean count = false;
         while ( argIt.hasNext() && testIds == null ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-count" ) ) {
                 argIt.remove();
                 count = true;

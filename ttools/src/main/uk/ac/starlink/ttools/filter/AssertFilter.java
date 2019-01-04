@@ -47,10 +47,11 @@ public class AssertFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         final String expr;
         if ( argIt.hasNext() ) {
-            expr = (String) argIt.next();
+            expr = argIt.next();
             argIt.remove();
         }
         else {

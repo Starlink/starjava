@@ -46,7 +46,8 @@ public class SetParameterFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String ptype = null;
         String pname = null;
         String pexpr = null;
@@ -55,34 +56,34 @@ public class SetParameterFilter extends BasicFilter {
         String putype = null;
         String punits = null;
         while ( argIt.hasNext() ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( "-type".equals( arg ) && ptype == null && argIt.hasNext() ) {
                 argIt.remove();
-                ptype = (String) argIt.next();
+                ptype = argIt.next();
                 argIt.remove();
             }
             else if ( arg.startsWith( "-desc" ) && pdesc == null &&
                       argIt.hasNext() ) {
                 argIt.remove();
-                pdesc = (String) argIt.next();
+                pdesc = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-ucd" ) && pucd == null &&
                       argIt.hasNext() ) {
                 argIt.remove();
-                pucd = (String) argIt.next();
+                pucd = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-utype" ) && putype == null &&
                       argIt.hasNext() ) {
                 argIt.remove();
-                putype = (String) argIt.next();
+                putype = argIt.next();
                 argIt.remove();
             }
             else if ( arg.startsWith( "-unit" ) && punits == null &&
                       argIt.hasNext() ) {
                 argIt.remove();
-                punits = (String) argIt.next();
+                punits = argIt.next();
                 argIt.remove();
             }
             else if ( pname == null ) {

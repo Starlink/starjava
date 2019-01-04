@@ -29,9 +29,10 @@ public class SelectFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         if ( argIt.hasNext() ) {
-            String expr = (String) argIt.next();
+            String expr = argIt.next();
             argIt.remove();
             return new SelectStep( expr );
         }

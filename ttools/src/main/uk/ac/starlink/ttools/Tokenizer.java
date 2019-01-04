@@ -27,7 +27,7 @@ public class Tokenizer {
      * @return  array of lines
      */
     public static String[] tokenizeLines( String text ) throws UsageException {
-        List tokenList = new ArrayList();
+        List<String> tokenList = new ArrayList<String>();
         String text1 = text + ";";
         char delim = 0;
         StringBuffer token = new StringBuffer();
@@ -61,7 +61,7 @@ public class Tokenizer {
         if ( token.length() > 0 || delim != 0 ) {
             throw new UsageException( "Badly formed input: " + text );
         }
-        return (String[]) tokenList.toArray( new String[ 0 ] );
+        return tokenList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -74,7 +74,7 @@ public class Tokenizer {
      */
     public static String[] tokenizeWords( String line ) throws UsageException {
         String line1 = line + '\n';
-        List tokenList = new ArrayList();
+        List<String> tokenList = new ArrayList<String>();
         StringBuffer token = null;
         char delim = 0;
         boolean done = false;
@@ -140,6 +140,6 @@ public class Tokenizer {
         if ( token != null || delim != 0 ) {
             throw new UsageException( "Badly formed line: " + line );
         }
-        return (String[]) tokenList.toArray( new String[ 0 ] );
+        return tokenList.toArray( new String[ 0 ] );
     }
 }

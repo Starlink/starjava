@@ -60,13 +60,14 @@ public class ResolverFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String objId = null;
         String raName = null;
         String decName = null;
         while ( argIt.hasNext() &&
                 ( objId == null || raName == null || decName == null ) ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( objId == null ) {
                 argIt.remove();
                 objId = arg;

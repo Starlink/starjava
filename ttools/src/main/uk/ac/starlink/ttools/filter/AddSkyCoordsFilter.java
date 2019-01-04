@@ -61,7 +61,8 @@ public class AddSkyCoordsFilter extends BasicFilter {
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String sEpoch = null;
         String sInUnit = null;
         String sOutUnit = null;
@@ -75,24 +76,24 @@ public class AddSkyCoordsFilter extends BasicFilter {
                 ( sInSys == null || sOutSys == null || 
                   sInCol1 == null || sInCol2 == null ||
                   sOutCol1 == null || sOutCol2 == null ) ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 if ( arg.equals( "-epoch" ) && sEpoch == null &&
                      argIt.hasNext() ) {
                     argIt.remove();
-                    sEpoch = (String) argIt.next();
+                    sEpoch = argIt.next();
                     argIt.remove();
                 }
                 else if ( arg.equals( "-inunit" ) && sInUnit == null &&
                           argIt.hasNext() ) {
                     argIt.remove();
-                    sInUnit = (String) argIt.next();
+                    sInUnit = argIt.next();
                     argIt.remove();
                 }
                 else if ( arg.equals( "-outunit" ) && sOutUnit == null &&
                           argIt.hasNext() ) {
                     argIt.remove();
-                    sOutUnit = (String) argIt.next();
+                    sOutUnit = argIt.next();
                     argIt.remove();
                 }
                 else {
