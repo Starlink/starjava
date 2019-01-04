@@ -42,7 +42,7 @@ public class WrapUtils {
      * @return   object within the wrapping hierarchy of class
      *           <code>clazz</code>, or null
      */
-    public static Object getWrapped( Object obj, Class clazz ) {
+    public static Object getWrapped( Object obj, Class<?> clazz ) {
         while ( true ) {
             if ( clazz.isAssignableFrom( obj.getClass() ) ) {
                 return obj;

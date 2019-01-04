@@ -493,10 +493,9 @@ public class URLUtils {
          * equivalent to setting the java.protocol.handler.pkgs system
          * property to "uk.ac.starlink.astrogrid.protocols", but the 
          * latter can only be done before starting up the JVM. */
-        Map handlerMap = new HashMap();
+        Map<String,String> handlerMap = new HashMap<String,String>();
         String[] protos = new String[] { "ivo", "myspace", };
-        for ( int i = 0; i < protos.length; i++ ) {
-            String proto = protos[ i ];
+        for ( String proto : protos ) {
             handlerMap.put( proto,
                             "uk.ac.starlink.astrogrid.protocols."
                             + proto + ".Handler" );

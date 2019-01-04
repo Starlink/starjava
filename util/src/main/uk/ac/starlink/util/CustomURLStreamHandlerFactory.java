@@ -19,8 +19,8 @@ import java.util.logging.Logger;
  */
 public class CustomURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
-    private final Map classMap_;
-    private final Map instanceMap_;
+    private final Map<String,String> classMap_;
+    private final Map<String,URLStreamHandler> instanceMap_;
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.util" );
 
@@ -28,7 +28,7 @@ public class CustomURLStreamHandlerFactory implements URLStreamHandlerFactory {
      * Constructs a no-op handler factory.
      */
     public CustomURLStreamHandlerFactory() {
-        this( new HashMap() );
+        this( new HashMap<String,String>() );
     }
 
     /**
@@ -37,9 +37,9 @@ public class CustomURLStreamHandlerFactory implements URLStreamHandlerFactory {
      *
      * @param  classMap  handler class map
      */
-    public CustomURLStreamHandlerFactory( Map classMap ) {
+    public CustomURLStreamHandlerFactory( Map<String,String> classMap ) {
         classMap_ = classMap;
-        instanceMap_ = new HashMap();
+        instanceMap_ = new HashMap<String,URLStreamHandler>();
     }
 
     /**
@@ -48,22 +48,22 @@ public class CustomURLStreamHandlerFactory implements URLStreamHandlerFactory {
      *
      * @return   handler class map
      */
-    public Map getHandlerClassMap() {
+    public Map<String,String> getHandlerClassMap() {
         return classMap_;
     }
 
     public URLStreamHandler createURLStreamHandler( String protocol ) {
-        Map classMap = getHandlerClassMap();
+        Map<String,String> classMap = getHandlerClassMap();
 
         /* If we already have a handler for this protocol, return it. */
         if ( instanceMap_.containsKey( protocol ) ) {
-            return (URLStreamHandler) instanceMap_.get( protocol );
+            return instanceMap_.get( protocol );
         }
 
         /* Otherwise if we have a classname which is supposed to reference
          * a handler for this protocol, try to instantiate it. */
         else if ( classMap.containsKey( protocol ) ) {
-            String clazzName = String.valueOf( classMap.get( protocol ) );
+            String clazzName = classMap.get( protocol );
             URLStreamHandler handler;
             try {
                 handler = (URLStreamHandler)

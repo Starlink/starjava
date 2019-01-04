@@ -16,7 +16,7 @@ import javax.swing.event.ListDataListener;
  */
 public class WeakListDataListener implements ListDataListener {
 
-    private final Reference baseRef_;
+    private final Reference<ListDataListener> baseRef_;
 
     /**
      * Constructs a new listener based on an existing one.
@@ -24,25 +24,25 @@ public class WeakListDataListener implements ListDataListener {
      * @param base listener
      */
     public WeakListDataListener( ListDataListener base ) {
-        baseRef_ = new WeakReference( base );
+        baseRef_ = new WeakReference<ListDataListener>( base );
     }
 
     public void contentsChanged( ListDataEvent evt ) {
-        ListDataListener base = (ListDataListener) baseRef_.get();
+        ListDataListener base = baseRef_.get();
         if ( base != null ) {
             base.contentsChanged( evt );
         }
     }
 
     public void intervalAdded( ListDataEvent evt ) {
-        ListDataListener base = (ListDataListener) baseRef_.get();
+        ListDataListener base = baseRef_.get();
         if ( base != null ) {
             base.intervalAdded( evt );
         }
     }
 
     public void intervalRemoved( ListDataEvent evt ) {
-        ListDataListener base = (ListDataListener) baseRef_.get();
+        ListDataListener base = baseRef_.get();
         if ( base != null ) {
             base.intervalRemoved( evt );
         }

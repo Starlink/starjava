@@ -14,7 +14,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -113,7 +112,8 @@ public class ErrorDialog extends JDialog {
         if ( summaryPanel_ == null ) {
 
             /* Assemble the text to display. */
-            List lines = new ArrayList( Arrays.asList( message_ ) );
+            List<String> lines =
+                new ArrayList<String>( Arrays.asList( message_ ) );
             String errmsg = error_.getMessage();
             if ( errmsg != null ) {
                 String[] msgLines = errmsg.split( "\n" );
@@ -136,8 +136,7 @@ public class ErrorDialog extends JDialog {
             /* Put it into a box. */
             JComponent lineBox = Box.createVerticalBox();
             lineBox.add( Box.createVerticalGlue() );
-            for ( Iterator it = lines.iterator(); it.hasNext(); ) {
-                String line = (String) it.next();
+            for ( String line : lines ) {
                 lineBox.add( new JLabel( line, SwingConstants.LEFT ) );
             }
             lineBox.add( Box.createVerticalGlue() );

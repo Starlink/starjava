@@ -32,7 +32,7 @@ import javax.swing.table.AbstractTableModel;
 public class BeanTableModel extends AbstractTableModel {
 
     private final PropertyDescriptor[] properties_;
-    private final Class beanClass_;
+    private final Class<?> beanClass_;
     private Object[] data_;
     private boolean readErrorReported_;
     private boolean writeErrorReported_;
@@ -51,16 +51,17 @@ public class BeanTableModel extends AbstractTableModel {
             throw new IllegalArgumentException( "Can't do primitive class" );
         }
         BeanInfo info = Introspector.getBeanInfo( clazz );
-        List propList =
-            new ArrayList( Arrays.asList( info.getPropertyDescriptors() ) );
-        for ( Iterator it = propList.iterator(); it.hasNext(); ) {
-            PropertyDescriptor prop = (PropertyDescriptor) it.next();
+        List<PropertyDescriptor> propList =
+            new ArrayList<PropertyDescriptor>(
+                Arrays.asList( info.getPropertyDescriptors() ) );
+        for ( Iterator<PropertyDescriptor> it = propList.iterator();
+              it.hasNext(); ) {
+            PropertyDescriptor prop = it.next();
             if ( ! useProperty( prop ) ) {
                 it.remove();
             }
         }
-        properties_ = (PropertyDescriptor[])
-                      propList.toArray( new PropertyDescriptor[ 0 ] );
+        properties_ = propList.toArray( new PropertyDescriptor[ 0 ] );
         data_ = (Object[]) Array.newInstance( clazz, 0 );
     }
 
@@ -102,7 +103,7 @@ public class BeanTableModel extends AbstractTableModel {
      *           null if <tt>propertyName</tt> does not name a suitable 
      *           property
      */
-    public Comparator propertySorter( String propertyName ) {
+    public Comparator<?> propertySorter( String propertyName ) {
         PropertyDescriptor prop = getPropertyByName( propertyName );
         if ( prop != null && 
              Comparable.class.isAssignableFrom( prop.getPropertyType() ) ) {
@@ -133,7 +134,9 @@ public class BeanTableModel extends AbstractTableModel {
                             v2 = new Integer( o2.hashCode() );
                         }
                         if ( v1 != null && v2 != null ) {
-                            return ((Comparable) v1).compareTo( v2 );
+                            @SuppressWarnings("unchecked")
+                            Comparable<Object> cv1 = (Comparable<Object>) v1;
+                            return cv1.compareTo( v2 );
                         }
                         else if ( v1 == null && v2 == null ) {
                             return 0;

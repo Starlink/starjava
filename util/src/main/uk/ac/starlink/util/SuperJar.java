@@ -44,8 +44,8 @@ public class SuperJar {
     private final File[] jarFiles_;
     private final File[] flatFiles_;
     private final File[] jarDeps_;
-    private final Collection fileExcludeSet_;
-    private final Collection dirExcludeSet_;
+    private final Collection<String> fileExcludeSet_;
+    private final Collection<String> dirExcludeSet_;
     private static PrintStream logStrm_ = System.err;
 
     /**
@@ -62,10 +62,9 @@ public class SuperJar {
                      String[] entryExcludes ) throws IOException {
         jarFiles_ = jarFiles;
         flatFiles_ = flatFiles;
-        fileExcludeSet_ = new HashSet();
-        dirExcludeSet_ = new HashSet();
-        for ( int i = 0; i < entryExcludes.length; i++ ) {
-            String name = entryExcludes[ i ];
+        fileExcludeSet_ = new HashSet<String>();
+        dirExcludeSet_ = new HashSet<String>();
+        for ( String name : entryExcludes ) {
             ( ( name.charAt( name.length() - 1 ) == '/' ) ? dirExcludeSet_
                                                           : fileExcludeSet_ )
                 .add( name );
@@ -86,10 +85,7 @@ public class SuperJar {
          * input jar file, minus any class-path entry. */
         Manifest inManifest = readManifest( jarFiles_[ 0 ] );
         Manifest outManifest = new Manifest();
-        for ( Iterator it = inManifest.getMainAttributes().entrySet()
-                                      .iterator();
-              it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
+        for ( Map.Entry entry : inManifest.getMainAttributes().entrySet() ) {
             Attributes outAtts = outManifest.getMainAttributes();
             if ( ! entry.getKey().equals( Attributes.Name.CLASS_PATH ) ) {
                 outAtts.put( entry.getKey(), entry.getValue() );
@@ -133,7 +129,7 @@ public class SuperJar {
         /* All the jar files will go effectively in the same directory
          * (at the same level in the zip file).  Check that they have
          * different names. */
-        Map tailMap = new HashMap();
+        Map<String,File> tailMap = new HashMap<String,File>();
         for ( int ij = 0; ij < jarDeps_.length; ij++ ) {
             File file = jarDeps_[ ij ];
             String tail = file.getName();
@@ -230,8 +226,7 @@ public class SuperJar {
         if ( fileExcludeSet_.contains( name ) ) {
             return true;
         }
-        for ( Iterator it = dirExcludeSet_.iterator(); it.hasNext(); ) {
-            String exclude = (String) it.next();
+        for ( String exclude : dirExcludeSet_ ) {
             if ( name.startsWith( exclude ) ) {
                 return true;
             }
@@ -272,12 +267,13 @@ public class SuperJar {
     private static File[] getDependencies( File[] jarfiles,
                                            String[] jarExcludes )
             throws IOException {
-        Collection jfSet = new HashSet();
-        Collection jarExcludeSet = new HashSet( Arrays.asList( jarExcludes ) );
+        Collection<File> jfSet = new HashSet<File>();
+        Collection<String> jarExcludeSet =
+            new HashSet<String>( Arrays.asList( jarExcludes ) );
         for ( int ij = 0; ij < jarfiles.length; ij++ ) {
             accumulateDependencies( jarfiles[ ij ], jarExcludeSet, jfSet );
         }
-        File[] jfiles = (File[]) jfSet.toArray( new File[ 0 ] );
+        File[] jfiles = jfSet.toArray( new File[ 0 ] );
         Arrays.sort( jfiles );
         return jfiles;
     }
@@ -293,8 +289,8 @@ public class SuperJar {
      *          known dependencies; this method appends to it
      */
     private static void accumulateDependencies( File jfile,
-                                                Collection jarExcludeSet,
-                                                Collection jfSet )
+                                               Collection<String> jarExcludeSet,
+                                               Collection<File> jfSet )
             throws IOException {
         if ( jfile.isDirectory() ) {
             throw new IllegalArgumentException( jfile + " is a directory, " +
@@ -367,11 +363,11 @@ public class SuperJar {
      * @param file  file to test
      * @return   true iff <code>file</code> is named in <code>fnameSet</code>
      */
-    private static boolean containsFilename( Collection fnameSet, File file )
+    private static boolean containsFilename( Collection<String> fnameSet,
+                                             File file )
             throws IOException {
         String cname = file.getCanonicalPath();
-        for ( Iterator it = fnameSet.iterator(); it.hasNext(); ) {
-            String excl = (String) it.next();
+        for ( String excl : fnameSet ) {
             if ( cname.equals( excl ) ||
                  cname.endsWith( File.separator + excl ) ) {
                 return true;
@@ -387,11 +383,11 @@ public class SuperJar {
      * @param   file   file to test
      * @param   true iff <code>file</code> is listed in <code>fileSet</code>
      */
-    private static boolean containsFile( Collection fileSet, File file )
+    private static boolean containsFile( Collection<File> fileSet, File file )
             throws IOException {
         String cname = file.getCanonicalPath();
-        for ( Iterator it = fileSet.iterator(); it.hasNext(); ) {
-            if ( ((File) it.next()).getCanonicalPath().equals( cname ) ) {
+        for ( File f : fileSet ) {
+            if ( f.getCanonicalPath().equals( cname ) ) {
                 return true;
             }
         }
@@ -452,15 +448,15 @@ public class SuperJar {
                      + "         jarfile [jarfile ..]";
 
         /* Process arguments. */
-        List arglist = new ArrayList( Arrays.asList( args ) );
-        List jarlist = new ArrayList();
-        List flatFileList = new ArrayList();
+        List<String> arglist = new ArrayList<String>( Arrays.asList( args ) );
+        List<File> jarlist = new ArrayList<File>();
+        List<File> flatFileList = new ArrayList<File>();
         File outJar = null;
         File outZip = null;
-        List jarExcludeList = new ArrayList();
-        List entryExcludeList = new ArrayList();
-        for ( Iterator it = arglist.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        List<String> jarExcludeList = new ArrayList<String>();
+        List<String> entryExcludeList = new ArrayList<String>();
+        for ( Iterator<String> it = arglist.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.startsWith( "-h" ) ) {
                 System.err.println( usage );
                 System.exit( 0 );
@@ -468,28 +464,28 @@ public class SuperJar {
             else if ( arg.equals( "-oj" ) ||
                       arg.equals( "-o" ) ) {
                 it.remove();
-                outJar = new File( (String) it.next() );
+                outJar = new File( it.next() );
                 it.remove();
             }
             else if ( arg.equals( "-oz" ) ) {
                 it.remove();
-                outZip = new File( (String) it.next() );
+                outZip = new File( it.next() );
                 it.remove();
             }
             else if ( arg.equals( "-x" ) ||
                       arg.equals( "-xjar" ) ) {
                 it.remove();
-                jarExcludeList.add( (String) it.next() );
+                jarExcludeList.add( it.next() );
                 it.remove();
             }
             else if ( arg.equals( "-xent" ) ) {
                 it.remove();
-                entryExcludeList.add( (String) it.next() );
+                entryExcludeList.add( it.next() );
                 it.remove();
             }
             else if ( arg.equals( "-file" ) ) {
                 it.remove();
-                flatFileList.add( new File( (String) it.next() ) );
+                flatFileList.add( new File( it.next() ) );
                 it.remove();
             }
             else {
@@ -501,14 +497,10 @@ public class SuperJar {
             System.err.println( usage );
             System.exit( 1 );
         }
-        File[] jarFiles =
-            (File[]) jarlist.toArray( new File[ 0 ] );
-        File[] flatFiles =
-            (File[]) flatFileList.toArray( new File[ 0 ] );
-        String[] jarExcludes =
-            (String[]) jarExcludeList.toArray( new String[ 0 ] );
-        String[] entryExcludes =
-            (String[]) entryExcludeList.toArray( new String[ 0 ] );
+        File[] jarFiles = jarlist.toArray( new File[ 0 ] );
+        File[] flatFiles = flatFileList.toArray( new File[ 0 ] );
+        String[] jarExcludes = jarExcludeList.toArray( new String[ 0 ] );
+        String[] entryExcludes = entryExcludeList.toArray( new String[ 0 ] );
 
         /* Construct the writer. */
         SuperJar sj =

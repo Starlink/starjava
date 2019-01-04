@@ -52,7 +52,7 @@ public class AsciiFileParser
     /**
      * A list that contains arrays of each set of Strings parsed from each row.
      */
-    protected ArrayList rowList = new ArrayList();
+    protected ArrayList<String[]> rowList = new ArrayList<String[]>();
 
     /**
      * The character used for single-line comments. Defaults to #.
@@ -158,7 +158,7 @@ public class AsciiFileParser
     public int getNFields( int row )
     {
         if ( rowList.size() > row ) {
-            return ( (String[]) rowList.get( row ) ).length;
+            return ( rowList.get( row ) ).length;
         }
         return 0;
     }
@@ -177,7 +177,7 @@ public class AsciiFileParser
     public String[] getRow( int row )
     {
         if ( rowList.size() > row ) {
-            return (String[]) rowList.get( row );
+            return rowList.get( row );
         }
         return null;
     }

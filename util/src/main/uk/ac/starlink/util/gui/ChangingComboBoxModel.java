@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -18,8 +17,8 @@ import javax.swing.event.ChangeListener;
  */
 public class ChangingComboBoxModel extends DefaultComboBoxModel {
 
-    private final Collection changeListeners_;
-    private final Collection actionListeners_;
+    private final Collection<ChangeListener> changeListeners_;
+    private final Collection<ActionListener> actionListeners_;
 
     /**
      * Constructs an empty model.
@@ -35,8 +34,8 @@ public class ChangingComboBoxModel extends DefaultComboBoxModel {
      */
     public ChangingComboBoxModel( Object[] items ) {
         super( items );
-        changeListeners_ = new ArrayList();
-        actionListeners_ = new ArrayList();
+        changeListeners_ = new ArrayList<ChangeListener>();
+        actionListeners_ = new ArrayList<ActionListener>();
     }
 
     /**
@@ -92,8 +91,7 @@ public class ChangingComboBoxModel extends DefaultComboBoxModel {
      */
     protected void fireSelectionChanged( Object source ) {
         ChangeEvent evt = new ChangeEvent( source );
-        for ( Iterator it = changeListeners_.iterator(); it.hasNext(); ) {
-            ChangeListener listener = (ChangeListener) it.next();
+        for ( ChangeListener listener : changeListeners_ ) {
             listener.stateChanged( evt );
         }
     }
@@ -105,8 +103,7 @@ public class ChangingComboBoxModel extends DefaultComboBoxModel {
      */
     protected void fireActionPerformed( Object source ) {
         ActionEvent evt = new ActionEvent( source, 0, "change" );
-        for ( Iterator it = actionListeners_.iterator(); it.hasNext(); ) {
-            ActionListener listener = (ActionListener) it.next();
+        for ( ActionListener listener : actionListeners_ ) {
             listener.actionPerformed( evt );
         }
     }

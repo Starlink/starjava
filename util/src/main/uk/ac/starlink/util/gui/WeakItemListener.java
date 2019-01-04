@@ -16,7 +16,7 @@ import java.awt.event.ItemListener;
  */
 public class WeakItemListener implements ItemListener {
 
-    private final Reference baseRef_;
+    private final Reference<ItemListener> baseRef_;
 
     /**
      * Constructs a new listener based on an existing one.
@@ -24,11 +24,11 @@ public class WeakItemListener implements ItemListener {
      * @param base listener
      */
     public WeakItemListener( ItemListener base ) {
-        baseRef_ = new WeakReference( base );
+        baseRef_ = new WeakReference<ItemListener>( base );
     }
 
     public void itemStateChanged( ItemEvent evt ) {
-        ItemListener base = (ItemListener) baseRef_.get();
+        ItemListener base = baseRef_.get();
         if ( base != null ) {
             base.itemStateChanged( evt );
         }

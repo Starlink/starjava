@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,18 +24,18 @@ import java.util.Set;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class MapGroup {
+public class MapGroup<K,V> {
 
-    private final List maps = new ArrayList();
-    private List ordering;
-    private Comparator keyComparator;
-    private List knownKeys;
+    private final List<Map<K,V>> maps = new ArrayList<Map<K,V>>();
+    private List<K> ordering;
+    private Comparator<K> keyComparator;
+    private List<K> knownKeys;
 
     /**
      * Constructs a new <tt>MapGroup</tt>.
      */
     public MapGroup() {
-        setKeyOrder( new ArrayList() );
+        setKeyOrder( new ArrayList<K>() );
     }
 
     /**
@@ -44,7 +43,7 @@ public class MapGroup {
      *
      * @param  map  the map to add
      */
-    public void addMap( Map map ) {
+    public void addMap( Map<K,V> map ) {
         maps.add( map );
     }
 
@@ -55,7 +54,7 @@ public class MapGroup {
      *
      * @return  a list of the maps
      */
-    public List getMaps() {
+    public List<Map<K,V>> getMaps() {
         return Collections.unmodifiableList( maps );
     }
 
@@ -83,17 +82,17 @@ public class MapGroup {
      * @param   ordering a list of objects which may appear in this 
      *          group's map keys
      */
-    public void setKeyOrder( List ordering ) {
+    public void setKeyOrder( List<K> ordering ) {
 
         /* Take a copy in case the caller changes his copy later. */
-        this.ordering = new ArrayList( ordering );
+        this.ordering = new ArrayList<K>( ordering );
 
         /* Make a comparator from the ordering - this is what we 
          * actually use rather than the stored list. */
-        final List order = new ArrayList( this.ordering );
+        final List<K> order = new ArrayList<K>( this.ordering );
         Collections.reverse( order );
-        keyComparator = new Comparator() {
-            public int compare( Object key1, Object key2 ) {
+        keyComparator = new Comparator<K>() {
+            public int compare( K key1, K key2 ) {
                 int ik1 = order.indexOf( key1 );
                 int ik2 = order.indexOf( key2 );
                 if ( ik1 >= 0 || ik2 >= 0 ) {
@@ -101,7 +100,9 @@ public class MapGroup {
                 }
                 else if ( key1 instanceof Comparable &&
                           key2 instanceof Comparable ) {
-                    return ((Comparable) key1).compareTo( key2 );
+                    @SuppressWarnings("unchecked")
+                    Comparable<Object> k1 = (Comparable<Object>) key1;
+                    return k1.compareTo( key2 );
                 }
                 else {
                     return System.identityHashCode( key1 )
@@ -116,7 +117,7 @@ public class MapGroup {
      *
      * @return  current key ordering
      */
-    public List getKeyOrder() {
+    public List<K> getKeyOrder() {
         return ordering;
     }
 
@@ -126,9 +127,9 @@ public class MapGroup {
      *
      * @param  keys  the set of key values whose entries must be removed
      */
-    public void removeKeys( Collection keys ) {
-        for ( Iterator it = keys.iterator(); it.hasNext(); ) {
-            removeKey( it.next() );
+    public void removeKeys( Collection<K> keys ) {
+        for ( K key : keys ) {
+            removeKey( key );
         }
     }
 
@@ -137,9 +138,9 @@ public class MapGroup {
      *
      * @param  key  the key whose entries must be removed
      */
-    public void removeKey( Object key ) {
-        for ( Iterator it = maps.iterator(); it.hasNext(); ) {
-            ((Map) it.next()).remove( key );
+    public void removeKey( K key ) {
+        for ( Map<K,V> map : maps ) {
+            map.remove( key );
         }
     }
 
@@ -149,9 +150,9 @@ public class MapGroup {
      *
      * @param  keys  the keys whose entries must be retained
      */
-    public void retainKeys( Collection keys ) {
-        for ( Iterator it = maps.iterator(); it.hasNext(); ) {
-            ((Map) it.next()).keySet().retainAll( keys );
+    public void retainKeys( Collection<K> keys ) {
+        for ( Map<K,V> map : maps ) {
+            map.keySet().retainAll( keys );
         }
     }
 
@@ -161,8 +162,8 @@ public class MapGroup {
      *
      * @param  keys  collection of keys
      */
-    public void setKnownKeys( List keys ) {
-        knownKeys = new ArrayList( keys );
+    public void setKnownKeys( List<K> keys ) {
+        knownKeys = new ArrayList<K>( keys );
     }
 
     /**
@@ -175,17 +176,16 @@ public class MapGroup {
      *
      * @return  the list of map keys
      */
-    public List getKnownKeys() {
+    public List<K> getKnownKeys() {
         if ( knownKeys != null ) {
             return knownKeys;
         }
         else {
-            Set keyset= new HashSet();
-            for ( Iterator it = maps.iterator(); it.hasNext(); ) {
-                Map map = (Map) it.next();
+            Set<K> keyset= new HashSet<K>();
+            for ( Map<K,V> map : maps ) {
                 keyset.addAll( map.keySet() );
             }
-            List keylist = new ArrayList( keyset );
+            List<K> keylist = new ArrayList<K>( keyset );
             Collections.sort( keylist, keyComparator );
             return keylist;
         }

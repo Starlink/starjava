@@ -106,13 +106,13 @@ public abstract class PrimitiveXMLEncodeDecode
     /**
      * Return all the Elements that are children of another Element.
      */
-    public static List getChildElements( Element element )
+    public static List<Element> getChildElements( Element element )
     {
         NodeList nodeList = element.getChildNodes();
-        List elementList = new ArrayList();
+        List<Element> elementList = new ArrayList<Element>();
         for ( int i = 0; i < nodeList.getLength(); i++ ) {
             if ( nodeList.item( i ) instanceof Element ) {
-                elementList.add( nodeList.item( i ) );
+                elementList.add( (Element) nodeList.item( i ) );
             }
         }
         return elementList;

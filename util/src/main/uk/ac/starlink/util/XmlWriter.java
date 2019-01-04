@@ -13,7 +13,7 @@ public class XmlWriter {
 
     private PrintStream out_;
     private int level_;
-    private LinkedList stack_;
+    private LinkedList<String> stack_;
 
     /**
      * Constructs a new writer which outputs to <code>System.out</code>.
@@ -29,7 +29,7 @@ public class XmlWriter {
      */
     public XmlWriter( PrintStream out ) {
         out_ = out;
-        stack_ = new LinkedList();
+        stack_ = new LinkedList<String>();
     }
 
     /**
@@ -71,7 +71,7 @@ public class XmlWriter {
      * @throws  IllegalArgumentException  if that element's not ready to finish
      */
     public void endElement( String elName ) {
-        String openElName = (String) stack_.removeLast();
+        String openElName = stack_.removeLast();
         if ( ! openElName.equals( elName ) ) {
             throw new IllegalArgumentException( "Start/end tag mismatch: " +
                                                 elName + " != " + openElName );

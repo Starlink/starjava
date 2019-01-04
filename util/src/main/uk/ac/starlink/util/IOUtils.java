@@ -19,7 +19,8 @@ import java.util.logging.Logger;
  */
 public class IOUtils {
 
-    private final static Map resourceMap_ = new HashMap();
+    private final static Map<List<Object>,String> resourceMap_ =
+        new HashMap<List<Object>,String>();
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.util" );
     private final static byte[] lineSep_ = getLineSeparatorBytes();
@@ -179,7 +180,7 @@ public class IOUtils {
      */
     public static String getResourceContents( Class clazz, String name,
                                               Level level ) {
-        List key = Arrays.asList( new Object[] { clazz, name } );
+        List<Object> key = Arrays.asList( new Object[] { clazz, name } );
         if ( ! resourceMap_.containsKey( key ) ) {
             String value = null;
             InputStream in = null;
@@ -211,7 +212,7 @@ public class IOUtils {
             }
             resourceMap_.put( key, value );
         }
-        return (String) resourceMap_.get( key );   
+        return resourceMap_.get( key );   
     }
 
     /**

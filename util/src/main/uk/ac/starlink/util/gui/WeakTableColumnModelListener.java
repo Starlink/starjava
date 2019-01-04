@@ -18,7 +18,7 @@ import javax.swing.event.TableColumnModelListener;
  */
 public class WeakTableColumnModelListener implements TableColumnModelListener {
 
-    private final Reference baseRef_;
+    private final Reference<TableColumnModelListener> baseRef_;
 
     /**
      * Constructs a new listener based on an existing one.
@@ -26,44 +26,39 @@ public class WeakTableColumnModelListener implements TableColumnModelListener {
      * @param base listener
      */
     public WeakTableColumnModelListener( TableColumnModelListener base ) {
-        baseRef_ = new WeakReference( base );
+        baseRef_ = new WeakReference<TableColumnModelListener>( base );
     }
 
     public void columnAdded( TableColumnModelEvent evt ) {
-        TableColumnModelListener base = 
-            (TableColumnModelListener) baseRef_.get();
+        TableColumnModelListener base = baseRef_.get();
         if ( base != null ) {
             base.columnAdded( evt );
         }
     }
 
     public void columnRemoved( TableColumnModelEvent evt ) {
-        TableColumnModelListener base = 
-            (TableColumnModelListener) baseRef_.get();
+        TableColumnModelListener base = baseRef_.get();
         if ( base != null ) {
             base.columnRemoved( evt );
         }
     }
 
     public void columnMoved( TableColumnModelEvent evt ) {
-        TableColumnModelListener base = 
-            (TableColumnModelListener) baseRef_.get();
+        TableColumnModelListener base = baseRef_.get();
         if ( base != null ) {
             base.columnMoved( evt );
         }
     }
 
     public void columnMarginChanged( ChangeEvent evt ) {
-        TableColumnModelListener base =
-            (TableColumnModelListener) baseRef_.get();
+        TableColumnModelListener base = baseRef_.get();
         if ( base != null ) {
             base.columnMarginChanged( evt );
         }
     }
 
     public void columnSelectionChanged( ListSelectionEvent evt ) {
-        TableColumnModelListener base =
-            (TableColumnModelListener) baseRef_.get();
+        TableColumnModelListener base = baseRef_.get();
         if ( base != null ) {
             base.columnSelectionChanged( evt );
         }

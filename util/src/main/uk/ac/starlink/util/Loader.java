@@ -30,7 +30,7 @@ public class Loader {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.util" );
     private static boolean propsLoaded = false;
-    private static Set warnings = new HashSet();
+    private static Set<String> warnings = new HashSet<String>();
     private static Boolean is64Bit;
 
     /** 

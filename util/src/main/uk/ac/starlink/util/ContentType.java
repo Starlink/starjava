@@ -1,6 +1,6 @@
 package uk.ac.starlink.util;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -50,7 +50,7 @@ public class ContentType {
      * @param   subtype  subtype part
      */
     public ContentType( String type, String subtype ) {
-        this( type, subtype, Collections.EMPTY_MAP );
+        this( type, subtype, new HashMap<String,String>() );
     }
 
     /**
