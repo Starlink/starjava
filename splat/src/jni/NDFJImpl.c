@@ -111,10 +111,19 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nInit
     errMark();
     status = SAI__OK;
     ndfInit( 0, NULL, &status );
+
+    /* Ensure HDS does not perform lock checking. This is a temporary fix
+       until such time as routines are available in the NDF library to allow
+       a thread to lock and unlock an NDF for its own use. The following
+       line should then be deleted and the rest of this file modified to
+       lock and unlock NDF identifiers appropriately. */
+    hdsTune( "LOCKCHECK", 0, &status );
+
     if ( status != SAI__OK ) {
         errAnnul( &status );
     }
     errRlse();
+
     return;
 }
 
