@@ -1674,6 +1674,15 @@ type BINTABLE containing the table data.
     column data but may also result in tables less suitable for streaming.
     </p></dd>
 
+<dt>fits-healpix</dt>
+<dd><p>Used for storing HEALPix pixel data in a way that conforms to the
+    semi-standard HEALPix-FITS convention.
+    In most ways it behaves the same as <code>fits-basic</code>,
+    but it will rearrange and rename columns as required to follow
+    the convention, and it will fail if the table does not contain
+    the required HEALPix metadata (<code>STIL_HPX_*</code> parameters).
+    </p></dd>
+
 </dl>
 In general, you can just let TOPCAT detect the format automatically
 and not worry about which of these variants is being used - if 

@@ -42,6 +42,7 @@ import uk.ac.starlink.util.Loader;
  * <li> {@link uk.ac.starlink.votable.FitsPlusTableWriter}
  * <li> {@link uk.ac.starlink.fits.FitsTableWriter}
  * <li> {@link uk.ac.starlink.fits.VariableFitsTableWriter}
+ * <li> {@link uk.ac.starlink.fits.HealpixFitsTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
@@ -70,6 +71,7 @@ public class StarTableOutput {
         "uk.ac.starlink.votable.FitsPlusTableWriter",
         "uk.ac.starlink.fits.FitsTableWriter",
         "uk.ac.starlink.fits.VariableFitsTableWriter",
+        "uk.ac.starlink.fits.HealpixFitsTableWriter",
         "uk.ac.starlink.votable.ColFitsPlusTableWriter",
         "uk.ac.starlink.fits.ColFitsTableWriter",
         "uk.ac.starlink.votable.VOTableWriter",

@@ -2199,6 +2199,13 @@ Matching is case-insensitive.
     used where appropriate to write variable-length array columns.
     </p></dd>
 
+<dt><code>fits-healpix</code></dt>
+<dd><p>FITS file conforming to HEALPix-FITS convention.
+    This resembles <code>fits-basic</code>, but can only be used for
+    writing tables containing HEALPix pixel data, and will rearrange
+    column sequence and names to follow the convention if necessary.
+    </p></dd>
+
 <dt><code>colfits-plus</code></dt>
 <dd><p>FITS file containing a BINTABLE with a single row; each cell of
     the row contains a whole column's worth of data.

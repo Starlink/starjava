@@ -24,6 +24,7 @@ import uk.ac.starlink.fits.ColFitsTableBuilder;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.fits.HealpixFitsTableWriter;
 import uk.ac.starlink.fits.VariableFitsTableWriter;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.storage.AdaptiveByteStore;
@@ -251,18 +252,21 @@ public class FormatsTest extends TableCase {
         List handlers = new StarTableOutput().getHandlers();
         for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
             StarTableWriter handler = (StarTableWriter) it.next();
-            String fmt = handler.getFormatName().toLowerCase();
-            fmt.replaceAll( "^[a-zA-Z0-9]", "" );
-            if ( fmt.length() > 4 ) {
-                fmt = fmt.substring( 0, 4 );
-            }
-            File loc = getTempFile( "t" + ( ++i ) + "." + fmt );
-            handler.writeStarTable( table, loc.toString(), sto );
-
-            if ( handler instanceof FitsTableWriter ) {
-                DataSource datsrc = new FileDataSource( loc );
-                StarTable st2 = sfact.makeStarTable( datsrc );
-                checkStarTable( st2 );
+            boolean isGeneric = ! ( handler instanceof HealpixFitsTableWriter );
+            if ( isGeneric ) {
+                String fmt = handler.getFormatName().toLowerCase();
+                fmt.replaceAll( "^[a-zA-Z0-9]", "" );
+                if ( fmt.length() > 4 ) {
+                    fmt = fmt.substring( 0, 4 );
+                }
+                File loc = getTempFile( "t" + ( ++i ) + "." + fmt );
+                handler.writeStarTable( table, loc.toString(), sto );
+    
+                if ( handler instanceof FitsTableWriter ) {
+                    DataSource datsrc = new FileDataSource( loc );
+                    StarTable st2 = sfact.makeStarTable( datsrc );
+                    checkStarTable( st2 );
+                }
             }
         }
         String[] knownFormats = new String[] {
@@ -270,6 +274,7 @@ public class FormatsTest extends TableCase {
             "fits-plus",
             "fits-basic",
             "fits-var",
+            "fits-healpix",
             "colfits-plus",
             "colfits-basic",
             "votable-tabledata",
