@@ -2193,6 +2193,12 @@ Matching is case-insensitive.
 <dd><p>FITS file; primary HDU is data-less, subsequent extensions
     contain a FITS binary table</p></dd>
 
+<dt><code>fits-var</code></dt>
+<dd><p>FITS file; like <code>fits-basic</code>,
+    but the FITS <code>P</code> and <code>Q</code> format types are
+    used where appropriate to write variable-length array columns.
+    </p></dd>
+
 <dt><code>colfits-plus</code></dt>
 <dd><p>FITS file containing a BINTABLE with a single row; each cell of
     the row contains a whole column's worth of data.

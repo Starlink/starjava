@@ -1633,7 +1633,7 @@ a primary one (required by the FITS standard), and a single extension of
 type BINTABLE containing the table data.
 </p>
 
-<p>There are two variants of this format:
+<p>There are a few variants of this format:
 <dl>
 
 <dt>fits-basic</dt>
@@ -1663,6 +1663,15 @@ type BINTABLE containing the table data.
     If you want to ensure that the metadata are available to other VOTable-aware
     programs, you should use one of the normal
     <ref plaintextref="yes" id="outVotable">VOTable formats</ref>.
+    </p></dd>
+
+<dt>fits-var</dt>
+<dd><p>Behaves like <code>fits-basic</code>, but columns containing
+    variable-length numeric array data are stored using the <code>P</code>
+    and <code>Q</code> formats where appropriate, rather than padding
+    smaller arrays to the size of the largest.
+    This can make for more compact storage of variable-length array-valued
+    column data but may also result in tables less suitable for streaming.
     </p></dd>
 
 </dl>
