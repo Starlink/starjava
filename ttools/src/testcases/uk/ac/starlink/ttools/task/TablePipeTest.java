@@ -1,9 +1,19 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import nom.tam.util.BufferedDataInputStream;
+import nom.tam.fits.FitsException;
+import nom.tam.fits.Header;
+import uk.ac.starlink.fits.AbstractFitsTableWriter;
+import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.fits.HeaderCards;
+import uk.ac.starlink.fits.HealpixFitsTableWriter;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -17,6 +27,7 @@ import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.convert.SkyUnits;
 import uk.ac.starlink.ttools.filter.ArgException;
 import uk.ac.starlink.ttools.filter.AssertException;
+import uk.ac.starlink.votable.FitsPlusTableWriter;
 
 public class TablePipeTest extends TableTestCase {
 
@@ -35,6 +46,8 @@ public class TablePipeTest extends TableTestCase {
         Logger.getLogger( "uk.ac.starlink.ttools.filter" )
               .setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.table.storage" )
+              .setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.fits" )
               .setLevel( Level.WARNING );
     }
 
@@ -378,6 +391,70 @@ public class TablePipeTest extends TableTestCase {
         catch ( IOException e ) {
             assertTrue( e.getMessage().indexOf( "not fixed" ) > 0 );
         }
+    }
+
+    public void testHealpixMetadata() throws Exception {
+        StarTable pixTable = new QuickTable( 12, new ColumnData[] {
+            col( "HPX0", new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, } ),
+            col( "VALUE", new float[] { 5, 6, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, } ),
+        } );
+        StarTable p1 =
+            process( pixTable,
+                     "healpixmeta -level 0 -implicit -csys G -nested" );
+        {
+            HeaderCards hdr1 = getFitsHeaders( p1, new FitsTableWriter() );
+            assertEquals( "HEALPIX", hdr1.getStringValue( "PIXTYPE" ) );
+            assertEquals( "NESTED", hdr1.getStringValue( "ORDERING" ) );
+            assertEquals( "G", hdr1.getStringValue( "COORDSYS" ) );
+            assertEquals( "IMPLICIT", hdr1.getStringValue( "INDXSCHM" ) );
+            assertEquals( new Integer( 1 ), hdr1.getIntValue( "NSIDE" ) );
+            assertEquals( new Integer( 0 ), hdr1.getIntValue( "FIRSTPIX" ) );
+            assertEquals( new Integer( 11 ), hdr1.getIntValue( "LASTPIX" ) );
+            assertEquals( null, hdr1.getIntValue( "OBS_NPIX" ) );
+        }
+        StarTable p2 = process( p1, "healpixmeta -csys c -column hpx0" );
+        {
+            HeaderCards hdr2 = getFitsHeaders( p2, new FitsPlusTableWriter() );
+            assertEquals( "HEALPIX", hdr2.getStringValue( "PIXTYPE" ) );
+            assertEquals( "NESTED", hdr2.getStringValue( "ORDERING" ) );
+            assertEquals( "C", hdr2.getStringValue( "COORDSYS" ) );
+            assertEquals( "EXPLICIT", hdr2.getStringValue( "INDXSCHM" ) );
+            assertEquals( new Integer( 1 ), hdr2.getIntValue( "NSIDE" ) );
+            assertEquals( new Integer( 12 ), hdr2.getIntValue( "OBS_NPIX" ) );
+            assertEquals( null, hdr2.getIntValue( "FIRSTPIX" ) );
+        }
+        StarTable p3 = process( pixTable,
+                                "keepcols 'VALUE HPX0';"
+                              + "healpixmeta -level 0 -column HPX0 -ring" );
+        {
+            HeaderCards hdr3 =
+                getFitsHeaders( p3, new HealpixFitsTableWriter() );
+            assertEquals( new Integer( 2 ), hdr3.getIntValue( "TFIELDS" ) );
+            assertEquals( "PIXEL", hdr3.getStringValue( "TTYPE1" ) );
+            assertEquals( "VALUE", hdr3.getStringValue( "TTYPE2" ) );
+            assertEquals( "HEALPIX", hdr3.getStringValue( "PIXTYPE" ) );
+            assertEquals( "RING", hdr3.getStringValue( "ORDERING" ) );
+            assertEquals( null, hdr3.getStringValue( "COORDSYS" ) );
+            assertEquals( "EXPLICIT", hdr3.getStringValue( "INDXSCHM" ) );
+            assertEquals( new Integer( 1 ), hdr3.getIntValue( "NSIDE" ) );
+            assertEquals( new Integer( 12 ), hdr3.getIntValue( "OBS_NPIX" ) );
+            assertEquals( null, hdr3.getIntValue( "FIRSTPIX" ) );
+        }
+    }
+
+    private static HeaderCards
+            getFitsHeaders( StarTable table,
+                            AbstractFitsTableWriter fitsWriter )
+            throws IOException, FitsException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        fitsWriter.writeStarTable( table, bout );
+        byte[] buf = bout.toByteArray();
+        BufferedDataInputStream dataIn =
+            new BufferedDataInputStream( new ByteArrayInputStream( buf ),
+                                         buf.length );
+        FitsConstants.skipHDUs( dataIn, 1 );
+        Header hdr = new Header( dataIn );
+        return new HeaderCards( hdr );
     }
 
     public void testImplode() throws Exception {

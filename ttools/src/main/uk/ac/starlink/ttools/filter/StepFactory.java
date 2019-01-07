@@ -47,6 +47,7 @@ public class StepFactory {
         filterFactory_.register( "explodeall", pkg + "ExplodeAllFilter" );
         filterFactory_.register( "fixcolnames", pkg + "FixNamesFilter" );
         filterFactory_.register( "head", pkg + "HeadFilter" );
+        filterFactory_.register( "healpixmeta", pkg + "HealpixMetadataFilter" );
         filterFactory_.register( "keepcols", pkg + "KeepColumnFilter" );
         filterFactory_.register( "meta", pkg + "MetadataFilter" );
         filterFactory_.register( "progress", pkg + "ProgressFilter" );
