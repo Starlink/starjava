@@ -15,6 +15,8 @@
   <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
   <!ENTITY URL.STIL_JAVADOCS
            "http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/">
+  <!ENTITY URL.HEALPIX_FITS
+          "https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf">
 
   <!-- Define javadoc base URLs. -->
   <!ENTITY corejavadocs "http://docs.oracle.com/javase/6/docs/api/">
@@ -2200,7 +2202,9 @@ Matching is case-insensitive.
     </p></dd>
 
 <dt><code>fits-healpix</code></dt>
-<dd><p>FITS file conforming to HEALPix-FITS convention.
+<dd><p>FITS file conforming to the
+    <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
+    serialization convention.
     This resembles <code>fits-basic</code>, but can only be used for
     writing tables containing HEALPix pixel data, and will rearrange
     column sequence and names to follow the convention if necessary.
@@ -8474,6 +8478,14 @@ of input table columns or expressions as well.
 <ref id="layer-skydensity"><code>skydensity</code></ref> layer).
 </p>
 
+<p>In the case of HEALPix tiling, the result can also be output
+in a FITS file suitable for use by external applications that
+understand the semi-standard
+<webref url="&URL.HEALPIX_FITS;">FITS-Healpix</webref> convention.
+Note in this case, for maximum compatibility,
+the <code>fits-healpix</code> output format should in general be used.
+</p>
+
 &tskymap-summary;
 
 <subsubsect>
@@ -8495,6 +8507,27 @@ stilts tskymap in=iras_psc.fits lon=RA lat=DEC out=iras_map.csv
     </p></dd>
 
 <dt><verbatim>
+stilts tskymap in=iras_psc.fits lon=RA lat=DEC tiling=hpx6
+               ocmd='healpixmeta -csys C'
+               ofmt=fits-healpix out=iras_map.fits
+</verbatim></dt>
+<dd><p>This does a similar job to the previous example, but explicitly
+    requests HEALPix level 6 tiling, and outputs to a FITS variant
+    that other applications such as Aladin understand as containing
+    a HEALPix map.
+    The output format is specified with <code>ofmt=fits-healpix</code>,
+    which writes a FITS file following the
+    <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref> convention.
+    An additional filter
+    "<code><ref id="healpixmeta">healpixmeta</ref> -csys C</code>"
+    is also supplied here: this indicates that the HEALPix pixels in
+    the output file are to be considered in the <strong>C</strong>elestial
+    (=equatorial) sky system.  If this is not done, Aladin assumes the
+    coordinate system to be Galactic and will align the results incorrectly
+    on the sky.
+    </p></dd>
+
+<dt><verbatim>
 stilts tskymap in=2mpz.fits icmd='addskycoords fk5 galactic ra dec glon glat'
                lon=glon lat=glat tiling=hpx6
                cols='jCorr-hCorr hCorr-kCorr jCorr-kCorr' combine=median
@@ -8510,18 +8543,25 @@ stilts tskymap in=2mpz.fits icmd='addskycoords fk5 galactic ra dec glon glat'
     is laid on the sky with galactic coordinates.
     Setting <code>complete=true</code> guarantees that a row is written
     to the output file for every sky pixel, including empty ones.
+    Note in this case that the output format is not specified explicitly,
+    so it will be inferred from the filename, to be "normal" FITS,
+    rather than <code>healpix-fits</code>.  The output data will still be
+    present, but external applications may not automatically
+    identify the pixel column.
     </p></dd>
 
 <dt><verbatim>
 stilts tskymap in=tgas_source.fits tiling=hpx7 lon=l lat=b count=false
                cols=phot_g_n_obs combine=sum-per-unit perunit=arcmin2
+               ofmt=fits-healpix ocmd='healpixmeta -csys G'
                out=obs-density.fits
 </verbatim></dt>
 <dd><p>Calculates a level-7 HEALPix map where each cell contains the
     local number of observations per square arcminute, as determined
     by summing all the <code>phot_g_n_obs</code> values from the
     input table that fall into each tile and applying a suitable
-    scaling factor.
+    scaling factor.  The grid coordinate system is explicitly labelled
+    as <strong>G</strong>alactic.
     </p></dd>
 
 <dt><verbatim>
@@ -8535,7 +8575,7 @@ stilts tskymap in=gums_lmc.fits lon=alpha lat=delta
     <code>count</code>, these rows are just counted, discarding the
     pixels themselves, giving the number of level-14 healpix pixels
     touched by the sources in this input file.
-    Note this is not necessarily the most efficient way to caluclate
+    Note this is not necessarily the most efficient way to calculate
     coverage information.
     </p></dd>
 
@@ -11887,6 +11927,26 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Also, autoranging now works, so if a plot is made of a HEALPix
         file covering part of the sky, the sky view is centered on it
         in the same way as for marker plots.</li>
+    <li>Various changes to support the semi-standard
+        <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
+        serialization convention.
+        Available information about HEALPix encoding
+        (level, index column, ordering scheme, coord sys)
+        can now be stored in custom table parameters
+        (of the form <code>STIL_HPX_*</code>),
+        and is used by FITS output handlers to insert
+        the relevant FITS headers.
+        The existing FITS handlers do this where it's not disruptive,
+        and the new <ref id="outFormats">fits-healpix</ref>
+        output handler will additionally move and rename columns
+        if required.
+        This metadata is round-tripped by FITS and VOTable I/O handlers.
+        It is added automatically by the <ref id="tskymap">tskymap</ref>
+        command, and can be manipulated by hand using
+        the new <ref id="healpixmeta">healpixmeta</ref> filter.
+        FITS support is not perfect: the <code>BAD_DATA</code>
+        FITS keyword is ignored, and the 1024-element array-valued
+        column variant is not understood.</li>
     </ul>
     </p>
     </dd>

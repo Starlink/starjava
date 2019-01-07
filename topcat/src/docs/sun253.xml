@@ -302,6 +302,8 @@
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/VOTable/">
   <!ENTITY URL.DATALINK "http://www.ivoa.net/Documents/DataLink/">
   <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
+  <!ENTITY URL.HEALPIX_FITS
+         "https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf">
 
   <!-- Plot2 control references. -->
   <!ENTITY CONTROL.single
@@ -1676,7 +1678,8 @@ type BINTABLE containing the table data.
 
 <dt>fits-healpix</dt>
 <dd><p>Used for storing HEALPix pixel data in a way that conforms to the
-    semi-standard HEALPix-FITS convention.
+    <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
+    serialization convention.
     In most ways it behaves the same as <code>fits-basic</code>,
     but it will rearrange and rename columns as required to follow
     the convention, and it will fail if the table does not contain
@@ -10970,11 +10973,17 @@ range, ramp display etc.
 <p>The <label>Report</label> panel provides information calculated
 by the plot:
 <dl>
+<dt>HEALPix Level</dt>
+<dd><p>Reports the actual HEALPix level of the plotted tiles.
+    This is not necessarily the value selected in the style configuration
+    controls, since if tiles would be smaller than screen pixels,
+    the gridding is automatically degraded.
+    This value is also reported to the right of the HEALPix Level
+    configuration control.
+    </p></dd>
 <dt>Tile size/sq.deg</dt>
-<dd><p>Reports the size of each pixel in square degrees.
-    This is simply a function of the actual HEALPix level used for the plot
-    (which is reported at the right of the <label>HEALPix Level</label>
-    control).
+<dd><p>Reports the size of each plotted tile in square degrees.
+    This is simply a function of the actual HEALPix level.
     </p></dd>
 <dt>HEALPix Map</dt>
 <dd><p>This allows you to export the healpix map that you can see in the plot
@@ -10987,6 +10996,23 @@ by the plot:
     the <label>Save</label> (&IMG.SAVE_FORM_SKYDENSITY;) option
     lets you save it directly to disk in one of the available table formats.
     This information is also available from the <label>Export</label> menu.
+    </p>
+    <p>Some notes apply for this export:
+    <ol>
+    <li>If you want to export the table following the
+        <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref> convention
+        in a form suitable for use in other applications such as Aladin,
+        you should save it using the output format <label>fits-healpix</label>
+        rather than one of the other FITS variants.</li>
+    <li>When exported as FITS, the sky coordinate system
+        (FITS <code>COORDSYS</code> header) is determined by the current
+        value of the <label>View Sky System</label>, as reported in the
+        <ref id="SkyAxisControl">Sky Axes Control</ref>.</li>
+    <li>The HEALPix level at which the data is exported is that currently
+        plotted as reported by the <label>HEALPix Level</label> report item
+        above, not necessarily the one selected in the style configuration
+        controls.</li>
+    </ol>
     </p></dd>
 </dl>
 </p>
@@ -27736,8 +27762,31 @@ introduced since the last version:
         centered on the data if it only covers part of the sky; 
         and you can now select subsets and activate points
         corresponding to (the centers of) HEALPix pixels in the same
-        way as for markers.
-        </li>
+        way as for markers.</li>
+    <li>Various changes to support the semi-standard
+        <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
+        serialization convention.
+        Available information about HEALPix encoding
+        (level, index column, ordering scheme, coord sys)
+        can now be stored in custom table parameters
+        (of the form <code>STIL_HPX_*</code>),
+        and is used by FITS output handlers to insert
+        the relevant FITS headers.
+        The existing FITS handlers do this where it's not disruptive,
+        and the new <ref id="outFits">fits-healpix</ref>
+        output handler will additionally move and rename columns
+        where the convention requires.
+        This metadata is round-tripped by FITS and VOTable I/O handlers.
+        It is added automatically when exporting HEALPix maps from
+        the <ref id="form-skydensity">SkyDensity</ref> plot form.
+        FITS support is not perfect: the <code>BAD_DATA</code> FITS
+        keyword is ignored, and the 1024-element array-valued
+        column variant is not understood.
+        When the Sky Plot encounters a table tagged with this
+        HEALPix metadata, it now makes use of that information to
+        improve defaulting in HEALPix layer controls, and in some
+        cases by defaulting the initial plot layer to be of type
+        HEALPix rather than scatter plot.</li>
     </ul>
     </p></dd>
 
