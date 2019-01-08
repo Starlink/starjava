@@ -3,8 +3,6 @@ package uk.ac.starlink.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 
 /**
  * Thread which reads data from a pipe.  Having got an instance
@@ -132,18 +130,6 @@ public abstract class PipeReaderThread extends Thread {
         catch ( Throwable e ) {
             caught = e;
         }
-        finally {
-            if ( in != null ) {
-                try {
-                    in.close();
-                }
-                catch ( IOException e ) {
-                    if ( caught == null ) {
-                        caught = e;
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -154,6 +140,7 @@ public abstract class PipeReaderThread extends Thread {
      * <tt>dataIn</tt> to the end of the stream (either closing it early or
      * just stopping reading) may cause an IOException to be thrown in
      * the thread which is writing to the PipedOutputStream.
+     * Implementations should not close the supplied input stream.
      *
      * @param  dataIn  stream which will supply bytes
      * @throws  IOException if any I/O error occurs; this exception will
@@ -163,13 +150,15 @@ public abstract class PipeReaderThread extends Thread {
 
     /**
      * Waits until the <tt>doReading</tt> method has finished reading
-     * the bytes written down the output stream, and returns.
+     * the bytes written down the output stream, closes the input stream,
+     * and returns.
      * Any IOException which has occurred during the read will be thrown
      * by this method.
      */
     public void finishReading() throws IOException {
         try {
             join();
+            pipeIn.close();
         }
         catch ( InterruptedException e ) {
             if ( caught == null ) {
