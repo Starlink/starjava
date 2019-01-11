@@ -87,6 +87,12 @@ public class Tilings {
      * Returns the longitude of the approximate center of the tile
      * with a given index in the HEALPix NEST scheme.
      *
+     * <p>Note: the <code>index</code> parameter is 0-based,
+     * unlike the table row index special token <code>$index</code>
+     * (a.k.a. <code>$0</code>), which is 1-based.
+     * So if the HEALpix index is implicitly determined by the table row,
+     * the value <code>$index-1</code> should be used.
+     *
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
      * @return  longitude in degrees
@@ -99,6 +105,12 @@ public class Tilings {
     /**
      * Returns the latitude of the approximate center of the tile
      * with a given index in the HEALPix NEST scheme.
+     *
+     * <p>Note: the <code>index</code> parameter is 0-based,
+     * unlike the table row index special token <code>$index</code>
+     * (a.k.a. <code>$0</code>), which is 1-based.
+     * So if the HEALpix index is implicitly determined by the table row,
+     * the value <code>$index-1</code> should be used.
      *
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
@@ -113,6 +125,12 @@ public class Tilings {
      * Returns the longitude of the approximate center of the tile
      * with a given index in the HEALPix RING scheme.
      *
+     * <p>Note: the <code>index</code> parameter is 0-based,
+     * unlike the table row index special token <code>$index</code>
+     * (a.k.a. <code>$0</code>), which is 1-based.
+     * So if the HEALpix index is implicitly determined by the table row,
+     * the value <code>$index-1</code> should be used.
+     *
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
      * @return  longitude in degrees
@@ -125,6 +143,12 @@ public class Tilings {
     /**
      * Returns the latitude of the approximate center of the tile
      * with a given index in the HEALPix NEST scheme.
+     *
+     * <p>Note: the <code>index</code> parameter is 0-based,
+     * unlike the table row index special token <code>$index</code>
+     * (a.k.a. <code>$0</code>), which is 1-based.
+     * So if the HEALpix index is implicitly determined by the table row,
+     * the value <code>$index-1</code> should be used.
      *
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
@@ -139,6 +163,12 @@ public class Tilings {
      * Converts a healpix ring index from the NEST to the RING scheme
      * at a given order.
      *
+     * <p>Note: the <code>nestIndex</code> parameter is 0-based,
+     * unlike the table row index special token <code>$index</code>
+     * (a.k.a. <code>$0</code>), which is 1-based.
+     * So if the HEALpix index is implicitly determined by the table row,
+     * the value <code>$index-1</code> should be used.
+     *
      * @param   k      HEALPix order (0..29)
      * @param  nestIndex   pixel index in NEST scheme
      * @return  pixel index in RING scheme
@@ -151,6 +181,12 @@ public class Tilings {
     /**
      * Converts a healpix ring index from the RING to the NEST scheme
      * at a given order.
+     *
+     * <p>Note: the <code>ringIndex</code> parameter is 0-based,
+     * unlike the table row index special token <code>$index</code>
+     * (a.k.a. <code>$0</code>), which is 1-based.
+     * So if the HEALpix index is implicitly determined by the table row,
+     * the value <code>$index-1</code> should be used.
      *
      * @param   k      HEALPix order (0..29)
      * @param  ringIndex   pixel index in RING scheme
