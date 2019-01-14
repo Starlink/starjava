@@ -229,7 +229,7 @@ public class BasicCoordLayerControl extends ConfigControl
         }
         else {
             subselModel = tcModel.getSubsets().makeComboBoxModel();
-            subselModel.setSelectedItem( RowSubset.ALL );
+            subselModel.setSelectedItem( tcModel.getSelectedSubset() );
         }
         subsetSelector_.setModel( subselModel );
     }

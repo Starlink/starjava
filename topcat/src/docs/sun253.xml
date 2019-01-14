@@ -27787,6 +27787,9 @@ introduced since the last version:
         improve defaulting in HEALPix layer controls, and in some
         cases by defaulting the initial plot layer to be of type
         HEALPix rather than scatter plot.</li>
+    <li>Healpix and Spectrogram layer controls now default to initially
+        displaying only the current subset if one is defined,
+        rather than the whole dataset.</li>
     </ul>
     </p></dd>
 
