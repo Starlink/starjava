@@ -4,10 +4,13 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -19,10 +22,6 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
-import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
-import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
-import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
-import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.plot2.task.LayerType;
@@ -64,34 +63,17 @@ public class LayerTypeDoc {
      * layer type.
      *
      * @param  layerType  layer type
+     * @param  plotType   plot type with which this layer type is associated
+     *                    if unique; otherwise null
      * @return  text of &lt;subsect&gt; element
      */
-    public String getXmlDoc( LayerType layerType ) {
+    public String getXmlDoc( LayerType layerType, PlotType plotType ) {
 
         /* Get basic layer type information. */
         String lname = layerType.getName().toLowerCase();
         int npos = layerType.getPositionCount();
         Coord[] extraCoords = layerType.getExtraCoords();
         ConfigKey[] styleKeys = layerType.getStyleKeys();
-
-        /* Find out if this layer type looks to be associated with a particular
-         * plot type (ad-hoc). */
-        final PlotType plotType;
-        if ( lname.startsWith( "xyz" ) ) {
-            plotType = CubePlotType.getInstance();
-        }
-        else if ( lname.startsWith( "xy" ) ) {
-            plotType = PlanePlotType.getInstance();
-        }
-        else if ( lname.startsWith( "sky" ) ) {
-            plotType = SkyPlotType.getInstance();
-        }
-        else if ( lname.equals( "yerror" ) ) {
-            plotType = TimePlotType.getInstance();
-        }
-        else {
-            plotType = null;
-        }
 
         /* Work out what groups of auxiliary parameters it has. */
         boolean hasPos = npos > 0;
@@ -313,25 +295,32 @@ public class LayerTypeDoc {
     }
 
     /**
-     * Returns a map (keyed by name) of all the LayerTypes used by a given
-     * list of tasks.
+     * Returns an ordered list of all the LayerTypes used by known plot types.
      *
-     * @param  tasks   known task list
      * @return   known layer types
      */
-    public static Map<String,LayerType>
-            getLayerTypes( TypedPlot2Task[] tasks ) {
+    public static LayerType[] getLayerTypes() throws LoadException {
+        Set<LayerType> ltypes = new LinkedHashSet<LayerType>();
+        for ( TypedPlot2Task task : getPlot2Tasks() ) {
+            ltypes.addAll( getLayerTypes( task ).values() );
+        }
+        return ltypes.toArray( new LayerType[ 0 ] );
+    }
+
+    /**
+     * Returns a map (keyed by name) of all the LayerTypes used by a given
+     * task.
+     *
+     * @param   task  geometry-specific plot task
+     * @return  name->layer type map for given task
+     */
+    private static Map<String,LayerType> getLayerTypes( TypedPlot2Task task ) {
+        LayerTypeParameter ltParam =
+            AbstractPlot2Task
+           .createLayerTypeParameter( "", task.getPlotContext() );
         Map<String,LayerType> typeMap = new LinkedHashMap<String,LayerType>();
-        for ( TypedPlot2Task task : tasks ) {
-            LayerTypeParameter ltParam =
-                AbstractPlot2Task
-               .createLayerTypeParameter( "", task.getPlotContext() );
-            for ( LayerType ltype : ltParam.getOptions() ) {
-                String name = ltype.getName();
-                if ( ! typeMap.containsKey( name ) ) {
-                    typeMap.put( ltype.getName(), ltype );
-                }
-            }
+        for ( LayerType ltype : ltParam.getOptions() ) {
+            typeMap.put( ltype.getName(), ltype );
         }
         return typeMap;
     }
@@ -369,7 +358,7 @@ public class LayerTypeDoc {
            .toString();
 
         /* Parse arguments. */
-        List<String> argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         boolean doc = false;
         boolean basicXml = false;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
@@ -390,7 +379,37 @@ public class LayerTypeDoc {
         }
 
         /* Get known layer types. */
-        Map<String,LayerType> typeMap = getLayerTypes( getPlot2Tasks() );
+        TypedPlot2Task[] tasks = getPlot2Tasks();
+        Map<String,LayerType> typeMap =
+            new LinkedHashMap<String,LayerType>();
+        Map<String,Set<TypedPlot2Task>> taskMap =
+            new LinkedHashMap<String,Set<TypedPlot2Task>>();
+        for ( TypedPlot2Task task : tasks ) {
+            for ( Map.Entry<String,LayerType> entry :
+                  getLayerTypes( task ).entrySet() ) {
+                String lname = entry.getKey();
+                LayerType ltype = entry.getValue();
+
+                /* Make a list of the tasks that can be used for each
+                 * layer type.  This is so we can identify which layer
+                 * types are specific to a single TypedPlot2Task. */
+                if ( ! taskMap.containsKey( lname ) ) {
+                    taskMap.put( lname, new HashSet<TypedPlot2Task>() );
+                }
+                taskMap.get( lname ).add( task );
+
+               /* Only insert into the name->type map if we haven't seen
+                * name before; that doesn't affect the order of the
+                * entries in the LinkedHashMap, but it does mean that
+                * earlier-listed LayerTypes with the same name end
+                * up in the map.  These are generally better choices
+                * for generating generic documentation. */
+                if ( ! typeMap.containsKey( lname ) ) {
+                    typeMap.put( lname, ltype );
+                }
+            }
+        }
+
         if ( argList.size() > 0 ) {
             typeMap.keySet().retainAll( argList );
         }
@@ -401,8 +420,14 @@ public class LayerTypeDoc {
             out.println( "<doc>" );
         }
         LayerTypeDoc doccer = new LayerTypeDoc( basicXml );
-        for ( LayerType ltype : typeMap.values() ) {
-            out.println( doccer.getXmlDoc( ltype ) );
+        for ( Map.Entry<String,LayerType> entry : typeMap.entrySet() ) {
+            String lname = entry.getKey();
+            LayerType ltype = entry.getValue();
+            Set<TypedPlot2Task> ltasks = taskMap.get( lname );
+            PlotType plotType = ltasks != null && ltasks.size() == 1
+                              ? ltasks.iterator().next().getPlotType()
+                              : null;
+            out.println( doccer.getXmlDoc( ltype, plotType ) );
         }
         if ( doc ) {
             out.println( "</doc>" );

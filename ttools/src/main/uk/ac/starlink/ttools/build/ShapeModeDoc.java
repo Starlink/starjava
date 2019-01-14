@@ -140,12 +140,8 @@ public class ShapeModeDoc {
      * @return  name->mode map
      */
     public static Map<String,ShapeMode> getShapeModes() throws LoadException {
-        LayerType[] ltypes =
-            LayerTypeDoc.getLayerTypes( LayerTypeDoc.getPlot2Tasks() )
-                        .values()
-                        .toArray( new LayerType[ 0 ] );
         Map<String,ShapeMode> modeMap = new LinkedHashMap<String,ShapeMode>();
-        for ( LayerType ltype : ltypes ) {
+        for ( LayerType ltype : LayerTypeDoc.getLayerTypes() ) {
             if ( ltype instanceof ShapeFamilyLayerType ) {
                 ShapeModePlotter[] plotters =
                     ((ShapeFamilyLayerType) ltype).getShapeModePlotters();
@@ -173,7 +169,7 @@ public class ShapeModeDoc {
            .toString();
 
         /* Parse arguments. */
-        List<String> argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         boolean doc = false;
         boolean basicXml = false;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
