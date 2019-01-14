@@ -40,6 +40,15 @@ public abstract class HealpixDataGeom implements DataGeom {
             } )
         , false );
 
+    /**
+     * Placeholder instance.
+     * This can be used where an instance of this class is required
+     * for documentation purposes, but it is not
+     * capable of actual transformations.
+     */
+    public static final HealpixDataGeom DUMMY_INSTANCE =
+        new UnitHealpixDataGeom( "dummy", -1, true );
+
     private final String variantName_;
     private final boolean isNest_;
     private final int nside_;
@@ -52,7 +61,7 @@ public abstract class HealpixDataGeom implements DataGeom {
      * @param  level   healpix level (log2(nside))
      * @param  isNest  true for nested, false for ring
      */
-    protected HealpixDataGeom( String variantName, int level, boolean isNest ) {
+    private HealpixDataGeom( String variantName, int level, boolean isNest ) {
         variantName_ = variantName;
         isNest_ = isNest;
         nside_ = 1 << level;

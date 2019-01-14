@@ -22,10 +22,13 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
+import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.plot2.task.LayerType;
 import uk.ac.starlink.ttools.plot2.task.LayerTypeParameter;
+import uk.ac.starlink.ttools.plot2.task.SimpleLayerType;
 import uk.ac.starlink.ttools.plot2.task.ShapeFamilyLayerType;
 import uk.ac.starlink.ttools.plot2.task.TypedPlot2Task;
 import uk.ac.starlink.util.LoadException;
@@ -119,9 +122,17 @@ public class LayerTypeDoc {
             /* If we know what kind of plot it is, we can be specific about
              * the positional coordinates. */ 
             if ( plotType != null ) {
-                DataGeom[] geoms = plotType.getPointDataGeoms();
-                assert geoms.length == 1;
-                DataGeom geom = geoms[ 0 ];
+                final DataGeom geom;
+                if ( layerType instanceof SimpleLayerType &&
+                     (((SimpleLayerType) layerType).getPlotter())
+                                         instanceof HealpixPlotter ) {
+                    geom = HealpixDataGeom.DUMMY_INSTANCE;
+                }
+                else {
+                    DataGeom[] geoms = plotType.getPointDataGeoms();
+                    assert geoms.length == 1;
+                    geom = geoms[ 0 ];
+                }
                 List<Parameter> posParamList = new ArrayList<Parameter>();
                 for ( int ipos = 0; ipos < npos; ipos++ ) {
                     String posSuffix = npos == 1

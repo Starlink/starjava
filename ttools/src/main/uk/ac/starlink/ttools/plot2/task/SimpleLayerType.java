@@ -41,6 +41,15 @@ public class SimpleLayerType implements LayerType {
         return plotter_;
     }
 
+    /**
+     * Returns this layer type's single plotter.
+     *
+     * @return  plotter
+     */
+    public Plotter getPlotter() {
+        return plotter_;
+    }
+
     public int getPositionCount() {
         return plotter_.getCoordGroup().getPositionCount();
     }
