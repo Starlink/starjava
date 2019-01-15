@@ -11926,7 +11926,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         plot HEALPix levels up to 20 (previously the maximum was 13).
         Also, autoranging now works, so if a plot is made of a HEALPix
         file covering part of the sky, the sky view is centered on it
-        in the same way as for marker plots.</li>
+        in the same way as for marker plots.
+        Memory management is improved for fairly large maps.</li>
     <li>Various changes to support the semi-standard
         <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
         serialization convention.

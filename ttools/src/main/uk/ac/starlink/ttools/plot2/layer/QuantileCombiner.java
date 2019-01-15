@@ -32,7 +32,7 @@ public abstract class QuantileCombiner extends Combiner {
         quantiler_ = quantiler;
     }
 
-    public BinList createArrayBinList( int size ) {
+    public ArrayBinList createArrayBinList( int size ) {
         final DoubleList[] dlists = new DoubleList[ size ];
         return new ArrayBinList( size, this ) {
             public void submitToBinInt( int index, double value ) {
@@ -49,23 +49,15 @@ public abstract class QuantileCombiner extends Combiner {
                 return dlist == null ? Double.NaN
                                      : calculateQuantile( dlist );
             }
+            public void copyBin( int index, Combiner.Container bin ) {
+                QuantileContainer container = (QuantileContainer) bin;
+                dlists[ index ] = container.dlist_;
+            }
         };
-    }
-
-    public BinList createHashBinList( long size ) {
-        return new HashBinList( size, this );
     }
 
     public Container createContainer() {
-        final DoubleList dlist_ = new DoubleList();
-        return new Container() {
-            public void submit( double datum ) {
-                dlist_.add( datum );
-            }
-            public double getCombinedValue() {
-                return calculateQuantile( dlist_ );
-            }
-        };
+        return new QuantileContainer();
     }
 
     @Override
@@ -96,6 +88,19 @@ public abstract class QuantileCombiner extends Combiner {
         double[] values = dlist.toDoubleArray();
         Arrays.sort( values );
         return quantiler_.calculateValue( values );
+    }
+
+    private class QuantileContainer implements Container {
+        final DoubleList dlist_;
+        QuantileContainer() {
+            dlist_ = new DoubleList();
+        }
+        public void submit( double datum ) {
+            dlist_.add( datum );
+        }
+        public double getCombinedValue() {
+            return calculateQuantile( dlist_ );
+        }
     }
 
     /**

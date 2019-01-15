@@ -27762,7 +27762,8 @@ introduced since the last version:
         centered on the data if it only covers part of the sky; 
         and you can now select subsets and activate points
         corresponding to (the centers of) HEALPix pixels in the same
-        way as for markers.</li>
+        way as for markers.
+        Memory management is improved for fairly large maps.</li>
     <li>Various changes to support the semi-standard
         <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
         serialization convention.

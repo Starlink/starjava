@@ -352,7 +352,7 @@ public class HealpixPlotter
         }
         ConfigKey<Integer> key = new IntegerConfigKey( meta, -1 ) {
             public Specifier<Integer> createSpecifier() {
-                return new ComboBoxSpecifier( levelOptions );
+                return new ComboBoxSpecifier<Integer>( levelOptions );
             }
         };
         return key;
@@ -595,13 +595,7 @@ public class HealpixPlotter
             int shift = degrade * 2;
             long nbin = 12 * ( 1L << ( 2 * viewLevel_ ) );
             Combiner combiner = hstyle_.combiner_;
-            BinList binList = null;
-            if ( nbin < 1e6 ) {
-                binList = combiner.createArrayBinList( (int) nbin );
-            }
-            if ( binList == null ) {
-                binList = combiner.createHashBinList( nbin );
-            }
+            BinList binList = Combiner.createDefaultBinList( combiner, nbin );
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             while ( tseq.next() ) {
                 double value = tseq.getDoubleValue( icValue_ );

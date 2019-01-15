@@ -542,16 +542,9 @@ public class SkyDensityPlotter
                                   DataStore dataStore ) {
             int level = getLevel( surface );
             SkyPixer skyPixer = new SkyPixer( level );
-            BinList binList = null;
             long npix = skyPixer.getPixelCount();
             Combiner combiner = dstyle_.combiner_;
-            if ( npix < 200000 ) {
-                binList = combiner.createArrayBinList( (int) npix );
-            }
-            if ( binList == null ) {
-                binList = combiner.createHashBinList( npix );
-            }
-            assert binList != null;
+            BinList binList = Combiner.createDefaultBinList( combiner, npix );
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
             double[] v3 = new double[ 3 ];

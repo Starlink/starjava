@@ -94,6 +94,15 @@ public class HashBinList implements BinList {
     }
 
     /**
+     * Returns the hash used to store this bin list's state.
+     *
+     * @return  index-&gt;container map
+     */
+    public Map<Long,Combiner.Container> getMap() {
+        return map_;
+    }
+
+    /**
      * Returns a new Result instance based on a Map.
      *
      * @param  map   map of values

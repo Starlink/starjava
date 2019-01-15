@@ -1688,7 +1688,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 int nbin = gridder_.getLength();
                 BinList binlist = combiner.createArrayBinList( nbin );
                 binList_ = binlist == null
-                         ? combiner.createHashBinList( nbin )
+                         ? new HashBinList( nbin, combiner )
                          : binlist;
                 xoff_ = bounds_.x;
                 yoff_ = bounds_.y;

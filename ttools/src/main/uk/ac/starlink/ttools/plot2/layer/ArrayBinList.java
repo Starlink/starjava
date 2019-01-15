@@ -50,6 +50,16 @@ public abstract class ArrayBinList implements BinList {
      */
     protected abstract double getBinResultInt( int index );
 
+    /**
+     * Copies bin content from a Container into the storage used by this
+     * implementation for a given bin.
+     * The container must be one appropriate to this bin list's Combiner.
+     *
+     * @param  index  bin index
+     * @param  container  combiner's container containing bin state
+     */
+    protected abstract void copyBin( int index, Combiner.Container container );
+
     public void submitToBin( long lndex, double datum ) {
         int index = (int) lndex;
         mask_.set( index );
@@ -70,6 +80,36 @@ public abstract class ArrayBinList implements BinList {
                 return getBinResultInt( index );
             }
         };
+    }
+
+    /**
+     * Tries to create an ArrayBinList with the same content as a
+     * supplied HashBinList.  Null may be returned if it can't be done.
+     *
+     * @param  in  bin list whose data is to be copied
+     * @return  array bin list with copied content, or null if unsuccessful
+     */
+    public static ArrayBinList fromHashBinList( HashBinList in ) {
+        int size = (int) in.getSize();
+        if ( size != in.getSize() ) {
+            return null;
+        }
+        ArrayBinList out = in.getCombiner().createArrayBinList( size );
+        if ( out == null ) {
+            return null;
+        }
+        Map<Long,Combiner.Container> inMap = in.getMap();
+        for ( Map.Entry<Long,Combiner.Container> entry : inMap.entrySet() ) {
+            Combiner.Container bin = entry.getValue();
+            if ( bin != null ) {
+                Long lndex = entry.getKey();
+                int ix = lndex.intValue();
+                assert ix == lndex.longValue();
+                out.copyBin( ix, bin );
+                out.mask_.set( ix );
+            }
+        }
+        return out;
     }
 
     /**

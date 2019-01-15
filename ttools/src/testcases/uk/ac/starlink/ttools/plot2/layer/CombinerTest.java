@@ -99,30 +99,42 @@ public class CombinerTest extends TestCase {
 
     private void exerciseCombiner( Combiner combiner ) {
         int nbin = 200;
-        int nsamp = 1000;
+        int nsamp = 4000;
         BitSet mask = new BitSet( nbin );
         BinList abins = combiner.createArrayBinList( nbin );
         BinList hbins = new HashBinList( nbin, combiner );
+        AdaptiveBinList dbins = new AdaptiveBinList( nbin, combiner, 2 );
+        assertTrue( dbins.isHash() );
         for ( int is = 0; is < nsamp; is++ ) {
             int ibin = random_.nextInt( nbin );
             if ( ! skipBin( nbin, ibin ) ) {
                 double datum = Math.max( 0, ( random_.nextDouble() * 10 - 1 ) );
                 abins.submitToBin( ibin, datum );
                 hbins.submitToBin( ibin, datum );
+                dbins.submitToBin( ibin, datum );
                 mask.set( ibin );
             }
         }
+
+        // If this assertion fails it doesn't mean the BinList code is
+        // broken, but it does mean that the test is not covering all
+        // the code paths.
+        assertFalse( dbins.isHash() );
         int nOc = mask.cardinality();
         int nskip = 0;
         BinList.Result aResult = abins.getResult();
         BinList.Result acResult = aResult.compact();
         BinList.Result hResult = hbins.getResult();
         BinList.Result hcResult = hResult.compact();
+        BinList.Result dResult = dbins.getResult();
+        BinList.Result dcResult = dbins.getResult();
         for ( int ib = 0; ib < nbin; ib++ ) {
             double value = aResult.getBinValue( ib );
             assertEquals( value, hResult.getBinValue( ib ) );
+            assertEquals( value, dResult.getBinValue( ib ) );
             assertEquals( value, acResult.getBinValue( ib ) );
             assertEquals( value, hcResult.getBinValue( ib ) );
+            assertEquals( value, dcResult.getBinValue( ib ) );
             if ( skipBin( nbin, ib ) ) {
                 nskip++;
                 assertTrue( Double.isNaN( value ) );
@@ -133,6 +145,8 @@ public class CombinerTest extends TestCase {
         assertEquals( nOc, countOccupiedBins( acResult, nbin ) );
         assertEquals( nOc, countOccupiedBins( hResult, nbin ) );
         assertEquals( nOc, countOccupiedBins( hcResult, nbin ) );
+        assertEquals( nOc, countOccupiedBins( dResult, nbin ) );
+        assertEquals( nOc, countOccupiedBins( dcResult, nbin ) );
     }
 
     private static boolean skipBin( int nbin, int ibin ) {

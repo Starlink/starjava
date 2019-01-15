@@ -58,7 +58,6 @@ public class SkyDensityMap extends SingleMapperTask {
     private final ChoiceParameter<Combiner> combinerParam_;
     private final ChoiceParameter<SolidAngleUnit> unitParam_;
     private final BooleanParameter completeParam_;
-    private static final int MAX_ARRAY = 1000000;
 
     /**
      * Constructor.
@@ -350,7 +349,8 @@ public class SkyDensityMap extends SingleMapperTask {
                 Combiner combiner = aq.combiner_;
                 String expr = aq.expr_;
                 SolidAngleUnit unit = aq.unit_;
-                BinList binList = createBinList( combiner, npix, complete_ );
+                BinList binList =
+                    Combiner.createDefaultBinList( combiner, npix );
                 JELQuantity jq;
                 try {
                     jq = JELUtils.compileQuantity( lib, jelReader, expr,
@@ -458,25 +458,6 @@ public class SkyDensityMap extends SingleMapperTask {
         catch ( Throwable e ) {
             throw new IOException( "Evaluation error", e );
         }
-    }
-
-    /**
-     * Creates an accumulator for a given combination mode.
-     *
-     * @param  combiner  combiner
-     * @param  npix    (maximum) number of bins required
-     * @param  isComplete  hint about whether values are likely to be
-     *                     caculated for all pixels
-     */
-    private static BinList createBinList( Combiner combiner, long npix,
-                                          boolean isComplete ) {
-        if ( isComplete && npix < MAX_ARRAY ) {
-            BinList binList = combiner.createArrayBinList( (int) npix );
-            if ( binList != null ) {
-                return binList;
-            }
-        }
-        return combiner.createHashBinList( npix );
     }
 
     /**

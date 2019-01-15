@@ -124,16 +124,7 @@ public abstract class Combiner {
      * @param  size   index range of required bin list
      * @return   array-based bin list, or null
      */
-    public abstract BinList createArrayBinList( int size );
-
-    /**
-     * Creates a generaly purpose bin list, which may be especially
-     * suitable for sparse index ranges.
-     *
-     * @param  size   index range of required bin list
-     * @return   array-based bin list, not null
-     */
-    public abstract BinList createHashBinList( long size );
+    public abstract ArrayBinList createArrayBinList( int size );
 
     /**
      * Returns this combiner's name.
@@ -201,6 +192,30 @@ public abstract class Combiner {
      */
     public static Combiner[] getKnownCombiners() {
         return COMBINERS.clone();
+    }
+
+    /**
+     * Returns a BinList implementation suitable for a given number of
+     * bins and a given combiner.
+     * This may return an implementation based on a hash, or an array,
+     * or some combination.
+     *
+     * @param  combiner  combiner
+     * @param  size    maximum number of bins
+     */
+    public static BinList createDefaultBinList( Combiner combiner, long size ) {
+        if ( size < 1e6 ) {
+            BinList binList = combiner.createArrayBinList( (int) size );
+            if ( binList != null ) {
+                return binList;
+            }
+        }
+        if ( size < Integer.MAX_VALUE ) {
+            return new AdaptiveBinList( (int) size, combiner, 8 );
+        }
+        else {
+            return new HashBinList( size, combiner );
+        }
     }
 
     /**
@@ -337,33 +352,9 @@ public abstract class Combiner {
     }
 
     /**
-     * Utility partial implementation of Combiner.
-     * This just handles the isCopyResult flag.
-     */
-    private static abstract class AbstractCombiner extends Combiner {
-
-        /**
-         * Constructor.
-         *
-         * @param   name  name
-         * @param   description  short textual description
-         * @param   type   aggregation type
-         * @param   hasBigBin  true if combiner has big bins
-         */
-        AbstractCombiner( String name, String description, Type type,
-                          boolean hasBigBin ) {
-            super( name, description, type, hasBigBin );
-        }
-
-        public BinList createHashBinList( long size ) {
-            return new HashBinList( size, this );
-        }
-    }
-
-    /**
      * Combiner implementation that calculates the mean.
      */
-    private static class MeanCombiner extends AbstractCombiner {
+    private static class MeanCombiner extends Combiner {
 
         /**
          * Constructor.
@@ -373,7 +364,7 @@ public abstract class Combiner {
                    true );
         }
 
-        public BinList createArrayBinList( int size ) {
+        public ArrayBinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
             final double[] sums = new double[ size ];
             return new ArrayBinList( size, this ) {
@@ -385,6 +376,11 @@ public abstract class Combiner {
                     int count = counts[ index ];
                     return count == 0 ? Double.NaN
                                       : sums[ index ] / (double) count;
+                }
+                public void copyBin( int index, Container bin ) {
+                    MeanContainer container = (MeanContainer) bin;
+                    counts[ index ] = container.count_;
+                    sums[ index ] = container.sum_;
                 }
             };
         }
@@ -460,7 +456,7 @@ public abstract class Combiner {
     /**
      * Combiner implementation that calculates the standard deviation.
      */
-    private static class StdevCombiner extends AbstractCombiner {
+    private static class StdevCombiner extends Combiner {
         private final boolean isSampleStdev_;
 
         /**
@@ -477,7 +473,7 @@ public abstract class Combiner {
             isSampleStdev_ = isSampleStdev;
         }
 
-        public BinList createArrayBinList( int size ) {
+        public ArrayBinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
             final double[] sum1s = new double[ size ];
             final double[] sum2s = new double[ size ];
@@ -490,6 +486,12 @@ public abstract class Combiner {
                 public double getBinResultInt( int index ) {
                     return getStdev( isSampleStdev_, counts[ index ],
                                      sum1s[ index ], sum2s[ index ] );
+                }
+                public void copyBin( int index, Container bin ) {
+                    StdevContainer container = (StdevContainer) bin;
+                    counts[ index ] = container.count_;
+                    sum1s[ index ] = container.sum1_;
+                    sum2s[ index ] = container.sum2_;
                 }
             };
         }
@@ -578,8 +580,7 @@ public abstract class Combiner {
     /**
      * Partial Combiner implementation that counts submissions.
      */
-    private static abstract class AbstractCountCombiner
-            extends AbstractCombiner {
+    private static abstract class AbstractCountCombiner extends Combiner {
 
         /**
          * Constructor.
@@ -592,7 +593,7 @@ public abstract class Combiner {
             super( name, descrip, type, false );
         }
 
-        public BinList createArrayBinList( int size ) {
+        public ArrayBinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
             return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double value ) {
@@ -601,6 +602,10 @@ public abstract class Combiner {
                 public double getBinResultInt( int index ) {
                     int count = counts[ index ];
                     return count == 0 ? Double.NaN : count;
+                }
+                public void copyBin( int index, Container bin ) {
+                    CountContainer container = (CountContainer) bin;
+                    counts[ index ] = container.count_;
                 }
             };
         }
@@ -670,7 +675,7 @@ public abstract class Combiner {
      * Partial Combiner implementation that calculates the sum of
      * submitted values.
      */
-    private static abstract class AbstractSumCombiner extends AbstractCombiner {
+    private static abstract class AbstractSumCombiner extends Combiner {
 
         /**
          * Combines the existing state value with a supplied datum
@@ -695,7 +700,7 @@ public abstract class Combiner {
             super( name, descrip, type, false );
         }
 
-        public BinList createArrayBinList( int size ) {
+        public ArrayBinList createArrayBinList( int size ) {
             final double[] sums = new double[ size ];
             Arrays.fill( sums, Double.NaN );
             return new ArrayBinList( size, this ) {
@@ -704,6 +709,10 @@ public abstract class Combiner {
                 }
                 public double getBinResultInt( int index ) {
                     return sums[ index ];
+                }
+                public void copyBin( int index, Container bin ) {
+                    SumContainer container = (SumContainer) bin;
+                    sums[ index ] = container.sum_;
                 }
             };
         }
@@ -777,7 +786,7 @@ public abstract class Combiner {
     /**
      * Combiner implementation that calculates the minimum submitted value.
      */
-    private static class MinCombiner extends AbstractCombiner {
+    private static class MinCombiner extends Combiner {
 
         /**
          * Combines the existing state value with a supplied datum
@@ -800,7 +809,7 @@ public abstract class Combiner {
                    Type.INTENSIVE, false );
         }
 
-        public BinList createArrayBinList( int size ) {
+        public ArrayBinList createArrayBinList( int size ) {
             final double[] mins = new double[ size ];
             Arrays.fill( mins, Double.NaN );
             return new ArrayBinList( size, this ) {
@@ -809,6 +818,10 @@ public abstract class Combiner {
                 }
                 public double getBinResultInt( int index ) {
                     return mins[ index ];
+                }
+                public void copyBin( int index, Container bin ) {
+                    MinContainer container = (MinContainer) bin;
+                    mins[ index ] = container.min_;
                 }
             };
         }
@@ -848,7 +861,7 @@ public abstract class Combiner {
     /**
      * Combiner implementation that calculates the maximum submitted value.
      */
-    private static class MaxCombiner extends AbstractCombiner {
+    private static class MaxCombiner extends Combiner {
 
         /**
          * Combines the existing state value with a supplied datum
@@ -871,7 +884,7 @@ public abstract class Combiner {
                    Type.INTENSIVE, false );
         }
 
-        public BinList createArrayBinList( int size ) {
+        public ArrayBinList createArrayBinList( int size ) {
             final double[] maxs = new double[ size ];
             Arrays.fill( maxs, Double.NaN );
             return new ArrayBinList( size, this ) {
@@ -880,6 +893,10 @@ public abstract class Combiner {
                 }
                 public double getBinResultInt( int index ) {
                     return maxs[ index ];
+                }
+                public void copyBin( int index, Container bin ) {
+                    MaxContainer container = (MaxContainer) bin;
+                    maxs[ index ] = container.max_;
                 }
             };
         }
@@ -919,7 +936,7 @@ public abstract class Combiner {
     /**
      * Combiner that just registers whether any data have been submitted.
      */
-    private static class HitCombiner extends AbstractCombiner {
+    private static class HitCombiner extends Combiner {
 
         /**
          * Constructor.
@@ -930,7 +947,7 @@ public abstract class Combiner {
                    Type.EXTENSIVE, false );
         }
 
-        public BinList createArrayBinList( int size ) {
+        public ArrayBinList createArrayBinList( int size ) {
             final BitSet mask = new BitSet();
             return new ArrayBinList( size, this ) {
                 public void submitToBinInt( int index, double datum ) {
@@ -938,6 +955,10 @@ public abstract class Combiner {
                 }
                 public double getBinResultInt( int index ) {
                     return mask.get( index ) ? 1 : Double.NaN;
+                }
+                public void copyBin( int index, Container bin ) {
+                    HitContainer container = (HitContainer) bin;
+                    mask.set( index, container.hit_ );
                 }
             };
         }
