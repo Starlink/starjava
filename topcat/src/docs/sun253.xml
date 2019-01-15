@@ -6502,8 +6502,9 @@ The metadata items are as follows:
 There may be other items in the list specific to the table in question.
 </p>
 
-<p>You can edit column names and some other entries in this JTable by 
-double-clicking on them as usual.
+<p>You can edit most of these items, e.g. to rename a column or
+change the expression defining a synthetic column,
+by double-clicking on them as usual.
 </p>
 
 <p>By default, the order in which the rows are displayed is
@@ -6602,13 +6603,19 @@ sideways so that the selected column is visible.
     </p></dd>
 
 <dt>&IMG.EXPLODE; Explode Array Column</dt>
-<dd><p>If a column is selected which has an array type, clicking this button
+<dd><p>If a column is selected which has an array type and a fixed number
+    of elements, clicking this button
     will replace it with scalar-valued columns containing each of its elements.
     For instance if a column PMAG contains a 5-element vector of type
     <code>float[]</code> representing magnitudes in 5 different bands,
     then selecting it and hitting this button will hide PMAG and
     insert 5 new <code>Float</code>-type columns PMAG_1...PMAG_5 
     in its place each containing one of the magnitudes.
+    If the column does not have a fixed number of elements listed in
+    the <label>Shape</label> column of this window, this button is disabled.
+    In that case, if you know how many columns you want to explode it into,
+    you can enter that value into the Shape field by double-clicking on it.
+    This will only work for columns that are actually arrays.
     </p></dd>
 
 <dt>&IMG.UP; Sort Selected Up</dt>
@@ -27791,6 +27798,12 @@ introduced since the last version:
     <li>Healpix and Spectrogram layer controls now default to initially
         displaying only the current subset if one is defined,
         rather than the whole dataset.</li>
+    <li>You can now edit the <label>Shape</label> metadata item in the
+        <ref id="ColumnInfoWindow">Columns window</ref>
+        by double-clicking on it, e.g. to specify a fixed length for
+        unknown-length array columns.
+        This can be useful when preparing metadata for output and
+        also to enable the Explode Array Column action.</li>
     </ul>
     </p></dd>
 

@@ -64,6 +64,8 @@ public class ColumnInfoWindow extends AuxWindow {
     private final Action revealcolAct;
     private final Action hideallAct;
     private final Action revealallAct;
+    private final Action sortupAct;
+    private final Action sortdownAct;
     private final Action explodecolAct;
     private final ColumnInfo indexColumnInfo;
     private final JTable jtab;
@@ -166,6 +168,31 @@ public class ColumnInfoWindow extends AuxWindow {
             public Object getValue( int irow ) {
                 return DefaultValueInfo
                       .formatShape( getColumnInfo( irow ).getShape() );
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0 && getColumnInfo( irow ).isArray();
+            }
+            public void setValue( int irow, Object value ) {
+                ColumnInfo cinfo = getColumnInfo( irow );
+                int[] shape = null;
+                if ( cinfo.isArray() ) {
+                    shape = new int[] { -1 };
+                    String sval = value == null ? null : value.toString();
+                    if ( sval != null && sval.trim().length() > 0 ) {
+                        try {
+                            shape = DefaultValueInfo.unformatShape( sval );
+                        }
+                        catch ( RuntimeException e ) {
+                        }
+                    }
+                }
+                else {
+                    shape = null;
+                }
+                getColumnInfo( irow ).setShape( shape );
+                metaTableModel.fireTableRowsUpdated( irow, irow );
+                viewModel.fireTableDataChanged();
+                selectionUpdated();
             }
         } );
 
@@ -490,8 +517,8 @@ public class ColumnInfoWindow extends AuxWindow {
                                               ResourceIcon.EXPLODE,
                                               "Replace N-element array column "
                                               + "with N scalar columns" );
-        final Action sortupAct = new SortAction( true );
-        final Action sortdownAct = new SortAction( false );
+        sortupAct = new SortAction( true );
+        sortdownAct = new SortAction( false );
         addcolAct.setEnabled( TopcatUtils.canJel() );
         replacecolAct.setEnabled( TopcatUtils.canJel() );
 
@@ -516,40 +543,13 @@ public class ColumnInfoWindow extends AuxWindow {
         getJMenuBar().add( displayMenu );
 
         /* Add a selection listener for menu items. */
-        ListSelectionListener selList = new ListSelectionListener() {
+        jtab.getSelectionModel()
+            .addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                int nsel = jtab.getSelectedRowCount();
-                boolean hasSelection = nsel > 0;
-                boolean hasUniqueSelection = nsel == 1;
-                if ( hasUniqueSelection &&
-                     toUnsortedIndex( jtab.getSelectedRow() ) == 0 ) {
-                    hasUniqueSelection = false;
-                    hasSelection = false;
-                }
-                boolean hasArraySelection;
-                if ( hasUniqueSelection ) {
-                    int iSel = toUnsortedIndex( jtab.getSelectedRow() );
-                    StarTableColumn tcol =
-                        (StarTableColumn) getColumnFromRow( iSel );
-                    int nel = getElementCount( tcol.getColumnInfo() );
-                    hasArraySelection = nel > 0;
-                    tcModel.fireModelChanged( TopcatEvent.COLUMN, tcol );
-                }
-                else {
-                    hasArraySelection = false;
-                }
-                hidecolAct.setEnabled( hasSelection );
-                revealcolAct.setEnabled( hasSelection );
-                explodecolAct.setEnabled( hasArraySelection );
-                sortupAct.setEnabled( hasUniqueSelection );
-                sortdownAct.setEnabled( hasUniqueSelection );
-                replacecolAct.setEnabled( hasUniqueSelection && 
-                                          TopcatUtils.canJel() );
+                selectionUpdated();
             }
-        };
-        ListSelectionModel selectionModel = jtab.getSelectionModel();
-        selectionModel.addListSelectionListener( selList );
-        selList.valueChanged( null );
+        } );
+        selectionUpdated();
 
         /* Add actions to the toolbar. */
         getToolBar().add( addcolAct );
@@ -682,6 +682,40 @@ public class ColumnInfoWindow extends AuxWindow {
             }
             return -1;
         }
+    }
+
+    /**
+     * Ensures that the GUI is in the correct state given that the
+     * currently selected JTable row (i.e. data model column) may
+     * have changed. 
+     */
+    private void selectionUpdated() {
+        int nsel = jtab.getSelectedRowCount();
+        boolean hasSelection = nsel > 0;
+        boolean hasUniqueSelection = nsel == 1;
+        if ( hasUniqueSelection &&
+             toUnsortedIndex( jtab.getSelectedRow() ) == 0 ) {
+            hasUniqueSelection = false;
+            hasSelection = false;
+        }
+        boolean hasArraySelection;
+        if ( hasUniqueSelection ) {
+            int iSel = toUnsortedIndex( jtab.getSelectedRow() );
+            StarTableColumn tcol =
+                (StarTableColumn) getColumnFromRow( iSel );
+            int nel = getElementCount( tcol.getColumnInfo() );
+            hasArraySelection = nel > 0;
+            tcModel.fireModelChanged( TopcatEvent.COLUMN, tcol );
+        }
+        else {
+            hasArraySelection = false;
+        }
+        hidecolAct.setEnabled( hasSelection );
+        revealcolAct.setEnabled( hasSelection );
+        explodecolAct.setEnabled( hasArraySelection );
+        sortupAct.setEnabled( hasUniqueSelection );
+        sortdownAct.setEnabled( hasUniqueSelection );
+        replacecolAct.setEnabled( hasUniqueSelection && TopcatUtils.canJel() );
     }
 
     /**
