@@ -201,6 +201,7 @@ public class ControlWindow extends AuxWindow
     private CdsUploadMatchWindow cdsmatchWindow_;
     private ExtApp extApp_;
     private TopcatModel currentModel_;
+    private int iPlotwin_;
 
     private final JTextField idField_ = new JTextField();
     private final JLabel indexLabel_ = new JLabel();
@@ -1840,6 +1841,7 @@ public class ControlWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             StackPlotWindow window =
                 ptype_.createWindow( plot2parent_, tablesModel_ );
+            window.setTitle( ptype_.getName() + " Plot (" + ++iPlotwin_ + ")" );
             TopcatModel tcModel = getCurrentModel();
             Control dfltControl =
                 window.getControlManager().createDefaultControl( tcModel );

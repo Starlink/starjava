@@ -23391,6 +23391,7 @@ Some of the notable contributers are these:
 <li>Sebastien Derriere (CDS)</li>
 <li>Emilio Donoso (ICATE)</li>
 <li>Peter Draper (Starlink, Durham)</li>
+<li>Heinz-Bernd Eggenstein (AEI, Hannover)</li>
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>David Giaretta (Starlink, RAL)</li>
@@ -27804,6 +27805,9 @@ introduced since the last version:
         unknown-length array columns.
         This can be useful when preparing metadata for output and
         also to enable the Explode Array Column action.</li>
+    <li>A sequence number is now appended to plot window titles,
+        which may make it easier to keep track of plots from the
+        window manager or desktop.</li>
     </ul>
     </p></dd>
 
