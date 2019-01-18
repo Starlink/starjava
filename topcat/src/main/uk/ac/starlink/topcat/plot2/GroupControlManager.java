@@ -166,7 +166,8 @@ public class GroupControlManager implements ControlManager {
          * indices, and one of the layer controls can plot those, use that
          * control.  In most cases, the other controls will not be appropriate
          * for such a table. */
-        if ( HealpixTableInfo.isHealpix( tcModel.getDataModel()
+        if ( tcModel != null &&
+             HealpixTableInfo.isHealpix( tcModel.getDataModel()
                                                 .getParameters() ) ) {
             for ( Action stackAct : stackActs_ ) {
                 if ( stackAct instanceof LayerControlAction ) {
