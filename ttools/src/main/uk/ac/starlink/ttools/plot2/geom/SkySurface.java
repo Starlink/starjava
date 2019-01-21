@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
@@ -46,6 +47,7 @@ public class SkySurface implements Surface {
     private final SkyAxisLabeller axLabeller_;
     private final Color gridColor_;
     private final Color axlabelColor_;
+    private final Color scalebarColor_;
     private final boolean sexagesimal_;
     private final double crowd_;
     private final Captioner captioner_;
@@ -81,6 +83,7 @@ public class SkySurface implements Surface {
      * @param  axLabeller  sky axis labelling object
      * @param  gridColor   colour for grid drawing, or null if no grid
      * @param  axlabelColor  colour for axis labels, or null if no labels
+     * @param  scalebarColor  colour for scale bar, or null if not drawn
      * @param  sexagesimal  whether to use sexagesimal coordinates
      * @param  crowd   tick mark crowding factor, 1 is normal
      * @param  captioner  text rendering object
@@ -89,7 +92,8 @@ public class SkySurface implements Surface {
     public SkySurface( Rectangle plotBounds, Projection projection,
                        double[] rotmat, double zoom, double xoff, double yoff,
                        SkySys viewSystem, SkyAxisLabeller axLabeller,
-                       Color gridColor, Color axlabelColor, boolean sexagesimal,
+                       Color gridColor, Color axlabelColor, Color scalebarColor,
+                       boolean sexagesimal,
                        double crowd, Captioner captioner, boolean antialias ) {
         gxlo_ = plotBounds.x;
         gxhi_ = plotBounds.x + plotBounds.width;
@@ -98,6 +102,7 @@ public class SkySurface implements Surface {
         viewSystem_ = viewSystem;
         gridColor_ = gridColor;
         axlabelColor_ = axlabelColor;
+        scalebarColor_ = scalebarColor;
         sexagesimal_ = sexagesimal;
         crowd_ = crowd;
         captioner_ = captioner;
@@ -224,7 +229,85 @@ public class SkySurface implements Surface {
             axLabeller_.createAxisAnnotation( gl, captioner_ )
                        .drawLabels( g2 );
         }
+        if ( scalebarColor_ != null ) {
+            paintScaleBar( g2, scalebarColor_ );
+        }
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
+        g2.setColor( color0 );
+    }
+
+    /**
+     * Paints a distance scale in the corner of the plot region.
+     *
+     * @param   g  graphics context
+     * @param   fg   scale bar foreground colour
+     */
+    private void paintScaleBar( Graphics2D g2, Color fg ) {
+
+        /* Define approximate start and end points for scale line. */
+        double fstart = 0.05;
+        double fend = 0.20;
+        int x0 = (int) PlotUtil.scaleValue( gxlo_, gxhi_, fstart );
+        int y0 = (int) PlotUtil.scaleValue( gylo_, gyhi_, 1. - fstart );
+        int x1 = (int) PlotUtil.scaleValue( gxlo_, gxhi_, fend, false );
+        Point gp0 = new Point( x0, y0 );
+        Point gp1 = new Point( x1, y0 );
+
+        /* Work out a round number sky distance of about the same extent
+         * as the approximate scale line. */
+        double s0 = screenDistanceRadians( gp0, gp1 );
+        SkyDistance dist = SkyDistance.getRoundDistance( s0 );
+        if ( dist == null ) {
+            return;
+        }
+
+        /* Iteratively determine the endpoints of a line with exactly
+         * (to pixel accuracy) the sky extent of the round number
+         * sky distance. */
+        double distRad = dist.getRadians();
+        int x2 = (int) PlotUtil.scaleValue( x0, x1, distRad / s0 );
+        Point gp2 = new Point( x2, y0 );
+        boolean isOver = screenDistanceRadians( gp0, gp2 ) > distRad;
+        boolean done = false;
+        for ( ; !done && x2 > x0 + 16 && x2 < gxhi_ - 16;
+              x2 += isOver ? -1 : +1 ) {
+            gp2 = new Point( x2, y0 );
+            done = ( screenDistanceRadians( gp0, gp2 ) > distRad ) ^ isOver;
+        }
+        if ( !done ) {
+            return;
+        }
+
+        /* Paint the scale line with background for contrast. */
+        Color color0 = g2.getColor();
+        Stroke stroke0 = g2.getStroke();
+        g2.setColor( Color.WHITE );
+        g2.setStroke( new BasicStroke( 3, BasicStroke.CAP_SQUARE,
+                                       BasicStroke.JOIN_MITER ) );
+        g2.drawLine( gp0.x, gp0.y, gp2.x, gp2.y );
+        g2.drawLine( gp0.x, gp0.y - 3, gp0.x, gp0.y + 3 );
+        g2.drawLine( gp2.x, gp0.y - 3, gp2.x, gp0.y + 3 );
+        g2.setStroke( new BasicStroke( 1, BasicStroke.CAP_SQUARE,
+                                       BasicStroke.JOIN_MITER ) );
+        g2.setColor( fg );
+        g2.drawLine( gp0.x, gp0.y, gp2.x, gp2.y );
+        g2.drawLine( gp0.x, gp0.y - 3, gp0.x, gp0.y + 3 );
+        g2.drawLine( gp2.x, gp0.y - 3, gp2.x, gp0.y + 3 );
+
+        /* Paint the caption with background for contrast. */
+        String caption = dist.getCaption();
+        g2.setColor( new Color( 0xa0ffffff, true ) );
+        int tx = gp0.x + 5 + captioner_.getPad();
+        int ty = gp0.y - captioner_.getPad();
+        g2.translate( tx, ty );
+        Rectangle bounds = captioner_.getCaptionBounds( caption );
+        g2.fillRect( bounds.x - 5, bounds.y, bounds.width + 10, bounds.height );
+        g2.setColor( fg );
+        captioner_.drawCaption( caption, g2 );
+        g2.translate( -tx, -ty );
+
+        /* Restore graphics context. */
+        g2.setStroke( stroke0 );
         g2.setColor( color0 );
     }
 
@@ -888,6 +971,7 @@ public class SkySurface implements Surface {
                 && PlotUtil.equals( this.axLabeller_, other.axLabeller_ )
                 && PlotUtil.equals( this.gridColor_, other.gridColor_ )
                 && PlotUtil.equals( this.axlabelColor_, other.axlabelColor_ )
+                && PlotUtil.equals( this.scalebarColor_, other.scalebarColor_ )
                 && this.sexagesimal_ == other.sexagesimal_
                 && this.crowd_ == other.crowd_
                 && PlotUtil.equals( this.captioner_, other.captioner_ )
@@ -914,6 +998,7 @@ public class SkySurface implements Surface {
         code = 23 * code + PlotUtil.hashCode( axLabeller_ );
         code = 23 * code + PlotUtil.hashCode( gridColor_ );
         code = 23 * code + PlotUtil.hashCode( axlabelColor_ );
+        code = 23 * code + PlotUtil.hashCode( scalebarColor_ );
         code = 23 * code + ( sexagesimal_ ? 5 : 13 );
         code = 23 * code + Float.floatToIntBits( (float) crowd_ );
         code = 23 * code + PlotUtil.hashCode( captioner_ );

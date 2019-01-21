@@ -146,7 +146,22 @@ public class SkySurfaceFactory
     /** Config key to control axis label positioning. */
     public static final ConfigKey<SkyAxisLabeller> AXISLABELLER_KEY =
         createAxisLabellerKey();
- 
+
+    /* Config key to control scale bar presence. */
+    public static final ConfigKey<Boolean> SCALEBAR_KEY =
+         new BooleanConfigKey(
+             new ConfigMeta( "scalebar", "Draw Scale Bar" )
+            .setShortDescription( "Draw sky scale bar?" )
+            .setXmlDescription( new String[] {
+                 "<p>If true, a small bar is drawn near the bottom left",
+                 "of the plot annotated with a distance in",
+                 "degrees, arc minutes or arc seconds,",
+                 "to make it easier to determine the size of features",
+                 "on the plot by eye.",
+                 "</p>",
+             } )
+         , false );
+
     /** Config key to determine whether sexagesimal coordinates are used. */
     public static final ConfigKey<Boolean> SEX_KEY =
         new BooleanConfigKey(
@@ -213,7 +228,8 @@ public class SkySurfaceFactory
                                aspect.getRotation(), aspect.getZoom(),
                                aspect.getOffsetX(), aspect.getOffsetY(),
                                p.viewSystem_, p.axisLabeller_,
-                               p.grid_ ? p.gridColor_ : null, p.axlabelColor_,
+                               p.grid_ ? p.gridColor_ : null,
+                               p.axlabelColor_, p.scalebarColor_,
                                p.sex_, p.crowd_, p.captioner_, p.antialias_ );
     }
 
@@ -245,11 +261,12 @@ public class SkySurfaceFactory
         double crowd = config.get( CROWD_KEY );
         Color gridColor = config.get( StyleKeys.GRID_COLOR );
         Color axlabelColor = config.get( StyleKeys.AXLABEL_COLOR );
+        Color scalebarColor = config.get( SCALEBAR_KEY ) ? axlabelColor : null;
         boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( proj, reflect, viewSystem, grid, axLabeller,
-                            gridColor, axlabelColor, sex, crowd, captioner,
-                            antialias );
+                            gridColor, axlabelColor, scalebarColor,
+                            sex, crowd, captioner, antialias );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -463,6 +480,7 @@ public class SkySurfaceFactory
         private final SkyAxisLabeller axisLabeller_;
         private final Color gridColor_;
         private final Color axlabelColor_;
+        private final Color scalebarColor_;
         private final boolean sex_;
         private final double crowd_;
         private final Captioner captioner_;
@@ -478,6 +496,7 @@ public class SkySurfaceFactory
          * @param  axisLabeller  sky axis labelling object
          * @param  gridColor   colour of grid lines
          * @param  axlabelColor  colour of axis labels
+         * @param  scalebarColor  colour of scale bar
          * @param  sex  whether to use sexagesimal coordinates
          * @param  crowd   tick mark crowding factor, 1 is normal
          * @param  captioner  text rendering object
@@ -486,7 +505,7 @@ public class SkySurfaceFactory
         public Profile( Projection projection, boolean reflect,
                         SkySys viewSystem, boolean grid, 
                         SkyAxisLabeller axisLabeller, Color gridColor,
-                        Color axlabelColor, boolean sex,
+                        Color axlabelColor, Color scalebarColor, boolean sex,
                         double crowd, Captioner captioner, boolean antialias ) {
             projection_ = projection;
             reflect_ = reflect;
@@ -495,6 +514,7 @@ public class SkySurfaceFactory
             axisLabeller_ = axisLabeller;
             gridColor_ = gridColor;
             axlabelColor_ = axlabelColor;
+            scalebarColor_ = scalebarColor;
             sex_ = sex;
             crowd_ = crowd;
             captioner_ = captioner;
