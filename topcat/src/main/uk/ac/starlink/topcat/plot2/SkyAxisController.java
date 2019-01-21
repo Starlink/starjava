@@ -73,6 +73,7 @@ public class SkyAxisController
         mainControl.addSpecifierTab( "Grid",
                                      new ConfigSpecifier( new ConfigKey[] {
             SkySurfaceFactory.GRID_KEY,
+            SkySurfaceFactory.SCALEBAR_KEY,
             SkySurfaceFactory.SEX_KEY,
             StyleKeys.GRID_COLOR,
             StyleKeys.AXLABEL_COLOR,

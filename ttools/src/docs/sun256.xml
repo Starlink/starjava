@@ -11948,6 +11948,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         FITS support is not perfect: the <code>BAD_DATA</code>
         FITS keyword is ignored, and the 1024-element array-valued
         column variant is not understood.</li>
+    <li><ref id="plot2sky"><code>plot2sky</code></ref> now by default
+        draws a small scale bar at the bottom left corner of the plot,
+        indicating the scale in degrees, minutes or seconds.
+        It can be switched off using the new <code>scalebar</code>
+        parameter.</li>
     </ul>
     </p>
     </dd>

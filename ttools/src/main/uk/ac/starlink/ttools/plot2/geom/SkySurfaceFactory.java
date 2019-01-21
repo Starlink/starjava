@@ -160,7 +160,7 @@ public class SkySurfaceFactory
                  "on the plot by eye.",
                  "</p>",
              } )
-         , false );
+         , true );
 
     /** Config key to determine whether sexagesimal coordinates are used. */
     public static final ConfigKey<Boolean> SEX_KEY =
@@ -240,6 +240,7 @@ public class SkySurfaceFactory
             VIEWSYS_KEY,
             REFLECT_KEY,
             GRID_KEY,
+            SCALEBAR_KEY,
             AXISLABELLER_KEY,
             SEX_KEY,
             CROWD_KEY,

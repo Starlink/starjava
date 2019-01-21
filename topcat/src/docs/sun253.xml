@@ -13200,6 +13200,11 @@ appear.
 <dt>Draw Grid</dt>
 <dd><p>If selected, grid lines will be drawn on the plot.
     </p></dd>
+<dt>Draw Scale Bar</dt>
+<dd><p>If selected, a small annotated scale bar will usually be drawn
+    at the bottom left of the plot indicating the scale of the image
+    in degrees, minutes or seconds.
+    </p></dd>
 <dt>Sexagesimal</dt>
 <dd><p>If selected sky coordinate annotations of the grid will be in
     sexagesimal format, otherwise in decimal degrees.
@@ -27808,6 +27813,12 @@ introduced since the last version:
     <li>A sequence number is now appended to plot window titles,
         which may make it easier to keep track of plots from the
         window manager or desktop.</li>
+    <li>The <ref id="SkyPlotWindow">Sky Plot</ref> window now by
+        default draws a small scale bar at the bottom left corner,
+        indicating the scale of the plot in degrees, minutes or
+        seconds.  It is controlled by the <label>Draw Scale Bar</label>
+        control in the <ref id="SkyAxisControl">Sky Axes Control</ref>
+        Grid tab.</li>
     </ul>
     </p></dd>
 
