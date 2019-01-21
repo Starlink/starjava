@@ -263,7 +263,7 @@ public abstract class BasicTicker implements Ticker {
      * @param  exp  power of 10
      * @return  tick label text
      */
-    private static String linearLabel( long mantissa, int exp ) {
+    public static String linearLabel( long mantissa, int exp ) {
         boolean minus = mantissa < 0;
         String sign = minus ? "-" : "";
         String digits = Long.toString( minus ? -mantissa : mantissa );
