@@ -851,6 +851,20 @@ public class PlotUtil {
     }
 
     /**
+     * Does linear scaling between two values.
+     * This convenience method just calls
+     * <code>scaleValue(min, max, frac, false)</code>
+     *
+     * @param  min  minimum of range
+     * @param  max  maximum of range
+     * @param  frac  fractional scale point
+     * @return   data value corresponding to fractional scale point
+     */
+    public static double scaleValue( double min, double max, double frac ) {
+        return scaleValue( min, max, frac, false );
+    }
+
+    /**
      * Returns the proportional position of a point within a fixed range.
      * If the point is equal to the minimum value zero is returned,
      * and if it is equal to the maximum value one is returned.
