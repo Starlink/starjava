@@ -81,6 +81,7 @@ import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -463,6 +464,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             polygonAction_ = null;
         }
 
+        /* Prepare the distance measurement action. */
+        PlotMetric metric = surfFact_.getPlotMetric();
+        MeasurePanel measurePanel = metric == null
+                                  ? null
+                                  : new MeasurePanel( metric, plotPanel_ );
+        ToggleButtonModel measureModel = measurePanel == null
+                                       ? null
+                                       : measurePanel.getModel();
+
         /* Prepare the plot export action. */
         final PlotExporter plotExporter = PlotExporter.getInstance();
         final PlotExporter.IconFactory ifact = new PlotExporter.IconFactory() {
@@ -527,6 +537,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         displayPanel.add( blobPanel_ );
         if ( usePolygon_ ) {
             displayPanel.add( polygonPanel_ );
+        }
+        if ( measurePanel != null ) {
+            displayPanel.add( measurePanel );
         }
         displayPanel.add( plotPanel_ );
 
@@ -613,6 +626,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getToolBar().add( fromVisibleAction_ );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction_ );
+        if ( measureModel != null ) {
+            getToolBar().add( measureModel.createToolbarButton() );
+        }
         if ( axisLockModel_ != null ) {
             getToolBar().add( axisLockModel_.createToolbarButton() );
         }
@@ -656,6 +672,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( replotAction );
         plotMenu.add( resizeAction_ );
+        if ( measureModel != null ) {
+            plotMenu.add( measureModel.createMenuItem() );
+        }
         if ( axisLockModel_ != null ) {
             plotMenu.add( axisLockModel_.createMenuItem() );
         }

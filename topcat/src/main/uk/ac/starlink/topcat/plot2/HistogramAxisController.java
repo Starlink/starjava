@@ -344,6 +344,10 @@ public class HistogramAxisController
         private static final ConfigKey<Boolean> HIST_YANCHOR_KEY =
             createAxisAnchorKey( "Y", false );
 
+        HistogramSurfaceFactory() {
+            super( false );
+        }
+
         @Override
         public ConfigKey[] getNavigatorKeys() {
             return new ConfigKey[] {
