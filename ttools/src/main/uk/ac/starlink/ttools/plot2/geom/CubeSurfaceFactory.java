@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -415,6 +416,13 @@ public class CubeSurfaceFactory
 
     public Navigator<CubeAspect> createNavigator( ConfigMap navConfig ) {
         return CubeNavigator.createNavigator( isIso_, navConfig );
+    }
+
+    /**
+     * Returns null.
+     */
+    public PlotMetric getPlotMetric() {
+        return null;
     }
 
     /**

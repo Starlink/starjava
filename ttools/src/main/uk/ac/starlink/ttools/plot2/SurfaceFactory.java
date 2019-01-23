@@ -153,4 +153,13 @@ public interface SurfaceFactory<P,A> {
      * @return   navigator for use with surfaces produced by this factory
      */
     Navigator<A> createNavigator( ConfigMap navigatorConfig );
+
+    /**
+     * Returns an object that can assess distances between graphic
+     * positions on the plot surface.
+     * If no such metric exists, null may be returned.
+     *
+     * @return   plot metric, or null
+     */
+    PlotMetric getPlotMetric();
 }

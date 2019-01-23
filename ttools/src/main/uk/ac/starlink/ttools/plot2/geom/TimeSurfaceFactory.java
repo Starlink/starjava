@@ -1,13 +1,17 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -129,6 +133,8 @@ public class TimeSurfaceFactory
     public static final ConfigKey<TimeFormat> TFORMAT_KEY =
         createTimeFormatKey();
 
+    private static final PlotMetric plotMetric_ = new TimePlotMetric();
+
     public Surface createSurface( Rectangle plotBounds, Profile profile,
                                   TimeAspect aspect ) {
         Profile p = profile;
@@ -226,6 +232,10 @@ public class TimeSurfaceFactory
         return TimeNavigator.createNavigator( navConfig );
     }
 
+    public PlotMetric getPlotMetric() {
+        return plotMetric_;
+    } 
+
     /**
      * Attempts to determine an aspect value from profile and configuration,
      * but not ranging, information.  If not enough information is supplied,
@@ -282,6 +292,55 @@ public class TimeSurfaceFactory
         key.setOptionUsage();
         key.addOptionsXml();
         return key;
+    }
+
+    /**
+     * PlotMetric implementation for time plot surface.
+     */
+    private static class TimePlotMetric implements PlotMetric {
+        private static final LabelUnit[] SEC_UNITS = new LabelUnit[] {
+            new LabelUnit( "\u03bcsec", 1e-6 ),
+            new LabelUnit( "millisec", 1e-3 ),
+            new LabelUnit( "sec", 1.0 ),
+            new LabelUnit( "min", 60 ),
+            new LabelUnit( "hour", 60 * 60 ),
+            new LabelUnit( "day", 60 * 60 * 24 ),
+            new LabelUnit( "year", 60 * 60 * 24 * 365.25 ),
+        };
+        public LabelledLine[] getMeasures( Surface surf,
+                                           Point2D gp0, Point2D gp1 ) {
+            final Axis[] axes;
+            if ( surf instanceof TimeSurface ) {
+                axes = ((TimeSurface) surf).getAxes();
+            }
+            else {
+                return new LabelledLine[ 0 ];
+            }
+            Axis tAxis = axes[ 0 ];
+            Axis yAxis = axes[ 1 ];
+            double gx0 = gp0.getX();
+            double gy0 = gp0.getY();
+            double gx1 = gp1.getX();
+            double gy1 = gp1.getY();
+            double dt0 = tAxis.graphicsToData( gx0 );
+            double dy0 = yAxis.graphicsToData( gy0 );
+            double dt1 = tAxis.graphicsToData( gx1 );
+            double dy1 = yAxis.graphicsToData( gy1 );
+            double et =
+                Math.max( Math.abs( tAxis.graphicsToData( gx0 + 1 ) - dt0 ),
+                          Math.abs( tAxis.graphicsToData( gx1 + 1 ) - dt1 ) );
+            double ey =
+                Math.max( Math.abs( yAxis.graphicsToData( gy0 + 1 ) - dy0 ),
+                          Math.abs( yAxis.graphicsToData( gy1 + 1 ) - dy1 ) );
+            double dt01 = Math.abs( dt1 - dt0 );
+            String tLabel = LabelUnit.formatValue( dt01, et, SEC_UNITS );
+            String yLabel = PlotUtil.formatNumber( Math.abs( dy1 - dy0 ), ey );
+            Point2D gp01 = new Point2D.Double( gx1, gy0 );
+            return new LabelledLine[] {
+                new LabelledLine( gp0, gp01, tLabel ),
+                new LabelledLine( gp01, gp1, yLabel ),
+            };
+        }
     }
 
     /**

@@ -49,20 +49,22 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  */
 public class PlanePlotType implements PlotType {
 
-    private static final SurfaceFactory SURFACE_FACTORY =
-        new PlaneSurfaceFactory();
     private static PlaneDataGeom DATAGEOM = PlaneDataGeom.INSTANCE;
     private static final PlanePlotType INSTANCE =
-        new PlanePlotType( createDefaultPlotters() );
+        new PlanePlotType( createDefaultPlotters(), true );
+    private final SurfaceFactory surfFact_;
     private final Plotter[] plotters_;
 
     /**
      * Constructor.
      *
      * @param  plotters  available plotters for use with this plot type
+     * @param  has2dMetric  true if it may make sense to measure distances
+     *                      that are not parallel to either axis
      */
-    public PlanePlotType( Plotter[] plotters ) {
+    public PlanePlotType( Plotter[] plotters, boolean has2dMetric ) {
         plotters_ = plotters;
+        surfFact_ = new PlaneSurfaceFactory( has2dMetric );
     }
 
     public DataGeom[] getPointDataGeoms() {
@@ -74,7 +76,7 @@ public class PlanePlotType implements PlotType {
     }
 
     public SurfaceFactory getSurfaceFactory() {
-        return SURFACE_FACTORY;
+        return surfFact_;
     }
 
     public PaperTypeSelector getPaperTypeSelector() {

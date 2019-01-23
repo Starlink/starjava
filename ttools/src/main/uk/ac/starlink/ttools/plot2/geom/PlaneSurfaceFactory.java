@@ -2,13 +2,17 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -147,6 +151,25 @@ public class PlaneSurfaceFactory
     public static final ConfigKey<Boolean> YANCHOR_KEY =
         createAxisAnchorKey( "Y", false );
 
+    private final PlotMetric plotMetric_;
+
+    /**
+     * Constructs a PlaneSurfaceFactory with default characteristics.
+     */
+    public PlaneSurfaceFactory() {
+        this( true );
+    }
+
+    /**
+     * Constructs a PlaneSurfaceFactory with configurable characteristics.
+     *
+     * @param  has2dMetric  true if it may make sense to measure distances
+     *                      that are not parallel to either axis
+     */
+    public PlaneSurfaceFactory( boolean has2dMetric ) {
+        plotMetric_ = new PlanePlotMetric( has2dMetric );
+    }
+
     public Surface createSurface( Rectangle plotBounds, Profile profile,
                                   PlaneAspect aspect ) {
         Profile p = profile;
@@ -263,6 +286,10 @@ public class PlaneSurfaceFactory
         double yAnchor = navConfig.get( XANCHOR_KEY ) ? 0.0 : Double.NaN;
         return new PlaneNavigator( zoom, xnav, ynav, xnav, ynav,
                                    xAnchor, yAnchor );
+    }
+
+    public PlotMetric getPlotMetric() {
+        return plotMetric_;
     }
 
     /**
@@ -479,6 +506,77 @@ public class PlaneSurfaceFactory
         return xlimits == null || ylimits == null
              ? null
              : new PlaneAspect( xlimits, ylimits );
+    }
+
+    /**
+     * PlotMetric implementation for plane surface.
+     */
+    private static class PlanePlotMetric implements PlotMetric {
+        private final boolean has2dMetric_;
+
+        /**
+         * Constructor.
+         *
+         * @param  has2dMetric  true if it may make sense to measure distances
+         *                      that are not parallel to either axis
+         */
+        PlanePlotMetric( boolean has2dMetric ) {
+            has2dMetric_ = has2dMetric;
+        }
+
+        public LabelledLine[] getMeasures( Surface surf,
+                                           Point2D gp0, Point2D gp1 ) {
+            final Axis[] axes;
+            if ( surf instanceof PlaneSurface ) {
+                axes = ((PlaneSurface) surf).getAxes();
+            }
+            else {
+                return new LabelledLine[ 0 ];
+            }
+            List<LabelledLine> lineList = new ArrayList<LabelledLine>();
+            Axis xAxis = axes[ 0 ];
+            Axis yAxis = axes[ 1 ];
+            double gx0 = gp0.getX();
+            double gy0 = gp0.getY();
+            double gx1 = gp1.getX();
+            double gy1 = gp1.getY();
+            double dx0 = xAxis.graphicsToData( gx0 );
+            double dy0 = yAxis.graphicsToData( gy0 );
+            double dx1 = xAxis.graphicsToData( gx1 );
+            double dy1 = yAxis.graphicsToData( gy1 );
+
+            /* Add X and Y vector component lines. */
+            Point2D gp10 = new Point2D.Double( gx1, gy0 );
+            double ex =
+                Math.max( Math.abs( xAxis.graphicsToData( gx0 + 1 ) - dx0 ),
+                          Math.abs( xAxis.graphicsToData( gx1 + 1 ) - dx1 ) );
+            double ey =
+                Math.max( Math.abs( yAxis.graphicsToData( gy0 + 1 ) - dy0 ),
+                          Math.abs( yAxis.graphicsToData( gy1 + 1 ) - dy1 ) );
+            String xLabel = PlotUtil.formatNumber( Math.abs( dx1 - dx0 ), ex );
+            String yLabel = PlotUtil.formatNumber( Math.abs( dy1 - dy0 ), ey );
+            lineList.add( new LabelledLine( gp0, gp10, xLabel ) );
+            lineList.add( new LabelledLine( gp10, gp1, yLabel ) );
+
+            /* If the plane is linear in both directions, add a vector line.
+             * If either axis is logarithmic, there isn't really a sensible
+             * metric on the space, so in that case don't. */
+            if ( has2dMetric_ && xAxis.isLinear() && yAxis.isLinear() ) {
+                double gx01 = gx1 - gx0;
+                double gy01 = gy1 - gy0;
+                double g01 = Math.hypot( gx01, gy01 );
+                double fact2 = ( g01 + 1.0 ) / g01;
+                double gx2 = gx0 + fact2 * gx01;
+                double gy2 = gy0 + fact2 * gy01;
+                double dx2 = xAxis.graphicsToData( gx2 );
+                double dy2 = yAxis.graphicsToData( gy2 );
+                double d01 = Math.hypot( dx1 - dx0, dy1 - dy0 );
+                double d12 = Math.hypot( dx2 - dx1, dy2 - dy1 );
+                String hLabel = PlotUtil.formatNumber( d01, d12 );
+                lineList.add( new LabelledLine( gp0, gp1, hLabel ) );
+            }
+            return lineList.toArray( new LabelledLine[ 0 ] );
+        }
     }
 
     /**

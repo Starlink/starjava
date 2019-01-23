@@ -2,13 +2,16 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -222,6 +225,8 @@ public class SkySurfaceFactory
             } )
         , 1 );
 
+    private static PlotMetric plotMetric_ = new SkyPlotMetric();
+
     public Surface createSurface( Rectangle plotBounds, Profile p,
                                   SkyAspect aspect ) {
         return new SkySurface( plotBounds, p.getProjection(),
@@ -366,6 +371,10 @@ public class SkySurfaceFactory
         return SkyNavigator.createNavigator( navConfig );
     }
 
+    public PlotMetric getPlotMetric() {
+        return plotMetric_;
+    }
+
     /**
      * Determines whether a set of ranges of normalised data coordinates
      * cover enough of the full data cube (-1..+1 in each dimension)
@@ -466,6 +475,35 @@ public class SkySurfaceFactory
         key.setOptionUsage();
         key.addOptionsXml();
         return key;
+    }
+
+    /**
+     * PlotMetric implementation for the sky surface.
+     */
+    private static class SkyPlotMetric implements PlotMetric {
+        private static final LabelUnit[] RAD_UNITS = new LabelUnit[] {
+            new LabelUnit( "\"", Math.PI / ( 180 * 60 * 60 ) ),
+            new LabelUnit( "'", Math.PI / ( 180 * 60 ) ),
+            new LabelUnit( "\u00b0", Math.PI / ( 180 ) ),
+        };
+        public LabelledLine[] getMeasures( Surface surf,
+                                           Point2D gp0, Point2D gp1 ) {
+            if ( surf instanceof SkySurface ) {
+                SkySurface ssurf = (SkySurface) surf;
+                double distRad = ssurf.screenDistanceRadians( gp0, gp1 );
+                double epsRad =
+                    Math.sqrt( Math.max( ssurf.pixelAreaSteradians( gp0 ),
+                                         ssurf.pixelAreaSteradians( gp1 ) ) );
+                if ( !Double.isNaN( distRad ) && !Double.isNaN( epsRad ) ) {
+                    String label =
+                        LabelUnit.formatValue( distRad, epsRad, RAD_UNITS );
+                    return new LabelledLine[] {
+                        new LabelledLine( gp0, gp1, label ),
+                    };
+                }
+            }
+            return new LabelledLine[ 0 ];
+        }
     }
 
     /**
