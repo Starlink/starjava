@@ -123,6 +123,7 @@
   <!ENTITY FIG.StackPlotWindow_polygon '&figs;StackPlotWindow_polygon.png'>
   <!ENTITY FIG.MultiSubsetQueryWindow '&figs;MultiSubsetQueryWindow.png'>
   <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.png'>
+  <!ENTITY FIG.MeasurePanel '&figs;MeasurePanel.png'>
   <!ENTITY FIG.PlotExporter '&figs;PlotExporter.png'>
   <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.png'>
   <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.png'>
@@ -7375,7 +7376,7 @@ possibly informed by user demand.
 </subsubsect>
 
 <subsubsect id="StackPlotWindow">
-<subhead><title>Window Overview</title></subhead>
+<subhead><title>Plot Window Overview</title></subhead>
 
 <figure>
 <caption><px>Plot window</px></caption>
@@ -8103,6 +8104,48 @@ Examples of expressions created by this mode are:
 </p>
 
 </subsubsubsubsect>
+
+</subsubsubsect>
+
+<subsubsubsect id="MeasurePanel">
+<subhead><title>Distance Measurement</title></subhead>
+
+<p>The <label>Measure Distance</label> (&IMG.MEASURE;) action is
+available from some plot windows
+(<ref id="PlanePlotWindow">Plane</ref>,
+ <ref id="HistogramPlotWindow">Histogram</ref>,
+ <ref id="SkyPlotWindow">Sky</ref> and
+ <ref id="TimePlotWindow">Time</ref> plots).
+This allows you to use the mouse to measure the distance between
+two points on the plot.
+To use it, first click the <label>Measure Distance</label>
+toolbar button or menu item,
+and then press the mouse button on a point in the plot from
+which you wish to measure, and drag the mouse, holding down the button,
+to the point you wish to measure to.
+As you drag the mouse, the distance(s) between the two points
+are displayed and updated interactively.
+Once you release the mouse button, measurement mode is exited,
+and you need to invoke the action again to make another measurement.
+</p>
+
+<figure>
+<caption><px>Measuring distance in the Plane Plot</px></caption>
+<figureimage src="&FIG.MeasurePanel;"/>
+</figure>
+
+<p>The details of what distances are displayed depends on the
+plot window in question, according to what metrics are defined
+on the plot space.
+For the Sky plot, a straight line is drawn on the plot between the
+two points, and the distance is labelled in degrees, minutes or seconds
+along a great circle.
+For the Histogram and Time plots,
+vertical and horizontal components are drawn and
+labelled in terms of the distances along the corresponding axis.
+For the Plane plot, both components and the direct distance are
+measured.
+</p>
 
 </subsubsubsect>
 
@@ -12399,8 +12442,8 @@ and the scrolling works a bit differently.
 for features common to all plotting windows.
 </p>
 
-<p>The following non-standard action is available from the toolbar
-as well as the <label>Plot</label> menu:
+<p>As well as the standard actions,
+this window additionally provides the following toolbar buttons:
 <dl>
 
 <dt>&IMG.RESIZE_Y; Rescale Y</dt>
@@ -12409,6 +12452,8 @@ as well as the <label>Plot</label> menu:
     visible horizontal region of the plot.
     The horizontal range is not changed.
     </p></dd>
+
+<dt>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></dt>
 
 </dl>
 </p>
@@ -12734,8 +12779,9 @@ see the <label>Coords</label> tab of the
 </p>
 
 <p>As well as the standard actions,
-this window additionally provides the following toolbar button:
+this window additionally provides the following toolbar buttons:
 <ul>
+<li>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></li>
 <li>&IMG.POLY_SUBSET; <ref id="PolygonPanel">Draw Subset Polygon</ref></li>
 </ul>
 and <label>Subsets</label> menu item
@@ -13031,6 +13077,13 @@ values as their default (both Equatorial) and no conversion will be done.
 </ul>
 </p>
 
+<p>As well as the standard actions,
+this window additionally provides the following toolbar button:
+<ul>
+<li>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></li>
+</ul>
+</p>
+
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
 for features common to all plotting windows.
 The following subsections describe
@@ -13313,7 +13366,11 @@ see the <label>Coords</label> tab of the
 
 <p>As well as the standard actions,
 this window additionally provides the following
-<label>Subsets</label> menu item:
+toolbar button:
+<ul>
+<li>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></li>
+</ul>
+and <label>Subsets</label> menu item:
 <ul>
 <li>&IMG.JEL_VISIBLE_SUBSET;
     <ref id="jel-visible-subset">Algebraic Subset From Visible</ref></li>
@@ -13927,6 +13984,13 @@ share a time axis but have their own Y axis.
     </li>
 <li>&CONTROL.spectrogram;</li>
 <li>&CONTROL.function;</li>
+</ul>
+</p>
+
+<p>As well as the standard actions,
+this window additionally provides the following toolbar button:
+<ul>
+<li>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></li>
 </ul>
 </p>
 
@@ -27819,6 +27883,11 @@ introduced since the last version:
         seconds.  It is controlled by the <label>Draw Scale Bar</label>
         control in the <ref id="SkyAxisControl">Sky Axes Control</ref>
         Grid tab.</li>
+    <li>A new <ref id="MeasurePanel">Measure Distance</ref>
+        action is available in the
+        Plane, Histogram, Sky and Time plot windows.
+        This lets you use the mouse interactively to measure
+        the distance and vector components between two points.</li>
     </ul>
     </p></dd>
 
