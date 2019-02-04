@@ -11953,6 +11953,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         indicating the scale in degrees, minutes or seconds.
         It can be switched off using the new <code>scalebar</code>
         parameter.</li>
+    <li>The <ref id="layer-line"><code>line</code></ref> plot layer
+        now has an <code>aux</code> parameter that can vary the colour
+        of the line along its length according to some
+        third quantity.</li>
     </ul>
     </p>
     </dd>

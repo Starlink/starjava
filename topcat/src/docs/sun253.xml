@@ -10340,8 +10340,11 @@ In most plots, Gaia position errors are much too tiny to see!
 <p>The <label>Line</label> form (&IMG.PLOT_LINE;)
 draws a point-to-point line joining
 up the points making up the data set.
-Note that for a large and unordered data set this can lead to a big
-scribble on the screen.
+There are additional options to pre-sort the points according
+to their order on the X or Y axis
+(using the <label>Sort Axis</label> control),
+and to vary the colour of the line along its length
+(using the <label>Aux</label> coordinate). 
 </p>
 
 <figure>
@@ -10356,6 +10359,13 @@ scribble on the screen.
 
 <p>The configuration options are:
 <dl>
+<dt>Aux</dt>
+<dd><p>If supplied, this controls the colour of the line along its length
+    according to the value given here.
+    As for the <ref id="mode-aux">Aux shading mode</ref>,
+    the details of the colour mapping are controlled using the
+    <ref id="ShaderControl">Aux Axis control</ref>.
+    </p></dd>
 <dt>Thickness</dt>
 <dd><p>Line thickness in pixels.
     </p></dd>
@@ -27888,6 +27898,9 @@ introduced since the last version:
         Plane, Histogram, Sky and Time plot windows.
         This lets you use the mouse interactively to measure
         the distance and vector components between two points.</li>
+    <li>The <ref id="form-line">Line</ref> plot form now has an
+        <label>Aux</label> coordinate that can vary the colour of the
+        line along its length according to some third quantity.</li>
     </ul>
     </p></dd>
 
