@@ -365,6 +365,7 @@ public class FunctionPlotter extends
             LineTracer tracer =
                 style_.createLineTracer( g2, surface_.getPlotBounds(), np,
                                          paperType_.isBitmap() );
+            Color color = style_.getColor();
             Point2D.Double gpos = new Point2D.Double();
             double[] dpos = new double[ surface_.getDataDimCount() ];
             for ( int ip = 0; ip < np; ip++ ) {
@@ -376,7 +377,7 @@ public class FunctionPlotter extends
                 else if ( axis.xfToData( surface_, x, f, dpos ) &&
                      surface_.dataToGraphics( dpos, false, gpos ) &&
                      PlotUtil.isPointReal( gpos ) ) {
-                    tracer.addVertex( gpos.x, gpos.y );
+                    tracer.addVertex( gpos.x, gpos.y, color );
                 }
             }
             tracer.flush();

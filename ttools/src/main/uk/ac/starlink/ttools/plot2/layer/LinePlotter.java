@@ -118,6 +118,7 @@ public class LinePlotter extends SimpleDecalPlotter<LinePlotter.LinesStyle> {
         LineTracer tracer =
             style.createLineTracer( g, surface.getPlotBounds(), 10240,
                                     paperType.isBitmap() );
+        Color color = style.getColor();
         AxisOpt sortaxis = style.sortaxis_;
         int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
         double[] dpos = new double[ surface.getDataDimCount() ];
@@ -128,7 +129,7 @@ public class LinePlotter extends SimpleDecalPlotter<LinePlotter.LinesStyle> {
                 if ( geom.readDataPos( tseq, icPos, dpos ) &&
                      surface.dataToGraphics( dpos, false, gp ) &&
                      PlotUtil.isPointReal( gp ) ) {
-                    tracer.addVertex( gp.x, gp.y );
+                    tracer.addVertex( gp.x, gp.y, color );
                 }
             }
         }
@@ -143,7 +144,7 @@ public class LinePlotter extends SimpleDecalPlotter<LinePlotter.LinesStyle> {
             }
             Collections.sort( plist, sortaxis.pointComparator() );
             for ( Point2D point : plist ) {
-                tracer.addVertex( point.getX(), point.getY() );
+                tracer.addVertex( point.getX(), point.getY(), color );
             }
         }
         tracer.flush();

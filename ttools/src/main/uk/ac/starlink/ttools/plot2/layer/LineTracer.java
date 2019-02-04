@@ -1,28 +1,38 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Shape;
 import java.awt.Stroke;
-import java.awt.geom.GeneralPath;
+import java.awt.geom.Path2D;
+import java.awt.geom.Line2D;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+
 
 /**
  * Draws lines composed of a sequence of points, submitted one at a time.
  * To use it make multiple calls of {@link #addVertex addVertex},
  * followed by a call to {@link #flush}.
  *
- * <p>Sub-sequences of the point sequence are aggregated in supplied work
+ * <p>Where possible, sub-sequences of the point sequence
+ * are aggregated in supplied work
  * arrays and plotted using <code>Graphics2D.draw(Shape)</code>.
  * This is superior to the more obvious strategy of calling
  * <code>Graphics.drawLine</code> for every pair of points.
  * It is probably faster, it can work with non-integer coordinates,
+ * I think the line joining is better,
  * and it is necessary to get the dashing right for dashed strokes,
  * otherwise the dash starts anew for each edge.
- * This class does some other useful things like avoid attempts to plot
+ * However, this is only possible for runs of points of the same colour;
+ * line segments of different colours have to be drawn separately,
+ * which means that lines of varying colour may look worse than
+ * single colour ones (poorer sub-pixel positioning, nastier line joins,
+ * incorrect dash phase).
+ *
+ * <p>This class does some other useful things like avoid attempts to plot
  * lines which are extremely long or which are known to be outside the clip.
  *
  * @author   Mark Taylor
@@ -34,17 +44,16 @@ public class LineTracer {
     private final int xhi_;
     private final int ylo_;
     private final int yhi_;
-    private final double xVeryLo_;
-    private final double xVeryHi_;
-    private final double yVeryLo_;
-    private final double yVeryHi_;
+    private final int xmid_;
+    private final int ymid_;
+    private final double gLimit2_;
     private final Graphics2D g2_;
     private final int nwork_;
     private final double[] xWork_;
     private final double[] yWork_;
+    private final VertexStore lastVertex_;
     private int iLine_;
-    private boolean lastInclude_;
-    private VertexStore lastVertex_;
+    private Color lastColor_;
     private int lastRegionX_;
     private int lastRegionY_;
 
@@ -58,7 +67,6 @@ public class LineTracer {
      *
      * @param   g  the base graphics context
      * @param   bounds  bounds beyond which lines should not be drawn
-     * @param   color   line colour
      * @param   stroke  line stroke
      * @param   antialias  whether lines are to be antialiased
      * @param   nwork  workspace array size
@@ -66,9 +74,8 @@ public class LineTracer {
      *                    pixellised, allowing some optimisations to be made
      *                    that should not be visible
      */
-    public LineTracer( Graphics g, Rectangle bounds, Color color,
-                       Stroke stroke, boolean antialias, int nwork,
-                       boolean isPixel ) {
+    public LineTracer( Graphics g, Rectangle bounds, Stroke stroke,
+                       boolean antialias, int nwork, boolean isPixel ) {
         nwork_ = nwork;
         xlo_ = bounds.x;
         xhi_ = bounds.x + bounds.width;
@@ -78,7 +85,6 @@ public class LineTracer {
         /* Set up a graphics context in which polylines will be drawn. */
         g2_ = (Graphics2D) g.create();
         g2_.clip( bounds );
-        g2_.setColor( color );
         g2_.setStroke( stroke );
         g2_.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                               antialias ? RenderingHints.VALUE_ANTIALIAS_ON
@@ -86,77 +92,99 @@ public class LineTracer {
 
         /* Work out distances so far from the clip that no attempt should be
          * made to draw lines there. */
-        int huge = Math.max( bounds.width, bounds.height ) * 100;
-        xVeryLo_ = xlo_ - huge;
-        xVeryHi_ = xhi_ + huge;
-        yVeryLo_ = ylo_ - huge;
-        yVeryHi_ = yhi_ + huge;
+        xmid_ = ( xlo_ + xhi_ ) / 2;
+        ymid_ = ( ylo_ + yhi_ ) / 2;
+        gLimit2_ = Math.pow( Math.max( bounds.width, bounds.height ) * 100, 2 );
 
         /* Set up workspace arrays and plotting state. */
         xWork_ = new double[ nwork_ ];
         yWork_ = new double[ nwork_ ];
         lastVertex_ = createVertexStore( isPixel );
-        lastInclude_ = true;
     }
 
     /**
      * Adds a point to the sequence to be plotted.
+     * A null value for the <code>color</code> argument results in a
+     * break in the line.
      *
      * @param  dx  graphics X coordinate
      * @param  dy  graphics Y coordinate
+     * @param  color  line colour at point
      */
-    public void addVertex( double dx, double dy ) {
+    public void addVertex( double dx, double dy, Color color ) {
 
-        /* This method does various calculations to optimise the points
-         * that will be sent to the graphics context with drawPolyLine.
-         * Although some of this may duplicate work that's done in
-         * software or hardware by the graphics system (though I'm not
-         * so sure), we can reduce the amount of storage required by
-         * doing it here. */
+        /* As well as handling the colour manipulations required for
+         * aux-shaded lines, this method does various calculations to
+         * optimise the polyline that is sent to the graphics context
+         * for painting. */
 
-        /* Don't plot points on top of each other. */
-        if ( ! lastVertex_.equalsVertex( dx, dy ) ) {
-
-            /* Work out for X and Y whether the current point is within
-             * the plot bounds or on one side or the other, and compare
-             * it to the same information about the last point.
-             * If two points are both (e.g.) to the left of the bounds,
-             * the line between then cannot intercept the bounds so
-             * the line between them does not need to be drawn.
-             * Otherwise, even if neither point is in the bounds,
-             * the line might cross the bounds, so plot it.
-             * The arithmetic of the region function makes it easy to
-             * work this out. */
+        /* Treat a null colour as a break in the line. */
+        if ( color == null ) {
+            flushPoly();
+            iLine_ = 0;
+        }
+        else {
             int regionX = getRegion( dx, xlo_, xhi_ );
             int regionY = getRegion( dy, ylo_, yhi_ );
-            boolean include = regionX * lastRegionX_ != 1
-                           && regionY * lastRegionY_ != 1;
-            if ( include ) {
 
-                /* If we didn't plot the last pair of points, add the last
-                 * point to the plot list so that we're drawing from the
-                 * right place to the current point. */
-                if ( ! lastInclude_ ) {
-                    addIncludedVertex( lastVertex_.getX(), lastVertex_.getY() );
-                }
-
-                /* Draw to the current point. */
+            /* If the current polyline is empty (this is the first point
+             * in the line, or the first point since a break in the line),
+             * initialise the polyline with the coordinates of the current
+             * point. */
+            if ( iLine_ == 0 ) {
                 addIncludedVertex( dx, dy );
             }
 
-            /* If this pair will not be plotted, take the opportunity to
-             * plot the currently accumulated set. */
-            else {
-                flush();
+            /* Find out if the line between the previous and current points
+             * needs to be drawn.  First compare the 'regions' for the
+             * X and Y coordinates; this simple arithmetic is able to
+             * exclude many lines that will not cross the plot bounds,
+             * since if two points are both (e.g.) to the left of the bounds,
+             * the line between them cannot intercept the bounds so the line
+             * does not need to be drawn.  Also check whether the current
+             * point is right on top of the previous one; if so, the
+             * line would be zero length and hence invisible. */
+            else if ( regionX * lastRegionX_ != 1 &&
+                      regionY * lastRegionY_ != 1 &&
+                      ! lastVertex_.equalsVertex( dx, dy ) ) {
+
+                /* If the colours assigned to the two points are the same,
+                 * just add the point to the list that will be drawn as
+                 * a polyline in the current colour.  This will get
+                 * plotted eventually. */
+                if ( color.equals( lastColor_ ) ) {
+                    addIncludedVertex( dx, dy );
+                }
+
+                /* If the colours are different, first flush any pending
+                 * polyline, then draw this line segment in a way that
+                 * fades from one colour to the other. */
+                else {
+                    flushPoly();
+                    assert iLine_ == 1;
+                    addIncludedVertex( dx, dy );
+                    flushPair0( lastColor_, color );
+                }
             }
 
-            /* Save information about the current point since it will form
-             * part of the next line segment. */
+            /* Otherwise, no line will be drawn to the current point.
+             * Take the opportunity to flush any pending polyline,
+             * and start a new (potential) polyline starting with the
+             * current point. */
+            else {
+                flushPoly();
+                iLine_ = 0;
+                addIncludedVertex( dx, dy );
+            }
+
+            /* Store information about the current point that will be
+             * needed when processing the next one. */
             lastVertex_.setVertex( dx, dy );
-            lastInclude_ = include;
             lastRegionX_ = regionX;
             lastRegionY_ = regionY;
+            assert iLine_ > 0;
         }
+        lastColor_ = color;
     }
 
     /**
@@ -166,15 +194,57 @@ public class LineTracer {
      * to ensure that the drawing has actually been done.
      */
     public void flush() {
-        if ( iLine_ > 1 ) {
-            g2_.draw( createLineShape( xWork_, yWork_, iLine_ ) );
-        }
-        iLine_ = 0;
+        flushPoly();
     }
 
     /**
-     * Adds a vertex to the list which will have lines drawn between
-     * them.
+     * Ensures that all lines in the pending polyline have been drawn,
+     * and prepares it for subsequent use.
+     */
+    private void flushPoly() {
+        if ( iLine_ > 1 ) {
+            assert lastColor_ != null;
+            g2_.setColor( lastColor_ );
+            Path2D.Double path =
+                new Path2D.Double( Path2D.WIND_NON_ZERO, iLine_ );
+            path.moveTo( xWork_[ 0 ], yWork_[ 0 ] );
+            for ( int ip = 1; ip < iLine_; ip++ ) {
+                path.lineTo( xWork_[ ip ], yWork_[ ip ] );
+            }
+            g2_.draw( path );
+            xWork_[ 0 ] = xWork_[ iLine_ - 1 ];
+            yWork_[ 0 ] = yWork_[ iLine_ - 1 ];
+            iLine_ = 1;
+        }
+    }
+
+    /**
+     * Paints a line between the first two positions in the pending polyline,
+     * with a colour fading linearly between two supplied values.
+     * Must be called when only two positions are in the polyline.
+     * On exit, the polyline contains only the ending position,
+     * ready for subsequent lines.
+     *
+     * @param  color0  colour for starting point
+     * @param  color1  colour for ending point
+     */
+    private void flushPair0( Color color0, Color color1 ) {
+        assert iLine_ == 2;
+        double dx0 = xWork_[ 0 ];
+        double dy0 = yWork_[ 0 ];
+        double dx1 = xWork_[ 1 ];
+        double dy1 = yWork_[ 1 ];
+        g2_.setPaint( new GradientPaint( (float) dx0, (float) dy0, color0,
+                                         (float) dx1, (float) dy1, color1 ) );
+        g2_.draw( new Line2D.Double( dx0, dy0, dx1, dy1 ) );
+        xWork_[ 0 ] = dx1;
+        yWork_[ 0 ] = dy1;
+        iLine_ = 1;
+    }
+
+    /**
+     * Adds a vertex to the pending polyline which will have lines
+     * drawn between them.
      *
      * @param   x  X graphics coordinate
      * @param   y  Y graphics coordinate
@@ -185,12 +255,8 @@ public class LineTracer {
          * In this case, copy the last point in the full buffer as
          * the first point in the new one so that the lines join up. */
         if ( iLine_ == nwork_ ) {
-            double x0 = xWork_[ iLine_ - 1 ];
-            double y0 = yWork_[ iLine_ - 1 ];
             flush();
-            xWork_[ 0 ] = x0;
-            yWork_[ 0 ] = y0;
-            iLine_++;
+            assert iLine_ == 1;
         }
 
         /* If an attempt is made to draw to a line which is monstrously
@@ -199,9 +265,16 @@ public class LineTracer {
          * the kernel kills the JVM).  In this case, approximate the
          * point to somewhere far away in roughly the right direction.
          * This isn't likely to happen very often in any case. */
-        x = Math.max( xVeryLo_, Math.min( xVeryHi_, x ) );
-        y = Math.max( yVeryLo_, Math.min( yVeryHi_, y ) );
-
+        double sx = x - xmid_;
+        double sy = y - ymid_;
+        double s2 = sx * sx + sy + sy;
+        if ( s2 > gLimit2_ ) {
+            double theta = Math.atan2( sy, sx );
+            double r = Math.sqrt( gLimit2_ );
+            x = xmid_ + r * Math.cos( theta );
+            y = ymid_ + r * Math.sin( theta );
+        }
+     
         /* Store the point for later plotting. */
         xWork_[ iLine_ ] = x;
         yWork_[ iLine_ ] = y;
@@ -219,27 +292,9 @@ public class LineTracer {
      * @return  region code
      */
     private static int getRegion( double point, int lo, int hi ) {
-        return point >= lo ? ( point < hi ? 0 
+        return point >= lo ? ( point < hi ? 0
                                           : +1 )
                            : -1;
-    }
-
-    /**
-     * Turns an array of coordinates into a Shape representing line
-     * segments joining them.
-     *
-     * @param  xs  X coordinates
-     * @param  ys  Y coordinates
-     * @param  np  number of points (used length of xs and ys arrays)
-     * @return    polyline shape
-     */
-    private static Shape createLineShape( double[] xs, double[] ys, int np ) {
-        GeneralPath path = new GeneralPath( GeneralPath.WIND_NON_ZERO, np );
-        path.moveTo( (float) xs[ 0 ], (float) ys[ 0 ] );
-        for ( int ip = 1; ip < np; ip++ ) {
-            path.lineTo( (float) xs[ ip ], (float) ys[ ip ] );
-        }
-        return path;
     }
 
     /**
@@ -295,7 +350,7 @@ public class LineTracer {
     /**
      * Stores a graphics position.
      */
-    private static interface VertexStore {
+    private interface VertexStore {
 
         /**
          * Returns the current X coordinate.

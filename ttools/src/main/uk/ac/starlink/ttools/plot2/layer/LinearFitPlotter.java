@@ -329,8 +329,9 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                  PlotUtil.isPointFinite( gp2 ) ) {
                 LineTracer tracer =
                     style.createLineTracer( g, bounds, 2, false ); 
-                tracer.addVertex( gp1.x, gp1.y );
-                tracer.addVertex( gp2.x, gp2.y );
+                Color color = style.getColor();
+                tracer.addVertex( gp1.x, gp1.y, color );
+                tracer.addVertex( gp2.x, gp2.y, color );
                 tracer.flush();
             }
         }

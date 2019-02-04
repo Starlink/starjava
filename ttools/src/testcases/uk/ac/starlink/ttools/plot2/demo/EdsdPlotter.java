@@ -162,14 +162,13 @@ public class EdsdPlotter extends AbstractPlotter<EdsdPlotter.EdsdStyle> {
             Color color = colors[ i ];
             Function function = functions[ i ];
             LineTracer tracer =
-                new LineTracer( g2, bounds, color,
-                                new BasicStroke( i == 0 ? 3 : 1 ),
+                new LineTracer( g2, bounds, new BasicStroke( i == 0 ? 3 : 1 ),
                                 true, 2000, true );
             for ( int gx = gxLimits[ 0 ]; gx < gxLimits[ 1 ]; gx++ ) {
                 double dx = xAxis.graphicsToData( gx );
                 double dy = function.f( dx );
                 double gy = yAxis.dataToGraphics( dy );
-                tracer.addVertex( gx, gy );
+                tracer.addVertex( gx, gy, color );
                 if ( function instanceof NormPdf ) {
                     double rMode = ((NormPdf) function).rMode_;
                     Color color0 = g2.getColor();

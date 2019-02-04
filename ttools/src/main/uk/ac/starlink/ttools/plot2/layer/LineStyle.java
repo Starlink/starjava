@@ -101,8 +101,7 @@ public class LineStyle implements Style {
      */
     public LineTracer createLineTracer( Graphics g, Rectangle bounds,
                                         int nwork, boolean isPixel ) {
-        return new LineTracer( g, bounds, color_, stroke_, antialias_, nwork,
-                               isPixel );
+        return new LineTracer( g, bounds, stroke_, antialias_, nwork, isPixel );
     }
 
     @Override

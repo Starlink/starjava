@@ -425,6 +425,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             int gxhi = box.x + box.width + 2;
             int np = gxhi - gxlo;
             LineTracer tracer = style.createLineTracer( g2, box, np, isBitmap );
+            Color color = style.getColor();
             Point2D.Double gpos = new Point2D.Double();
             double[] dpos = new double[ surface.getDataDimCount() ];
             for ( int ip = 0; ip < np; ip++ ) {
@@ -436,7 +437,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                     dpos[ 1 ] = factor * gaussian( dx );
                     if ( surface.dataToGraphics( dpos, false, gpos ) &&
                          PlotUtil.isPointReal( gpos ) ) {
-                        tracer.addVertex( gpos.x, gpos.y );
+                        tracer.addVertex( gpos.x, gpos.y, color );
                     }
                 }
             }
@@ -449,8 +450,8 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 double gyhi = axes[ 1 ].dataToGraphics( factor );
                 LineTracer meanTracer =
                     style.createLineTracer( g2, box, 3, isBitmap );
-                meanTracer.addVertex( gx, gylo );
-                meanTracer.addVertex( gx, gyhi );
+                meanTracer.addVertex( gx, gylo, color );
+                meanTracer.addVertex( gx, gyhi, color );
                 meanTracer.flush();
             }
         }
