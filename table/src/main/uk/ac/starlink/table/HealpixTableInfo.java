@@ -17,27 +17,39 @@ public class HealpixTableInfo {
     private final String ipixColName_;
     private final HpxCoordSys csys_;
 
-    /** Metadata element for HEALPix level (=log2(nside)). */
+    /**
+     * Metadata element for HEALPix level (=log2(nside)).
+     * Name "<code>STIL_HPX_LEVEL</code>", class Integer.
+     */
     public static final ValueInfo HPX_LEVEL_INFO =
         new DefaultValueInfo( "STIL_HPX_LEVEL", Integer.class,
                               "Level of HEALPix pixels contained in the table"
                             + " (nside=2^level)" );
 
-    /** Metadata element for HEALPix ordering (true=NESTED, false=RING). */
+    /**
+     * Metadata element * for HEALPix ordering (true=NESTED, false=RING).
+     * Name "<code>STIL_HPX_ISNEST</code>", class Boolean.
+     */
     public static final ValueInfo HPX_ISNEST_INFO =
         new DefaultValueInfo( "STIL_HPX_ISNEST", Boolean.class,
                               "True for NEST indexation scheme, "
                             + "False for RING" );
 
-    /** Metadata element for name of column storing pixel index.
-      * If blank, indexing is implicit (determined by row index). */
+    /**
+     * Metadata element for name of column storing pixel index.
+     * If blank, indexing is implicit (determined by row index).
+     * Name "<code>STIL_HPX_COLNAME</code>", class String.
+     */
     public static final ValueInfo HPX_COLNAME_INFO =
         new DefaultValueInfo( "STIL_HPX_COLNAME", String.class,
                               "Name of the table column containing "
                             + "HEALPix index; null value or empty string "
                             + "indicates implicit" );
 
-    /** Metadata element for character indicating sky system: C, G or E. */
+    /**
+     * Metadata element for character indicating sky system: C, G or E.
+     * Name "<code>STIL_HPX_CSYS</code>", class String.
+     */
     public static final ValueInfo HPX_CSYS_INFO =
         new DefaultValueInfo( "STIL_HPX_CSYS", String.class,
                               "'C'=celestial/equatorial, 'G'=galactic, "
