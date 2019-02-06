@@ -16,7 +16,9 @@ import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import skyview.geometry.Projecter;
 import skyview.geometry.Rotater;
@@ -25,6 +27,7 @@ import skyview.geometry.TransformationException;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 
@@ -64,6 +67,12 @@ public class SkySurface implements Surface {
     private final double gZoom_;
     private final boolean skyFillsBounds_;
     private final boolean isContinuous_;
+    private static final int SEGMENT_NPIX = 3;
+    private static final LabelUnit[] RAD_UNITS = new LabelUnit[] { 
+        new LabelUnit( "\"", Math.PI / ( 180 * 60 * 60 ) ),
+        new LabelUnit( "'", Math.PI / ( 180 * 60 ) ),
+        new LabelUnit( "\u00b0", Math.PI / ( 180 ) ),
+    };      
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -716,6 +725,76 @@ public class SkySurface implements Surface {
              ? Double.NaN
              : Math.atan2( Matrices.mod( Matrices.cross( dp1, dp2 ) ),
                            Matrices.dot( dp1, dp2 ) );
+    }
+
+    /**
+     * Returns a labelled line corresponding to the (shorter) great circle
+     * arc between two graphics points.
+     *
+     * @param   gp1  start point in graphics space
+     * @param   gp2  end point in graphics space
+     * @return  labelled line, or null if it can't be done, for instance
+     *          if not both points are on the sky
+     */
+    public LabelledLine createLine( Point2D gp1, Point2D gp2 ) {
+
+        /* Get sky positions. */
+        double[] dp1 = graphicsToData( gp1 );
+        double[] dp2 = graphicsToData( gp2 );
+        if ( dp1 == null || dp2 == null ) {
+            return null;
+        }
+
+        /* Get label indicating distance in human-readable terms. */
+        double distRad = screenDistanceRadians( gp1, gp2 );
+        double epsRad = Math.sqrt( Math.max( pixelAreaSteradians( gp1 ),
+                                             pixelAreaSteradians( gp2 ) ) );
+        String label = Double.isNaN( distRad ) || Double.isNaN( epsRad )
+                     ? null
+                     : LabelUnit.formatValue( distRad, epsRad, RAD_UNITS );
+
+        /* Work out the number of segments we will need to have a reasonably
+         * smooth line - average one point every few pixels. */
+        double gdist = Math.hypot( gp2.getX() - gp1.getX(),
+                                   gp2.getY() - gp2.getY() );
+        int np = Math.max( 2, (int) Math.ceil( gdist / SEGMENT_NPIX ) );
+
+        /* Assemble a list of the required number of vertices
+         * by taking points spaced equally between the end points
+         * through the interior of the unit sphere (and rescaling
+         * vectors to unit extent as required). */
+        List<Point2D.Double> pList = new ArrayList<Point2D.Double>( np );
+        double[] dpLast = null;
+        double scale = 1.0 / ( np - 1 );
+        for ( int ip = 0; ip < np; ip++ ) {
+            double frac = ip * scale;
+            double dx = PlotUtil.scaleValue( dp1[ 0 ], dp2[ 0 ], frac );
+            double dy = PlotUtil.scaleValue( dp1[ 1 ], dp2[ 1 ], frac );
+            double dz = PlotUtil.scaleValue( dp1[ 2 ], dp2[ 2 ], frac );
+            double r = Math.sqrt( dx * dx + dy * dy + dz * dz );
+            if ( r > 0 ) {
+                double[] dp = new double[] { dx / r, dy / r, dz / r };
+                Point2D.Double gpos = new Point2D.Double();
+                if ( dataToGraphics( dp, false, gpos ) ) {
+                    if ( dp != null && dpLast != null &&
+                         ! projection_.isContinuousLine( dp, dpLast ) ) {
+                        pList.add( null );
+                    }
+                    pList.add( gpos );
+                }
+                else {
+                    return new LabelledLine( gp1, gp2, label );
+                }
+                dpLast = dp;
+            }
+        }
+
+        /* Turn the vertex list into a LabelledLine; if it didn't work for
+         * some reason, fall back to a straight line in graphics space. */
+        Point2D[] points = pList.size() >= 2
+                         ? pList.toArray( new Point2D.Double[ 0 ] )
+                         : new Point2D[] { gp1, gp2 };
+        return new LabelledLine( points, label );
     }
 
     /**

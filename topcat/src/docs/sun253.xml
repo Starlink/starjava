@@ -8137,9 +8137,8 @@ and you need to invoke the action again to make another measurement.
 <p>The details of what distances are displayed depends on the
 plot window in question, according to what metrics are defined
 on the plot space.
-For the Sky plot, a straight line is drawn on the plot between the
-two points, and the distance is labelled in degrees, minutes or seconds
-along a great circle.
+For the Sky plot, the shorter great circle arc is drawn on the plot between the
+two points, and the distance is labelled in degrees, minutes or seconds.
 For the Histogram and Time plots,
 vertical and horizontal components are drawn and
 labelled in terms of the distances along the corresponding axis.

@@ -481,28 +481,17 @@ public class SkySurfaceFactory
      * PlotMetric implementation for the sky surface.
      */
     private static class SkyPlotMetric implements PlotMetric {
-        private static final LabelUnit[] RAD_UNITS = new LabelUnit[] {
-            new LabelUnit( "\"", Math.PI / ( 180 * 60 * 60 ) ),
-            new LabelUnit( "'", Math.PI / ( 180 * 60 ) ),
-            new LabelUnit( "\u00b0", Math.PI / ( 180 ) ),
-        };
         public LabelledLine[] getMeasures( Surface surf,
                                            Point2D gp0, Point2D gp1 ) {
             if ( surf instanceof SkySurface ) {
-                SkySurface ssurf = (SkySurface) surf;
-                double distRad = ssurf.screenDistanceRadians( gp0, gp1 );
-                double epsRad =
-                    Math.sqrt( Math.max( ssurf.pixelAreaSteradians( gp0 ),
-                                         ssurf.pixelAreaSteradians( gp1 ) ) );
-                if ( !Double.isNaN( distRad ) && !Double.isNaN( epsRad ) ) {
-                    String label =
-                        LabelUnit.formatValue( distRad, epsRad, RAD_UNITS );
-                    return new LabelledLine[] {
-                        new LabelledLine( gp0, gp1, label ),
-                    };
-                }
+                LabelledLine line = ((SkySurface) surf).createLine( gp0, gp1 );
+                return line == null
+                     ? new LabelledLine[ 0 ]
+                     : new LabelledLine[] { line };
             }
-            return new LabelledLine[ 0 ];
+            else {
+                return new LabelledLine[ 0 ];
+            }
         }
     }
 
