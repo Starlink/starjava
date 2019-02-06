@@ -605,6 +605,20 @@ public class SkySurface implements Surface {
         return null;
     }
 
+    /**
+     * Attempts to turn a graphics position into a sky position.
+     * This convenience function just calls
+     * <code>graphicsToData(gpos,null)</code>,
+     * since the iterable argument is ignored for the SkySurface.
+     *
+     * @param   gpos  graphics position
+     * @return   3-element unit vector representing data position,
+     *           or null if gpos out of range
+     */
+    public double[] graphicsToData( Point2D gpos ) {
+        return graphicsToData( gpos, null );
+    }
+
     public String formatPosition( double[] dpos ) {
         double pixRad = 2.0 * Math.PI / gZoom_;
         double x = dpos[ 0 ];
@@ -696,8 +710,8 @@ public class SkySurface implements Surface {
      *          or NaN if one of the positions is not on the sky
      */
     public double screenDistanceRadians( Point2D gp1, Point2D gp2 ) {
-        double[] dp1 = graphicsToData( gp1, null );
-        double[] dp2 = graphicsToData( gp2, null );
+        double[] dp1 = graphicsToData( gp1 );
+        double[] dp2 = graphicsToData( gp2 );
         return dp1 == null || dp2 == null
              ? Double.NaN
              : Math.atan2( Matrices.mod( Matrices.cross( dp1, dp2 ) ),
