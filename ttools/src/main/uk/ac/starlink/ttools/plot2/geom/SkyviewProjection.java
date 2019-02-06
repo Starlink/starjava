@@ -27,7 +27,7 @@ public class SkyviewProjection implements Projection {
     private final Projecter projecter_;
     private final Deprojecter deprojecter_;
     private final Shape shape_;
-    private final boolean isContinuous_;
+    private final boolean isContinuousLon180_;
 
     /** Aitoff projection. */
     public static final SkyviewProjection AIT =
@@ -57,21 +57,25 @@ public class SkyviewProjection implements Projection {
 
     /**
      * Constructor.
-     * You have to tell it whether the projection is known to be continuous.
-     * In more recent SkyView releases, I think this can be determined
+     * You have to tell it whether there is known to be a discontinuity
+     * at longitude = +/-PI; note currently discontinuities elsewhere
+     * are not supported.
+     * In more recent SkyView releases, I think this can be handled
      * programmatically from the Projecter instance by using the
      * function <code>!projecter.straddleable()</code>.
      *
      * @param  projecter  projecter object
      * @param  shape   shape of the sky in this projection
-     * @param  isContinuous  whether projection is known to be continuous
+     * @param  isContinuousLon180  whether projection is known to
+     *         be continuous across longitude=+/-PI; it is assumed to be
+     *         continuous elsewhere
      */
-    public SkyviewProjection( Projecter projecter, Shape shape,
-                              boolean isContinuous ) {
+    protected SkyviewProjection( Projecter projecter, Shape shape,
+                                 boolean isContinuousLon180 ) {
         projecter_ = projecter;
         deprojecter_ = projecter.inverse();
         shape_ = shape;
-        isContinuous_ = isContinuous;
+        isContinuousLon180_ = isContinuousLon180;
     }
 
     public String getProjectionName() {
@@ -87,7 +91,13 @@ public class SkyviewProjection implements Projection {
     }
 
     public boolean isContinuous() {
-        return isContinuous_;
+        return isContinuousLon180_;
+    }
+
+    public boolean isContinuousLine( double[] r3a, double[] r3b ) {
+        return isContinuousLon180_
+            || r3a[ 1 ] * r3b[ 1 ] >= 0
+            || ( r3a[ 0 ] >= 0 && r3b[ 0 ] >= 0 );
     }
 
     public boolean project( double rx, double ry, double rz,
@@ -195,12 +205,16 @@ public class SkyviewProjection implements Projection {
      * Name and description are taken from the skyview metadata.
      *
      * @param  projecter  skyview projecter
-     * @param  isContinuous  whether projection is known to be continuous
+     * @param  isContinuousLon180  whether projection is known to
+     *         be continuous across longitude=+/-PI; it is assumed to be
+     *         continuous elsewhere
      * @throws  IllegalArgumentException  if the shape is not known
      */
-    public static SkyviewProjection createProjection( Projecter projecter,
-                                                      boolean isContinuous ) {
-        return createProjection( projecter, isContinuous, projecter.getName(),
+    private static SkyviewProjection
+            createProjection( Projecter projecter,
+                              boolean isContinuousLon180 ) {
+        return createProjection( projecter, isContinuousLon180,
+                                 projecter.getName(),
                                  projecter.getDescription() );
     }
 
@@ -208,17 +222,18 @@ public class SkyviewProjection implements Projection {
      * Constructs a projection with given projecter, name and desription.
      *
      * @param  projecter  skyview projecter
-     * @param  isContinuous  whether projection is known to be continuous
+     * @param  isContinuousLon180  whether projection is known to
+     *         be continuous across longitude=+/-PI; it is assumed to be
+     *         continuous elsewhere
      * @param  name  projection name
      * @param  descrip  projection description
      * @throws  IllegalArgumentException  if the shape is not known
      */
-    private static SkyviewProjection createProjection( Projecter projecter,
-                                                       boolean isContinuous,
-                                                       final String name,
-                                                       final String descrip ) {
+    private static SkyviewProjection
+            createProjection( Projecter projecter, boolean isContinuousLon180,
+                              final String name, final String descrip ) {
         return new SkyviewProjection( projecter, getShape( projecter ),
-                                      isContinuous ) {
+                                      isContinuousLon180 ) {
              @Override
              public String getProjectionName() {
                  return name;

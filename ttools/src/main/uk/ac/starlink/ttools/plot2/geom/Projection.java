@@ -30,13 +30,27 @@ public interface Projection {
     /**
      * Indicates whether this projection is known to be continous over
      * its whole range.  Returns false if there may be any cases for which
-     * small changes in the 3-vector leads to large changes in the plane
-     * position (such as near lon=180 in an Aitoff, but not a Sinus,
-     * projection).
+     * {@link #isContinuousLine isContinuousLine} returns false.
      *
      * @return   true iff this projection is known to be continuous
      */
     boolean isContinuous();
+
+    /**
+     * Indicates whether a line between the two given sky positions
+     * is (believed to be) continuous.  "Line" in this context should
+     * ideally be interpreted as the shorter arc on a great circle.
+     * A line crossing lon=180 for instance would be discontinuous in
+     * an Aitoff projection, but not in a Sin projection.
+     *
+     * @param  r3a  3-element array giving normalised X,Y,Z coordinates of
+     *              line start
+     * @param  r3b  3-element array giving normalised X,Y,Z coordinates of
+     *              line end
+     * @return  true if line is believed to be continuous;
+     *          if in doubt, probably better to return true
+     */
+    boolean isContinuousLine( double[] r3a, double[] r3b );
 
     /**
      * Transforms a sky position to a plane position.

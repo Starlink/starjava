@@ -53,6 +53,10 @@ public class HemisphereProjection implements Projection {
         return true;
     }
 
+    public boolean isContinuousLine( double[] r3a, double[] r3b ) {
+        return true;
+    }
+
     public boolean project( double rx, double ry, double rz,
                             Point2D.Double pos ) {
         if ( rx >= 0 ) {
