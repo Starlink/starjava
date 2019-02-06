@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -10,7 +9,6 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -106,50 +104,28 @@ public class MeasurePanel extends JPanel {
     }
 
     @Override
-    protected void paintComponent( Graphics g0 ) {
-        super.paintComponent( g0 );
+    protected void paintComponent( Graphics g ) {
+        super.paintComponent( g );
         if ( surf_ != null && gpos0_ != null && gpos1_ != null ) {
             LabelledLine[] lines = metric_.getMeasures( surf_, gpos0_, gpos1_ );
 
             /* Plot line backgrounds. */
-            Graphics2D g1 = (Graphics2D) g0.create();
-            g1.setColor( bg_ );
-            g1.setStroke( bgStroke_ );
+            Graphics2D g2 = (Graphics2D) g.create();
+            Stroke stroke0 = g2.getStroke();
+            g2.setColor( bg_ );
+            g2.setStroke( bgStroke_ );
             for ( LabelledLine line : lines ) {
-                Point2D gpos0 = line.getPoint0();
-                Point2D gpos1 = line.getPoint1();
-                g1.drawLine( (int) gpos0.getX(), (int) gpos0.getY(),
-                             (int) gpos1.getX(), (int) gpos1.getY() );
+                line.drawLine( g2 );
             }
+            g2.setStroke( stroke0 );
 
             /* Plot line foregrounds and text annotations. */
+            g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
+                                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
             for ( LabelledLine line : lines ) {
-                Point2D gpos0 = line.getPoint0();
-                Point2D gpos1 = line.getPoint1();
-                String label = line.getLabel();
-                int gx0 = (int) gpos0.getX();
-                int gy0 = (int) gpos0.getY();
-                int gx1 = (int) gpos1.getX();
-                int gy1 = (int) gpos1.getY();
-                boolean flip = gx0 == gx1 ? ( gy0 > gy1 ) : ( gx0 > gx1 );
-                int gxA = flip ? gx1 : gx0;
-                int gyA = flip ? gy1 : gy0;
-                int gxB = flip ? gx0 : gx1;
-                int gyB = flip ? gy0 : gy1;
-                Graphics2D g2 = (Graphics2D) g0.create();
-                g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
-                                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
                 g2.setColor( fg_ );
-                g2.drawLine( gxA, gyA, gxB, gyB );
-                g2.translate( ( gxA + gxB ) / 2, ( gyA + gyB ) / 2 );
-                double theta = Math.atan2( gyB - gyA, gxB - gxA );
-                g2.rotate( theta );
-                FontMetrics fm = g2.getFontMetrics();
-                g2.translate( - fm.stringWidth( label ) / 2, -3 );
-                g2.setColor( bg_ );
-                g2.fill( fm.getStringBounds( label, g2 ).getBounds() );
-                g2.setColor( fg_ );
-                g2.drawString( label, 0, 0 );
+                line.drawLine( g2 );
+                line.drawLabel( g2, bg_ );
             }
         }
     }
