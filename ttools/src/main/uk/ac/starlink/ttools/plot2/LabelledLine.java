@@ -71,6 +71,15 @@ public class LabelledLine {
      * @param  g2  graphics context
      */
     public void drawLine( Graphics2D g2 ) {
+        g2.draw( getPath() );
+    }
+
+    /**
+     * Returns a path object corresponding to this line.
+     *
+     * @return  path
+     */
+    public Path2D getPath() {
         int np = gps_.length;
         Path2D.Double path = new Path2D.Double( Path2D.WIND_NON_ZERO, np );
         boolean brk = true;
@@ -87,7 +96,7 @@ public class LabelledLine {
             }
             brk = gp == null;
         }
-        g2.draw( path );
+        return path;
     }
 
     /**
