@@ -806,8 +806,8 @@ public class SkySurface implements Surface {
      * @param  latRad  latitude in radians
      * @param  pixRad  approximate size of a screen pixel in radians
      */
-    private static String formatPositionSex( double lonRad, double latRad,
-                                             double pixRad ) {
+    public static String formatPositionSex( double lonRad, double latRad,
+                                            double pixRad ) {
         int secondDp = getDecimalPlaces( pixRad / Math.PI * 12 * 60 * 60 );
         int arcsecDp = getDecimalPlaces( pixRad / Math.PI * 180 * 60 * 60 );
         String lonSex =
@@ -836,8 +836,8 @@ public class SkySurface implements Surface {
      * @param  latRad  latitude in radians
      * @param  pixRad  approximate size of a screen pixel in radians
      */
-    private static String formatPositionDec( double lonRad, double latRad,
-                                             double pixRad ) {
+    public static String formatPositionDec( double lonRad, double latRad,
+                                            double pixRad ) {
         double lonDeg = lonRad * 180 / Math.PI;
         double latDeg = latRad * 180 / Math.PI;
         double pixDeg = pixRad * 180 / Math.PI;
