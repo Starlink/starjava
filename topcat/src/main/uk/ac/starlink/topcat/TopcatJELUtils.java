@@ -386,17 +386,53 @@ public class TopcatJELUtils extends JELUtils {
     }
 
     /**
-     * Returns a JEL-friendly expression which may be used to reference a
-     * GuiCoordContent, if possible.
+     * Returns a single JEL-friendly expression which may be used to
+     * reference a GuiCoordContent, if possible.
+     * This will only succeed (return a non-null value) if the
+     * supplied GuiCoordContent corresponds to a single user-supplied label.
      *
      * @param  tcModel   topcat model
      * @param  content   user specification for a plotted quantity
-     * @return  JEL-safe expression for referencing the quantity
+     * @return  JEL-safe expression for referencing the quantity, or null
      */
     public static String getDataExpression( TopcatModel tcModel,
                                             GuiCoordContent content ) {
         String[] labels = content.getDataLabels();
         String label = labels.length == 1 ? labels[ 0 ] : null;
+        return getDataExpression( tcModel, label );
+    }
+
+    /**
+     * Returns an array of JEL-friendly expressions which may be used to
+     * reference a GuiCoordContent.
+     *
+     * @param  tcModel   topcat model
+     * @param  content   user specification for a plotted quantity
+     * @return  array of JEL-safe expressions, one for each user-supplied
+     *          label in the content
+     *  
+     */
+    public static String[] getDataExpressions( TopcatModel tcModel,
+                                               GuiCoordContent content ) {
+        String[] labels = content.getDataLabels();
+        int nexpr = labels.length;
+        String[] exprs = new String[ nexpr ];
+        for ( int ie = 0; ie < nexpr; ie++ ) {
+            exprs[ ie ] = getDataExpression( tcModel, labels[ ie ] );
+        }
+        return exprs;
+    }
+
+    /**
+     * Converts a data label to a JEL-friendly expression for a table quantity.
+     * The label will typically be a string that the user has selected
+     * or entered to identify a quantity to be plotted.
+     *
+     * @param  tcModel  topcat model
+     * @param  label    textual identifier for data
+     */
+    private static String getDataExpression( TopcatModel tcModel,
+                                             String label ) {
         if ( label == null ) {
             return null;
         }
