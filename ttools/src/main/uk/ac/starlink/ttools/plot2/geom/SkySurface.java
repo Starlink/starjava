@@ -756,7 +756,7 @@ public class SkySurface implements Surface {
         /* Work out the number of segments we will need to have a reasonably
          * smooth line - average one point every few pixels. */
         double gdist = Math.hypot( gp2.getX() - gp1.getX(),
-                                   gp2.getY() - gp2.getY() );
+                                   gp2.getY() - gp1.getY() );
         int np = Math.max( 2, (int) Math.ceil( gdist / SEGMENT_NPIX ) );
 
         /* Assemble a list of the required number of vertices
