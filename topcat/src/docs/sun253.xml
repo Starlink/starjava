@@ -825,7 +825,7 @@ various <ref id="plot2">plotting</ref>
     <label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;),
     <label>Algebraic Subset From Visible</label> (&IMG.JEL_VISIBLE_SUBSET;),
     <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;) and
-    <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;),
+    <label>Draw Algebraic Subset</label> (&IMG.POLY_SUBSET;),
     though not all are available for all plot types.
     </p></dd>
 
@@ -7895,13 +7895,13 @@ will be available as toolbar/menu items:
 <ul>
 <li>&IMG.VISIBLE_SUBSET; Subset From Visible</li>
 <li>&IMG.JEL_VISIBLE_SUBSET; Algebraic Subset From Visible</li>
-<li>&IMG.BLOB_SUBSET; Draw Subset Blob</li>
-<li>&IMG.POLY_SUBSET; Draw Subset Polygon</li>
+<li>&IMG.BLOB_SUBSET; Draw Blob Subset</li>
+<li>&IMG.POLY_SUBSET; Draw Algebraic Subset</li>
 </ul>
 </p>
 
 <p>In all these cases, when you have graphically specified a region,
-a dialogue box will pop up to ask you the name of the corresponding subset.
+a dialogue box will pop up to ask you the name of the corresponding subset(s).
 As described in <ref id="subsetDef"/>, it's a good idea to use a
 name which is just composed of letters, numbers and underscores.
 You can optionally select a subset name which has been used before
@@ -7973,9 +7973,9 @@ from it.
 </subsubsubsubsect>
 
 <subsubsubsubsect id="BlobPanel2">
-<subhead><title>Subset from Blob</title></subhead>
+<subhead><title>Draw Blob Subset</title></subhead>
 
-<p>The <label>Draw Subset Blob</label> (&IMG.BLOB_SUBSET;)
+<p>The <label>Draw Blob Subset</label> (&IMG.BLOB_SUBSET;)
 button allows you to draw a freehand region or regions on the plot
 containing the points you are interested in.
 </p>
@@ -8004,13 +8004,16 @@ and you will be asked for a name for the subset.
 
 </subsubsubsubsect>
 
-<subsubsubsubsect id="PolygonPanel">
-<subhead><title>Subset from Polygon</title></subhead>
+<subsubsubsubsect id="FigurePanel">
+<subhead><title>Draw Algebraic Subset</title></subhead>
 
-<p>The <label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;) action
-allows you to mark out a region of the plot by clicking on the
-vertices of a polygonal shape, generating a corresponding
-<ref id="jel">algebraic expression</ref> to define a subset.
+<p>The <label>Draw Algebraic Subset</label> (&IMG.POLY_SUBSET;) action
+allows you to select points in a region of the plot by clicking on points
+of your choice to mark out a shape.
+Different shapes such as polygons and circles are available,
+depending on the plot type.
+When complete, subsets will be defined with an
+<ref id="jel">algebraic expression</ref> which you can see and edit.
 This can be particularly useful
 (and a better option than the <ref id="BlobPanel2">blob</ref>)
 if you want to refer to the subset outside of the context
@@ -8019,89 +8022,125 @@ for instance in a STILTS command or a published paper.
 </p>
 
 <p>This action is currently only available in the
-<ref id="PlanePlotWindow">Plane</ref> plot.
+<ref id="PlanePlotWindow">Plane</ref> and <ref id="SkyPlotWindow">Sky</ref>
+plot windows.
 </p>
 
 <figure>
 <caption>
-<px>Defining a subset by polygon drawing.
-In this case, mode <em>BELOW</em> is in use.
+<px>Defining a subset by algebraic drawing.
+This shows use of mode <em>Below</em> in the Plane plot.
 </px></caption>
 <figureimage src="&FIG.StackPlotWindow_polygon;"/>
 </figure>
 
-<p>When you use a polygon to define a region of the plot,
-it operates in one of a number of <em>inclusion modes</em>:
-INSIDE, OUTSIDE, BELOW, ABOVE, LEFT and RIGHT.
-For the INSIDE and OUTSIDE modes, the points you supply
-define a closed polygon, and the region of interest is
-inside (or outside) that polygon;
-at least three points are required in this case.
-For BELOW and ABOVE, you draw a jagged line representing a
-continuous function of <m>x</m>
-(but with, in general, a discontinuous derivative),
-and the region of interest is all the area with a <m>y</m>
-value lower (or higher) than that function.
-LEFT and RIGHT do the same thing for a function of <m>y</m>
-instead of <m>x</m>.
+<p>When you use this action to define a plot region,
+it operates in one of a number of <em>inclusion modes</em>,
+depending on the plot type.  In all cases, you click on one or more
+points to define the boundaries of the region.
+The available modes are described at the end of this section.
 </p>
 
-<p>To start drawing a polygon, hit the &IMG.POLY_SUBSET; button in the toolbar,
-and a popup window will first ask you which inclusion mode you want to use.
-Alternatively, you can use one of the mode-specific sub-menu
-items in the <label>Subsets|Draw Subset Polygons</label> menu
-to choose a mode without the extra popup.
+<p>Operation is as follows:
+<ol>
+<li>To start marking out a shape, hit the &IMG.POLY_SUBSET;
+    button in the toolbar, and a popup window will first ask you
+    which inclusion mode you want to use.
+    Alternatively, you can use one of the mode-specific sub-menu
+    items in the <label>Subsets|Draw Algebraic Subset</label> menu
+    to choose a mode without the extra popup.
+    </li>
+<li>Once in drawing mode, the toolbar button will appear
+    with a checkmark over it (&IMG.POLY_SUBSET_END;).
+    You can then click on the plotting area to mark
+    the points, and the area thus defined
+    (according to the mode you have chosen)
+    will be shaded in grey.
+    The algebraic form of the expression for the points entered
+    so far will be displayed at the bottom of the screen.
+    A right-click (or Ctrl-click) will remove the most recently-added point.
+   </li>
+<li>When you've finished adding points,
+    click on the &IMG.POLY_SUBSET_END; button again.
+    This will pop up the 
+    <ref id="MultiSubsetQueryWindow">Multi Algebraic Subset Window</ref>,
+    which displays the algebraic function
+    corresponding to the region you have outlined,
+    and offering to create a new subset
+    (or, if there are multiple datasets plotted, several new subsets)
+    from it.
+    </li>
+</ol>
 </p>
 
-<p>Once in polygon drawing mode, the toolbar button will appear
-with a checkmark over it (&IMG.POLY_SUBSET_END;).
-You can then click on the plotting area to mark
-the vertices of a polygon, and the area thus defined
-(according to the mode you have chosen)
-will be shaded in grey.
-A right-click (or Ctrl-click) will remove the most recently-added point.
-For INSIDE and OUTSIDE modes, at least three points are required
-to define a polygon.
-For the other (function-like) modes, line segments at either end of
-the line are considered to continue to infinity - 
-it's easy to understand how this works by trying it out.
-As a special case, when you have only marked one point,
-the specified region is considered to be the whole area to one side
-of that point.
+<p>The generated expression tries to be as compact and comprehensible
+as possible.  Precision of the indicated points is determined from
+the pixel resolution of the plot, so literal numbers are not more
+unwieldy than they have to be.</p>
+
+<p>The available inclusion modes depend on the plot type, as follows:
+<dl>
+<dt>Plane Plot</dt>
+<dd><p>
+    <ul>
+    <li><label>Polygon</label>:
+        Select at least three points to define a closed polygon.
+        The selected region is inside it.
+        The expression generated uses the function
+        <code>isInside</code> from the <ref id="Shapes">Shapes</ref> class.
+        </li>
+    <li><label>Ellipse</label>:
+        Defines an ellipse aligned with the plot axes.
+        The first point selected defines the ellipse center,
+        and the next point is on the radius.  If later points are selected,
+        they reset the radius.
+        The expression generated is of the form
+        <code>hypot((x-x0)/a, (y-y0)/b)&lt;1</code>,
+        using <code>hypot</code> function from
+        the <ref id="Maths">Maths</ref> class
+        (<code>hypot(x,y)=sqrt(x*x+y*y)</code>).
+        </li>
+    <li><label>Below</label>,
+        <label>Above</label>,
+        <label>Left</label>,
+        <label>Right</label>:
+        The points define a jagged line representing a continuous function
+        of <m>x</m> (or <m>y</m>) which has, in general, a discontinuous
+        derivative.  If just one point is selected, all the points on
+        the corresponding side of that single point are included.
+        Line segments at either end of the line are considered to
+        continue to infinity - it's easy to understand how this works
+        by trying it out (or see the figure above).
+        If only one point is selected, the expression generated
+        is of the form <code>y&lt;y0</code>, and
+        for two points it has the form <code>y&lt;m*x+c</code>.
+        If there are more points, the special function <code>polyLine</code>
+        from class <ref id="Shapes">Shapes</ref> is used.
+        </li>
+    </ul>
+    </p></dd>
+<dt>Sky Plot</dt>
+<dd><p>
+    <ul>
+    <li><label>Circle</label>:
+        The first point selected defines the center of a small circle
+        on the sphere (cone), and the next point is on its radius.
+        If later points are selected, they reset the radius.
+        The expression generated uses the <code>skyDistance</code> function
+        from class <ref id="Sky">Sky</ref>.
+        </li>
+    <li><label>Polygon</label>:
+        Select at least three points to define a closed polygon.
+        The edges of the polygon are the minor arcs of great circles
+        (geodesics on the sphere).
+        The expression generated uses the <code>inSkyPolygon</code> function
+        from class <ref id="Sky">Sky</ref>.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
 </p>
 
-<p>When you've finished adding points,
-click on the &IMG.POLY_SUBSET_END; button again.
-This will pop up the 
-<ref id="MultiSubsetQueryWindow">Multi Algebraic Subset Window</ref>,
-which displays the algebraic function
-corresponding to the region you have outlined,
-and offering to create a new subset
-(or, if there are multiple datasets plotted, several new subsets)
-from it.
-</p>
-
-<p>When constructing the algebraic expressions,
-an attempt is made to provide the simplest form possible;
-if the shape is just a line, then only arithmetic
-operators are used, but if there are more than two points,
-one of the functions in the <ref id="Shapes">Shapes</ref> class
-will be used.  For the BELOW mode (and analogously for
-ABOVE, LEFT and RIGHT) , the expression will be of
-the form <code>x&lt;f(x)</code>;
-the reported function <code>f(x)</code> can be plotted separately
-using the <ref id="FunctionLayerControl">Function Layer Control</ref>
-if required.
-Examples of expressions created by this mode are:
-<ul>
-<li><code>DEC &gt;= -20.5</code></li>
-<li><code>loggK &lt; -0.00081 * (TeffK - 4209) + 3.86</code></li>
-<li><code>log10(uwe) &lt;
-          polyLine(phot_g_mean_mag, 21.3,0.05, 18.9,0.06, 4.1,1.66)</code></li>
-<li><code>!isInside(BMAG-RMAG, BMAG,
-                    3.3,19.7, 3.0,14.7, 7.8,10.3, 8.1,14.9)</code></li>
-</ul>
-</p>
 
 </subsubsubsubsect>
 
@@ -12791,7 +12830,7 @@ see the <label>Coords</label> tab of the
 this window additionally provides the following toolbar buttons:
 <ul>
 <li>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></li>
-<li>&IMG.POLY_SUBSET; <ref id="PolygonPanel">Draw Subset Polygon</ref></li>
+<li>&IMG.POLY_SUBSET; <ref id="FigurePanel">Draw Algebraic Subset</ref></li>
 </ul>
 and <label>Subsets</label> menu item
 <ul>
@@ -13087,9 +13126,10 @@ values as their default (both Equatorial) and no conversion will be done.
 </p>
 
 <p>As well as the standard actions,
-this window additionally provides the following toolbar button:
+this window additionally provides the following toolbar buttons:
 <ul>
 <li>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></li>
+<li>&IMG.POLY_SUBSET; <ref id="FigurePanel">Draw Algebraic Subset</ref></li>
 </ul>
 </p>
 
@@ -22910,7 +22950,7 @@ problem.
 <p>The Multi Algebraic Subset Window is displayed when an action
 can create more than one subset with algebraic definitions at once.
 This happens on completion of the
-<label>Draw Subset Polygon</label> (&IMG.POLY_SUBSET;) or
+<label>Draw Algebraic Subset</label> (&IMG.POLY_SUBSET;) or
 <label>Algebraic Subset From Visible</label> (&IMG.JEL_VISIBLE_SUBSET;)
 actions;
 more than one subset may result if more than one data set is plotted.
@@ -27627,7 +27667,7 @@ introduced since the last version:
     <dt>Plotting:</dt>
     <dd><p>
         <ul>
-        <li>New <ref id="PolygonPanel">Draw Subset Polygon</ref>
+        <li>New <ref id="FigurePanel">Draw Subset Polygon</ref>
             action added to Plane Plot.
             This lets you draw a polygonal shape with mouse clicks,
             and constructs the corresponding algebraic expression to
@@ -27685,7 +27725,7 @@ introduced since the last version:
             for working with polygons in the X,Y plane, with functions
             <code>isInside</code> and <code>polyLine</code>.
             This is used by the
-            <ref id="PolygonPanel">Draw Subset Polygon</ref> action.</li>
+            <ref id="FigurePanel">Draw Subset Polygon</ref> action.</li>
         <li>Rearrange expression language documentation slightly:
             there is a new section listing
             <ref id="jelSpecials">Special Tokens</ref>.
@@ -27835,7 +27875,7 @@ introduced since the last version:
         rather than causing trouble during evaluation.</li>
     <li>Fix some bugs relating to plotting values close to the limits
         of the double precision range.</li>
-    <li>Modify the <ref id="PolygonPanel">Subset from polygon</ref>
+    <li>Modify the <ref id="FigurePanel">Subset from polygon</ref>
         toolbar icon slightly by putting a little "=" sign at the bottom;
         this is to indicate that it produces an algebraic result.</li>
     <li>Action
@@ -27901,6 +27941,11 @@ introduced since the last version:
     <li>The <ref id="form-line">Line</ref> plot form now has an
         <label>Aux</label> coordinate that can vary the colour of the
         line along its length according to some third quantity.</li>
+    <li>The <ref id="FigurePanel">Draw Algebraic Subset</ref> action
+        (renamed from Draw Subset Polygon)
+        is now more general; a new Ellipse mode is added in the
+        Plane plot, and it is now available in the Sky plot,
+        with options to draw a polygon or circle.</li>
     </ul>
     </p></dd>
 

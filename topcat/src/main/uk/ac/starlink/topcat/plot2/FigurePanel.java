@@ -163,10 +163,10 @@ public abstract class FigurePanel extends JComponent {
      * @return  mode-specific figure action menu
      */
     public JMenuItem getModeFigureMenu() {
-        JMenu menu = new JMenu( "Draw Subset Figures" );
+        JMenu menu = new JMenu( "Draw Algebraic Subset" );
         menu.setIcon( ResourceIcon.POLY_SUBSET );
         menu.setToolTipText( "Options to draw figures on the plot defining "
-                           + "row subsets in various modes" );
+                           + "row subsets by shape" );
         for ( Action act : modeFigureActions_ ) {
             menu.add( act );
         }
@@ -185,15 +185,15 @@ public abstract class FigurePanel extends JComponent {
         }
         isActive_ = active;
         basicFigureAction_.putValue( Action.NAME,
-                                     active ? "Finish Drawing Figure"
-                                            : "Draw Subset Figure" );
+                                     active ? "Finish Drawing Subset"
+                                            : "Draw Algebraic Subset" );
         basicFigureAction_.putValue( Action.SMALL_ICON,
                                      active ? ResourceIcon.POLY_SUBSET_END
                                             : ResourceIcon.POLY_SUBSET );
         basicFigureAction_.putValue( Action.SHORT_DESCRIPTION,
                                      active ? "Define susbset from " +
                                               "currently-drawn figure"
-                                            : "Draw a figure on the plot " +
+                                            : "Draw a shape on the plot " +
                                               "to define a new Row Subset" );
         basicFigureAction_.putValue( PROP_ACTIVE, Boolean.valueOf( active ) );
         for ( ModeFigureAction act : modeFigureActions_ ) {
@@ -423,7 +423,7 @@ public abstract class FigurePanel extends JComponent {
                 }
             } );
             modeSelector_.setSelectedItem( dfltMode_ );
-            addl( new JLabel( "Click on points in plot to outline a shape." ) );
+            addl( new JLabel( "Click on points in plot to define a shape." ) );
             addl( new JLabel( "Right-click/CTRL-click removes last point." ) );
             JLabel completeLabel =
                  new JLabel( "When complete, click action button again: " );
@@ -431,7 +431,7 @@ public abstract class FigurePanel extends JComponent {
             completeLabel.setHorizontalTextPosition( SwingConstants.LEADING );
             addl( completeLabel );
             JComponent selectLine = Box.createHorizontalBox();
-            selectLine.add( new JLabel( "Figure mode: " ) );
+            selectLine.add( new JLabel( "Shape mode: " ) );
             selectLine.add( new ShrinkWrapper( modeSelector_ ) );
             addl( selectLine );
         }
@@ -510,12 +510,12 @@ public abstract class FigurePanel extends JComponent {
          * @param  fmode  figure mode
          */
         ModeFigureAction( FigureMode fmode ) {
-            super( "Draw Subset Figure: " + fmode.getName(),
+            super( "Draw Algebraic Subset: " + fmode.getName(),
                    ResourceIcon.POLY_SUBSET );
             actFmode_ = fmode;
             putValue( SHORT_DESCRIPTION,
                       "Draw a figure on the plot to define a row subset "
-                    + "using mode " + fmode.getName() );
+                    + "algebraically using mode " + fmode.getName() );
             basicFigureAction_.addPropertyChangeListener(
                     new PropertyChangeListener() {
                 public void propertyChange( PropertyChangeEvent evt ) {

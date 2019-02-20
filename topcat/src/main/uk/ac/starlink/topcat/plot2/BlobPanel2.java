@@ -141,15 +141,15 @@ public abstract class BlobPanel2 extends JComponent {
         isActive_ = active;
         blobAction_.putValue( Action.NAME,
                               active ? "Finish Drawing Blob"
-                                     : "Draw Subset Blob" );
+                                     : "Draw Blob Subset" );
         blobAction_.putValue( Action.SMALL_ICON,
                               active ? ResourceIcon.BLOB_SUBSET_END
                                      : ResourceIcon.BLOB_SUBSET );
         blobAction_.putValue( Action.SHORT_DESCRIPTION,
-                              active ? "Define susbset from currently-drawn " +
+                              active ? "Define subset from currently-drawn " +
                                        "region"
-                                     : "Draw a region on the plot to define " +
-                                       "a new row subset" );
+                                     : "Draw a freehand region on the plot " +
+                                       "to define a new row subset" );
         blobAction_.putValue( PROP_ACTIVE, Boolean.valueOf( active ) );
         setListening( active );
         setVisible( active );
