@@ -5,10 +5,12 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
@@ -32,6 +34,9 @@ public abstract class PlaneFigureMode implements FigureMode {
         }
     };
 
+    /** PlanarSurface area within a graphics ellipse (center+radius). */
+    public static final FigureMode ELLIPSE = createEllipseMode( "Ellipse" );
+
     /** Inverse of polygon mode. */
     public static final FigureMode OUTSIDE_POLYGON = invertMode( POLYGON );
 
@@ -53,7 +58,7 @@ public abstract class PlaneFigureMode implements FigureMode {
 
     /** Available polygon modes for use with planar surfaces. */
     public static final FigureMode[] MODES = {
-        POLYGON, BELOW, ABOVE, LEFT, RIGHT,
+        POLYGON, ELLIPSE, BELOW, ABOVE, LEFT, RIGHT,
     };
 
     /**
@@ -69,12 +74,14 @@ public abstract class PlaneFigureMode implements FigureMode {
     private static final String F_ISINSIDE;
     private static final String F_POLYLINE;
     private static final String F_LOG10;
+    private static final String F_HYPOT;
 
     /** JEL functions used when constructing expressions. */
     static final String[] JEL_FUNCTIONS = new String[] {
         F_ISINSIDE = "isInside",
         F_POLYLINE = "polyLine",
         F_LOG10 = "log10",
+        F_HYPOT = "hypot",
     };
 
     /**
@@ -287,6 +294,24 @@ public abstract class PlaneFigureMode implements FigureMode {
     }
 
     /**
+     * Returns a mode for drawing ellpises.
+     *
+     * @param  name  mode name
+     * @return  new instance
+     */
+    private static FigureMode createEllipseMode( String name ) {
+        return new PlaneFigureMode( name ) {
+            public Figure createFigure( Surface surf, Point[] points ) {
+                int np = points.length;
+                return surf instanceof PlanarSurface && np >= 2
+                     ? new EllipseFigure( (PlanarSurface) surf,
+                                          points[ 0 ], points[ np - 1 ] )
+                     : null;
+            }
+        };
+    }
+
+    /**
      * Partial Figure implementation for use with PlaneFigureMode.
      */
     static abstract class PlaneFigure implements Figure {
@@ -403,6 +428,106 @@ public abstract class PlaneFigureMode implements FigureMode {
                   .append( referencePoints( surf_, points_, true ) )
                   .append( ")" )
                   .toString();
+        }
+    }
+
+    /**
+     * Figure implementation for an ellipse.
+     */
+    private static class EllipseFigure extends PlaneFigure {
+        final Point p0_;
+        final Point p1_;
+        final Ellipse2D ellipse_;
+        final double dx_;
+        final double dy_;
+        final double cx_;
+        final double cy_;
+        final double xEps_;
+        final double yEps_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  plot surface
+         * @param  p0    center
+         * @param  p1    point on radius
+         */
+        EllipseFigure( PlanarSurface surf, Point p0, Point p1 ) {
+            super( surf, new Point[] { p0, p1 } );
+            p0_ = p0;
+            p1_ = p1;
+            double rx = Math.abs( p1.x - p0.x );
+            double ry = Math.abs( p1.y - p0.y );
+            ellipse_ =
+                new Ellipse2D.Double( p0.x - rx, p0.y - ry, 2 * rx, 2 * ry );
+            Axis[] axes = surf_.getAxes();
+            Axis xAxis = axes[ 0 ];
+            Axis yAxis = axes[ 1 ];
+            boolean[] logFlags = surf_.getLogFlags();
+            boolean xlog = logFlags[ 0 ];
+            boolean ylog = logFlags[ 1 ];
+            double x0 = xAxis.graphicsToData( p0_.x );
+            double y0 = yAxis.graphicsToData( p0_.y );
+            double x1 = xAxis.graphicsToData( p1_.x );
+            double y1 = yAxis.graphicsToData( p1_.y );
+            dx_ = Math.abs( xlog ? Math.log10( x1 / x0 ) : x1 - x0 );
+            dy_ = Math.abs( ylog ? Math.log10( y1 / y0 ) : y1 - y0 );
+            cx_ = xlog ? Math.log10( x0 ) : x0;
+            cy_ = ylog ? Math.log10( y0 ) : y0;
+            double xa = xAxis.graphicsToData( p0_.x + 1 );
+            double ya = yAxis.graphicsToData( p0_.y + 1 );
+            xEps_ = Math.abs( xlog ? Math.log10( xa / x0 ) : xa - x0 );
+            yEps_ = Math.abs( ylog ? Math.log10( ya / y0 ) : ya - y0 );
+        }
+
+        public Area getArea() {
+            return new Area( ellipse_ );
+        }
+
+        public void paintPath( Graphics2D g ) {
+            g.draw( ellipse_ );
+            int gw = (int) ( ellipse_.getWidth() / 2 );
+            int gh = (int) ( ellipse_.getHeight() / 2 );
+            LabelledLine xline =
+                new LabelledLine( p0_, new Point( p0_.x + gw, p0_.y ),
+                                  PlotUtil.formatNumber( Math.abs( dx_ ),
+                                                         xEps_ ) );
+            LabelledLine yline =
+                new LabelledLine( p0_, new Point( p0_.x, p0_.y - gh ),
+                                  PlotUtil.formatNumber( Math.abs( dy_ ),
+                                                         yEps_ ) );
+            xline.drawLine( g );
+            yline.drawLine( g );
+            boolean[] logFlags = surf_.getLogFlags();
+            if ( ! logFlags[ 0 ] ) {
+                xline.drawLabel( g, null );
+            }
+            if ( ! logFlags[ 1 ] ) {
+                yline.drawLabel( g, null );
+            }
+        }
+
+        public String createPlaneExpression( String xvar, String yvar ) {
+            return new StringBuffer()
+                 .append( F_HYPOT )
+                 .append( "(" )
+                 .append( "(" )
+                 .append( referenceName( surf_, xvar, 0 ) )
+                 .append( addFormattedValue( -cx_, xEps_ ) )
+                 .append( ")" )
+                 .append( "/" )
+                 .append( PlotUtil.formatNumber( dx_, xEps_ ) )
+                 .append( ", " )
+                 .append( "(" )
+                 .append( referenceName( surf_, yvar, 1 ) )
+                 .append( addFormattedValue( -cy_, yEps_ ) )
+                 .append( ")" )
+                 .append( "/" )
+                 .append( PlotUtil.formatNumber( dy_, yEps_ ) )
+                 .append( ")" )
+                 .append( " < " )
+                 .append( "1" )
+                 .toString();
         }
     }
 
