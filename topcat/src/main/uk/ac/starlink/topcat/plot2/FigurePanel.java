@@ -1,20 +1,19 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Area;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -36,30 +35,33 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Component which allows the user to identify a polygonal region
- * using the mouse.  Various polygonal modes are available.
+ * Component which allows the user to identify a region by selecting
+ * vertices using the mouse.  Various figure modes are available.
  *
  * @author  Mark Taylor
  * @since   14 Sep 2018
  */
-public abstract class PolygonPanel extends JComponent {
+public abstract class FigurePanel extends JComponent {
 
     private final PlotPanel plotPanel_;
-    private final PolygonListener polygonListener_;
-    private final Action basicPolygonAction_;
-    private final ModePolygonAction[] modePolygonActions_;
+    private final FigureMode[] figureModes_;
+    private final boolean isDisplayExpr_;
+    private final FigureListener figureListener_;
+    private final Action basicFigureAction_;
+    private final ModeFigureAction[] modeFigureActions_;
+    private final FigureMode dfltMode_;
     private ModeEnquiryPanel enquiryPanel_;
     private boolean isActive_;
-    private PolygonMode pmode_;
+    private FigureMode currentMode_;
     private List<Point> points_;
     private int zoneIndex_;
     private Point activePoint_;
     private static final Color fillColor_ = new Color( 0, 0, 0, 64 );
-    private static final Color pathColor_ = new Color( 0, 0, 0, 128 );
-    private static final PolygonMode DFLT_POLYGON_MODE = PolygonMode.BELOW;
+    private static final Color pathColor_ = Color.BLACK;
 
     /* Name of boolean property associated with isActive method. */
     public static final String PROP_ACTIVE = "active";
@@ -68,28 +70,42 @@ public abstract class PolygonPanel extends JComponent {
      * Constructor.
      *
      * @param  plotPanel   plot panel
+     * @param  figureModes   available modes
+     * @param  isDisplayExpr  true to display current expression on screen
      */
-    public PolygonPanel( PlotPanel plotPanel ) {
+    public FigurePanel( PlotPanel plotPanel, FigureMode[] figureModes,
+                        boolean isDisplayExpr ) {
         plotPanel_ = plotPanel;
+        figureModes_ = figureModes;
+        isDisplayExpr_ = isDisplayExpr;
+        dfltMode_ = figureModes[ 0 ];
         setOpaque( false );
-        polygonListener_ = new PolygonListener();
+        figureListener_ = new FigureListener();
 
-        /* Abort current polygon in the event of a resize. */
+        /* Abort current figure in the event of a resize. */
         addComponentListener( new ComponentAdapter() {
             public void componentResized( ComponentEvent evt ) {
                 setActive( false );
             }
         } );
 
-        /* Prepare an action which allows polygon drawing using a mode
+        /* Prepare an action which allows figure drawing using a mode
          * acquired from user interaction.
          * The same action completes the drawing. */
-        basicPolygonAction_ = new AbstractAction() {
+        basicFigureAction_ = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
                 if ( isActive() ) {
                     if ( ! points_.isEmpty() ) {
-                        polygonCompleted( points_.toArray( new Point[ 0 ] ),
-                                          pmode_, zoneIndex_ );
+                        if ( zoneIndex_ >= 0 ) {
+                            Surface surf =
+                                plotPanel_.getLatestSurface( zoneIndex_ );
+                            Point[] points = points_.toArray( new Point[ 0 ] );
+                            Figure fig =
+                                currentMode_.createFigure( surf, points );
+                            if ( fig != null ) {
+                                figureCompleted( fig, zoneIndex_ );
+                            }
+                        }
                     }
                     else {
                         setActive( false );
@@ -97,9 +113,9 @@ public abstract class PolygonPanel extends JComponent {
                 }
                 else {
                     setActive( true );
-                    PolygonMode pmode = enquireMode();
-                    if ( pmode != null ) {
-                        pmode_ = pmode;
+                    FigureMode fmode = enquireMode();
+                    if ( fmode != null ) {
+                        currentMode_ = fmode;
                     }
                     else {
                         setActive( false );
@@ -110,11 +126,11 @@ public abstract class PolygonPanel extends JComponent {
 
         /* Prepare per-mode actions.  Clicking on the basic action
          * completes the drawing. */
-        List<ModePolygonAction> modeActs = new ArrayList<ModePolygonAction>();
-        for ( PolygonMode pmode : PolygonMode.values() ) {
-            modeActs.add( new ModePolygonAction( pmode ) );
+        List<ModeFigureAction> modeActs = new ArrayList<ModeFigureAction>();
+        for ( FigureMode fmode : figureModes_ ) {
+            modeActs.add( new ModeFigureAction( fmode ) );
         }
-        modePolygonActions_ = modeActs.toArray( new ModePolygonAction[ 0 ] );
+        modeFigureActions_ = modeActs.toArray( new ModeFigureAction[ 0 ] );
 
         /* Initialise the action and this component. */
         clear();
@@ -122,7 +138,7 @@ public abstract class PolygonPanel extends JComponent {
     }
 
     /**
-     * Resets the current polygon to an empty one.
+     * Resets the current figure to an empty one.
      */
     public void clear() {
         points_ = new ArrayList<Point>();
@@ -132,26 +148,26 @@ public abstract class PolygonPanel extends JComponent {
     }
 
     /**
-     * Returns the action for drawing a polygon with the default mode.
-     * This is also used to complete a polygon.
+     * Returns the action for drawing a figure with the default mode.
+     * This is also used to signal that drawing a figure is complete.
      *
      * @return  action
      */
-    public Action getBasicPolygonAction() {
-        return basicPolygonAction_;
+    public Action getBasicFigureAction() {
+        return basicFigureAction_;
     }
 
     /**
-     * Returns a menu of options with one item for each polygon mode.
+     * Returns a menu of options with one item for each figure mode.
      *
-     * @return  mode-specific polygon action menu
+     * @return  mode-specific figure action menu
      */
-    public JMenuItem getModePolygonMenu() {
-        JMenu menu = new JMenu( "Draw Subset Polygons" );
+    public JMenuItem getModeFigureMenu() {
+        JMenu menu = new JMenu( "Draw Subset Figures" );
         menu.setIcon( ResourceIcon.POLY_SUBSET );
-        menu.setToolTipText( "Options to draw polygons on the plot defining "
+        menu.setToolTipText( "Options to draw figures on the plot defining "
                            + "row subsets in various modes" );
-        for ( Action act : modePolygonActions_ ) {
+        for ( Action act : modeFigureActions_ ) {
             menu.add( act );
         }
         return menu;
@@ -168,19 +184,19 @@ public abstract class PolygonPanel extends JComponent {
             clear();
         }
         isActive_ = active;
-        basicPolygonAction_.putValue( Action.NAME,
-                                      active ? "Finish Drawing Polygon"
-                                             : "Draw Subset Polygon" );
-        basicPolygonAction_.putValue( Action.SMALL_ICON,
-                                      active ? ResourceIcon.POLY_SUBSET_END
-                                             : ResourceIcon.POLY_SUBSET );
-        basicPolygonAction_.putValue( Action.SHORT_DESCRIPTION,
-                                      active ? "Define susbset from " +
-                                               "currently-drawn polygon"
-                                             : "Draw a polygon on the plot " +
-                                               "to define a new row subset" );
-        basicPolygonAction_.putValue( PROP_ACTIVE, Boolean.valueOf( active ) );
-        for ( ModePolygonAction act : modePolygonActions_ ) {
+        basicFigureAction_.putValue( Action.NAME,
+                                     active ? "Finish Drawing Figure"
+                                            : "Draw Subset Figure" );
+        basicFigureAction_.putValue( Action.SMALL_ICON,
+                                     active ? ResourceIcon.POLY_SUBSET_END
+                                            : ResourceIcon.POLY_SUBSET );
+        basicFigureAction_.putValue( Action.SHORT_DESCRIPTION,
+                                     active ? "Define susbset from " +
+                                              "currently-drawn figure"
+                                            : "Draw a figure on the plot " +
+                                              "to define a new Row Subset" );
+        basicFigureAction_.putValue( PROP_ACTIVE, Boolean.valueOf( active ) );
+        for ( ModeFigureAction act : modeFigureActions_ ) {
             act.updateState();
         }
         setListening( active );
@@ -196,12 +212,12 @@ public abstract class PolygonPanel extends JComponent {
      */
     public void setListening( boolean isListening ) {
         if ( isListening ) {
-            addMouseListener( polygonListener_ );
-            addMouseMotionListener( polygonListener_ );
+            addMouseListener( figureListener_ );
+            addMouseMotionListener( figureListener_ );
         }
         else {
-            removeMouseListener( polygonListener_ );
-            removeMouseMotionListener( polygonListener_ );
+            removeMouseListener( figureListener_ );
+            removeMouseMotionListener( figureListener_ );
         }
     }
 
@@ -216,68 +232,89 @@ public abstract class PolygonPanel extends JComponent {
 
     /**
      * Invoked when this component's action is invoked to terminate a
-     * polygon drawing session.  Implementations of this method are expected
+     * figure drawing session.  Implementations of this method are expected
      * to clear up by calling <code>setActive(false)</code> when the
-     * polygon representation is no longer required.
+     * figure representation is no longer required.
      *
-     * @param  points  completed polygon
-     * @param  pmode   polygon mode
-     * @param  zoneIndex   index of the plot zone in which the polygon
+     * @param  figure   completed figure, not null
+     * @param  zoneIndex   index of the plot zone in which the figure
      *                     is considered to exist
      */
-    protected abstract void polygonCompleted( Point[] points, PolygonMode pmode,
-                                              int zoneIndex );
+    protected abstract void figureCompleted( Figure figure, int zoneIndex );
 
     @Override
     protected void paintComponent( Graphics g ) {
-        if ( zoneIndex_ < 0 ) {
-            return;
-        }
-
-        /* Save state. */
-        Color color0 = g.getColor();
-        Shape clip0 = g.getClip();
-        Graphics2D g2 = (Graphics2D) g;
-
-        /* Clip to the current zone. */
-        Surface surf = plotPanel_.getLatestSurface( zoneIndex_ );
+        Surface surf = zoneIndex_ >= 0
+                     ? plotPanel_.getLatestSurface( zoneIndex_ )
+                     : null;
         if ( surf != null ) {
-            g2.clip( surf.getPlotBounds() );
-        }
+            Rectangle bounds = surf.getPlotBounds();
 
-        /* Fill the defined region. */
-        Area area = pmode_.createArea( getBounds(),
-                                       points_.toArray( new Point[ 0 ] ) );
-        if ( area != null ) {
-            g2.setColor( fillColor_ );
-            g2.fill( area );
-        }
+            /* Save state. */
+            Color color0 = g.getColor();
+            Shape clip0 = g.getClip();
+            Graphics2D g2 = (Graphics2D) g;
 
-        /* Draw lines joining up the points so far added. */
-        int np = points_.size();
-        int np1 = activePoint_ == null ? np : np + 1;
-        int[] xs = new int[ np1 ];
-        int[] ys = new int[ np1 ];
-        for ( int i = 0; i < np; i++ ) {
-            Point p = points_.get( i );
-            xs[ i ] = p.x;
-            ys[ i ] = p.y;
-        }
-        if ( activePoint_ != null ) {
-            xs[ np ] = activePoint_.x;
-            ys[ np ] = activePoint_.y;
-        }
-        g2.setColor( pathColor_ );
-        g2.drawPolyline( xs, ys, np1 );
+            /* Clip to the current zone. */
+            g2.clip( bounds );
+            Figure fig0 =
+                currentMode_
+               .createFigure( surf, points_.toArray( new Point[ 0 ] ) );
 
-        /* Restore state. */
-        g.setColor( color0 );
-        g.setClip( clip0 );
+            /* Fill the defined region. */
+            if ( fig0 != null ) {
+                g2.setColor( fillColor_ );
+                g2.fill( fig0.getArea() );
+            }
+
+            /* Draw lines joining up the points so far added. */
+            List<Point2D> pathPoints = new ArrayList( points_ );
+            if ( activePoint_ != null ) {
+                pathPoints.add( activePoint_ );
+            }
+            Figure fig1 =
+                currentMode_
+               .createFigure( surf, pathPoints.toArray( new Point[ 0 ] ) );
+            if ( fig1 != null ) {
+                g2.setColor( pathColor_ );
+                fig1.paintPath( g2 );
+            }
+
+            /* Display the generic expression at the bottom of the screen.
+             * Use the figure corresponding to the current mouse position
+             * if available, otherwise the most recently completed one. */
+            if ( isDisplayExpr_ ) {
+                Figure tfig = fig1 != null ? fig1 : fig0;
+                if ( tfig != null ) {
+                    String expr = tfig.getExpression();
+                    if ( expr != null ) {
+                        int pad = 4;
+                        int tx = bounds.x + 1;
+                        int ty = bounds.y + bounds.height - 2 * pad;
+                        g2.translate( tx, ty );
+                        g2.setColor( new Color( 0xa0ffffff, true ) );
+                        FontMetrics fm = g2.getFontMetrics();
+                        Rectangle box =
+                            fm.getStringBounds( expr, g ).getBounds();
+                        box.width += 2 * pad;
+                        box.height += 2 * pad;
+                        g2.fill( box );
+                        g2.setColor( color0 );
+                        g2.drawString( expr, pad, pad - fm.getMaxDescent() );
+                        g2.translate( -tx, -ty );
+                    }
+                }
+            }
+
+            /* Restore state. */
+            g.setColor( color0 );
+            g.setClip( clip0 );
+        }
     }
 
     /**
      * Indicates whether a given graphics position is a point that's allowed
-     * to be added to the polygon currently under construction.
+     * to be added to the figure currently under construction.
      *
      * @param  p  point
      * @return  true iff it's OK to add it
@@ -288,14 +325,22 @@ public abstract class PolygonPanel extends JComponent {
         if ( p == null ) {
             return false;
         }
-        Rectangle bounds = getBounds();
-        if ( ! bounds.contains( p ) ) {
+        if ( ! getBounds().contains( p ) ) {
+            return false;
+        }
+        int iz = zoneIndex_ >= 0 ? zoneIndex_ : plotPanel_.getZoneIndex( p );
+        if ( iz < 0 ) {
+            return false;
+        }
+        Surface surf = plotPanel_.getLatestSurface( iz );
+        if ( ! surf.getPlotBounds().contains( p ) ||
+             surf.graphicsToData( p, null ) == null ) {
             return false;
         }
 
         /* If no shape yet, it's OK to start one. */
-        if ( pmode_.createArea( bounds,
-                                points_.toArray( new Point[ 0 ] ) ) == null ) {
+        if ( currentMode_
+            .createFigure( surf, points_.toArray( new Point[ 0 ] ) ) == null ) {
             return true;
         }
 
@@ -303,17 +348,17 @@ public abstract class PolygonPanel extends JComponent {
         int np = points_.size();
         Point[] tps = points_.toArray( new Point[ np + 1 ] );
         tps[ np ] = p;
-        return pmode_.createArea( bounds, tps ) != null;
+        return currentMode_.createFigure( surf, tps ) != null;
     }
 
     /**
-     * Asks the user for a PolygonMode.  This method pops up a dialog
+     * Asks the user for a FigureMode.  This method pops up a dialog
      * that also takes the opportunity to explain how to work the
-     * polygon drawing.
+     * figure drawing.
      *
      * @return   selected mode, or null if operation is cancelled
      */
-    private PolygonMode enquireMode() {
+    private FigureMode enquireMode() {
 
         /* Lazily create the dialogue contents. */
         if ( enquiryPanel_ == null ) {
@@ -325,7 +370,7 @@ public abstract class PolygonPanel extends JComponent {
         final JOptionPane optionPane =
              new JOptionPane( enquiryPanel_, JOptionPane.QUESTION_MESSAGE,
                               JOptionPane.OK_CANCEL_OPTION );
-        final JDialog dialog = optionPane.createDialog( this, "Polygon Mode" );
+        final JDialog dialog = optionPane.createDialog( this, "Figure Mode" );
 
         /* Position the dialogue in the center of the plotting surface. */
         dialog.pack();
@@ -356,20 +401,28 @@ public abstract class PolygonPanel extends JComponent {
     }
 
     /**
-     * Component that explains briefly how to use polygon drawing,
+     * Component that explains briefly how to use figure drawing,
      * and provides a selector which the user can use to choose
-     * which PolygonMode will be used.
+     * which FigureMode will be used.
      */
     private class ModeEnquiryPanel extends JPanel {
         private final JComboBox modeSelector_;
- 
+
         /**
          * Constructor.
          */
         ModeEnquiryPanel() {
             setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-            modeSelector_ = new JComboBox( PolygonMode.values() );
-            modeSelector_.setSelectedItem( DFLT_POLYGON_MODE );
+            modeSelector_ = new JComboBox( figureModes_ );
+            modeSelector_.setRenderer( new CustomComboBoxRenderer() {
+                @Override
+                protected Object mapValue( Object value ) {
+                    return value instanceof FigureMode
+                         ? ((FigureMode) value).getName()
+                         : value;
+                }
+            } );
+            modeSelector_.setSelectedItem( dfltMode_ );
             addl( new JLabel( "Click on points in plot to outline a shape." ) );
             addl( new JLabel( "Right-click/CTRL-click removes last point." ) );
             JLabel completeLabel =
@@ -378,18 +431,18 @@ public abstract class PolygonPanel extends JComponent {
             completeLabel.setHorizontalTextPosition( SwingConstants.LEADING );
             addl( completeLabel );
             JComponent selectLine = Box.createHorizontalBox();
-            selectLine.add( new JLabel( "Point inclusion mode: " ) );
+            selectLine.add( new JLabel( "Figure mode: " ) );
             selectLine.add( new ShrinkWrapper( modeSelector_ ) );
             addl( selectLine );
         }
 
         /**
-         * Returns the currently selected polygon mode.
+         * Returns the currently selected figure mode.
          *
          * @return  selected mode (not null)
          */
-        public PolygonMode getSelectedMode() {
-            return (PolygonMode) modeSelector_.getSelectedItem();
+        public FigureMode getSelectedMode() {
+            return (FigureMode) modeSelector_.getSelectedItem();
         }
 
         /**
@@ -407,7 +460,7 @@ public abstract class PolygonPanel extends JComponent {
      * Mouse listener that reacts to mouse events by adding new points
      * to this panel's list as appropriate.
      */
-    private class PolygonListener extends MouseAdapter {
+    private class FigureListener extends MouseAdapter {
 
         @Override
         public void mouseMoved( MouseEvent evt ) {
@@ -445,24 +498,25 @@ public abstract class PolygonPanel extends JComponent {
         }
     }
 
-    /**
-     * PolygonMode-specific drawing start action.
+    /**     
+     * FigureMode-specific drawing start action.
      */
-    private class ModePolygonAction extends AbstractAction {
-        private final PolygonMode actPmode_;
+    private class ModeFigureAction extends AbstractAction {
+        private final FigureMode actFmode_;
 
         /**
          * Constructor.
          *
-         * @param  pmode  polygon mode
+         * @param  fmode  figure mode
          */
-        ModePolygonAction( PolygonMode pmode ) {
-            super( "Draw Subset Polygon: " + pmode, ResourceIcon.POLY_SUBSET );
-            actPmode_ = pmode;
+        ModeFigureAction( FigureMode fmode ) {
+            super( "Draw Subset Figure: " + fmode.getName(),
+                   ResourceIcon.POLY_SUBSET );
+            actFmode_ = fmode;
             putValue( SHORT_DESCRIPTION,
-                      "Draw a polygon on the plot to define a row subset "
-                    + pmode + " the drawn region" );
-            basicPolygonAction_.addPropertyChangeListener(
+                      "Draw a figure on the plot to define a row subset "
+                    + "using mode " + fmode.getName() );
+            basicFigureAction_.addPropertyChangeListener(
                     new PropertyChangeListener() {
                 public void propertyChange( PropertyChangeEvent evt ) {
                     String pname = evt.getPropertyName();
@@ -476,12 +530,12 @@ public abstract class PolygonPanel extends JComponent {
         }
         public void actionPerformed( ActionEvent evt ) {
             if ( ! isActive() ) {
-                PolygonPanel.this.pmode_ = actPmode_;
-                PolygonPanel.this.setActive( true );
+                FigurePanel.this.currentMode_ = actFmode_;
+                FigurePanel.this.setActive( true );
             }
         }
         void updateState() {
-            setEnabled( basicPolygonAction_.isEnabled() && ! isActive() );
+            setEnabled( basicFigureAction_.isEnabled() && ! isActive() );
         }
     }
 }

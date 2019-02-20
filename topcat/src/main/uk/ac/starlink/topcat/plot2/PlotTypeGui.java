@@ -45,6 +45,14 @@ public interface PlotTypeGui<P,A> {
     boolean isPlanar();
 
     /**
+     * Returns a list of figure drawing modes that can be used for graphically
+     * marking out shapes on the plot surface.
+     *
+     * @return  available figure modes; may be empty
+     */
+    public FigureMode[] getFigureModes();
+
+    /**
      * Returns the GangerFactory used by this plot.
      * It controls how multi-zone plots are arranged.
      *
@@ -68,12 +76,12 @@ public interface PlotTypeGui<P,A> {
      *
      * @return  Cartesian ranger for this plot type, or null
      */
-    public CartesianRanger getCartesianRanger();
+    CartesianRanger getCartesianRanger();
 
     /**
      * Returns the help ID describing the navigation actions for this plot.
      *
      * @return  navigator help id
      */
-    public String getNavigatorHelpId();
+    String getNavigatorHelpId();
 }

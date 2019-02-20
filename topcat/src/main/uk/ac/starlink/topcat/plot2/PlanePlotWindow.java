@@ -57,6 +57,9 @@ public class PlanePlotWindow
         public boolean isPlanar() {
             return true;
         }
+        public FigureMode[] getFigureModes() {
+            return PlaneFigureMode.MODES;
+        }
         public GangerFactory getGangerFactory() {
             return SingleGanger.FACTORY;
         }

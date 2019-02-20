@@ -53,6 +53,9 @@ public class SpherePlotWindow
         public boolean isPlanar() {
             return false;
         }
+        public FigureMode[] getFigureModes() {
+            return new FigureMode[ 0 ];
+        }
         public GangerFactory getGangerFactory() {
             return SingleGanger.FACTORY;
         }

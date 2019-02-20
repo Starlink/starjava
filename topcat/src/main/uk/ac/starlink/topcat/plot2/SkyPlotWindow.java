@@ -84,6 +84,10 @@ public class SkyPlotWindow
             return false;
         }
 
+        public FigureMode[] getFigureModes() {
+            return new FigureMode[ 0 ];
+        }
+
         public GangerFactory getGangerFactory() {
             return SingleGanger.FACTORY;
         }

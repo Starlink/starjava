@@ -19,12 +19,12 @@ import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 
-public class PolygonModeTest extends TestCase {
+public class FigureModeTest extends TestCase {
 
     public void testModes() throws Throwable {
 
         // These tests are quite stringent, since there are several
-        // distinct code paths through the PolygonMode's construction
+        // distinct code paths through the FigureMode's construction
         // of JEL expressions and inclusion shapes, and no compile-time
         // or run-time checking (other than user eyeballs) that it's
         // got them right.
@@ -39,7 +39,9 @@ public class PolygonModeTest extends TestCase {
                                   xlog, ylog, xflip, yflip,
                                   new Tick[ 0 ], new Tick[ 0 ], "X", "Y",
                                   null, Color.GRAY, Color.BLACK );
-            checkMode( PolygonMode.INSIDE, PolygonMode.OUTSIDE, surf,
+            checkPlaneMode( PlaneFigureMode.POLYGON,
+                            PlaneFigureMode.OUTSIDE_POLYGON,
+                            surf,
                        new Point[] {
                            new Point( 20, 20 ),
                            new Point( 80, 20 ),
@@ -52,7 +54,8 @@ public class PolygonModeTest extends TestCase {
                            new Point( 10, 10 ),
                            new Point( 10, 90 ),
                        } );
-            checkMode( PolygonMode.BELOW, PolygonMode.ABOVE, surf,
+            checkPlaneMode( PlaneFigureMode.BELOW, PlaneFigureMode.ABOVE,
+                            surf,
                        new Point[] {
                            new Point( 5, 10 ),
                        },
@@ -64,7 +67,8 @@ public class PolygonModeTest extends TestCase {
                            new Point( 28, 9 ),
                            new Point( 66, 4 ),
                        } );
-            checkMode( PolygonMode.BELOW, PolygonMode.ABOVE, surf,
+            checkPlaneMode( PlaneFigureMode.BELOW, PlaneFigureMode.ABOVE,
+                            surf,
                        new Point[] {
                            new Point( 0, 0 ),
                            new Point( 50, 50 ),
@@ -73,7 +77,8 @@ public class PolygonModeTest extends TestCase {
                        }, new Point[] {
                            new Point( 20, 10 ),
                        } );
-            checkMode( PolygonMode.LEFT, PolygonMode.RIGHT, surf,
+            checkPlaneMode( PlaneFigureMode.LEFT, PlaneFigureMode.RIGHT,
+                            surf,
                        new Point[] {
                            new Point( 10, 10 ),
                            new Point( 20, 90 ),
@@ -86,7 +91,8 @@ public class PolygonModeTest extends TestCase {
                            new Point( 11, 10 ),
                            new Point( 21, 90 ),
                        } );
-            checkMode( PolygonMode.BELOW, PolygonMode.ABOVE, surf,
+            checkPlaneMode( PlaneFigureMode.BELOW, PlaneFigureMode.ABOVE,
+                            surf,
                        new Point[] {
                            new Point( 10, 10 ),
                            new Point( 20, 20 ),
@@ -118,30 +124,34 @@ public class PolygonModeTest extends TestCase {
         }
     }
 
-    private void checkMode( PolygonMode mode, PolygonMode antiMode,
-                            PlanarSurface surf, Point[] polygon,
-                            Point[] insides, Point[] outsides )
+    private void checkPlaneMode( FigureMode mode, FigureMode antiMode,
+                                 PlanarSurface surf, Point[] vertices,
+                                 Point[] insides, Point[] outsides )
             throws Throwable {
-        Rectangle bounds = surf.getPlotBounds();
-        Area area = mode.createArea( bounds, polygon );
-        Area antiArea = antiMode.createArea( bounds, polygon );
+        PlaneFigureMode.PlaneFigure fig =
+            (PlaneFigureMode.PlaneFigure) mode.createFigure( surf, vertices );
+        PlaneFigureMode.PlaneFigure antiFig =
+            (PlaneFigureMode.PlaneFigure) antiMode.createFigure( surf,vertices);
+        Area area = fig.getArea();
+        Area antiArea = antiFig.getArea();
         for ( Point p : insides ) {
             assertTrue( area.contains( p ) );
             assertFalse( antiArea.contains( p ) );
-            assertTrue( evaluateExpr( mode, surf, polygon, p ) );
-            assertFalse( evaluateExpr( antiMode, surf, polygon, p ) );
+            assertTrue( evaluatePlaneExpr( fig, p ) );
+            assertFalse( evaluatePlaneExpr( antiFig, p ) );
         }
         for ( Point p : outsides ) {
             assertFalse( area.contains( p ) );
             assertTrue( antiArea.contains( p ) );
-            assertFalse( evaluateExpr( mode, surf, polygon, p ) );
-            assertTrue( evaluateExpr( antiMode, surf, polygon, p ) );
+            assertFalse( evaluatePlaneExpr( fig, p ) );
+            assertTrue( evaluatePlaneExpr( antiFig, p ) );
         }
     }
 
-    private boolean evaluateExpr( PolygonMode mode, PlanarSurface surf,
-                                  Point[] polygon, Point point )
+    private boolean evaluatePlaneExpr( PlaneFigureMode.PlaneFigure fig,
+                                       Point point )
             throws Throwable {
+        PlanarSurface surf = fig.surf_;
         double dx = surf.getAxes()[ 0 ].graphicsToData( point.x );
         double dy = surf.getAxes()[ 1 ].graphicsToData( point.y );
         StarTable table = new EmptyStarTable();
@@ -149,8 +159,7 @@ public class PolygonModeTest extends TestCase {
         ValueInfo yInfo = new DefaultValueInfo( "y", Double.class, null );
         table.setParameter( new DescribedValue( xInfo, new Double( dx ) ) );
         table.setParameter( new DescribedValue( yInfo, new Double( dy ) ) );
-        String expr =
-            mode.createExpression( surf, polygon, "param$x", "param$y" );
+        String expr = fig.createPlaneExpression( "param$x", "param$y" );
         JELRowReader rdr = JELUtils.createDatalessRowReader( table );
         Library lib = JELUtils.getLibrary( rdr );
         CompiledExpression compEx = JELUtils.compile( lib, table, expr );
@@ -158,7 +167,7 @@ public class PolygonModeTest extends TestCase {
     }
 
     public void testFunctions() {
-        for ( String fname : PolygonMode.JEL_FUNCTIONS ) {
+        for ( String fname : PlaneFigureMode.JEL_FUNCTIONS ) {
             assertNotNull( getLibraryMethod( fname ) );
         }
     }

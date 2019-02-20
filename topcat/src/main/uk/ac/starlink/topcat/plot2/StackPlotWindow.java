@@ -104,8 +104,6 @@ import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
-import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 
 /**
@@ -142,14 +140,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final JLabel countLabel_;
     private final NavigationHelpPanel navPanel_;
     private final BlobPanel2 blobPanel_;
-    private final PolygonPanel polygonPanel_;
+    private final FigurePanel figurePanel_;
     private final Action blobAction_;
-    private final Action polygonAction_;
+    private final Action figureAction_;
     private final Action fromVisibleAction_;
     private final Action fromVisibleJelAction_;
     private final Action resizeAction_;
     private final boolean canSelectPoints_;
-    private final boolean usePolygon_;
     private final JMenu exportMenu_;
     private final JMenu layerDataImportMenu_;
     private final JMenu layerDataSaveMenu_;
@@ -182,15 +179,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         canSelectPoints_ = plotTypeGui.hasPositions();
         final CartesianRanger cartRanger = plotTypeGui.getCartesianRanger();
         dfltZone_ = zoneFact_.getDefaultZone();
-
-        /* Determine whether to provide polygon plotting.
-         * This is basically applicable if there are positional points and
-         * the surface is planar.  However, there are currently issues
-         * with referencing time coordinates for use in JEL expressions,
-         * which means it won't work well for the (still experimental)
-         * Time plot, so exclude the time plot explicitly for now. */
-        usePolygon_ = canSelectPoints_ && plotTypeGui_.isPlanar()
-                 && ! ( plotType instanceof TimePlotType );
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
@@ -425,12 +413,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Prepare the action that allows the user to select points by
          * hand-placed vertices. */
-        if ( usePolygon_ ) {
-            polygonPanel_ = new PolygonPanel( plotPanel_ ) {
-                protected void polygonCompleted( Point[] points,
-                                                 PolygonMode pmode, int iz ) {
+        FigureMode[] figureModes = plotTypeGui_.getFigureModes();
+        if ( figureModes != null && figureModes.length > 0 ) {
+            figurePanel_ = new FigurePanel( plotPanel_, figureModes, true ) {
+                protected void figureCompleted( Figure fig, int iz ) {
                     setListening( false );
-                    final PolygonPanel panel = this;
+                    final FigurePanel panel = this;
                     Runnable tidier = new Runnable() {
                         public void run() {
                             panel.setActive( false );
@@ -438,30 +426,29 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     };
                     Surface surf = plotPanel_.getLatestSurface( iz );
                     PlotLayer[] layers = plotPanel_.getPlotLayers( iz );
-                    if ( surf instanceof PlanarSurface && layers.length > 0 ) {
-                        addPolygonSubsets( points, pmode, (PlanarSurface) surf,
-                                           layers, tidier );
+                    if ( layers.length > 0 ) {
+                        addFigureSubsets( fig, surf, layers, tidier );
                     }
                     else {
                         tidier.run();
                     }
                 }
             };
-            polygonAction_ = polygonPanel_.getBasicPolygonAction();
-            polygonAction_.addPropertyChangeListener(
+            figureAction_ = figurePanel_.getBasicFigureAction();
+            figureAction_.addPropertyChangeListener(
                     new PropertyChangeListener() {
                 public void propertyChange( PropertyChangeEvent evt ) {
                     String pname = evt.getPropertyName();
                     if ( "enabled".equals( pname ) ||
-                         PolygonPanel.PROP_ACTIVE.equals( pname ) ) {
+                         FigurePanel.PROP_ACTIVE.equals( pname ) ) {
                         updateSubsetActions();
                     }
                 }
             } );
         }
         else {
-            polygonPanel_ = null;
-            polygonAction_ = null;
+            figurePanel_ = null;
+            figureAction_ = null;
         }
 
         /* Prepare the distance measurement action. */
@@ -535,8 +522,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         JPanel displayPanel = new JPanel();
         displayPanel.setLayout( new OverlayLayout( displayPanel ) );
         displayPanel.add( blobPanel_ );
-        if ( usePolygon_ ) {
-            displayPanel.add( polygonPanel_ );
+        if ( figurePanel_ != null ) {
+            displayPanel.add( figurePanel_ );
         }
         if ( measurePanel != null ) {
             displayPanel.add( measurePanel );
@@ -617,8 +604,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             stackToolbar.add( floatModel.createToolbarButton() );
             stackToolbar.addSeparator();
         }
-        if ( usePolygon_ ) {
-            getToolBar().add( polygonAction_ );
+        if ( figureAction_ != null ) {
+            getToolBar().add( figureAction_ );
         }
         if ( canSelectPoints_ ) {
             getToolBar().add( blobAction_ );
@@ -659,9 +646,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         if ( canSelectPoints_ ) {
             subsetMenu.add( blobAction_ );
         }
-        if ( usePolygon_ ) {
-            subsetMenu.add( polygonAction_ );
-            subsetMenu.add( polygonPanel_.getModePolygonMenu() );
+        if ( figurePanel_ != null ) {
+            subsetMenu.add( figureAction_ );
+            subsetMenu.add( figurePanel_.getModeFigureMenu() );
         }
         subsetMenu.add( fromVisibleAction_ );
         if ( fromVisibleJelAction_ != null ) {
@@ -1011,8 +998,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* If the blob drawing is active, kill it. */
         blobPanel_.setActive( false );
-        if ( polygonPanel_ != null ) {
-            polygonPanel_.setActive( false );
+        if ( figurePanel_ != null ) {
+            figurePanel_.setActive( false );
         }
 
         /* The shader control is only visible in the stack when one of the
@@ -1614,12 +1601,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Takes a set of points and a polygon inclusion mode and does
+     * Takes a set of points and a figure inclusion mode and does
      * what's required to create and install corresponding RowSubsets
      * for the TopcatModels in the currently visible plot layers.
      *
-     * @param  points  polygon vertices
-     * @param  pmode   polygon shape mode
+     * @param  points  figure vertices
+     * @param  figmode   figure shape mode
      * @param  surf    plot surface
      * @param  layer   layers for which to create subsets
      * @param  completionCallback  runnable which will be executed
@@ -1627,9 +1614,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *                             Event Dispatch Thread after the
      *                             asynchronous operation has completed
      */
-    private void addPolygonSubsets( Point[] points, PolygonMode pmode,
-                                    PlanarSurface surf, PlotLayer[] layers,
-                                    final Runnable completionCallback ) {
+    private void addFigureSubsets( Figure fig, Surface surf, PlotLayer[] layers,
+                                   final Runnable completionCallback ) {
         TableCloud[] clouds =
             TableCloud.createTableClouds( SubCloud
                                          .createSubClouds( layers, true ) );
@@ -1638,32 +1624,34 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         for ( TableCloud cloud : clouds ) {
             TopcatModel tcModel = cloud.getTopcatModel();
             RowSubset[] rsets = cloud.getRowSubsets();
-            GuiCoordContent xContent = cloud.getGuiCoordContent( 0 );
-            GuiCoordContent yContent = cloud.getGuiCoordContent( 1 );
-            String xvar = TopcatJELUtils.getDataExpression( tcModel, xContent );
-            String yvar = TopcatJELUtils.getDataExpression( tcModel, yContent );
-            if ( xvar != null && yvar != null ) {
-                String expr =
-                    pmode.createExpression( surf, points, xvar, yvar );
+            String expr = fig.createExpression( cloud );
+            if ( expr != null ) {
                 expr = TopcatJELUtils
                       .combineSubsetsExpression( tcModel, expr, rsets );
                 entlist.add( new MultiSubsetQueryWindow.Entry( tcModel,
                                                                expr ) );
             }
         }
-        MultiSubsetQueryWindow.Entry[] entries =
-            entlist.toArray( new MultiSubsetQueryWindow.Entry[ 0 ] );
-        MultiSubsetQueryWindow qw =
-            new MultiSubsetQueryWindow( "Add Polygon Subset(s)",
-                                        this, entries );
-        qw.setVisible( true );
-        if ( completionCallback != null ) {
-            qw.addWindowListener( new WindowAdapter() {
-                @Override
-                public void windowClosed( WindowEvent evt ) {
-                    completionCallback.run();
-                }
-            } );
+        if ( entlist.size() > 0 ) {
+            MultiSubsetQueryWindow.Entry[] entries =
+                entlist.toArray( new MultiSubsetQueryWindow.Entry[ 0 ] );
+            MultiSubsetQueryWindow qw =
+                new MultiSubsetQueryWindow( "Add Figure Subset(s)",
+                                            this, entries );
+            qw.setVisible( true );
+            if ( completionCallback != null ) {
+                qw.addWindowListener( new WindowAdapter() {
+                    @Override
+                    public void windowClosed( WindowEvent evt ) {
+                        completionCallback.run();
+                    }
+                } );
+            }
+        }
+        else {
+            if ( completionCallback != null ) {
+                completionCallback.run();
+            }
         }
     }
 
@@ -1826,11 +1814,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         boolean hasFullPoints = hasAnyPoints &&
                                 getBoundsInclusions( false ).length > 0;
+        boolean useFigure = figurePanel_ != null;
         blobAction_.setEnabled( hasFullPoints &&
-                                ! ( usePolygon_ && polygonPanel_.isActive() ) );
-        if ( usePolygon_ ) {
-            polygonAction_.setEnabled( hasFullPoints &&
-                                       ! blobPanel_.isActive() );
+                                ! ( useFigure && figurePanel_.isActive() ) );
+        if ( useFigure ) {
+            figureAction_.setEnabled( ! blobPanel_.isActive() );
         }
     }
 

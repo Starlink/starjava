@@ -1,0 +1,652 @@
+package uk.ac.starlink.topcat.plot2;
+
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import uk.ac.starlink.topcat.TopcatJELUtils;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
+
+/**
+ * FigureMode implementations for use with a PlanarSurface.
+ *
+ * @author   Mark Taylor
+ * @since    20 Feb 2019
+ */
+public abstract class PlaneFigureMode implements FigureMode {
+
+    private final String name_;
+
+    /** PlanarSurface area within the polygon bounded by (&gt;=3) points. */
+    public static final FigureMode POLYGON = new PlaneFigureMode( "Polygon" ) {
+        public Figure createFigure( Surface surf, Point[] points ) {
+            return surf instanceof PlanarSurface && points.length > 1
+                 ? new PolygonFigure( (PlanarSurface) surf, points )
+                 : null;
+        }
+    };
+
+    /** Inverse of polygon mode. */
+    public static final FigureMode OUTSIDE_POLYGON = invertMode( POLYGON );
+
+    /** PlanarSurface area below a line formed by joining points. */
+    public static final FigureMode BELOW =
+        createSideMode( "Below", true, true );
+
+    /** PlanarSurface area above a line formed by joining points. */
+    public static final FigureMode ABOVE = 
+        createSideMode( "Above", true, false );
+
+    /** PlanarSurface area to the left of a line formed by joining points. */
+    public static final FigureMode LEFT =
+        createSideMode( "Left", false, true );
+
+    /** PlanarSurface area to the right of a line formed by joining points. */
+    public static final FigureMode RIGHT =
+        createSideMode( "Right", false, false );
+
+    /** Available polygon modes for use with planar surfaces. */
+    public static final FigureMode[] MODES = {
+        POLYGON, BELOW, ABOVE, LEFT, RIGHT,
+    };
+
+    /**
+     * Coefficient tolerance in pixels.
+     * This value is used to determine to what level of precision
+     * positions and coefficients are reported when constructing
+     * algebraic expressions to represent polygon areas.
+     * The reported coefficients are good enough to reconstruct the
+     * areas drawn to within PIXTOL pixels.
+     */
+    private static final double PIXTOL = 1.0;
+
+    private static final String F_ISINSIDE;
+    private static final String F_POLYLINE;
+    private static final String F_LOG10;
+
+    /** JEL functions used when constructing expressions. */
+    static final String[] JEL_FUNCTIONS = new String[] {
+        F_ISINSIDE = "isInside",
+        F_POLYLINE = "polyLine",
+        F_LOG10 = "log10",
+    };
+
+    /**
+     * Constructor.
+     *
+     * @param  name  user-visible mode name
+     */
+    private PlaneFigureMode( String name ) {
+        name_ = name;
+    }
+
+    public String getName() {
+        return name_;
+    }
+
+    /**
+     * Returns a list of x, y coordinates in data space corresponding
+     * to a list of points in graphics space.
+     * For N submitted points, the output is of the form
+     * ", x1, y1, x2, y2... ,xN, yN" or
+     * ", y1, x1, y2, x2... ,yN, xN".
+     *
+     * @param  surf  plotting surface
+     * @param  gps   array of N points in graphics space
+     * @param  isXy  true for X,Y output sequence,
+     *              false for Y,X output sequence
+     * @return  string giving a comma-separated list of data coordinates,
+     *          or log(data) coordinates if the axis is logarithmic
+     */
+    private static String referencePoints( PlanarSurface surf, Point[] gps,
+                                           boolean isXy ) {
+         StringBuffer sbuf = new StringBuffer();
+         for ( Point point : gps ) {
+             sbuf.append( ", " )
+                 .append( referenceValue( surf, point, isXy ? 0 : 1 ) )
+                 .append( "," )
+                 .append( referenceValue( surf, point, isXy ? 1 : 0 ) );
+         }
+         return sbuf.toString();
+    }
+
+    /**
+     * Provides a string by which a linear coordinate can be referred to.
+     * This is either the supplied variable name itself, or an expression
+     * calculating its (base 10) logarithm.
+     *
+     * @param  surf  plotting surface
+     * @param  varname  JEL-friendly data space variable name
+     * @param  icoord   coordinate index; 0 for X, 1 for Y
+     * @return  JEL-friendly linear expression referencing <code>varname</code>
+     */
+    private static String referenceName( PlanarSurface surf, String varname,
+                                         int icoord ) {
+        return surf.getLogFlags()[ icoord ]
+             ? new StringBuffer()
+                  .append( F_LOG10 )
+                  .append( "(" )
+                  .append( varname )
+                  .append( ")" )
+                  .toString()
+             : varname;
+    }
+
+    /**
+     * Returns a string suitable for appending to an expression that
+     * adds a given value to it.
+     *
+     * @param  value  numeric value
+     * @param  epsilon   precision level for formatting
+     * @return JEL-friendly string "+ <value>" or "- (-<value>)"
+     */
+    private static String addFormattedValue( double value, double epsilon ) {
+        return new StringBuffer()
+              .append( ' ' )
+              .append( value >= 0 ? '+' : '-' )
+              .append( ' ' )
+              .append( PlotUtil.formatNumber( Math.abs( value ), epsilon ) )
+              .toString();
+    }
+
+    /**
+     * Provides an expression referring to the data coordinate
+     * of a graphics point suitable for use in linear expressions;
+     * this may be a logarithm.  The value is formatted with a precision
+     * corresponding to the size of a pixel.
+     *
+     * @param  surf   plotting surface
+     * @param  gp    point in graphics coordinates
+     * @param  icoord   coordinate index; 0 for X, 1 for Y
+     * @return  JEL-friendly number with suitable precision
+     */
+    private static String referenceValue( PlanarSurface surf, Point gp,
+                                          int icoord ) {
+        Axis axis = surf.getAxes()[ icoord ];
+        boolean isLog = surf.getLogFlags()[ icoord ];
+        double gval = new int[] { gp.x, gp.y }[ icoord ];
+        double dval = axis.graphicsToData( gval );
+        double rval = isLog ? Math.log10( dval ) : dval;
+        double epsilon = getPixelEpsilon( surf, icoord, gval );
+        return PlotUtil.formatNumber( rval, epsilon );
+    }
+
+    /**
+     * Returns a value in data (or log-data) coordinates corresponding
+     * to a suitable accuracy for numeric reporting.  The returned value
+     * is scaled by the size of a screen pixel in the relevant dimension.
+     *
+     * @param  surf   plotting surface
+     * @param  icoord   coordinate index; 0 for X, 1 for Y
+     * @param  gval   value in graphics coordinates
+     * @param  precision size
+     */
+    private static double getPixelEpsilon( PlanarSurface surf, int icoord,
+                                           double gval ) {
+        boolean isLog = surf.getLogFlags()[ icoord ];
+        Axis axis = surf.getAxes()[ icoord ];
+        double dval = axis.graphicsToData( gval );
+        double dval1 = axis.graphicsToData( gval - 0.5 / PIXTOL );
+        double dval2 = axis.graphicsToData( gval + 0.5 / PIXTOL );
+        double rval = isLog ? Math.log10( dval ) : dval;
+        double rval1 = isLog ? Math.log10( dval1 ) : dval1;
+        double rval2 = isLog ? Math.log10( dval2 ) : dval2;
+        return Math.abs( rval2 - rval1 );
+    }
+
+    /**
+     * Returns a figure mode which includes the opposite of a given mode.
+     *
+     * @param  inMode  mode to invert
+     * @return  inverted mode
+     */
+    private static FigureMode invertMode( final FigureMode inMode ) {
+        return new FigureMode() {
+            public String getName() {
+                return "NOT_" + inMode.getName();
+            }
+            public Figure createFigure( final Surface surf, Point[] points ) {
+                final PlaneFigure inFig =
+                    (PlaneFigure) inMode.createFigure( surf, points );
+                return new PlaneFigure( (PlanarSurface) surf, points ) {
+                    public Area getArea() {
+                        return invertArea( inFig.getArea() );
+                    }
+                    public void paintPath( Graphics2D g ) {
+                        inFig.paintPath( g );
+                    }
+                    public String createPlaneExpression( String xvar,
+                                                         String yvar ) {
+                        return "!(" + inFig.createPlaneExpression( xvar, yvar )
+                             + ")";
+                    }
+                };
+            }
+        };
+    }
+
+    /**
+     * Defines a shape corresponding to the values to one side of a line
+     * given by supplied points.
+     *
+     * @param  name   mode name
+     * @param  isYfunc true for a line that corresponds to a function
+     *                 defining y as a function of x;
+     *                 false for the other way round
+     * @param  isLess  true for graphics coordinates that are lower than
+     *                 the given line; false for greater than the given line
+     */
+    private static PlaneFigureMode createSideMode( String name,
+                                                   final boolean isYfunc,
+                                                   final boolean isLess ) {
+        return new PlaneFigureMode( name ) {
+            public Figure createFigure( Surface surf, Point[] points ) {
+                if ( surf instanceof PlanarSurface ) {
+                    PlanarSurface psurf = (PlanarSurface) surf;
+                    int np = points.length;
+
+                    /* No points, no figure. */
+                    if ( np == 0 ) {
+                        return null;
+                    }
+
+                    /* One point, area on one side of point. */
+                    else if ( np == 1 ) {
+                        return new LineSideFigure( psurf, points[ 0 ],
+                                                   isYfunc, isLess );
+                    }
+
+                    /* Otherwise, if check the abcissa is strictly monontonic,
+                     * return a polyside figure, else return null. */
+                    else {
+                        for ( int ip = 0; ip < np - 2; ip++ ) {
+                            int[] cs = new int[ 3 ];
+                            for ( int j = 0; j < 3; j++ ) {
+                                Point p = points[ ip + j ];
+                                cs[ j ] = isYfunc ? p.x : p.y;
+                            }
+                            if ( ( cs[2] - cs[1] ) * ( cs[1] - cs[0] ) <= 0 ) {
+                                return null;
+                            }
+                        }
+                        return new PolySideFigure( psurf, points,
+                                                   isYfunc, isLess );
+                    }
+                }
+                else {
+                    return null;
+                }
+            }
+        };
+    }
+
+    /**
+     * Partial Figure implementation for use with PlaneFigureMode.
+     */
+    static abstract class PlaneFigure implements Figure {
+        final PlanarSurface surf_;
+        final Point[] points_;
+        final Rectangle bounds_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  plot surface
+         * @param  points  vertices defining figure
+         */
+        PlaneFigure( PlanarSurface surf, Point[] points ) {
+            surf_ = surf;
+            points_ = points;
+            bounds_ = new Rectangle( surf.getPlotBounds() );
+        }
+
+        public String createExpression( TableCloud cloud ) {
+            GuiCoordContent xContent = cloud.getGuiCoordContent( 0 );
+            GuiCoordContent yContent = cloud.getGuiCoordContent( 1 );
+            TopcatModel tcModel = cloud.getTopcatModel();
+            String xvar = TopcatJELUtils.getDataExpression( tcModel, xContent );
+            String yvar = TopcatJELUtils.getDataExpression( tcModel, yContent );
+            return xvar != null && yvar != null
+                 ? createPlaneExpression( xvar, yvar )
+                 : null;
+        }
+
+        /**
+         * Returns a JEL expression defining the area in data space
+         * defined by a set of graphics points, given the X and Y variable
+         * expressions.
+         *
+         * @param  xvar   JEL-friendly expression naming the X coordinate
+         * @param  yvar   JEL-friendly expression naming the Y coordinate
+         * @return   boolean JEL inclusion expression, or null
+         */
+        abstract String createPlaneExpression( String xvar, String yvar );
+
+        public String getExpression() {
+            return createPlaneExpression( "X", "Y" );
+        }
+
+        /**
+         * Paints an unclosed path joining all this figure's points.
+         *
+         * @param  g  graphics context
+         */
+        void paintPolyPath( Graphics2D g ) {
+            Path2D path = new Path2D.Double();
+            Point p0 = points_[ 0 ];
+            path.moveTo( p0.getX(), p0.getY() );
+            for ( int ip = 1; ip < points_.length; ip++ ) {
+                Point p = points_[ ip ];
+                path.lineTo( p.getX(), p.getY() );
+            }
+            g.draw( path );
+        }
+
+        /**
+         * Returns an area which includes all of the visible plotting surface
+         * except for that included in a supplied area.
+         *
+         * @param  area   area to invert
+         * @return   complement of area
+         */
+        Area invertArea( Area area ) {
+            Area result = new Area( bounds_ );
+            result.subtract( area );
+            return result;
+        }
+    }
+
+    /**
+     * Figure implementation for an enclosing polygon.
+     */
+    private static class PolygonFigure extends PlaneFigure {
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  plotting surface
+         * @param  points   points defining polygon
+         */
+        PolygonFigure( PlanarSurface surf, Point[] points ) {
+            super( surf, points );
+        }
+
+        public Area getArea() {
+            int np = points_.length;
+            int[] xs = new int[ np ];
+            int[] ys = new int[ np ];
+            for ( int ip = 0; ip < np; ip++ ) {
+                Point p = points_[ ip ];
+                xs[ ip ] = p.x;
+                ys[ ip ] = p.y;
+            }
+            return new Area( new Polygon( xs, ys, np ) );
+        }
+
+        public void paintPath( Graphics2D g ) {
+            paintPolyPath( g );
+        }
+
+        public String createPlaneExpression( String xvar, String yvar ) {
+            return new StringBuffer()
+                  .append( F_ISINSIDE )
+                  .append( "(" )
+                  .append( referenceName( surf_, xvar, 0 ) )
+                  .append( ", " )
+                  .append( referenceName( surf_, yvar, 1 ) )
+                  .append( referencePoints( surf_, points_, true ) )
+                  .append( ")" )
+                  .toString();
+        }
+    }
+
+    /**
+     * Figure implementation including all points to one side of a given point.
+     */
+    private static class LineSideFigure extends PlaneFigure {
+        final Point point_;
+        final boolean isYfunc_;
+        final boolean isLess_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  plotting surface
+         * @param  point   point defining boundary
+         * @param  isYfunc true for a line that corresponds to a function
+         *                 defining y as a function of x (horizontal line)
+         *                 false for the other way round
+         * @param  isLess  true for graphics coordinates that are lower than
+         *                 the given line; false for greater than the given line
+         */
+        LineSideFigure( PlanarSurface surf, Point point,
+                        boolean isYfunc, boolean isLess ) {
+            super( surf, new Point[] { point } );
+            point_ = point;
+            isYfunc_ = isYfunc;
+            isLess_ = isLess;
+        }
+
+        public Area getArea() {
+            Rectangle rect = new Rectangle( bounds_ );
+            if ( isYfunc_ ) {
+                rect.height = Math.max( 0, point_.y - bounds_.y );
+            }
+            else {
+                rect.width = Math.max( 0, point_.x - bounds_.x );
+            }
+            Area rectArea = new Area( rect );
+            return isLess_ == isYfunc_ ? invertArea( rectArea ) : rectArea;
+        }
+
+        public void paintPath( Graphics2D g ) {
+            return;
+        }
+
+        public String createPlaneExpression( String xvar, String yvar ) {
+            String operator = surf_.getFlipFlags()[ isYfunc_ ? 1 : 0 ]
+                            ? ( isLess_ ? ">" : "<=" )
+                            : ( isLess_ ? "<" : ">=" );
+            Axis axis = surf_.getAxes()[ isYfunc_ ? 1 : 0 ];
+            double gval = isYfunc_ ? point_.y : point_.x;
+            double dval = axis.graphicsToData( gval );
+            double dval1 = axis.graphicsToData( gval - 0.5 / PIXTOL );
+            double dval2 = axis.graphicsToData( gval + 0.5 / PIXTOL );
+            double epsilon = Math.abs( dval2 - dval1 );
+            String value = PlotUtil.formatNumber( dval, epsilon );
+            return new StringBuffer()
+                  .append( isYfunc_ ? yvar : xvar )
+                  .append( " " )
+                  .append( operator )
+                  .append( " " )
+                  .append( value )
+                  .toString();
+        }
+    }
+
+    /**
+     * Defines a shape corresponding to the values on one side of a line
+     * given by supplied points.
+     */
+    private static class PolySideFigure extends PlaneFigure {
+        final boolean isYfunc_;
+        final boolean isLess_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf   plotting surface
+         * @param  points  points defining the border
+         * @param  isYfunc true for a line that corresponds to a function
+         *                 defining y as a function of x;
+         *                 false for the other way round
+         * @param  isLess  true for graphics coordinates that are lower than
+         *                 the given line; false for greater than the given line
+        */
+        PolySideFigure( PlanarSurface surf, Point[] points,
+                        boolean isYfunc, boolean isLess ) {
+            super( surf, points );
+            isYfunc_ = isYfunc;
+            isLess_ = isLess;
+        }
+
+        public Area getArea() {
+
+            /* Build up the shape from a trapezium going to the edge of
+             * the bounding rectangle at either end, and then a trapezium
+             * for each section for the non-end points. */
+            Area poly = new Area();
+            poly.add( createEdgeTrapezium( points_[ 0 ], points_[ 1 ] ) );
+            int np = points_.length;
+            for ( int ip = 0; ip < np - 2; ip++ ) {
+                poly.add( createBoundedTrapezium( points_[ ip + 1 ],
+                                                  points_[ ip + 2 ] ) );
+            }
+            poly.add( createEdgeTrapezium( points_[ np - 1 ],
+                                           points_[ np - 2 ] ) );
+            return isLess_ == isYfunc_ ? invertArea( poly ) : poly;
+        }
+
+        public void paintPath( Graphics2D g ) {
+            paintPolyPath( g );
+        }
+
+        public String createPlaneExpression( String xvar, String yvar ) {
+            Axis[] axes = surf_.getAxes();
+            boolean[] logFlags = surf_.getLogFlags();
+            String operator = surf_.getFlipFlags()[ isYfunc_ ? 1 : 0 ]
+                            ? ( isLess_ ? ">" : "<=" )
+                            : ( isLess_ ? "<" : ">=" );
+
+            /* Two points, construct a linear inequality.
+             * We could just use the special shape functions here
+             * (same case as np>2), but doing it this way gives an
+             * expression which is more comprehensible for users and easier
+             * to transfer to other contexts (such as a research paper).
+             * The functional form of the line is (e.g.) "y < M * (x-x1) + y1",
+             * where (x1,y1) is one of the supplied points.
+             * This is preferred to the more conventional "y < m * x + c"
+             * because it's less sensitive to the precision of the gradient
+             * (if the visible range of x is far from zero), which means that
+             * the gradient m can be reported with fewer significant figures. */
+            if ( points_.length == 2 ) {
+                Point p1 = points_[ 0 ];
+                Point p2 = points_[ 1 ];
+                boolean xlog = logFlags[ 0 ];
+                boolean ylog = logFlags[ 1 ];
+                Axis xaxis = axes[ 0 ];
+                Axis yaxis = axes[ 1 ];
+                String xref = referenceName( surf_, xvar, 0 );
+                String yref = referenceName( surf_, yvar, 1 );
+                double dx1 = xaxis.graphicsToData( p1.x );
+                double dy1 = yaxis.graphicsToData( p1.y );
+                double dx2 = xaxis.graphicsToData( p2.x );
+                double dy2 = yaxis.graphicsToData( p2.y );
+                double rx1 = xlog ? Math.log10( dx1 ) : dx1;
+                double ry1 = ylog ? Math.log10( dy1 ) : dy1;
+                double rx2 = xlog ? Math.log10( dx2 ) : dx2;
+                double ry2 = ylog ? Math.log10( dy2 ) : dy2;
+                double m = isYfunc_ ? ( ry2 - ry1 ) / ( rx2 - rx1 )
+                                    : ( rx2 - rx1 ) / ( ry2 - ry1 );
+                double c = isYfunc_ ? ry1 - m * rx1
+                                    : rx1 - m * ry1;
+                double xEpsilon = getPixelEpsilon( surf_, 0, p1.x );
+                double yEpsilon = getPixelEpsilon( surf_, 1, p1.y );
+
+                /* Calculate the tolerance on the gradient by identifying
+                 * the value that will make a difference of at most PIXTOL
+                 * pixels on either edge of the visible plot bounds. */
+                double mEpsilon = 0;
+                for ( double dlim : surf_.getDataLimits()[ isYfunc_ ? 0 : 1 ] ){
+                    double rlim = ( isYfunc_ ? xlog : ylog )
+                                ? Math.log10( dlim )
+                                : dlim;
+                    double dm = Math.abs( ( isYfunc_ ? yEpsilon : xEpsilon )
+                                        / ( rlim - ( isYfunc_ ? rx1 : ry1 ) ) );
+                    mEpsilon = mEpsilon > 0 ? Math.min( mEpsilon, dm ) : dm;
+                }
+                return new StringBuffer()
+                      .append( isYfunc_ ? yref : xref )
+                      .append( " " )
+                      .append( operator )
+                      .append( " " )
+                      .append( PlotUtil.formatNumber( m, mEpsilon ) )
+                      .append( " * " )
+                      .append( "(" )
+                      .append( isYfunc_ ? xref : yref )
+                      .append( isYfunc_ ? addFormattedValue( -rx1, xEpsilon )
+                                        : addFormattedValue( -ry1, yEpsilon ) )
+                      .append( ")" )
+                      .append( isYfunc_ ? addFormattedValue( +ry1, yEpsilon )
+                                        : addFormattedValue( +rx1, xEpsilon ) )
+                      .toString();
+            }
+
+            /* Use the special function from
+             * uk.ac.starlink.ttools.func.Shapes. */
+            else {
+                String xref = referenceName( surf_, xvar, 0 );
+                String yref = referenceName( surf_, yvar, 1 );
+                return new StringBuffer()
+                      .append( isYfunc_ ? yref : xref )
+                      .append( " " )
+                      .append( operator )
+                      .append( " " )
+                      .append( F_POLYLINE )
+                      .append( "(" )
+                      .append( isYfunc_ ? xref : yref )
+                      .append( referencePoints( surf_, points_, isYfunc_ ) )
+                      .append( ")" )
+                      .toString();
+            }
+        }
+        
+        /**
+         * Creates a trapezium corresponding to a line infinitely extended
+         * in one direction.
+         *
+         * @param  p0  the point in the direction of extension to the edge
+         * @param  p1  the point at a vertex
+         * @return  shape
+         */
+        private Area createEdgeTrapezium( Point p0, Point p1 ) {
+            final int x2;
+            final int y2;
+            if ( isYfunc_ ) {
+                x2 = p0.x < p1.x ? bounds_.x : bounds_.x + bounds_.width;
+                y2 = (int) ( ( p1.y - p0.y ) / (double) ( p1.x - p0.x )
+                             * ( x2 - p0.x ) )
+                   + p0.y;
+            }
+            else {
+                y2 = p0.y < p1.y ? bounds_.y : bounds_.y + bounds_.height;
+                x2 = (int) ( ( p1.x - p0.x ) / (double) ( p1.y - p0.y )
+                             * ( y2 - p0.y ) )
+                   + p0.x;
+            }
+            return createBoundedTrapezium( p1, new Point( x2, y2 ) );
+        }
+
+        /**
+         * Creates a trapezium with sides dropping to one edge of the bounding
+         * rectangle and a sloping section between two given points.
+         *
+         * @param  p1  one vertex
+         * @param  p2  other vertex
+         * @return  shape
+         */
+        private Area createBoundedTrapezium( Point p1, Point p2 ) {
+            int[] xs = isYfunc_ ? new int[] { p1.x, p1.x, p2.x, p2.x }
+                                : new int[] { bounds_.x, p1.x, p2.x, bounds_.x};
+            int[] ys = isYfunc_ ? new int[] { bounds_.y, p1.y, p2.y, bounds_.y }
+                                : new int[] { p1.y, p1.y, p2.y, p2.y };
+            return new Area( new Polygon( xs, ys, 4 ) );
+        }
+    }
+}

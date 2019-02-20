@@ -499,6 +499,9 @@ public class HistogramPlotWindow
         public boolean isPlanar() {
             return true;
         }
+        public FigureMode[] getFigureModes() {
+            return new FigureMode[ 0 ];
+        }
         public String getNavigatorHelpId() {
             return "histogramNavigation";
         }

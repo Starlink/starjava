@@ -119,6 +119,9 @@ public class TimePlotWindow
         public boolean isPlanar() {
             return true;
         }
+        public FigureMode[] getFigureModes() {
+            return new FigureMode[ 0 ];
+        }
         public GangerFactory getGangerFactory() {
             return TimeStackGanger.FACTORY;
         }

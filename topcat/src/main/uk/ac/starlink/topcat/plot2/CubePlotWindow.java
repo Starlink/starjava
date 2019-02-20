@@ -56,6 +56,9 @@ public class CubePlotWindow
         public boolean isPlanar() {
             return false;
         }
+        public FigureMode[] getFigureModes() {
+            return new FigureMode[ 0 ];
+        }
         public GangerFactory getGangerFactory() {
             return SingleGanger.FACTORY;
         }
