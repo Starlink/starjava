@@ -85,7 +85,7 @@ public class SkyPlotWindow
         }
 
         public FigureMode[] getFigureModes() {
-            return new FigureMode[ 0 ];
+            return SkyFigureMode.MODES;
         }
 
         public GangerFactory getGangerFactory() {

@@ -170,6 +170,9 @@ public class FigureModeTest extends TestCase {
         for ( String fname : PlaneFigureMode.JEL_FUNCTIONS ) {
             assertNotNull( getLibraryMethod( fname ) );
         }
+        for ( String fname : SkyFigureMode.JEL_FUNCTIONS ) {
+            assertNotNull( getLibraryMethod( fname ) );
+        }
     }
 
     private static Method getLibraryMethod( String fname ) {
