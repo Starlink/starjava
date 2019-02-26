@@ -256,6 +256,7 @@ public class ResourceIcon implements Icon {
         FLOAT = makeIcon( "float1.png" ),
         PLOT_DATA = makeIcon( "dataplot.png" ),
         PLOT_PAIR = makeIcon( "pairplot.png" ),
+        PLOT_QUAD = makeIcon( "quadplot.png" ),
         PLOT_HISTO = makeIcon( "histoplot.png" ),
         PLOT2_PLANE = makeIcon( "plot2plane.png" ),
         PLOT2_SKY = makeIcon( "plot2sky.png" ),

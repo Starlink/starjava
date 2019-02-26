@@ -409,6 +409,15 @@ public class GroupControlManager implements ControlManager {
             }
         },
 
+        /** Plotter with four positional coordinates. */
+        QUAD_POS( ResourceIcon.PLOT_QUAD, "Quad", "quadrilateral", true ) {
+            public PositionCoordPanel
+                    createPositionCoordPanel( PlotType plotType,
+                                              PlotTypeGui plotTypeGui ) {
+                return plotTypeGui.createPositionCoordPanel( 4 );
+            }
+        },
+
         /** Histogram-like plotter. */
         WEIGHTED_HISTO( ResourceIcon.PLOT_HISTO, "Histogram",
                         "optionally weighted histogram", true ) {
@@ -530,6 +539,9 @@ public class GroupControlManager implements ControlManager {
             }
             else if ( npos == 2 ) {
                 return CoordsType.DOUBLE_POS;
+            }
+            else if ( npos == 4 ) {
+                return CoordsType.QUAD_POS;
             }
             else if ( cgrp.isSinglePartialPosition() &&
                       cgrp.getExtraCoords().length == 2 &&
