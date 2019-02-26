@@ -377,7 +377,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
                     .addArgument( "-source", queryable.getQuerySource() )
                     .toString() );
         ubuf.append( encodeArg( "-oc.form", "dec" ) );
-        ubuf.append( encodeArg( "-out.meta", "DhuL" ) );
+        ubuf.append( encodeArg( "-out.meta", "Dhul" ) );
         boolean allRows = isAllRows();
         if ( ! allRows ) {
             ubuf.append( encodeArg( "-c", getTarget() ) );
