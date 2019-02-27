@@ -142,6 +142,10 @@ public class TimeSurface implements Surface, PlanarSurface {
                               yAxis_.graphicsToData( gp.getY() ) };
     }
 
+    public boolean isContinuousLine( double[] dpos0, double[] dpos1 ) {
+        return true;
+    }
+
     public String formatPosition( double[] dpos ) {
         double timePixelSize = ( dthi_ - dtlo_ ) / ( gxhi_ - gxlo_ );
         return new StringBuilder()

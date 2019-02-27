@@ -144,6 +144,10 @@ public class PlaneSurface implements Surface, PlanarSurface {
                               yAxis_.graphicsToData( gp.getY() ) };
     }
 
+    public boolean isContinuousLine( double[] dpos0, double[] dpos1 ) {
+        return true;
+    }
+
     public String formatPosition( double[] dpos ) {
         return new StringBuilder()
             .append( formatPosition( xAxis_, dpos[ 0 ] ) )

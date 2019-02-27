@@ -466,6 +466,10 @@ public class CubeSurface implements Surface {
         return null;
     }
 
+    public boolean isContinuousLine( double[] dpos0, double[] dpos1 ) {
+        return true;
+    }
+
     public void paintBackground( Graphics g ) {
         Graphics2D g2 = (Graphics2D) g;
         Color color0 = g2.getColor();

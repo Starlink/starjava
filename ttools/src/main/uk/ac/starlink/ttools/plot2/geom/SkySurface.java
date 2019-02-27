@@ -628,6 +628,10 @@ public class SkySurface implements Surface {
         return graphicsToData( gpos, null );
     }
 
+    public boolean isContinuousLine( double[] dpos0, double[] dpos1 ) {
+        return projection_.isContinuousLine( dpos0, dpos1 );
+    }
+
     public String formatPosition( double[] dpos ) {
         double pixRad = 2.0 * Math.PI / gZoom_;
         double x = dpos[ 0 ];

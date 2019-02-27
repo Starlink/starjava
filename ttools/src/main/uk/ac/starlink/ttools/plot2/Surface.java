@@ -127,8 +127,9 @@ public interface Surface {
     boolean dataToGraphicsOffset( double[] dataPos0, Point2D.Double gpos0,
                                   double[] dataPos1, boolean visibleOnly,
                                   Point2D.Double gPos1 ); 
+
     /**
-     * Attempst to turn a graphics position into a data position.
+     * Attempts to turn a graphics position into a data position.
      * This is not always trivial, for instance in a 3D plot one
      * graphics position maps to a line of data positions.
      * The <code>dposIt</code> argument can optionally
@@ -145,6 +146,27 @@ public interface Surface {
      *           <code>gPos</code>, or null if it cannot be determined
      */
     double[] graphicsToData( Point2D gPos, Iterable<double[]> dposIt );
+
+    /**
+     * Indicates whether a line in graphics space between
+     * two given data space positions is continuous.
+     *
+     * <p>This is not very well-defined, but if drawing a line in graphics
+     * coordinates between the graphics coordinates corresponding to
+     * the two data coordinates is likely to do something badly wrong,
+     * this method should return false.  It is intended to deal with
+     * the case where a short offset in data coordinates would lead to
+     * a line going the wrong way round the sky when it crosses the
+     * longitude=+/-PI boundary in an Aitoff projection.
+     *
+     * @param  dataPos0  first dataDimCount-element array containing
+     *                   data space coordinates
+     * @param  dataPos1  second dataDimCount-element array containing
+     *                   data space coordinates
+     * @return  true if drawing a graphics line between the two positions
+     *          should be OK
+     */
+    boolean isContinuousLine( double[] dataPos0, double[] dataPos1 );
 
     /**
      * Formats the given data space position as a coordinate string.
