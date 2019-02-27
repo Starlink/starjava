@@ -11957,6 +11957,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         now has an <code>aux</code> parameter that can vary the colour
         of the line along its length according to some
         third quantity.</li>
+    <li>Fix a problem with the <ref id="layer-link2">link2</ref>
+        plot layers on sky plots with Aitoff/Car projections
+        that caused short lines that should span the antimeridian
+        to appear as long lines crossing the whole sky.
+        Such links are now just not drawn.</li>
     </ul>
     </p>
     </dd>

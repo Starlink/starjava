@@ -27950,6 +27950,10 @@ introduced since the last version:
         "<code>-out.meta=Dhul</code>" rather than
         "<code>-out.meta=DhuL</code>"; this means that some link
         columns get meaningful content that did not before.</li>
+    <li>Fix a problem with the <ref id="form-link2">Link2</ref> plot form
+        that caused short lines that should span the antimeridian
+        to appear as long lines crossing the whole sky.
+        Such links are now just not drawn.</li>
     </ul>
     </p></dd>
 
