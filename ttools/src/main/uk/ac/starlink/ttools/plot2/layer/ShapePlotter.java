@@ -97,7 +97,8 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
      * @return  index of first mode-specific coordinate
      */
     public int getModeCoordsIndex( DataGeom geom ) {
-        return geom.getPosCoords().length * form_.getPositionCount()
+        return ( geom == null ? 0 : geom.getPosCoords().length )
+               * form_.getPositionCount()
              + form_.getExtraCoords().length;
     }
 

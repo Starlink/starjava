@@ -25,8 +25,6 @@ public class FloatingCoordAuxReader implements AuxReader {
     private final int icol_;
     private final DataGeom geom_;
     private final boolean visibleOnly_;
-    private final double[] dpos_;
-    private final Point2D.Double gpos_;
 
     /**
      * Constructor.
@@ -44,8 +42,6 @@ public class FloatingCoordAuxReader implements AuxReader {
         icol_ = icol;
         geom_ = geom;
         visibleOnly_ = visibleOnly;
-        dpos_ = new double[ geom.getDataDimCount() ];
-        gpos_ = new Point2D.Double();
     }
 
     public int getCoordIndex() {
@@ -60,20 +56,26 @@ public class FloatingCoordAuxReader implements AuxReader {
     public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                 DataStore dataStore, Object[] plans,
                                 Range range ) {
-
-        /* Convert data to graphics coordinates.  The resulting values are
-         * not used, but this determines whether the points are plottable. */
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        while ( tseq.next() ) {
-            if ( geom_.readDataPos( tseq, 0, dpos_ ) &&
-                 surface.dataToGraphics( dpos_, visibleOnly_, gpos_ ) &&
-                 ( visibleOnly_ || PlotUtil.isPointFinite( gpos_ ) ) ) {
 
-                /* Read the coordinate value. */
-                double value = coord_.readDoubleCoord( tseq, icol_ );
+        /* If no positional coordinates, just submit every value. */
+        if ( geom_ == null ) {
+            while ( tseq.next() ) {
+                range.submit( coord_.readDoubleCoord( tseq, icol_ ) );
+            }
+        }
 
-                /* Extend the submitted range accordingly. */
-                range.submit( value );
+        /* If there are positional coordinates, check each value to see
+         * whether it is plottable, and only submit the ones that are. */
+        else {
+            double[] dpos = new double[ geom_.getDataDimCount() ];
+            Point2D.Double gpos = new Point2D.Double();
+            while ( tseq.next() ) {
+                if ( geom_.readDataPos( tseq, 0, dpos ) &&
+                     surface.dataToGraphics( dpos, visibleOnly_, gpos ) &&
+                     ( visibleOnly_ || PlotUtil.isPointFinite( gpos ) ) ) {
+                    range.submit( coord_.readDoubleCoord( tseq, icol_ ) );
+                }
             }
         }
     }

@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -139,7 +140,7 @@ public abstract class PixOutliner implements Outliner {
          */
         boolean matches( DataGeom geom, DataSpec dataSpec, Surface surface,
                          PixOutliner outliner ) {
-            return geom_.equals( geom )
+            return PlotUtil.equals( geom_, geom )
                 && dataSpec_.equals( dataSpec )
                 && surface_.equals( surface )
                 && outliner_.equals( outliner );
