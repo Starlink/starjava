@@ -28,9 +28,8 @@ public abstract class MultiPosIcon implements Icon {
         size_ = 16;
         int size2 = size_ / 2;
         positions_ = new Point[ npos ];
-        positions_[ 0 ] = new Point( size2, size2 );
-        for ( int ip = 1; ip < npos; ip++ ) {
-            double theta = ( 0.5 * Math.PI * ip ) / npos;
+        for ( int ip = 0; ip < npos; ip++ ) {
+            double theta = 0.125 * Math.PI + ( 2.0 * Math.PI * ip ) / npos;
             int x = (int) ( size2 + size2 * Math.cos( theta ) );
             int y = (int) ( size2 - size2 * Math.sin( theta ) );
             positions_[ ip ] = new Point( x, y );
