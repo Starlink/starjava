@@ -54,6 +54,9 @@ public abstract class MarkForm implements ShapeForm {
     /** MarkForm instance for two points per tuple. */
     public static final MarkForm PAIR = createMarkForm( 2 );
 
+    /** MarkForm instance for four points per tuple. */
+    public static final MarkForm QUAD = createMarkForm( 4 );
+
     private static final Color DUMMY_COLOR = Color.GRAY;
 
     /**
@@ -132,15 +135,25 @@ public abstract class MarkForm implements ShapeForm {
             };
         }
         else {
-            return new MarkForm( npos, "Mark" + npos,
-                                 npos == 2 ? ResourceIcon.FORM_MARKS2
-                                           : ResourceIcon.FORM_MARKS3 ) {
+            final Icon icon;
+            if ( npos == 2 ) {
+                icon = ResourceIcon.FORM_MARKS2;
+            }
+            else if ( npos == 3 ) {
+                icon = ResourceIcon.FORM_MARKS3;
+            }
+            else {
+                icon = ResourceIcon.FORM_MARKS4;
+            }
+            return new MarkForm( npos, "Mark" + npos, icon ) {
                 public String getFormDescription() {
                     return PlotUtil.concatLines( new String[] {
-                        "<p>Plots " + npos + "similar markers",
+                        "<p>Plots " + npos + " similar markers",
                         "of fixed size and shape",
                         "representing " + npos + " separate positions",
                         "from the same input table row.",
+                        "This is a convenience option that can be used with",
+                        "other plot layers based on " + npos + " positions.",
                         "</p>",
                     } );
                 }
