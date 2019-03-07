@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
+import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 
 /**
  * Translates Glyph paint operations into pixel iterators.
@@ -37,7 +38,7 @@ public abstract class GlyphPaper implements Paper {
      */
     public GlyphPaper( Rectangle plotBounds ) {
         bounds_ = new Rectangle( plotBounds );
-        paperType_ = new GlyphPaperType();
+        paperType_ = createGlyphPaperType();
     }
 
     /**
@@ -52,51 +53,64 @@ public abstract class GlyphPaper implements Paper {
     /**
      * Returns a partial PaperType implementation to use with this object.
      * The returned value is private to this paper instance.
-     * It implements PaperType2D.
-     * The methods not concerned with painting glyphs may throw
-     * <code>UnsupportedOperationException</code>s.
      */
-    public PaperType2D getPaperType() {
+    public GlyphPaperType getPaperType() {
         return paperType_;
     }
 
     /**
-     * PaperType implementation for use with a GlyphPaper instance.
+     * Type of paper used by this object.  It implements both PaperType2D
+     * and PaperType3D, but does not support the full contract of PaperType;
+     * The methods not concerned with painting glyphs may throw
+     * <code>UnsupportedOperationException</code>s.
      */
-    private class GlyphPaperType implements PaperType2D {
+    public interface GlyphPaperType extends PaperType2D, PaperType3D {
+    }
 
-        public void placeGlyph( Paper paper, double dx, double dy, Glyph glyph,
-                                Color color ) {
+    /**
+     * Returns a PaperType implementation for use with an instance of
+     * this class.
+     */
+    private GlyphPaperType createGlyphPaperType() {
+        return new GlyphPaperType() {
+            public void placeGlyph( Paper paper, double dx, double dy,
+                                    Glyph glyph, Color color ) {
 
-            /* Get the base position at which the glyph is drawn. */
-            int gx = PlotUtil.ifloor( dx );
-            int gy = PlotUtil.ifloor( dy );
+                /* Get the base position at which the glyph is drawn. */
+                int gx = PlotUtil.ifloor( dx );
+                int gy = PlotUtil.ifloor( dy );
 
-            /* Get the presented glyph's pixels clipped to the bounds
-             * of this paper. */
-            Rectangle cbox = new Rectangle( bounds_ );
-            cbox.translate( -gx, -gy );
-            Pixer pixer = glyph.createPixer( cbox );
+                /* Get the presented glyph's pixels clipped to the bounds
+                 * of this paper. */
+                Rectangle cbox = new Rectangle( bounds_ );
+                cbox.translate( -gx, -gy );
+                Pixer pixer = glyph.createPixer( cbox );
 
-            /* Pass the pixels on to the subclass implementation. */
-            if ( pixer != null ) {
-                GlyphPaper.this
-               .glyphPixels( Pixers.translate( pixer, gx, gy ) );
+                /* Pass the pixels on to the subclass implementation. */
+                if ( pixer != null ) {
+                    GlyphPaper.this
+                   .glyphPixels( Pixers.translate( pixer, gx, gy ) );
+                }
             }
-        }
 
-        public boolean isBitmap() {
-            return true;
-        }
+            public void placeGlyph( Paper paper, double dx, double dy,
+                                    double dz, Glyph glyph, Color color ) {
+                placeGlyph( paper, dx, dy, glyph, color );
+            }
 
-        public void placeDecal( Paper paper, Decal decal ) {
-            throw new UnsupportedOperationException();
-        }
+            public boolean isBitmap() {
+                return true;
+            }
 
-        public Icon createDataIcon( Surface surface, Drawing[] drawing,
-                                    Object[] plans, DataStore dataStore,
-                                    boolean requireCached ) {
-            throw new UnsupportedOperationException();
-        }
+            public void placeDecal( Paper paper, Decal decal ) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Icon createDataIcon( Surface surface, Drawing[] drawing,
+                                        Object[] plans, DataStore dataStore,
+                                        boolean requireCached ) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }
