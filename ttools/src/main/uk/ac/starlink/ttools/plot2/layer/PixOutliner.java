@@ -11,6 +11,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 
 /**
  * Partial Outliner implementation which calculates its bin plan
@@ -40,8 +41,11 @@ public abstract class PixOutliner implements Outliner {
         /* Otherwise set up a limited PaperType implementation that takes
          * glyphs and turns them into a bit map, and plot the glyphs on it. */
         BinPaper paper = new BinPaper( surface.getPlotBounds() );
+        GlyphPaper.GlyphPaperType ptype = paper.getPaperType();
         ShapePainter painter =
-            create2DPainter( surface, geom, auxRanges, paper.getPaperType() );
+              surface instanceof CubeSurface
+            ? create3DPainter( (CubeSurface) surface, geom, auxRanges, ptype )
+            : create2DPainter( surface, geom, auxRanges, ptype );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while( tseq.next() ) {
             painter.paintPoint( tseq, null, paper );

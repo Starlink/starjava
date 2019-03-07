@@ -1412,9 +1412,13 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 WeightPaper wpaper =
                     new WeightPaper( surface.getPlotBounds(),
                                      wstamper_.combiner_ );
+                GlyphPaper.GlyphPaperType ptype = wpaper.getPaperType();
                 ShapePainter painter =
-                    outliner_.create2DPainter( surface, geom, auxRanges,
-                                               wpaper.getPaperType() );
+                      surface instanceof CubeSurface
+                    ? outliner_.create3DPainter( (CubeSurface) surface, geom,
+                                                 auxRanges, ptype )
+                    : outliner_.create2DPainter( surface, geom,
+                                                 auxRanges, ptype );
                 TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
 
                 /* Under normal circumstances, use the submitted combiner
