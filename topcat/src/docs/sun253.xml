@@ -147,10 +147,12 @@
   <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.png'>
   <!ENTITY FIG.GangLayerControl_pair_position
            '&figs;GangLayerControl_pair_position.png'>
-  <!ENTITY FIG.GangLayerControl_pair_subsets
-           '&figs;GangLayerControl_pair_subsets.png'>
   <!ENTITY FIG.GangLayerControl_pair_form
            '&figs;GangLayerControl_pair_form.png'>
+  <!ENTITY FIG.GangLayerControl_quad_position
+           '&figs;GangLayerControl_quad_position.png'>
+  <!ENTITY FIG.GangLayerControl_quad_form
+           '&figs;GangLayerControl_quad_form.png'>
   <!ENTITY FIG.HistogramLayerControl_position
            '&figs;HistogramLayerControl_position.png'>
   <!ENTITY FIG.HistogramLayerControl_subsets
@@ -177,6 +179,7 @@
   <!ENTITY FIG.form_skyellipse '&figs;form_skyellipse.png'>
   <!ENTITY FIG.form_xycorr '&figs;form_xycorr.png'>
   <!ENTITY FIG.form_skycorr '&figs;form_skycorr.png'>
+  <!ENTITY FIG.form_polygon '&figs;form_polygon.png'>
   <!ENTITY FIG.form_line '&figs;form_line.png'>
   <!ENTITY FIG.form_line3d '&figs;form_line3d.png'>
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.png'>
@@ -191,8 +194,8 @@
   <!ENTITY FIG.form_knn '&figs;form_knn.png'>
   <!ENTITY FIG.form_densogram '&figs;form_densogram.png'>
   <!ENTITY FIG.form_gaussian '&figs;form_gaussian.png'>
-  <!ENTITY FIG.form_mark2 '&figs;form_mark2.png'>
   <!ENTITY FIG.form_link2 '&figs;form_link2.png'>
+  <!ENTITY FIG.form_poly4 '&figs;form_poly4.png'>
   <!ENTITY FIG.font_tab '&figs;font_tab.png'>
   <!ENTITY FIG.size_tab '&figs;size_tab.png'>
   <!ENTITY FIG.title_tab '&figs;title_tab.png'>
@@ -275,6 +278,7 @@
   <!ENTITY FIG.plot2-layer-skyellipse '&figs;plot2-layer-skyellipse.png'>
   <!ENTITY FIG.plot2-layer-xycorr '&figs;plot2-layer-xycorr.png'>
   <!ENTITY FIG.plot2-layer-skycorr '&figs;plot2-layer-skycorr.png'>
+  <!ENTITY FIG.plot2-layer-polygon '&figs;plot2-layer-polygon.png'>
   <!ENTITY FIG.plot2-layer-line '&figs;plot2-layer-line.png'>
   <!ENTITY FIG.plot2-layer-line3d '&figs;plot2-layer-line3d.png'>
   <!ENTITY FIG.plot2-layer-linearfit '&figs;plot2-layer-linearfit.png'>
@@ -289,8 +293,10 @@
   <!ENTITY FIG.plot2-layer-knn '&figs;plot2-layer-knn.png'>
   <!ENTITY FIG.plot2-layer-densogram '&figs;plot2-layer-densogram.png'>
   <!ENTITY FIG.plot2-layer-gaussian '&figs;plot2-layer-gaussian.png'>
-  <!ENTITY FIG.plot2-layer-mark2 '&figs;plot2-layer-mark2.png'>
   <!ENTITY FIG.plot2-layer-link2 '&figs;plot2-layer-link2.png'>
+  <!ENTITY FIG.plot2-layer-mark2 '&figs;plot2-layer-mark2.png'>
+  <!ENTITY FIG.plot2-layer-poly4 '&figs;plot2-layer-poly4.png'>
+  <!ENTITY FIG.plot2-layer-mark4 '&figs;plot2-layer-mark4.png'>
   <!ENTITY FIG.plot2-shading-flat '&figs;plot2-shading-flat.png'>
   <!ENTITY FIG.plot2-shading-auto '&figs;plot2-shading-auto.png'>
   <!ENTITY FIG.plot2-shading-density '&figs;plot2-shading-density.png'>
@@ -313,6 +319,9 @@
   <!ENTITY CONTROL.pair
            '&IMG.PLOT_PAIR;
             <ref id="GangLayerControl_pair">Pair Layer Control</ref>'>
+  <!ENTITY CONTROL.quad
+           '&IMG.PLOT_QUAD;
+            <ref id="GangLayerControl_quad">Quad Layer Control</ref>'>
   <!ENTITY CONTROL.function
            '&IMG.PLOT_FUNCTION;
             <ref id="FunctionLayerControl">Function Layer Control</ref>'>
@@ -369,8 +378,12 @@
                           <ref id="form-densogram">Densogram</ref>'>
   <!ENTITY FORM.gaussian '&IMG.FORM_GAUSSIAN;
                           <ref id="form-gaussian">Gaussian</ref>'>
-  <!ENTITY FORM.mark2 '&IMG.FORM_MARKS2; <ref id="form-mark2">Mark2</ref>'>
   <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link2</ref>'>
+  <!ENTITY FORM.mark2 '&IMG.FORM_MARKS2; <ref id="form-mark2">Mark2</ref>'>
+  <!ENTITY FORM.poly4 '&IMG.FORM_POLYLINE; <ref id="form-poly4">Poly4</ref>'>
+  <!ENTITY FORM.mark4 '&IMG.FORM_MARKS4; <ref id="form-mark4">Mark4</ref>'>
+  <!ENTITY FORM.polygon '&IMG.FORM_POLYLINE;
+                         <ref id="form-polygon">Polgon</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
   <!ENTITY GESTURE.DRAG2 '&IMG.DRAG2; Center drag (SHIFT-drag)'>
   <!ENTITY GESTURE.DRAG3 '&IMG.DRAG3; Right drag (CTRL-drag)'>
@@ -9162,6 +9175,98 @@ but the detail panels are divided into these parts:
 
 </subsubsubsect>
 
+<subsubsubsect id="GangLayerControl_quad">
+<subhead><title>Quad Position Layer Control</title></subhead>
+
+<p>The <label>Quad Position</label> layer control (&IMG.PLOT_QUAD;)
+allows you to plot symbols defined by four positions in the plot space
+from each row of a table - typically some kind of quadrilateral.
+You can add one of these controls to the stack by using the
+<label>Add Quad Control</label> (&IMG.ADD_PLOT_QUAD;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
+</p>
+
+<p>It works like the
+<ref id="GangLayerControl_single">Single Position</ref> and
+<ref id="GangLayerControl_pair">Pair Position</ref> Layer Controls,
+but the <label>Position</label> tab has fields for four sets of
+coordinates to fill in.
+</p>
+
+<p>This control is a Table Data control as described in
+<ref id="tableDataControl"/>.  That section explains the
+<label>Subsets</label> tab;
+the <label>Position</label> and <label>Form</label> tabs
+are described in more detail below.
+</p>
+
+<figure>
+<caption><px>Position tab of Quad Position layer control,
+             for Plane plot</px></caption>
+<figureimage src="&FIG.GangLayerControl_quad_position;"/>
+</figure>
+
+<p>In the <label>Position</label> tab you select a table
+and enter four sets of position coordinates
+(using a column name or expression for each one)
+to define the plotted quadrilaterals.
+</p>
+
+<p>Note the details of the <label>Position</label> tab will be
+different for different plot types, for instance the Sky plot has
+<label>Lon (1)</label>, <label>Lat (2)</label> etc for the
+(longitude,latitude) pairs,
+while the Cube plot has
+<label>X (1)</label>, <label>Y (1)</label>, <label>Z (1)</label> etc.
+for the 3-dimensional Cartesian triples.
+</p>
+
+<figure>
+<caption><px>Form tab of Quad Position layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_quad_form;"/>
+</figure>
+
+<p>The <label>Form</label> tab lets you define how the specified
+data set is plotted.
+The list on the left gives a list of forms currently being plotted,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>The available forms for a quad plot
+(select them using the &IMG.ADD; <label>Forms</label> button)
+are currently
+<ref id="form-poly4">Poly4</ref> (&IMG.FORM_POLYLINE;)
+which draws an outlined or filled quadrilateral, and
+<ref id="form-mark4">Mark4</ref> (&IMG.FORM_MARKS4;)
+which plots a marker on each point.
+You can have zero or more of each form and configure them separately.
+The detail panel for these forms are dependent on the form itself
+and are described in more detail in <ref id="ShapeForm"/>,
+but the detail panels are divided into these parts:
+<dl>
+<dt>Shading</dt>
+<dd><p>The shading mode controls how points are shaded based on their
+    chosen colour.  The various options are described in <ref id="ShapeMode"/>.
+    Depending on the mode there may be more settings to fill in here.
+    </p></dd>
+<dt>Global/Subset Styles</dt>
+<dd><p>Controls the style details for the chosen form;
+    see <ref id="tableDataControl"/>.
+    </p></dd>
+</dl>
+</p>
+
+<p>If you want to draw triangles instead of quadrilaterals,
+you can just supply the same coordinates for two of the positions.
+If you want a polygon with more vertices, try the
+<ref id="form-polygon">Polygon</ref> form from the
+<ref id="GangLayerControl_single">single position</ref> layer control.
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="HealpixLayerControl">
 <subhead><title>Healpix Layer Control</title></subhead>
 
@@ -10366,6 +10471,69 @@ In most plots, Gaia position errors are much too tiny to see!
 <dt>Ellipse</dt>
 <dd><p>Ellipse graphical representation, selected from a range of options
     (includes also rectangles, crosses etc).
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-polygon">
+<subhead><title>Polygon Form</title></subhead>
+
+<p>The <label>Polygon</label> (&IMG.FORM_POLYLINE;) form
+plots filled or outlined polygons with an arbitrary number of vertices.
+The first vertex is given in the
+<ref id="GangLayerControl_single">Position Layer Control</ref>'s
+<label>Position</label> tab,
+and the others are given in the Coordinates box within the
+<label>Form</label> tab.
+The <code>array</code> function (see <ref id="Arrays"/>)
+can be useful to specify these other coordinates.
+</p>
+
+<figure>
+<caption><px>Example Polygon plot</px></caption>
+<figureimage src="&FIG.plot2-layer-polygon;"/>
+</figure>
+
+<figure>
+<caption><px>Polygon form configuration panel</px></caption>
+<figureimage src="&FIG.form_polygon;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Other Points</dt>
+<dd><p>Array of coordinates giving the polygon vertices <em>excluding</em>
+    the first vertex, which is given by the main Position.
+    These coordinates are given as an interleaved array,
+    e.g. <code>(x2,y2, x3,y3, x4,y4)</code>.
+    Expression language functions from the <ref id="Arrays">Arrays</ref>
+    class, expecially <code>array(a,b,c,...)</code> can be useful here.
+    </p></dd>
+<dt>Polygon Mode</dt>
+<dd><p>Defines how the polygon is drawn.  Options are
+    <ul>
+    <li><code>outline</code>:
+        draws a line round the outside of the polygon</li>
+    <li><code>fill</code>:
+        fills the interior of the polygon</li>
+    <li><code>cross</code>:
+        draws a line round the outside of the polygon
+        and lines between all the vertices</li>
+    </ul>
+    </p></dd>
+<dt>Fast</dt>
+<dd><p>Determines whether speed is favoured over accuracy
+    when drawing polygons.
+    In some cases unchecking this will give visually better results,
+    and in some cases checking it will speed up plotting.
+    In other cases, the setting will make no difference to either.
+    It may be necessary to unset it when filling polygons that
+    may be re-entrant.
     </p></dd>
 </dl>
 </p>
@@ -11962,44 +12130,6 @@ The reported items are:
 
 </subsubsubsect>
 
-<subsubsubsect id="form-mark2">
-<subhead><title>Mark2 Form</title></subhead>
-
-<p>The <label>Mark2</label> form (&IMG.FORM_MARKS2;)
-is available from the
-<ref id="GangLayerControl_pair">pair position layer control</ref>,
-and plots a marker of configurable
-shape and size at both points in a position pair.
-The same marker is used for both ends; if you want different points
-you can use two single <ref id="form-mark">Mark</ref> forms.
-</p>
-
-<figure>
-<caption><px>Example Mark2 plot</px></caption>
-<figureimage src="&FIG.plot2-layer-mark2;"/>
-</figure>
-
-<figure>
-<caption><px>Mark2 form configuration panel</px></caption>
-<figureimage src="&FIG.form_mark2;"/>
-</figure>
-
-<p>Configuration options are:
-<dl>
-<dt>Shading Mode</dt>
-<dd><p>See <ref id="ShapeMode"/>.
-    </p></dd>
-<dt>Shape</dt>
-<dd><p>Marker shape from a list of options.
-    </p></dd>
-<dt>Size</dt>
-<dd><p>Marker size in pixels.
-    </p></dd>
-</dl>
-</p>
-
-</subsubsubsect>
-
 <subsubsubsect id="form-link2">
 <subhead><title>Link2 Form</title></subhead>
 
@@ -12023,6 +12153,136 @@ and plots a line linking the two points in a position pair.
 <dl>
 <dt>Shading Mode</dt>
 <dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-mark2">
+<subhead><title>Mark2 Form</title></subhead>
+
+<p>The <label>Mark2</label> (&IMG.FORM_MARKS2;) form
+is available from the
+<ref id="GangLayerControl_pair">pair position layer control</ref>,
+and plots a marker of configurable
+shape and size at both points in a position pair.
+The same marker is used for both ends; if you want different points
+you can use two single <ref id="form-mark">Mark</ref> forms.
+</p>
+
+<figure>
+<caption><px>Example Mark2 plot</px></caption>
+<figureimage src="&FIG.plot2-layer-mark2;"/>
+</figure>
+
+<figure>
+<caption><px>Mark2 form configuration panel</px></caption>
+<figureimage src="&FIG.form_mark;"/>
+</figure>
+
+<p>Configuration options are the same as for <ref id="form-mark">Mark</ref>:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Marker size in pixels.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-poly4">
+<subhead><title>Poly4 Form</title></subhead>
+
+<p>The <label>Poly4</label> (&IMG.FORM_POLYLINE;) form
+is available from the
+<ref id="GangLayerControl_quad">quad position layer control</ref>,
+and draws a quadrilateral defined by the coordinates of its vertices
+supplied as 4 separate positions.
+Various options for how it is drawn, such as filled or outlined,
+are available.
+</p>
+
+<figure>
+<caption><px>Example Poly4 plot</px></caption>
+<figureimage src="&FIG.plot2-layer-poly4;"/>
+</figure>
+
+<figure>
+<caption><px>Poly4 form configuration panel</px></caption>
+<figureimage src="&FIG.form_poly4;"/>
+</figure>
+
+<p>Configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Polygon Mode</dt>
+<dd><p>Defines how the polygon is drawn.  Options are
+    <ul>
+    <li><code>outline</code>:
+        draws a line round the outside of the polygon</li>
+    <li><code>fill</code>:
+        fills the interior of the polygon</li>
+    <li><code>cross</code>:
+        draws a line round the outside of the polygon
+        and lines between all the vertices</li>
+    </ul>
+    </p></dd>
+<dt>Fast</dt>
+<dd><p>Determines whether speed is favoured over accuracy
+    when drawing polygons.
+    In some cases unchecking this will give visually better results,
+    and in some cases checking it will speed up plotting.
+    In other cases, the setting will make no difference to either.
+    It may be necessary to unset it when filling polygons that
+    may be re-entrant.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-mark4">
+<subhead><title>Mark4 Form</title></subhead>
+
+<p>The <label>Mark4</label> form (&IMG.FORM_MARKS4;)
+is available from the
+<ref id="GangLayerControl_quad">Quad Position layer control</ref>,
+and plots 4 similar markers of fixed size and shape representing
+4 separate positions from the same table row.
+This is a convenience (you could do the same thing by plotting
+the four markers separately) that makes it easy to mark the corners of
+polygons plotted from the Quad layer control.
+</p>
+
+<figure>
+<caption><px>Example Mark4 plot</px></caption>
+<figureimage src="&FIG.plot2-layer-mark4;"/>
+</figure>
+
+<figure>
+<caption><px>Mark4 form configuration panel</px></caption>
+<figureimage src="&FIG.form_mark;"/>
+</figure>
+
+<p>Configuration options are the same as for <ref id="form-mark">Mark</ref>:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Marker size in pixels.
     </p></dd>
 </dl>
 </p>
@@ -12800,6 +13060,7 @@ see the <label>Coords</label> tab of the
     <li>&FORM.error;</li>
     <li>&FORM.xyellipse;</li>
     <li>&FORM.xycorr;</li>
+    <li>&FORM.polygon;</li>
     <li>&FORM.line;</li>
     <li>&FORM.linearfit;</li>
     <li>&FORM.label;</li>
@@ -12810,8 +13071,13 @@ see the <label>Coords</label> tab of the
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
+    <li>&FORM.mark2;</li>
+    </ul></li>
+<li>&CONTROL.quad;, with the following plot controls:
+    <ul>
+    <li>&FORM.poly4;</li>
+    <li>&FORM.mark4;</li>
     </ul></li>
 <li>&CONTROL.histogram;, with these form options:
     <ul>
@@ -13111,14 +13377,20 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.skyvector;</li>
     <li>&FORM.skyellipse;</li>
     <li>&FORM.skycorr;</li>
+    <li>&FORM.polygon;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     <li>&FORM.skydensity;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
+    <li>&FORM.mark2;</li>
+    </ul></li>
+<li>&CONTROL.quad;, with the following plot controls:
+    <ul>
+    <li>&FORM.poly4;</li>
+    <li>&FORM.mark4;</li>
     </ul></li>
 <li>&CONTROL.healpix;</li>
 <li>&CONTROL.skygrid;</li>
@@ -13400,14 +13672,20 @@ see the <label>Coords</label> tab of the
     <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
+    <li>&FORM.polygon;</li>
     <li>&FORM.label;</li>
     <li>&FORM.line3d;</li>
     <li>&FORM.contour;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
+    <li>&FORM.mark2;</li>
+    </ul></li>
+<li>&CONTROL.quad;, with the following plot controls:
+    <ul>
+    <li>&FORM.poly4;</li>
+    <li>&FORM.mark4;</li>
     </ul></li>
 <li>&CONTROL.spheregrid;</li>
 </ul>
@@ -13728,14 +14006,20 @@ In many respects this works like the
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
     <li>&FORM.sizexy;</li>
+    <li>&FORM.polygon;</li>
     <li>&FORM.label;</li>
     <li>&FORM.line3d;</li>
     <li>&FORM.contour;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
-    <li>&FORM.mark2;</li>
     <li>&FORM.link2;</li>
+    <li>&FORM.mark2;</li>
+    </ul></li>
+<li>&CONTROL.quad;, with the following plot controls:
+    <ul>
+    <li>&FORM.poly4;</li>
+    <li>&FORM.mark4;</li>
     </ul></li>
 <li>&CONTROL.spheregrid;</li>
 </ul>
@@ -27957,6 +28241,14 @@ introduced since the last version:
     <li>Improve defaulting of coordinate values in plot windows.
         Column names and UCDs are now used in more cases to
         choose default values for plotting.</li>
+    <li>Options to plot polygons introduced for all plot types: new
+        <ref id="GangLayerControl_quad">Quad Position Layer Control</ref>
+        added, with new plot forms
+        <ref id="form-poly4">Poly4</ref> and
+        <ref id="form-mark4">Mark4</ref>
+        for plotting quadrilaterals (or triangles).
+        Also new <ref id="form-polygon">Polygon</ref> form for
+        polygons with arbitrary numbers of vertices.</li>
     </ul>
     </p></dd>
 
