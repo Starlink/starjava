@@ -2443,20 +2443,24 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final String typeTxt;
         final String typeUsage;
         if ( cClazz.equals( String.class ) ) {
-            typeTxt = "string";
+            typeTxt = "a string";
             typeUsage = "txt";
         }
         else if ( cClazz.equals( Integer.class ) ||
                   cClazz.equals( Long.class ) ) {
-            typeTxt = "integer";
+            typeTxt = "an integer";
             typeUsage = "int";
         }
         else if ( Number.class.isAssignableFrom( cClazz ) ) {
-            typeTxt = "numeric";
+            typeTxt = "a numeric";
             typeUsage = "num";
         }
+        else if ( Object.class.equals( cClazz ) ) {
+            typeTxt = "an";
+            typeUsage = null;
+        }
         else {
-            typeTxt = "<code>" + cClazz.getSimpleName() + "</code>";
+            typeTxt = "a <code>" + cClazz.getSimpleName() + "</code>";
             typeUsage = null;
         }
         StringParameter param = new StringParameter( cName + suffix );
@@ -2485,7 +2489,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             }
             dbuf.append( ".\n" );
         }
-        dbuf.append( "The value is a " )
+        dbuf.append( "The value is " )
             .append( typeTxt )
             .append( " algebraic expression based on column names\n" )
             .append( "as described in <ref id='jel'/>.\n" )
