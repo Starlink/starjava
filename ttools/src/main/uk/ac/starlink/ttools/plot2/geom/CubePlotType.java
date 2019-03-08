@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.layer.Line3dPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
+import uk.ac.starlink.ttools.plot2.layer.PolygonForms;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -80,6 +81,9 @@ public class CubePlotType implements PlotType {
                              StyleKeys.ERROR_SHAPE_3D ),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
+            PolygonForms.QUAD,
+            MarkForm.QUAD,
+            PolygonForms.ARRAY,
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );

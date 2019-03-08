@@ -11962,6 +11962,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         that caused short lines that should span the antimeridian
         to appear as long lines crossing the whole sky.
         Such links are now just not drawn.</li>
+    <li>New plot layer types
+        <ref id="layer-poly4">poly4</ref>,
+        <ref id="layer-mark4">mark4</ref>,
+        <ref id="layer-polygon">polygon</ref>
+        introduced for drawing outline or filled quadrilaterals and
+        other polygons in all plot types.</li>
     </ul>
     </p>
     </dd>

@@ -29,6 +29,9 @@
   <!ENTITY FIG.plot2-layer-yerror 'plot2-layer-yerror.png'>
   <!ENTITY FIG.plot2-layer-mark2 'plot2-layer-mark2.png'>
   <!ENTITY FIG.plot2-layer-link2 'plot2-layer-link2.png'>
+  <!ENTITY FIG.plot2-layer-poly4 'plot2-layer-poly4.png'>
+  <!ENTITY FIG.plot2-layer-mark4 'plot2-layer-mark4.png'>
+  <!ENTITY FIG.plot2-layer-polygon 'plot2-layer-polygon.png'>
   <!ENTITY FIG.plot2-layer-function 'plot2-layer-function.png'>
   <!ENTITY FIG.plot2-layer-skygrid 'plot2-layer-skygrid.png'>
   <!ENTITY FIG.plot2-layer-spheregrid 'plot2-layer-spheregrid.png'>

@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.PlaneCorrelationCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.PlaneEllipseCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.PolygonForms;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -125,6 +126,9 @@ public class PlanePlotType implements PlotType {
             PlaneCorrelationCoordSet.createForm(),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
+            PolygonForms.QUAD,
+            MarkForm.QUAD,
+            PolygonForms.ARRAY,
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );

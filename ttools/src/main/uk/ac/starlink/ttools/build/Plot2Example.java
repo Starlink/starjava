@@ -798,6 +798,9 @@ public class Plot2Example {
         /** Crossmatch of NGC346 with Gaia DR1. */
         public static final String NGC346_GAIA;
 
+        /** Planetary data obtained from Batiste Rousseau. */
+        public static final String VIRVIS;
+
         /** All tables used for these examples. */
         public static final String[] NAMES = {
             RR = "rrlyrae.fits",
@@ -815,6 +818,7 @@ public class Plot2Example {
             LRS = "LRS_NPW_V010_20071101.cdf",
             NGC346 = "ngc346.fits",
             NGC346_GAIA = "ngc346xGaiadr1.fits",
+            VIRVIS = "big_tab_VIR_VIS_CSA_public.fits",
         };
     }
 
@@ -1179,6 +1183,46 @@ public class Plot2Example {
                 "seq=_xm,_xl,_h,_g",
                 "leglabel_h=HST", "leglabel_g='Gaia DR1'",
                 "legseq=_h,_g", "legpos=0.95,0.95",
+            } ),
+            new Plot2Example( "layer-poly4", c, PlotTask.SKY, new String[] {
+                "in=" + TName.VIRVIS, "icmd='every 32'",
+                null,
+                "*lon1=LON_CORNER_1", "*lat1=LAT_CORNER_1", null,
+                "*lon2=LON_CORNER_2", "*lat2=LAT_CORNER_2", null,
+                "*lon3=LON_CORNER_3", "*lat3=LAT_CORNER_3", null,
+                "*lon4=LON_CORNER_4", "*lat4=LAT_CORNER_4", null,
+                "*aux=RADIUS", null,
+                "*layer_o=poly4", "*polymode_o=outline", "*shading_o=aux",
+                null,
+                "*layer_f=poly4", "*polymode_f=fill", "*shading_f=aux",
+                "*opaque_f=4", null,
+                "auxmap=rainbow", "auxvisible=false",
+                "xpix=300", "ypix=300", "labelpos=none",
+            } ),
+            new Plot2Example( "layer-mark4", c, PlotTask.PLANE, new String[] {
+                "in=" + TName.VIRVIS, null,
+                "icmd='select IOF_055<0.005'", null,
+                "icmd='select lon_center>250&&lon_center<300&&"
+                           + "lat_center>-65&&lat_center<-16'", null,
+                "*x1=LON_CORNER_1", "*y1=LAT_CORNER_1", null,
+                "*x2=LON_CORNER_2", "*y2=LAT_CORNER_2", null,
+                "*x3=LON_CORNER_3", "*y3=LAT_CORNER_3", null,
+                "*x4=LON_CORNER_4", "*y4=LAT_CORNER_4", null,
+                "layer_q=poly4", "polymode_q=fill",
+                "shading_q=transparent", "opaque_q=4", null,
+                "*layer_m=mark4", "*color_m=404040", "*shape_m=open_circle",
+                "*size_m=3",
+            } ),
+            new Plot2Example( "layer-polygon", c, PlotTask.SKY, new String[] {
+                "in=" + TName.VIRVIS, null,
+                "icmd='select ALTITUDE>4e4&&ALTITUDE<4.3e4'", null,
+                "*layer=polygon", "*polymode=fill", null,
+                "*lon=LON_CENTER", "*lat=LAT_CENTER", null,
+                "*otherpoints=array(lon_corner_1,lat_corner_1,"
+                                 + "lon_corner_2,lat_corner_2)", null,
+                "shading=weighted", "weight=IR_TEMPERATURE",
+                "auxmap=plasma", null,
+                "clon=83", "clat=34", "radius=11",
             } ),
             new Plot2Example( "layer-function", c, PlotTask.PLANE,
                               new String[] {

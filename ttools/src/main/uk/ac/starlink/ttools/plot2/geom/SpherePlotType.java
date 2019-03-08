@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.Line3dPlotter;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
+import uk.ac.starlink.ttools.plot2.layer.PolygonForms;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -59,6 +60,9 @@ public class SpherePlotType implements PlotType {
             SizeXyForm.getInstance(),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
+            PolygonForms.QUAD,
+            MarkForm.QUAD,
+            PolygonForms.ARRAY,
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );
