@@ -225,7 +225,6 @@ public abstract class LineTracer3D {
 
         private static final int SEGMAX = 5;
         private static final int SEGMAX2 = SEGMAX * SEGMAX;
-        private static final LineXYShape lineShape_ = LineXYShape.getInstance();
 
         /**
          * Constructor.
@@ -239,7 +238,7 @@ public abstract class LineTracer3D {
                               CubeSurface surf, final Stroke stroke ) {
             super( paperType, paper, surf );
             final XYShape lineShape = stroke.equals( LineXYShape.STROKE )
-                                    ? LineXYShape.getInstance()
+                                    ? LineXYShape.INSTANCE
                                     : new StrokeXYShape( stroke );
 
             /* Prepare to generate glyphs in a different way for bitmapped and

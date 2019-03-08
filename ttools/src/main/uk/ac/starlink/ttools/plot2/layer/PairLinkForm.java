@@ -36,7 +36,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 public class PairLinkForm implements ShapeForm {
 
     private static final PairLinkForm instance_ = new PairLinkForm();
-    private static final LineXYShape LINE_SHAPE = LineXYShape.getInstance();
+    private static final LineXYShape LINE_SHAPE = LineXYShape.INSTANCE;
 
     /**
      * Private constructor prevents instantiation.

@@ -17,24 +17,34 @@ import uk.ac.starlink.ttools.plot2.Pixer;
  */
 public class LineXYShape extends XYShape {
 
-    private static final LineXYShape instance_ = new LineXYShape();
+    private final int pixSkip_;
+
+    /** Instance of this class. */
+    public static final LineXYShape INSTANCE = new LineXYShape( 0 );
+
+    /** Instance of this class that omits the final pixel in each line. */
+    public static final LineXYShape INSTANCE_SKIP1 = new LineXYShape( 1 );
 
     /** Stroke effectively used by this shape. */
     public static BasicStroke STROKE =
         new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND );
 
     /**
-     * Private constructor prevents instantiation.
+     * Private constructor prevents external instantiation.
+     *
+     * @param  pixSkip  number of pixels to skip at the end of each
+     *                  line drawn
      */
-    private LineXYShape() {
+    private LineXYShape( int pixSkip ) {
         super( "Line", 16 );
+        pixSkip_ = pixSkip;
     }
 
     protected Glyph createGlyph( short x, short y ) {
 
         /* Point at origin.  Common and cheap. */
         if ( x == 0 && y == 0 ) {
-            return POINT;
+            return pixSkip_ == 0 ? POINT : null;
         }
 
         /* Horizontal line. */
@@ -43,10 +53,10 @@ public class LineXYShape extends XYShape {
             final int xhi;
             if ( x >= 0 ) {
                 xlo = 0;
-                xhi = x;
+                xhi = x - pixSkip_;
             }
             else {
-                xlo = x;
+                xlo = x + pixSkip_;
                 xhi = 0;
             }
             return new LineGlyph( x, y ) {
@@ -70,10 +80,10 @@ public class LineXYShape extends XYShape {
             final int yhi;
             if ( y >= 0 ) {
                 ylo = 0;
-                yhi = y;
+                yhi = y - pixSkip_;
             }
             else {
-                ylo = y;
+                ylo = y + pixSkip_;
                 yhi = 0;
             }
             return new LineGlyph( x, y ) {
@@ -97,10 +107,10 @@ public class LineXYShape extends XYShape {
             final int xhi;
             if ( x >= 0 ) {
                 xlo = 0;
-                xhi = x;
+                xhi = x - pixSkip_;
             }
             else {
-                xlo = x;
+                xlo = x + pixSkip_;
                 xhi = 0;
             }
             final double slope = (double) y / (double) x;
@@ -123,10 +133,10 @@ public class LineXYShape extends XYShape {
             final int yhi;
             if ( y >= 0 ) {
                 ylo = 0;
-                yhi = y;
+                yhi = y - pixSkip_;
             }
             else {
-                ylo = y;
+                ylo = y + pixSkip_;
                 yhi = 0;
             }
             final double slope = (double) x / (double) y;
@@ -141,15 +151,6 @@ public class LineXYShape extends XYShape {
                 }
             };
         }
-    }
-
-    /**
-     * Returns the sole instance of this class.
-     *
-     * @return  singleton instance
-     */
-    public static LineXYShape getInstance() {
-        return instance_;
     }
 
     /**
