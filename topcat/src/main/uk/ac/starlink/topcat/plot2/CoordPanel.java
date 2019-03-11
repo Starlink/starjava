@@ -5,6 +5,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
@@ -14,11 +16,13 @@ import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ConstantColumn;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -369,5 +373,61 @@ public class CoordPanel {
     public void setColumnSelector( int ic, int iu,
                                    ColumnDataComboBoxModel model ) {
         colSelectors_[ ic ][ iu ].setModel( model );
+    }
+
+    /**
+     * Returns a list of column metadata items for the items in a
+     * list model of columns.
+     *
+     * @param  model  column list model
+     * @return  list of valueinfos
+     */
+    public static ValueInfo[] getInfos( ColumnDataComboBoxModel model ) {
+        List<ValueInfo> list = new ArrayList<ValueInfo>();
+        for ( int i = 0; i < model.getSize(); i++ ) {
+            ColumnData cdata = model.getColumnDataAt( i );
+            if ( cdata != null ) {
+                ValueInfo info = cdata.getColumnInfo();
+                if ( info != null ) {
+                    list.add( info );
+                }
+            }
+        }
+        return list.toArray( new ValueInfo[ 0 ] );
+    }
+
+    /**
+     * Tries to find an item of a given combo box model matching a given
+     * metadata item.  If it finds it, it will set the selection and
+     * return true.
+     *
+     * @param   model   list model
+     * @param  info   template for selection value
+     * @return  true if selection was successfully performed
+     */
+    public static boolean populate( ColumnDataComboBoxModel model,
+                                     ValueInfo info ) {
+        for ( int i = 0; i < model.getSize(); i++ ) {
+            ColumnData cdata = model.getColumnDataAt( i );
+            if ( cdata != null &&
+                 infoMatches( cdata.getColumnInfo(), info ) ) {
+                model.setSelectedItem( cdata );
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Indicates whether two infos match.
+     * The criterion is that both name and UCD are the same.
+     *
+     * @param  info1  first item
+     * @param  info2  second item
+     * @return  true iff match
+     */
+    private static boolean infoMatches( ValueInfo info1, ValueInfo info2 ) {
+        return PlotUtil.equals( info1.getName(), info2.getName() )
+            && PlotUtil.equals( info1.getUCD(), info2.getUCD() );
     }
 }

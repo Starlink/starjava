@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -13,7 +12,6 @@ import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -188,9 +186,10 @@ public class SkyPlotWindow
             /* We expect that the models are selectors on the same list
              * of table columns.  If they are not, some of the implementation
              * assumptions of this class will fail. */
-            assert Arrays.equals( getInfoNames( getInfos( lonModel ) ),
-                                  getInfoNames( getInfos( latModel ) ) );
-            infos_ = getInfos( lonModel );
+            assert Arrays
+                  .equals( getInfoNames( CoordPanel.getInfos( lonModel ) ),
+                           getInfoNames( CoordPanel.getInfos( latModel ) ) );
+            infos_ = CoordPanel.getInfos( lonModel );
         }
 
         /**
@@ -219,8 +218,10 @@ public class SkyPlotWindow
             for ( SkySys sys : systems ) {
                 int[] pair = sys.getCoordPair( infos_ );
                 if ( pair != null ) {
-                    if ( populate( lonModel_, infos_[ pair[ 0 ] ] ) &&
-                         populate( latModel_, infos_[ pair[ 1 ] ] ) ) {
+                    if ( CoordPanel.populate( lonModel_,
+                                              infos_[ pair[ 0 ] ] ) &&
+                         CoordPanel.populate( latModel_,
+                                              infos_[ pair[ 1 ] ] ) ) {
                         return sys;
                     }
                     else {
@@ -229,49 +230,6 @@ public class SkyPlotWindow
                 }
             }
             return null;
-        }
-
-        /**
-         * Tries to find an item of a given combo box model matching a given
-         * metadata item.  If it finds it, it will set the selection and
-         * return true.
-         *
-         * @param   model   list model
-         * @param  info   template for selection value
-         * @return  true if selection was successfully performed
-         */
-        private static boolean populate( ColumnDataComboBoxModel model,
-                                         ValueInfo info ) {
-            for ( int i = 0; i < model.getSize(); i++ ) {
-                ColumnData cdata = model.getColumnDataAt( i );
-                if ( cdata != null &&
-                     infoMatches( cdata.getColumnInfo(), info ) ) {
-                    model.setSelectedItem( cdata );
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Returns a list of column metadata items for the items in a
-         * list model of columns.
-         *
-         * @param  model  column list model
-         * @return  list of valueinfos
-         */
-        private static ValueInfo[] getInfos( ColumnDataComboBoxModel model ) {
-            List<ValueInfo> list = new ArrayList<ValueInfo>();
-            for ( int i = 0; i < model.getSize(); i++ ) {
-                ColumnData cdata = model.getColumnDataAt( i );
-                if ( cdata != null ) {
-                    ValueInfo info = cdata.getColumnInfo();
-                    if ( info != null ) {
-                        list.add( info );
-                    }
-                }
-            }
-            return list.toArray( new ValueInfo[ 0 ] );
         }
 
         /**
@@ -288,19 +246,6 @@ public class SkyPlotWindow
                 names[ i ] = infos[ i ] == null ? null : infos[ i ].getName();
             }
             return names;
-        }
-
-        /**
-         * Indicates whether two infos match.
-         * The criterion is that both name and UCD are the same.
-         *
-         * @param  info1  first item
-         * @param  info2  second item
-         * @return  true iff match
-         */
-        private static boolean infoMatches( ValueInfo info1, ValueInfo info2 ) {
-            return PlotUtil.equals( info1.getName(), info2.getName() )
-                && PlotUtil.equals( info1.getUCD(), info2.getUCD() );
         }
     }
 }
