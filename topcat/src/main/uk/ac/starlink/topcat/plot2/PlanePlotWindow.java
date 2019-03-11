@@ -24,6 +24,13 @@ public class PlanePlotWindow
     private static final PlanePlotType PLOT_TYPE = PlanePlotType.getInstance();
     private static final CartesianRanger PLANE_RANGER = new PlaneRanger();
     private static final PlanePlotTypeGui PLOT_GUI = new PlanePlotTypeGui();
+    private static final String[] XY = new String[] { "x", "y" };
+    private static final CoordSpotter[] XY_SPOTTERS = new CoordSpotter[] {
+        CoordSpotter.createUcdSpotter( "pos.cartesian", XY, false ),
+        CoordSpotter.createUcdSpotter( "pos.cartesian", XY, true ),
+        CoordSpotter.createNamePrefixSpotter( XY, true ),
+        CoordSpotter.createNamePrefixSpotter( XY, false ),
+    };
 
     /**
      * Constructor.
@@ -49,7 +56,8 @@ public class PlanePlotWindow
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
+                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
+                                XY_SPOTTERS );
         }
         public boolean hasPositions() {
             return true;

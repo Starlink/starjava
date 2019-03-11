@@ -113,7 +113,29 @@ public class SkyPlotWindow
     private static abstract class SkyPositionCoordPanel
             extends PositionCoordPanel {
 
+        private final int npos_;
         private final Specifier<SkySys> dataSysSpecifier_;
+
+        private static final String[] LONLAT = new String[] { "lon", "lat" };
+        private static final String[] RADEC = new String[] { "ra", "dec" };
+        private static final String[] RAJDEJ = new String[] { "raj", "dej" };
+        private static final CoordSpotter[] LONLAT_SPOTTERS = {
+            CoordSpotter.createUcdSpotter( "pos.eq", RADEC, false ),
+            CoordSpotter.createUcdSpotter( "pos.eq", RADEC, true ),
+            CoordSpotter.createUcdSpotter( "pos.ecliptic", LONLAT, false ),
+            CoordSpotter.createUcdSpotter( "pos.ecliptic", LONLAT, true ),
+            CoordSpotter.createUcdSpotter( "pos.galactic", LONLAT, false ),
+            CoordSpotter.createUcdSpotter( "pos.galactic", LONLAT, true ),
+            CoordSpotter.createUcdSpotter( "pos.bodyrc", LONLAT, false ),
+            CoordSpotter.createUcdSpotter( "pos.bodyrc", LONLAT, true ),
+            CoordSpotter.createUcdSpotter( "pos.earth", LONLAT, false ),
+            CoordSpotter.createUcdSpotter( "pos.earth", LONLAT, true ),
+            CoordSpotter.createNamePrefixSpotter( LONLAT, true ),
+            CoordSpotter.createNamePrefixSpotter( LONLAT, false ),
+            CoordSpotter.createNamePrefixSpotter( RADEC, true ),
+            CoordSpotter.createNamePrefixSpotter( RADEC, false ),
+            CoordSpotter.createNamePrefixSpotter( RAJDEJ, true ),
+        };
 
         /**
          * Constructor.
@@ -124,6 +146,7 @@ public class SkyPlotWindow
             super( multiplyCoords( SkyDataGeom.createGeom( null, null )
                                               .getPosCoords(), npos ),
                    new ConfigKey[] { DATASYS_KEY } );
+            npos_ = npos;
             dataSysSpecifier_ =
                 getConfigSpecifier().getSpecifier( DATASYS_KEY );
         }
@@ -152,13 +175,40 @@ public class SkyPlotWindow
 
         @Override
         public void autoPopulate() {
-            ColumnDataComboBoxModel lonModel = getColumnSelector( 0, 0 );
-            ColumnDataComboBoxModel latModel = getColumnSelector( 0, 1 );
-            SkySys currentSys = dataSysSpecifier_.getSpecifiedValue();
-            SkySys sys = new ColPopulator( lonModel, latModel )
-                        .attemptPopulate( currentSys );
-            if ( sys != null && sys != currentSys ) {
-                dataSysSpecifier_.setSpecifiedValue( sys );
+
+            /* Override the default autoPopulate behaviour, which won't
+             * work well since we have coordinates with multiple components. */
+
+            /* Do some special handling for the (most common)
+             * single-position case: try to work out the data sky system
+             * as well as picking suitable columns. */
+            if ( npos_ == 1 ) {
+                ColumnDataComboBoxModel lonModel = getColumnSelector( 0, 0 );
+                ColumnDataComboBoxModel latModel = getColumnSelector( 0, 1 );
+                SkySys currentSys = dataSysSpecifier_.getSpecifiedValue();
+                SkySys sys = new ColPopulator( lonModel, latModel )
+                            .attemptPopulate( currentSys );
+                if ( sys != null && sys != currentSys ) {
+                    dataSysSpecifier_.setSpecifiedValue( sys );
+                }
+            }
+
+            /* Otherwise, just look for matched groups of lon/lat coords.
+             * This is less effort, but still better than nothing. */
+            else {
+                ValueInfo[] lonlatInfos =
+                    CoordSpotter
+                   .findCoordGroups( npos_,
+                                     getInfos( getColumnSelector( 0, 0 ) ),
+                                     LONLAT_SPOTTERS );
+                if ( lonlatInfos != null ) {
+                    for ( int ipos = 0; ipos < npos_; ipos++ ) {
+                        populate( getColumnSelector( ipos, 0 ),
+                                  lonlatInfos[ ipos * 2 + 0 ] );
+                        populate( getColumnSelector( ipos, 1 ),
+                                  lonlatInfos[ ipos * 2 + 1 ] );
+                    }
+                }
             }
         }
     }

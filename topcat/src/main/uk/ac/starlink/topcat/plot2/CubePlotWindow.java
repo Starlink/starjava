@@ -23,6 +23,13 @@ public class CubePlotWindow
     private static final CubePlotType PLOT_TYPE = CubePlotType.getInstance();
     private static final CubeRanger CUBE_RANGER = new CubeRanger();
     private static final CubePlotTypeGui PLOT_GUI = new CubePlotTypeGui();
+    private static final String[] XYZ = new String[] { "x", "y", "z" };
+    private static final CoordSpotter[] XYZ_SPOTTERS = new CoordSpotter[] {
+        CoordSpotter.createUcdSpotter( "pos.cartesian", XYZ, false ),
+        CoordSpotter.createUcdSpotter( "pos.cartesian", XYZ, true ),
+        CoordSpotter.createNamePrefixSpotter( XYZ, true ),
+        CoordSpotter.createNamePrefixSpotter( XYZ, false ),
+    };
 
     /**
      * Constructor.
@@ -48,7 +55,8 @@ public class CubePlotWindow
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
+                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
+                                XYZ_SPOTTERS );
         }
         public boolean hasPositions() {
             return true;

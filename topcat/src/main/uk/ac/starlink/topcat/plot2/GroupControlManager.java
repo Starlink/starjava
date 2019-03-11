@@ -401,7 +401,7 @@ public class GroupControlManager implements ControlManager {
         },
 
         /** Plotter with two positional coordinates. */
-        DOUBLE_POS( ResourceIcon.PLOT_PAIR, "Pair", "pair position", false ) {
+        DOUBLE_POS( ResourceIcon.PLOT_PAIR, "Pair", "pair position", true ) {
             public PositionCoordPanel
                     createPositionCoordPanel( PlotType plotType,
                                               PlotTypeGui plotTypeGui ) {

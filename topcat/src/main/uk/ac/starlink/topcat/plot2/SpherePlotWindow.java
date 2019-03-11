@@ -45,7 +45,8 @@ public class SpherePlotWindow
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
+                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
+                                null );
         }
         public boolean hasPositions() {
             return true;

@@ -27954,6 +27954,9 @@ introduced since the last version:
         that caused short lines that should span the antimeridian
         to appear as long lines crossing the whole sky.
         Such links are now just not drawn.</li>
+    <li>Improve defaulting of coordinate values in plot windows.
+        Column names and UCDs are now used in more cases to
+        choose default values for plotting.</li>
     </ul>
     </p></dd>
 

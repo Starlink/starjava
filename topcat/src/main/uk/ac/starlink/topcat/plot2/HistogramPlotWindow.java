@@ -482,7 +482,8 @@ public class HistogramPlotWindow
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
+                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
+                                null );
         }
         public GangerFactory getGangerFactory() {
             return SingleGanger.FACTORY;

@@ -75,13 +75,16 @@ public class TimePlotWindow
                 createAxisController() {
             return new TimeAxisController();
         }
-        public PositionCoordPanel createPositionCoordPanel( int npos ) {
+        public PositionCoordPanel createPositionCoordPanel( final int npos ) {
             DataGeom geom = PLOT_TYPE.getPointDataGeoms()[ 0 ];
             Coord[] coords =
                 PositionCoordPanel.multiplyCoords( geom.getPosCoords(), npos );
             return new SimplePositionCoordPanel( coords, geom ) {
                 @Override
                 public void autoPopulate() {
+                    if ( npos > 1 ) {
+                        return;
+                    }
 
                     /* Try to put a time column in the time column selector. */
                     ColumnDataComboBoxModel timeModel =
