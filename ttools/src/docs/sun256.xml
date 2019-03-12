@@ -11968,6 +11968,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-polygon">polygon</ref>
         introduced for drawing outline or filled quadrilaterals and
         other polygons in all plot types.</li>
+    <li>New option <code>Car0</code> for the
+        <ref id="plot2sky"><code>plot2sky</code></ref>
+        <code>projection</code> parameter;
+        this is like <code>Car</code> (Plate Carr&#x00e9;e)
+        but has longitude=0 at the left/right edge
+        rather than the center of the plot.</li>
     </ul>
     </p>
     </dd>

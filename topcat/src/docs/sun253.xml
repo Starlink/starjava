@@ -13488,8 +13488,10 @@ coordinates are projected onto the screen.
 <dt>Projection</dt>
 <dd><p>Selects the sky projection to use.
     The options are <label>Sin</label>, <label>Ait</label> for Aitoff and
-    <label>Car</label> for Plate Car&#x00e9;e.
+    <label>Car</label> or <label>Car0</label> for Plate Car&#x00e9;e.
     Sin is rotatable, the other two are essentially flat all-sky projections.
+    Car has longitude=0 at the center of the plot, and Car0 has it
+    at the left/right edge.
     </p></dd>
 <dt>Reflect longitude axis</dt>
 <dd><p>Determines whether longitude increases left to right or right to left.
@@ -28249,6 +28251,11 @@ introduced since the last version:
         for plotting quadrilaterals (or triangles).
         Also new <ref id="form-polygon">Polygon</ref> form for
         polygons with arbitrary numbers of vertices.</li>
+    <li>New projection option <label>Car0</label> available in the
+        <ref id="SkyAxisControl">Sky Axes Control</ref> Projection tab.
+        This is like Car (Plate Carr&#x00e9;e)
+        but has longitude=0 at the left/right edge
+        rather than the center of the plot.</li>
     </ul>
     </p></dd>
 

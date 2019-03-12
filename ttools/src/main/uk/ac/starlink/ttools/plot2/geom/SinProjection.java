@@ -33,23 +33,13 @@ public class SinProjection extends SkyviewProjection {
      * Private singleton constructor.
      */
     private SinProjection() {
-        super( new Sin2(), new Ellipse2D.Double( -1, -1, 2, 2 ), true );
-    }
-
-    @Override
-    public String getProjectionName() {
-        return "Sin";
-    }
-
-    @Override
-    public String getProjectionDescription() {
-        return "rotatable sphere";
+        super( new Sin2(), new Ellipse2D.Double( -1, -1, 2, 2 ), "Sin",
+               "rotatable sphere" );
     }
 
     /**
      * Overridden for slight efficiency gain.
      */
-    @Override
     public boolean project( double rx, double ry, double rz,
                             Point2D.Double pos ) {
         if ( rx >= 0 ) {
@@ -62,7 +52,14 @@ public class SinProjection extends SkyviewProjection {
         }
     }
 
-    @Override
+    public boolean isContinuous() {
+        return true;
+    }
+
+    public boolean isContinuousLine( double[] r3a, double[] r3b ) {
+        return true;
+    }
+
     public double[] cursorRotate( double[] rot0, Point2D.Double pos0,
                                                  Point2D.Double pos1 ) {
 
@@ -104,19 +101,16 @@ public class SinProjection extends SkyviewProjection {
         }
     }
 
-    @Override
     public double[] projRotate( double[] rot0, Point2D.Double pos0,
                                                Point2D.Double pos1 ) {
         double[] rot1 = genericRotate( rot0, pos0, pos1 );
         return rot1 == null ? rot0 : rot1;
     }
 
-    @Override
     public boolean useRanges( boolean reflect, double[] r3, double radiusRad ) {
         return ! isFovSpecified( r3, radiusRad );
     }
 
-    @Override
     public SkyAspect createAspect( boolean reflect, double[] r3,
                                    double radiusRad, Range[] vxyzRanges ) {
 

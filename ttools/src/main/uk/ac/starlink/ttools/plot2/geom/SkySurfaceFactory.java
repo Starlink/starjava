@@ -406,8 +406,9 @@ public class SkySurfaceFactory
         Projection[] projections = new Projection[] {
             // new HemisphereProjection(),  // toy projection, inferior to Sin
             SinProjection.INSTANCE,
-            SkyviewProjection.AIT,
-            SkyviewProjection.CAR1,
+            FixedSkyviewProjection.AIT,
+            FixedSkyviewProjection.CAR1,
+            FixedSkyviewProjection.CAR0,
         };
         meta.setShortDescription( "Sky coordinate projection" );
         meta.setXmlDescription( new String[] {
