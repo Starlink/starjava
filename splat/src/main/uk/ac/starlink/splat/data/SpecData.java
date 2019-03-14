@@ -36,6 +36,7 @@ import uk.ac.starlink.splat.ast.ASTChannel;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.table.StarTable;
 
 //  IMPORT NOTE: modifying the member variables could change the
 //  serialization signature of this class. If really need to then
@@ -3142,4 +3143,15 @@ public class SpecData
             e.printStackTrace();
         }
     }
+
+	public boolean isSDSSTableSpecData() {
+		
+		return impl.getClass().equals(SDSSTableSpecDataImpl.class);
+	}
+
+	public StarTable getLineIDTable() {
+		if (isSDSSTableSpecData())
+			return   (StarTable) ((SDSSTableSpecDataImpl) impl).getLineIDTable();
+		else return null;		
+	}
 }

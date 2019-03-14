@@ -13,6 +13,9 @@ import uk.ac.starlink.table.StarTable;
 public class SDSSTableSpecDataImpl extends TableSpecDataImpl {
 	
 	private MathMap sdssMap = null;
+	private StarTable lineIDTable = null;
+	private LineIDTableSpecDataImpl lineIDSpecDataImpl = null;
+	
 /*
  * Constructor, just like TableSpecDataImpl.
  * The last argument is the initial fits header, where information about units and wavelength scale are stored.
@@ -29,18 +32,25 @@ public class SDSSTableSpecDataImpl extends TableSpecDataImpl {
     		HeaderCard ycard= fitsHeaders0.findCard("BUNIT");
     		String yunits=ycard.getValue();
     		
+    		int modelColumn=-1;
     		// set units and coordinates
     		for (int i=0;i<this.columnInfos.length; i++) {
     			String name = this.columnNames[i];
-    			if ("flux".equalsIgnoreCase(name))
+    			if ("flux".equalsIgnoreCase(name) || "model".equalsIgnoreCase(name))
     				this.columnInfos[i].setUnitString(yunits);
     			else if ("loglam".equalsIgnoreCase(name) ) {
     				this.columnInfos[i].setUnitString(xunits);
     				this.columnInfos[i].setDescription(xlabel);
     			}
-    				
-    		}    		
-    		// Map coords to SDSS log10 
+    			if ("model".equalsIgnoreCase(name))
+    				modelColumn=i;	
+    		}    	
+    		
+    		// use "model" as primary data column
+    		if (modelColumn >=0)
+    			setDataColumnName(this.columnNames[modelColumn]);
+    		
+    		// Map coords to SDSS log10     		
     		sdssMap  = mapSDSSCoords(fitsHeaders0);    		
     		createAst(); // remake ast to set units, labels and translate wavelengths     		
 		}		
@@ -83,6 +93,22 @@ public class SDSSTableSpecDataImpl extends TableSpecDataImpl {
 	            }
 	        }	       
 	    }
+
+	public StarTable getLineIDTable() {
+		return lineIDSpecDataImpl.getStarTable();
+	}
+	
+	public LineIDSpecDataImpl getLineIDImpl() {
+		return lineIDSpecDataImpl;
+	}
+
+/*	public void setLineIDTable(StarTable table) {
+		lineIDTable = table;
+	}*/
+	
+	public void  setLineIDImpl(LineIDTableSpecDataImpl impl) {
+		lineIDSpecDataImpl = impl;
+	}
     
 }
 

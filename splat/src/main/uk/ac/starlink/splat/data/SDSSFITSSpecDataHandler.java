@@ -16,10 +16,15 @@ import uk.ac.starlink.splat.util.ConstrainedList;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.splat.util.ConstrainedList.ConstraintType;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.votable.VOStarTable;
 
 /** Class to handle SDSS FITS spectral data and  spectral lines data
  * 
@@ -77,24 +82,41 @@ public class SDSSFITSSpecDataHandler {
 		StarTable starTable = new FitsTableBuilder().makeStarTable( datasrc, true, StoragePolicy.getDefaultPolicy() );
 		starTable.setName(fitsImpl.getShortName());		
 		
-		return new SDSSTableSpecDataImpl(starTable, specfile, datasrc.getURL().toString(), hdr1, hdr0);
-
+		SDSSTableSpecDataImpl impl =  new SDSSTableSpecDataImpl(starTable, specfile, datasrc.getURL().toString(), hdr1, hdr0);
+		//impl.setLineIDTable(getLineIDStarTable());
+		impl.setLineIDImpl(getLineIDTableDataImpl());
+		return impl;
 	}
 	
-
 	/* 
 	 * getTableSpecDataImpl
 	 * searches for the fits extension containing the spectral lines and 
 	 * returns a LineIDTableSpecDataImpl
 	 */
 	public LineIDTableSpecDataImpl getLineIDTableDataImpl() throws IOException, SplatException {
-        datasrc.setPosition("3");
-        StarTable linesTable = new FitsTableBuilder().makeStarTable( datasrc, true, StoragePolicy.getDefaultPolicy() );
-    	linesTable.setName("Lines from "+fitsImpl.getShortName());
+        StarTable linesTable = getLineIDStarTable();
+
         LineIDTableSpecDataImpl lineImpl = new LineIDTableSpecDataImpl(linesTable);
+      
         lineImpl.astref.setLabel(1, xlabel);
 		lineImpl.astref.setUnit(1, UnitUtilities.fixUpUnits( xunits ));
 		return lineImpl;
+	}
+
+	/* 
+	 * getLineIDStarTable
+	 * searches for the fits extension containing the spectral lines and 
+	 * returns a Star Table
+	 */
+	public StarTable getLineIDStarTable() throws IOException, SplatException {
+        datasrc.setPosition("3");
+        StarTable linesTable = new FitsTableBuilder().makeStarTable( datasrc, true, StoragePolicy.getDefaultPolicy() );
+    	linesTable.setName("Lines from "+fitsImpl.getShortName());    
+        ValueInfo xlabelInfo = new DefaultValueInfo( "xlabel", String.class, "label of x axis" );
+        ValueInfo xunitInfo = new DefaultValueInfo( "xunitstring", String.class, "unit of  x axis" );
+        linesTable.setParameter( new DescribedValue( xlabelInfo, xlabel ));                                                 
+        linesTable.setParameter(new DescribedValue( xunitInfo, xunits));
+		return linesTable;
 	}
 
 	public List<SpecDataImpl> getImpls() {
@@ -108,7 +130,7 @@ public class SDSSFITSSpecDataHandler {
     	} catch (SplatException se) {
     		logger.info( "Failed to open SDSS FITS table "+se.getMessage() ) ;   
 		}  
-    	
+/*    	
     	try {
     		LineIDTableSpecDataImpl lineImpl = getLineIDTableDataImpl();
       	  	specDataImpls.add(lineImpl);             
@@ -116,7 +138,8 @@ public class SDSSFITSSpecDataHandler {
     		logger.info( "Failed to open SDSS LINES table "+ioe.getMessage() ) ;        		
     	} catch (SplatException se) {
     		logger.info( "Failed to open SDSS LINES table "+se.getMessage() ) ; 
-		}        	
+		}   
+*/     	
     	return specDataImpls;
 
 	}
