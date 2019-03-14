@@ -586,4 +586,13 @@ public class LineIDTableSpecDataImpl
             astref.setLabel( 1, desc );
         }
     }
+
+	public StarTable getStarTable() {
+		return starTable;
+	}
+
+	public void setXparams(String xlabel, String unitstring) {
+	    this.astref.setLabel(1, xlabel);
+		this.astref.setUnit(1, UnitUtilities.fixUpUnits( unitstring ));
+	}
 }
