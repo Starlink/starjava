@@ -310,7 +310,7 @@ public class SampCommunicator
         {
         	String mtype = message.getMType();
         	if (mtype.equalsIgnoreCase("coord.pointat.sky")) {
-        		logger.info("got coords "+message.toString());
+        		//logger.info("got coords "+message.toString());
         		browser.addSampCoords(message.getParams());
         		return;
         	}
