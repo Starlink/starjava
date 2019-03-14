@@ -15,6 +15,7 @@ import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.splat.iface.AbstractServerPanel;
 import uk.ac.starlink.splat.iface.SpectralLinesPanel;
+import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vamdc.VAMDCLib;
 import uk.ac.starlink.table.StarTable;
@@ -25,9 +26,9 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 public class LinesQueryPanel extends AbstractServerPanel  {
     
    
-    private static int WIDTH = 350;
+    private static int WIDTH = 300;
     private static int HEIGHT = 750;
-    private static int optionsHeight = 280;
+    private static int optionsHeight = 310;
     
     private int SLAP_INDEX=0;
     private int VAMDC_INDEX=1;
@@ -47,6 +48,7 @@ public class LinesQueryPanel extends AbstractServerPanel  {
        // slPanel=slp;
         vamdclib = new VAMDCLib();
         initUI( initOptionsPanel(), initServersPanel() );
+        this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
      }
     
     private JScrollPane initOptionsPanel() {
@@ -60,11 +62,13 @@ public class LinesQueryPanel extends AbstractServerPanel  {
         gbcOptions.weighty=1;
         gbcOptions.gridx=0;
         gbcOptions.gridy=0;
-	slPanel = new SpectralLinesPanel(browser);
+        queryPanel.add(browser.getPlotChoicePanel());
+        gbcOptions.gridy=1;
+        slPanel = new SpectralLinesPanel(browser, WIDTH-10);
         queryPanel.add(slPanel,gbcOptions);
         gbcOptions.weighty=0;
-        gbcOptions.weightx=0;
-        gbcOptions.gridy=1;
+        //gbcOptions.weightx=0;
+        gbcOptions.gridy=2;
         queryPanel.add(makeTagPanel(), gbcOptions);
         
 
@@ -74,6 +78,7 @@ public class LinesQueryPanel extends AbstractServerPanel  {
         optionsScroller.setPreferredSize(new Dimension(WIDTH,optionsHeight));
        // optionsScroller.setMinimumSize(new Dimension(WIDTH-20,optionsHeight-20));
         optionsScroller.setMinimumSize(new Dimension(WIDTH-20,optionsHeight-20));
+       // optionsScroller.setMaximumSize(new Dimension(WIDTH+20,optionsHeight+20));
         return optionsScroller;
     }
     
@@ -98,6 +103,7 @@ public class LinesQueryPanel extends AbstractServerPanel  {
              }
          });
          servTabPanel.setPreferredSize(new Dimension(WIDTH,HEIGHT-optionsHeight));
+         servTabPanel.setMinimumSize(new Dimension(WIDTH-20,HEIGHT-optionsHeight-20));
        
 
          return servTabPanel;
@@ -207,6 +213,12 @@ public class LinesQueryPanel extends AbstractServerPanel  {
         }
            
        }
+
+    /* update the spectral lines panel to the current plot */
+	public void updatePlot(PlotControl plotControl) {
+		slPanel.updatePlot(plotControl);
+		
+	}
     
    
 

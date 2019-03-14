@@ -120,7 +120,7 @@ import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 import uk.ac.starlink.splat.vo.ObsCorePanel;
-//import uk.ac.starlink.splat.vo.SLAPBrowser;
+import uk.ac.starlink.splat.vo.LineBrowser;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -291,7 +291,7 @@ public class SplatBrowser
     /**
      * SLAP browser.
      */
-   // protected SLAPBrowser spectralLinesBrowser  = null; 
+    protected LineBrowser spectralLinesBrowser  = null; 
 
     /**
      *  Stack open or save chooser.
@@ -1331,7 +1331,7 @@ public class SplatBrowser
     protected void setHandleVOTableAsSpectra( boolean init )
     {
         if ( init ) {
-            // TODO: add this to the preferences?
+            
             boolean state = false;
             handleVOTableAsSpectraItem.setSelected( state );
         }
@@ -2003,23 +2003,26 @@ public class SplatBrowser
 
     /**
      * Open the SLAP Browser window
+     * @param plotControl 
      */
-    /*
-    public void showSlapBrowser()
+    
+    public void showLinesBrowser(PlotControl plotControl)
     {
         if ( spectralLinesBrowser == null ) {
             try {
-                spectralLinesBrowser = new SLAPBrowser(this);
+            	spectralLinesBrowser = new LineBrowser(this, plotControl);
             }
             catch (Exception e) {
                 ErrorDialog.showError( this, e );
                 return;
             }
+        } else {
+        	spectralLinesBrowser.setPlot(plotControl);
         }
         spectralLinesBrowser.setVisible( true );
 
     }
-*/
+
     
     /**
      * Open and display all the spectra listed in the newFiles array. Uses a
@@ -2290,10 +2293,16 @@ public class SplatBrowser
                         String sname = spectrum.getShortName();
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
+                        	props.apply( spectrum ); 
 //                        spectrum.setObjectType(props.getObjectType());
-                       
-                        props.apply( spectrum ); // need to test if moving this line before addSpectrum affects somethg
-                        addSpectrum( spectrum, props.getSourceType() );
+                      /*  if ( spectrum.isSDSSTableSpecData() ) {    
+                        	addSpectrum(spectrum);
+                        	showLinesBrowser();
+                        	spectralLinesBrowser.addLinesTable(spectrum.getLineIDStarTable(), sname);
+                        
+                        } else {*/
+                        	addSpectrum( spectrum, props.getSourceType() );
+                      //  }
                        // props.apply( spectrum );
                         
                     }
@@ -2551,11 +2560,14 @@ public class SplatBrowser
             
             if (allSelectedSpectra.size() > 0) {
                 SpecData spec = null;
-                //spec = globalList.getSpectrum( specIndices[0] );
                 spec = allSelectedSpectra.get(0);
                 
                 final PlotControlFrame plot = displaySpectrum( spec );
                 plotIndex = globalList.getPlotIndex( plot.getPlot() );
+                if ( spec.isSDSSTableSpecData() ) {    
+                	showLinesBrowser(plot.getPlot());
+                	spectralLinesBrowser.addLinesandDisplay(spec.getLineIDTable(), spec.getShortName());            
+                } 
                 
                 allSelectedSpectra.remove(0);
                 SpecData spectra[] = allSelectedSpectra.toArray(new SpecData[allSelectedSpectra.size()]);
@@ -2580,6 +2592,7 @@ public class SplatBrowser
                     SwingUtilities.invokeLater( later );
                 }
             }
+            
             
             // show spectra from SAMP to the same plot
             if (samePlotForSampSpectra && sampSpectra.size() > 0 && failed == 0) {
@@ -2992,7 +3005,7 @@ public class SplatBrowser
         SpecDataComp comp = new SpecDataComp( spectrum );
         PlotControlFrame plot = null;
         try {
-            plot = new PlotControlFrame( comp, id );
+            plot = new PlotControlFrame( comp, id, this );
             int index = globalList.add( plot.getPlot() );
             plot.setTitle( Utilities.getReleaseName() + ": " +
                            globalList.getPlotName( index ) );

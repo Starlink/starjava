@@ -209,9 +209,11 @@ public class PlotControlFrame
      */
     private boolean showDeblend = false;
 
-    private LineBrowser slapBrowser;
+   // private LineBrowser slapBrowser;
 
 	private double boxSpacingFactor=20.;
+
+	private SplatBrowser browser = null;
 
     /**
      *  Create an instance using an existing SpecDataComp.
@@ -234,10 +236,11 @@ public class PlotControlFrame
      *            use).
      *
      */
-    public PlotControlFrame( SpecDataComp specDataComp, int id )
+    public PlotControlFrame( SpecDataComp specDataComp, int id, SplatBrowser browser )
         throws SplatException
     {
         this( "PlotControlFrame", specDataComp, id );
+        this.browser =browser;
     }
 
     /**
@@ -1523,8 +1526,10 @@ public class PlotControlFrame
     public void showSlapBrowser()
     {
         coordinateMatching.setSelected( true );
-        if ( slapBrowser == null ) {
-            slapBrowser = new LineBrowser( getPlot() );
+        if (browser != null)
+        	browser.showLinesBrowser(this.getPlot());
+       // if ( slapBrowser == null ) {
+        //    slapBrowser = new LineBrowser( getPlot() );
             //  We'd like to know if the window is closed.
  /*           slapBrowser.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {
@@ -1532,9 +1537,9 @@ public class PlotControlFrame
                     }
                 });
  */
-        } else {
-            Utilities.raiseFrame( slapBrowser );
-        }
+   //     } else {
+   //         Utilities.raiseFrame( slapBrowser );
+  //      }
     }
 
 

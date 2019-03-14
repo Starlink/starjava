@@ -1,7 +1,6 @@
 package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,21 +17,12 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
-import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 
 import jsky.util.Logger;
 import jsky.util.SwingWorker;
@@ -43,21 +33,19 @@ import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
 import uk.ac.starlink.splat.iface.PlotChangedEvent;
 import uk.ac.starlink.splat.iface.PlotListener;
 import uk.ac.starlink.splat.iface.ProgressPanel;
-//import uk.ac.starlink.splat.iface.SpectralLinesPanel;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.vamdc.VAMDCLib;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.StarJTable;
-import uk.ac.starlink.table.gui.TableLoadPanel;
-import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.VOTableBuilder;
 
-public class LineBrowser extends JFrame implements  MouseListener {
+public class LineBrowser extends JFrame implements  MouseListener, PlotListener {
 
     private LinesResultsPanel resultsPanel;
     private SplatBrowser browser;
@@ -77,22 +65,18 @@ public class LineBrowser extends JFrame implements  MouseListener {
     private int VAMDC_INDEX=1;
     private VAMDCLib vamdc;
     
+    
     /**
      * Frame for adding a new server.
      */
  //   protected AddNewServerFrame addServerWindow = null;
     private LinesQueryPanel linesQuery;
+	private JComboBox activePlotBox;
+	private JPanel plotChoicePanel;
+
 
  
-  
-  /*  public SLAPBrowser(SplatBrowser splatbrowser) {   
-      
-       this();
-       browser=splatbrowser;
-       
-    }*/
-
-    public LineBrowser(PlotControl pc) {
+/*    public LineBrowser() {
         contentPane = (JPanel) getContentPane();
         plot = pc;
        // globalList.addPlotListener(this);
@@ -102,8 +86,35 @@ public class LineBrowser extends JFrame implements  MouseListener {
         initComponents();
         setVisible( true );
     }
+*/  
+    public LineBrowser(SplatBrowser splatbrowser, PlotControl pc) {   
+       plot = pc;
+       init();
+       browser=splatbrowser;
+       plot = pc;
+      
+    }
+
+    public LineBrowser(PlotControl pc) {
+    	plot=pc;
+    	 init();
+        // browser=splatbrowser;
+        
+         plot = pc;
+      
+    }
     
-/*
+    private void init() {
+    	 contentPane = (JPanel) getContentPane();
+    	 vamdc = new VAMDCLib();
+         initFrame();
+         initComponents();
+         globalList.addPlotListener(this);
+         setVisible( true );
+    }
+
+
+	/*
     private void getSLAPServices() {
                    
             StarTable table = null;
@@ -137,7 +148,7 @@ public class LineBrowser extends JFrame implements  MouseListener {
     {
         setTitle( Utilities.getTitle( "Query for spectral lines" ));
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize(new Dimension(800, 700) );
+        setSize(new Dimension(900, 700) );
        // contentPane.add( actionBarContainer, BorderLayout.SOUTH );
       //  setPreferredSize( new Dimension( 600, 500 ) );
        
@@ -152,23 +163,68 @@ public class LineBrowser extends JFrame implements  MouseListener {
         JSplitPane splitPane = new JSplitPane();  
         splitPane.setOneTouchExpandable( true );     
         splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
+        splitPane.setResizeWeight(1.0);
       
       
         // initialize the right and left panels
+    //    JPanel leftPanel = new JPanel();
+        plotChoicePanel = new JPanel();
+        //plotChoicePanel.setBorder(BorderFactory.createEtchedBorder() );
+        plotChoicePanel.add (new  JLabel("Select PLOT: "));
+        activePlotBox=new JComboBox();
+        updatePlotList();
+        activePlotBox.setSelectedIndex(globalList.getPlotIndex(plot));   
+        activePlotBox.addActionListener (new ActionListener () {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox src = (JComboBox) e.getSource();
+            	if (globalList.plotCount()>0) { 
+            		int index = ( src.getSelectedIndex());
+            		if (index < 0 ) {
+            			index=0;
+            		}
+            		setPlot( globalList.getPlot(index)); 
+            	} 
+            	else setPlot(null);
+            }
+        });
+        plotChoicePanel.add(activePlotBox);
+        
         linesQuery = new LinesQueryPanel(this);
-        //linesQuery = new LinesQueryPanel(initQueryPanel(), initServersPanel());
-        splitPane.setDividerLocation( 0.4); //linesQuery.getWidth() );
+        splitPane.setDividerLocation( 0.5); //linesQuery.getWidth() );
 
         splitPane.setLeftComponent( linesQuery );
         splitPane.setRightComponent( initializeResultsComponents() );
+        splitPane.setContinuousLayout(true);
+        splitPane.setResizeWeight(0);
+        splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_SIZE_PROPERTY, 
+        	    new PropertyChangeListener() {
+     				@Override
+					public void propertyChange(PropertyChangeEvent evt) {
+						linesQuery.repaint();
+					}
+        	});
         contentPane.add( splitPane, BorderLayout.CENTER );
         contentPane.updateUI();
     }
    
+   private void updatePlotList() {
+	   globalList = GlobalSpecPlotList.getInstance();
+	   activePlotBox.removeAllItems();
+	   if (globalList.plotCount() == 0) {
+		   activePlotBox.addItem("No plots available");
+	   } else {
+		   for (int i=0;i<globalList.plotCount();i++)  {
+			   activePlotBox.addItem(globalList.getPlotName(i));
+		   }
+	   }
+	   activePlotBox.updateUI();
+	   contentPane.updateUI();
+    }
+	   
    private  JPanel initializeResultsComponents()
    {
-       
-   
+    
      resultsPanel = new LinesResultsPanel(this);
 
      resultsPanel.setBorder(BorderFactory.createTitledBorder("Query results"));
@@ -425,12 +481,9 @@ public class LineBrowser extends JFrame implements  MouseListener {
         }
         
         if ( startable != null &&  startable.getRowCount() > 0 ) {
-            StarPopupTable ptable = new StarPopupTable( startable, true );         
-                 
-            resultsPanel.addTab( shortname, ptable );
+        	addLinesTable(  startable, shortname);           
             progressPanel.logMessage( startable.getRowCount() + " results returned" );
-            resultsPanel.updateUI();        
-            contentPane.updateUI();
+          
         } else {
             progressPanel.logMessage( "No results returned" );
         }
@@ -441,6 +494,20 @@ public class LineBrowser extends JFrame implements  MouseListener {
         }
        
     }
+    
+    public void addLinesandDisplay( StarTable table, String name) {
+    	addLinesTable(table, name);
+   	    displayLines(table);
+   }
+    
+    protected void addLinesTable( StarTable table, String name) {
+    	
+      	 StarPopupTable ptable = new StarPopupTable( table, true );         
+           
+           resultsPanel.addTab( name, ptable );
+           resultsPanel.updateUI();        
+           contentPane.updateUI();
+      }
     
     
     protected void displayLineSelection(StarJTable table) {
@@ -459,32 +526,36 @@ public class LineBrowser extends JFrame implements  MouseListener {
     }
 
     protected void displayLines(StarTable table) {
+    	if (activePlotBox.getSelectedIndex()==-1 )
+    		return;
+    	if (activePlotBox.getSelectedItem().toString().equals("No plots available"))
+    		return; 
+    	
+    	plot = globalList.getPlot(activePlotBox.getSelectedIndex());
         
         if (currentLines != null) {
             plot.removeSpectrum(currentLines);
         }
         try {
-            LineIDTableSpecDataImpl impl = new LineIDTableSpecDataImpl(table);
-            LineIDSpecData data = new LineIDSpecData(impl);    
-           
-            //String lineUnits = data.getCurrentDataUnits();
-            //String specUnits = plot.getCurrentSpectrum().getCurrentDataUnits();
-           // if (! lineUnits.equalsIgnoreCase(specUnits))
-           //        SpecDataUnitsFrame.convertToUnits(data, specUnits);
-     //       data.setShortName(resultsPanel.getTitleAt(resultsPanel.getSelectedIndex()));
-           
-            currentLines=data;          
-            globalList.addSpectrum(plot, data);     
-            
-            //browser.addSpectrum(data);
-            //browser.addLinesToCurrentPlot(data);
+        	LineIDTableSpecDataImpl impl = new LineIDTableSpecDataImpl(table);
+        	DescribedValue xval= table.getParameterByName("xlabel");
+        	if (xval != null ) {
+        		String xlabel = (String) xval.getValue();
+        		xval = table.getParameterByName("xunitstring");
+        		String unitstring = (String) xval.getValue();
+        		impl.setXparams( xlabel, unitstring );
+        	}
+        	LineIDSpecData data = new LineIDSpecData(impl);    
+
+        	currentLines=data;          
+        	globalList.addSpectrum(plot, data);     
+
         } catch (SplatException e) {
-            
-            e.printStackTrace();
+            // !!! print error message 
+            // e.printStackTrace();
             return;
         }
-        
-       //browser.addSpectrum()
+
     }
 
     
@@ -516,32 +587,6 @@ public class LineBrowser extends JFrame implements  MouseListener {
     public void mouseClicked( MouseEvent e ) {} // TODO
 
  
-/*
-    @Override
-    public void plotCreated(PlotChangedEvent e) {
-       
-  //      frame.setPlot(globalList.getPlot(e.getIndex()));       
-   //     frame.addRangeList();
-        contentPane.updateUI();
-        
-    }
-
-    @Override
-    public void plotRemoved(PlotChangedEvent e) {
-   //     if (globalList.plotCount() == 0) {
-   //         frame.removeRanges();
-   //     } 
-        
-    }
-
-    @Override
-    public void plotChanged(PlotChangedEvent e) {
-       // frame.setPlot(globalList.getPlot(globalList.getPlotIndex(e.getIndex())));      
-      //  frame.addRangeList();
-      //  contentPane.updateUI();
-    }
-
- */ 
     public PlotControl getPlot() {
         return this.plot;
     }
@@ -552,24 +597,49 @@ public class LineBrowser extends JFrame implements  MouseListener {
         }       
     }
 
- 
+	public void setPlot(PlotControl plotControl) {
+		plot=plotControl;
+		updatePlotList();
+		if (plot != null) {
+			activePlotBox.setSelectedIndex(globalList.getPlotIndex(plot)); 
+			linesQuery.updatePlot(plotControl);
+		}
+		
+	}
 
-    
-    /**
-     * Event listener to trigger a list update when a new server is
-     * added to addServerWIndow
-     */
- /*   @Override   
-    
-    public void propertyChange(PropertyChangeEvent pvt)
-    {
-       
-      //  SSAPRegResource reg = new SSAPRegResource(addServerWindow.getShortName(), addServerWindow.getServerTitle(), addServerWindow.getDescription(), addServerWindow.getAccessURL());
-    //    slapServices.addNewServer(reg);
-      
-    }
-    
- */   
+	
+	// implementation of PlotListener 
 
+
+	@Override
+	public void plotCreated(PlotChangedEvent e) {
+		updatePlotList();
+		PlotControl plot = globalList.getPlot(e.getIndex());
+		setPlot(plot);		
+	}
+
+	@Override
+	public void plotRemoved(PlotChangedEvent e) {
+		updatePlotList();	
+		if ( activePlotBox.getSelectedIndex() >= 0 ) {
+			PlotControl plot = globalList.getPlot(activePlotBox.getSelectedIndex());
+			setPlot(plot);
+		}
+			
+		
+	}
+
+	@Override
+	public void plotChanged(PlotChangedEvent e) {
+		//activePlotBox.setSelectedIndex(e.getIndex());
+		
+	}
+
+	public JPanel getPlotChoicePanel() {
+		
+		return plotChoicePanel;
+	}
+
+	
 
 }

@@ -26,6 +26,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.LineIDTableSpecDataImpl;
@@ -35,6 +36,7 @@ import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.LineBrowser;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 
 public class SpectralLinesPanel extends JPanel implements  ActionListener {
@@ -108,29 +110,26 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
 
     private LineBrowser browser;
 
-   // private SplatBrowser splatBrowser_;
-    
-   // private JLabel rangePlaceHolder = new JLabel("Please select a plot");
-    private int currentPlotIndex =-1;
-    
+   // private SplatBrowser splatBrowser_;     
     int[] ranges = null;
     double[] lambda2 = null;
 
     private JTextField elementField;
-    private JComboBox stageCombo;
-    String [] stages = { " ", "I","II","III","IV","V","VI","VII","VIII","IX","X","choose"};
-    
+    private JComboBox<String> stageCombo;
+    String [] stages = { "     ", "I","II","III","IV","V","VI","VII","VIII","IX","X"};
+    int width;
     
 
     /**
      * Create an instance.
+     * @param WIDTH 
      */
  
-    public SpectralLinesPanel(LineBrowser LineBrowser) 
+    public SpectralLinesPanel(LineBrowser LineBrowser, int width) 
     {
         browser = LineBrowser;
         this.plot = browser.getPlot();
-        
+        this.width=width;
         initUI();       
        
     }
@@ -165,35 +164,42 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
      */
     protected void initUI()
     {
-       
+
         setLayout(new GridBagLayout());
         setBorder(BorderFactory.createEtchedBorder() );
         //  List of regions of spectrum where to search for lines.
       
-        rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu, Color.LIGHT_GRAY, true ); 
-       // rangeList.setPreferredSize(new Dimension(380,150));
         rangePanel = new JPanel();
-        rangePanel.add(rangeList, BorderLayout.PAGE_START);    
-        rangeList.setPreferredSize(new Dimension(320,120));
-      
-       
+
+        if (plot != null ) {
+        	 rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu, Color.LIGHT_GRAY, true ); 
+             // rangeList.setPreferredSize(new Dimension(380,150));
+              rangePanel.add(rangeList, BorderLayout.PAGE_START);    
+              rangeList.setPreferredSize(new Dimension(width-20,120));       	
+        }
+             
         JPanel elementQueryPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc1 = new GridBagConstraints();
         gbc1.anchor = GridBagConstraints.WEST;
-        JPanel elementPanel = new JPanel(/*new BorderLayout()*/);
+        JPanel elementPanel = new JPanel();
         JLabel elementLabel = new JLabel("Element: ");
         elementField = new JTextField(5);
         elementPanel.add(elementLabel);
-        elementPanel.add(elementField);        
+        elementPanel.add(elementField);    
+        
         JPanel stagePanel = new JPanel(/*new BorderLayout()*/);
         JLabel stageLabel = new JLabel("Stage: ");
-        stageCombo = new JComboBox(stages);
-        stageCombo.setPrototypeDisplayValue("XXX");
+        stageCombo = new JComboBox<String>(stages);    
+        stageCombo.setPrototypeDisplayValue(stages[0]);
         stageCombo.setEditable(true);
         stageCombo.addActionListener(this);
-	stageCombo.setToolTipText("Ionization stage / ion charge. Not (yet) supported by SLAP)");
+        stageCombo.setToolTipText("Ionization stage / ion charge. Not (yet) supported by SLAP)");
+        stageCombo.setPreferredSize(new Dimension(100, 20));
+
         stagePanel.add(stageLabel);
         stagePanel.add(stageCombo);
+
+        
         gbc1.weightx=0.5;
         gbc1.weighty=0.5;
         gbc1.gridx=0;  
@@ -204,11 +210,13 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
         
         JButton queryButton = new JButton( new QueryAction("Search"));
         queryButton.setToolTipText( "Search for spectral lines" ); 
+      //  elementQueryPanel.setPreferredSize(new Dimension(width, 240));
         
         //elementPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc2 = new GridBagConstraints();
         gbc2.anchor = GridBagConstraints.WEST;
-       // gbc2.gridwidth=1;
+        gbc2.gridwidth=GridBagConstraints.REMAINDER;
+        //gbc2.gridwidth=1;
        // gbc2.gridheight=1;
         gbc2.fill = GridBagConstraints.HORIZONTAL;
         gbc2.weightx=0.5;
@@ -226,7 +234,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
         queryPanel.add(queryButton,gbc2);
          
         GridBagConstraints gbc = new GridBagConstraints();
-      //  gbc.gridwidth=GridBagConstraints.REMAINDER;
+        gbc.gridwidth=GridBagConstraints.REMAINDER;
        // gbc.gridheight=GridBagConstraints.RELATIVE;
         gbc.anchor = GridBagConstraints.NORTHWEST;
    //     gbc.fill = GridBagConstraints.BOTH;
@@ -277,8 +285,13 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
 
                 } catch (SplatException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    ErrorDialog.showError(this, "Error", e, "Invalid wavelength units");
                     ok=false;
+                    return;
+                } catch (AstException a ) {
+                	ErrorDialog.showError(this, "Error", a, "Invalid wavelength units");               	
+                    ok=false;
+                    return;
                 }
 
                 double[] lambda2 = sd.getXData();
@@ -414,9 +427,6 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
     }
 
 
-   
-
-
     @Override
     public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
@@ -424,39 +434,9 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener {
     }
 
 
-   
-  //  @Override
-  //  public void spectrumRemoved(SpecChangedEvent e) {
-  //      if (globalList.plotCount() == 0) {
-  //          rangePanel.removeAll();
-  //          rangePanel.add(rangePlaceHolder);
-  //      } else
-  //        addRangeList();
-  //  }
-
-/*
-    @Override
-    public void plotCreated(PlotChangedEvent e) {
-        //currentPlotInde
-        setPlot(globalList.getPlot(e.getIndex()));       
-        addRangeList();
-    }
-
-
-    @Override
-    public void plotRemoved(PlotChangedEvent e) {
-        if (globalList.plotCount() == 0) {
-            rangePanel.removeAll();
-            rangePanel.add(rangePlaceHolder);
-        } 
-    }
-
-
-    @Override
-    public void plotChanged(PlotChangedEvent e) {
-        // TODO Auto-generated method stub
-        setPlot(globalList.getPlot(e.getIndex()));      
-        addRangeList();
-    }
-*/
+	public void updatePlot(PlotControl plotControl) {
+		this.plot = plotControl;
+		rangeList.setPlot(plot.getPlot());
+		rangeList.deleteAllRanges();
+	}
 }
