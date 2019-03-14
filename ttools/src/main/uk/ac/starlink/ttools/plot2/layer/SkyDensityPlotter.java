@@ -25,7 +25,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.plot.Matrices;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
@@ -37,11 +36,13 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -439,11 +440,11 @@ public class SkyDensityPlotter
         }
 
         public Drawing createDrawing( Surface surface,
-                                      Map<AuxScale,Range> auxRanges,
+                                      Map<AuxScale,Span> auxSpans,
                                       PaperType paperType ) {
             SkySurface ssurf = (SkySurface) surface;
             return new SkyDensityDrawing( ssurf, createTileRenderer( ssurf ),
-                                          auxRanges.get( SCALE ), paperType );
+                                          auxSpans.get( SCALE ), paperType );
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -458,7 +459,7 @@ public class SkyDensityPlotter
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore,
                                             Object[] knownPlans,
-                                            Range range ) {
+                                            Ranger ranger ) {
                     SkySurface ssurf = (SkySurface) surface;
                     int level = getLevel( ssurf );
 
@@ -471,7 +472,7 @@ public class SkyDensityPlotter
                     SkyDensityPlan splan =
                         getSkyPlan( knownPlans, level, dataSpec );
                     if ( splan != null ) {
-                        splan.extendVisibleRange( range, ssurf,
+                        splan.extendVisibleRange( ranger, ssurf,
                                                   getBinFactor( level ) );
                     }
                     else {
@@ -479,7 +480,7 @@ public class SkyDensityPlotter
                             readBins( ssurf, dataSpec, dataStore )
                            .getResult();
                         createTileRenderer( ssurf )
-                       .extendAuxRange( range, binResult );
+                       .extendAuxRange( ranger, binResult );
                     }
                 }
             } );
@@ -627,7 +628,7 @@ public class SkyDensityPlotter
 
             private final SkySurface surface_;
             private final SkyTileRenderer renderer_;
-            private final Range auxRange_;
+            private final Span auxSpan_;
             private final PaperType paperType_;
             private final int level_;
             private final int pixelLevel_;
@@ -637,14 +638,14 @@ public class SkyDensityPlotter
              *
              * @param   surface  plot surface
              * @param   renderer  can plot healpix tiles
-             * @param   auxRange  range defining colour scaling
+             * @param   auxSpan   colour scaling range
              * @param   paperType  paper type
              */
             SkyDensityDrawing( SkySurface surface, SkyTileRenderer renderer,
-                               Range auxRange, PaperType paperType ) {
+                               Span auxSpan, PaperType paperType ) {
                 surface_ = surface;
                 renderer_ = renderer;
-                auxRange_ = auxRange;
+                auxSpan_ = auxSpan;
                 paperType_ = paperType;
                 level_ = getLevel( surface );
                 pixelLevel_ = getPixelLevel( surface );
@@ -680,8 +681,7 @@ public class SkyDensityPlotter
                                    DataStore dataStore ) {
                 final BinList.Result binResult =
                     ((SkyDensityPlan) plan).binResult_;
-                final Scaler scaler =
-                    Scaling.createRangeScaler( dstyle_.scaling_, auxRange_ );
+                final Scaler scaler = auxSpan_.createScaler( dstyle_.scaling_ );
                 final Shader shader = dstyle_.shader_;
                 paperType_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
@@ -902,7 +902,7 @@ public class SkyDensityPlotter
         }
 
         /**
-         * Adjusts a supplied Range object to reflect the pixel value range
+         * Adjusts a supplied Ranger object to reflect the pixel value range
          * represented by this plan over
          * only that part of the sky visible in a given sky surface.
          * This may not be very fast, but it scales with the number of
@@ -911,11 +911,11 @@ public class SkyDensityPlotter
          * However in some cases (bin-count&lt;&lt;pixel-count)
          * it could definitely be done more efficiently.
          *
-         * @param  range     range to submit values to
+         * @param  ranger     ranger to submit values to
          * @param  surface   viewing surface
          * @param  binFactor   factor for multiplying bin result values
          */
-        public void extendVisibleRange( Range range, SkySurface surface,
+        public void extendVisibleRange( Ranger ranger, SkySurface surface,
                                         double binFactor ) {
             Rectangle bounds = surface.getPlotBounds();
             int nx = bounds.width;
@@ -934,7 +934,7 @@ public class SkyDensityPlotter
                     double dval =
                         binFactor *
                         binResult_.getBinValue( skyPixer.getIndex( dpos ) );
-                    range.submit( dval );
+                    ranger.submitDatum( dval );
                 }
             }
         }

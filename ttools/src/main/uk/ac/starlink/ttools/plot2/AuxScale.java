@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
 /**
@@ -26,7 +25,7 @@ public class AuxScale {
     private final String name_;
 
     /**
-     * AuxRange object used for the standard colour scaling axis.
+     * AuxScale object used for the standard colour scaling axis.
      */
     public static AuxScale COLOR = new AuxScale( "Aux" );
 
@@ -84,18 +83,18 @@ public class AuxScale {
      * @param   dataStore  data repository
      * @return   map with a range entry for each of the <code>scales</code>
      */
-    public static Map<AuxScale,Range>
-             calculateAuxRanges( AuxScale[] scales, PlotLayer[] layers,
-                                 Surface surface, Object[] knownPlans,
-                                 DataStore dataStore ) {
-        Map<AuxScale,Range> rangeMap = new HashMap<AuxScale,Range>();
+    public static Map<AuxScale,Span>
+             calculateAuxSpans( AuxScale[] scales, PlotLayer[] layers,
+                                Surface surface, Object[] knownPlans,
+                                DataStore dataStore ) {
+        Map<AuxScale,Span> spanMap = new HashMap<AuxScale,Span>();
         for ( int is = 0; is < scales.length; is++ ) {
             AuxScale scale = scales[ is ];
-            rangeMap.put( scale,
-                          calculateRange( scale, layers, surface, knownPlans,
-                                          dataStore ) );
+            spanMap.put( scale,
+                         calculateSpan( scale, layers, surface, knownPlans,
+                                        dataStore ) );
         }
-        return rangeMap;
+        return spanMap;
     }
 
     /**
@@ -107,21 +106,21 @@ public class AuxScale {
      * @param   surface  approximate plot surface
      * @param   knownPlans  array of available plan objects; may be empty
      * @param   dataStore   data repository
-     * @return   range for <code>scale</code>
+     * @return   span for <code>scale</code>
      */
-    private static Range calculateRange( AuxScale scale, PlotLayer[] layers,
-                                         Surface surface, Object[] knownPlans,
-                                         DataStore dataStore ) {
-        Range range = new Range();
+    private static Span calculateSpan( AuxScale scale, PlotLayer[] layers,
+                                       Surface surface, Object[] knownPlans,
+                                       DataStore dataStore ) {
+        Ranger ranger = new BasicRanger();
         for ( int il = 0; il < layers.length; il++ ) {
             PlotLayer layer = layers[ il ];
             AuxReader rdr = layer.getAuxRangers().get( scale );
             if ( rdr != null ) {
                 rdr.adjustAuxRange( surface, layer.getDataSpec(), dataStore,
-                                    knownPlans, range );
+                                    knownPlans, ranger );
             }
         }
-        return range;
+        return ranger.createSpan();
     }
 
     /**
@@ -134,9 +133,9 @@ public class AuxScale {
      * The returned map has one entry for each scales element.
      *
      * @param   scales  list of scales for which output ranges are required
-     * @param   dataRanges  actual data ranges acquired by scanning the data,
+     * @param   dataSpans   actual data ranges acquired by scanning the data,
      *                      keyed by scale (optional per scale)
-     * @param   fixRanges   single- or double-ended fixed data ranges,
+     * @param   fixSpans    single- or double-ended fixed data ranges,
      *                      keyed by scale (optional per scale)
      * @param   subranges   subrange keyed by scale; optional per scale,
      *                      if absent 0-1 is assumed
@@ -146,24 +145,24 @@ public class AuxScale {
      * @return   map with one entry for each input scale giving definite
      *           ranges to use in the plot
      */
-    public static Map<AuxScale,Range>
-            getClippedRanges( AuxScale[] scales,
-                              Map<AuxScale,Range> dataRanges,
-                              Map<AuxScale,Range> fixRanges,
-                              Map<AuxScale,Subrange> subranges,
-                              Map<AuxScale,Boolean> logFlags ) {
-        Map<AuxScale,Range> clipRanges = new HashMap<AuxScale,Range>();
+    public static Map<AuxScale,Span>
+            getClippedSpans( AuxScale[] scales,
+                             Map<AuxScale,Span> dataSpans,
+                             Map<AuxScale,Span> fixSpans,
+                             Map<AuxScale,Subrange> subranges,
+                             Map<AuxScale,Boolean> logFlags ) {
+        Map<AuxScale,Span> clipSpans = new HashMap<AuxScale,Span>();
         for ( int i = 0; i < scales.length; i++ ) {
             AuxScale scale = scales[ i ];
             boolean logFlag = logFlags.containsKey( scale )
                             ? logFlags.get( scale )
                             : false;
-            clipRanges.put( scale, clipRange( dataRanges.get( scale ),
-                                              fixRanges.get( scale ),
-                                              subranges.get( scale ),
-                                              logFlag ) );
+            clipSpans.put( scale, clipSpan( dataSpans.get( scale ),
+                                            fixSpans.get( scale ),
+                                            subranges.get( scale ),
+                                            logFlag ) );
         }
-        return clipRanges;
+        return clipSpans;
     }
 
     /**
@@ -177,20 +176,20 @@ public class AuxScale {
      * @param   isLog   true for logarithmic scale, false for linear
      * @return   definite range for plotting
      */
-    public static Range clipRange( Range dataRange, Range fixRange,
-                                   Subrange subrange, boolean isLog ) {
-        Range fullRange = dataRange == null ? new Range()
-                                            : new Range( dataRange );
-        if ( fixRange != null ) {
-            fullRange.limit( fixRange );
+    private static Span clipSpan( Span dataSpan, Span fixSpan,
+                                  Subrange subrange, boolean isLog ) {
+        Span span = dataSpan == null ? PlotUtil.EMPTY_SPAN : dataSpan;
+        if ( fixSpan != null ) {
+            span = span.limit( fixSpan.getLow(), fixSpan.getHigh() );
         }
         if ( subrange == null ) {
-            return fullRange;
+            return span;
         }
         else {
-            double[] bounds = fullRange.getFiniteBounds( isLog );
-            return new Range( PlotUtil.scaleRange( bounds[ 0 ], bounds[ 1 ],
-                                                   subrange, isLog ) );
+            double[] bounds = span.getFiniteBounds( isLog );
+            bounds = PlotUtil.scaleRange( bounds[ 0 ], bounds[ 1 ],
+                                          subrange, isLog );
+            return span.limit( bounds[ 0 ], bounds[ 1 ] );
         }
     }
 
@@ -200,25 +199,24 @@ public class AuxScale {
      * along with optional associated data and fixed value ranges.
      * A list of those scales for which data scans are necessary,
      * on the assumption that they are to be fed to the
-     * {@link #getClippedRanges} method, is returned.
+     * {@link #calculateAuxSpans calculateAuxSpans} method, is returned.
      *
      * @param  reqScales  scales needed
-     * @param  dataRanges   ranges acquired by scanning data keyed by scale,
+     * @param  dataSpans    ranges acquired by scanning data keyed by scale,
      *                      (optional per scale)
-     * @param  fixRanges    single- or double-ended fixed data ranges,
+     * @param  fixSpans     single- or double-ended fixed data ranges,
      *                      keyed by scale (optional per scale)
      * @return  list of scales for which data scans are required
      */
     public static AuxScale[] getMissingScales( AuxScale[] reqScales,
-                                               Map<AuxScale,Range> dataRanges,
-                                               Map<AuxScale,Range> fixRanges ) {
+                                               Map<AuxScale,Span> dataSpans,
+                                               Map<AuxScale,Span> fixSpans ) {
         List<AuxScale> scaleList = new ArrayList<AuxScale>();
         for ( int i = 0; i < reqScales.length; i++ ) {
             AuxScale scale = reqScales[ i ];
-            Range dataRange = dataRanges.get( scale );
-            Range fixRange = fixRanges.get( scale );
-            if ( dataRange != null && dataRange.isFinite() ||
-                 fixRange != null && fixRange.isFinite() ) {
+            Span dataSpan = dataSpans.get( scale );
+            Span fixSpan = fixSpans.get( scale );
+            if ( isFiniteSpan( dataSpan ) || isFiniteSpan( fixSpan ) ) {
                 // no action
             }
             else {
@@ -226,5 +224,22 @@ public class AuxScale {
             }
         }
         return scaleList.toArray( new AuxScale[ 0 ] );
+    }
+
+    /**
+     * Indicates whether a given span has definite (rather than assumed)
+     * upper and lower bounds.
+     *
+     * @param  span   object to test
+     * @return  true iff upper and lower bounds are both finite values
+     */
+    private static boolean isFiniteSpan( Span span ) {
+        if ( span != null ) {
+            return PlotUtil.isFinite( span.getLow() )
+                && PlotUtil.isFinite( span.getHigh() );
+        }
+        else {
+            return false;
+        }
     }
 }

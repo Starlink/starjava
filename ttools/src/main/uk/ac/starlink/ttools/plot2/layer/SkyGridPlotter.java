@@ -8,7 +8,6 @@ import java.awt.geom.GeneralPath;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -18,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
@@ -185,7 +185,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         final LayerOpt layerOpt = style.getLayerOpt();
         return new AbstractPlotLayer( this, geom, dataSpec, style, layerOpt ) {
             public Drawing createDrawing( Surface surf,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           final PaperType paperType ) {
                 final SkySurface skySurf = (SkySurface) surf;
                 return new UnplannedDrawing() {

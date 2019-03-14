@@ -23,12 +23,13 @@ public class ShadeAxis {
 
     private final Shader shader_;
     private final Scaling scaling_;
-    private final double dlo_;
-    private final double dhi_;
+    private final Span span_;
     private final String label_;
     private final Captioner captioner_;
     private final double crowding_;
     private final int rampWidth_;
+    private final double dlo_;
+    private final double dhi_;
     private static final Orientation ORIENTATION = Orientation.ANTI_Y;
 
     /**
@@ -36,8 +37,7 @@ public class ShadeAxis {
      *
      * @param  shader  object performing the actual shading
      * @param  scaling  maps data values to unit range
-     * @param  dlo   minimum data value
-     * @param  dhi   maximum data value
+     * @param  span    data span
      * @param  label  axis label
      * @param  captioner   text rendering object
      * @param  crowding   1 for normal tick density, lower for fewer labels,
@@ -47,17 +47,19 @@ public class ShadeAxis {
      *                    this value is not used by this class, but this
      *                    class serves as a useful place to keep it
      */
-    public ShadeAxis( Shader shader, Scaling scaling,
-                      double dlo, double dhi, String label,
-                      Captioner captioner, double crowding, int rampWidth ) {
+    public ShadeAxis( Shader shader, Scaling scaling, Span span,
+                      String label, Captioner captioner, double crowding,
+                      int rampWidth ) {
         shader_ = shader;
         scaling_ = scaling;
-        dlo_ = dlo;
-        dhi_ = dhi;
+        span_ = span;
         label_ = label;
         captioner_ = captioner;
         crowding_ = crowding;
         rampWidth_ = rampWidth;
+        double[] dbounds = span.getFiniteBounds( scaling.isLogLike() );
+        dlo_ = dbounds[ 0 ];
+        dhi_ = dbounds[ 1 ];
     }
 
     /**
@@ -157,7 +159,7 @@ public class ShadeAxis {
                                               : BasicTicker.LINEAR )
                       .getTicks( dlo_, dhi_, false, captioner_, ORIENTATION,
                                  rampBounds.height, crowding_ );
-        return new ShaderIcon( shader_, scaling_, dlo_, dhi_, label_,
+        return new ShaderIcon( shader_, scaling_, span_, label_,
                                captioner_, rampBounds, ticks );
     }
 
@@ -168,6 +170,7 @@ public class ShadeAxis {
     private static class ShaderIcon implements Icon {
         private final Shader shader_;
         private final Scaling scaling_;
+        private final Span span_;
         private final double dlo_;
         private final double dhi_;
         private final String label_;
@@ -181,27 +184,28 @@ public class ShadeAxis {
          *
          * @param  shader  object performing the actual shading
          * @param  scaling   maps data to unit range
-         * @param  dlo   minimum data value
-         * @param  dhi   maximum data value
+         * @param  span   span
          * @param  label  axis label
          * @param  captioner   text rendering object
          * @param  rampBounds  bounds of actual ramp scale graphic
          * @param  ticks   axis ticks for annotation
          */
-        public ShaderIcon( Shader shader, Scaling scaling,
-                           double dlo, double dhi, String label,
-                           Captioner captioner, Rectangle rampBounds,
-                           Tick[] ticks ) {
+        public ShaderIcon( Shader shader, Scaling scaling, Span span,
+                           String label, Captioner captioner,
+                           Rectangle rampBounds, Tick[] ticks ) {
             shader_ = shader;
             scaling_ = scaling;
-            dlo_ = dlo;
-            dhi_ = dhi;
+            span_ = span;
             label_ = label;
             captioner_ = captioner;
             box_ = rampBounds;
             ticks_ = ticks;
-            axis_ = Axis.createAxis( box_.y, box_.y + box_.height, dlo, dhi,
-                                     scaling.isLogLike(), false );
+            boolean isLog = scaling.isLogLike();
+            double[] dbounds = span.getFiniteBounds( isLog );
+            dlo_ = dbounds[ 0 ];
+            dhi_ = dbounds[ 1 ];
+            axis_ = Axis.createAxis( box_.y, box_.y + box_.height, dlo_, dhi_,
+                                     isLog, false );
         }
 
         public int getIconWidth() {
@@ -238,7 +242,7 @@ public class ShadeAxis {
 
             /* Then shade each row of pixels in turn along the shading
              * direction of the axis. */
-            Scaler scaler = scaling_.createScaler( dlo_, dhi_ );
+            Scaler scaler = span_.createScaler( scaling_ );
             for ( int iy = 0; iy < box_.height; iy++ ) {
                 int gy = box_.y + iy;
                 int hy = box_.y + ( box_.height - iy );

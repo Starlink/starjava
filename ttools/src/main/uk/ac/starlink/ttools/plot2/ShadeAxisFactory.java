@@ -1,7 +1,5 @@
 package uk.ac.starlink.ttools.plot2;
 
-import uk.ac.starlink.ttools.plot.Range;
-
 /**
  * Defines how to get a ShadeAxis for a shader range.
  *
@@ -18,10 +16,10 @@ public interface ShadeAxisFactory {
     public boolean isLog();
 
     /**
-     * Returns a shade axis for a given range.
+     * Returns a shade axis for a given span.
      *
-     * @param   range  data range
+     * @param   span  data range
      * @return   shader axis
      */
-    ShadeAxis createShadeAxis( Range range );
+    ShadeAxis createShadeAxis( Span span );
 }

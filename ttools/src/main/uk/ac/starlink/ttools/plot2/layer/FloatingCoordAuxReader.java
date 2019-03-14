@@ -2,10 +2,10 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.geom.Point2D;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -55,13 +55,13 @@ public class FloatingCoordAuxReader implements AuxReader {
 
     public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                 DataStore dataStore, Object[] plans,
-                                Range range ) {
+                                Ranger ranger ) {
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
 
         /* If no positional coordinates, just submit every value. */
         if ( geom_ == null ) {
             while ( tseq.next() ) {
-                range.submit( coord_.readDoubleCoord( tseq, icol_ ) );
+                ranger.submitDatum( coord_.readDoubleCoord( tseq, icol_ ) );
             }
         }
 
@@ -74,7 +74,7 @@ public class FloatingCoordAuxReader implements AuxReader {
                 if ( geom_.readDataPos( tseq, 0, dpos ) &&
                      surface.dataToGraphics( dpos, visibleOnly_, gpos ) &&
                      ( visibleOnly_ || PlotUtil.isPointFinite( gpos ) ) ) {
-                    range.submit( coord_.readDoubleCoord( tseq, icol_ ) );
+                    ranger.submitDatum( coord_.readDoubleCoord( tseq, icol_ ) );
                 }
             }
         }

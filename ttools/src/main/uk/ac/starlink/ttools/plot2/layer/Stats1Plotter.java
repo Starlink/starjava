@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -27,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -210,7 +210,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         return new AbstractPlotLayer( this, fitDataGeom_, dataSpec,
                                       style, layerOpt ) {
             public Drawing createDrawing( Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           PaperType paperType ) {
                 return new StatsDrawing( (PlanarSurface) surface, geom,
                                          dataSpec, style, paperType );

@@ -5,13 +5,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -239,14 +240,11 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             public boolean isLog() {
                 return isLog;
             }
-            public ShadeAxis createShadeAxis( Range range ) {
-                if ( range == null ) {
-                    range = new Range();
+            public ShadeAxis createShadeAxis( Span span ) {
+                if ( span == null ) {
+                    span = PlotUtil.EMPTY_SPAN;
                 }
-                double[] bounds = range.getFiniteBounds( isLog );
-                double lo = bounds[ 0 ];
-                double hi = bounds[ 1 ];
-                return new ShadeAxis( shader, scaling, lo, hi,
+                return new ShadeAxis( shader, scaling, span,
                                       label, captioner, crowding, rampWidth );
             }
         };

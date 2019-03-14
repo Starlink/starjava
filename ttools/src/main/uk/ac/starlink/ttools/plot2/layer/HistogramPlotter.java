@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -302,7 +303,7 @@ public class HistogramPlotter
             return new AbstractPlotLayer( this, histoDataGeom_, dataSpec,
                                           style, layerOpt ) {
                 public Drawing createDrawing( Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
+                                              Map<AuxScale,Span> auxSpans,
                                               final PaperType paperType ) {
                     if ( ! ( surface instanceof PlanarSurface ) ) {
                         throw new IllegalArgumentException( "Not planar surface"

@@ -11,7 +11,6 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.gui.ThicknessComboBox;
 import uk.ac.starlink.ttools.plot.MarkStyle;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -24,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -194,7 +194,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             final boolean isHorizontal = style.isHorizontal_;
             final int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
             public Drawing createDrawing( final Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           final PaperType paperType ) {
                 final PlanarSurface psurf = (PlanarSurface) surface;
                 final ReportMap report = createReport( style, psurf );

@@ -10,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -23,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.CaptionerKeySet;
@@ -164,7 +164,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         LayerOpt opt = new LayerOpt( style.getColor(), true );
         return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
             public Drawing createDrawing( Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           PaperType paperType ) {
                 if ( paperType instanceof PaperType2D ) {
                     return new LabelDrawing2D( geom, dataSpec, style, surface,

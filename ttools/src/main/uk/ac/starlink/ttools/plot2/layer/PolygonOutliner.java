@@ -8,13 +8,13 @@ import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
@@ -78,7 +78,7 @@ public class PolygonOutliner extends PixOutliner {
 
     public ShapePainter create2DPainter( final Surface surf,
                                          final DataGeom geom,
-                                         Map<AuxScale,Range> auxRanges,
+                                         Map<AuxScale,Span> auxSpans,
                                          final PaperType2D paperType ) {
         final VertexReader vertReader = vrfact_.createVertexReader( geom );
         Rectangle bounds = surf.getPlotBounds();
@@ -165,7 +165,7 @@ public class PolygonOutliner extends PixOutliner {
     }
 
     public ShapePainter create3DPainter( final CubeSurface surf, DataGeom geom,
-                                         Map<AuxScale,Range> auxRanges,
+                                         Map<AuxScale,Span> auxSpans,
                                          final PaperType3D paperType ) {
         final VertexReader vertReader = vrfact_.createVertexReader( geom );
         Rectangle bounds = surf.getPlotBounds();

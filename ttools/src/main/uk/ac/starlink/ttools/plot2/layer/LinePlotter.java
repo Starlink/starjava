@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -22,8 +21,10 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -181,16 +182,15 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
         return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
 
             public Drawing createDrawing( final Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           final PaperType paperType ) {
-                final Range auxRange = auxRanges.get( SCALE );
+                final Span auxSpan = auxSpans.get( SCALE );
                 Color baseColor = style.getColor();
                 final ColorKit colorKit;
                 if ( hasAux ) {
                     Shader shader = style.getShader();
                     Scaling scaling = style.getScaling();
-                    Scaler scaler =
-                         Scaling.createRangeScaler( scaling, auxRange );
+                    Scaler scaler = auxSpan.createScaler( scaling );
                     Color nullColor = style.getNullColor();
                     float scaleAlpha = 1;
                     colorKit = new AuxColorKit( icAux, shader, scaler,
@@ -233,8 +233,8 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                                                     DataSpec dataSpec,
                                                     DataStore dataStore,
                                                     Object[] plans,
-                                                    Range range ) {
-                            rangeAux( surf, dataStore, range );
+                                                    Ranger ranger ) {
+                            rangeAux( surf, dataStore, ranger );
                         }
                     } );
                 }
@@ -300,10 +300,10 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
              *
              * @param  surf   plotting surface
              * @param  dataStore   data store
-             * @param  range   range object to update with aux values
+             * @param  ranger   ranger object to update with aux values
              */
             private void rangeAux( Surface surf, DataStore dataStore,
-                                   Range range ) {
+                                   Ranger ranger ) {
                 final int ndim = surf.getDataDimCount();
                 double[] dpos = new double[ ndim ];
                 Point2D.Double gpos = new Point2D.Double();
@@ -311,7 +311,7 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                 while ( tseq.next() ) {
                     if ( geom.readDataPos( tseq, icPos, dpos ) &&
                          surf.dataToGraphics( dpos, true, gpos ) ) {
-                        range.submit( tseq.getDoubleValue( icAux ) );
+                        ranger.submitDatum( tseq.getDoubleValue( icAux ) );
                     }
                 }
             }

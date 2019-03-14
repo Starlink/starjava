@@ -29,7 +29,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Padding;
@@ -37,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -214,7 +214,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         float[] legPos = null;
         String title = null;
         ShadeAxisFactory shadeFact = null;
-        Range shadeFixRange = null;
+        Span shadeFixSpan = null;
         PaperTypeSelector ptSel = plotType_.getPaperTypeSelector();
         Compositor compositor = Compositor.SATURATION;
         Padding padding = new Padding();
@@ -228,7 +228,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         return PlotDisplay
               .createPlotDisplay( layers, sfact_, config,
                                   legend, legPos, title, shadeFact,
-                                  shadeFixRange, ptSel, compositor,
+                                  shadeFixSpan, ptSel, compositor,
                                   padding, dataStore, navigable, caching );
     }
 

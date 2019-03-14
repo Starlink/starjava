@@ -7,12 +7,12 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -258,16 +258,16 @@ public class SizeXyForm implements ShapeForm {
 
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
             final Point2D.Double gpos = new Point2D.Double();
             final int icxSize = getSizeCoordIndex( geom, false );
             final int icySize = getSizeCoordIndex( geom, true );
             final double xscale =
-                scale_ * getBaseScale( surface, auxRanges, xAutoscale_ );
+                scale_ * getBaseScale( surface, auxSpans, xAutoscale_ );
             final double yscale =
-                scale_ * getBaseScale( surface, auxRanges, yAutoscale_ );
+                scale_ * getBaseScale( surface, auxSpans, yAutoscale_ );
             Rectangle bounds = surface.getPlotBounds();
             final short xmax = strunc( bounds.width * 2 );
             final short ymax = strunc( bounds.height * 2 );
@@ -295,16 +295,16 @@ public class SizeXyForm implements ShapeForm {
 
         public ShapePainter create3DPainter( final CubeSurface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
             final GPoint3D gpos = new GPoint3D();
             final int icxSize = getSizeCoordIndex( geom, false );
             final int icySize = getSizeCoordIndex( geom, true );
             final double xscale =
-                scale_ * getBaseScale( surface, auxRanges, xAutoscale_ );
+                scale_ * getBaseScale( surface, auxSpans, xAutoscale_ );
             final double yscale =
-                scale_ * getBaseScale( surface, auxRanges, yAutoscale_ );
+                scale_ * getBaseScale( surface, auxSpans, yAutoscale_ );
             Rectangle bounds = surface.getPlotBounds();
             final short xmax = strunc( bounds.width * 2 );
             final short ymax = strunc( bounds.height * 2 );
@@ -391,17 +391,17 @@ public class SizeXyForm implements ShapeForm {
          * scale adjustment.
          *
          * @param  surface  plot surface
-         * @param  rangeMap  map of ranges calculated as part of
-         *                   plot preparation by request
+         * @param  spanMap  map of ranges calculated as part of
+         *                  plot preparation by request
          * @param  autoscale  key for relevant aux scaling
          * @return  basic size scale
          */
         private static double getBaseScale( Surface surface,
-                                            Map<AuxScale,Range> rangeMap,
+                                            Map<AuxScale,Span> spanMap,
                                             AuxScale autoscale ) {
             if ( autoscale != null) {
-                Range range = rangeMap.get( autoscale );
-                double[] bounds = range.getFiniteBounds( true );
+                Span span = spanMap.get( autoscale );
+                double[] bounds = span.getFiniteBounds( true );
                 return 1. / bounds[ 1 ];
             }
             else {

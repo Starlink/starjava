@@ -3,11 +3,11 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.util.Map;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -58,12 +58,12 @@ public interface Outliner {
      *
      * @param   surface   plot surface
      * @param   geom   coordinate geometry
-     * @param   auxRanges  map of scale information required for plot
+     * @param   auxSpans  map of scale information required for plot
      * @param   paperType  2-d paper type
      * @return  new 2-d painter
      */
     ShapePainter create2DPainter( Surface surface, DataGeom geom,
-                                  Map<AuxScale,Range> auxRanges,
+                                  Map<AuxScale,Span> auxSpans,
                                   PaperType2D paperType );
 
     /**
@@ -71,12 +71,12 @@ public interface Outliner {
      *
      * @param   surface   3-d plot surface
      * @param   geom   coordinate geometry
-     * @param   auxRanges  map of scale information required for plot
+     * @param   auxSpans  map of scale information required for plot
      * @param   paperType  3-d paper type
      * @return  new 3-d painter
      */
     ShapePainter create3DPainter( CubeSurface surface, DataGeom geom,
-                                  Map<AuxScale,Range> auxRanges,
+                                  Map<AuxScale,Span> auxSpans,
                                   PaperType3D paperType );
 
     /**
@@ -90,7 +90,7 @@ public interface Outliner {
      *
      * @param   surface   plot surface
      * @param   geom   coordinate geometry
-     * @param   auxRanges  map of scale information required for plot
+     * @param   auxSpans  map of scale information required for plot
      * @param   dataStore  data storage
      * @param   dataSpec   coordinate specification
      * @param   knownPlans  list of existing plans
@@ -98,7 +98,7 @@ public interface Outliner {
      *           <code>knownPlans</code>
      */
     Object calculateBinPlan( Surface surface, DataGeom geom,
-                             Map<AuxScale,Range> auxRanges,
+                             Map<AuxScale,Span> auxSpans,
                              DataStore dataStore, DataSpec dataSpec,
                              Object[] knownPlans );
 

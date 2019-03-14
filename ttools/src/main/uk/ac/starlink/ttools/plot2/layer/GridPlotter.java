@@ -16,7 +16,6 @@ import javax.swing.Icon;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
@@ -30,11 +29,13 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -559,10 +560,10 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         }
 
         public Drawing createDrawing( Surface surface,
-                                      Map<AuxScale,Range> auxRanges,
+                                      Map<AuxScale,Span> auxSpans,
                                       PaperType ptype ) {
             return new GridDrawing( (PlanarSurface) surface,
-                                    auxRanges.get( SCALE ), ptype );
+                                    auxSpans.get( SCALE ), ptype );
         }
 
         public Map<AuxScale,AuxReader> getAuxRangers() {
@@ -576,7 +577,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,
-                                            Range range ) {
+                                            Ranger ranger ) {
 
                     /* Work out the grid we need to sample over. */
                     PlanarSurface psurf = (PlanarSurface) surface;
@@ -599,7 +600,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
 
                     /* Use the grid pixer and binResult got by either means
                      * to adjust the aux range. */
-                    extendRange( range, psurf, pixer, binResult );
+                    extendRange( ranger, psurf, pixer, binResult );
                 }
             } );
             return map;
@@ -722,15 +723,15 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         }
 
         /**
-         * Extends a given range object to accomodate values in a supplied
+         * Updates a given ranger object to accomodate values in a supplied
          * data grid.
          *
-         * @param   range  range object to adjust
+         * @param   ranger  ranger object to update
          * @param   surface   plot surface over which data is to be surveyed
          * @param   pixer    defines grid geometry
          * @param   binResult   accumulated grid data
          */
-        private void extendRange( Range range, PlanarSurface surface,
+        private void extendRange( Ranger ranger, PlanarSurface surface,
                                   GridPixer pixer, BinList.Result binResult ) {
             double[][] dlims = surface.getDataLimits();
             double binFactor =
@@ -745,7 +746,8 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 for ( int ix = ixlo; ix <= ixhi; ix++ ) {
                     int ibin = pixer.getBinIndex( ix, iy );
                     assert ibin >= 0;
-                    range.submit( binFactor * binResult.getBinValue( ibin ) );
+                    ranger.submitDatum( binFactor
+                                      * binResult.getBinValue( ibin ) );
                 }
             }
         }
@@ -780,20 +782,20 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         private class GridDrawing implements Drawing {
 
             private final PlanarSurface surface_;
-            private final Range auxRange_;
+            private final Span auxSpan_;
             private final PaperType ptype_;
 
             /**
              * Constructor.
              *
              * @param   surface   plotting surface
-             * @param   auxRange  range defining colour scaling
+             * @param   auxSpan  range defining colour scaling
              * @param   paperType  paper type
              */
-            GridDrawing( PlanarSurface surface, Range auxRange,
+            GridDrawing( PlanarSurface surface, Span auxSpan,
                          PaperType ptype ) {
                 surface_ = surface;
-                auxRange_ = auxRange;
+                auxSpan_ = auxSpan;
                 ptype_ = ptype;
             }
 
@@ -822,8 +824,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 ptype_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
                         Scaler scaler =
-                            Scaling.createRangeScaler( gstyle_.scaling_,
-                                                       auxRange_ );
+                            auxSpan_.createScaler( gstyle_.scaling_ );
                         IndexColorModel colorModel =
                             PixelImage.createColorModel( gstyle_.shader_,
                                                          true );

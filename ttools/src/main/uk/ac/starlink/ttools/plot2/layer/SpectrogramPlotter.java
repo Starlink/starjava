@@ -26,8 +26,10 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -229,9 +231,9 @@ public class SpectrogramPlotter
             return new AbstractPlotLayer( this, spectroDataGeom_, dataSpec,
                                           style, layerOpt ) {
                 public Drawing createDrawing( final Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
+                                              Map<AuxScale,Span> auxSpans,
                                               final PaperType paperType ) {
-                    final Range spectroRange = auxRanges.get( SPECTRO_SCALE );
+                    final Span spectroSpan = auxSpans.get( SPECTRO_SCALE );
                     return new UnplannedDrawing() {
                         protected void paintData( Paper paper,
                                                   final DataStore dataStore ) {
@@ -239,7 +241,7 @@ public class SpectrogramPlotter
                                 public void paintDecal( Graphics g ) {
                                     paintSpectrogram( surface, dataStore,
                                                       dataSpec, style,
-                                                      spectroRange, g );
+                                                      spectroSpan, g );
                                 }
                                 public boolean isOpaque() {
                                     return true;
@@ -267,7 +269,7 @@ public class SpectrogramPlotter
                                                     DataSpec dataSpec,
                                                     DataStore dataStore,
                                                     Object[] plans,
-                                                    Range range ) {
+                                                    Ranger ranger ) {
                             TupleSequence tseq =
                                 dataStore.getTupleSequence( dataSpec );
                             while ( tseq.next() ) {
@@ -276,7 +278,7 @@ public class SpectrogramPlotter
                                    .readArrayCoord( tseq, icSpectrum_ );
                                 int nchan = spectrum.length;
                                 for ( int ic = 0; ic < nchan; ic++ ) {
-                                    range.submit( spectrum[ ic ] );
+                                    ranger.submitDatum( spectrum[ ic ] );
                                 }
                             }
                         }
@@ -317,16 +319,15 @@ public class SpectrogramPlotter
      * @param   dataStore  data repository
      * @param   dataSpec  data specifier
      * @param   style   spectrogram style
-     * @param   spectroRange   the range of spectral values
+     * @param   spectroSpan   the range of spectral values
      * @param   g   output graphics context
      */
     private void paintSpectrogram( Surface surface, DataStore dataStore,
                                    DataSpec dataSpec, SpectroStyle style,
-                                   Range spectroRange, Graphics g ) {
+                                   Span spectroSpan, Graphics g ) {
         ChannelGrid grid = style.grid_;
         Shader shader = style.shader_;
-        Scaler specScaler =
-            Scaling.createRangeScaler( style.scaling_, spectroRange );
+        Scaler specScaler = spectroSpan.createScaler( style.scaling_ );
 
         /* Work out the data bounds of the plotting surface. */
         Rectangle plotBounds = surface.getPlotBounds();

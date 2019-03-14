@@ -73,6 +73,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -1224,7 +1225,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final Object[] profiles = PlotUtil.createProfileArray( surfFact, nz );
         final ConfigMap[] aspectConfigs = new ConfigMap[ nz ];
         final ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[ nz ];
-        final Range[] shadeFixRanges = new Range[ nz ];
+        final Span[] shadeFixSpans = new Span[ nz ];
         for ( int iz = 0; iz < nz; iz++ ) {
             String zoneSuffix = zoneSuffixes[ iz ];
 
@@ -1260,9 +1261,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             /* Prepare to specify the shade axis for the current zone. */
             ConfigMap shadeConfig =
                 createZoneSuffixedConfigMap( env, shadeKeys, zoneSuffix );
-            Range shadeFixRange =
-                new Range( shadeConfig.get( StyleKeys.SHADE_LOW ),
-                           shadeConfig.get( StyleKeys.SHADE_HIGH ) );
+            Span shadeFixSpan =
+                PlotUtil
+               .createSpan( shadeConfig.get( StyleKeys.SHADE_LOW ),
+                            shadeConfig.get( StyleKeys.SHADE_HIGH ) );
             ShadeAxisFactory shadeFact =
                 createShadeAxisFactory( env, zoneLayers, zoneSuffix );
 
@@ -1294,7 +1296,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             profiles[ iz ] = profile;
             aspectConfigs[ iz ] = aspectConfig;
             shadeFacts[ iz ] = shadeFact;
-            shadeFixRanges[ iz ] = shadeFixRange;
+            shadeFixSpans[ iz ] = shadeFixSpan;
         }
 
         /* We have all we need.  Construct and return the object
@@ -1320,7 +1322,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     PlotDisplay
                    .createGangDisplay( ganger, surfFact, nz, contents,
                                        profiles, aspectConfigs,
-                                       shadeFacts, shadeFixRanges, navigator,
+                                       shadeFacts, shadeFixSpans, navigator,
                                        ptSel, compositor, dataStore, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
                 return panel;
@@ -1344,7 +1346,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 return AbstractPlot2Task
                       .createPlotIcon( ganger, surfFact,
                                        nz, contents, profiles, aspects,
-                                       shadeFacts, shadeFixRanges,
+                                       shadeFacts, shadeFixSpans,
                                        ptSel, compositor, dataStore,
                                        xpix, ypix, forceBitmap );
             }
@@ -2525,9 +2527,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  aspects    plot surface aspects by zone (nz-element array)
      * @param  shadeFacts   shader axis factories by zone (nz-element array),
      *                      elements may be null if not required
-     * @param  shadeFixRanges  fixed shader ranges by zone (nz-element array)
-     *                         elements may be null for auto-range or if no
-     *                         shade axis
+     * @param  shadeFixSpans  fixed shader ranges by zone (nz-element array)
+     *                        elements may be null for auto-range or if no
+     *                        shade axis
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
@@ -2543,7 +2545,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             final int nz, final ZoneContent[] contents,
                             final P[] profiles, final A[] aspects,
                             ShadeAxisFactory[] shadeFacts,
-                            Range[] shadeFixRanges,
+                            Span[] shadeFixSpans,
                             final PaperTypeSelector ptSel,
                             final Compositor compositor,
                             final DataStore dataStore,
@@ -2566,8 +2568,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
          * since it involves ranging, it's convenient to do it here
          * because we will need the aux ranges anyway. */
         final ShadeAxis[] shadeAxes = new ShadeAxis[ nz ];
-        final List<Map<AuxScale,Range>> auxRangeList =
-            new ArrayList<Map<AuxScale,Range>>();
+        final List<Map<AuxScale,Span>> auxSpanList =
+            new ArrayList<Map<AuxScale,Span>>();
         long start = System.currentTimeMillis();
         for ( int iz = 0; iz < nz; iz++ ) {
             ZoneContent content = contents[ iz ];
@@ -2576,14 +2578,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             Surface approxSurf =
                 surfFact.createSurface( approxGang.getZonePlotBounds( iz ),
                                         profiles[ iz ], aspects[ iz ] );
-            Map<AuxScale,Range> auxRanges =
-                PlotDisplay.getAuxRanges( content.getLayers(), approxSurf,
-                                          shadeFixRanges[ iz ], shadeFact,
-                                          planArray, dataStore );
-            auxRangeList.add( auxRanges );
-            Range shadeRange = auxRanges.get( AuxScale.COLOR );
-            if ( shadeFact != null && shadeRange != null ) {
-                shadeAxes[ iz ] = shadeFact.createShadeAxis( shadeRange );
+            Map<AuxScale,Span> auxSpans =
+                PlotDisplay.getAuxSpans( content.getLayers(), approxSurf,
+                                         shadeFixSpans[ iz ], shadeFact,
+                                         planArray, dataStore );
+            auxSpanList.add( auxSpans );
+            Span shadeSpan = auxSpans.get( AuxScale.COLOR );
+            if ( shadeFact != null && shadeSpan != null ) {
+                shadeAxes[ iz ] = shadeFact.createShadeAxis( shadeSpan );
             }
         }
         PlotUtil.logTimeFromStart( logger_, "Range", start );
@@ -2632,7 +2634,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     long planStart = System.currentTimeMillis();
                     Icon zicon =
                         PlotUtil
-                       .createPlotIcon( placer, layers, auxRangeList.get( iz ),
+                       .createPlotIcon( placer, layers, auxSpanList.get( iz ),
                                         dataStore, paperType, cached, planSet );
                     planMillis += System.currentTimeMillis() - planStart;
                     long paintStart = System.currentTimeMillis();

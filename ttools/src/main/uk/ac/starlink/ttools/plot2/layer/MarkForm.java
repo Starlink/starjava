@@ -12,7 +12,6 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -20,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -345,7 +345,7 @@ public abstract class MarkForm implements ShapeForm {
         }
 
         public Object calculateBinPlan( Surface surface, DataGeom geom,
-                                        Map<AuxScale,Range> auxRanges,
+                                        Map<AuxScale,Span> auxSpans,
                                         DataStore dataStore, DataSpec dataSpec,
                                         Object[] knownPlans ) {
             return BinPlan
@@ -420,7 +420,7 @@ public abstract class MarkForm implements ShapeForm {
 
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
             final Point2D.Double gp = new Point2D.Double();
@@ -438,7 +438,7 @@ public abstract class MarkForm implements ShapeForm {
 
         public ShapePainter create3DPainter( final CubeSurface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
             final GPoint3D gp = new GPoint3D();
@@ -497,7 +497,7 @@ public abstract class MarkForm implements ShapeForm {
 
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
             final Point2D.Double gp = new Point2D.Double();
@@ -518,7 +518,7 @@ public abstract class MarkForm implements ShapeForm {
 
         public ShapePainter create3DPainter( final CubeSurface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
             final GPoint3D gp = new GPoint3D();

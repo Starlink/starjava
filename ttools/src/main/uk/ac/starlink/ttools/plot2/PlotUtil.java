@@ -72,6 +72,9 @@ public class PlotUtil {
         }
     };
 
+    /** Span instance not initialised with any data. */
+    public static final Span EMPTY_SPAN = new BasicRanger().createSpan();
+
     /** Relative location of latex font location list. */
     private static final String LATEX_FONT_PATHS = "latex_fonts.txt";
 
@@ -117,6 +120,19 @@ public class PlotUtil {
      */
     public static boolean equals( Object o1, Object o2 ) {
         return o1 == null ? o2 == null : o1.equals( o2 );
+    }
+
+    /**
+     * Indicates whether two double values are equivalent.
+     * Unlike the == operator, this function returns true if both are NaN.
+     *
+     * @param  d1  first value
+     * @param  d2  second value
+     * @return   true iff inputs are both equal or both NaN
+     */
+    public static boolean doubleEquals( double d1, double d2 ) {
+        return Double.isNaN( d1 ) ? Double.isNaN( d2 )
+                                  : d1 == d2;
     }
 
     /**
@@ -625,7 +641,7 @@ public class PlotUtil {
      *
      * @param  placer  plot placement
      * @param  layers   layers constituting plot content
-     * @param  auxRanges  requested range information calculated from data
+     * @param  auxSpans   requested range information calculated from data
      * @param  dataStore  data storage object
      * @param  paperType  rendering type
      * @param  cached  whether to cache pixels for future use
@@ -634,7 +650,7 @@ public class PlotUtil {
      */ 
     @Slow
     public static Icon createPlotIcon( PlotPlacement placer, PlotLayer[] layers,
-                                       Map<AuxScale,Range> auxRanges,
+                                       Map<AuxScale,Span> auxSpans,
                                        DataStore dataStore, PaperType paperType,
                                        boolean cached,
                                        Collection<Object> storedPlans ) {
@@ -649,7 +665,7 @@ public class PlotUtil {
         }
         for ( int il = 0; il < nl; il++ ) {
             drawings[ il ] = layers[ il ]
-                            .createDrawing( surface, auxRanges, paperType );
+                            .createDrawing( surface, auxSpans, paperType );
             plans[ il ] = drawings[ il ].calculatePlan( knownPlans.toArray(),
                                                         dataStore );
             knownPlans.add( plans[ il ] );
@@ -900,6 +916,17 @@ public class PlotUtil {
             scaleValue( min, max, subrange.getLow(), isLog ),
             scaleValue( min, max, subrange.getHigh(), isLog ),
         };
+    }
+
+    /**
+     * Returns a basic span instance with a given lower and upper bound.
+     *
+     * @param  lo  lower bound, may be NaN
+     * @param  hi  upper bound, may be NaN
+     * @return  new span
+     */
+    public static Span createSpan( double lo, double hi ) {
+        return EMPTY_SPAN.limit( lo, hi );
     }
 
     /**

@@ -24,6 +24,7 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -111,7 +112,7 @@ public class EdsdPlotter extends AbstractPlotter<EdsdPlotter.EdsdStyle> {
                                                 DataStore dataStore ) {
             }
             public Drawing createDrawing( final Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           final PaperType paperType ) {
                 return new UnplannedDrawing() {
                     protected void paintData( Paper paper,

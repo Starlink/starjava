@@ -7,8 +7,8 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.image.IndexColorModel;
 import java.util.logging.Logger;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
@@ -28,10 +28,10 @@ public abstract class SkyTileRenderer {
     /**
      * Modifies the range of aux values found within a given surface.
      *
-     * @param  range   range object to be modified
+     * @param  ranger   range object to be modified
      * @param  binResult   tile bin contents
      */
-    public abstract void extendAuxRange( Range range,
+    public abstract void extendAuxRange( Ranger ranger,
                                          BinList.Result binResult );
 
     /**
@@ -202,7 +202,7 @@ public abstract class SkyTileRenderer {
             };
         }
 
-        public void extendAuxRange( Range range, BinList.Result binResult ) {
+        public void extendAuxRange( Ranger ranger, BinList.Result binResult ) {
             Rectangle bounds = surface_.getPlotBounds();
             Gridder gridder = new Gridder( bounds.width, bounds.height );
             int npix = gridder.getLength();
@@ -218,8 +218,8 @@ public abstract class SkyTileRenderer {
                     long hpix = skyPixer_.getIndex( dpos );
                     if ( hpix != hpix0 ) {
                          hpix0 = hpix;
-                        range.submit( binFactor_ *
-                                      binResult.getBinValue( hpix ) );
+                        ranger.submitDatum( binFactor_ *
+                                            binResult.getBinValue( hpix ) );
                     }
                 }
             }
@@ -255,12 +255,12 @@ public abstract class SkyTileRenderer {
             binFactor_ = binFactor;
         }
 
-        public void extendAuxRange( Range range, BinList.Result binResult ) {
+        public void extendAuxRange( Ranger ranger, BinList.Result binResult ) {
             for ( Long hpxObj : tiler_.visiblePixels() ) {
                 long hpx = hpxObj.longValue();
                 double value = binResult.getBinValue( hpx );
                 if ( ! Double.isNaN( value ) ) {
-                    range.submit( binFactor_ * value );
+                    ranger.submitDatum( binFactor_ * value );
                 }
             }
         }

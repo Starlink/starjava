@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -16,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ColorConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -137,7 +137,7 @@ public class SphereGridPlotter
         final LayerOpt layerOpt = new LayerOpt( style.color_, true );
         return new AbstractPlotLayer( this, geom, dataSpec, style, layerOpt ) {
             public Drawing createDrawing( Surface surf,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           PaperType paperType ) {
                 final CubeSurface csurf = (CubeSurface) surf;
                 final PaperType3D ptype = (PaperType3D) paperType;

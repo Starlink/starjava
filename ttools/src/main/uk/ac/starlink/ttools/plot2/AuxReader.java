@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2;
 
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -24,11 +23,11 @@ public interface AuxReader {
      * @param  dataSpec    specification for data
      * @param  dataStore   data storage object
      * @param  knownPlans  array of available plan objects; may be empty
-     * @param  range   range object to be updated with range information
+     * @param  ranger   object to be updated with range information
      */
     void adjustAuxRange( Surface surface, DataSpec dataSpec,
                          DataStore dataStore, Object[] knownPlans,
-                         Range range );
+                         Ranger ranger );
 
     /**
      * Returns the DataSpec index for the coordinate whose value is used

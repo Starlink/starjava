@@ -39,6 +39,7 @@ import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -101,9 +102,9 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  aspects    plot surface aspects by zone (nz-element array)
      * @param  shadeFacts   shader axis factories by zone (nz-element array),
      *                      elements may be null if not required
-     * @param  shadeFixRanges  fixed shader ranges by zone (nz-element array)
-     *                         elements may be null for auto-range or if no
-     *                         shade axis
+     * @param  shadeFixSpans  fixed shader ranges by zone (nz-element array)
+     *                        elements may be null for auto-range or if no
+     *                        shade axis
      * @param  navigator  user gesture navigation controller,
      *                    or null for a non-interactive plot
      * @param  ptSel    paper type selector
@@ -114,7 +115,7 @@ public class PlotDisplay<P,A> extends JComponent {
     public PlotDisplay( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
                         int nz, ZoneContent[] zoneContents,
                         P[] profiles, A[] aspects,
-                        ShadeAxisFactory[] shadeFacts, Range[] shadeFixRanges,
+                        ShadeAxisFactory[] shadeFacts, Span[] shadeFixSpans,
                         final Navigator<A> navigator,
                         PaperTypeSelector ptSel, Compositor compositor,
                         DataStore dataStore, PlotCaching caching ) {
@@ -127,7 +128,7 @@ public class PlotDisplay<P,A> extends JComponent {
         A[] okAspects = ganger.adjustAspects( aspects.clone(), -1 );
         for ( int iz = 0; iz < nz_; iz++ ) {
             zones_[ iz ] = new Zone( zoneContents[ iz ], profiles[ iz ],
-                                     shadeFacts[ iz ], shadeFixRanges[ iz ],
+                                     shadeFacts[ iz ], shadeFixSpans[ iz ],
                                      okAspects[ iz ], usePlans );
         }
         ptSel_ = ptSel;
@@ -232,7 +233,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param   title   title text, or null
      * @param  aspect    plot surface aspect
      * @param  shadeFact   shader axis factory, or null if not required
-     * @param  shadeFixRange  fixed shader range, or null for auto-range
+     * @param  shadeFixSpan  fixed shader span, or null for auto-range
      * @param  navigator  user gesture navigation controller,
      *                    or null for a non-interactive plot
      * @param  ptSel    paper type selector
@@ -244,7 +245,7 @@ public class PlotDisplay<P,A> extends JComponent {
     public PlotDisplay( SurfaceFactory<P,A> surfFact, PlotLayer[] layers,
                         P profile, Icon legend, float[] legPos, String title,
                         A aspect, ShadeAxisFactory shadeFact,
-                        Range shadeFixRange, Navigator<A> navigator,
+                        Span shadeFixSpan, Navigator<A> navigator,
                         PaperTypeSelector ptSel, Compositor compositor,
                         Padding padding, DataStore dataStore,
                         PlotCaching caching ) {
@@ -255,7 +256,7 @@ public class PlotDisplay<P,A> extends JComponent {
               PlotUtil.singletonArray( profile ),
               PlotUtil.singletonArray( aspect ),
               new ShadeAxisFactory[] { shadeFact },
-              new Range[] { shadeFixRange },
+              new Span[] { shadeFixSpan },
               navigator, ptSel, compositor, dataStore, caching );
     }
 
@@ -337,20 +338,20 @@ public class PlotDisplay<P,A> extends JComponent {
                 zone.approxSurf_ =
                     surfFact_.createSurface( approxGang.getZonePlotBounds( iz ),
                                              zone.profile_, zone.aspect_ );
-                if ( zone.auxRanges_ == null ||
+                if ( zone.auxSpans_ == null ||
                      ( surfaceAuxRanging_ &&
                        ! zone.approxSurf_.equals( oldApproxSurf ) ) ) {
                     Object[] plans = zone.plans_ == null
                                    ? null
                                    : zone.plans_.toArray();
-                    zone.auxRanges_ =
-                        getAuxRanges( content.getLayers(), zone.approxSurf_,
-                                      zone.shadeFixRange_, zone.shadeFact_,
-                                      plans, dataStore_ );
-                    Range shadeRange = zone.auxRanges_.get( AuxScale.COLOR );
+                    zone.auxSpans_ =
+                        getAuxSpans( content.getLayers(), zone.approxSurf_,
+                                     zone.shadeFixSpan_, zone.shadeFact_,
+                                     plans, dataStore_ );
+                    Span shadeSpan = zone.auxSpans_.get( AuxScale.COLOR );
                     ShadeAxisFactory shadeFact = zone.shadeFact_;
-                    zone.shadeAxis_ = shadeRange != null && shadeFact != null
-                                    ? shadeFact.createShadeAxis( shadeRange )
+                    zone.shadeAxis_ = shadeSpan != null && shadeFact != null
+                                    ? shadeFact.createShadeAxis( shadeSpan )
                                     : null;
                 }
             }
@@ -392,7 +393,7 @@ public class PlotDisplay<P,A> extends JComponent {
 
                 /* Create the plot icon. */
                 zone.icon_ =
-                    PlotUtil.createPlotIcon( placer, layers, zone.auxRanges_,
+                    PlotUtil.createPlotIcon( placer, layers, zone.auxSpans_,
                                              dataStore_, paperType,
                                              cacheImage_, zone.plans_ );
             }
@@ -624,7 +625,7 @@ public class PlotDisplay<P,A> extends JComponent {
      *                  or null for external legend
      * @param  title    plot title, or null
      * @param  shadeFact  makes shader axis, or null if not required
-     * @param  shadeFixRange  fixed shader range,
+     * @param  shadeFixSpan  fixed shader range,
      *                        or null for auto-range where required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
@@ -640,7 +641,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                SurfaceFactory<P,A> surfFact, ConfigMap config,
                                Icon legend, float[] legPos, String title,
                                ShadeAxisFactory shadeFact,
-                               Range shadeFixRange, PaperTypeSelector ptSel,
+                               Span shadeFixSpan, PaperTypeSelector ptSel,
                                Compositor compositor, Padding padding,
                                DataStore dataStore, boolean navigable,
                                PlotCaching caching ) {
@@ -670,12 +671,12 @@ public class PlotDisplay<P,A> extends JComponent {
         A[] aspects = PlotUtil.singletonArray( aspect );
         P[] profiles = PlotUtil.singletonArray( profile );
         ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[] { shadeFact };
-        Range[] shadeFixRanges = new Range[] { shadeFixRange };
+        Span[] shadeFixSpans = new Span[] { shadeFixSpan };
 
         /* Construct and return the component. */
         return new PlotDisplay<P,A>( ganger, surfFact, 1, contents,
                                      profiles, aspects, 
-                                     shadeFacts, shadeFixRanges, navigator,
+                                     shadeFacts, shadeFixSpans, navigator,
                                      ptSel, compositor, dataStore, caching );
     }
 
@@ -694,7 +695,7 @@ public class PlotDisplay<P,A> extends JComponent {
      *                         for surf.getAspectKeys (nz-element arrays)
      * @param  shadeFacts   shader axis factorys by zone (nz-element array),
      *                      elements may be null if not required
-     * @param  shadeFixRanges  fixed shader ranges by zone (nz-element array)
+     * @param  shadeFixSpans   fixed shader ranges by zone (nz-element array)
      *                         elements may be null for auto-range or if no
      *                         shade axis
      * @param  navigator  user gesture navigation controller,
@@ -712,7 +713,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                int nz, ZoneContent[] contents, P[] profiles,
                                ConfigMap[] aspectConfigs,
                                ShadeAxisFactory[] shadeFacts,
-                               Range[] shadeFixRanges, Navigator<A> navigator,
+                               Span[] shadeFixSpans, Navigator<A> navigator,
                                PaperTypeSelector ptSel, Compositor compositor,
                                DataStore dataStore, PlotCaching caching ) {
 
@@ -735,7 +736,7 @@ public class PlotDisplay<P,A> extends JComponent {
         /* Construct and return display. */
         return new PlotDisplay<P,A>( ganger, surfFact, nz, contents,
                                      profiles, aspects,
-                                     shadeFacts, shadeFixRanges, navigator,
+                                     shadeFacts, shadeFixSpans, navigator,
                                      ptSel, compositor, dataStore, caching );
     }
 
@@ -744,27 +745,27 @@ public class PlotDisplay<P,A> extends JComponent {
      *
      * @param  layers  plot layers
      * @param  surface  plot surface
-     * @param  shadeFixRange  fixed shade range limits, if any
+     * @param  shadeFixSpan   fixed shade range limits, if any
      * @param  shadeFact  makes shader axis, or null
      * @param  plans   array of calculated plan objects, or null
      * @param  dataStore  data storage object
      * @return   ranging information
      */
     @Slow
-    public static Map<AuxScale,Range> getAuxRanges( PlotLayer[] layers,
-                                                    Surface surface,
-                                                    Range shadeFixRange,
-                                                    ShadeAxisFactory shadeFact,
-                                                    Object[] plans,
-                                                    DataStore dataStore ) {
+    public static Map<AuxScale,Span> getAuxSpans( PlotLayer[] layers,
+                                                  Surface surface,
+                                                  Span shadeFixSpan,
+                                                  ShadeAxisFactory shadeFact,
+                                                  Object[] plans,
+                                                  DataStore dataStore ) {
 
         /* Work out what ranges have been requested by plot layers. */
         AuxScale[] scales = AuxScale.getAuxScales( layers );
 
         /* Add any known fixed range values. */
-        Map<AuxScale,Range> auxFixRanges = new HashMap<AuxScale,Range>();
-        if ( shadeFixRange != null ) {
-            auxFixRanges.put( AuxScale.COLOR, shadeFixRange );
+        Map<AuxScale,Span> auxFixSpans = new HashMap<AuxScale,Span>();
+        if ( shadeFixSpan != null ) {
+            auxFixSpans.put( AuxScale.COLOR, shadeFixSpan );
         }
 
         /* Prepare list of ranges known to be logarithmic. */
@@ -778,21 +779,21 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Work out what ranges we need to calculate. */
         AuxScale[] calcScales =
-            AuxScale.getMissingScales( scales, new HashMap<AuxScale,Range>(),
-                                       auxFixRanges );
+            AuxScale.getMissingScales( scales, new HashMap<AuxScale,Span>(),
+                                       auxFixSpans );
 
         /* Calculate the ranges from the data. */
         long start = System.currentTimeMillis();
         plans = plans == null ? new Object[ 0 ] : plans;
-        Map<AuxScale,Range> auxDataRanges =
-            AuxScale.calculateAuxRanges( calcScales, layers, surface, plans,
-                                         dataStore );
+        Map<AuxScale,Span> auxDataSpans =
+            AuxScale.calculateAuxSpans( calcScales, layers, surface, plans,
+                                        dataStore );
         PlotUtil.logTimeFromStart( logger_, "AuxRange", start );
 
         /* Combine all the gathered information to acquire actual
          * data ranges for the plot. */
-        return AuxScale.getClippedRanges( scales, auxDataRanges, auxFixRanges,
-                                          auxSubranges, auxLogFlags );
+        return AuxScale.getClippedSpans( scales, auxDataSpans, auxFixSpans,
+                                         auxSubranges, auxLogFlags );
     }
 
     /**
@@ -803,10 +804,10 @@ public class PlotDisplay<P,A> extends JComponent {
         final ZoneContent content_;
         final P profile_;
         final ShadeAxisFactory shadeFact_;
-        final Range shadeFixRange_;
+        final Span shadeFixSpan_;
         final Set<Object> plans_;
         A aspect_;
-        Map<AuxScale,Range> auxRanges_;
+        Map<AuxScale,Span> auxSpans_;
         Surface approxSurf_;
         ShadeAxis shadeAxis_;
 
@@ -822,16 +823,16 @@ public class PlotDisplay<P,A> extends JComponent {
          * @param  content   zone content
          * @param  profile   zone profile
          * @param  shadeFact  shade axis factory, or null
-         * @param  shadeFixRange  fixed range for shader axis, or null
+         * @param  shadeFixSpan   fixed range for shader axis, or null
          * @param  initialAspect   aspect for initial display
          * @param  usePlans  if true, store plotting plans for reuse
          */
         Zone( ZoneContent content, P profile, ShadeAxisFactory shadeFact,
-              Range shadeFixRange, A initialAspect, boolean usePlans ) {
+              Span shadeFixSpan, A initialAspect, boolean usePlans ) {
             content_ = content;
             profile_ = profile;
             shadeFact_ = shadeFact;
-            shadeFixRange_ = shadeFixRange;
+            shadeFixSpan_ = shadeFixSpan;
             aspect_ = initialAspect;
             plans_ = usePlans ? new HashSet<Object>() : null;
         }

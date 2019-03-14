@@ -19,7 +19,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.cone.HealpixTiling;
 import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
@@ -31,9 +30,11 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ComboBoxSpecifier;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -486,27 +487,27 @@ public class HealpixPlotter
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore,
-                                            Object[] knownPlans, Range range ) {
+                                            Object[] knownPlans,
+                                            Ranger ranger ) {
                     TilePlan tplan = getTilePlan( knownPlans );
                     BinList.Result binResult =
                         tplan == null ? readBins( dataSpec, dataStore )
                                       : tplan.binResult_;
                     createTileRenderer( surface )
-                   .extendAuxRange( range, binResult );
+                   .extendAuxRange( ranger, binResult );
                 }
             } );
             return map;
         }
 
         public Drawing createDrawing( Surface surf,
-                                      Map<AuxScale,Range> auxRanges,
+                                      Map<AuxScale,Span> auxSpans,
                                       final PaperType paperType ) {
             final DataSpec dataSpec = getDataSpec();
             final Combiner combiner = hstyle_.combiner_;
             final Shader shader = hstyle_.shader_;
             final Scaler scaler =
-                Scaling.createRangeScaler( hstyle_.scaling_,
-                                           auxRanges.get( SCALE ) );
+                auxSpans.get( SCALE ).createScaler( hstyle_.scaling_ );
             final SkyTileRenderer renderer = createTileRenderer( surf );
             return new Drawing() {
                 public Object calculatePlan( Object[] knownPlans,

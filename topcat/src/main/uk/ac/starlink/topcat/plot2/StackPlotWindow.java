@@ -68,7 +68,6 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.topcat.WindowToggle;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
@@ -90,6 +89,7 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -945,7 +945,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 multiShaderControl_.getController( zid );
             final ShadeAxisFactory shadeFact =
                 shaderControl.createShadeAxisFactory( controls, zid );
-            final Range shadeFixRange = shaderControl.getFixRange();
+            final Span shadeFixSpan = shaderControl.getFixSpan();
             final Subrange shadeSubrange = shaderControl.getSubrange();
             final boolean isShadeLog = shaderControl.isLog();
             final ConfigMap config = new ConfigMap();
@@ -974,8 +974,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 public ShadeAxisFactory getShadeAxisFactory() {
                     return shadeFact;
                 }
-                public Range getShadeFixRange() {
-                    return shadeFixRange;
+                public Span getShadeFixSpan() {
+                    return shadeFixSpan;
                 }
                 public Subrange getShadeSubrange() {
                     return shadeSubrange;

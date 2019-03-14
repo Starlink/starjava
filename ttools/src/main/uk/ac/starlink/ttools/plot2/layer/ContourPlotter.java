@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
@@ -21,6 +20,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.ReportKey;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -245,7 +245,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         LayerOpt opt = new LayerOpt( style.getColor(), true );
         return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
             public Drawing createDrawing( Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           PaperType paperType ) {
 
                 /* It would be nice to draw vector contours.

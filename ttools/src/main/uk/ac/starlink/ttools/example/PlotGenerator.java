@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -15,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -51,7 +51,7 @@ public class PlotGenerator<P,A> {
     private final float[] legPos_;
     private final String title_;
     private final ShadeAxisFactory shadeFact_;
-    private final Range shadeFixRange_;
+    private final Span shadeFixSpan_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
     private final DataStore dataStore_;
@@ -72,8 +72,8 @@ public class PlotGenerator<P,A> {
      *                  or null for external legend
      * @param  title   plot title, or null if not required
      * @param  shadeFact creates shader axis, or null if not required
-     * @param  shadeFixRange  fixed shader range,
-     *                        or null for auto-range where required
+     * @param  shadeFixSpan  fixed shader span,
+     *                       or null for auto-range where required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
@@ -90,7 +90,7 @@ public class PlotGenerator<P,A> {
     public PlotGenerator( PlotLayer[] layers,
                           SurfaceFactory<P,A> surfFact, P profile, A aspect,
                           Icon legend, float[] legPos, String title,
-                          ShadeAxisFactory shadeFact, Range shadeFixRange,
+                          ShadeAxisFactory shadeFact, Span shadeFixSpan,
                           PaperTypeSelector ptSel, Compositor compositor,
                           DataStore dataStore, int xpix, int ypix,
                           Padding padding ) {
@@ -102,7 +102,7 @@ public class PlotGenerator<P,A> {
         legPos_ = legPos;
         title_ = title;
         shadeFact_ = shadeFact;
-        shadeFixRange_ = shadeFixRange;
+        shadeFixSpan_ = shadeFixSpan;
         ptSel_ = ptSel;
         compositor_ = compositor;
         dataStore_ = dataStore;
@@ -132,7 +132,7 @@ public class PlotGenerator<P,A> {
         cachePolicy.setUsePlans( true );
         PlotDisplay<P,A> display =
             new PlotDisplay( surfFact_, layers_, profile_, legend_, legPos_,
-                             title_, aspect_, shadeFact_, shadeFixRange_,
+                             title_, aspect_, shadeFact_, shadeFixSpan_,
                              navigator, ptSel_, compositor_, padding_,
                              dataStore_, cachePolicy );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
@@ -175,7 +175,7 @@ public class PlotGenerator<P,A> {
                                PlotUtil.singletonArray( profile_ ),
                                PlotUtil.singletonArray( aspect_ ),
                                new ShadeAxisFactory[] { shadeFact_ },
-                               new Range[] { shadeFixRange_ },
+                               new Span[] { shadeFixSpan_ },
                                ptSel_, compositor_, dataStore_,
                                xpix_, ypix_, forceBitmap );
     }

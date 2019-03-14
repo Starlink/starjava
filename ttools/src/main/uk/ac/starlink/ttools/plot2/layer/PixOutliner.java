@@ -2,11 +2,11 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Rectangle;
 import java.util.Map;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -24,7 +24,7 @@ import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 public abstract class PixOutliner implements Outliner {
 
     public Object calculateBinPlan( Surface surface, DataGeom geom,
-                                    Map<AuxScale,Range> auxRanges,
+                                    Map<AuxScale,Span> auxRanges,
                                     DataStore dataStore, DataSpec dataSpec,
                                     Object[] knownPlans ) {
 

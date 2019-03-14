@@ -19,7 +19,6 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
@@ -34,11 +33,13 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -1118,14 +1119,13 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     return map;
                 }
                 public Drawing createDrawing( Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
+                                              Map<AuxScale,Span> auxSpans,
                                               PaperType paperType ) {
-                    Range shadeRange = auxRanges.get( SCALE );
-                    Scaler scaler =
-                        Scaling.createRangeScaler( scaling, shadeRange );
+                    Span shadeSpan = auxSpans.get( SCALE );
+                    Scaler scaler = shadeSpan.createScaler( scaling );
                     DrawSpec drawSpec =
                         new DrawSpec( surface, geom, dataSpec, outliner,
-                                      auxRanges, paperType );
+                                      auxSpans, paperType );
 
                     // A possible optimisation would be in the case that we
                     // have an opaque 2D plot to return a planned drawing,
@@ -1361,16 +1361,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                                 DataSpec dataSpec,
                                                 DataStore dataStore,
                                                 Object[] knownPlans,
-                                                Range range ) {
+                                                Ranger ranger ) {
                         WeightPlan wplan =
                             getWeightPlan( knownPlans, surface, dataSpec );
                         final BinList.Result binResult;
                         if ( wplan == null ) {
-                            // no auxRanges - have to fake it.
-                            Map<AuxScale,Range> auxRanges =
-                                new HashMap<AuxScale,Range>();
+                            // no auxSpans - have to fake it.
+                            Map<AuxScale,Span> auxSpans =
+                                new HashMap<AuxScale,Span>();
                             binResult = readBinList( surface, dataSpec,
-                                                     dataStore, auxRanges )
+                                                     dataStore, auxSpans )
                                        .getResult();
                         }
                         else {
@@ -1380,7 +1380,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         for ( Iterator<Long> it = binResult.indexIterator();
                               it.hasNext(); ) {
                             long ibin = it.next().longValue();
-                            range.submit( binResult.getBinValue( ibin ) );
+                            ranger.submitDatum( binResult.getBinValue( ibin ) );
                         }
                     }
                 } );
@@ -1388,9 +1388,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             }
 
             public Drawing createDrawing( Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           PaperType paperType ) {
-                return new WeightDrawing( surface, auxRanges, paperType );
+                return new WeightDrawing( surface, auxSpans, paperType );
             }
 
             /**
@@ -1402,12 +1402,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  dataSpec  data specification
              * @param  dataStore  data storage
              * @param  tseq    point sequence
-             * @param  auxRanges   aux data range map
+             * @param  auxSpans   aux data range map
              * @return  bin list that does not require scaling
              */
             private BinList readBinList( Surface surface, DataSpec dataSpec,
                                          DataStore dataStore,
-                                         Map<AuxScale,Range> auxRanges ) {
+                                         Map<AuxScale,Span> auxSpans ) {
                 DataGeom geom = getDataGeom();
                 WeightPaper wpaper =
                     new WeightPaper( surface.getPlotBounds(),
@@ -1416,9 +1416,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 ShapePainter painter =
                       surface instanceof CubeSurface
                     ? outliner_.create3DPainter( (CubeSurface) surface, geom,
-                                                 auxRanges, ptype )
+                                                 auxSpans, ptype )
                     : outliner_.create2DPainter( surface, geom,
-                                                 auxRanges, ptype );
+                                                 auxSpans, ptype );
                 TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
 
                 /* Under normal circumstances, use the submitted combiner
@@ -1466,20 +1466,20 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              */
             private class WeightDrawing implements Drawing {
                 final Surface surface_;
-                final Map<AuxScale,Range> auxRanges_;
+                final Map<AuxScale,Span> auxSpans_;
                 final PaperType paperType_;
 
                 /**
                  * Constructor.
                  *
                  * @param  surface  plot surface
-                 * @param  auxRanges   aux data ranges
+                 * @param  auxSpans   aux data ranges
                  * @param  paperType   paper type
                  */
-                WeightDrawing( Surface surface, Map<AuxScale,Range> auxRanges,
+                WeightDrawing( Surface surface, Map<AuxScale,Span> auxSpans,
                                PaperType paperType ) {
                     surface_ = surface;
-                    auxRanges_ = auxRanges;
+                    auxSpans_ = auxSpans;
                     paperType_ = paperType;
                 }
 
@@ -1493,7 +1493,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     }
                     else {
                         BinList binList = readBinList( surface_, dataSpec,
-                                                       dataStore, auxRanges_ );
+                                                       dataStore, auxSpans_ );
                         int nbin = (int) binList.getSize();  // pixel count
                         Combiner combiner = binList.getCombiner();
                         BinList.Result binResult =
@@ -1534,16 +1534,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  */
                 private void paintBins( Graphics g, int nbin,
                                         BinList.Result binResult ) {
-                    Range auxRange = auxRanges_.get( SCALE );
-                    if ( auxRange == null ) {
-                        auxRange = new Range();
+                    Span auxSpan = auxSpans_.get( SCALE );
+                    if ( auxSpan == null ) {
+                        auxSpan = PlotUtil.EMPTY_SPAN;
                     }
                     Rectangle plotBounds = surface_.getPlotBounds();
                     IndexColorModel colorModel =
                         PixelImage.createColorModel( wstamper_.shader_, true );
-                    Scaler scaler =
-                        Scaling.createRangeScaler( wstamper_.scaling_,
-                                                   auxRange );
+                    Scaler scaler = auxSpan.createScaler( wstamper_.scaling_ );
                     int[] pixels =
                         scaleLevels( nbin, binResult, scaler,
                                      colorModel.getMapSize() - 1 );
@@ -1869,7 +1867,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         final DataGeom geom_;
         final DataSpec dataSpec_;
         final Outliner outliner_;
-        final Map<AuxScale,Range> auxRanges_;
+        final Map<AuxScale,Span> auxSpans_;
         final PaperType paperType_;
         final ShapePainter painter_;
 
@@ -1880,25 +1878,25 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param  geom   data position coordinate definition
          * @param  dataSpec  data specification
          * @param  outliner  outline shape
-         * @param  auxRanges   data ranges calculated by request
+         * @param  auxSpans   data ranges calculated by request
          * @param  paperType  graphics destination type
          */
         DrawSpec( Surface surface, DataGeom geom, DataSpec dataSpec,
-                  Outliner outliner, Map<AuxScale,Range> auxRanges,
+                  Outliner outliner, Map<AuxScale,Span> auxSpans,
                   PaperType paperType ) {
             surface_ = surface;
             geom_ = geom;
             dataSpec_ = dataSpec;
             outliner_ = outliner;
-            auxRanges_ = auxRanges;
+            auxSpans_ = auxSpans;
             paperType_ = paperType;
             if ( paperType instanceof PaperType2D ) {
-                painter_ = outliner.create2DPainter( surface, geom, auxRanges,
+                painter_ = outliner.create2DPainter( surface, geom, auxSpans,
                                                      (PaperType2D) paperType );
             }
             else if ( paperType instanceof PaperType3D ) {
                 painter_ = outliner.create3DPainter( (CubeSurface) surface,
-                                                     geom, auxRanges,
+                                                     geom, auxSpans,
                                                      (PaperType3D) paperType );
             }
             else {
@@ -1916,7 +1914,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public Object calculateBinPlan( Object[] knownPlans,
                                         DataStore dataStore ) {
             return outliner_
-                  .calculateBinPlan( surface_, geom_, auxRanges_, dataStore,
+                  .calculateBinPlan( surface_, geom_, auxSpans_, dataStore,
                                      dataSpec_, knownPlans );
         }
 
@@ -1983,11 +1981,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public Drawing createDrawing( Surface surface,
-                                      Map<AuxScale,Range> auxRanges,
+                                      Map<AuxScale,Span> auxSpans,
                                       PaperType paperType ) {
             DrawSpec drawSpec =
                 new DrawSpec( surface, getDataGeom(), getDataSpec(), outliner_,
-                              auxRanges, paperType );
+                              auxSpans, paperType );
             return createDrawing( drawSpec );
         }
     }

@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.jel.JELFunction;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -27,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -204,7 +204,7 @@ public class FunctionPlotter extends
             LayerOpt opt = new LayerOpt( style.getColor(), true );
             return new AbstractPlotLayer( this, null, null, style, opt ) {
                 public Drawing createDrawing( Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
+                                              Map<AuxScale,Span> auxSpans,
                                               PaperType paperType ) {
                     return new FunctionDrawing( style, surface, paperType );
                 }

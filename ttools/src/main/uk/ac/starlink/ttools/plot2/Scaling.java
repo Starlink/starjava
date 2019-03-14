@@ -136,18 +136,6 @@ public abstract class Scaling {
     }
 
     /**
-     * Utility method to return a scaler based on a Range object.
-     *
-     * @param  scaling  scaling
-     * @param  range  value range
-     * @return   scaler
-     */
-    public static Scaler createRangeScaler( Scaling scaling, Range range ) {
-        double[] bounds = range.getFiniteBounds( scaling.isLogLike() );
-        return scaling.createScaler( bounds[ 0 ], bounds[ 1 ] );
-    }
-
-    /**
      * Constructs the linear scaling instance.
      *
      * @param  name  scaling name

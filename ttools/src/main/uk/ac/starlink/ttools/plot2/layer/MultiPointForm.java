@@ -15,13 +15,14 @@ import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.ttools.plot.ErrorRenderer;
 import uk.ac.starlink.ttools.plot.Pixellator;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -335,7 +336,7 @@ public abstract class MultiPointForm implements ShapeForm {
 
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
             int ndim = surface.getDataDimCount();
             final int nextra = extraCoordSet_.getPointCount();
@@ -343,7 +344,7 @@ public abstract class MultiPointForm implements ShapeForm {
             final double[][] dposExtras = new double[ nextra ][ ndim ];
             final Point2D.Double gpos0 = new Point2D.Double();
             final int icExtra = getExtrasCoordIndex( geom );
-            double scale = scale_ * getBaseScale( surface, auxRanges );
+            double scale = scale_ * getBaseScale( surface, auxSpans );
             final Offsetter offsetter = createOffsetter( surface, scale );
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
@@ -367,7 +368,7 @@ public abstract class MultiPointForm implements ShapeForm {
 
         public ShapePainter create3DPainter( final CubeSurface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType3D paperType ) {
             int ndim = surface.getDataDimCount();
             final int nextra = extraCoordSet_.getPointCount();
@@ -375,7 +376,7 @@ public abstract class MultiPointForm implements ShapeForm {
             final double[][] dposExtras = new double[ nextra ][ ndim ];
             final GPoint3D gpos0 = new GPoint3D();
             final int icExtra = getExtrasCoordIndex( geom );
-            double scale = scale_ * getBaseScale( surface, auxRanges );
+            double scale = scale_ * getBaseScale( surface, auxSpans );
             final Offsetter offsetter = createOffsetter( surface, scale );
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
@@ -426,10 +427,10 @@ public abstract class MultiPointForm implements ShapeForm {
          * Manual adjustment may be applied on top of this value.
          *
          * @param   surface  plot surface
-         * @param   auxRanges  ranges calculated from data by request
+         * @param   auxSpans  ranges calculated from data by request
          */
         private double getBaseScale( Surface surface,
-                                     Map<AuxScale,Range> auxRanges ) {
+                                     Map<AuxScale,Span> auxSpans ) {
 
             /* If no autoscale, just return 1. */
             if ( ! isAutoscale_ ) {
@@ -438,8 +439,8 @@ public abstract class MultiPointForm implements ShapeForm {
 
             /* Otherwise, pick a scale so that the largest sized shape
              * painted will be a few tens of pixels long. */
-            Range sizeRange = auxRanges.get( new SizeScale( this ) );
-            double[] bounds = sizeRange.getFiniteBounds( false );
+            Span sizeSpan = auxSpans.get( new SizeScale( this ) );
+            double[] bounds = sizeSpan.getFiniteBounds( false );
             double gmax = Math.max( -bounds[ 0 ], +bounds[ 1 ] );
             assert gmax >= 0;
             return gmax == 0 ? 1 : 32 / gmax;
@@ -602,7 +603,7 @@ public abstract class MultiPointForm implements ShapeForm {
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,
-                                            Range range ) {
+                                            Ranger ranger ) {
                     double[] dpos0 = new double[ ndim ];
                     double[][] dposExtras = new double[ nextra ][ ndim ];
                     Point2D.Double gpos0 = new Point2D.Double();
@@ -621,8 +622,8 @@ public abstract class MultiPointForm implements ShapeForm {
                                                            dposExtras[ ie ],
                                                            false, gpos1 ) &&
                                     PlotUtil.isPointFinite( gpos1 ) ) {
-                                    range.submit( gpos1.x - gpos0.x );
-                                    range.submit( gpos1.y - gpos0.y );
+                                    ranger.submitDatum( gpos1.x - gpos0.x );
+                                    ranger.submitDatum( gpos1.y - gpos0.y );
                                 }
                             }
                         }

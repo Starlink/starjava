@@ -12,7 +12,6 @@ import javax.swing.SwingConstants;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -20,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -113,12 +113,11 @@ public class ShaderControl extends ConfigControl {
      *
      * @return   shader fixed range, either or both bounds may be absent
      */
-    public Range getFixRange() {
+    public Span getFixSpan() {
         ConfigMap rangeConfig = rangeSpecifier_.getSpecifiedValue();
-        return new Range( PlotUtil
-                         .toDouble( rangeConfig.get( StyleKeys.SHADE_LOW ) ),
-                          PlotUtil
-                         .toDouble( rangeConfig.get( StyleKeys.SHADE_HIGH ) ) );
+        double lo = PlotUtil.toDouble( rangeConfig.get( StyleKeys.SHADE_LOW ) );
+        double hi = PlotUtil.toDouble( rangeConfig.get( StyleKeys.SHADE_HIGH ));
+        return PlotUtil.createSpan( lo, hi );
     }
 
     /**
@@ -154,7 +153,7 @@ public class ShaderControl extends ConfigControl {
                      : config.get( AUXLABEL_KEY );
         if ( ! visible ) {
             return new ShadeAxisFactory() {
-                public ShadeAxis createShadeAxis( Range range ) {
+                public ShadeAxis createShadeAxis( Span span ) {
                     return null;
                 }
                 public boolean isLog() {

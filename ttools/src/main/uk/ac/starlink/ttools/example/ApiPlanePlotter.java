@@ -6,7 +6,6 @@ import javax.swing.Icon;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -15,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -125,7 +125,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         float[] legPos = null;
         String title = null;
         ShadeAxisFactory shadeFact = null;
-        Range shadeFixRange = null;
+        Span shadeFixSpan = null;
 
         /* Prepare the list of plot layers; in this case there is only one. */
         PlotLayer[] layers = { createScatterLayer( geom, table), };
@@ -151,7 +151,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* Construct and return the plot generator. */
         return new PlotGenerator( layers, surfFact, profile, aspect,
                                   legend, legPos, title, shadeFact,
-                                  shadeFixRange, ptSel, compositor,
+                                  shadeFixSpan, ptSel, compositor,
                                   dataStore, xpix, ypix, padding );
     }
 

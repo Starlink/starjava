@@ -1,8 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
@@ -72,7 +72,7 @@ public interface ZoneDef<P,A> {
      *
      * @return  aux fixed range if known
      */
-    Range getShadeFixRange();
+    Span getShadeFixSpan();
 
     /**
      * Subrange for shading coordinate.

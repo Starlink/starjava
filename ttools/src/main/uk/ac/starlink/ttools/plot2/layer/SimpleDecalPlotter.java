@@ -4,7 +4,6 @@ import java.awt.Graphics;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -12,6 +11,7 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -53,7 +53,7 @@ public abstract class SimpleDecalPlotter<S extends Style>
             return new AbstractPlotLayer( this, geom, dataSpec, style,
                                           getLayerOpt( style ) ) {
                 public Drawing createDrawing( final Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
+                                              Map<AuxScale,Span> auxSpans,
                                               final PaperType paperType ) {
                     return new UnplannedDrawing() {
                         protected void paintData( Paper paper,

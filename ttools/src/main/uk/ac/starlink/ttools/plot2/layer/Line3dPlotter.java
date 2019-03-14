@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -19,8 +18,10 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -155,15 +156,15 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
         return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
 
             public Drawing createDrawing( Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
+                                          Map<AuxScale,Span> auxSpans,
                                           final PaperType paperType ) {
                 final CubeSurface surf = (CubeSurface) surface;
                 final PaperType3D ptype = (PaperType3D) paperType;
-                final Range auxRange = auxRanges.get( SCALE );
+                final Span auxSpan = auxSpans.get( SCALE );
                 return new UnplannedDrawing() {
                      protected void paintData( Paper paper,
                                                DataStore dataStore ) {
-                         paintLines3d( style, surf, dataStore, auxRange,
+                         paintLines3d( style, surf, dataStore, auxSpan,
                                        ptype, paper );
                      }
                 };
@@ -186,8 +187,8 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
                                                     DataSpec dataSpec,
                                                     DataStore dataStore,
                                                     Object[] plans,
-                                                    Range range ) {
-                            rangeAux3d( (CubeSurface) surf, dataStore, range );
+                                                    Ranger ranger ) {
+                            rangeAux3d( (CubeSurface) surf, dataStore, ranger );
                         }
                     } );
                 }
@@ -200,11 +201,12 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
              * @param  style  style
              * @param  surf   plotting surface
              * @param  dataStore   data store
+             * @param  auxSpan    aux value range
              * @param  ptype   paper type
              * @param  paper   paper object
              */
             private void paintLines3d( AuxLineStyle style, CubeSurface surf,
-                                       DataStore dataStore, Range auxRange,
+                                       DataStore dataStore, Span auxSpan,
                                        PaperType3D ptype, Paper paper ) {
                 Color baseColor = style.getColor();
                 Stroke stroke = style.getStroke();
@@ -217,8 +219,7 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
                 if ( hasAux ) {
                     Shader shader = style.getShader();
                     Scaling scaling = style.getScaling();
-                    Scaler scaler =
-                         Scaling.createRangeScaler( scaling, auxRange );
+                    Scaler scaler = auxSpan.createScaler( scaling );
                     Color nullColor = style.getNullColor();
                     float scaleAlpha = 1;
                     colorKit = new AuxColorKit( icAux, shader, scaler,
@@ -289,17 +290,17 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
              *
              * @param  surf   plotting surface
              * @param  dataStore   data store
-             * @param  range   range object to update with aux values
+             * @param  ranger   ranger object to update with aux values
              */
             private void rangeAux3d( CubeSurface surf, DataStore dataStore,
-                                     Range range ) {
+                                     Ranger ranger ) {
                 final int ndim = surf.getDataDimCount();
                 double[] dpos = new double[ ndim ];
                 TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                 while ( tseq.next() ) {
                     if ( geom.readDataPos( tseq, icPos, dpos ) &&
                          surf.inRange( dpos ) ) {
-                        range.submit( tseq.getDoubleValue( icAux ) );
+                        ranger.submitDatum( tseq.getDoubleValue( icAux ) );
                     }
                 }
             }

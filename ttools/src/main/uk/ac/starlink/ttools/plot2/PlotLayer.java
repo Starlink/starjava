@@ -106,8 +106,8 @@ public interface PlotLayer {
     /**
      * Creates a drawing from this layer that can contribute to
      * a user-visible plot.
-     * The <code>auxRanges</code> parameter is a map that must contain
-     * a populated Range object for (at least) every scale returned as a
+     * The <code>auxSpans</code> parameter is a map that must contain
+     * a Span object for (at least) every scale returned as a
      * key of the map returned by {@link #getAuxRangers}.
      *
      * <p>If this layer is unable to draw to the given paper type,
@@ -116,9 +116,9 @@ public interface PlotLayer {
      * on suitable paper types.  This logic is in {@link PlotType}.
      *
      * @param   surface  plot surface
-     * @param   auxRanges   range information
+     * @param   auxSpans   range information
      * @param   paperType  rendering object
      */
-    Drawing createDrawing( Surface surface, Map<AuxScale,Range> auxRanges,
+    Drawing createDrawing( Surface surface, Map<AuxScale,Span> auxSpans,
                            PaperType paperType );
 }

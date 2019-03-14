@@ -9,12 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -182,7 +182,7 @@ public class PairLinkForm implements ShapeForm {
 
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
             int ndim = surface.getDataDimCount();
             final double[] dpos1 = new double[ ndim ];
@@ -221,7 +221,7 @@ public class PairLinkForm implements ShapeForm {
 
         public ShapePainter create3DPainter( final CubeSurface surface,
                                              final DataGeom geom,
-                                             Map<AuxScale,Range> auxRanges,
+                                             Map<AuxScale,Span> auxSpans,
                                              final PaperType3D paperType ) {
             int ndim = surface.getDataDimCount();
             final double[] dpos1 = new double[ ndim ];
