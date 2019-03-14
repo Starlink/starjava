@@ -1,4 +1,10 @@
 1 Starlink SPLAT news.
+
+   A bug extracting the lines from 2D input data has been fixed. Previously
+   this was completely broken and only the first line was extracted and
+   repeated for each other line.
+
+
    3.11-4
    ======
 
