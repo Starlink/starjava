@@ -2092,6 +2092,7 @@ public class SpecData
                     //  search the hard way.
                     int lonaxis = 0;
                     int lataxis = 0;
+                    boolean failed = false;
                     for ( int i = 1; i <= nout; i++ ) {
                         try {
                             if ( lonaxis == 0 ) {
@@ -2101,7 +2102,7 @@ public class SpecData
                             }
                         }
                         catch (AstException e) {
-                            //  Do nothing.
+                            failed = true;
                             e.printStackTrace();
                         }
                         try {
@@ -2112,15 +2113,17 @@ public class SpecData
                             }
                         }
                         catch (AstException e) {
-                            //  Do nothing.
+                            failed = true;
                             e.printStackTrace();
                         }
                     }
-                    Header header = getHeaders();
-                    String ra = astref.format( lonaxis, out[lonaxis-1] );
-                    String dec = astref.format( lataxis, out[lataxis-1] );
-                    header.addValue( "EXRAX", ra, "Spectral position" );
-                    header.addValue( "EXDECX", dec, "Spectral position" );
+                    if (!failed) {
+                        Header header = getHeaders();
+                        String ra = astref.format( lonaxis, out[lonaxis-1] );
+                        String dec = astref.format( lataxis, out[lataxis-1] );
+                        header.addValue( "EXRAX", ra, "Spectral position" );
+                        header.addValue( "EXDECX", dec, "Spectral position" );
+                    }
                 }
                 catch (Exception e) {
                     logger.info( "Failed to get spectral position ( " +
