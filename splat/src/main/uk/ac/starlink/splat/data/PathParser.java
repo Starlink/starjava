@@ -326,7 +326,12 @@ public class PathParser
                 type_ = name.substring( i1, i2 );
             } else if ( ! slice_.equals( "" ) ) {
                 int i2 = name.indexOf( slice_ );
-                type_ = name.substring( i1, i2 );
+                if (i1 < i2)
+                	type_ = name.substring( i1, i2 );
+                else {
+                	type_ = name.substring( i1 );  
+                	slice_ = "";
+                }
             } else {
                 type_ = name.substring( i1 );
             }
