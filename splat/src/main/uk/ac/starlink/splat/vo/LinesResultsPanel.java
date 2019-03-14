@@ -1,26 +1,41 @@
 package uk.ac.starlink.splat.vo;
 
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.plaf.basic.BasicButtonUI;
+
+import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
 import uk.ac.starlink.table.gui.StarJTable;
 
 
 
 public class LinesResultsPanel extends ResultsPanel {
 
+	protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
     private JButton changeColourButton=null;
     LineBrowser slQueryBrowser=null;
     private JButton removeLinesButton;
+	private JComboBox activePlotBox;
     
     public LinesResultsPanel(LineBrowser browser) {
             super();
@@ -33,6 +48,15 @@ public class LinesResultsPanel extends ResultsPanel {
     private JPanel initControlPanel() 
     {
         JPanel controlPanel = new JPanel(new GridBagLayout());
+        
+/*       JPanel plotChoicePanel = new JPanel();
+        plotChoicePanel.add (new  JLabel("Select PLOT: "));
+        activePlotBox=new JComboBox();
+        for (int i=0;i<globalList.plotCount();i++)  {
+       	 	activePlotBox.addItem(globalList.getPlotName(i));
+        }
+        plotChoicePanel.add(activePlotBox);
+        */
         GridBagConstraints gbcontrol = new GridBagConstraints();
         gbcontrol.gridx=0;
         gbcontrol.gridy=0;
@@ -40,6 +64,10 @@ public class LinesResultsPanel extends ResultsPanel {
         gbcontrol.weighty=0;
         gbcontrol.fill = GridBagConstraints.HORIZONTAL;
 
+     //   controlPanel.add( plotChoicePanel ,gbcontrol );
+        
+     //   gbcontrol.gridy=1;
+        
         //  Download and display.
         displaySelectedButton = new JButton( "<html>Display<BR> selected Lines</html>" );
         displaySelectedButton.addActionListener( this );
@@ -135,6 +163,36 @@ public class LinesResultsPanel extends ResultsPanel {
         slQueryBrowser.displayLines( currentTable.getStarTable() );          
     }
     
+    public int getPlotIndex() {
+    	return activePlotBox.getSelectedIndex();
+    }
+  
+    public void addTab(String name, StarPopupTable ptable) {
+    	
+    	TabButton removeButton = new TabButton();
+    	JPanel tabPanel = new JPanel();
+    	tabPanel.add(new JLabel(name));
+    	tabPanel.add(removeButton);
+    	tabPanel.setOpaque(false);
+    	removeButton.addActionListener(new ActionListener() { 
+    	    public void actionPerformed(ActionEvent e) { 
+    	    	  TabButton tb = (TabButton) e.getSource();    	    	  
+    			  removeTab((Component) tb.getParent());    			  
+    			  } 
+  			} );
+    	super.addTab(name, (StarPopupTable)  ptable);
+    	int tabindex = resultsPane.indexOfTab(name);
+    	resultsPane.setTabComponentAt(tabindex, tabPanel);
+
+    }
+    
+    private void removeTab(Component  tb) {
+    	int i = resultsPane.indexOfTabComponent(tb);
+        if (i != -1) {
+        	resultsPane.remove(i);
+        };
+    }
+    
     public class LineAction extends AbstractAction
     {
         
@@ -167,6 +225,47 @@ public class LinesResultsPanel extends ResultsPanel {
              }   
         }
     }
+    
+    private class TabButton extends JButton {
 
+		public TabButton() {
+        	
+            int size = 15;
+            setPreferredSize(new Dimension(size, size));
+            setToolTipText("close this tab");
+            //Make the button looks the same for all Laf's
+            setUI(new BasicButtonUI());
+            //Make it transparent
+            setContentAreaFilled(false);
+            //No need to be focusable
+            setFocusable(false);
+            setBorder(BorderFactory.createEtchedBorder());
+            setBorderPainted(false);
+            //Making nice rollover effect
+            //we use the same listener for all buttons
+            addMouseListener(buttonMouseListener);
+           // setRolloverEnabled(true);
+            //Close the proper tab by clicking the button
+            
+        }
+       
+    private final MouseListener buttonMouseListener = new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            Component component = e.getComponent();
+            if (component instanceof AbstractButton) {
+                AbstractButton button = (AbstractButton) component;
+                button.setBorderPainted(true);
+            }
+        }
+ 
+        public void mouseExited(MouseEvent e) {
+            Component component = e.getComponent();
+            if (component instanceof AbstractButton) {
+                AbstractButton button = (AbstractButton) component;
+                button.setBorderPainted(false);
+            }
+        }
+    };
+	}
 
 }

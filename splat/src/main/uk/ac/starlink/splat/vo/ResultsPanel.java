@@ -547,6 +547,12 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         JScrollPane resultScroller=new JScrollPane(table); 
         resultsPane.addTab(shortName, icon, resultScroller );   
     }
+    
+    protected void addTab(String shortName, JButton button) {
+    	resultsPane.addTab(shortName, button);
+  
+    }
+    
 
     public void removeDataLinkButton() {
         dataLinkButton.setVisible(false);        
