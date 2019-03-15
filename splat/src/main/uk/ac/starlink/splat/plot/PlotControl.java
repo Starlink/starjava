@@ -1559,6 +1559,11 @@ public class PlotControl
             fitToHeight();
         }
 
+        // update labels if they were changed in the plot
+        xValueLabel.setText( plot.getLabel( 1 ) + ": " );
+        yValueLabel.setText( plot.getLabel( 2 ) + ": " );
+
+
         // Update the synopsis to reflect any changes.
         updateSynopsis();
     }
