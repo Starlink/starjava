@@ -9,6 +9,7 @@ import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
@@ -244,8 +245,12 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                 if ( span == null ) {
                     span = PlotUtil.EMPTY_SPAN;
                 }
-                return new ShadeAxis( shader, scaling, span,
-                                      label, captioner, crowding, rampWidth );
+                Scaler scaler = span.createScaler( scaling );
+                assert scaler.hashCode() ==
+                       span.createScaler( scaling ).hashCode();
+                assert scaler.equals( span.createScaler( scaling ) );
+                return new ShadeAxis( shader, scaler, label, captioner,
+                                      crowding, rampWidth );
             }
         };
     }

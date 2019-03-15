@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.ttools.func.Maths;
@@ -17,6 +19,9 @@ public abstract class Scaling {
     private final String name_;
     private final String description_;
     private final boolean isLogLike_;
+
+    private static final Object SQRT_TYPE = new Object();
+    private static final Object SQR_TYPE = new Object();
 
     /** Linear scaling. */
     public static final Scaling LINEAR = createLinearScaling( "Linear" );
@@ -39,6 +44,7 @@ public abstract class Scaling {
     private static final Scaling[] STRETCHES = new Scaling[] {
         LOG, LINEAR, SQRT, SQUARE,
     };
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
 
@@ -143,9 +149,10 @@ public abstract class Scaling {
      */
     private static Scaling createLinearScaling( String name ) {
         return new ClippedScaling( name, "Linear scaling", false ) {
+            final Scaling type = this;
             public Scaler createClippedScaler( final double lo, double hi ) {
                 final double scale = 1.0 / ( hi - lo );
-                return new Scaler() {
+                return new DefaultScaler( false, lo, hi, type ) {
                     public double scaleValue( double val ) {
                         return ( val - lo ) * scale;
                     }
@@ -162,6 +169,7 @@ public abstract class Scaling {
      */
     private static Scaling createLogScaling( String name ) {
         return new ClippedScaling( name, "Logarithmic scaling", true ) {
+            final Scaling type = this;
             public Scaler createClippedScaler( double lo, double hi ) {
                 final double xlo;
                 if ( lo > 0 ) {
@@ -179,7 +187,7 @@ public abstract class Scaling {
                 }
                 final double base1 = 1.0 / xlo;
                 final double scale = 1.0 / ( Math.log( hi ) - Math.log( xlo ) );
-                return new Scaler() {
+                return new DefaultScaler( true, xlo, hi, type ) {
                     public double scaleValue( double val ) {
                         return val > 0 ? Math.log( val * base1 ) * scale
                                        : 0;
@@ -218,7 +226,7 @@ public abstract class Scaling {
      */
     private static Scaling createSqrtScaling( String name ) {
         return new ReScaling( name, "Square root scaling", LINEAR,
-                              new Scaler() {
+                              new DefaultScaler( true, 0, 1, SQRT_TYPE ) {
                                   public double scaleValue( double val ) {
                                       return Math.sqrt( val );
                                   }
@@ -233,7 +241,7 @@ public abstract class Scaling {
      */
     private static Scaling createSquareScaling( String name ) {
         return new ReScaling( name, "Square scaling", LINEAR,
-                              new Scaler() {
+                              new DefaultScaler( true, 0, 1, SQR_TYPE ) {
                                   public double scaleValue( double val ) {
                                       return val * val;
                                   }
@@ -393,8 +401,8 @@ public abstract class Scaling {
         }
 
         public Scaler createClippedScaler( final double lo, double hi ) {
-            final Scaler zScaler = new AsinhScaler( delta_, hi - lo );
-            return new Scaler() {
+            final AsinhScale zScaler = new AsinhScale( delta_, hi - lo );
+            return new DefaultScaler( false, lo, hi, AsinhScaling.this ) {
                 public double scaleValue( double val ) {
                     return zScaler.scaleValue( val - lo );
                 }
@@ -441,7 +449,10 @@ public abstract class Scaling {
 
         public Scaler createScaler( double lo, double hi ) {
             final Scaler baseScaler = baseScaling_.createScaler( lo, hi );
-            return new Scaler() {
+            Object type = new ArrayList<Scaler>( Arrays.asList( new Scaler[] {
+                rescaler_, baseScaler,
+            } ) );
+            return new DefaultScaler( baseScaling_.isLogLike(), lo, hi, type ) {
                 public double scaleValue( double val ) {
                     return rescaler_.scaleValue( baseScaler.scaleValue( val ) );
                 }
@@ -555,7 +566,7 @@ public abstract class Scaling {
                 final Scaler clipScaler = createClippedScaler( lo, hi );
                 final double loOut = clipScaler.scaleValue( lo );
                 final double hiOut = clipScaler.scaleValue( hi );
-                return new Scaler() {
+                return new DefaultScaler( isLogLike(), lo, hi, clipScaler ) {
                     public double scaleValue( double val ) {
                         if ( val <= lo ) {
                             return loOut;
@@ -580,7 +591,7 @@ public abstract class Scaling {
                 final double loOut = clipUnit( clipScaler.scaleValue( elo ) );
                 final double hiOut = clipUnit( clipScaler.scaleValue( ehi ) );
                 final double midOut = clipScaler.scaleValue( midVal );
-                return new Scaler() {
+                return new DefaultScaler( isLogLike(), elo, ehi, clipScaler ) {
                     public double scaleValue( double val ) {
                         if ( val < midVal ) {
                             return loOut;
@@ -614,22 +625,75 @@ public abstract class Scaling {
     }
 
     /**
+     * Convenience Scaler implementation.
+     *
+     * @param  isLogLike  whether this scaler is log-like
+     * @param  lo   lower input bound
+     * @param  hi   upper input bounds
+     * @param  type  discriminating object used for Equality tests;
+     *               typically the Scaling is a good choice,
+     *               but any object that will indicate in/equality
+     *               of scalers with the same lo/hi bounds will do
+     */
+    private static abstract class DefaultScaler implements Scaler {
+        private final boolean isLogLike_;
+        private final double lo_;
+        private final double hi_;
+        private final Object type_;
+        DefaultScaler( boolean isLogLike, double lo, double hi, Object type ) {
+            isLogLike_ = isLogLike;
+            lo_ = lo;
+            hi_ = hi;
+            type_ = type;
+        }
+        public boolean isLogLike() {
+            return isLogLike_;
+        }
+        public double getLow() {
+            return lo_;
+        }
+        public double getHigh() {
+            return hi_;
+        }
+        @Override
+        public int hashCode() {
+            int code = 990;
+            code = 23 * code + Float.floatToIntBits( (float) lo_ );
+            code = 23 * code + Float.floatToIntBits( (float) hi_ );
+            code = 23 * code + type_.hashCode();
+            return code;
+        }
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof DefaultScaler ) {
+                DefaultScaler other = (DefaultScaler) o;
+                return this.lo_ == other.lo_
+                    && this.hi_ == other.hi_
+                    && this.type_.equals( other.type_ );
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
      * Scaler which uses the asinh function.
      * It starts off linear and then transitions smoothly to logarithmic.
      */
-    private static class AsinhScaler implements Scaler {
+    private static class AsinhScale {
 
         private final double u_;
         private final double v_;
 
         /**
-         * Constructs an AsinhScaler from constraints.
+         * Constructs an AsinhScale from constraints.
          *
          * @param   max is the maximum value to be scaled
          * @param  delta is the output for <code>c = 1</code>
          * @return   new scaler
          */
-        AsinhScaler( double delta, double max ) {
+        AsinhScale( double delta, double max ) {
             this( calcCoeffs( delta, max ) );
             assert scaleValue( 0 ) == 0;
             assert PlotUtil.approxEquals( delta, scaleValue( 1 ) );
@@ -642,7 +706,7 @@ public abstract class Scaling {
          * @param   coeffs  2-element array:
          *                  scaler of output, scaler of argument
          */
-        private AsinhScaler( double[] coeffs ) {
+        private AsinhScale( double[] coeffs ) {
             u_ = coeffs[ 0 ];
             v_ = coeffs[ 1 ];
         }
