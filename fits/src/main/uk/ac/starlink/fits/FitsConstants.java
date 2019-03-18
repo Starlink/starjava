@@ -9,6 +9,7 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
@@ -425,12 +426,40 @@ public class FitsConstants {
     public static void addTrimmedValue( Header hdr, String key, String value,
                                         String comment )
             throws HeaderCardException {
-        if ( value != null && value.length() > 68 ) {
+        if ( value != null && getStringValueLength( value ) > 68 ) {
             value = value.substring( 0, 65 ) + "...";
             logger.warning( "Truncated long FITS header card " + key + " = " + 
                             value );
         }
         hdr.addValue( key, value, comment );
+    }
+
+    /**
+     * Attempts to add a string-valued card to the header.  If the value
+     * is too long, no header is added, and a message is emitted through
+     * the logging system.
+     *
+     * @param  hdr  header
+     * @param  key  card key
+     * @param  value  card value
+     * @param  comment  card comment
+     */
+    public static void addStringValue( Header hdr, String key, String value,
+                                       String comment ) {
+        if ( value != null && getStringValueLength( value ) > 68 ) {
+            logger.info( "Ignored long FITS header card " + key + " = " +
+                         value );
+        }
+        else {
+            try {
+                hdr.addValue( key, value, comment );
+            }
+            catch ( HeaderCardException e ) {
+                logger.log( Level.WARNING,
+                            "Failed to add FITS header card " + key + " = "
+                             + value, e );
+            }
+        }
     }
 
     /**
@@ -471,6 +500,26 @@ public class FitsConstants {
                 throw new IOException( msg );
             }
         }
+    }
+
+    /**
+     * Returns the number of characters that will be required to encode
+     * a string value into a FITS header card.  This is the length of the
+     * string, adjusted by adding one for every single quote character,
+     * since these are doubled to quote them in string header values.
+     * It does not include the leading and trailing quote characters.
+     * If this value exceeds 68, the string cannot be encoded directly
+     * in a single FITS header card.
+     *
+     * @param  raw string value
+     * @return  number of characters required to represent as a string
+     */
+    private static int getStringValueLength( String str ) {
+        int n = 0;
+        for ( int i = 0; i < str.length(); i++ ) {
+            n += str.charAt( i ) == '\'' ? 2 : 1;
+        }
+        return n;
     }
 
     private static long getRawSize( Header hdr ) {

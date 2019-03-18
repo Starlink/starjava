@@ -438,9 +438,6 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                             int jcol )
             throws HeaderCardException {
         String forcol = " for column " + jcol;
-        int keyleng = colhead.getKeyName( "TUTYP" ).length();
-        int maxStringValueLength =
-            80 - Math.max( 8, colhead.getKeyName( "TUTYP" ).length() ) - 2 - 2;
 
         /* Name. */
         String name = colinfo.getName();
@@ -495,36 +492,22 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* Comment (non-standard). */
         String comm = colinfo.getDescription();
         if ( comm != null && comm.trim().length() > 0 ) {
-            try {
-                hdr.addValue( colhead.getKeyName( "TCOMM" ), comm, null );
-            }
-            catch ( HeaderCardException e ) {
-                // never mind.
-            }
+            FitsConstants
+           .addStringValue( hdr, colhead.getKeyName( "TCOMM" ), comm, null );
         }
 
         /* UCD (non-standard). */
         String ucd = colinfo.getUCD();
-        if ( ucd != null && ucd.trim().length() > 0 &&
-             ucd.length() <= maxStringValueLength ) {
-            try {
-                hdr.addValue( colhead.getKeyName( "TUCD" ), ucd, null );
-            }
-            catch ( HeaderCardException e ) {
-                // never mind.
-            }
+        if ( ucd != null && ucd.trim().length() > 0 ) {
+            FitsConstants
+           .addStringValue( hdr, colhead.getKeyName( "TUCD" ), ucd, null );
         }
 
         /* Utype (non-standard). */
         String utype = colinfo.getUtype();
-        if ( utype != null && utype.trim().length() > 0 &&
-             utype.length() <= maxStringValueLength ) {
-            try {
-                hdr.addValue( colhead.getKeyName( "TUTYP" ), utype, null );
-            }
-            catch ( HeaderCardException e ) {
-                // never mind.
-            }
+        if ( utype != null && utype.trim().length() > 0 ) {
+            FitsConstants
+           .addStringValue( hdr, colhead.getKeyName( "TUTYP" ), utype, null );
         }
     }
 

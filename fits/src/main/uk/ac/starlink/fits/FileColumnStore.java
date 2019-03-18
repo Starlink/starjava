@@ -190,35 +190,22 @@ abstract class FileColumnStore implements ColumnStore {
         /* Column description. */
         String comm = info_.getDescription();
         if ( comm != null && comm.trim().length() > 0 ) {
-            try {
-                hdr.addValue( colhead.getKeyName( "TCOMM" ), comm, null );
-            }
-            catch ( HeaderCardException e ) {
-                // never mind.
-            }
+            FitsConstants
+           .addStringValue( hdr, colhead.getKeyName( "TCOMM" ), comm, null );
         }
 
         /* UCD. */
         String ucd = info_.getUCD();
-        if ( ucd != null && ucd.trim().length() > 0 && ucd.length() < 68 ) {
-            try {
-                hdr.addValue( colhead.getKeyName( "TUCD" ), ucd, null );
-            }
-            catch ( HeaderCardException e ) {
-                // never mind.
-            }
+        if ( ucd != null && ucd.trim().length() > 0 ) {
+            FitsConstants
+           .addStringValue( hdr, colhead.getKeyName( "TUCD" ), ucd, null );
         }
 
         /* Utype. */
         String utype = info_.getUtype();
-        if ( utype != null && utype.trim().length() > 0
-                           && utype.length() < 68 ) {
-            try {
-                hdr.addValue( colhead.getKeyName( "TUTYP" ), utype, null );
-            }
-            catch ( HeaderCardException e ) {
-                // never mind.
-            }
+        if ( utype != null && utype.trim().length() > 0 ) {
+            FitsConstants
+           .addStringValue( hdr, colhead.getKeyName( "TUTYP" ), utype, null );
         }
     }
 
