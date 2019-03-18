@@ -51,6 +51,7 @@ import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.TimeUtilities;
 import uk.ac.starlink.splat.vo.DalResourceXMLFilter;
 
 import uk.ac.starlink.splat.vo.DataLinkResponse;
@@ -1934,8 +1935,13 @@ public class SpecDataFactory
         SpecData specData = null;
         VOStarTable table = null;
         String productType = "";
+        String timeRef = "";
         String timeSystem = "";
-        
+        String timeRefpos = "";
+    	String time0 = "";
+    	String timeField = "";
+    	String timeScale = "";
+    	
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
             if ( "VODML".equals( tagName ) ) {
@@ -1953,7 +1959,18 @@ public class SpecDataFactory
                 VOElement child[] = resource[i].getChildren();
                 for ( int j = 0; j < child.length; j++ ) {
                     tagName = child[j].getTagName();
-                    if ( "TABLE".equals( tagName ) ) {
+                    if ("TIMESYS".equals(tagName)) {
+                    	timeRefpos = child[j].getAttribute("refposition");
+                    	time0 = child[j].getAttribute("timeorigin");
+                    	timeRef = child[j].getAttribute("ID");
+                    	VOElement timeFieldElement = child[j].getReferencedElement(timeRef, "FIELD");
+                    	if (timeFieldElement != null)
+                    		timeField = timeFieldElement.getName();
+                    	timeScale = child[j].getAttribute("timescale");
+                    	
+                    	//productType = "TIMESERIES"; //!!!!!!!
+                    }
+                    else if ( "TABLE".equals( tagName ) ) {
                         utype = child[j].getAttribute( "utype" );  
                         //child[j].setAttribute("dataproducttype", productType);
                                 try {
@@ -1961,12 +1978,21 @@ public class SpecDataFactory
                                
                                 if ( table.getRowCount() == 0 )
                                     throw new SplatException( "The table is empty: "+specspec);
-                           
+                                
                                 TableSpecDataImpl impl = new TableSpecDataImpl(table);
+                                
                                 if (productType.equalsIgnoreCase("TIMESERIES")) {
-                                    impl.setObjectType(ObjectTypeEnum.TIMESERIES);
-                                    if (timeSystem != null && ! timeSystem.isEmpty() )
-                                        impl.setTimeSystem(timeSystem);
+                                    impl.setObjectType(ObjectTypeEnum.TIMESERIES);                                   
+                                    if (timeField != null && ! timeField.isEmpty() ) 
+                                        impl.setTimeField(timeField);
+                                    if (timeRefpos != null && ! timeRefpos.isEmpty() )
+                                        impl.setTimeRefpos(timeRefpos);
+                                    if (time0 != null && ! time0.isEmpty() )
+                                        impl.setTime0(time0);                                    
+                                    if (timeScale != null && ! timeScale.isEmpty() ) {
+                                    	timeScale = TimeUtilities.getSupportedTimeScale(timeRefpos, timeScale);
+                                        impl.setTimeScale(timeScale);
+                                    }
                                 }
                                 specData = new SpecData( impl );
                                 

@@ -177,6 +177,11 @@ public abstract class AbstractSpecDataImpl
     
     private ObjectTypeEnum objectType;
     private String timeSystem;
+    private String timeRefpos;
+    private String time0;
+    private String timeScale;
+    private String timeField;
+
     
     /**
      * Reference to another SpecDataImpl that is a "parent" of this
@@ -262,9 +267,42 @@ public abstract class AbstractSpecDataImpl
         return this.timeSystem;
     } 
     
+    public String getTimeRefpos() {
+		return this.timeRefpos;		
+	}
+    
+    public String getTimeField() {
+		return timeField;
+	}
+    
+    public String getTime0() {
+		return time0;
+	}
+    
+    public String getTimeScale() {
+		return timeScale;		
+	}
+    
     @Override
     public void setTimeSystem(String ts) {
         this.timeSystem = ts;
     }
+    
+	public void setTimeRefpos(String timeRefpos) {
+		this.timeRefpos=timeRefpos;		
+	}
+	
+	public void setTimeField(String timeField) {
+		this.timeField=timeField;		
+	}
+
+	public void setTime0(String time0) {
+		this.time0 = time0;		
+	}
+
+	public void setTimeScale(String timeScale) {
+		this.timeScale = timeScale;
+	}
+
 }
 

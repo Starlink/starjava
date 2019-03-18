@@ -8,6 +8,11 @@
    - improved Datalink and timeseries processing
    - bugfixes
 
+   3.14-1
+   ========
+   - corrections on Datalink processing
+   - several other bugfixes
+
    3.14
    ========
    - improved Datalink processing

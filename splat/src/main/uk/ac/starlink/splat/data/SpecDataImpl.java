@@ -195,7 +195,7 @@ public interface SpecDataImpl
     /**
      * /**
      * Setter for object type that identifies type of object (spectrum or timeseries)
-     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * 
      
      * @param objectType
      */
@@ -203,20 +203,24 @@ public interface SpecDataImpl
     
     /**
      * Getter for object type that identifies timeseries time system
-     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * 
      * @return
      */
     public String getTimeSystem();
     
+  
     /**
      * /**
      * Setter for object type that identifies timeseries time system
-     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * 
      
      * @param timeSystem
      */
     public void setTimeSystem(String timeSystem );
-    
+
+
+
+	
 
     
 }

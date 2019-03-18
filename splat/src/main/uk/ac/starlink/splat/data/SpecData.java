@@ -36,7 +36,7 @@ import uk.ac.starlink.splat.ast.ASTChannel;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.splat.util.TimeUtilities;
 
 //  IMPORT NOTE: modifying the member variables could change the
 //  serialization signature of this class. If really need to then
@@ -1924,10 +1924,15 @@ public class SpecData
                 tPos = null;
 
                 if (impl.getObjectType()==ObjectTypeEnum.TIMESERIES ) {
-                    String ts = impl.getTimeSystem();
+                    String ts = impl.getTimeSystem(); /////!!!!!!!!!!!!!!!!!!!!!!!
                     if (ts != null && ! ts.isEmpty()) {
+                    	
                         FrameSet frameSet = astJ.getRef();
-                        frameSet.setC("System", impl.getTimeSystem());
+                        try {
+                        	frameSet.setC("System", ts);
+                        } catch (Exception e) {
+                        	logger.warning(e.getMessage()+"\n Using default (MJD)");
+                        }
                     }
                 }
                 //  Set the apparent data units, if possible.
