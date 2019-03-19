@@ -40,6 +40,7 @@ import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -772,15 +773,18 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
                                       DataGeom geom, DataSpec dataSpec,
                                       Outliner outliner, Stamper stamper ) {
-            final Shader shader = ((DensityStamper) stamper).shader_;
-            final Scaling scaling = ((DensityStamper) stamper).scaling_;
+            DensityStamper dstamper = (DensityStamper) stamper;
+            final Shader shader = dstamper.shader_;
+            final Scaling scaling = dstamper.scaling_;
+            final Subrange dataclip = dstamper.dataclip_;
             ShapeStyle style = new ShapeStyle( outliner, stamper );
             LayerOpt opt = Shaders.isTransparent( shader ) ? LayerOpt.NO_SPECIAL
                                                            : LayerOpt.OPAQUE;
             return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
                                        outliner ) {
                 public Drawing createDrawing( DrawSpec drawSpec ) {
-                    return new DensityDrawing( drawSpec, shader, scaling );
+                    return new DensityDrawing( drawSpec, shader, scaling,
+                                               dataclip );
                 }
             };
         }
@@ -791,6 +795,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         private static class DensityDrawing extends BinShapeDrawing {
             private final Shader shader_;
             private final Scaling scaling_;
+            private final Subrange dataclip_;
 
             /**
              * Constructor.
@@ -798,12 +803,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  drawSpec  common drawing attributes
              * @param  shader  determines colours in colour map
              * @param  scaling  quantitative mapping from counts to colour
+             * @param  dataclip  count mapping range adjustment
              */
             DensityDrawing( DrawSpec drawSpec, Shader shader,
-                            Scaling scaling ) {
+                            Scaling scaling, Subrange dataclip ) {
                 super( drawSpec );
                 shader_ = shader;
                 scaling_ = scaling;
+                dataclip_ = dataclip;
             }
 
             PixelImage createPixelImage( Object plan ) {
@@ -841,7 +848,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 if ( max > 0 ) {
                     max = Math.max( max, PlotUtil.MIN_RAMP_UNIT );
                     CountScaler scaler =
-                        new CountScaler( scaling_, max, nlevel );
+                        new CountScaler( scaling_, dataclip_, max, nlevel );
                     if ( max == 1 && scaler.scaleCount( 1 ) == 1 ) {
                         // special case: array is already in the required form
                         // (zeros and ones), no action required
@@ -862,16 +869,20 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     public static class DensityStamper implements Stamper {
         final Shader shader_;
         final Scaling scaling_;
+        final Subrange dataclip_;
 
         /**
          * Constructor.
          *
          * @param   shader  colour shader
          * @param  scaling  count scaling strategy
+         * @param  dataclip  scaling range adjustment
          */
-        public DensityStamper( Shader shader, Scaling scaling ) {
+        public DensityStamper( Shader shader, Scaling scaling,
+                               Subrange dataclip ) {
             shader_ = shader;
             scaling_ = scaling;
+            dataclip_ = dataclip;
         }
 
         public Icon createLegendIcon( Outliner outliner ) {
@@ -884,7 +895,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             if ( o instanceof DensityStamper ) {
                 DensityStamper other = (DensityStamper) o;
                 return this.shader_.equals( other.shader_ )
-                    && this.scaling_.equals( other.scaling_ );
+                    && this.scaling_.equals( other.scaling_ )
+                    && this.dataclip_.equals( other.dataclip_ );
             }
             else {
                 return false;
@@ -896,6 +908,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             int code = 3311;
             code = 23 * code + shader_.hashCode();
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             return code;
         }
     }
@@ -946,7 +959,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             Shader baseShader = Shaders.stretch( Shaders.SCALE_V, 1f, 0.2f );
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
-            return new DensityStamper( densityShader, Scaling.AUTO );
+            return new DensityStamper( densityShader, Scaling.AUTO,
+                                       new Subrange() );
         }
     }
 
@@ -999,7 +1013,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
             Scaling scaling = ramp.getScaling();
-            return new DensityStamper( densityShader, scaling );
+            Subrange dataclip = ramp.getDataClip();
+            return new DensityStamper( densityShader, scaling, dataclip );
         }
     }
 
@@ -1078,13 +1093,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
             Shader shader = ramp.getShader();
             Scaling scaling = ramp.getScaling();
+            Subrange dataclip = ramp.getDataClip();
             Color nullColor = config.get( StyleKeys.AUX_NULLCOLOR );
             double opaque = transparent_
                           ? config.get( StyleKeys.AUX_OPAQUE )
                           : 1;
             float scaleAlpha = 1f / (float) opaque;
             Color baseColor = config.get( StyleKeys.COLOR );
-            return new ShadeStamper( shader, scaling, baseColor,
+            return new ShadeStamper( shader, scaling, dataclip, baseColor,
                                      nullColor, scaleAlpha );
         }
 
@@ -1099,6 +1115,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             ShadeStamper shStamper = (ShadeStamper) stamper;
             final Shader shader = shStamper.shader_;
             final Scaling scaling = shStamper.scaling_;
+            final Subrange dataclip = shStamper.dataclip_;
             final Color baseColor = shStamper.baseColor_;
             final Color nullColor = shStamper.nullColor_;
             final float scaleAlpha = shStamper.scaleAlpha_;
@@ -1122,7 +1139,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                               Map<AuxScale,Span> auxSpans,
                                               PaperType paperType ) {
                     Span shadeSpan = auxSpans.get( SCALE );
-                    Scaler scaler = shadeSpan.createScaler( scaling );
+                    Scaler scaler = shadeSpan.createScaler( scaling, dataclip );
                     DrawSpec drawSpec =
                         new DrawSpec( surface, geom, dataSpec, outliner,
                                       auxSpans, paperType );
@@ -1222,8 +1239,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             Shader shader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
             Scaling scaling = ramp.getScaling();
+            Subrange dataclip = ramp.getDataClip();
             Combiner combiner = config.get( COMBINER_KEY );
-            return new WeightStamper( shader, scaling, combiner );
+            return new WeightStamper( shader, scaling, dataclip, combiner );
         }
 
         public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
@@ -1541,7 +1559,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     Rectangle plotBounds = surface_.getPlotBounds();
                     IndexColorModel colorModel =
                         PixelImage.createColorModel( wstamper_.shader_, true );
-                    Scaler scaler = auxSpan.createScaler( wstamper_.scaling_ );
+                    Scaler scaler = auxSpan.createScaler( wstamper_.scaling_,
+                                                          wstamper_.dataclip_ );
                     int[] pixels =
                         scaleLevels( nbin, binResult, scaler,
                                      colorModel.getMapSize() - 1 );
@@ -1724,6 +1743,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     public static class WeightStamper implements Stamper {
         final Shader shader_;
         final Scaling scaling_;
+        final Subrange dataclip_;
         final Combiner combiner_;
 
         /**
@@ -1731,12 +1751,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          *
          * @param   shader  colour shader
          * @param  scaling  count scaling strategy
+         * @param  dataclip  count scaling range adjustment
          * @param  combiner   combiner
          */
-        public WeightStamper( Shader shader, Scaling scaling,
+        public WeightStamper( Shader shader, Scaling scaling, Subrange dataclip,
                               Combiner combiner ) {
             shader_ = shader;
             scaling_ = scaling;
+            dataclip_ = dataclip;
             combiner_ = combiner;
         }
 
@@ -1751,6 +1773,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 WeightStamper other = (WeightStamper) o;
                 return this.shader_.equals( other.shader_ )
                     && this.scaling_.equals( other.scaling_ )
+                    && this.dataclip_.equals( other.dataclip_ )
                     && this.combiner_.equals( other.combiner_ );
             }
             else {
@@ -1763,6 +1786,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             int code = 3311;
             code = 23 * code + shader_.hashCode();
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             code = 23 * code + combiner_.hashCode();
             return code;
         }
@@ -1774,6 +1798,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     public static class ShadeStamper implements Stamper {
         final Shader shader_;
         final Scaling scaling_;
+        final Subrange dataclip_;
         final Color baseColor_;
         final Color nullColor_;
         final float scaleAlpha_;
@@ -1783,6 +1808,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          *
          * @param  shader  colour shader 
          * @param  scaling   scaling function from data to shade value
+         * @param  dataclip  scaling function range adjustment
          * @param  baseColor  colour to use for adjustments in case of
          *                    non-absolute shader
          * @param  nullColor  colour to use for null aux coordinate,
@@ -1790,10 +1816,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param  scaleAlpha  factor to scale output colour alpha by;
          *                     1 means opaque
          */
-        public ShadeStamper( Shader shader, Scaling scaling, Color baseColor,
-                             Color nullColor, float scaleAlpha ) {
+        public ShadeStamper( Shader shader, Scaling scaling, Subrange dataclip,
+                             Color baseColor, Color nullColor,
+                             float scaleAlpha ) {
             shader_ = shader;
             scaling_ = scaling;
+            dataclip_ = dataclip;
             baseColor_ = baseColor;
             nullColor_ = nullColor;
             scaleAlpha_ = scaleAlpha;
@@ -1810,6 +1838,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 ShadeStamper other = (ShadeStamper) o;
                 return this.shader_.equals( other.shader_ )
                     && this.scaling_.equals( other.scaling_ )
+                    && this.dataclip_.equals( other.dataclip_ )
                     && PlotUtil.equals( this.baseColor_, other.baseColor_ )
                     && PlotUtil.equals( this.nullColor_, other.nullColor_ )
                     && this.scaleAlpha_ == other.scaleAlpha_;
@@ -1824,6 +1853,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             int code = 7301;
             code = 23 * code + shader_.hashCode();
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             code = 23 * code + PlotUtil.hashCode( baseColor_ );
             code = 23 * code + PlotUtil.hashCode( nullColor_ );
             code = 23 * code + Float.floatToIntBits( scaleAlpha_ );

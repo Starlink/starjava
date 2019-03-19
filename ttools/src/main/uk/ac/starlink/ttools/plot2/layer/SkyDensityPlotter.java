@@ -43,6 +43,7 @@ import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -277,13 +278,15 @@ public class SkyDensityPlotter
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         int level = config.get( LEVEL_KEY );
         Scaling scaling = ramp.getScaling();
+        Subrange dataclip = ramp.getDataClip();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
         Combiner combiner = weightCoord_ == null
                           ? Combiner.COUNT
                           : config.get( COMBINER_KEY );
         SolidAngleUnit unit = config.get( ANGLE_KEY );
-        return new SkyDenseStyle( level, scaling, shader, combiner, unit );
+        return new SkyDenseStyle( level, scaling, dataclip, shader, combiner,
+                                  unit );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -340,6 +343,7 @@ public class SkyDensityPlotter
 
         private final int level_;
         private final Scaling scaling_;
+        private final Subrange dataclip_;
         private final Shader shader_;
         private final Combiner combiner_;
         private final SolidAngleUnit unit_;
@@ -354,14 +358,17 @@ public class SkyDensityPlotter
          *                  than that defined by this level
          * @param   scaling   scaling function for mapping densities to
          *                    colour map entries
+         * @param   dataclip  scaling function adjustment subrange
          * @param   shader   colour map
          * @param   combiner  value combination mode for bin calculation
          * @param   unit     solid angle unit for density combinations
          */
-        public SkyDenseStyle( int level, Scaling scaling, Shader shader,
-                              Combiner combiner, SolidAngleUnit unit ) {
+        public SkyDenseStyle( int level, Scaling scaling, Subrange dataclip,
+                              Shader shader, Combiner combiner,
+                              SolidAngleUnit unit ) {
             level_ = level;
             scaling_ = scaling;
+            dataclip_ = dataclip;
             shader_ = shader;
             combiner_ = combiner;
             unit_ = unit;
@@ -388,6 +395,7 @@ public class SkyDensityPlotter
             int code = 23443;
             code = 23 * code + level_;
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             code = 23 * code + shader_.hashCode();
             code = 23 * code + combiner_.hashCode();
             code = 23 * code + unit_.hashCode();
@@ -400,6 +408,7 @@ public class SkyDensityPlotter
                 SkyDenseStyle other = (SkyDenseStyle) o;
                 return this.level_ == other.level_
                     && this.scaling_.equals( other.scaling_ )
+                    && this.dataclip_.equals( other.dataclip_ )
                     && this.shader_.equals( other.shader_ )
                     && this.combiner_.equals( other.combiner_ )
                     && this.unit_.equals( other.unit_ );
@@ -681,7 +690,9 @@ public class SkyDensityPlotter
                                    DataStore dataStore ) {
                 final BinList.Result binResult =
                     ((SkyDensityPlan) plan).binResult_;
-                final Scaler scaler = auxSpan_.createScaler( dstyle_.scaling_ );
+                final Scaler scaler =
+                    auxSpan_.createScaler( dstyle_.scaling_,
+                                           dstyle_.dataclip_ );
                 final Shader shader = dstyle_.shader_;
                 paperType_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {

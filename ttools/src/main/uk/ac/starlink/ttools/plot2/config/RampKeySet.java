@@ -200,22 +200,31 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             shader = Shaders.quantise( shader, quantise );
         }
 
-        /* Determine configured scaling instance. */
+        /* Construct and return a Ramp instance. */
         Scaling scaling = config.get( scalingKey_ );
         Subrange dataclip = config.get( dataclipKey_ );
-        if ( ! Subrange.isIdentity( dataclip ) ) {
-            scaling = Scaling.subrangeScaling( scaling, dataclip );
-        }
+        return createRamp( shader, scaling, dataclip );
+    }
 
-        /* Construct and return a Ramp instance. */
-        final Shader shader0 = shader;
-        final Scaling scaling0 = scaling;
+    /**
+     * Constructs a Ramp instance.
+     *
+     * @param  shader  shader
+     * @param  scaling  scaling
+     * @param  dataclip  input data scale adjustment
+     * @return  new ramp
+     */
+    private static Ramp createRamp( final Shader shader, final Scaling scaling,
+                                    final Subrange dataclip ) {
         return new Ramp() {
             public Shader getShader() {
-                return shader0;
+                return shader;
             }
             public Scaling getScaling() {
-                return scaling0;
+                return scaling;
+            }
+            public Subrange getDataClip() {
+                return dataclip;
             }
         };
     }
@@ -236,6 +245,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                                     final int rampWidth ) {
         final Shader shader = ramp.getShader();
         final Scaling scaling = ramp.getScaling();
+        final Subrange dataclip = ramp.getDataClip();
         final boolean isLog = scaling.isLogLike();
         return new ShadeAxisFactory() {
             public boolean isLog() {
@@ -245,10 +255,10 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                 if ( span == null ) {
                     span = PlotUtil.EMPTY_SPAN;
                 }
-                Scaler scaler = span.createScaler( scaling );
+                Scaler scaler = span.createScaler( scaling, dataclip );
                 assert scaler.hashCode() ==
-                       span.createScaler( scaling ).hashCode();
-                assert scaler.equals( span.createScaler( scaling ) );
+                       span.createScaler( scaling, dataclip ).hashCode();
+                assert scaler.equals( span.createScaler( scaling, dataclip ) );
                 return new ShadeAxis( shader, scaler, label, captioner,
                                       crowding, rampWidth );
             }
@@ -274,5 +284,13 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
          * @return  scaling
          */
         Scaling getScaling();
+
+        /**
+         * Returns an adjustment to the default data range which the
+         * defined ramp should cover.
+         *
+         * @return   input value subrange
+         */
+        Subrange getDataClip();
     }
 }

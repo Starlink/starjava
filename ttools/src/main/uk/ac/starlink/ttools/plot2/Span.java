@@ -39,13 +39,19 @@ public interface Span {
     double[] getFiniteBounds( boolean requirePositive );
 
     /**
-     * Returns a scaler that maps the value range known by this span
-     * to the range 0..1 according to a given scaling.
+     * Returns a scaler that maps a value range based on this span
+     * to the range 0..1, according to a given scaling.
+     * The supplied dataclip can adjust the input range so that
+     * it may not cover the whole extent of this span.
+     * Exactly how the dataclip subrange is interpreted is up to
+     * this span implementation.
      *
      * @param  scaling  scale function
+     * @param  dataclip  subrange of natural data extent of this span
+     *                   over which scaling should be performed
      * @return  new scaler
      */
-    Scaler createScaler( Scaling scaling );
+    Scaler createScaler( Scaling scaling, Subrange dataclip );
 
     /**
      * Creates a new span based on this one with optionally

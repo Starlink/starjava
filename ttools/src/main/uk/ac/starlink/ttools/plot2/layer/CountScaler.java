@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Subrange;
 
 /**
  * Scales integer count values according to a supplied Scaling object.
@@ -21,11 +23,14 @@ public class CountScaler {
      * Constructor.
      *
      * @param  scaling  provides basic scaling behaviour
+     * @param  dataclip  adjusts input value range
      * @param  maxIn  defines input value range 0..maxIn
      * @param  maxOut  defines output value range 0..maxOut
      */
-    public CountScaler( Scaling scaling, int maxIn, int maxOut ) {
-        scaler_ = scaling.createScaler( 1, maxIn );
+    public CountScaler( Scaling scaling, Subrange dataclip,
+                        int maxIn, int maxOut ) {
+        scaler_ = PlotUtil.createSpan( 1, maxIn )
+                          .createScaler( scaling, dataclip );
         outFactor_ = maxOut - 0.1;
 
         /* Prepare a lookup table for the first few integer input values. */

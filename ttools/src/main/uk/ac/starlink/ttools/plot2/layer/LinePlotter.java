@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -160,10 +161,11 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         Shader shader = ramp.getShader();
         Scaling scaling = ramp.getScaling();
+        Subrange dataclip = ramp.getDataClip();
         Color nullColor = config.get( StyleKeys.AUX_NULLCOLOR );
         AxisOpt sortaxis = config.get( SORTAXIS_KEY );
         return new LinesStyle( color, stroke, antialias, shader, scaling,
-                               nullColor, sortaxis );
+                               dataclip, nullColor, sortaxis );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -190,7 +192,8 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                 if ( hasAux ) {
                     Shader shader = style.getShader();
                     Scaling scaling = style.getScaling();
-                    Scaler scaler = auxSpan.createScaler( scaling );
+                    Subrange dataclip = style.getDataClip();
+                    Scaler scaler = auxSpan.createScaler( scaling, dataclip );
                     Color nullColor = style.getNullColor();
                     float scaleAlpha = 1;
                     colorKit = new AuxColorKit( icAux, shader, scaler,
@@ -353,13 +356,15 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
          *                (only likely to make a difference on bitmapped paper)
          * @param  shader   colour ramp
          * @param  scaling  colour ramp metric
+         * @param  dataclip  colour ramp input range adjustment
          * @param  nullColor  colour to use for null aux values;
          *                    if null, such segments are not plotted
          */
         public LinesStyle( Color color, Stroke stroke, boolean antialias,
-                           Shader shader, Scaling scaling, Color nullColor,
-                           AxisOpt sortaxis ) {
-            super( color, stroke, antialias, shader, scaling, nullColor );
+                           Shader shader, Scaling scaling, Subrange dataclip,
+                           Color nullColor, AxisOpt sortaxis ) {
+            super( color, stroke, antialias, shader, scaling, dataclip,
+                   nullColor );
             sortaxis_ = sortaxis;
         }
 

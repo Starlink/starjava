@@ -124,24 +124,6 @@ public abstract class Scaling {
     }
 
     /**
-     * Adjusts a scaling by applying a fractional subrange to the
-     * scaler inputs <em>before</em> scaling is applied,
-     * so that the input range is subranged, rather than the output range.
-     * For linear scaling the two things would be the same,
-     * but not in general.
-     *
-     * @param  scaling  base scaling
-     * @param  subrange   fractional subrange to apply to input values
-     * @return  subranged scaling
-     */
-    public static Scaling subrangeScaling( Scaling scaling,
-                                           Subrange subrange ) {
-        return Subrange.isIdentity( subrange )
-             ? scaling
-             : new SubrangeScaling( scaling, subrange );
-    }
-
-    /**
      * Constructs the linear scaling instance.
      *
      * @param  name  scaling name
@@ -264,7 +246,7 @@ public abstract class Scaling {
     }
 
     /**
-     * Performs the inverse operation of Scaler.scaleValue.
+     * Utility method to perform the inverse operation of Scaler.scaleValue.
      *
      * @param  scaler   scaler instance
      * @param  lo       lower bound of input data value
@@ -274,7 +256,8 @@ public abstract class Scaling {
      * @return   value x that causes scaler.scaleValue(x)
      *           to return <code>frac</code>
      */
-    static double unscale( Scaler scaler, double lo, double hi, double frac ) {
+    public static double unscale( Scaler scaler, double lo, double hi,
+                                  double frac ) {
 
         /* Use the bisection method here; it may be a bit less efficient
          * than the secant method, but it's more robust.
@@ -473,56 +456,6 @@ public abstract class Scaling {
                 ReScaling other = (ReScaling) o;
                 return this.baseScaling_ == other.baseScaling_
                     && this.rescaler_ == other.rescaler_;
-            }
-            else {
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Applies a fixed subrange to the input values on scaling.
-     */
-    private static class SubrangeScaling extends Scaling {
-        private final Scaling baseScaling_;
-        private final Subrange subrange_;
-
-        /**
-         * Constructor.
-         *
-         * @param   baseScaling  base scaling
-         * @param   subrange  subrange to apply to input values before scaling
-         */
-        SubrangeScaling( Scaling baseScaling, Subrange subrange ) {
-            super( baseScaling.getName() + "-sub",
-                   baseScaling.getDescription() + ", subrange: " + subrange,
-                   baseScaling.isLogLike() );
-            baseScaling_ = baseScaling;
-            subrange_ = subrange;
-        }
-
-        public Scaler createScaler( double lo, double hi ) {
-            Scaler fullScaler = baseScaling_.createScaler( lo, hi );
-            double subLo = unscale( fullScaler, lo, hi, subrange_.getLow() );
-            double subHi = unscale( fullScaler, lo, hi, subrange_.getHigh() );
-            return subLo < subHi ? baseScaling_.createScaler( subLo, subHi )
-                                 : baseScaling_.createScaler( subHi, subLo );
-        }
-
-        @Override
-        public int hashCode() {
-            int code = 688923;
-            code = 23 * code + baseScaling_.hashCode();
-            code = 23 * code + subrange_.hashCode();
-            return code;
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof SubrangeScaling ) {
-                SubrangeScaling other = (SubrangeScaling) o;
-                return this.baseScaling_.equals( other.baseScaling_ )
-                    && this.subrange_.equals( other.subrange_ );
             }
             else {
                 return false;

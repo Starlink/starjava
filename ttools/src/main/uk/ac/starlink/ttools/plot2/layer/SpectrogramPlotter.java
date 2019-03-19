@@ -30,6 +30,7 @@ import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -209,9 +210,10 @@ public class SpectrogramPlotter
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         Shader shader = ramp.getShader();
         Scaling scaling = ramp.getScaling();
+        Subrange dataclip = ramp.getDataClip();
         Color nullColor = config.get( NULLCOLOR_KEY );
         ChannelGrid grid = DEFAULT_CHANGRID;
-        return new SpectroStyle( shader, scaling, nullColor, grid );
+        return new SpectroStyle( shader, scaling, dataclip, nullColor, grid );
     }
 
     public boolean hasReports() {
@@ -327,7 +329,8 @@ public class SpectrogramPlotter
                                    Span spectroSpan, Graphics g ) {
         ChannelGrid grid = style.grid_;
         Shader shader = style.shader_;
-        Scaler specScaler = spectroSpan.createScaler( style.scaling_ );
+        Scaler specScaler =
+            spectroSpan.createScaler( style.scaling_, style.dataclip_ );
 
         /* Work out the data bounds of the plotting surface. */
         Rectangle plotBounds = surface.getPlotBounds();
@@ -584,6 +587,7 @@ public class SpectrogramPlotter
     public static class SpectroStyle implements Style {
         private final Shader shader_;
         private final Scaling scaling_;
+        private final Subrange dataclip_;
         private final Color nullColor_;
         private final ChannelGrid grid_;
 
@@ -592,13 +596,15 @@ public class SpectrogramPlotter
          *
          * @param   shader  shader
          * @param   scaling   maps data values to shader ramp
+         * @param   dataclip  scaling range adjustment
          * @param   nullColor  colour to use for blank spectral values
          * @param   grid    channel bounds grid
          */
-        public SpectroStyle( Shader shader, Scaling scaling,
+        public SpectroStyle( Shader shader, Scaling scaling, Subrange dataclip,
                              Color nullColor, ChannelGrid grid ) {
             shader_ = shader;
             scaling_ = scaling;
+            dataclip_ = dataclip;
             nullColor_ = nullColor;
             grid_ = grid;
         }
@@ -612,6 +618,7 @@ public class SpectrogramPlotter
             int code = 9703;
             code = 23 * code + shader_.hashCode();
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             code = 23 * code + PlotUtil.hashCode( nullColor_ );
             code = 23 * code + PlotUtil.hashCode( grid_ );
             return code;
@@ -623,6 +630,7 @@ public class SpectrogramPlotter
                 SpectroStyle other = (SpectroStyle) o;
                 return this.shader_.equals( other.shader_ )
                     && this.scaling_ == other.scaling_
+                    && this.dataclip_ == other.dataclip_
                     && PlotUtil.equals( this.nullColor_, other.nullColor_ )
                     && PlotUtil.equals( this.grid_, other.grid_ );
             }

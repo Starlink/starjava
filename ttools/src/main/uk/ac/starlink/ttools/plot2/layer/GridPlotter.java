@@ -212,10 +212,11 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         Combiner combiner = config.get( COMBINER_KEY );
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         Scaling scaling = ramp.getScaling();
+        Subrange dataclip = ramp.getDataClip();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
         return new GridStyle( xSizer, ySizer, xPhase, yPhase,
-                              scaling, shader, combiner );
+                              scaling, dataclip, shader, combiner );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -472,6 +473,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         private final double xPhase_;
         private final double yPhase_;
         private final Scaling scaling_;
+        private final Subrange dataclip_;
         private final Shader shader_;
         private final Combiner combiner_;
 
@@ -484,17 +486,20 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
          * @param  yPhase  Y axis bin reference point, 0..1
          * @param  scaling   scaling function for mapping densities to
          *                   colour map entries
+         * @param  dataclip  scaling input adjustment subrange
          * @param  shader   colour map
          * @param  combiner  value combination mode for bin calculation
          */
         public GridStyle( BinSizer xSizer, BinSizer ySizer,
-                          double xPhase, double yPhase,
-                          Scaling scaling, Shader shader, Combiner combiner ) {
+                          double xPhase, double yPhase, Scaling scaling,
+                          Subrange dataclip, Shader shader,
+                          Combiner combiner ) {
             xSizer_ = xSizer;
             ySizer_ = ySizer;
             xPhase_ = xPhase;
             yPhase_ = yPhase;
             scaling_ = scaling;
+            dataclip_ = dataclip;
             shader_ = shader;
             combiner_ = combiner;
         }
@@ -511,6 +516,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             code = 23 * code + Float.floatToIntBits( (float) xPhase_ );
             code = 23 * code + Float.floatToIntBits( (float) yPhase_ );
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             code = 23 * code + shader_.hashCode();
             code = 23 * code + combiner_.hashCode();
             return code;
@@ -525,6 +531,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                     && this.xPhase_ == other.xPhase_
                     && this.yPhase_ == other.yPhase_
                     && this.scaling_.equals( other.scaling_ )
+                    && this.dataclip_.equals( other.dataclip_ )
                     && this.shader_.equals( other.shader_ )
                     && this.combiner_.equals( other.combiner_ );
             }
@@ -824,7 +831,8 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 ptype_.placeDecal( paper, new Decal() {
                     public void paintDecal( Graphics g ) {
                         Scaler scaler =
-                            auxSpan_.createScaler( gstyle_.scaling_ );
+                            auxSpan_.createScaler( gstyle_.scaling_,
+                                                   gstyle_.dataclip_ );
                         IndexColorModel colorModel =
                             PixelImage.createColorModel( gstyle_.shader_,
                                                          true );

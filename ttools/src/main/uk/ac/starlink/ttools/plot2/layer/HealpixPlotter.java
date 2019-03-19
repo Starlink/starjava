@@ -35,6 +35,7 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ComboBoxSpecifier;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -246,10 +247,11 @@ public class HealpixPlotter
         SolidAngleUnit angle = config.get( ANGLE_KEY );
         Rotation rotation = Rotation.createRotation( dataSys, viewSys );
         Scaling scaling = ramp.getScaling();
+        Subrange dataclip = ramp.getDataClip();
         float scaleAlpha = 1f - config.get( TRANSPARENCY_KEY ).floatValue();
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        return new HealpixStyle( dataLevel, degrade, rotation, scaling, shader,
-                                 combiner, angle );
+        return new HealpixStyle( dataLevel, degrade, rotation, scaling,
+                                 dataclip, shader, combiner, angle );
     }
 
     public PlotLayer createLayer( DataGeom geom, final DataSpec dataSpec,
@@ -367,6 +369,7 @@ public class HealpixPlotter
         private final int degrade_;
         private final Rotation rotation_;
         private final Scaling scaling_;
+        private final Subrange dataclip_;
         private final Shader shader_;
         private final Combiner combiner_;
         private final SolidAngleUnit angle_;
@@ -381,17 +384,19 @@ public class HealpixPlotter
          * @param   rotation  sky rotation to be applied before plotting
          * @param   scaling   scaling function for mapping densities to
          *                    colour map entries
+         * @param   dataclip  scaling input range adjustment
          * @param   shader   colour map
          * @param   combiner  combiner, only relevant if degrade is non-zero
          * @param   angle      solid angle configuration for scaling
          */
         public HealpixStyle( int dataLevel, int degrade, Rotation rotation,
-                             Scaling scaling, Shader shader,
+                             Scaling scaling, Subrange dataclip, Shader shader,
                              Combiner combiner, SolidAngleUnit angle ) {
             dataLevel_ = dataLevel;
             degrade_ = degrade;
             rotation_ = rotation;
             scaling_ = scaling;
+            dataclip_ = dataclip;
             shader_ = shader;
             combiner_ = combiner;
             angle_ = angle;
@@ -420,6 +425,7 @@ public class HealpixPlotter
             code = 23 * code + degrade_;
             code = 23 * code + rotation_.hashCode();
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             code = 23 * code + shader_.hashCode();
             code = 23 * code + combiner_.hashCode();
             code = 23 * code + angle_.hashCode();
@@ -434,6 +440,7 @@ public class HealpixPlotter
                     && this.degrade_ == other.degrade_
                     && this.rotation_.equals( other.rotation_ )
                     && this.scaling_.equals( other.scaling_ )
+                    && this.dataclip_.equals( other.dataclip_ )
                     && this.shader_.equals( other.shader_ )
                     && this.combiner_.equals( other.combiner_ )
                     && this.angle_.equals( other.angle_ );
@@ -507,7 +514,8 @@ public class HealpixPlotter
             final Combiner combiner = hstyle_.combiner_;
             final Shader shader = hstyle_.shader_;
             final Scaler scaler =
-                auxSpans.get( SCALE ).createScaler( hstyle_.scaling_ );
+                auxSpans.get( SCALE )
+                        .createScaler( hstyle_.scaling_, hstyle_.dataclip_ );
             final SkyTileRenderer renderer = createTileRenderer( surf );
             return new Drawing() {
                 public Object calculatePlan( Object[] knownPlans,

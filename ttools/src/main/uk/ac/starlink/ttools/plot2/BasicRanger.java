@@ -146,9 +146,24 @@ public class BasicRanger implements Ranger {
                                           isPositive );
         }
 
-        public Scaler createScaler( Scaling scaling ) {
+        public Scaler createScaler( Scaling scaling, Subrange dataclip ) {
             double[] bounds = getFiniteBounds( scaling.isLogLike() );
-            return scaling.createScaler( bounds[ 0 ], bounds[ 1 ] );
+            double lo = bounds[ 0 ];
+            double hi = bounds[ 1 ];
+            Scaler scaler0 = scaling.createScaler( lo, hi );
+            if ( Subrange.isIdentity( dataclip ) ) {
+                return scaler0;
+            }
+            else {
+                double sublo = Scaling.unscale( scaler0, lo, hi,
+                                                dataclip.getLow() );
+                double subhi = Scaling.unscale( scaler0, lo, hi,
+                                                dataclip.getHigh() );
+                double[] bounds1 = sublo < subhi
+                                 ? new double[] { sublo, subhi }
+                                 : new double[] { subhi, sublo };
+                return scaling.createScaler( bounds1[ 0 ], bounds1[ 1 ] );
+            }
         }
 
         public Span limit( double lo, double hi ) {

@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -129,8 +130,8 @@ public class DensogramPlotter
         int extent = config.get( EXTENT_KEY );
         double position = config.get( POSITION_KEY );
         return new DensoStyle( baseColor, ramp.getShader(), ramp.getScaling(),
-                               kernelShape, combiner, sizer, cumul, extent,
-                               position );
+                               ramp.getDataClip(), kernelShape, combiner,
+                               sizer, cumul, extent, position );
     }
 
     protected void paintBins( PlanarSurface surface, BinArray binArray,
@@ -173,11 +174,13 @@ public class DensogramPlotter
 
         /* Do the painting. */
         if ( ymin < ymax ) {
-            Scaler scaler = style.scaling_.createScaler( ymin, ymax );
+            Scaler scaler = PlotUtil.createSpan( ymin, ymax )
+                                    .createScaler( style.scaling_,
+                                                   style.dataclip_ );
             float[] baseRgba = style.baseColor_.getRGBComponents( null );
             float[] rgba = new float[ 4 ];
             Color color0 = g.getColor();
-            boolean isLog = style.scaling_.isLogLike();
+            boolean isLog = scaler.isLogLike();
             for ( int ip = 0; ip < np; ip++ ) {
                 int ix = ixlo + ip;
                 int gx = binArray.getGraphicsCoord( ix );
@@ -243,6 +246,7 @@ public class DensogramPlotter
         final Color baseColor_;
         final Shader shader_;
         final Scaling scaling_;
+        final Subrange dataclip_;
         final Kernel1dShape kernelShape_;
         final Combiner combiner_;
         final BinSizer sizer_;
@@ -256,6 +260,7 @@ public class DensogramPlotter
          * @param  baseColor   base colour
          * @param  shader    colour ramp shader
          * @param  scaling   colour ramp scaling function
+         * @param  dataclip  input value subrange
          * @param  kernelShape   smoothing kernel shape
          * @param  combiner   pixel bin aggregation mode
          * @param  sizer    smoothing width specification
@@ -264,12 +269,13 @@ public class DensogramPlotter
          * @param  position   fractional location of density bar (0..1)
          */
         public DensoStyle( Color baseColor, Shader shader, Scaling scaling,
-                           Kernel1dShape kernelShape, Combiner combiner,
-                           BinSizer sizer, boolean cumul, int extent,
-                           double position ) {
+                           Subrange dataclip, Kernel1dShape kernelShape,
+                           Combiner combiner, BinSizer sizer, boolean cumul,
+                           int extent, double position ) {
             baseColor_ = baseColor;
             shader_ = shader;
             scaling_ = scaling;
+            dataclip_ = dataclip;
             kernelShape_ = kernelShape;
             combiner_ = combiner;
             sizer_ = sizer;
@@ -288,6 +294,7 @@ public class DensogramPlotter
             code = 23 * code + baseColor_.hashCode();
             code = 23 * code + shader_.hashCode();
             code = 23 * code + scaling_.hashCode();
+            code = 23 * code + dataclip_.hashCode();
             code = 23 * code + kernelShape_.hashCode();
             code = 23 * code + combiner_.hashCode();
             code = 23 * code + sizer_.hashCode();
@@ -304,6 +311,7 @@ public class DensogramPlotter
                 return this.baseColor_.equals( other.baseColor_ )
                     && this.shader_.equals( other.shader_ )
                     && this.scaling_.equals( other.scaling_ )
+                    && this.dataclip_.equals( other.dataclip_ )
                     && this.kernelShape_.equals( other.kernelShape_ )
                     && this.combiner_.equals( other.combiner_ )
                     && this.sizer_.equals( other.sizer_ )
