@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.util.logging.Logger;
+
 /**
  * Ranger implementation that just keeps track of high and low values.
  *
@@ -8,17 +10,24 @@ package uk.ac.starlink.ttools.plot2;
  */
 public class BasicRanger implements Ranger {
 
+    private final boolean isBestEfforts_;
     private double lo_;
     private double hi_;
     private double loPos_;
     private double hiPos_;
     private boolean hasData_;
     private boolean hasPos_;
+    private static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
     /**
      * Constructor.
+     *
+     * @param  isBestEfforts  whether best efforts ranging should be done
+     *                        without complaint for inappropriate scalings
      */
-    public BasicRanger() {
+    public BasicRanger( boolean isBestEfforts ) {
+        isBestEfforts_ = isBestEfforts;
         lo_ = Double.NaN;
         hi_ = Double.NaN;
         loPos_ = Double.NaN;
@@ -61,7 +70,7 @@ public class BasicRanger implements Ranger {
     }
 
     public Span createSpan() {
-        return new BasicSpan( lo_, hi_, loPos_, hiPos_ );
+        return new BasicSpan( isBestEfforts_, lo_, hi_, loPos_, hiPos_ );
     }
 
     /**
@@ -106,10 +115,40 @@ public class BasicRanger implements Ranger {
     }
 
     /**
+     * Returns a scaler based on a RangeScaling.
+     *
+     * @param  rscaling  scaling of range type
+     * @param  dataclip  input data range adjustment
+     * @param  span    data range information
+     * @return   new scaler
+     */
+    public static Scaler createRangeScaler( Scaling.RangeScaling rscaling,
+                                            Subrange dataclip, Span span ) {
+        double[] bounds = span.getFiniteBounds( rscaling.isLogLike() );
+        double lo = bounds[ 0 ];
+        double hi = bounds[ 1 ];
+        Scaler scaler0 = rscaling.createScaler( lo, hi );
+        if ( Subrange.isIdentity( dataclip ) ) {
+            return scaler0;
+        }
+        else {
+            double sublo =
+                Scalings.unscale( scaler0, lo, hi, dataclip.getLow() );
+            double subhi =
+                Scalings.unscale( scaler0, lo, hi, dataclip.getHigh() );
+            double[] bounds1 = sublo < subhi
+                             ? new double[] { sublo, subhi }
+                             : new double[] { subhi, sublo };
+            return rscaling.createScaler( bounds1[ 0 ], bounds1[ 1 ] );
+        }
+    }
+
+    /**
      * Span implementation for use with BasicRanger.
      */
     private static class BasicSpan implements Span {
 
+        final boolean isBestEfforts_;
         final double lo_;
         final double hi_;
         final double loPos_;
@@ -118,17 +157,20 @@ public class BasicRanger implements Ranger {
         /**
          * Constructor.
          *
+         * @param  isBestEfforts  whether best efforts ranging should be done
+         *                        without complaint for inappropriate scalings
          * @param  lo   lowest known value
          * @param  hi   highest known value
          * @param  loPos  lowest known positive definite value
          * @param  hiPos  highest known positive definite value
          */
-        BasicSpan( double lo, double hi, double loPos, double hiPos ) {
+        BasicSpan( boolean isBestEfforts,
+                   double lo, double hi, double loPos, double hiPos ) {
+            isBestEfforts_ = isBestEfforts;
             lo_ = lo;
             hi_ = hi;
             loPos_ = loPos;
             hiPos_ = hiPos;
-            assert Double.isNaN( lo_ ) ? Double.isNaN( hi_ ) : lo_ <= hi_;
             assert ! ( loPos_ > hiPos_ );
         }
 
@@ -147,23 +189,20 @@ public class BasicRanger implements Ranger {
         }
 
         public Scaler createScaler( Scaling scaling, Subrange dataclip ) {
-            double[] bounds = getFiniteBounds( scaling.isLogLike() );
-            double lo = bounds[ 0 ];
-            double hi = bounds[ 1 ];
-            Scaler scaler0 = scaling.createScaler( lo, hi );
-            if ( Subrange.isIdentity( dataclip ) ) {
-                return scaler0;
+            final Scaling.RangeScaling rscaling;
+            if ( scaling instanceof Scaling.RangeScaling ) {
+                rscaling = (Scaling.RangeScaling) scaling;
             }
             else {
-                double sublo = Scaling.unscale( scaler0, lo, hi,
-                                                dataclip.getLow() );
-                double subhi = Scaling.unscale( scaler0, lo, hi,
-                                                dataclip.getHigh() );
-                double[] bounds1 = sublo < subhi
-                                 ? new double[] { sublo, subhi }
-                                 : new double[] { subhi, sublo };
-                return scaling.createScaler( bounds1[ 0 ], bounds1[ 1 ] );
+                if ( ! isBestEfforts_ ) {
+                    String msg = "Inadequate span " + this
+                               + " used for scaling " + scaling;
+                    assert false : msg;
+                    logger_.warning( msg );
+                }
+                rscaling = scaling.isLogLike() ? Scaling.LOG : Scaling.LINEAR;
             }
+            return createRangeScaler( rscaling, dataclip, this );
         }
 
         public Span limit( double lo, double hi ) {
@@ -196,7 +235,7 @@ public class BasicRanger implements Ranger {
                     loPos1 = hiPos1;
                 }
             }
-            return new BasicSpan( lo1, hi1, loPos1, hiPos1 );
+            return new BasicSpan( isBestEfforts_, lo1, hi1, loPos1, hiPos1 );
         }
 
         @Override

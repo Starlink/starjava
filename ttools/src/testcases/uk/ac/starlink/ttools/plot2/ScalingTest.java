@@ -8,7 +8,8 @@ public class ScalingTest extends TestCase {
 
     public void testAsinh() {
         double delta = 0.125;
-        Scaling scaling = Scaling.createAsinhScaling( "Test", delta );
+        Scaling.RangeScaling scaling =
+            Scalings.createAsinhScaling( "Test", delta );
         Scaler s10 = scaling.createScaler( 0, 10 );
         assertEquals( 0.0, s10.scaleValue( 0 ), err );
         assertEquals( delta, s10.scaleValue( 1 ), err );
@@ -16,15 +17,19 @@ public class ScalingTest extends TestCase {
     }
 
     public void testRange() {
-        for ( Scaling scaling : Scaling.getStretchOptions() ) {
-            checkScaling( scaling, 10, 323 );
-            checkScaling( scaling, Math.PI, 5e9 );
+        for ( Scaling scaling : Scaling.STRETCHES ) {
+            if ( scaling instanceof Scaling.RangeScaling ) {
+                Scaling.RangeScaling rscaling = (Scaling.RangeScaling) scaling;
+                checkScaling( rscaling, 10, 323 );
+                checkScaling( rscaling, Math.PI, 5e9 );
+            }
             // non-positive values don't work well with e.g. LOG & LINEAR
         }
         checkScaling( Scaling.AUTO, 10, 323 );
     }
 
-    private void checkScaling( Scaling scaling, double lo, double hi ) {
+    private void checkScaling( Scaling.RangeScaling scaling,
+                               double lo, double hi ) {
         Scaler scaler = scaling.createScaler( lo, hi );
         assertEquals( 0.0, scaler.scaleValue( lo ), err );
         assertEquals( 0.0, scaler.scaleValue( lo - 1 ), err );
@@ -35,7 +40,7 @@ public class ScalingTest extends TestCase {
 
         for ( int i = 0; i < 16; i++ ) {
             double frac = i / 16.0;
-            double dFrac = Scaling.unscale( scaler, lo, hi, frac );
+            double dFrac = Scalings.unscale( scaler, lo, hi, frac );
             assert Math.abs( scaler.scaleValue( dFrac ) - frac ) <= 0.001;
         }
     }

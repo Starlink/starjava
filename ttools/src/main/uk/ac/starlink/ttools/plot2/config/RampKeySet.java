@@ -11,6 +11,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Scalings;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Span;
@@ -154,9 +155,9 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             "range are mapped to the selected colour ramp.",
             "</p>",
         } );
-        scalingKey_ = new OptionConfigKey<Scaling>( scalingMeta, Scaling.class,
-                                                    Scaling.getStretchOptions(),
-                                                    dfltScaling ) {
+        scalingKey_ =
+                new OptionConfigKey<Scaling>( scalingMeta, Scaling.class,
+                                              Scaling.STRETCHES, dfltScaling ) {
             public String getXmlDescription( Scaling scaling ) {
                 return scaling.getDescription();
             }

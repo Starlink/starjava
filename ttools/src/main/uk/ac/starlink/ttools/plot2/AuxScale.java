@@ -111,7 +111,7 @@ public class AuxScale {
     private static Span calculateSpan( AuxScale scale, PlotLayer[] layers,
                                        Surface surface, Object[] knownPlans,
                                        DataStore dataStore ) {
-        Ranger ranger = new BasicRanger();
+        Ranger ranger = new BasicRanger( false );
         for ( int il = 0; il < layers.length; il++ ) {
             PlotLayer layer = layers[ il ];
             AuxReader rdr = layer.getAuxRangers().get( scale );

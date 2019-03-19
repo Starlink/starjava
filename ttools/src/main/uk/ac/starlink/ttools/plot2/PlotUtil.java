@@ -73,7 +73,7 @@ public class PlotUtil {
     };
 
     /** Span instance not initialised with any data. */
-    public static final Span EMPTY_SPAN = new BasicRanger().createSpan();
+    public static final Span EMPTY_SPAN = new BasicRanger( true ).createSpan();
 
     /** Relative location of latex font location list. */
     private static final String LATEX_FONT_PATHS = "latex_fonts.txt";
