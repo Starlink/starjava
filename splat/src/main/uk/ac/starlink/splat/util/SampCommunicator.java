@@ -309,9 +309,12 @@ public class SampCommunicator
         		String msgId, Message message )
         {
         	String mtype = message.getMType();
+        	MsgInfo msgInfo = new MsgInfo( connection, msgId );
+        	
         	if (mtype.equalsIgnoreCase("coord.pointat.sky")) {
         		//logger.info("got coords "+message.toString());
         		browser.addSampCoords(message.getParams());
+        		replyAck( msgInfo);
         		return;
         	}
         	
@@ -319,17 +322,34 @@ public class SampCommunicator
         	
         	if (mtype.equalsIgnoreCase("table.load.votable") && ! browser.getPreference("SplatBrowser_handleVOTableAsSpectra", false)) {        		
         		browser.addSampResults(location, (String) message.getParam( "name" ));
+        		replyAck( msgInfo);
         	} else { 
         		SpectrumIO.Props props = createProps( message );
-            	propsMap.put( props, new MsgInfo( connection, msgId ) );
+            	propsMap.put( props, msgInfo );
         		SpectrumIO.getInstance().setWatcher( this );
         		loadSpectrum( props );
         	}
 
         }
 
-       
+        
+		/**
+         * Just reply to the Samp HUB to acknowledge that the message is received.
+         */
+        public void replyAck(MsgInfo msginfo)
+        {
+            if ( msginfo != null ) {
+                Response response =
+                    Response.createSuccessResponse( new HashMap() );
+                msginfo.reply( response );
+            }
+            else {
+                logger.info( "Orphaned SAMP success?" );
+            }
+            
+        }
 
+        
 		/**
          * Invoked by SpectrumIO when a load has completed with success.
          */
