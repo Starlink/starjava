@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Ranger;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -25,6 +26,7 @@ public class FloatingCoordAuxReader implements AuxReader {
     private final int icol_;
     private final DataGeom geom_;
     private final boolean visibleOnly_;
+    private final Scaling scaling_;
 
     /**
      * Constructor.
@@ -35,13 +37,16 @@ public class FloatingCoordAuxReader implements AuxReader {
      * @param  visibleOnly  true to include only points visible in the
      *                      current plot bounds, false for all potentially
      *                      plottable points
+     * @param  scaling  scaling
      */
     public FloatingCoordAuxReader( FloatingCoord coord, int icol,
-                                   DataGeom geom, boolean visibleOnly ) {
+                                   DataGeom geom, boolean visibleOnly,
+                                   Scaling scaling ) {
         coord_ = coord;
         icol_ = icol;
         geom_ = geom;
         visibleOnly_ = visibleOnly;
+        scaling_ = scaling;
     }
 
     public int getCoordIndex() {
@@ -51,6 +56,10 @@ public class FloatingCoordAuxReader implements AuxReader {
     public ValueInfo getAxisInfo( DataSpec dataSpec ) {
         ValueInfo[] infos = dataSpec.getUserCoordInfos( icol_ );
         return infos.length == 1 ? infos[ 0 ] : null;
+    }
+
+    public Scaling getScaling() {
+        return scaling_;
     }
 
     public void adjustAuxRange( Surface surface, DataSpec dataSpec,

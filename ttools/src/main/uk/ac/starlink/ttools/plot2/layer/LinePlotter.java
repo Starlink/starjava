@@ -232,6 +232,9 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                                 dataSpec.getUserCoordInfos( icAux );
                             return infos.length == 1 ? infos[ 0 ] : null;
                         }
+                        public Scaling getScaling() {
+                            return style.getScaling();
+                        }
                         public void adjustAuxRange( Surface surf,
                                                     DataSpec dataSpec,
                                                     DataStore dataStore,

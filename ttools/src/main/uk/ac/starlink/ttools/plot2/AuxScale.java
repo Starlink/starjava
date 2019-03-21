@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -111,9 +112,22 @@ public class AuxScale {
     private static Span calculateSpan( AuxScale scale, PlotLayer[] layers,
                                        Surface surface, Object[] knownPlans,
                                        DataStore dataStore ) {
-        Ranger ranger = new BasicRanger( false );
-        for ( int il = 0; il < layers.length; il++ ) {
-            PlotLayer layer = layers[ il ];
+
+        /* Work out what kind of ranging is required, and construct a
+         * suitable ranger object. */
+        Collection<Scaling> scalings = new HashSet<Scaling>();
+        for ( PlotLayer layer : layers ) {
+            AuxReader rdr = layer.getAuxRangers().get( scale );
+            if ( rdr != null ) {
+                scalings.add( rdr.getScaling() );
+            }
+        }
+        Ranger ranger =
+            Scalings.createRanger( scalings.toArray( new Scaling[ 0 ] ) );
+
+        /* Feed the data from all the relevant layers to the ranger
+         * to generate the result. */
+        for ( PlotLayer layer : layers ) {
             AuxReader rdr = layer.getAuxRangers().get( scale );
             if ( rdr != null ) {
                 rdr.adjustAuxRange( surface, layer.getDataSpec(), dataStore,
@@ -201,45 +215,47 @@ public class AuxScale {
      * on the assumption that they are to be fed to the
      * {@link #calculateAuxSpans calculateAuxSpans} method, is returned.
      *
-     * @param  reqScales  scales needed
+     * @param  layers      layers to be plotted
      * @param  dataSpans    ranges acquired by scanning data keyed by scale,
      *                      (optional per scale)
      * @param  fixSpans     single- or double-ended fixed data ranges,
      *                      keyed by scale (optional per scale)
      * @return  list of scales for which data scans are required
      */
-    public static AuxScale[] getMissingScales( AuxScale[] reqScales,
+
+    public static AuxScale[] getMissingScales( PlotLayer[] layers,
                                                Map<AuxScale,Span> dataSpans,
                                                Map<AuxScale,Span> fixSpans ) {
-        List<AuxScale> scaleList = new ArrayList<AuxScale>();
-        for ( int i = 0; i < reqScales.length; i++ ) {
-            AuxScale scale = reqScales[ i ];
-            Span dataSpan = dataSpans.get( scale );
-            Span fixSpan = fixSpans.get( scale );
-            if ( isFiniteSpan( dataSpan ) || isFiniteSpan( fixSpan ) ) {
-                // no action
-            }
-            else {
-                scaleList.add( scale );
-            }
-        }
-        return scaleList.toArray( new AuxScale[ 0 ] );
-    }
 
-    /**
-     * Indicates whether a given span has definite (rather than assumed)
-     * upper and lower bounds.
-     *
-     * @param  span   object to test
-     * @return  true iff upper and lower bounds are both finite values
-     */
-    private static boolean isFiniteSpan( Span span ) {
-        if ( span != null ) {
-            return PlotUtil.isFinite( span.getLow() )
-                && PlotUtil.isFinite( span.getHigh() );
+        /* Get a set of scales along with associated scalings for all
+         * the layers that will be plotted. */
+        Map<AuxScale,Collection<Scaling>> reqMap =
+            new HashMap<AuxScale,Collection<Scaling>>();
+        for ( PlotLayer layer : layers ) {
+            Map<AuxScale,AuxReader> auxRangers = layer.getAuxRangers();
+            for ( Map.Entry<AuxScale,AuxReader> entry :
+                  layer.getAuxRangers().entrySet() ) {
+                AuxScale scale = entry.getKey();
+                Scaling scaling = entry.getValue().getScaling();
+                if ( ! reqMap.containsKey( scale ) ) {
+                    reqMap.put( scale, new HashSet<Scaling>() );
+                }
+                reqMap.get( scale ).add( scaling );
+            }
         }
-        else {
-            return false;
+
+        /* For each of the scales, add it to the missing list if we don't
+         * have the relevant scaling information already. */
+        List<AuxScale> missingScales = new ArrayList<AuxScale>();
+        for ( Map.Entry<AuxScale,Collection<Scaling>> entry :
+              reqMap.entrySet() ) {
+            AuxScale scale = entry.getKey();
+            Scaling[] scalings = entry.getValue().toArray( new Scaling[ 0 ] );
+            if ( ! Scalings.canScale( scalings, dataSpans.get( scale ),
+                                      fixSpans.get( scale ) ) ) {
+                missingScales.add( scale );
+            }
         }
+        return missingScales.toArray( new AuxScale[ 0 ] );
     }
 }

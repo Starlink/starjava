@@ -1,12 +1,9 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaler;
-import uk.ac.starlink.ttools.plot2.Scaling;
-import uk.ac.starlink.ttools.plot2.Subrange;
 
 /**
- * Scales integer count values according to a supplied Scaling object.
+ * Scales integer count values according to a supplied Scaler object.
  *
  * @author   Mark Taylor
  * @since    26 Jan 2015
@@ -22,19 +19,15 @@ public class CountScaler {
     /**
      * Constructor.
      *
-     * @param  scaling  provides basic scaling behaviour
-     * @param  dataclip  adjusts input value range
-     * @param  maxIn  defines input value range 0..maxIn
+     * @param  scaler  provides basic scaling behaviour
      * @param  maxOut  defines output value range 0..maxOut
      */
-    public CountScaler( Scaling scaling, Subrange dataclip,
-                        int maxIn, int maxOut ) {
-        scaler_ = PlotUtil.createSpan( 1, maxIn )
-                          .createScaler( scaling, dataclip );
+    public CountScaler( Scaler scaler, int maxOut ) {
+        scaler_ = scaler;
         outFactor_ = maxOut - 0.1;
 
         /* Prepare a lookup table for the first few integer input values. */
-        nLookup_ = Math.min( maxIn, MAX_LOOKUP );
+        nLookup_ = MAX_LOOKUP;
         lookup_ = new int[ nLookup_ ];
         for ( int i = 0; i < nLookup_; i++ ) {
             lookup_[ i ] = calculateScaledCount( i );
@@ -43,7 +36,7 @@ public class CountScaler {
 
     /**
      * Scales in input whole number to an output whole number.
-     * Zero maps to zero, other values map according to this object's Scaling.
+     * Zero maps to zero, other values map according to this object's Scaler.
      *
      * @param   count  unscaled value, in range 0..maxIn
      * @return  scaled count, in range 0..maxOut
@@ -55,7 +48,7 @@ public class CountScaler {
 
     /**
      * Calculates the scaled value.
-     * Zero maps to zero, other values map according to this object's Scaling.
+     * Zero maps to zero, other values map according to this object's Scaler.
      *
      * @param   count  unscaled value, in range 0..maxIn
      * @return  scaled count, in range 0..maxOut

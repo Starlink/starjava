@@ -15,9 +15,12 @@ import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Scalings;
+import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -161,22 +164,16 @@ public class DensogramPlotter
         int np = ixhi - ixlo;
 
         /* Get range. */
-        double ymin = Double.POSITIVE_INFINITY;
-        double ymax = Double.NEGATIVE_INFINITY;
+        Scaling scaling = style.scaling_;
+        Ranger ranger = Scalings.createRanger( new Scaling[] { scaling } );
         for ( int ip = 0; ip < np; ip++ ) {
-            int ix = ixlo + ip;
-            double dy = bins[ ix ];
-            if ( ! Double.isNaN( dy ) ) {
-                ymin = Math.min( ymin, dy );
-                ymax = Math.max( ymax, dy );
-            }
+            ranger.submitDatum( bins[ ixlo + ip ] );
         }
+        Span span = ranger.createSpan();
 
         /* Do the painting. */
-        if ( ymin < ymax ) {
-            Scaler scaler = PlotUtil.createSpan( ymin, ymax )
-                                    .createScaler( style.scaling_,
-                                                   style.dataclip_ );
+        if ( span.getHigh() > span.getLow() ) {
+            Scaler scaler = span.createScaler( scaling, style.dataclip_ );
             float[] baseRgba = style.baseColor_.getRGBComponents( null );
             float[] rgba = new float[ 4 ];
             Color color0 = g.getColor();

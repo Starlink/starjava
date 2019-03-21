@@ -492,6 +492,9 @@ public class HealpixPlotter
                 public ValueInfo getAxisInfo( DataSpec dataSpec ) {
                     return getCombinedInfo( dataSpec );
                 }
+                public Scaling getScaling() {
+                    return hstyle_.scaling_;
+                }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore,
                                             Object[] knownPlans,

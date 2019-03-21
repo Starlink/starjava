@@ -582,6 +582,9 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 public ValueInfo getAxisInfo( DataSpec dataSpec ) {
                     return getCombinedInfo( dataSpec );
                 }
+                public Scaling getScaling() {
+                    return gstyle_.scaling_;
+                }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,
                                             Ranger ranger ) {

@@ -39,6 +39,7 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Scalings;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -837,26 +838,28 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param   nlevel   number of levels represented in output
              */
             private void scaleLevels( int[] buf, int nlevel ) {
+                Ranger ranger =
+                    Scalings.createRanger( new Scaling[] { scaling_ } );
                 int n = buf.length;
                 int max = 0;
                 for ( int i = 0; i < n; i++ ) {
-                    max = Math.max( max, buf[ i ] );
+                    int b = buf[ i ];
+                    if ( b > 0 ) {
+                        max = Math.max( b, max );
+                        ranger.submitDatum( b );
+                    }
                 }
 
                 /* Leave 0 as 0 - this is transparent (no plot).
                  * Values >= 1 map to range 1..nlevel. */
                 if ( max > 0 ) {
-                    max = Math.max( max, PlotUtil.MIN_RAMP_UNIT );
-                    CountScaler scaler =
-                        new CountScaler( scaling_, dataclip_, max, nlevel );
-                    if ( max == 1 && scaler.scaleCount( 1 ) == 1 ) {
-                        // special case: array is already in the required form
-                        // (zeros and ones), no action required
-                    }
-                    else {
-                        for ( int i = 0; i < n; i++ ) {
-                            buf[ i ] = scaler.scaleCount( buf[ i ] );
-                        }
+                    ranger.submitDatum( 1 );
+                    ranger.submitDatum( PlotUtil.MIN_RAMP_UNIT );
+                    Scaler scaler = ranger.createSpan()
+                                   .createScaler( scaling_, dataclip_ );
+                    CountScaler countScaler = new CountScaler( scaler, nlevel );
+                    for ( int i = 0; i < n; i++ ) {
+                        buf[ i ] = countScaler.scaleCount( buf[ i ] );
                     }
                 }
             }
@@ -1130,7 +1133,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     Map<AuxScale,AuxReader> map = super.getAuxRangers();
                     AuxReader shadeReader =
                         new FloatingCoordAuxReader( SHADE_COORD, iShadeCoord,
-                                                    geom, true );
+                                                    geom, true, scaling );
                     map.put( SCALE, shadeReader );
                     map.putAll( outliner.getAuxRangers( geom ) );
                     return map;
@@ -1353,6 +1356,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 map.put( SCALE, new AuxReader() {
                     public int getCoordIndex() {
                         return icWeight_;
+                    }
+                    public Scaling getScaling() {
+                        return wstamper_.scaling_;
                     }
                     public ValueInfo getAxisInfo( DataSpec dataSpec ) {
                         Combiner combiner = wstamper_.combiner_;

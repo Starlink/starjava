@@ -779,7 +779,7 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Work out what ranges we need to calculate. */
         AuxScale[] calcScales =
-            AuxScale.getMissingScales( scales, new HashMap<AuxScale,Span>(),
+            AuxScale.getMissingScales( layers, new HashMap<AuxScale,Span>(),
                                        auxFixSpans );
 
         /* Calculate the ranges from the data. */

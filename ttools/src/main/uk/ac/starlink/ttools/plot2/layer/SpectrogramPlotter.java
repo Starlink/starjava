@@ -260,6 +260,9 @@ public class SpectrogramPlotter
                         public int getCoordIndex() {
                             return icSpectrum_;
                         }
+                        public Scaling getScaling() {
+                            return style.scaling_;
+                        }
                         public ValueInfo getAxisInfo( DataSpec dataSpec ) {
                             ValueInfo[] infos =
                                 dataSpec.getUserCoordInfos( icSpectrum_ );

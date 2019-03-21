@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -241,16 +242,19 @@ public class SizeXyForm implements ShapeForm {
 
         public Map<AuxScale,AuxReader> getAuxRangers( DataGeom geom ) {
             Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
+            Scaling scaling = null;
             if ( xAutoscale_ != null ) {
                 int icx = getSizeCoordIndex( geom, false );
                 AuxReader xReader =
-                    new FloatingCoordAuxReader( XSIZE_COORD, icx, geom, true );
+                    new FloatingCoordAuxReader( XSIZE_COORD, icx, geom, true,
+                                                scaling );
                 map.put( xAutoscale_, xReader );
             }
             if ( yAutoscale_ != null ) {
                 int icy = getSizeCoordIndex( geom, true );
                 AuxReader yReader =
-                    new FloatingCoordAuxReader( YSIZE_COORD, icy, geom, true );
+                    new FloatingCoordAuxReader( YSIZE_COORD, icy, geom, true,
+                                                scaling );
                 map.put( yAutoscale_, yReader );
             }
             return map;

@@ -465,6 +465,9 @@ public class SkyDensityPlotter
                 public ValueInfo getAxisInfo( DataSpec dataSpec ) {
                     return getCombinedInfo( dataSpec );
                 }
+                public Scaling getScaling() {
+                    return dstyle_.scaling_;
+                }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                             DataStore dataStore,
                                             Object[] knownPlans,

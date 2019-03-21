@@ -1512,7 +1512,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 /* Work out which scales we are going to have to calculate,
                  * if any, and calculate them. */
                 AuxScale[] calcScales =
-                    AuxScale.getMissingScales( scales, auxDataSpanMap,
+                    AuxScale.getMissingScales( zone.layers_, auxDataSpanMap,
                                                zone.auxFixSpans_ );
                 if ( calcScales.length > 0 ) {
 

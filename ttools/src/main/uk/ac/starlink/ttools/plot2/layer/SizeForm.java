@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -206,7 +207,7 @@ public class SizeForm implements ShapeForm {
                 AuxReader sizeReader =
                     new FloatingCoordAuxReader( SIZE_COORD,
                                                 getSizeCoordIndex( geom ),
-                                                geom, true );
+                                                geom, true, (Scaling) null );
                 map.put( autoscale_, sizeReader );
             }
             return map;

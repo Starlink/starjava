@@ -32,6 +32,51 @@ public class Scalings {
     }
 
     /**
+     * Returns a ranger suitable for use with all of a given list of scalings.
+     * If a ranger is obtained from this method and used to create a
+     * {@link Span}, that span's {@link Span#createScaler createScaler} method
+     * can be used with any of the scalings presented here.
+     *
+     * @param   scalings  list of scalings required for compatibility;
+     *                    null values are permitted, and add no constraints
+     * @return  suitable ranger
+     */
+    public static Ranger createRanger( Scaling[] scalings ) {
+        boolean hasRange = false;
+        boolean hasOther = false;
+        for ( Scaling scaling : scalings ) {
+            if ( scaling instanceof Scaling.RangeScaling ) {
+                hasRange = true;
+            }
+            else if ( scaling != null ) {
+                logger_.warning( "Unknown scaling type: " + scaling );
+                hasOther = true;
+            }
+        }
+        if ( hasOther ) {
+            return new BasicRanger( true );
+        }
+        else {
+            return new BasicRanger( false );
+        }
+    }
+
+    /**
+     * Determines whether all of a list of scalings can be used to
+     * create Scaler objects from given span instances.
+     *
+     * @param   scalings  scaling instances for which scalers may be required
+     * @param   dataSpan  span obtained from ranging data
+     * @param   fixSpan   span obtained by direct user input of bounds
+     * @return   true iff spans are sufficient,
+     *           false if new span instances are going to be needed
+     */
+    public static boolean canScale( Scaling[] scalings, Span dataSpan,
+                                    Span fixSpan ) {
+        return isFiniteSpan( dataSpan ) || isFiniteSpan( fixSpan );
+    }
+
+    /**
      * Constructs the linear scaling instance.
      *
      * @param  name  scaling name
@@ -274,6 +319,26 @@ public class Scalings {
         return lo + frac * ( hi - lo );
     }
 
+    /**
+     * Indicates whether a given span has definite (rather than assumed)
+     * upper and lower bounds.
+     *
+     * @param  span   object to test
+     * @return  true iff upper and lower bounds are both finite values
+     */
+    private static boolean isFiniteSpan( Span span ) {
+        if ( span != null ) {
+            return PlotUtil.isFinite( span.getLow() )
+                && PlotUtil.isFinite( span.getHigh() );
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Partial scaling implementation.
+     */
     private static abstract class DefaultScaling implements Scaling {
         final String name_;
         final String description_;

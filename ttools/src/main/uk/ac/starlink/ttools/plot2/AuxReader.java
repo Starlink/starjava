@@ -30,6 +30,16 @@ public interface AuxReader {
                          Ranger ranger );
 
     /**
+     * Returns a scaling that will be used on the result of the aux
+     * ranging done by this reader, if any.  If no scaler will be
+     * generated from the resulting Span (no special requirements on
+     * Span behaviour), then null may be returned.
+     *
+     * @return   aux scaling type, or null
+     */
+    Scaling getScaling();
+
+    /**
      * Returns the DataSpec index for the coordinate whose value is used
      * by this reader.  This is provided on a best-efforts basis; if no
      * single coordinate fits this description, then -1 may be returned.

@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Ranger;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -599,6 +600,9 @@ public abstract class MultiPointForm implements ShapeForm {
                     return -1;
                 }
                 public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                    return null;
+                }
+                public Scaling getScaling() {
                     return null;
                 }
                 public void adjustAuxRange( Surface surface, DataSpec dataSpec,
