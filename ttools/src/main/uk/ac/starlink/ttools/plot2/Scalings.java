@@ -43,10 +43,14 @@ public class Scalings {
      */
     public static Ranger createRanger( Scaling[] scalings ) {
         boolean hasRange = false;
+        boolean hasHisto = false;
         boolean hasOther = false;
         for ( Scaling scaling : scalings ) {
             if ( scaling instanceof Scaling.RangeScaling ) {
                 hasRange = true;
+            }
+            else if ( scaling instanceof Scaling.HistogramScaling ) {
+                hasHisto = true;
             }
             else if ( scaling != null ) {
                 logger_.warning( "Unknown scaling type: " + scaling );
@@ -55,6 +59,9 @@ public class Scalings {
         }
         if ( hasOther ) {
             return new BasicRanger( true );
+        }
+        else if ( hasHisto ) {
+            return new HistoRanger( 100000, 1000 );
         }
         else {
             return new BasicRanger( false );
@@ -73,6 +80,31 @@ public class Scalings {
      */
     public static boolean canScale( Scaling[] scalings, Span dataSpan,
                                     Span fixSpan ) {
+        boolean hasRange = false;
+        boolean hasHisto = false;
+        boolean hasOther = false;
+        for ( Scaling scaling : scalings ) {
+            if ( scaling instanceof Scaling.RangeScaling ) {
+                hasRange = true;
+            }
+            else if ( scaling instanceof Scaling.HistogramScaling ) {
+                hasHisto = true;
+            }
+            else if ( scaling != null ) {
+                assert false;
+                logger_.warning( "Unknown scaling type: " + scaling );
+                hasOther = true;
+            }
+        }
+        if ( hasOther ) {
+            return false;
+        }
+        if ( hasHisto ) {
+            if ( ! isFiniteSpan( dataSpan ) ||
+                 ! HistoRanger.canScaleHistograms( dataSpan ) ) {
+                return false;
+            }
+        }
         return isFiniteSpan( dataSpan ) || isFiniteSpan( fixSpan );
     }
 
@@ -190,6 +222,35 @@ public class Scalings {
                                       return val * val;
                                   }
                               } );
+    }
+
+    /**
+     * Constructs a histogram-like scaling instance.
+     *
+     * @param  name  scaling name
+     * @param  isLogLike  true for logarithmic axis, false for linear
+     */
+    static Scaling.HistogramScaling
+            createHistogramScaling( final String name,
+                                    final boolean isLogLike ) {
+        final String descrip = "Scaling follows data distribution, with "
+                             + ( isLogLike ? "logarithmic" : "linear" )
+                             + " axis";
+        return new Scaling.HistogramScaling() {
+            public String getName() {
+                return name;
+            }
+            public String getDescription() {
+                return descrip;
+            }
+            public boolean isLogLike() {
+                return isLogLike;
+            }
+            @Override
+            public String toString() {
+                return name;
+            }
+        };
     }
 
     /**

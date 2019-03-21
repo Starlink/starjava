@@ -34,11 +34,18 @@ public interface Scaling {
     public static final Scaling.RangeScaling AUTO =
         Scalings.createAutoScaling( "Auto" );
 
+    /** Histogram scaling on a linear scale. */
+    public static final Scaling.HistogramScaling HISTO =
+        Scalings.createHistogramScaling( "Histogram", false );
+
+    /** Histogram scaling on a logarithmic scale. */
+    public static final Scaling.HistogramScaling HISTOLOG =
+        Scalings.createHistogramScaling( "HistoLog", true );
+
     /** List of standard options for colour map stretch. */
     public static final Scaling[] STRETCHES = new Scaling[] {
-        LOG, LINEAR, SQRT, SQUARE,
+        LOG, LINEAR, HISTO, HISTOLOG, SQRT, SQUARE,
     };
-
 
     /**
      * Returns the name of this scaling.
@@ -87,5 +94,12 @@ public interface Scaling {
          * @return  instance
          */
         Scaler createScaler( double lo, double hi );
+    }
+
+    /**
+     * Marker interface for Scaling instances that create Scalers based
+     * on a histogram assembled from data.
+     */
+    interface HistogramScaling extends Scaling {
     }
 }
