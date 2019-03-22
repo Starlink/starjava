@@ -28288,6 +28288,10 @@ introduced since the last version:
         and certain other places.
         This can make it much easier to see structure in quantities
         that do not vary smoothly over their min-max range.</li>
+    <li>Improve colour ramp quantisation
+        (e.g. <label>Shader Quantise</label> control in
+        <ref id="ShaderControl">Aux Axis Control</ref>);
+        the full colour range is now included.</li>
     </ul>
     </p></dd>
 

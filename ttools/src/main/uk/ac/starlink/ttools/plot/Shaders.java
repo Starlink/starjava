@@ -1280,7 +1280,7 @@ public class Shaders {
         }
 
         private float quantise( float value ) {
-            return (int) ( value * nlevel_ ) / nlevel_;
+            return Math.min( (int) ( value * nlevel_ ) / ( nlevel_ - 1 ), 1f );
         }
 
         public boolean isAbsolute() {

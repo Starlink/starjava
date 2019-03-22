@@ -11981,6 +11981,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and the other plotting commands.
         This can make it much easier to see structure in quantities 
         that do not vary smoothly over their min-max range.</li>
+    <li>Improve colour ramp quantisation
+        (plot parameters <code>auxquant</code> etc);
+        the full color range is now included.</li>
     </ul>
     </p>
     </dd>
