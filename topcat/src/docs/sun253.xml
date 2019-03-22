@@ -8816,7 +8816,11 @@ The following plot layers do this:
 <li><ref id="mode-weighted" plaintextref="yes">Weighted colour mode</ref></li>
 <li><ref id="form-grid" plaintextref="yes">Grid form</ref></li>
 <li><ref id="form-skydensity" plaintextref="yes">Sky Density form</ref></li>
+<li><ref id="HealpixLayerControl" plaintextref="yes">Healpix control</ref></li>
+<li><ref id="form-line" plaintextref="yes">Line form</ref></li>
 <li><ref id="form-line3d" plaintextref="yes">Line3d form</ref></li>
+<li><ref id="SpectrogramLayerControl" plaintextref="yes"
+         >Spectrogram control</ref></li>
 </ul>
 These all colour parts of the plot in a way that is quantitatively
 significant, and the Aux Axis control gives you a chance to control
@@ -8877,11 +8881,33 @@ It has the following options:
     </p></dd>
 <dt>Scaling</dt>
 <dd><p>Determines the function used to map the range of aux data values
-    onto the colour map.
-    Options are <label>linear</label>,
-                <label>logarithmic</label>,
-                <label>square</label> and
-                <label>square root</label>.
+    onto the colour map.  The options are:
+    <ul>
+    <li><code>linear</code></li>
+    <li><code>log</code></li>
+    <li><code>histogram</code></li>
+    <li><code>histolog</code></li>
+    <li><code>square</code></li>
+    <li><code>sqrt</code></li>
+    </ul>
+    In all these cases, the full range of data values is displayed on the
+    colour bar (though it can be restricted by using the 
+    <label>Aux Subrange</label> control in the <label>Range</label> tab,
+    described below).
+    The <code>linear</code>, <code>log</code>, <code>square</code> and
+    <code>sqrt</code> options just apply the named function to the
+    full data range.
+    The histogram options on the other hand use a scaling function
+    that corresponds to the actual distribution of the data, so that
+    there are about the same number of points (or pixels, or whatever
+    is being scaled) of each colour.
+    The histogram options are somewhat more expensive,
+    but can be a good choice if you are exploring data whose
+    distribution is unknown or not well-behaved over its min-max range.
+    The <code>histogram</code> and <code>histolog</code> options both
+    assign the colours in the same way, but they display the colour
+    ramp with linear or logarithmic annotation respectively;
+    the <code>histolog</code> option also ignores non-positive values.
     </p></dd>
 <dt>Null Colour</dt>
 <dd><p>What colour should be used to represent points with a null value
@@ -28256,6 +28282,12 @@ introduced since the last version:
         This is like Car (Plate Carr&#x00e9;e)
         but has longitude=0 at the left/right edge
         rather than the center of the plot.</li>
+    <li>Introduced new colour scaling options <code>histogram</code>
+        and <code>histolog</code> for the <label>Scaling</label>
+        selector in the <ref id="ShaderControl">Aux Axis Control</ref>
+        and certain other places.
+        This can make it much easier to see structure in quantities
+        that do not vary smoothly over their min-max range.</li>
     </ul>
     </p></dd>
 

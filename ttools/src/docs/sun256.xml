@@ -11974,6 +11974,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         this is like <code>Car</code> (Plate Carr&#x00e9;e)
         but has longitude=0 at the left/right edge
         rather than the center of the plot.</li>
+    <li>Introduced new colour scaling options <code>histogram</code>
+        and <code>histolog</code> for the parameters
+        <code>auxfunc</code>, <code>densefunc</code> etc
+        in <ref id="plot2plane"><code>plot2plane</code></ref>
+        and the other plotting commands.
+        This can make it much easier to see structure in quantities 
+        that do not vary smoothly over their min-max range.</li>
     </ul>
     </p>
     </dd>

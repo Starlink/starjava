@@ -147,14 +147,15 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         };
         keyList.add( quantiseKey_ );
 
+        dataclipKey_ =
+            new SubrangeConfigKey( SubrangeConfigKey
+                                  .createAxisSubMeta( axname, axName ) );
+        if ( hasDataclip ) {
+            keyList.add( dataclipKey_ );
+        }
+
         ConfigMeta scalingMeta = new ConfigMeta( axname + "func", "Scaling" );
         scalingMeta.setShortDescription( axName + " scaling function" );
-        scalingMeta.setXmlDescription( new String[] {
-            "<p>Defines the way that values in the",
-            axName,
-            "range are mapped to the selected colour ramp.",
-            "</p>",
-        } );
         scalingKey_ =
                 new OptionConfigKey<Scaling>( scalingMeta, Scaling.class,
                                               Scaling.STRETCHES, dfltScaling ) {
@@ -163,15 +164,43 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             }
         };
         scalingKey_.setOptionUsage();
-        scalingKey_.addOptionsXml();
+        scalingMeta.setXmlDescription( new String[] {
+            "<p>Defines the way that values in the",
+            axName,
+            "range are mapped to the selected colour ramp.",
+            "</p>",
+            scalingKey_.getOptionsXml(),
+            "<p>For all these options,",
+            "the full range of data values is used,",
+            "and displayed on the colour bar",
+            ( hasDataclip
+              ? "if applicable"
+                + " (though it can be restricted using the"
+                + " <code>" + dataclipKey_.getMeta().getShortName() + "</code>"
+                + " option)"
+              : "if applicable." ),
+            "The <code>" + Scaling.LINEAR + "</code>,",
+                "<code>" + Scaling.LOG + "</code>,",
+                "<code>" + Scaling.SQUARE + "</code> and",
+                "<code>" + Scaling.SQRT + "</code> options",
+            "just apply the named function to the full data range.",
+            "The histogram options on the other hand use a scaling function",
+            "that corresponds to the actual distribution of the data, so that",
+            "there are about the same number of points (or pixels, or whatever",
+            "is being scaled) of each colour.",
+            "The histogram options are somewhat more expensive,",
+            "but can be a good choice if you are exploring data whose",
+            "distribution is unknown or not well-behaved over",
+            "its min-max range.",
+            "The <code>" + Scaling.HISTO + "</code> and ",
+            "<code>" + Scaling.HISTOLOG + "</code> options both",
+            "assign the colours in the same way, but they display the colour",
+            "ramp with linear or logarithmic annotation respectively;",
+            "the <code>" + Scaling.HISTOLOG +"</code> option also ignores",
+            "non-positive values.",
+            "</p>",
+        } );
         keyList.add( scalingKey_ );
-
-        dataclipKey_ =
-            new SubrangeConfigKey( SubrangeConfigKey
-                                  .createAxisSubMeta( axname, axName ) );
-        if ( hasDataclip ) {
-            keyList.add( dataclipKey_ );
-        }
 
         keys_ = keyList.toArray( new ConfigKey[ 0 ] );
     }

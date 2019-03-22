@@ -1087,10 +1087,10 @@ public class Plot2Example {
             new Plot2Example( "layer-skydensity", c, PlotTask.SKY,
                               new String[] { 
                 "*in=" + TName.TGAS, "*lon=l", "*lat=b", null,
-                "*layer1=skydensity", "*weight1=astrometric_excess_noise",
+                "*layer1=skydensity", "*weight1=parallax",
                 "*combine1=mean", "*level1=4", null,
-                "projection=aitoff", "auxmap=cubehelix", "auxfunc=log", null,
-                "xpix=580", "ypix=250",
+                "projection=aitoff", "auxmap=PuRd", "auxfunc=histogram", null,
+                "xpix=540", "ypix=250",
             } ),
             new Plot2Example( "layer-healpix", c, PlotTask.SKY, new String[] {
                 "*layer1=healpix", "*in1=" + TName.SIMBAD_HPX,
