@@ -24,6 +24,7 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Parses an XML document which describes Tabular Data as prescribed by
@@ -396,6 +397,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         TableSetSaxHandler tsHandler = new TableSetSaxHandler();
         URLConnection conn = url.openConnection();
         coding.prepareRequest( conn );
+        conn = URLUtils.followRedirects( conn, null );
         if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
             int code = hconn.getResponseCode();
