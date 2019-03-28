@@ -56,16 +56,16 @@ public class TapMapper implements TableMapper {
         paramList.add( createUploadNameParameter( VariableTablesInput
                                                  .NUM_SUFFIX ) );
 
-        tapserviceParams_ = new TapServiceParams( "tapurl" );
+        tapserviceParams_ = new TapServiceParams( "tapurl", false );
         paramList.add( tapserviceParams_.getBaseParameter() );
+        paramList.addAll( tapserviceParams_.getInterfaceParameters() );
 
         /* For now don't report the other endpoint parameters,
          * since most of them will have no effect in practice,
          * and they would confuse the documentation.
          * But they are present undocumented if necessary. */
         if ( false ) {
-            paramList.addAll( Arrays.asList( tapserviceParams_
-                                            .getOtherParameters() ) );
+            paramList.addAll( tapserviceParams_.getOtherParameters() );
         }
 
         adqlParam_ = new StringParameter( "adql" );

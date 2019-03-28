@@ -41,7 +41,7 @@ public class TapLint implements Task {
     public TapLint() {
         List<Parameter> paramList = new ArrayList<Parameter>();
 
-        tapserviceParams_ = new TapServiceParams( "tapurl" );
+        tapserviceParams_ = new TapServiceParams( "tapurl", true );
         Parameter urlParam = tapserviceParams_.getBaseParameter();
         urlParam.setPosition( 1 );
         paramList.add( urlParam );
@@ -119,8 +119,8 @@ public class TapLint implements Task {
         paramList.add( reporterParam_ );
         paramList.addAll( Arrays.asList( reporterParam_
                                         .getReporterParameters() ) );
-        paramList.addAll( Arrays.asList( tapserviceParams_
-                                        .getOtherParameters() ) );
+        paramList.addAll( tapserviceParams_.getInterfaceParameters() );
+        paramList.addAll( tapserviceParams_.getOtherParameters() );
 
         params_ = paramList.toArray( new Parameter[ 0 ] );
     }

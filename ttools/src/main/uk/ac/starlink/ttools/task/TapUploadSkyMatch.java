@@ -62,7 +62,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
     public TapUploadSkyMatch() {
         super( "Crossmatches table on sky position against TAP table",
                new ChoiceMode(), true, true );
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         inlonParam_ = new StringParameter( "inlon" );
         inlonParam_.setUsage( "<expr/deg>" );
@@ -92,16 +92,16 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         } );
         paramList.add( inlatParam_ );
 
-        tapserviceParams_ = new TapServiceParams( "tapurl" );
+        tapserviceParams_ = new TapServiceParams( "tapurl", false );
         paramList.add( tapserviceParams_.getBaseParameter() );
+        paramList.addAll( tapserviceParams_.getInterfaceParameters() );
 
         /* For now don't report the other endpoint parameters,
          * since most of them will have no effect in practice,
          * and they would confuse the documentation.
          * But they are present undocumented if necessary. */
         if ( false ) {
-            paramList.addAll( Arrays.asList( tapserviceParams_
-                                            .getOtherParameters() ) );
+            paramList.addAll( tapserviceParams_.getOtherParameters() );
         }
 
         taptableParam_ = new StringParameter( "taptable" );

@@ -43,6 +43,8 @@ public class ParameterTest extends TestCase {
         "xdataN", "ydataN", "zdataN", "auxdataN",
         "subsetNS", "colourNS", "shapeNS", "transparencyNS",
         "layerN",
+        "syncurl", "asyncurl", "tablesurl", "capabilitiesurl",
+        "availabilityurl", "examplesurl",
         "end",
     } ) );
 
