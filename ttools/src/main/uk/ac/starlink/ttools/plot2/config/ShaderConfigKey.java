@@ -66,7 +66,7 @@ public class ShaderConfigKey extends ChoiceConfigKey<Shader> {
         JComboBox comboBox = new JComboBox( shaders_ );
         comboBox.setSelectedItem( getDefaultValue() );
         comboBox.setRenderer( new ShaderListCellRenderer( comboBox ) );
-        return new ComboBoxSpecifier<Shader>( comboBox );
+        return new ComboBoxSpecifier<Shader>( Shader.class, comboBox );
     }
 
     /**

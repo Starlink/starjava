@@ -414,12 +414,11 @@ public abstract class FigurePanel extends JComponent {
         ModeEnquiryPanel() {
             setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
             modeSelector_ = new JComboBox( figureModes_ );
-            modeSelector_.setRenderer( new CustomComboBoxRenderer() {
+            modeSelector_.setRenderer(
+                    new CustomComboBoxRenderer<FigureMode>( FigureMode.class ) {
                 @Override
-                protected Object mapValue( Object value ) {
-                    return value instanceof FigureMode
-                         ? ((FigureMode) value).getName()
-                         : value;
+                protected String mapValue( FigureMode figmode ) {
+                    return figmode.getName();
                 }
             } );
             modeSelector_.setSelectedItem( dfltMode_ );

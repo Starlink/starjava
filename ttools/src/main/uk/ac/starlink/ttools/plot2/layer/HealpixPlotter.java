@@ -355,7 +355,8 @@ public class HealpixPlotter
         }
         ConfigKey<Integer> key = new IntegerConfigKey( meta, -1 ) {
             public Specifier<Integer> createSpecifier() {
-                return new ComboBoxSpecifier<Integer>( levelOptions );
+                return new ComboBoxSpecifier<Integer>( Integer.class,
+                                                       levelOptions );
             }
         };
         return key;

@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Vector;
 import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JComboBox;
@@ -32,6 +33,7 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      * Constructs a specifier with a given combo box, and optional custom
      * labelling and setting restrictions.
      *
+     * @param  clazz     value type for this specifier
      * @param  comboBox  combo box instance with appropriate options
      *                   (must all be assignable from V)
      * @param  customStringify  if true, this object's <code>stringify</code>
@@ -40,17 +42,17 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      *                    method is allowed to set any value; otherwise,
      *                    it is restricted to the options in the combo box
      */
-    public ComboBoxSpecifier( JComboBox comboBox, boolean customStringify,
-                              boolean allowAny ) {
+    public ComboBoxSpecifier( Class<V> clazz, JComboBox comboBox,
+                              boolean customStringify, boolean allowAny ) {
         super( comboBox.isEditable() );
         comboBox_ = comboBox;
         allowAny_ = allowAny;
         if ( customStringify ) {
-            comboBox_.setRenderer( new CustomComboBoxRenderer() {
-                public Object mapValue( Object value ) {
-                    @SuppressWarnings("unchecked")
-                    V val = (V) value;
-                    return stringify( val );
+            comboBox_.setRenderer(
+                    new CustomComboBoxRenderer<V>( clazz, stringify( null ) ) {
+                @Override
+                protected String mapValue( V value ) {
+                    return stringify( value );
                 }
             } );
         }
@@ -59,20 +61,22 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
     /**
      * Constructs a specifier with a given combo box and default options.
      *
+     * @param  clazz     value type for this specifier
      * @param  comboBox  combo box instance with appropriate options
      *                   (must all be assignable from V)
      */
-    public ComboBoxSpecifier( JComboBox comboBox ) {
-        this( comboBox, false, true );
+    public ComboBoxSpecifier( Class<V> clazz, JComboBox comboBox ) {
+        this( clazz, comboBox, false, true );
     }
 
     /**
      * Constructs a specifier selecting from a given collection of options.
      *
+     * @param  clazz     value type for this specifier
      * @param  options   options
      */
-    public ComboBoxSpecifier( Collection<V> options ) {
-        this( new JComboBox( options.toArray() ), true, true );
+    public ComboBoxSpecifier( Class<V> clazz, Collection<V> options ) {
+        this( clazz, new JComboBox( new Vector<V>( options ) ), true, true );
         comboBox_.setSelectedIndex( 0 );
     }
 
@@ -82,7 +86,8 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      * @param  options   options
      */
     public ComboBoxSpecifier( V[] options ) {
-        this( Arrays.asList( options ) );
+        this( (Class<V>) options.getClass().getComponentType(),
+              Arrays.asList( options ) );
     }
 
     /**

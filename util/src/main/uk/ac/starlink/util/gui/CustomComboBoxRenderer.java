@@ -17,63 +17,66 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class CustomComboBoxRenderer implements ListCellRenderer {
+public class CustomComboBoxRenderer<T> implements ListCellRenderer {
+
+    private final Class<T> clazz_;
+    private final String nullTxt_;
 
     /* Should I be getting this from the PLAF somehow? */
     private static ListCellRenderer baseRenderer_ = new BasicComboBoxRenderer();
-    private Object nullRep_;
+
+    /**
+     * Constructs a renderer for which nulls are represented as blank.
+     *
+     * @param  clazz  type of object to be rendered
+     */
+    public CustomComboBoxRenderer( Class<T> clazz ) {
+        this( clazz, null );
+    }
+
+    /**
+     * Constructs a renderer with a custom null representation.
+     *
+     * @param  clazz  type of object to be rendered
+     * @param  nullTxt  text to be displayed for null values
+     */
+    public CustomComboBoxRenderer( Class<T> clazz, String nullTxt ) {
+        clazz_ = clazz;
+        nullTxt_ = nullTxt;
+    }
 
     public Component getListCellRendererComponent( JList list, Object value,
                                                    int index,
                                                    boolean isSelected,
                                                    boolean hasFocus ) {
-        Object rep;
-        Object nullRep = getNullRepresentation();
-        if ( value == null && nullRep != null ) {
-            rep = nullRep;
+        final String txt;
+        if ( value == null ) {
+            txt = nullTxt_;
+        }
+        else if ( clazz_.isInstance( value ) ) {
+            txt = mapValue( clazz_.cast( value ) );
         }
         else {
-            rep = mapValue( value );
+            txt = "??";
         }
         return baseRenderer_
-              .getListCellRendererComponent( list, rep, index,
+              .getListCellRendererComponent( list, txt, index,
                                              isSelected, hasFocus );
     }
 
     /**
-     * Sets the representation for the <tt>null</tt> value.
-     * If set to a non-null value, this will be used to render a 
-     * null; otherwise, {@link #mapValue} will be called as usual
-     * (which may itself do something with the null).
+     * Turns a non-null object which might be found in the ComboBox itself
+     * into a string to be displayed by a standard combobox renderer.
+     * The default implementation just uses the toString method.
      *
-     * @param  nullRep  null representation
+     * <p>This method will only be invoked if <code>value</code> is not null.
+     * In case of null, the <code>nullTxt</code> value supplied at construction
+     * tim will be used instead.
+     *
+     * @param  value  non-null value to map
+     * @return  display string
      */
-    public void setNullRepresentation( Object nullRep ) {
-        nullRep_ = nullRep;
-    }
-
-    /**
-     * Returns the representation for the <tt>null</tt> value.
-     *
-     * @return  null representation
-     */
-    public Object getNullRepresentation() {
-        return nullRep_;
-    }
-
-    /**
-     * Turns an object which might be found in the ComboBox itself into
-     * an object that can be rendered by a standard combobox renderer.
-     * Typically the return value of this method would be a String 
-     * more suitable than the result of <tt>value</tt>'s <tt>toString</tt>
-     * method.
-     *
-     * <p>The default implementation just returns the value itself
-     *
-     * @param  value  value to map
-     * @return  value to map it into (probably a string)
-     */
-    protected Object mapValue( Object value ) {
-        return value;
+    protected String mapValue( T value ) {
+        return value.toString();
     }
 }

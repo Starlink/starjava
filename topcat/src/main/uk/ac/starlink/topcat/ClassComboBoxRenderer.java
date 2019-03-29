@@ -8,27 +8,20 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  * @author   Mark Taylor (Starlink)
  * @since    17 Aug 2004
  */
-public class ClassComboBoxRenderer extends CustomComboBoxRenderer {
-
-    private static ClassComboBoxRenderer instance = new ClassComboBoxRenderer();
+public class ClassComboBoxRenderer extends CustomComboBoxRenderer<Class> {
 
     /**
-     * Returns an instance of this singleton class.
+     * Constructs a renderer with a given null representation.
      *
-     * @return  renderer instance
+     * @param  nullTxt   representation of a null class
      */
-    public static ClassComboBoxRenderer getInstance() {
-        return instance;
+    public ClassComboBoxRenderer( String nullTxt ) {
+        super( Class.class, nullTxt );
     }
 
-    protected Object mapValue( Object value ) {
-        if ( value instanceof Class ) {
-            Class clazz = (Class) value;
-            String rep = clazz.getName();
-            return rep.substring( rep.lastIndexOf( '.' ) + 1 );
-        }
-        else {
-            return value;
-        }
+    @Override
+    protected String mapValue( Class clazz ) {
+        String rep = clazz.getName();
+        return rep.substring( rep.lastIndexOf( '.' ) + 1 );
     }
 }

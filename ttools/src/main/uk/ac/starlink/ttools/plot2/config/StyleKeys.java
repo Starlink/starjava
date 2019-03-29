@@ -57,7 +57,8 @@ public class StyleKeys {
             return null;
         }
         public Specifier<MarkShape> createSpecifier() {
-            return new ComboBoxSpecifier<MarkShape>( MarkStyleSelectors
+            return new ComboBoxSpecifier<MarkShape>( MarkShape.class,
+                                                     MarkStyleSelectors
                                                     .createShapeSelector() );
         }
     }.setOptionUsage()
@@ -77,7 +78,8 @@ public class StyleKeys {
             } )
         , 1 ) {
         public Specifier<Integer> createSpecifier() {
-            return new ComboBoxSpecifier<Integer>( MarkStyleSelectors
+            return new ComboBoxSpecifier<Integer>( Integer.class,
+                                                   MarkStyleSelectors
                                                   .createSizeSelector() );
         }
     };
@@ -105,7 +107,8 @@ public class StyleKeys {
                     return null;
                 }
             };
-            return new ComboBoxSpecifier<XYShape>( shapeSelector );
+            return new ComboBoxSpecifier<XYShape>( XYShape.class,
+                                                   shapeSelector );
         }
     }.setOptionUsage()
      .addOptionsXml();
@@ -229,7 +232,9 @@ public class StyleKeys {
                         return BarStyles.getIcon( (BarStyle.Form) form );
                     }
                 };
-                return new ComboBoxSpecifier<BarStyle.Form>( formSelector );
+                return
+                    new ComboBoxSpecifier<BarStyle.Form>( BarStyle.Form.class,
+                                                          formSelector );
             }
         }.setOptionUsage()
          .addOptionsXml();
@@ -264,7 +269,8 @@ public class StyleKeys {
                                            new BasicStroke(), 2 );
                     }
                 };
-                return new ComboBoxSpecifier<FillMode>( fillSelector );
+                return new ComboBoxSpecifier<FillMode>( FillMode.class,
+                                                        fillSelector );
             }
          }.setOptionUsage()
           .addOptionsXml();
@@ -709,6 +715,7 @@ public class StyleKeys {
         return new IntegerConfigKey( meta, dfltThick ) {
             public Specifier<Integer> createSpecifier() {
                 return new ComboBoxSpecifier<Integer>(
+                               Integer.class,
                                new ThicknessComboBox( 5 ) );
             }
         };

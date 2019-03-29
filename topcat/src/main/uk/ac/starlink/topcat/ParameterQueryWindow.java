@@ -52,7 +52,7 @@ public class ParameterQueryWindow extends QueryWindow {
         typeBox_.addItem( Float.class );
         typeBox_.addItem( Double.class );
         typeBox_.addItem( Boolean.class );
-        typeBox_.setRenderer( ClassComboBoxRenderer.getInstance() );
+        typeBox_.setRenderer( new ClassComboBoxRenderer( "?" ) );
         typeBox_.setSelectedItem( String.class );
         stack.addLine( "Type", typeBox_ );
 

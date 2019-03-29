@@ -495,6 +495,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         return new IntegerConfigKey( meta, 3 ) {
             public Specifier<Integer> createSpecifier() {
                 return new ComboBoxSpecifier<Integer>(
+                               Integer.class,
                                new ThicknessComboBox( 7 ) );
             }
         };

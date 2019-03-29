@@ -44,15 +44,14 @@ public class PlotExporter {
         saveChooser_.setDialogTitle( "Export Plot" );
         formatSelector_ = new JComboBox( EXPORTERS );
         bitmapButton_ = new JCheckBox( "Force Bitmap" );
-        CustomComboBoxRenderer renderer = new CustomComboBoxRenderer() {
-            protected Object mapValue( Object value ) {
-                return value instanceof GraphicExporter
-                     ? ((GraphicExporter) value).getName()
-                     : value;
+        formatSelector_.setRenderer(
+                new CustomComboBoxRenderer<GraphicExporter>
+                                          ( GraphicExporter.class, "(auto)" ) {
+            @Override
+            protected String mapValue( GraphicExporter exporter ) {
+                return exporter.getName();
             }
-        };
-        renderer.setNullRepresentation( "(auto)" );
-        formatSelector_.setRenderer( renderer );
+        } );
         JComponent formatBox = Box.createVerticalBox();
         formatBox.add( new LineBox( new JLabel( "File Format:" ) ) );
         formatBox.add( Box.createVerticalStrut( 5 ) );

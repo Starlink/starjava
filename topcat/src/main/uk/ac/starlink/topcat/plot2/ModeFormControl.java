@@ -327,7 +327,8 @@ public class ModeFormControl extends FormControl {
                 return c;
             }
         } );
-        return new ComboBoxSpecifier<ModePlotter.Mode>( comboBox );
+        return new ComboBoxSpecifier<ModePlotter.Mode>( ModePlotter.Mode.class,
+                                                        comboBox );
     }
 
     /**

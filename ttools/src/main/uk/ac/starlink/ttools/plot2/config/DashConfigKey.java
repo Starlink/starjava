@@ -55,7 +55,8 @@ public class DashConfigKey extends ChoiceConfigKey<float[]> {
     }
 
     public Specifier<float[]> createSpecifier() {
-        return new ComboBoxSpecifier<float[]>( new DashComboBox() );
+        return new ComboBoxSpecifier<float[]>( float[].class,
+                                               new DashComboBox() );
     }
 
     /**

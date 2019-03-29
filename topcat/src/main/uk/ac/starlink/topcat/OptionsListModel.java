@@ -161,14 +161,11 @@ public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
             public void intervalRemoved( ListDataEvent evt ) {}
             public void contentsChanged( ListDataEvent evt ) {}
         } );
-        box.setRenderer( new CustomComboBoxRenderer() {
-            public Object mapValue( Object value ) {
-                if ( value instanceof RowSubset ) {
-                    return ((RowSubset) value).getName();
-                }
-                else {
-                    return value;
-                }
+        box.setRenderer(
+                new CustomComboBoxRenderer<RowSubset>( RowSubset.class ) {
+            @Override
+            protected String mapValue( RowSubset rset ) {
+                return rset.getName();
             }
         } );
         return box;

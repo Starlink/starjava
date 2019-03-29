@@ -118,7 +118,8 @@ public class PolygonForms {
             public Specifier<PolygonMode> createSpecifier() {
                 JComboBox comboBox = new JComboBox( modes );
                 comboBox.setRenderer( new PolygonModeRenderer() );
-                return new ComboBoxSpecifier<PolygonMode>( comboBox );
+                return new ComboBoxSpecifier<PolygonMode>( PolygonMode.class,
+                                                           comboBox );
             }
         };
         key.setOptionUsage();

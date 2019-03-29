@@ -15,7 +15,6 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.UCDSelector;
-import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 
 /**
  * A dialogue window which queries the user for the characteristics of a
@@ -75,9 +74,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         typeField.addItem( long.class );
         typeField.addItem( float.class );
         typeField.addItem( double.class );
-        CustomComboBoxRenderer renderer = new ClassComboBoxRenderer();
-        renderer.setNullRepresentation( "(auto)" );
-        typeField.setRenderer( renderer );
+        typeField.setRenderer( new ClassComboBoxRenderer( "(auto)" ) );
         typeField.setSelectedIndex( 0 );
 
         // Don't add this option for now - it's not that useful, since

@@ -234,11 +234,11 @@ public class SkyColumnQueryWindow extends QueryWindow {
         private LabelledComponentStack createQueryStack() {
             LabelledComponentStack stack = new LabelledComponentStack();
             sysChooser_ = new JComboBox( SkySystem.getKnownSystems() );
-            sysChooser_.setRenderer( new CustomComboBoxRenderer() {
-                protected Object mapValue( Object value ) {
-                    return value instanceof SkySystem
-                         ? ((SkySystem) value).getDescription()
-                         : String.valueOf( value );
+            sysChooser_.setRenderer(
+                    new CustomComboBoxRenderer<SkySystem>( SkySystem.class ) {
+                @Override
+                protected String mapValue( SkySystem skysys ) {
+                    return skysys.getDescription();
                 }
             } );
             unitChooser_ = new JComboBox( SkyUnits.getKnownUnits() );

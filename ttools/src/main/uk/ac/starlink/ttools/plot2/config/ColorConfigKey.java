@@ -116,6 +116,7 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
         Color[] colors = getOptionMap().values().toArray( new Color[ 0 ] );
         List<Specifier<Color>> specifiers = new ArrayList<Specifier<Color>>();
         specifiers.add( new ComboBoxSpecifier<Color>(
+                            Color.class,
                             new ColorComboBox( colors ) ) );
         specifiers.add( new ChooserColorSpecifier( colors[ 0 ] ) );
         Specifier<Color> basic =

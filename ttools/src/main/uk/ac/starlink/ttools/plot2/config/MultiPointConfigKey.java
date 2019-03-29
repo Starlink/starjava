@@ -69,7 +69,8 @@ public class MultiPointConfigKey extends OptionConfigKey<ErrorRenderer> {
             MarkStyleSelectors.createErrorSelector( renderers_,
                                                     getDefaultValue(),
                                                     modeSelections );
-        return new ComboBoxSpecifier<ErrorRenderer>( rendererComboBox ) {
+        return new ComboBoxSpecifier<ErrorRenderer>( ErrorRenderer.class,
+                                                     rendererComboBox ) {
             public String stringify( ErrorRenderer value ) {
                 return valueToString( value );
             }
