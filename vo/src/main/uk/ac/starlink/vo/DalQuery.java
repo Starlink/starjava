@@ -112,7 +112,7 @@ public class DalQuery {
             new VOElementFactory( tfact.getStoragePolicy() );
         URLConnection conn = coding_.openConnection( qurl );
         conn = URLUtils.followRedirects( conn, null );
-        InputSource inSrc = new InputSource( conn.getInputStream() );
+        InputSource inSrc = new InputSource( coding_.getInputStream( conn ) );
         inSrc.setSystemId( qurl.toString() );
         return DalResultXMLFilter.getDalResultTable( vofact, inSrc );
     }
