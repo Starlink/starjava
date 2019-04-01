@@ -100,13 +100,28 @@ public abstract class Downloader<T> {
     }
 
     /**
-     * Resets the state of this downloader, as if the no download attempt
+     * Resets the state of this downloader, as if no download attempt
      * had been made.
      */
-    public synchronized void clearData() {
+    public void clearData() {
         isStarted_ = false;
         isComplete_ = false;
         data_ = null;
+        error_ = null;
+        informListeners();
+    }
+
+    /**
+     * Sets the state of this downloader as if it had just downloaded the
+     * given data item.  This can be necessary to restore its state,
+     * since it affects the monitor component.
+     *
+     * @param  value  value that would have been downloaded
+     */
+    public void setData( T value ) {
+        isStarted_ = true;
+        isComplete_ = true;
+        data_ = value;
         error_ = null;
         informListeners();
     }
@@ -119,7 +134,7 @@ public abstract class Downloader<T> {
      *
      * @return   data or null on failure
      */
-    public synchronized T waitForData() {
+    public T waitForData() {
         if ( isComplete() ) {
             return data_;
         }
