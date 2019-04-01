@@ -28295,6 +28295,8 @@ introduced since the last version:
     <li>Worked round a performance issue that meant in some environments
         (OpenJDK?) creating a large subset could lock up the GUI for
         a long time.</li>
+    <li>Added bumper to Vizier table selection control in
+        CDS Upload Match window.</li>
     </ul>
     </p></dd>
 

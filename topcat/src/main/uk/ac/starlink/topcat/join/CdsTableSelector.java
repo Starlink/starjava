@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.cone.CdsUploadMatcher.VizierMeta;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.Downloader;
 
 /**
@@ -72,7 +73,7 @@ public class CdsTableSelector extends JPanel {
              * get truncated. */
             @Override
             public Dimension getMinimumSize() {
-                return new Dimension( 180, super.getMinimumSize().height );
+                return new Dimension( 140, super.getMinimumSize().height );
             }
 
             /* No sense making the combo box longer than the longest entry. */
@@ -114,6 +115,9 @@ public class CdsTableSelector extends JPanel {
         selectorLine.add( new JLabel( "VizieR Table ID/Alias: " ) );
         selectorLine.add( nameSelector_ );
         selectorLine.add( Box.createHorizontalStrut( 5 ) );
+        selectorLine.add( new ComboBoxBumper( nameSelector_ ) );
+        selectorLine.add( Box.createHorizontalStrut( 5 ) );
+        selectorLine.add( Box.createHorizontalGlue() );
         selectorLine.add( aliasDownloader_.createMonitorComponent() );
 
         /* Table metadata. */
@@ -277,24 +281,29 @@ public class CdsTableSelector extends JPanel {
              * But if the name is not available for some reason, fall back
              * to what we have, which is whatever the user entered. */
             String mocName = name == null ? getTableName() : name;
-            mocDownloader_.setTableName( mocName );
-            if ( mocDownloader_.isComplete() ) {
-                setMoc( mocDownloader_.getData() );
-            }
-            else {
-                if ( mocFuture_ != null ) {
-                    mocFuture_.cancel( true );
+            String dlName = mocDownloader_.tableName_;
+            if ( mocName == null ? dlName != null
+                                 : ! mocName.equals( dlName ) ) {
+                mocDownloader_.setTableName( mocName );
+                if ( mocDownloader_.isComplete() ) {
+                    setMoc( mocDownloader_.getData() );
                 }
-                mocFuture_ = mocExecutor_.submit( new Runnable() {
-                    public final void run() {
-                        final MocCoverage moc = mocDownloader_.waitForData();
-                        SwingUtilities.invokeLater( new Runnable() {
-                            public void run() {
-                                setMoc( moc );
-                            }
-                        } );
+                else {
+                    if ( mocFuture_ != null ) {
+                        mocFuture_.cancel( true );
                     }
-                } );
+                    mocFuture_ = mocExecutor_.submit( new Runnable() {
+                        public final void run() {
+                            final MocCoverage moc =
+                                mocDownloader_.waitForData();
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    setMoc( moc );
+                                }
+                            } );
+                        }
+                    } );
+                }
             }
         }
 
