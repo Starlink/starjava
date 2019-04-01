@@ -366,6 +366,25 @@ public class URLUtils {
     }
 
     /**
+     * Compares two URLs.  This does approximatly the same job as
+     * the URL.equals() method, but it avoids the possible network accesses
+     * associated with that implementation, and copes with null values.
+     *
+     * @param   url1  first URL
+     * @param   url2  second URL
+     * @return  true iff both are the same, or both are null
+     */
+    public static boolean urlEquals( URL url1, URL url2 ) {
+        if ( url1 == null ) {
+            return url2 == null;
+        }
+        else {
+            return url2 != null
+                && url1.toString().equals( url2.toString() );
+        }
+    }
+
+    /**
      * Takes a URLConnection and repeatedly follows 3xx redirects
      * until a non-redirect status is achieved.  Infinite loops are defended
      * against.  The Accept-Encoding header, if present, is propagated
