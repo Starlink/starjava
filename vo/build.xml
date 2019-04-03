@@ -432,7 +432,7 @@
            deprecation="${deprecation}"
            source="${source.version}"
            optimize="${optimize}">
-      <!-- <compilerarg value="-Xlint:unchecked"/> -->
+      <compilerarg value="-Xlint:unchecked"/>
       <classpath refid="classpath"/>
       <include name="**/*.java"/>
     </javac>

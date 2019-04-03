@@ -5,7 +5,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -35,7 +34,7 @@ public class SkyPositionEntry extends JPanel {
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
     private final ValueFieldPanel qPanel_;
-    private final List fieldList_;
+    private final List<DoubleValueField> fieldList_;
     private final JComponent[] enablables_;
 
     private static final Logger logger_ =
@@ -52,7 +51,7 @@ public class SkyPositionEntry extends JPanel {
         super( new BorderLayout() );
         Box box = Box.createVerticalBox();
         add( box, BorderLayout.CENTER );
-        List enList = new ArrayList();
+        List<JComponent> enList = new ArrayList<JComponent>();
 
         /* Add name resolution field. */
         Box resolveBox = Box.createHorizontalBox();
@@ -91,10 +90,10 @@ public class SkyPositionEntry extends JPanel {
         box.add( qPanel_ );
 
         /* Set up list of fields. */
-        fieldList_ = new ArrayList();
+        fieldList_ = new ArrayList<DoubleValueField>();
         fieldList_.add( raField_ );
         fieldList_.add( decField_ );
-        enablables_ = (JComponent[]) enList.toArray( new JComponent[ 0 ] );
+        enablables_ = enList.toArray( new JComponent[ 0 ] );
     }
 
     /**
@@ -141,8 +140,8 @@ public class SkyPositionEntry extends JPanel {
         super.setEnabled( enabled );
         resolveField_.setEnabled( enabled );
         resolveAction_.setEnabled( enabled );
-        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
-            ((DoubleValueField) it.next()).setEnabled( enabled );
+        for ( DoubleValueField field : fieldList_ ) {
+            field.setEnabled( enabled );
         }
         for ( int i = 0; i < enablables_.length; i++ ) {
             enablables_[ i ].setEnabled( enabled );
@@ -155,9 +154,8 @@ public class SkyPositionEntry extends JPanel {
      * @param   listener  listener to add
      */
     public void addActionListener( ActionListener listener ) {
-        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
-            ((DoubleValueField) it.next()).getEntryField()
-                                          .addActionListener( listener );
+        for ( DoubleValueField field : fieldList_ ) {
+            field.getEntryField().addActionListener( listener );
         }
     }
 
@@ -167,9 +165,8 @@ public class SkyPositionEntry extends JPanel {
      * @param  listener  listener to remove
      */
     public void removeActionListener( ActionListener listener ) {
-        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
-            ((DoubleValueField) it.next()).getEntryField()
-                                          .removeActionListener( listener );
+        for ( DoubleValueField field : fieldList_ ) {
+            field.getEntryField().removeActionListener( listener );
         }
     }
 
@@ -179,9 +176,8 @@ public class SkyPositionEntry extends JPanel {
      * @param  listener  listener to add
      */
     public void addCaretListener( CaretListener listener ) {
-        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
-            ((DoubleValueField) it.next()).getEntryField()
-                                          .addCaretListener( listener );
+        for ( DoubleValueField field : fieldList_ ) {
+            field.getEntryField().addCaretListener( listener );
         }
     }
 
@@ -191,9 +187,8 @@ public class SkyPositionEntry extends JPanel {
      * @param  listener  listener to remove
      */
     public void removeCaretListener( CaretListener listener ) {
-        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
-            ((DoubleValueField) it.next()).getEntryField()
-                                          .removeCaretListener( listener );
+        for ( DoubleValueField field : fieldList_ ) {
+            field.getEntryField().removeCaretListener( listener );
         }
     }
 

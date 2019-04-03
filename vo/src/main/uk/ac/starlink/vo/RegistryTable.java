@@ -32,7 +32,7 @@ public class RegistryTable extends JTable {
 
     private final ResourceTableModel tModel_;
     private final MetaColumnModel colModel_;
-    private final ArrayTableSorter sorter_;
+    private final ArrayTableSorter<RegResource> sorter_;
     private int iSortcol_;
     private boolean descending_;
     private static String[] DEFAULT_COLUMNS = new String[] {
@@ -79,7 +79,7 @@ public class RegistryTable extends JTable {
         setColumnModel( colModel_ );
 
         /* Set up the table header to control sort by column. */
-        sorter_ = new ArrayTableSorter( tModel );
+        sorter_ = new ArrayTableSorter<RegResource>( tModel );
         sorter_.install( getTableHeader() );
         setSorting( 0, false );
     }

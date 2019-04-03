@@ -79,7 +79,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
         final double sr = srField_.getValue();
         final int verb = ((ConeVerbosity) verbSelector_.getSelectedItem())
                         .getLevel();
-        final List metadata = new ArrayList();
+        final List<DescribedValue> metadata = new ArrayList<DescribedValue>();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
             decField_.getDescribedValue(),

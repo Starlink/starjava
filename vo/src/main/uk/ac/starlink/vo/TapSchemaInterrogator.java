@@ -909,7 +909,7 @@ public class TapSchemaInterrogator {
         ColSet( String[] queryCols, String[] stdCols ) {
             querycols_ = toLowers( queryCols );
             Collection<String> stdcols =
-                new HashSet( Arrays.asList( toLowers( stdCols ) ) );
+                new HashSet<String>( Arrays.asList( toLowers( stdCols ) ) );
             icolMap_ = new HashMap<String,Integer>();
             List<String> extrasList = new ArrayList<String>();
             int nc = querycols_.length;

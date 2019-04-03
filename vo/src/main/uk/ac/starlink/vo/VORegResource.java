@@ -50,7 +50,8 @@ public class VORegResource implements RegResource {
         subjects_ = resource.getParameters( "content/subject" );
         referenceUrl_ = resource.getParameter( "content/referenceURL" );
         Metadata[] capBlocks = resource.getBlocks( "capability" );
-        List capList = new ArrayList();
+        List<RegCapabilityInterface> capList =
+            new ArrayList<RegCapabilityInterface>();
         for ( int ic = 0; ic < capBlocks.length; ic++ ) {
             Metadata capBlock = capBlocks[ ic ];
             final String standardId = capBlock.getParameter( "@standardID" );
@@ -83,8 +84,7 @@ public class VORegResource implements RegResource {
                              rci );
             }
         }
-        capabilities_ = (RegCapabilityInterface[])
-                        capList.toArray( new RegCapabilityInterface[ 0 ] );
+        capabilities_ = capList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
     public String getShortName() {

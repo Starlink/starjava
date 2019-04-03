@@ -166,10 +166,10 @@ public class Ri1RegistryQuery implements RegistryQuery {
             throws IOException {
         RegistryQuery regQuery = 
             new Ri1RegistryQuery( regUrl, SEARCHABLE_REG_QUERY );
-        Set acurlSet = new TreeSet();
+        Set<String> acurlSet = new TreeSet<String>();
         for ( Iterator<RegResource> it = regQuery.getQueryIterator();
               it.hasNext(); ) {
-            RegResource res = (RegResource) it.next();
+            RegResource res = it.next();
             RegCapabilityInterface[] caps = res.getCapabilities();
             for ( int ic = 0; ic < caps.length; ic++ ) {
                 RegCapabilityInterface cap = caps[ ic ];
@@ -182,7 +182,7 @@ public class Ri1RegistryQuery implements RegistryQuery {
                 }
             }
         }
-        return (String[]) acurlSet.toArray( new String[ 0 ] );
+        return acurlSet.toArray( new String[ 0 ] );
     }
 
     /**

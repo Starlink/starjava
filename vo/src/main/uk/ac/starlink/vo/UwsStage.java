@@ -37,9 +37,8 @@ public enum UwsStage {
      * @param   phases  UWS phases corresponding to this stage
      */
     private UwsStage( String[] phases ) {
-        phaseList_ = Collections
-                    .unmodifiableSet( new LinkedHashSet( Arrays
-                                                        .asList( phases ) ) );
+        phaseList_ = Collections.unmodifiableSet(
+                         new LinkedHashSet<String>( Arrays.asList( phases ) ) );
     }
 
     /**

@@ -428,7 +428,7 @@ public class TableSetSaxHandler extends DefaultHandler {
     private static Map<String,String> getAttMap( Attributes atts,
                                                  String[] ignoreNames ) {
         Collection<String> ignores =
-            new HashSet( Arrays.asList( ignoreNames ) );
+            new HashSet<String>( Arrays.asList( ignoreNames ) );
         Map<String,String> map = new LinkedHashMap<String,String>();
         int n = atts.getLength();
         for ( int i = 0; i < n; i++ ) {

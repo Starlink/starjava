@@ -148,7 +148,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         for ( int i = 0; i < nt; i++ ) {
             aliases[ i ] = getAlias( tables[ i ] );
         }
-        if ( new HashSet( Arrays.asList( aliases ) ).size() < nt ) {
+        if ( new HashSet<String>( Arrays.asList( aliases ) ).size() < nt ) {
             for ( int i = 0; i < nt; i++ ) {
                 aliases[ i ] = new StringBuffer().append( (char) ('a' + i) )
                                                  .toString();

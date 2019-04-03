@@ -87,7 +87,7 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
         if ( format != null && format.toString().trim().length() > 0 ) {
             query.addArgument( "FORMAT", format.toString() );
         }
-        final List metadata = new ArrayList();
+        final List<DescribedValue> metadata = new ArrayList<DescribedValue>();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
             decField_.getDescribedValue(),

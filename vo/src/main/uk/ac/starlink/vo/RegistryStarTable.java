@@ -8,6 +8,7 @@ import java.util.List;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -90,7 +91,8 @@ public class RegistryStarTable extends ColumnStarTable {
      */
     public RegistryStarTable( RegistryQuery query ) throws IOException {
         records_ = getRecords( query );
-        setParameters( new ArrayList( Arrays.asList( query.getMetadata() ) ) );
+        setParameters( new ArrayList<DescribedValue>
+                                    ( Arrays.asList( query.getMetadata() ) ) );
         addColumn( new ColumnData( IDENTIFIER_INFO ) {
             public Object readValue( long irow ) {
                 return getRecord( irow ).resource_.getIdentifier();
@@ -171,7 +173,7 @@ public class RegistryStarTable extends ColumnStarTable {
      */
     private static Record[] getRecords( RegistryQuery query )
             throws IOException {
-        List recList = new ArrayList();
+        List<Record> recList = new ArrayList<Record>();
         for ( Iterator<RegResource> it = query.getQueryIterator();
               it.hasNext(); ) {
             RegResource resource = it.next();
@@ -185,7 +187,7 @@ public class RegistryStarTable extends ColumnStarTable {
                 }
             }
         }
-        return (Record[]) recList.toArray( new Record[ 0 ] );
+        return recList.toArray( new Record[ 0 ] );
     }
 
     /**

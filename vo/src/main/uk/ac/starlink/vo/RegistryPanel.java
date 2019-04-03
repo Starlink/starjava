@@ -65,7 +65,7 @@ public class RegistryPanel extends JPanel {
     private Thread queryWorker_;
     private JComponent workingPanel_;
     private JComponent dataPanel_;
-    private List activeItems_;
+    private List<Object> activeItems_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -84,7 +84,7 @@ public class RegistryPanel extends JPanel {
                           boolean showCapabilities ) {
         super( new BorderLayout() );
         queryFactory_ = queryFactory;
-        activeItems_ = new ArrayList();
+        activeItems_ = new ArrayList<Object>();
 
         /* Define actions for submit/cancel registry query. */
         cancelQueryAction_ = new AbstractAction( "Cancel" ) {
@@ -265,7 +265,7 @@ public class RegistryPanel extends JPanel {
      */
     public RegResource[] getSelectedResources() {
         ListSelectionModel smodel = getResourceSelectionModel();
-        List sres = new ArrayList();
+        List<RegResource> sres = new ArrayList<RegResource>();
         RegResource[] data = getResources();
         for ( int i = smodel.getMinSelectionIndex();
               i <= smodel.getMaxSelectionIndex(); i++ ) {
@@ -273,7 +273,7 @@ public class RegistryPanel extends JPanel {
                 sres.add( data[ i ] );
             }
         }
-        return (RegResource[]) sres.toArray( new RegResource[ 0 ] );
+        return sres.toArray( new RegResource[ 0 ] );
     }
 
     /**
@@ -287,7 +287,8 @@ public class RegistryPanel extends JPanel {
     public RegCapabilityInterface[] getSelectedCapabilities() {
         if ( capTable_ == null ) {
             RegResource[] resources = getSelectedResources();
-            List capList = new ArrayList();
+            List<RegCapabilityInterface> capList =
+                new ArrayList<RegCapabilityInterface>();
             if ( resources != null ) {
                 for ( int ir = 0; ir < resources.length; ir++ ) {
                     RegCapabilityInterface[] caps =
@@ -297,21 +298,20 @@ public class RegistryPanel extends JPanel {
                     }
                 }
             }
-            return (RegCapabilityInterface[])
-                   capList.toArray( new RegCapabilityInterface[ 0 ] );
+            return capList.toArray( new RegCapabilityInterface[ 0 ] );
         }
         else {
             ListSelectionModel smodel = capTable_.getSelectionModel();
             RegCapabilityInterface[] allCaps = capTableModel_.getCapabilities();
-            List capList = new ArrayList();
+            List<RegCapabilityInterface> capList =
+                new ArrayList<RegCapabilityInterface>();
             for ( int i = smodel.getMinSelectionIndex();
                   i <= smodel.getMaxSelectionIndex(); i++ ) {
                 if ( smodel.isSelectedIndex( i ) ) {
                     capList.add( allCaps[ i ] );
                 }
             }
-            return (RegCapabilityInterface[])
-                   capList.toArray( new RegCapabilityInterface[ 0 ] );
+            return capList.toArray( new RegCapabilityInterface[ 0 ] );
         }
     }
 
@@ -355,7 +355,7 @@ public class RegistryPanel extends JPanel {
         progBar.setString( "Found 0" );
         countLabel_.setText( null );
         Thread worker = new Thread( "Registry query" ) {
-            List resourceList = new ArrayList();
+            List<RegResource> resourceList = new ArrayList<RegResource>();
             String errmsg;
             Thread wk = this;
             public void run() {
@@ -412,7 +412,6 @@ public class RegistryPanel extends JPanel {
                             }
                             else {
                                 RegResource[] resources =
-                                    (RegResource[])
                                     resourceList
                                    .toArray( new RegResource[ 0 ] );
                                 regTable_.setData( resources );
@@ -563,8 +562,7 @@ public class RegistryPanel extends JPanel {
 
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
-        for ( Iterator it = activeItems_.iterator(); it.hasNext(); ) {
-            Object item = it.next();
+        for ( Object item : activeItems_ ) {
             if ( item instanceof Action ) {
                 ((Action) item).setEnabled( enabled );
             }
