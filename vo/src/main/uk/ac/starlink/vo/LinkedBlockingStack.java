@@ -17,14 +17,14 @@ import java.util.concurrent.locks.*;
  * singly-linked list protected by a ReentrantLock, with a Condition
  * to manage waiting for elements in take().
  */
-public class LinkedBlockingStack<E> extends AbstractQueue<E> 
+class LinkedBlockingStack<E> extends AbstractQueue<E> 
     implements BlockingQueue<E> {
 
     /** Simple linked list nodes */
     static class Node<E> {
         E item;
-        Node next;
-        Node(E x, Node n) { item = x; next = n; }
+        Node<E> next;
+        Node(E x, Node<E> n) { item = x; next = n; }
     }
 
     private Node<E> head;
@@ -35,7 +35,7 @@ public class LinkedBlockingStack<E> extends AbstractQueue<E>
     public LinkedBlockingStack() {
     }
 
-    public LinkedBlockingStack(Collection c) {
+    public LinkedBlockingStack(Collection<E> c) {
         addAll(c);
     }
 
@@ -170,7 +170,7 @@ public class LinkedBlockingStack<E> extends AbstractQueue<E>
     }        
     
 
-    public int drainTo(Collection c) {
+    public int drainTo(Collection<? super E> c) {
         if (c == null)
             throw new NullPointerException();
         if (c == this)
@@ -192,7 +192,7 @@ public class LinkedBlockingStack<E> extends AbstractQueue<E>
         return n;
     }
 
-    public int drainTo(Collection c, int max) {
+    public int drainTo(Collection<? super E> c, int max) {
         if (c == null)
             throw new NullPointerException();
         if (c == this)
