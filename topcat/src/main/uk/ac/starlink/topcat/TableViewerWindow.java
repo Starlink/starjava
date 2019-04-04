@@ -90,7 +90,7 @@ public class TableViewerWindow extends AuxWindow {
         colModel_ = tcModel.getColumnModel();
         viewModel_ = tcModel.getViewModel();
         dataModel_ = tcModel.getDataModel();
-        rowSelectionModel_ = new DefaultListSelectionModel();
+        rowSelectionModel_ = createRowSelectionModel();
         rowSelectionModel_.setSelectionMode( ListSelectionModel
                                             .MULTIPLE_INTERVAL_SELECTION );
 
@@ -717,6 +717,39 @@ public class TableViewerWindow extends AuxWindow {
                         + ": using ViewHugeTableModel" );
             return new EnormoRowManager();
         }
+    }
+
+    /**
+     * Creates a ListSelectionModel for selecting rows in this window's JTable.
+     *
+     * @return  list selection model
+     */
+    private static ListSelectionModel createRowSelectionModel() {
+
+        /* We basically just need a DefaultListSelectionModel here.
+         * However, in at least some implementations
+         * (OpenJDK version 25.171-b11, JRE 1.8 on Debian Stretch,
+         * though not Oracle HotSpot build 1.6.0_41-b02 on SL6)
+         * the default implementation fires ListSelectionEvents following
+         * addSelectionInterval calls even when isAdjusting is set false.
+         * This means that applying a large (even a few 1e4 rows) RowSubset
+         * can lock up the AWT for many seconds, since it does Swing updates
+         * for every included row.  I *think* this is bad JRE implementation
+         * behaviour, though the exact semantics/intended behaviour of
+         * isAdjusting isn't really spelt out in the J2SE API.
+         * In any case, overriding the behaviour here to make sure that
+         * events are not fired when isAdjusting is set seems to fix it.
+         * I can't think of any ill effects that might result, but it's
+         * not impossible. */
+        return new DefaultListSelectionModel() {
+            @Override
+            protected void fireValueChanged( int i1, int i2,
+                                             boolean isAdjusting ) {
+                if ( !isAdjusting ) {
+                    super.fireValueChanged( i1, i2, isAdjusting );
+                }
+            }
+        };
     }
 
     /**

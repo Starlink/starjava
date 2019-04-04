@@ -28292,6 +28292,9 @@ introduced since the last version:
         (e.g. <label>Shader Quantise</label> control in
         <ref id="ShaderControl">Aux Axis Control</ref>);
         the full colour range is now included.</li>
+    <li>Worked round a performance issue that meant in some environments
+        (OpenJDK?) creating a large subset could lock up the GUI for
+        a long time.</li>
     </ul>
     </p></dd>
 
