@@ -7991,7 +7991,7 @@ stilts tmatchn multimode=pairs nin=4 matcher=sky params=5 \
        in2=2mass_virgo.fits suffix2='_2mass' values2='ra2000 dec2000' \
        in3=sdss_virgo.fits  suffix3='_sdss'  values3='ra dec' \
        in4=first_virgo.fits suffix4='_first' values4='pos_eq_ra pos_eq_dec' \
-       fixcols=all join1=all \
+       fixcols=all join1=always \
        ocmd='keepcols "*_t designation_2mass SDSSName_sdss id_field_first"' \
        out=matches.xml ofmt=votable-binary
 </verbatim></dt>
@@ -8004,7 +8004,7 @@ stilts tmatchn multimode=pairs nin=4 matcher=sky params=5 \
     and one column from each of the other table giving object identifiers.
     This output table will probably be easier to read (though contain less
     information) than that from the previous example).
-    Additionally, the <code>join1=all</code> assignment means that the output
+    Additionally, the <code>join1=always</code> assignment means that the output
     table will have one row for each row of the reference table 
     (transients.txt), even if no matches are found for it.
     </p></dd>
