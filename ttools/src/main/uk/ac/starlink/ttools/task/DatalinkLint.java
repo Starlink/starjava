@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.taplint.DatalinkValidator;
 import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.vo.UserAgentUtil;
 
 /**
  * DataLink validator task.
@@ -101,7 +102,14 @@ public class DatalinkLint implements Task {
         return new Executable() {
             public void execute() {
                 reporter.start( announcements );
-                runner.run();
+                String uaToken = UserAgentUtil.COMMENT_VALIDATE;
+                UserAgentUtil.pushUserAgentToken( uaToken );
+                try {
+                    runner.run();
+                }
+                finally {
+                    UserAgentUtil.popUserAgentToken( uaToken );
+                }
                 reporter.summariseUnreportedMessages( null );
                 reporter.end();
             }

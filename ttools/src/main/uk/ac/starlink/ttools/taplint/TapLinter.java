@@ -15,6 +15,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.vo.EndpointSet;
 import uk.ac.starlink.vo.SchemaMeta;
+import uk.ac.starlink.vo.UserAgentUtil;
 
 /**
  * Organises validation stages for TAP validator.
@@ -205,17 +206,24 @@ public class TapLinter {
         final String[] announcements = getAnnouncements();
         return new Executable() {
             public void execute() {
-                reporter.start( announcements );
-                for ( int ic = 0; ic < codes.length; ic++ ) {
-                    String code = codes[ ic ];
-                    Stage stage = stageSet_.getStage( code );
-                    assert stage != null;
-                    reporter.startSection( code, stage.getDescription() );
-                    stage.run( reporter, endpointSet );
-                    reporter.summariseUnreportedMessages( code );
-                    reporter.endSection();
+                String uaToken = UserAgentUtil.COMMENT_VALIDATE;
+                UserAgentUtil.pushUserAgentToken( uaToken );
+                try {
+                    reporter.start( announcements );
+                    for ( int ic = 0; ic < codes.length; ic++ ) {
+                        String code = codes[ ic ];
+                        Stage stage = stageSet_.getStage( code );
+                        assert stage != null;
+                        reporter.startSection( code, stage.getDescription() );
+                        stage.run( reporter, endpointSet );
+                        reporter.summariseUnreportedMessages( code );
+                        reporter.endSection();
+                    }
+                    reporter.end();
                 }
-                reporter.end();
+                finally {
+                    UserAgentUtil.popUserAgentToken( uaToken );
+                }
             }
         };
     }

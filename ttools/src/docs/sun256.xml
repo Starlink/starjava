@@ -11984,6 +11984,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Improve colour ramp quantisation
         (plot parameters <code>auxquant</code> etc);
         the full color range is now included.</li>
+    <li>Tasks <code>taplint</code> and <code>datalinklint</code> now
+        insert the token "<code>(IVOA-validate)</code>" into the
+        <code>User-Agent</code> header of all HTTP requests they make,
+        for convenience of services that want to identify validators.
+        This is a convention discussed within the IVOA Operations IG.</li>
     </ul>
     </p>
     </dd>
