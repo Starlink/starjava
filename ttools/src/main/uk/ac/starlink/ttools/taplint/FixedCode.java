@@ -48,6 +48,7 @@ public enum FixedCode implements ReportCode {
     E_CUNI( "Unit mismatch" ),
     E_CUTP( "Utype mismatch" ),
     E_DCER( "Document read error" ),
+    E_DECO( "Non-303 response to job deletion" ),
     E_DEHT( "Bad HTTP job connection" ),
     E_DEMO( "Job deletion failure" ),
     E_DENO( "Non-404 response for deleted job" ),

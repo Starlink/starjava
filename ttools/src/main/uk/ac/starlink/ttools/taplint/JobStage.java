@@ -200,6 +200,11 @@ public class JobStage implements Stage {
                                   e );
                 return;
             }
+            if ( response != 303 ) {
+                reporter_.report( FixedCode.E_DECO,
+                                  "HTTP DELETE response was " + response
+                                + " not 303" );
+            }
             checkDeleted( job ); 
         }
 
