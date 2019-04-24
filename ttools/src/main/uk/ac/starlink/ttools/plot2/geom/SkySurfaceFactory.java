@@ -419,7 +419,9 @@ public class SkySurfaceFactory
                 new OptionConfigKey<Projection>( meta, Projection.class,
                                                  projections ) {
             public String valueToString( Projection proj ) {
-                return proj.getProjectionName().toLowerCase();
+                return proj == null
+                     ? null
+                     : proj.getProjectionName().toLowerCase();
             }
             public String getXmlDescription( Projection proj ) {
                 return proj.getProjectionDescription();

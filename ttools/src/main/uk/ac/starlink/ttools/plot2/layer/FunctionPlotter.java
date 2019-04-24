@@ -126,7 +126,7 @@ public class FunctionPlotter extends
                 } )
                 , FuncAxis.class, axes_, axes_[ 0 ] ) {
             public String valueToString( FuncAxis axis ) {
-                return axis.getAxisName();
+                return axis == null ? null : axis.getAxisName();
             }
             public String getXmlDescription( FuncAxis axis ) {
                 return null;

@@ -280,7 +280,8 @@ public class TimeSurfaceFactory
             private final double unixSec = 1331613420;
             private final double secPrecision = 60 * 60 * 4;
             public String valueToString( TimeFormat format ) {
-                return format.getFormatName().toLowerCase();
+                return format == null ? null
+                                      : format.getFormatName().toLowerCase();
             } 
             public String getXmlDescription( TimeFormat format ) {
                 return format.getFormatDescription()
