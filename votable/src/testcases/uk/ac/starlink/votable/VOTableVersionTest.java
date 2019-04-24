@@ -27,6 +27,7 @@ public class VOTableVersionTest extends TestCase {
             VOTableVersion.V11,
             VOTableVersion.V12,
             VOTableVersion.V13,
+            VOTableVersion.V14,
         } ), new ArrayList( VOTableVersion.getKnownVersions().values() ) );
     }
 
