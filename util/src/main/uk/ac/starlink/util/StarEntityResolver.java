@@ -21,6 +21,8 @@ public class StarEntityResolver implements EntityResolver {
 
     private static StarEntityResolver instance = new StarEntityResolver();
     private EntityResolver parent;
+    private static final String VOT_URI_BASE =
+        "http://www.ivoa.net/xml/VOTable/";
 
     /**
      * Private no-arg constructor.
@@ -95,20 +97,31 @@ public class StarEntityResolver implements EntityResolver {
         }
 
         /* VOTable 1.1 schema. */
-        if ( systemId.equals( "http://www.ivoa.net/xml/VOTable/v1.1" ) ||
-             systemId.equals( "http://www.ivoa.net/xml/VOTable/v1.1/" ) ||
-             systemId.startsWith( "http://www.ivoa.net/xml/VOTable/v1.1" )
-             && systemId.endsWith( ".xsd" ) ) {
+        if ( systemId.equals( VOT_URI_BASE + "v1.1" ) ||
+             systemId.equals( VOT_URI_BASE + "v1.1/" ) ||
+             systemId.startsWith( VOT_URI_BASE + "v1.1" )
+             && systemId.endsWith( ".xsd" ) ||
+             systemId.equals( VOT_URI_BASE + "votable-1.1.xsd" ) ) {
             return "text/VOTable1.1.xsd";
         }
 
         /* VOTable 1.2 schema. */
-        if ( systemId.equals( "http://www.ivoa.net/xml/VOTable/v1.2" ) ) {
+        if ( systemId.equals( VOT_URI_BASE + "v1.2" ) ||
+             systemId.equals( VOT_URI_BASE + "votable-1.2.xsd" ) ) {
             return "text/VOTable1.2.xsd";
         }
 
         /* VOTable 1.3 schema. */
-        if ( systemId.equals( "http://www.ivoa.net/xml/VOTable/v1.3" ) ) {
+        if ( systemId.equals( VOT_URI_BASE + "votable-1.3.xsd" ) ) {
+            return "text/VOTable1.3.xsd";
+        }
+
+        /* Latest version of 1.* series VOTable.
+         * See the IVOA Endorsed Note "XML Schema Versioning Policies"
+         * (http://www.ivoa.net/documents/Notes/XMLVers/) and the commentary
+         * in VOTable 1.4 section 3 to explain why the "v1.3" URI is used
+         * for the latest, not necessarily v1.3, schema for versions 1.3+. */
+        if ( systemId.equals( VOT_URI_BASE + "v1.3" ) ) {
             return "text/VOTable1.3.xsd";
         }
 
