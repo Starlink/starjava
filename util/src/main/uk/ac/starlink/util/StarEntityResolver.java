@@ -116,13 +116,18 @@ public class StarEntityResolver implements EntityResolver {
             return "text/VOTable1.3.xsd";
         }
 
+        /* VOTable 1.4 schema. */
+        if ( systemId.equals( VOT_URI_BASE + "votable-1.4.xsd" ) ) {
+            return "text/VOTable1.4.xsd";
+        }
+
         /* Latest version of 1.* series VOTable.
          * See the IVOA Endorsed Note "XML Schema Versioning Policies"
          * (http://www.ivoa.net/documents/Notes/XMLVers/) and the commentary
          * in VOTable 1.4 section 3 to explain why the "v1.3" URI is used
          * for the latest, not necessarily v1.3, schema for versions 1.3+. */
         if ( systemId.equals( VOT_URI_BASE + "v1.3" ) ) {
-            return "text/VOTable1.3.xsd";
+            return "text/VOTable1.4.xsd";
         }
 
         /* VOTable 1.0 schema. */
