@@ -18,9 +18,9 @@ public class VotLintContext {
     private final VOTableVersion version_;
     private final boolean validate_;
     private final SaxMessager messager_;
-    private final Map idMap_;
-    private final Map refMap_;
-    private final Map namespaceMap_;
+    private final Map<String,ElementRef> idMap_;
+    private final Map<String,UncheckedReference> refMap_;
+    private final Map<String,String> namespaceMap_;
     private Locator locator_;
     private int errCount_;
 
@@ -37,9 +37,9 @@ public class VotLintContext {
         version_ = version;
         validate_ = validate;
         messager_ = messager;
-        idMap_ = new HashMap();
-        refMap_ = new HashMap();
-        namespaceMap_ = new HashMap();
+        idMap_ = new HashMap<String,ElementRef>();
+        refMap_ = new HashMap<String,UncheckedReference>();
+        namespaceMap_ = new HashMap<String,String>();
     }
 
     /**
@@ -82,7 +82,7 @@ public class VotLintContext {
      * Returns prefix-&gt;namespaceURI map for the xmlns namespaces currently
      * in scope.
      */
-    public Map getNamespaceMap() {
+    public Map<String,String> getNamespaceMap() {
         return namespaceMap_;
     }
 
@@ -97,7 +97,7 @@ public class VotLintContext {
 
         /* Check this one isn't already taken. */
         if ( idMap_.containsKey( id ) ) {
-            ElementRef ref = (ElementRef) idMap_.get( id );
+            ElementRef ref = idMap_.get( id );
             error( "ID " + id + " already defined " + ref );
         }
 
@@ -109,9 +109,8 @@ public class VotLintContext {
         /* If we've seen a reference to this one already, process the
          * link now and remove it from the pending list. */
         if ( refMap_.containsKey( id ) ) {
-            UncheckedReference unref = 
-                (UncheckedReference) refMap_.remove( id );
-            ElementRef to = (ElementRef) idMap_.get( id );
+            UncheckedReference unref = refMap_.remove( id );
+            ElementRef to = idMap_.get( id );
             unref.checkLink( to );
         }
     }
@@ -132,7 +131,7 @@ public class VotLintContext {
 
         /* If we've already seen the corresponding ID, do the checking now. */
         if ( idMap_.containsKey( id ) ) {
-            ElementRef to = (ElementRef) idMap_.get( id );
+            ElementRef to = idMap_.get( id );
             unref.checkLink( to );
         }
 
@@ -148,9 +147,10 @@ public class VotLintContext {
      * This is done at the end of the parse.
      */
     public void reportUncheckedRefs() {
-        for ( Iterator it = refMap_.keySet().iterator(); it.hasNext(); ) {
-            String id = (String) it.next();
-            UncheckedReference unref = (UncheckedReference) refMap_.get( id );
+        for ( Iterator<String> it = refMap_.keySet().iterator();
+              it.hasNext(); ) {
+            String id = it.next();
+            UncheckedReference unref = refMap_.get( id );
             it.remove();
             ElementRef from = unref.from_;
             error( "ID " + id + " referenced from " + from + " never found" );

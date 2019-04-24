@@ -28,11 +28,11 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     private final VotLintContext context_;
     private final VersionDetail versionDetail_;
     private final HandlerStack stack_;
-    private final Set namespaceSet_;
+    private final Set<String> namespaceSet_;
 
     private static final Pattern NS_PAT = getNamespaceNamePattern();
     private final static Map EMPTY_MAP =
-        Collections.unmodifiableMap( new HashMap() );
+        Collections.unmodifiableMap( new HashMap<String,String>() );
 
 
     /**
@@ -45,7 +45,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         versionDetail_ = VersionDetail.getInstance( context );
         assert versionDetail_ != null;
         stack_ = new HandlerStack();
-        namespaceSet_ = new HashSet();
+        namespaceSet_ = new HashSet<String>();
     }
 
     //
@@ -85,7 +85,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         /* Tell it what attributes it has. */
         int natt = atts.getLength();
         if ( natt > 0 ) {
-            Map attMap = new HashMap();
+            Map<String,String> attMap = new HashMap<String,String>();
             for ( int i = 0; i < natt; i++ ) {
                 attMap.put( atts.getQName( i ), atts.getValue( i ) );
             }
