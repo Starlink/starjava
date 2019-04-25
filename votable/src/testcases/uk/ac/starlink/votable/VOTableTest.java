@@ -43,6 +43,12 @@ public class VOTableTest extends TestCase {
         assertEquals( "myJ2000", coosys.getID() );
         assertEquals( "", coosys.getAttribute( "nope" ) );
 
+        TimesysElement timesys =
+            (TimesysElement) defs.getChildByName( "TIMESYS" );
+        assertTrue( timesys.hasAttribute( "refposition" ) );
+        assertEquals( "UTC", timesys.getAttribute( "timescale" ) );
+        assertEquals( 2400000.5, timesys.getTimeOrigin() );
+
         NodeList fieldList = vot.getElementsByVOTagName( "FIELD" );
         assertEquals( 4, fieldList.getLength() );
         FieldElement raEl = (FieldElement) fieldList.item( 1 );
@@ -54,12 +60,22 @@ public class VOTableTest extends TestCase {
         assertEquals( "2000.", coosysEl.getAttribute( "epoch" ) );
 
         VOElement res = vot.getChildByName( "RESOURCE" );
-        ParamElement param = (ParamElement) res.getChildByName( "PARAM" );
-        String pdesc = param.getDescription();
+        VOElement[] params = res.getChildrenByName( "PARAM" );
+
+        ParamElement obsParam = (ParamElement) params[ 0 ];
+        String pdesc = obsParam.getDescription();
         assertTrue( pdesc.startsWith( "This parameter is designed" ) );
-        String pval = param.getValue();
-        String pobj = (String) param.getObject();
+        String pval = obsParam.getValue();
+        String pobj = (String) obsParam.getObject();
         assertEquals( pval, pobj );
+
+        ParamElement epochParam = (ParamElement) params[ 1 ];
+        assertEquals( "Epoch", epochParam.getName() );
+        double mjdEpoch = ((Double) epochParam.getObject()).doubleValue();
+        assertEquals( 54291.25, mjdEpoch );
+        TimesysElement tsys = epochParam.getTimesys();
+        assertEquals( 2400000.5, tsys.getTimeOrigin() );
+        assertEquals( "UTC", tsys.getAttribute( "timescale" ) );
  
         TableElement tab = (TableElement) res.getChildrenByName( "TABLE" )[ 0 ];
         int ncol = tab.getFields().length;
@@ -135,15 +151,18 @@ public class VOTableTest extends TestCase {
                                 ((String) cell).length() == 0 );
             }
 
-            DescribedValue parameter =
-                stab.getParameterByName( param.getName() );
-            assertTrue( stab.getParameters().contains( parameter ) );
-            ValueInfo pinfo = parameter.getInfo();
-            assertEquals( param.getValue(), parameter.getValue() );
-            assertEquals( param.getName(), pinfo.getName() );
-            assertEquals( String.class, pinfo.getContentClass() );
-            assertEquals( param.getDescription(), pinfo.getDescription() );
+            DescribedValue obsParameter =
+                stab.getParameterByName( obsParam.getName() );
+            assertTrue( stab.getParameters().contains( obsParameter ) );
+            ValueInfo obsInfo = obsParameter.getInfo();
+            assertEquals( obsParam.getValue(), obsParameter.getValue() );
+            assertEquals( obsParam.getName(), obsInfo.getName() );
+            assertEquals( String.class, obsInfo.getContentClass() );
+            assertEquals( obsParam.getDescription(), obsInfo.getDescription() );
+
+            DescribedValue epochParameter =
+                stab.getParameterByName( epochParam.getName() );
+            assertTrue( stab.getParameters().contains( epochParameter ) );
         }
     }
-
 }

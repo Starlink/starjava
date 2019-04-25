@@ -1,14 +1,19 @@
 <?xml version="1.0"?>
+<!-- There are some deliberate mistakes in this document,
+ !   but the parser should be able to make sense of it. -->
 <!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
 <VOTABLE version="1.0">
   <DEFINITIONS>
   <COOSYS ID="myJ2000" equinox="2000." epoch="2000." system="eq_FK5"/>
+  <TIMESYS ID="mjdTime" timeorigin="MJD-origin" timescale="UTC"
+           refposition="BARYCENTER"/>
   </DEFINITIONS>
   <RESOURCE>
     <PARAM name="Observer" datatype="char" arraysize="*" value="William Herschel">
       <DESCRIPTION>This parameter is designed to store the observer's name
       </DESCRIPTION> 
     </PARAM>
+    <PARAM name="Epoch" datatype="double" value="54291.25" ref="mjdTime"/>
     <INFO name="Editor" value="Mark Taylor"/>
     <TABLE name="Stars">
       <DESCRIPTION>Some bright stars</DESCRIPTION>

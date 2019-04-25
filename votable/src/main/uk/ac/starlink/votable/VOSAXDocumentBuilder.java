@@ -45,6 +45,7 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
         "VALUES",
         "LINK",
         "COOSYS",
+        "TIMESYS",
     };
 
     /**

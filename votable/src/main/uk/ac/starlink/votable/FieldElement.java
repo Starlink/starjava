@@ -221,6 +221,16 @@ public class FieldElement extends VOElement {
         return getReferencedElement( "ref", "COOSYS" );
     }
 
+    /**
+     * Returns the TIMESYS element corresponding to this field, if any.
+     *
+     * @return   referenced element with tagname TIMESYS, or null
+     */
+    public TimesysElement getTimesys() {
+        VOElement el = getReferencedElement( "ref", "TIMESYS" );
+        return el instanceof TimesysElement ? (TimesysElement) el : null;
+    }
+
     public String toString() {
         String str = getHandle();
         StringBuffer sbuf = new StringBuffer( str );

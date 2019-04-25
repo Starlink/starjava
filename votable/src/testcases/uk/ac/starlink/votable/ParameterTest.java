@@ -52,16 +52,19 @@ public class ParameterTest extends TestCase implements TableSink {
 
     private void checkReadParams( StarTable table ) {
         List<DescribedValue> params = table.getParameters();
-        assertEquals( 3, params.size() );
+        assertEquals( 4, params.size() );
         DescribedValue param0 =  params.get( 0 );
         DescribedValue param1 =  params.get( 1 );
         DescribedValue param2 =  params.get( 2 );
+        DescribedValue param3 =  params.get( 3 );
         assertEquals( "Description", param0.getInfo().getName() );
         assertEquals( "Some bright stars", param0.getValue() );
         assertEquals( "Observer", param1.getInfo().getName() );
         assertEquals( "William Herschel", param1.getValue() );
-        assertEquals( "Editor", param2.getInfo().getName() );
-        assertEquals( "Mark Taylor", param2.getValue() );
+        assertEquals( "Epoch", param2.getInfo().getName() );
+        assertEquals( 54291.25, ((Double) param2.getValue()).doubleValue() );
+        assertEquals( "Editor", param3.getInfo().getName() );
+        assertEquals( "Mark Taylor", param3.getValue() );
     }
 
     private void checkWriteParams( StarTable table ) {

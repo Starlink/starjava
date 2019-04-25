@@ -160,6 +160,9 @@ public class VODocument extends DelegatingDocument {
         else if ( "PARAMref".equals( tagName ) ) {
             return new ParamRefElement( node, this );
         }
+        else if ( "TIMESYS".equals( tagName ) ) {
+            return new TimesysElement( node, this );
+        }
         else {
             return new VOElement( node, this );
         }
