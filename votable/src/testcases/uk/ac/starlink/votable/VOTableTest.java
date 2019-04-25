@@ -50,7 +50,7 @@ public class VOTableTest extends TestCase {
         assertEquals( 2400000.5, timesys.getTimeOrigin() );
 
         NodeList fieldList = vot.getElementsByVOTagName( "FIELD" );
-        assertEquals( 4, fieldList.getLength() );
+        assertEquals( 5, fieldList.getLength() );
         FieldElement raEl = (FieldElement) fieldList.item( 1 );
         FieldElement decEl = (FieldElement) fieldList.item( 2 );
         assertEquals( "RA", raEl.getAttribute( "name" ) );
@@ -79,7 +79,7 @@ public class VOTableTest extends TestCase {
  
         TableElement tab = (TableElement) res.getChildrenByName( "TABLE" )[ 0 ];
         int ncol = tab.getFields().length;
-        assertEquals( 4, ncol );
+        assertEquals( 5, ncol );
         long nrow = tab.getNrows();
 
         if ( policy == StoragePolicy.DISCARD ) {
@@ -94,8 +94,10 @@ public class VOTableTest extends TestCase {
 
             ColumnInfo raInfo = stab.getColumnInfo( 1 );
             ColumnInfo decInfo = stab.getColumnInfo( 2 );
+            ColumnInfo timeInfo = stab.getColumnInfo( 4 );
             assertEquals( "RA", raInfo.getName() );
             assertEquals( "Dec", decInfo.getName() );
+            assertEquals( "ObsTime", timeInfo.getName() );
             assertEquals( "deg", raInfo.getUnitString() );
             assertEquals( "POS_EQ_DEC", decInfo.getUCD() );
             assertEquals( "2000.",
@@ -105,6 +107,17 @@ public class VOTableTest extends TestCase {
             assertEquals( "2000.",
                           decInfo.getAuxDatumByName( "CoosysEpoch" )
                                  .getValue() );
+            assertEquals( "UTC",
+                          timeInfo.getAuxDatumValue( VOStarTable
+                                                    .TIMESYS_TIMESCALE_INFO,
+                                                     String.class ) );
+            assertEquals( "BARYCENTER",
+                          timeInfo.getAuxDatumValue( VOStarTable
+                                                    .TIMESYS_REFPOSITION_INFO,
+                                                     String.class ) );
+            assertEquals( "MJD-origin",
+                          timeInfo.getAuxDatumByName( "TimesysTimeorigin" )
+                                  .getValue() );
 
             RowSequence rseq = stab.getRowSequence();
             RowSequence rstep = tab.getData().getRowSequence();

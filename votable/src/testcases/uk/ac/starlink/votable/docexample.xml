@@ -23,6 +23,7 @@
       <FIELD name="Dec" ucd="POS_EQ_DEC" ref="myJ2000" unit="deg" 
              datatype="float" precision="F3" width="7"/>
       <FIELD name="Counts" ucd="NUMBER" datatype="int" arraysize="2x3x*"/>
+      <FIELD name="ObsTime" datatype="float" ref="mjdTime" unit="d"/>
       <DATA>
         <TABLEDATA>
         <TR>
@@ -30,19 +31,21 @@
           <TD>114.827</TD>
           <TD> 5.227</TD>
           <TD>4 5 3 4 3 2 1 2 3 3 5 6</TD>
+          <TD>54291</TD>
         </TR>
         <TR>
           <TD>Vega</TD>
           <TD>279.234</TD>
           <TD>38.782</TD>
           <TD>8 7 8 6 8 6</TD>
+          <TD>54292</TD>
           <TD>Ignore me!</TD> <!-- extra cell should be ignored -->
         </TR>
         <TR>
            <TD/>
            <TD/>
            <TD/>
-                 <!-- Missing cell should be supplied as null -->
+                 <!-- Missing cells should be supplied as null -->
         </TR>
         </TABLEDATA>
       </DATA>

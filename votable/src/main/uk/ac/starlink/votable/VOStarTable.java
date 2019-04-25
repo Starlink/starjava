@@ -114,6 +114,21 @@ public class VOStarTable extends AbstractStarTable {
     public final static ValueInfo COOSYS_EQUINOX_INFO = new DefaultValueInfo(
         "CoosysEquinox", String.class, "Sky equinox from COOSYS" );
 
+    /** ValueInfo for TIMESYS <tt>timeorigin</tt> attribute. */
+    public final static ValueInfo TIMESYS_TIMEORIGIN_INFO =
+        new DefaultValueInfo( "TimesysTimeorigin", String.class,
+                              "Time origin from TIMESYS" );
+
+    /** ValueInfo for TIMESYS <tt>timescale</tt> attribute. */
+    public final static ValueInfo TIMESYS_TIMESCALE_INFO =
+        new DefaultValueInfo( "TimesysTimescale", String.class,
+                              "Timescale from TIMESYS" );
+
+    /** ValueInfo for TIMESYS <tt>refposition</tt> attribute. */
+    public final static ValueInfo TIMESYS_REFPOSITION_INFO =
+        new DefaultValueInfo( "TimesysRefposition", String.class,
+                              "Ref position from TIMESYS" );
+
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
     private final static ValueInfo ubyteInfo = Tables.UBYTE_FLAG_INFO;
 
@@ -121,6 +136,8 @@ public class VOStarTable extends AbstractStarTable {
             Arrays.asList( new ValueInfo[] {
         DATATYPE_INFO, nullInfo, XTYPE_INFO,
         COOSYS_SYSTEM_INFO, COOSYS_EPOCH_INFO, COOSYS_EQUINOX_INFO,
+        TIMESYS_TIMEORIGIN_INFO, TIMESYS_TIMESCALE_INFO,
+        TIMESYS_REFPOSITION_INFO,
         ubyteInfo, WIDTH_INFO, PRECISION_INFO, ID_INFO, REF_INFO, TYPE_INFO,
     } );
 
@@ -258,6 +275,27 @@ public class VOStarTable extends AbstractStarTable {
                         String equinox = coosys.getAttribute( "equinox" );
                         auxdata.add( new DescribedValue( COOSYS_EQUINOX_INFO,
                                                          equinox ) );
+                    }
+                }
+
+                VOElement timesys = field.getTimesys();
+                if ( timesys != null ) {
+                    if ( timesys.hasAttribute( "timeorigin" ) ) {
+                        String torigin = timesys.getAttribute( "timeorigin" );
+                        auxdata
+                       .add( new DescribedValue( TIMESYS_TIMEORIGIN_INFO,
+                                                 torigin ) );
+                    }
+                    if ( timesys.hasAttribute( "timescale" ) ) {
+                        String tscale = timesys.getAttribute( "timescale" );
+                        auxdata.add( new DescribedValue( TIMESYS_TIMESCALE_INFO,
+                                                         tscale ) );
+                    }
+                    if ( timesys.hasAttribute( "refposition" ) ) {
+                        String refpos = timesys.getAttribute( "refposition" );
+                        auxdata
+                       .add( new DescribedValue( TIMESYS_REFPOSITION_INFO,
+                                                 refpos ) );
                     }
                 }
 
