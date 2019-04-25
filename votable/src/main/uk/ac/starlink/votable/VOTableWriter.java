@@ -34,7 +34,7 @@ import uk.ac.starlink.util.IOUtils;
  * latter three cases may be either inline as base64 encoded CDATA or
  * to a separate stream.
  *
- * <p>A couple of Auxiliary metadata items of the ColumnInfo metadata
+ * <p>Some of the Auxiliary metadata items of the ColumnInfo metadata
  * from written tables are respected:
  * <ul>
  * <li>{@link uk.ac.starlink.table.Tables#NULL_VALUE_INFO}:
@@ -45,10 +45,10 @@ import uk.ac.starlink.util.IOUtils;
  *     <code>Short</code> or <code>short[]</code>, the data will be written 
  *     with <code>datatype="unsignedByte"</code> instead of
  *     (signed 16-bit) <code>"short"</code>.</li>
- * <li>The <code>COOSYS_*_INFO</code> items defined in the
- *     {@link uk.ac.starlink.votable.VOStarTable} class;
- *     suitable COOSYS elements will be written and referenced as required
- *     to honour these items.</li>
+ * <li>The <code>COOSYS_*_INFO</code> and <code>TIMESYS_*_INFO</code>
+ *     items defined in the {@link uk.ac.starlink.votable.VOStarTable} class;
+ *     suitable COOSYS/TIMESYS elements will be written and referenced
+ *     as required to honour these items.</li>
  * <li>Various other of the <code>*_INFO</code> items defined in the
  *     {@link uk.ac.starlink.votable.VOStarTable} class;
  *     this has the effect that VOTable column attributes read in from

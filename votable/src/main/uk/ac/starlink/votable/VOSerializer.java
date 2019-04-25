@@ -57,6 +57,7 @@ public abstract class VOSerializer {
     private final String description_;
     private final ServiceDescriptor[] servDescrips_;
     final Map<MetaEl,String> coosysMap_;
+    final Map<MetaEl,String> timesysMap_;
 
     final static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
     private static final AtomicLong idSeq_ = new AtomicLong();
@@ -127,18 +128,26 @@ public abstract class VOSerializer {
          * pseudo-random value. */
         String baseId = "t" + Long.toString( idSeq_.incrementAndGet() );
 
-        /* Prepare COOSYS elements.  Identify the materially different
-         * COOSYS elements that will be required, and store them as keys
-         * in a map, with values that are newly constructed but
+        /* Prepare COOSYS and TIMESYS elements.  Identify the materially
+         * different *SYS elements that will be required, and store them
+         * as keys in a map, with values that are newly constructed but
          * unique-per-JVM identifiers, for later use. */
         coosysMap_ = new LinkedHashMap<MetaEl,String>();
+        timesysMap_ = new LinkedHashMap<MetaEl,String>();
         int ncol = table.getColumnCount();
         int ics = 0;
+        int its = 0;
         for ( int ic = 0; ic < ncol; ic++ ) {
-            MetaEl coosys = getCoosys( table.getColumnInfo( ic ) );
+            ColumnInfo colinfo = table.getColumnInfo( ic );
+            MetaEl coosys = getCoosys( colinfo );
             if ( coosys != null && ! coosysMap_.containsKey( coosys ) ) {
                 String id = baseId + "-coosys-" + ++ics;
                 coosysMap_.put( coosys, id );
+            }
+            MetaEl timesys = getTimesys( colinfo );
+            if ( timesys != null && ! timesysMap_.containsKey( timesys ) ) {
+                String id = baseId + "-timesys-" + ++its;
+                timesysMap_.put( timesys, id );
             }
         }
     }
@@ -281,13 +290,14 @@ public abstract class VOSerializer {
                 String content = encoder.getFieldContent();
                 Map<String,String> attMap = new LinkedHashMap<String,String>();
 
-                /* Note that in practice, the COOSYS elements will not be
-                 * used here, since at present the ValueInfo object
+                /* Note that in practice, the COOSYS/TIMESYS elements will not
+                 * be used here, since at present the ValueInfo object
                  * defining the PARAM, unlike ColumnInfo objects defining
                  * FIELDs, does not have the aux metadata items
-                 * required for storing COOSYS metadata.  This is probably
-                 * a STIL design fault. */
-                attMap.putAll( getFieldAttributes( encoder, coosysMap_ ) );
+                 * required for storing the relevant metadata.
+                 * This is probably a STIL design fault. */
+                attMap.putAll( getFieldAttributes( encoder, coosysMap_,
+                                                   timesysMap_ ) );
                 attMap.put( "value", valtext );
                 writer.write( "<PARAM" );
                 writer.write( formatAttributes( attMap ) );
@@ -521,19 +531,23 @@ public abstract class VOSerializer {
      */
     public void writePreDataXML( BufferedWriter writer ) throws IOException {
 
-        /* If we have COOSYS elements, write them.  The schema constrains
-         * where these are allowed to go.  Although in some cases they
+        /* If we have COOSYS or TIMESYS elements, write them.
+         * The schema constrains where these are allowed to go.
+         * Although in some cases they
          * can go on their own before a TABLE element, depending on what
          * comes before that might not be allowed.  It's always safe
          * (at least in VOTable 1.2+, though not 1.1) to wrap them
          * in their own RESOURCE at the same level as a TABLE. */
-        if ( coosysMap_.size() > 0 ) {
+        if ( coosysMap_.size() + timesysMap_.size() > 0 ) {
             writer.write( "<RESOURCE>" );
             writer.newLine();
-            for ( Map.Entry<MetaEl,String> entry : coosysMap_.entrySet() ) {
-                MetaEl coosys = entry.getKey();
+            Map<MetaEl,String> metamap = new LinkedHashMap<MetaEl,String>();
+            metamap.putAll( coosysMap_ );
+            metamap.putAll( timesysMap_ );
+            for ( Map.Entry<MetaEl,String> entry : metamap.entrySet() ) {
+                MetaEl meta = entry.getKey();
                 String id = entry.getValue();
-                writer.write( "  " + coosys.toXml( id ) );
+                writer.write( "  " + meta.toXml( id ) );
                 writer.newLine();
             }
             writer.write( "</RESOURCE>" );
@@ -968,12 +982,15 @@ public abstract class VOSerializer {
      *
      * @param  encoders  the list of encoders (some may be null)
      * @param  table   the table being serialized
-     * @param  coosysMap  MetaEl-&gt;ID map for COOSYS elements
-     *                    that will be available
+     * @param  coosysMap   MetaEl-&gt;ID map for COOSYS elements
+     *                     that will be available
+     * @param  timesysMap  MetaEl-&gt;ID map for TIMESYS elements
+     *                     that will be available
      * @param  writer  destination stream
      */
     private static void outputFields( Encoder[] encoders, StarTable table,
                                       Map<MetaEl,String> coosysMap,
+                                      Map<MetaEl,String> timesysMap,
                                       BufferedWriter writer )
             throws IOException {
         int ncol = encoders.length;
@@ -982,7 +999,7 @@ public abstract class VOSerializer {
             if ( encoder != null ) {
                 String content = encoder.getFieldContent();
                 Map<String,String> atts =
-                    getFieldAttributes( encoder, coosysMap );
+                    getFieldAttributes( encoder, coosysMap, timesysMap );
                 writeFieldElement( writer, content, atts );
             }
             else {
@@ -1005,7 +1022,8 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), coosysMap_, writer );
+            outputFields( encoders, getTable(), coosysMap_, timesysMap_,
+                          writer );
         }
      
         public void writeInlineDataElement( BufferedWriter writer )
@@ -1151,7 +1169,8 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), coosysMap_, writer );
+            outputFields( encoders, getTable(), coosysMap_, timesysMap_,
+                          writer );
         }
 
         public void streamData( DataOutput out ) throws IOException {
@@ -1186,7 +1205,8 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), coosysMap_, writer );
+            outputFields( encoders, getTable(), coosysMap_, timesysMap_,
+                          writer );
         }
 
         public void streamData( DataOutput out ) throws IOException {
@@ -1264,7 +1284,7 @@ public abstract class VOSerializer {
                                             true, false );
                     String content = encoder.getFieldContent();
                     Map<String,String> atts =
-                        getFieldAttributes( encoder, coosysMap_ );
+                        getFieldAttributes( encoder, coosysMap_, timesysMap_ );
 
                     /* Modify the datatype attribute to match what the FITS
                      * serializer will write. */
@@ -1368,28 +1388,35 @@ public abstract class VOSerializer {
      * Encoder being used to write the column in question.
      *
      * @param  encoder   encoder to write FIELD data
-     * @param  csmap   MetaEl-&gt;ID map for COOSYS elements that will be
-     *                 available in the output document
+     * @param  coosysMap   MetaEl-&gt;ID map for COOSYS elements that will be
+     *                     available in the output document
+     * @param  timesysMap  MetaEl-&gt;ID map for TIMESYS elements that will be
+     *                     available in the output document
      * @return   map of FIELD attribute name-&gt;value pairs
      */
     private static Map<String,String>
-            getFieldAttributes( Encoder encoder, Map<MetaEl,String> csmap ) {
+            getFieldAttributes( Encoder encoder, Map<MetaEl,String> coosysMap,
+                                Map<MetaEl,String> timesysMap ) {
 
         /* Query encoder for basic items. */
         Map<String,String> map = encoder.getFieldAttributes();
 
-        /* Add a ref attribute pointing to a COOSYS element if one
+        /* Add a ref attribute pointing to a COOSYS or TIMESYS element if one
          * that matches the requirements of the element in question
          * has been provided.  Note this relies on the fact that
          * the MetaEl class has suitable equality semantics. */
         ValueInfo info = encoder.getInfo();
-        if ( info instanceof ColumnInfo && csmap != null ) {
-            MetaEl coosys = getCoosys( (ColumnInfo) info );
-            if ( coosys != null ) {
-                String csid = csmap.get( coosys );
-                if ( csid != null ) {
-                    map.put( "ref", csid );
-                }
+        if ( info instanceof ColumnInfo ) {
+            ColumnInfo colinfo = (ColumnInfo) info;
+            MetaEl coosys = getCoosys( colinfo );
+            MetaEl timesys = getTimesys( colinfo );
+            String csId = coosysMap != null ? coosysMap.get( coosys ) : null;
+            String tsId = timesysMap != null ? timesysMap.get( timesys ) : null;
+            if ( csId != null ) {
+                map.put( "ref", csId );
+            }
+            else if ( tsId != null ) {
+                map.put( "ref", tsId );
             }
         }
         return map;
@@ -1408,6 +1435,22 @@ public abstract class VOSerializer {
         addAtt( map, cinfo, VOStarTable.COOSYS_EPOCH_INFO, "epoch" );
         addAtt( map, cinfo, VOStarTable.COOSYS_EQUINOX_INFO, "equinox" );
         return map.size() > 0 ? new MetaEl( "COOSYS", map ) : null;
+    }
+
+    /**
+     * Returns the MetaEl object corresponding to the TIMESYS metadata
+     * for a given ColumnInfo, if such metadata is present.
+     *
+     * @param  cinfo  column metadata
+     * @retun   MetaEl object representing TIMESYS, or null if none required
+     */
+    private static MetaEl getTimesys( ColumnInfo cinfo ) {
+        Map<String,String> map = new LinkedHashMap<String,String>();
+        addAtt( map, cinfo, VOStarTable.TIMESYS_TIMEORIGIN_INFO, "timeorigin" );
+        addAtt( map, cinfo, VOStarTable.TIMESYS_TIMESCALE_INFO, "timescale" );
+        addAtt( map, cinfo, VOStarTable.TIMESYS_REFPOSITION_INFO,
+                "refposition" );
+        return map.size() > 0 ? new MetaEl( "TIMESYS", map ) : null;
     }
 
     /**

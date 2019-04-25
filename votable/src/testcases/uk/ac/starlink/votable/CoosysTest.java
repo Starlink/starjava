@@ -97,6 +97,10 @@ public class CoosysTest extends TestCase {
         meta.assertMeta( "b", "CoosysEpoch", null );
         meta.assertMeta( "ra_ep2000", "CoosysEpoch", "J2000.0" );
         meta.assertMeta( "dec_ep2000", "CoosysEpoch", "J2000.0" );
+
+        meta.assertMeta( "ref_epoch", "TimesysTimeorigin", null );
+        meta.assertMeta( "ref_epoch", "TimesysTimescale", "TDB" );
+        meta.assertMeta( "ref_epoch", "TimesysRefposition", "BARYCENTER" );
     }
 
     private class AuxMeta {
