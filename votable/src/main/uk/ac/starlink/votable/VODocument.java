@@ -25,7 +25,7 @@ import uk.ac.starlink.votable.dom.DelegatingNode;
 public class VODocument extends DelegatingDocument {
 
     private final String systemId_;
-    private final Map idMap_ = new HashMap();
+    private final Map<String,Element> idMap_ = new HashMap<String,Element>();
     private final Namespacing namespacing_;
     private final IntMap elCountMap_ = new IntMap();
     private StoragePolicy storagePolicy_ = StoragePolicy.PREFER_MEMORY;
@@ -115,7 +115,7 @@ public class VODocument extends DelegatingDocument {
     }
 
     public Element getElementById( String elementId ) {
-        return (Element) idMap_.get( elementId );
+        return idMap_.get( elementId );
     }
 
     public DelegatingNode getDelegator( Node base ) {
@@ -199,7 +199,7 @@ public class VODocument extends DelegatingDocument {
      * equal to zero.
      */
     private static class IntMap {
-        private final Map map_ = new HashMap();
+        private final Map<String,int[]> map_ = new HashMap<String,int[]>();
 
         /**
          * Returns the value for a given key.
@@ -208,8 +208,7 @@ public class VODocument extends DelegatingDocument {
          * @return   value; zero if not previously set
          */
         int getValue( String key ) {
-            return map_.containsKey( key ) ? ((int[]) map_.get( key ))[ 0 ]
-                                           : 0;
+            return map_.containsKey( key ) ? map_.get( key )[ 0 ] : 0;
         }
 
         /**
@@ -222,7 +221,7 @@ public class VODocument extends DelegatingDocument {
             if ( ! map_.containsKey( key ) ) {
                 map_.put( key, new int[ 1 ] );
             }
-            ((int[]) map_.get( key ))[ 0 ] = ival;
+            map_.get( key )[ 0 ] = ival;
         }
 
         /**
@@ -234,7 +233,7 @@ public class VODocument extends DelegatingDocument {
             if ( ! map_.containsKey( key ) ) {
                 map_.put( key, new int[ 1 ] );
             }
-            ((int[]) map_.get( key ))[ 0 ]++;
+            map_.get( key )[ 0 ]++;
         }
     }
 }

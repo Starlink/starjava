@@ -66,13 +66,13 @@ public class ValuesElement extends VOElement {
      */
     public String[] getOptions() {
         VOElement[] optels = getChildrenByName( "OPTION" );
-        List options = new ArrayList();
+        List<String> options = new ArrayList<String>();
         for ( int i = 0; i < optels.length; i++ ) {
             if ( optels[ i ].hasAttribute( "value" ) ) {
                 options.add( optels[ i ].getAttribute( "value" ) );
             }
         }
-        return (String[]) options.toArray( new String[ 0 ] );
+        return options.toArray( new String[ 0 ] );
     }
 
     /**

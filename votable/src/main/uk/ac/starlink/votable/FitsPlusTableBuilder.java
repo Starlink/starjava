@@ -393,8 +393,8 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo fInfo = dataTable.getColumnInfo( icol );
             ColumnInfo vInfo = outTable.getColumnInfo( icol );
-            if ( ! vInfo.getContentClass()
-                        .isAssignableFrom( fInfo.getContentClass() ) ) {
+            if ( ! ((Class<?>) vInfo.getContentClass())
+                  .isAssignableFrom( (Class<?>) fInfo.getContentClass() ) ) {
                 vInfo.setContentClass( fInfo.getContentClass() );
             }
         }

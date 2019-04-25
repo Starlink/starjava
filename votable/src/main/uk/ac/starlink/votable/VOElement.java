@@ -135,7 +135,7 @@ public class VOElement extends DelegatingElement {
      * @return  an array of VOElement children of this one
      */
     public VOElement[] getChildren() {
-        List children = new ArrayList();
+        List<VOElement> children = new ArrayList<VOElement>();
         for ( Node ch = getFirstChild(); ch != null;
               ch = ch.getNextSibling() ) {
             if ( ch instanceof VOElement ) {
@@ -145,7 +145,7 @@ public class VOElement extends DelegatingElement {
                 throw new AssertionError();
             }
         }
-        return (VOElement[]) children.toArray( new VOElement[ 0 ] );
+        return children.toArray( new VOElement[ 0 ] );
     }
 
     /**
@@ -164,16 +164,16 @@ public class VOElement extends DelegatingElement {
      *         name <tt>tagname</tt>
      */
     public VOElement[] getChildrenByName( String votagname ) {
-        List children = new ArrayList();
+        List<VOElement> children = new ArrayList<VOElement>();
         for ( Node ch = getFirstChild(); ch != null;
               ch = ch.getNextSibling() ) {
             if ( ch instanceof Element &&
                  getVOTagName( (Element) ch ).equals( votagname ) ) {
                 assert ch instanceof VOElement;
-                children.add( ch );
+                children.add( (VOElement) ch );
             }
         }
-        return (VOElement[]) children.toArray( new VOElement[ 0 ] );
+        return children.toArray( new VOElement[ 0 ] );
     }
 
     /**
@@ -334,14 +334,14 @@ public class VOElement extends DelegatingElement {
      * @return  list of matching element nodes
      */
     public NodeList getElementsByVOTagName( String voTagName ) {
-        final List findList = new ArrayList();
+        final List<Element> findList = new ArrayList<Element>();
         addChildrenByVOTagName( this, voTagName, findList );
         return new NodeList() {
             public int getLength() {
                 return findList.size();
             }
             public Node item( int i ) {
-                return (Node) findList.get( i );
+                return findList.get( i );
             }
         };
     }
@@ -354,7 +354,7 @@ public class VOElement extends DelegatingElement {
      * @return  elList  list of Elements to append new selected descendants to
      */
     private void addChildrenByVOTagName( Element el, String voTagName,
-                                         List elList ) {
+                                         List<Element> elList ) {
          
         for ( Node child = el.getFirstChild(); child != null;
               child = child.getNextSibling() ) { 

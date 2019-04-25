@@ -185,7 +185,7 @@ class TableBodies {
         }
 
         private Element[] getRows() {
-            List rowList = new ArrayList();
+            List<Element> rowList = new ArrayList<Element>();
             if ( rows == null ) {
                 for ( Element trEl = 
                           firstSibling( "TR", tabledataEl.getFirstChild() );
@@ -193,7 +193,7 @@ class TableBodies {
                       trEl = firstSibling( "TR", trEl.getNextSibling() ) ) {
                      rowList.add( trEl );
                 }
-                rows = (Element[]) rowList.toArray( new Element[ 0 ] );
+                rows = rowList.toArray( new Element[ 0 ] );
             }
             return rows;
         }

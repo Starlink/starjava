@@ -44,7 +44,7 @@ public class GroupElement extends VOElement {
      * @return  PARAM elements represented by children of this group
      */
     public ParamElement[] getParams() {
-        List paramList = new ArrayList();
+        List<ParamElement> paramList = new ArrayList<ParamElement>();
         for ( Node ch = getFirstChild(); ch != null; 
               ch = ch.getNextSibling() ) {
             if ( ch instanceof ParamRefElement ) {
@@ -57,10 +57,10 @@ public class GroupElement extends VOElement {
                 }
             }
             else if ( ch instanceof ParamElement ) {
-                paramList.add( ch );
+                paramList.add( (ParamElement) ch );
             }
         }
-        return (ParamElement[]) paramList.toArray( new ParamElement[ 0 ] );   
+        return paramList.toArray( new ParamElement[ 0 ] );   
     }
 
     /**
@@ -73,7 +73,7 @@ public class GroupElement extends VOElement {
      * @return  FIELD elements represented by children of this group
      */
     public FieldElement[] getFields() {
-        List fieldList = new ArrayList();
+        List<FieldElement> fieldList = new ArrayList<FieldElement>();
         for ( Node ch = getFirstChild(); ch != null;
               ch = ch.getNextSibling() ) {
             if ( ch instanceof FieldRefElement ) {
@@ -86,7 +86,7 @@ public class GroupElement extends VOElement {
                 }
             }
         }
-        return (FieldElement[]) fieldList.toArray( new FieldElement[ 0 ] );
+        return fieldList.toArray( new FieldElement[ 0 ] );
     }
 
     /**

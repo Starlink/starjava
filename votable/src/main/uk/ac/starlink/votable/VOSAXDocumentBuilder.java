@@ -30,7 +30,7 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
     private Locator locator_;
     private VODocument doc_;
     private NodeStack nodeStack_ = new NodeStack();
-    private Map prefixMap_ = new HashMap();
+    private Map<String,String> prefixMap_ = new HashMap<String,String>();
     private boolean strict_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
@@ -98,8 +98,9 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
     }
 
     public void endPrefixMapping( String prefix ) {
-        for ( Iterator it = prefixMap_.entrySet().iterator(); it.hasNext(); ) {
-            if ( ((Map.Entry) it.next()).getValue().equals( prefix ) ) {
+        for ( Iterator<String> it = prefixMap_.values().iterator();
+              it.hasNext(); ) {
+            if ( it.next().equals( prefix ) ) {
                 it.remove();
             }
         }
@@ -113,7 +114,7 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
             /* Create a DOM element. */
             Element el;
             if ( localName != null && localName.length() > 0 ) {
-                String prefix = (String) prefixMap_.get( namespaceURI );
+                String prefix = prefixMap_.get( namespaceURI );
                 String qualifiedName = prefix == null || prefix.length() == 0
                                      ? localName
                                      : prefix + ":" + localName;
@@ -228,18 +229,18 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
      * Helper class which stores encountered elements as a stack.
      */
     private static class NodeStack {
-        private LinkedList stack_ = new LinkedList();
+        private LinkedList<Node> stack_ = new LinkedList<Node>();
 
         void push( Node node ) {
             stack_.add( node );
         }
 
         Node pop() {
-            return (Node) stack_.removeLast();
+            return stack_.removeLast();
         }
 
         Node top() {
-            return (Node) ( stack_.isEmpty() ? null : stack_.getLast() );
+            return stack_.isEmpty() ? null : stack_.getLast();
         }
 
         boolean isEmpty() {

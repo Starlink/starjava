@@ -315,15 +315,14 @@ public class VOStarTable extends AbstractStarTable {
             /* Track back through ancestor elements to pick up parameter-
              * like elements in this TABLE element and any ancestor 
              * RESOURCE elements. */
-            List pelList = new ArrayList();
+            List<VOElement> pelList = new ArrayList<VOElement>();
             for ( VOElement ancestor = votable; ancestor != null;
                   ancestor = ancestor.getParent() ) {
                 addParamElements( ancestor, pelList );
             }
 
             /* Convert these elements into DescribedValue metadata objects. */
-            for ( Iterator it = pelList.iterator(); it.hasNext(); ) {
-                VOElement el = (VOElement) it.next();
+            for ( VOElement el : pelList ) {
                 String tag = el.getVOTagName();
                 if ( el instanceof ParamElement ) {
                     ParamElement pel = (ParamElement) el;
@@ -499,7 +498,8 @@ public class VOStarTable extends AbstractStarTable {
      * @param  parent   element whose children are to be considered
      * @param  pelList  list to which parameter-like elements will be added
      */
-    private static void addParamElements( VOElement parent, List pelList ) {
+    private static void addParamElements( VOElement parent,
+                                          List<VOElement> pelList ) {
         VOElement[] children = parent.getChildren();
         for ( int i = 0; i < children.length; i++ ) { 
             VOElement child = children[ i ];

@@ -214,7 +214,7 @@ abstract class Encoder {
      * @return  a map of attribute name, attribute value pairs applying
      *          to this encoder
      */
-    public Map getFieldAttributes() {
+    public Map<String,String> getFieldAttributes() {
         return attMap_;
     }
 

@@ -38,7 +38,8 @@ import org.w3c.dom.Text;
 public class DelegatingDocument extends DelegatingNode implements Document {
 
     private final Document base_;
-    private final Map delegates_ = new HashMap();
+    private final Map<Node,DelegatingNode> delegates_ =
+        new HashMap<Node,DelegatingNode>();
     private String documentURI_;
  
     /**
@@ -85,7 +86,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
             delegator = null;
         }
         else {
-            delegator = (DelegatingNode) delegates_.get( baseNode );
+            delegator = delegates_.get( baseNode );
             if ( delegator == null ) {
                 delegator = createDelegator( baseNode );
                 delegates_.put( baseNode, delegator );

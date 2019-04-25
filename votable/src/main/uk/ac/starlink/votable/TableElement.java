@@ -368,20 +368,20 @@ public class TableElement extends VOElement {
      * @return  concatenation of textual data as a stream
      */
     private static InputStream getTextChildrenStream( Node node ) {
-        List tchildren = new ArrayList();
+        List<Text> tchildren = new ArrayList<Text>();
         for ( Node child = node.getFirstChild(); child != null;
               child = child.getNextSibling() ) {
             if ( child instanceof Text ) {
-                tchildren.add( child );
+                tchildren.add( (Text) child );
             }
         }
-        final Enumeration en = Collections.enumeration( tchildren );
-        return new SequenceInputStream( new Enumeration() {
+        final Enumeration<Text> en = Collections.enumeration( tchildren );
+        return new SequenceInputStream( new Enumeration<InputStream>() {
             public boolean hasMoreElements() {
                 return en.hasMoreElements();
             }
-            public Object nextElement() {
-                Text textNode = (Text) en.nextElement();
+            public InputStream nextElement() {
+                Text textNode = en.nextElement();
                 String text = textNode.getData();
                 InputStream tstrm = new StringInputStream( text );
                 return tstrm;
