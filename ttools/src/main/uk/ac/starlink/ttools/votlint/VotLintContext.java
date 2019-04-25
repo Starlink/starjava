@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.votlint;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.xml.sax.Locator;
 import uk.ac.starlink.votable.VOTableVersion;
@@ -21,6 +23,7 @@ public class VotLintContext {
     private final Map<String,ElementRef> idMap_;
     private final Map<String,UncheckedReference> refMap_;
     private final Map<String,String> namespaceMap_;
+    private final Map<String,Collection<ElementRef>> linksMap_;
     private Locator locator_;
     private int errCount_;
 
@@ -37,9 +40,10 @@ public class VotLintContext {
         version_ = version;
         validate_ = validate;
         messager_ = messager;
-        idMap_ = new HashMap<String,ElementRef>();
+        idMap_ = new LinkedHashMap<String,ElementRef>();
         refMap_ = new HashMap<String,UncheckedReference>();
         namespaceMap_ = new HashMap<String,String>();
+        linksMap_ = new LinkedHashMap<String,Collection<ElementRef>>();
     }
 
     /**
@@ -104,6 +108,7 @@ public class VotLintContext {
         /* If not, keep a record of it. */
         else {
             idMap_.put( id, handler.getRef() );
+            linksMap_.put( id, new HashSet<ElementRef>() );
         }
 
         /* If we've seen a reference to this one already, process the
@@ -111,7 +116,7 @@ public class VotLintContext {
         if ( refMap_.containsKey( id ) ) {
             UncheckedReference unref = refMap_.remove( id );
             ElementRef to = idMap_.get( id );
-            unref.checkLink( to );
+            unref.recordLink( to );
         }
     }
 
@@ -132,7 +137,7 @@ public class VotLintContext {
         /* If we've already seen the corresponding ID, do the checking now. */
         if ( idMap_.containsKey( id ) ) {
             ElementRef to = idMap_.get( id );
-            unref.checkLink( to );
+            unref.recordLink( to );
         }
 
         /* Otherwise, remember the check needs to be done for processing
@@ -147,13 +152,42 @@ public class VotLintContext {
      * This is done at the end of the parse.
      */
     public void reportUncheckedRefs() {
-        for ( Iterator<String> it = refMap_.keySet().iterator();
-              it.hasNext(); ) {
-            String id = it.next();
-            UncheckedReference unref = refMap_.get( id );
-            it.remove();
+        for ( Map.Entry<String,UncheckedReference> entry :
+              refMap_.entrySet() )  {
+            String id = entry.getKey();
+            UncheckedReference unref = entry.getValue();
             ElementRef from = unref.from_;
             error( "ID " + id + " referenced from " + from + " never found" );
+        }
+    }
+
+    /**
+     * Goes through all declared IDs that were never referenced.
+     * Such unreferenced IDs are not an error, but in some cases
+     * this is susplicious, so warnings may be reported.
+     * This is done at the end of the parse.
+     */
+    public void reportUnusedIds() {
+        for ( Map.Entry<String,Collection<ElementRef>> entry :
+              linksMap_.entrySet() ) {
+            String id = entry.getKey();
+            Collection<ElementRef> froms = entry.getValue();
+            ElementRef to = idMap_.get( id );
+            if ( froms.size() == 0 ) {
+
+                /* Currently, only report unreferenced TIMESYS elements.
+                 * Could do others too. */
+                if ( version_.allowTimesys() &&
+                     "TIMESYS".equals( to.getName() ) ) {
+                    String msg = new StringBuffer()
+                        .append( to.getName() )
+                        .append( " element with ID=\"" )
+                        .append( id )
+                        .append( "\" never referenced" )
+                        .toString();
+                    warning( msg );
+                }
+            }
         }
     }
 
@@ -210,12 +244,15 @@ public class VotLintContext {
         }
 
         /**
-         * Performs the check on a resolved IDREF->ID arc
+         * Performs the check on a resolved IDREF->ID arc, and
+         * also updates an internal data structure indicating which
+         * IDs have been referenced.
          *
          * @param  to  element which the IDREF points to
          */
-        void checkLink( ElementRef to ) {
+        void recordLink( ElementRef to ) {
             refChecker_.checkLink( VotLintContext.this, id_, from_, to );
+            linksMap_.get( id_ ).add( from_ );
         }
     }
 }

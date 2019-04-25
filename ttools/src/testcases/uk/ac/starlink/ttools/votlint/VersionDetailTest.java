@@ -4,8 +4,7 @@ import junit.framework.TestCase;
 import uk.ac.starlink.votable.VOTableVersion;
 
 public class VersionDetailTest extends TestCase {
-    private static final VOTableVersion VOTLINT_UNSUPPORTED_VERSION =
-        VOTableVersion.V14;
+    private static final VOTableVersion VOTLINT_UNSUPPORTED_VERSION = null;
     public void testVersions() {
         VOTableVersion[] versions =
             VOTableVersion.getKnownVersions().values()

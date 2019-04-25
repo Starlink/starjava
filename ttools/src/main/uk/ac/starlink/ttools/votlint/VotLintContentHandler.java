@@ -61,6 +61,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
 
     public void endDocument() {
         context_.reportUncheckedRefs();
+        context_.reportUnusedIds();
     }
 
     public void startPrefixMapping( String prefix, String uri ) {
