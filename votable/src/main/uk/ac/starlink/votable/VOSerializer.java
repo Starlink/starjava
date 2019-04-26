@@ -67,8 +67,10 @@ public abstract class VOSerializer {
      *
      * @param  table  the table to write
      * @param  format  the data format being used
+     * @param  version  output VOTable version
      */
-    private VOSerializer( StarTable table, DataFormat format ) {
+    private VOSerializer( StarTable table, DataFormat format,
+                          VOTableVersion version ) {
         table_ = table;
         format_ = format;
 
@@ -144,10 +146,12 @@ public abstract class VOSerializer {
                 String id = baseId + "-coosys-" + ++ics;
                 coosysMap_.put( coosys, id );
             }
-            MetaEl timesys = getTimesys( colinfo );
-            if ( timesys != null && ! timesysMap_.containsKey( timesys ) ) {
-                String id = baseId + "-timesys-" + ++its;
-                timesysMap_.put( timesys, id );
+            if ( version.allowTimesys() ) {
+                MetaEl timesys = getTimesys( colinfo );
+                if ( timesys != null && ! timesysMap_.containsKey( timesys ) ) {
+                    String id = baseId + "-timesys-" + ++its;
+                    timesysMap_.put( timesys, id );
+                }
             }
         }
     }
@@ -897,19 +901,20 @@ public abstract class VOSerializer {
 
         /* Return a serializer. */
         if ( dataFormat == DataFormat.TABLEDATA ) {
-            return new TabledataVOSerializer( table, magicNulls );
+            return new TabledataVOSerializer( table, version, magicNulls );
         }
         else if ( dataFormat == DataFormat.FITS ) {
             return new FITSVOSerializer(
-                table, new StandardFitsTableSerializer( table, false,
-                                                        (WideFits) null ) );
+                table, version,
+                new StandardFitsTableSerializer( table, false,
+                                                 (WideFits) null ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
-            return new BinaryVOSerializer( table, magicNulls );
+            return new BinaryVOSerializer( table, version, magicNulls );
         }
         else if ( dataFormat == DataFormat.BINARY2 ) {
             if ( version.allowBinary2() ) {
-                return new Binary2VOSerializer( table, magicNulls );
+                return new Binary2VOSerializer( table, version, magicNulls );
             }
             else {
                 throw new IllegalArgumentException( "BINARY2 format not legal "
@@ -931,14 +936,16 @@ public abstract class VOSerializer {
      *
      * @param  table  table for serialization
      * @param  fitser  fits serializer
+     * @param  version  output VOTable version
+     * @return  serializer
      */
     public static VOSerializer makeFitsSerializer( StarTable table,
-                                                   FitsTableSerializer fitser )
+                                                   FitsTableSerializer fitser,
+                                                   VOTableVersion version )
             throws IOException {
         table = prepareForSerializer( table, false, true );
-        return new FITSVOSerializer( table, fitser );
+        return new FITSVOSerializer( table, version, fitser );
     }
-
 
     //
     // A couple of non-public static methods follow which are used by
@@ -1016,8 +1023,9 @@ public abstract class VOSerializer {
     private static class TabledataVOSerializer extends VOSerializer {
         private final Encoder[] encoders;
 
-        TabledataVOSerializer( StarTable table, boolean magicNulls ) {
-            super( table, DataFormat.TABLEDATA );
+        TabledataVOSerializer( StarTable table, VOTableVersion version,
+                               boolean magicNulls ) {
+            super( table, DataFormat.TABLEDATA, version );
             encoders = getEncoders( table, magicNulls );
         }
 
@@ -1088,8 +1096,9 @@ public abstract class VOSerializer {
          * @param  tagname  the name of the XML element that contains the data
          */
         private StreamableVOSerializer( StarTable table, DataFormat format,
+                                        VOTableVersion version,
                                         String tagname ) {
-            super( table, format );
+            super( table, format, version );
             this.tagname = tagname;
         }
 
@@ -1163,8 +1172,9 @@ public abstract class VOSerializer {
     private static class BinaryVOSerializer extends StreamableVOSerializer {
         private final Encoder[] encoders;
 
-        BinaryVOSerializer( StarTable table, boolean magicNulls ) {
-            super( table, DataFormat.BINARY, "BINARY" );
+        BinaryVOSerializer( StarTable table, VOTableVersion version,
+                            boolean magicNulls ) {
+            super( table, DataFormat.BINARY, version, "BINARY" );
             encoders = getEncoders( table, magicNulls );
         }
 
@@ -1199,8 +1209,9 @@ public abstract class VOSerializer {
     private static class Binary2VOSerializer extends StreamableVOSerializer {
         private final Encoder[] encoders;
 
-        Binary2VOSerializer( StarTable table, boolean magicNulls ) {
-            super( table, DataFormat.BINARY2, "BINARY2" );
+        Binary2VOSerializer( StarTable table, VOTableVersion version,
+                             boolean magicNulls ) {
+            super( table, DataFormat.BINARY2, version, "BINARY2" );
             encoders = getEncoders( table, magicNulls );
         }
 
@@ -1258,9 +1269,10 @@ public abstract class VOSerializer {
 
         private final FitsTableSerializer fitser;
 
-        FITSVOSerializer( StarTable table, FitsTableSerializer fitser )
+        FITSVOSerializer( StarTable table, VOTableVersion version,
+                          FitsTableSerializer fitser )
                 throws IOException {
-            super( table, DataFormat.FITS, "FITS" );
+            super( table, DataFormat.FITS, version, "FITS" );
             this.fitser = fitser;
         }
 

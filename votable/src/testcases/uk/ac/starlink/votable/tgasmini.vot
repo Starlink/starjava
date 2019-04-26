@@ -1,10 +1,12 @@
 <?xml version='1.0'?>
 <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
 <RESOURCE>
+<TIMESYS ID="tsys-julian" timescale="UTC" refposition="TOPOCENTER"/>
 <COOSYS ID="sys-gal" system="galactic"/>
 <COOSYS ID="sys-icrs" system="ICRS" epoch="J2000.0"/>
 <COOSYS ID="sys-eq-gaia" system="ICRS" epoch="J2015.0"/>
-<TIMESYS ID="tsys-julian" timescale="TDB" refposition="BARYCENTER"/>
+<TIMESYS ID="tsys-gaia" timescale="TDB" refposition="BARYCENTER"
+                        timeorigin="2455197.5"/>
 <TABLE nrows="4">
 <FIELD datatype="double" name="ra" ucd="pos.eq.ra;meta.main" unit="deg"
        ref="sys-eq-gaia">
@@ -36,6 +38,10 @@
        ref="sys-icrs"/>
 <FIELD datatype="double" name="ref_epoch" ucd="meta.ref;time.epoch" unit="yr"
        ref="tsys-julian"/>
+<FIELD datatype="double" name="time1" ucd="meta.ref;time.epoch" unit="d"
+       ref="tsys-gaia"/>
+<FIELD datatype="double" name="time2" ucd="meta.ref;time.epoch" unit="d"
+       ref="tsys-gaia"/>
 <DATA>
 <TABLEDATA>
   <TR>
@@ -48,6 +54,8 @@
     <TD>315.101356428</TD>
     <TD>35.4254790878</TD>
     <TD>2015.0</TD>
+    <TD>1710</TD>
+    <TD>1710</TD>
   </TR>
   <TR>
     <TD>314.92159971081</TD>
@@ -59,6 +67,8 @@
     <TD>314.921589813</TD>
     <TD>35.414863766</TD>
     <TD>2015.0</TD>
+    <TD>1745</TD>
+    <TD>1745</TD>
   </TR>
   <TR>
     <TD>315.269119255673</TD>
@@ -70,6 +80,8 @@
     <TD>315.26911557</TD>
     <TD>35.5277804959</TD>
     <TD>2015.0</TD>
+    <TD>1888</TD>
+    <TD>1888</TD>
   </TR>
   <TR>
     <TD>315.261345769788</TD>
@@ -81,6 +93,8 @@
     <TD>315.261345722</TD>
     <TD>35.5288252052</TD>
     <TD>2015.0</TD>
+    <TD>1941</TD>
+    <TD>1941</TD>
   </TR>
 </TABLEDATA>
 </DATA>

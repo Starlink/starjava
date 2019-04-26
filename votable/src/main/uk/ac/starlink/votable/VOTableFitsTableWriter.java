@@ -179,7 +179,8 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
             StarTable table = tables[ i ];
             FitsTableSerializer fitser = fitsers[ i ];
             VOSerializer voser =
-                VOSerializer.makeFitsSerializer( tables[ i ], fitsers[ i ] );
+                VOSerializer.makeFitsSerializer( tables[ i ], fitsers[ i ],
+                                                 votVersion_ );
             voser.writePreDataXML( writer );
             writer.write( "<!-- Dummy VOTable - no DATA element -->" );
             writer.newLine();
