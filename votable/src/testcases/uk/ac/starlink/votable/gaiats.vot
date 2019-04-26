@@ -1,0 +1,131 @@
+<?xml version='1.0'?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<RESOURCE>
+
+<TIMESYS ID="timesys_jd" refposition="BARYCENTER" timescale="TCB"
+         timeorigin="0"/>
+<TIMESYS ID="timesys_mjd" refposition="BARYCENTER" timescale="TCB"
+         timeorigin="MJD-origin"/>
+<TIMESYS ID="timesys_gaia" refposition="BARYCENTER" timescale="TCB"
+         timeorigin="2455197.5"/>
+<TIMESYS ID="timesys_0ad" refposition="BARYCENTER" timescale="TCB"
+         timeorigin="1721044.5"/>
+
+<TABLE name="TS" nrows="7">
+<PARAM arraysize="15" datatype="char" name="source_id" ucd="meta.id;meta.main" value="199286482883072">
+<DESCRIPTION>Gaia DR2 source_id of the object</DESCRIPTION>
+</PARAM>
+<PARAM arraysize="59" datatype="char" name="title" ucd="meta.title;obs" value="Gaia DR2 BP photometry time series for star 199286482883072">
+<DESCRIPTION>Publisher-assigned title of the data set</DESCRIPTION>
+</PARAM>
+<PARAM datatype="double" name="ra" ucd="pos.eq.ra" value="45.7164887146879">
+<DESCRIPTION>Gaia DR2 RA of source object</DESCRIPTION>
+</PARAM>
+<PARAM datatype="double" name="dec" ucd="pos.eq.dec" value="1.18583048057467">
+<DESCRIPTION>Gaia DR2 Dec of source object</DESCRIPTION>
+</PARAM>
+<PARAM arraysize="2" datatype="char" name="Band" value="BP"/>
+<FIELD datatype="long" name="transit_id" ucd="meta.version">
+<DESCRIPTION>Transit unique identifier. For a given object, a transit comprises the different Gaia observations (SM, AF, BP, RP and RVS) obtained for each focal plane crossing.</DESCRIPTION>
+</FIELD>
+<FIELD arraysize="*" datatype="char" name="band" ucd="instr.bandpass" utype="ssa:DataID.Bandpass">
+<DESCRIPTION>Photometric band. Values: G (per-transit combined SM-AF flux), BP (blue photometer integrated flux) and RP (red photometer integrated flux).</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="obs_time" ucd="time.epoch;VOX:Image_MJDateObs" unit="d" utype="spec:Spectrum.Data.TimeAxis.Value" ref="timesys_gaia">
+<DESCRIPTION>Observing time (double, Time[Barycentric JD in TCB - 2455197.5 (day)]). Different times are defined for each band. For G, it is the field-of-view transit averaged observation time. For BP and RP, it is the observation time of the BP CCD transit. The units are Barycentric JD (in TCB) in days -2,455,197.5, computed as follows. First the observation time is converted from On-board Mission Time (OBMT) into Julian date in TCB (Temps Coordonnee Barycentrique). Next a correction is applied for the light-travel time to the Solar system barycentre, resulting in Barycentric Julian Date (BJD). Finally, an offset of 2,455,197.5 days is applied (corresponding to a reference time $T_0$ at 2010-01-01T00:00:00) to have a conveniently small numerical value. Although the centroiding time accuracy of the individual CCD observations is (much) below 1~ms (e.g. in BP and RP), the G band observation time is averaged over typically 9 CCD observations taken in a time range of about 44sec.</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="mjd" unit="d" ref="timesys_mjd">
+<DESCRIPTION>Expression: obs_time - 2400000.5</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="jd" ref="timesys_jd" ucd="time.epoch" unit="d">
+<DESCRIPTION>Observation time (JD in barycentric TCB).</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="dyear" unit="a" ref="timesys_0ad">
+<DESCRIPTION>Expression: mjdToDecYear(mjd)</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="flux" ucd="em.opt;phot.flux;stat.mean" unit="e-/s" utype="spec:Spectrum.Data.SpectralAxis.Value">
+<DESCRIPTION>Band flux value for the transit. For G band, it is a combination of individual SM-AF CCD fluxes. For BP and RP bands, it is an integrated CCD flux.</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="flux_error" ucd="em.opt;phot.flux;stat.error" unit="e-/s">
+<DESCRIPTION>Flux error. The uncertainty flux_error on flux depends on the passband band as follows:
+	 band G: the uncertainty on the weighted mean G flux of the set of SM/AF individual CCD observations for the transit. This accounts for intrinsic scatter in the data. The exact formula and further details are given in Carrasco et al. A&amp;A 601, C1 (2017).
+	 band BP: the uncertainty on the BP flux. This is the uncertainty associated with the single BP CCD transit available for a FoV transit. It includes photon noise and all applicable calibration errors. If the BP flux has been rejected or is unavailable, the value will be set to NaN (in VOTable and FITS formats) and an empty string (in plain text CSV format).
+	 band RP: the uncertainty on the RP flux. This is the uncertainty associated with the single RP CCD transit available for a FoV transit. It includes photon noise and all applicable calibration errors. If the RP flux has been rejected or is unavailable, the value will be set to NaN (in VOTable and FITS formats) and an empty string (in plain text CSV format).</DESCRIPTION>
+</FIELD>
+<DATA>
+<TABLEDATA>
+  <TR>
+    <TD>23473782110733085</TD>
+    <TD>BP</TD>
+    <TD>1821.3589550099923</TD>
+    <TD>57018.35895500984</TD>
+    <TD>2457018.85895501</TD>
+    <TD>2014.987284808251</TD>
+    <TD>204.91226</TD>
+    <TD>30.74193</TD>
+  </TR>
+  <TR>
+    <TD>24575724502934263</TD>
+    <TD>BP</TD>
+    <TD>1841.2853099516137</TD>
+    <TD>57038.28530995175</TD>
+    <TD>2457038.7853099518</TD>
+    <TD>2015.041877561517</TD>
+    <TD>134.89484</TD>
+    <TD>39.70317</TD>
+  </TR>
+  <TR>
+    <TD>35447676857545934</TD>
+    <TD>BP</TD>
+    <TD>2037.8967677943244</TD>
+    <TD>57234.896767794155</TD>
+    <TD>2457235.396767794</TD>
+    <TD>2015.5805390898338</TD>
+    <TD>167.21097</TD>
+    <TD>55.54014</TD>
+  </TR>
+  <TR>
+    <TD>37074261632902624</TD>
+    <TD>BP</TD>
+    <TD>2067.315470469177</TD>
+    <TD>57264.315470469184</TD>
+    <TD>2457264.815470469</TD>
+    <TD>2015.6611382752726</TD>
+    <TD>93.81063</TD>
+    <TD>34.30825</TD>
+  </TR>
+  <TR>
+    <TD>44180667265475691</TD>
+    <TD>BP</TD>
+    <TD>2195.8316964280575</TD>
+    <TD>57392.83169642789</TD>
+    <TD>2457393.331696428</TD>
+    <TD>2016.0132013563486</TD>
+    <TD>163.88765</TD>
+    <TD>26.725748</TD>
+  </TR>
+  <TR>
+    <TD>45566841087374682</TD>
+    <TD>BP</TD>
+    <TD>2220.8976046345306</TD>
+    <TD>57417.89760463452</TD>
+    <TD>2457418.3976046345</TD>
+    <TD>2016.0816874443433</TD>
+    <TD>70.57796</TD>
+    <TD>24.216389</TD>
+  </TR>
+  <TR>
+    <TD>46976443087648574</TD>
+    <TD>BP</TD>
+    <TD>2246.3870877654053</TD>
+    <TD>57443.387087765615</TD>
+    <TD>2457443.8870877656</TD>
+    <TD>2016.1513308408912</TD>
+    <TD>40.59494</TD>
+    <TD>45.587315</TD>
+  </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+</RESOURCE>
+</VOTABLE>

@@ -22,6 +22,8 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.SourceReader;
@@ -164,6 +166,53 @@ public class CoosysTest extends TestCase {
            .getDOM( new StreamSource(
                        new ByteArrayInputStream( bout.toByteArray() ) ) );
         return doc.getElementsByTagName( tagName ).getLength();
+    }
+
+
+    public void testTimeMapping() throws IOException {
+        URL votloc = getClass().getResource( "gaiats.vot" );
+        StarTable gaiats = tfact_.makeStarTable( new URLDataSource( votloc ) );
+        gaiats = Tables.randomTable( gaiats );
+        int nr = (int) gaiats.getRowCount();
+
+        int icGaia = 2;
+        int icMjd = 3;
+        int icJd = 4;
+        int icYear = 5;
+        TimeMapper tmGaia =
+            (TimeMapper) gaiats.getColumnInfo( icGaia ).getDomainMappers()[ 0 ];
+        TimeMapper tmMjd =
+            (TimeMapper) gaiats.getColumnInfo( icMjd ).getDomainMappers()[ 0 ];
+        TimeMapper tmJd =
+            (TimeMapper) gaiats.getColumnInfo( icJd ).getDomainMappers()[ 0 ];
+        TimeMapper tmYear =
+            (TimeMapper) gaiats.getColumnInfo( icYear ).getDomainMappers()[ 0 ];
+
+        for ( int ir = 0; ir < nr; ir++ ) {
+            Object[] row = gaiats.getRow( ir );
+            double gday = ((Number) row[ icGaia ]).doubleValue();
+            double mjd = ((Number) row[ icMjd ]).doubleValue();
+            double jd = ((Number) row[ icJd ]).doubleValue();
+            double dyear = ((Number) row[ icYear ]).doubleValue();
+            assertTrue( jd > 2e6 && jd < 3e6 );
+            assertTrue( mjd > 50000 && mjd < 60000 );
+            assertTrue( gday > 0 && gday < 10000 );
+            assertTrue( dyear > 2000 && dyear < 2025 );
+            double tGaia = tmGaia.toUnixSeconds( gday );
+            double tMjd = tmMjd.toUnixSeconds( mjd );
+            double tJd = tmJd.toUnixSeconds( jd );
+            double tYear = tmYear.toUnixSeconds( dyear );
+            assertEquals( tGaia, tMjd, 1e-3 );
+            assertEquals( tGaia, tJd, 1e-3 );
+
+            // The year value was got using
+            // uk.ac.starlink.ttools.func.Times.mjdToDecYear;
+            // I think this may do magic with leap years and Gregorian
+            // offsets etc; but this checks that the result is in the
+            // right ball park.
+            assertEquals( tGaia, tYear, 12*60*60 );
+        }
+ 
     }
 
     private class AuxMeta {

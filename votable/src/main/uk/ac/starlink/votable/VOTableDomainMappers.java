@@ -1,9 +1,8 @@
 package uk.ac.starlink.votable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
@@ -35,9 +34,22 @@ class VOTableDomainMappers {
      *
      * @param  info  column basic metadata
      * @param  xtype  column xtype value
+     * @return  array of mappers; may be empty
      */
     public static DomainMapper[] getMappers( ValueInfo info, String xtype ) {
-        List<DomainMapper> mappers = new ArrayList<DomainMapper>();
+        TimeMapper tmapper = getTimeMapper( info, xtype );
+        return tmapper == null ? new DomainMapper[ 0 ]
+                               : new DomainMapper[] { tmapper };
+    }
+
+    /**
+     * Tries to identify a TimeMapper to associated with a column.
+     *
+     * @param  info  column basic metadata
+     * @param  xtype  column xtype value
+     * @return  domain mapper for time data, or null if not successful
+     */
+    private static TimeMapper getTimeMapper( ValueInfo info, String xtype ) {
         Class clazz = info.getContentClass();
         String units = info.getUnitString();
         String ucd = info.getUCD();
@@ -69,31 +81,56 @@ class VOTableDomainMappers {
                  "timestamp".equalsIgnoreCase( xtype ) ||
                  ISO8601_UNIT_PATTERN.matcher( units ).matches() ||
                  ISO8601_UCD_PATTERN.matcher( ucd ).matches() ) {
-                mappers.add( TimeMapper.ISO_8601 );
+                return TimeMapper.ISO_8601;
             }
         }
 
-        /* Try some numeric time domains. */
+        /* Look for metadata imported from TIMESYS elements, which is how
+         * it's supposed to be done post VOTable 1.4.  Just use the timeorigin,
+         * don't attempt anything clever with the refposition or timescale. */
+        Timesys tsys = info instanceof ColumnInfo
+                     ? Timesys.getTimesys( (ColumnInfo) info )
+                     : null;
+        if ( tsys != null && Number.class.isAssignableFrom( clazz ) ) {
+            double jdOrigin = tsys.getTimeorigin();
+            final double unitSec = getUnitInSeconds( units );
+            if ( ! Double.isNaN( unitSec ) &&
+                 ! Double.isNaN( jdOrigin ) ) {
+                double unixDayOrigin = jdOrigin - 2440587.5;
+                final double unixSecOrigin = unixDayOrigin * 60 * 60 * 24;
+                return new TimeMapper( clazz, "TIMESYS", tsys.toString() ) {
+                    public double toUnixSeconds( Object sourceValue ) {
+                        double val = sourceValue instanceof Number
+                                   ? ((Number) sourceValue).doubleValue()
+                                   : Double.NaN;
+                        return Double.isNaN( val )
+                             ? Double.NaN
+                             : ( val * unitSec ) + unixSecOrigin;
+                    }
+                };
+            }
+        }
+
+        /* Otherwise try some ad hoc numeric domains. */
         if ( Number.class.isAssignableFrom( clazz ) ) {
             if ( "mjd".equalsIgnoreCase( xtype ) ||
                  ( OBSCORE_T_UTYPE_PATTERN.matcher( utype ).matches() && 
                    "d".equals( units ) ) ) {
-                mappers.add( TimeMapper.MJD );
+                return TimeMapper.MJD;
             }
             else if ( "jd".equalsIgnoreCase( xtype ) ) {
-                mappers.add( TimeMapper.JD );
+                return TimeMapper.JD;
             }
             else if ( "yr".equals( units ) ||
                       "a".equals( units ) ||
                       "year".equals( units ) ) {
-                mappers.add( TimeMapper.DECIMAL_YEAR );
+                return TimeMapper.DECIMAL_YEAR;
             }
         }
 
         /* There may be some other conventions that I could spot here -
          * ask CDS for known indicators of epoch-like columns? */
-
-        return mappers.toArray( new DomainMapper[ 0 ] );
+        return null;
     }
 
     /**
@@ -112,6 +149,34 @@ class VOTableDomainMappers {
         }
         else {
             return str;
+        }
+    }
+
+    /**
+     * Returns the numeric size of a unit in seconds given the VOTable
+     * units attribute value.
+     *
+     * <p><strong>Note:</strong> this does not currently implement
+     * all of VOUnits; for instance SI prefixes (kilodays etc)
+     * are not understood.
+     *
+     * @param  units  unit string
+     * @return   extent of unit in seconds, or NaN if not understood
+     */
+    private static double getUnitInSeconds( String units ) {
+        if ( "s".equals( units ) ) {
+            return 1.0;
+        }
+        else if ( "d".equals( units ) ) {
+            return 60 * 60 * 24;
+        }
+        else if ( "a".equals( units ) ||
+                  "yr".equals( units ) ||
+                  "year".equals( units ) ) {
+            return 60 * 60 * 24 * 365.25;
+        }
+        else {
+            return Double.NaN;
         }
     }
 }

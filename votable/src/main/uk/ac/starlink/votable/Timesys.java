@@ -1,5 +1,7 @@
 package uk.ac.starlink.votable;
 
+import uk.ac.starlink.table.ColumnInfo;
+
 /**
  * Utility class for working with VOTable TIMESYS elements.
  *
@@ -107,6 +109,43 @@ class Timesys {
         }
         else {
             return Double.parseDouble( timeorigin );
+        }
+    }
+
+    /**
+     * Extracts a Timesys instance from a ColumnInfo.
+     * If the metadata contains insufficient or incorrect information
+     * to define a Timesys, null is returned.
+     *
+     * @param  cinfo   column info
+     * @return   timesys instance or null
+     */
+    public static Timesys getTimesys( ColumnInfo cinfo ) {
+        String timeoriginTxt =
+            (String) cinfo.getAuxDatumValue( VOStarTable
+                                            .TIMESYS_TIMEORIGIN_INFO,
+                                             String.class );
+        String timescale =
+            (String) cinfo.getAuxDatumValue( VOStarTable
+                                            .TIMESYS_TIMESCALE_INFO,
+                                             String.class );
+        String refposition =
+            (String) cinfo.getAuxDatumValue( VOStarTable
+                                            .TIMESYS_REFPOSITION_INFO,
+                                             String.class );
+        if ( timescale != null && timescale.trim().length() > 0 &&
+             refposition != null && refposition.trim().length() > 0 ) {
+            double timeorigin;
+            try {
+                timeorigin = decodeTimeorigin( timeoriginTxt );
+            }
+            catch ( NumberFormatException e ) {
+                return null;
+            }
+            return new Timesys( timeorigin, timescale, refposition );
+        }
+        else {
+            return null;
         }
     }
 }
