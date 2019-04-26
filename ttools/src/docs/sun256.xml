@@ -1064,7 +1064,7 @@ on the command line is equivalent to having the following in your
 <dd><p>Selects the version of the VOTable standard which output VOTables
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>",
-    "<code>1.2</code>" or "<code>1.3</code>".
+    "<code>1.2</code>", "<code>1.3</code>" or "<code>1.4</code>".
     By default, version 1.3 VOTables are written.
     </p></dd>
 
@@ -2107,7 +2107,7 @@ The following list gives the values usually allowed for this
     </p></dd>
 
 <dt><code>votable</code></dt>
-<dd><p>VOTable format - any legal version 1.0, 1.1, 1.2 or 1.3 format 
+<dd><p>VOTable format - any legal version 1.0, 1.1, 1.2, 1.3 or 1.4 format 
     VOTable documents, and many illegal ones, can be read.
     For commands which take a single input table, by default the first
     <code>TABLE</code> element in the document is used, but this can be
@@ -8931,7 +8931,7 @@ namespace arrangements, but Xerces seems to have problems when validating
 documents which use namespace prefixes.  Not sure about other parsers.
 This probably won't cause you trouble, but if it does you may need to
 set <code>validate=false</code> to work around it.
-Contact this author if this seems to be a serious issue for you.
+Contact the author if this seems to be a serious issue for you.
 </p>
 
 &votlint-summary;
@@ -8941,7 +8941,7 @@ Contact this author if this seems to be a serious issue for you.
 
 <p>Votlint checks that the XML input is well-formed, and, unless the
 <code>valid=false</code> parameter is supplied, that it validates against the
-1.0 DTD or 1.1, 1.2 or 1.3 schema as appropriate.
+1.0 DTD or 1.1, 1.2, 1.3 or (draft) 1.4 schema as appropriate.
 Some of the validity checks are also done by
 <code>votlint</code> internally, so that some validity-type 
 errors may give rise to more than one warning.  
@@ -8968,6 +8968,11 @@ and lead to ERROR reports if violations are found:
 <li><code>ref</code> attributes without matching <code>ID</code> elements 
     elsewhere in the document</li>
 <li>Same <code>ID</code> attribute value on multiple elements.</li>
+<li>Attributes defined by external vocabularies have permitted values;
+    hard-coded lists of known permitted values are stored internally,
+    but the external vocabularies are consulted if necessary to check
+    for values added after build time
+    (currently only applies to <code>TIMESYS</code> attributes).</li>
 </ul>
 </p>
 
@@ -8996,8 +9001,20 @@ wise at least to take a look at the input which caused them:
 <li>Multiple sibling elements (such as <code>FIELD</code>s,
     though not <code>INFO</code>s) with the
     same <code>name</code> attributes</li>
+<li><code>TIMESYS</code> elements never referenced.</li>
 </ul>
 </p>
+
+<p>Note: In this version,
+the VOTable 1.4 specification is still under discussion; 
+the version used for validation currently corresponds to
+WD-VOTable-1.4-20190403, with the correction that
+the RDF vocabularies for TIMESYS
+<code>timeframe</code> and <code>refposition</code> attributes
+have URIs using the authority
+"<code>www.ivoa.net</code>" and not "<code>ivoa.net</code>".
+</p>
+
 </subsubsect>
 
 <subsubsect>
@@ -11989,6 +12006,64 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>User-Agent</code> header of all HTTP requests they make,
         for convenience of services that want to identify validators.
         This is a convention discussed within the IVOA Operations IG.</li>
+    <li>Experimental support for VOTable 1.4 and its new
+        <code>TIMESYS</code> element.
+        This support corresponds to WD-VOTable-1.4-20190403,
+        with the correction that the RDF vocabularies for TIMESYS
+        <code>timeframe</code> and <code>refposition</code> attributes
+        have URIs using the authority "www.ivoa.net" and not "ivoa.net".
+        The functionality may be modified in future releases depending
+        on how the VOTable 1.4 specification evolves.
+        <ul>
+        <li><ref id="votlint"><code>votlint</code></ref>
+            now supports Version 1.4 VOTables:
+            the 1.4 draft schema is used for XSD validation,
+            and the TIMESYS element is checked
+            for attribute content and suitable referencing.</li>
+        <li>For VOTable columns that reference TIMESYS elements,
+            the relevant information is now accessible as
+            column auxiliary metadata
+            (<code>TimesysTimeorigin</code>,
+             <code>TimesysTimescale</code>,
+             <code>TimesysRefposition</code>)
+            e.g. using the
+            <ref id="meta"><code>meta</code></ref> filter.</li>
+        <li>Any columns referencing TIMESYS elements
+            read from VOTable-based formats (VOTable or FITS-plus)
+            can now be written out to VOTable-based formats with
+            equivalent TIMESYS references included,
+            so TIMESYS round-tripping for columns works;
+            however this will only be done if the VOTable output
+            format is set to version 1.4.
+            By default (at least as long as 1.4 is not finalised)
+            the output version is 1.3.
+            To enable this TIMESYS output, set the
+            <ref id="sysProperties">system property</ref>
+            <code>-Dvotable.version=1.4</code>.
+            Currently this TIMESYS output works only for table columns
+            (FIELDs) not parameters (PARAMs).</li>
+        <li>The <code>timeoffset</code> attribute of a TIMESYS element
+            referenced by a VOTable column is used to make sense of
+            column data when interpreting it as an absolute time.
+            Currently, the only use of this is in
+            <ref id="plot2time">time plots</ref>.</li>
+        </ul>
+        This VOTable 1.4 support has resulted in some minor related
+        behaviour changes:
+        <ul>
+        <li><code>FIELD/@ref</code> attributes are no longer imported
+            as "<code>VOTable ref</code>" column aux metadata items,
+            since they often interfere with TIMESYS references.
+            Doing this was probably always a bad idea since the referencing
+            is not kept track of within the application, so withdrawing
+            this functionality makes sense, but beware that it might
+            change or break some existing behaviour.</li>
+        <li><code>votlint</code> modifications above may now
+            interrogate external vocabulary resources during validation,
+            meaning that external network connection may be made during
+            validation, which didn't used to happen.</li>
+        </ul>
+        </li>
     </ul>
     </p>
     </dd>

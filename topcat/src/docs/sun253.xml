@@ -1229,7 +1229,7 @@ while the tabular data which can be encoded is by design close to
 what FITS allows, it provides for much richer encoding of structure 
 and metadata.
 TOPCAT is believed to read any table which conforms to the
-VOTable 1.0, 1.1, 1.2 or 1.3
+VOTable 1.0, 1.1, 1.2 1.3 or (draft) 1.4
 <webref plaintextref="yes" url="&URL.VOTABLE;">specifications</webref>.
 This includes tables in which the cell data are
 included in-line as XML elements (VOTable/TABLEDATA format),
@@ -4713,7 +4713,7 @@ The following ones have special significance within TOPCAT:
 <dd><p>Selects the version of the VOTable standard which output VOTables
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>", 
-    "<code>1.2</code>" or "<code>1.3</code>".
+    "<code>1.2</code>", "<code>1.3</code>" or "<code>1.4</code>".
     By default, version 1.3 VOTables are written.
     </p></dd>
 
@@ -28297,6 +28297,46 @@ introduced since the last version:
         a long time.</li>
     <li>Added bumper to Vizier table selection control in
         CDS Upload Match window.</li>
+    <li>Experimental support for VOTable 1.4 and its new
+        <code>TIMESYS</code> element.
+        This support corresponds to WD-VOTable-1.4-20190403.
+        The functionality may be modified in future releases depending
+        on how the VOTable 1.4 specification evolves.
+        <ul>
+        <li>For VOTable columns that reference TIMESYS elements,
+            the relevant information is now visible
+            (<code>TimesysTimeorigin</code>,
+             <code>TimesysTimescale</code>,
+             <code>TimesysRefposition</code>)
+            in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+        <li>Any columns referencing TIMESYS elements
+            read from VOTable-based formats (VOTable or FITS-plus)
+            can now be written out to VOTable-based formats with
+            equivalent TIMESYS references included,
+            so TIMESYS round-tripping for columns works;
+            however this will only be done if the VOTable output
+            format is set to version 1.4.
+            By default (at least as long as 1.4 is not finalised)
+            the output version is 1.3.
+            To enable this TIMESYS output, set the
+            <ref id="jvmProperties">system property</ref>
+            <code>-Dvotable.version=1.4</code>.
+            Currently this TIMESYS output works only for table columns
+            (FIELDs) not parameters (PARAMs).</li>
+        <li>The <code>timeoffset</code> attribute of a TIMESYS element
+            referenced by a VOTable column is used to make sense of
+            column data when interpreting it as an absolute time.
+            Currently, the only use of this is in
+            <ref id="TimePlotWindow">time plots</ref>.</li>
+        <li><code>FIELD/@ref</code> attributes are no longer imported
+            as "<code>VOTable ref</code>" column aux metadata items,
+            since they often interfere with TIMESYS references.
+            Doing this was probably always a bad idea since the referencing
+            is not kept track of within the application, so withdrawing
+            this functionality makes sense, but beware that it might
+            change or break some existing behaviour.</li>
+        </ul>
+        </li>
     </ul>
     </p></dd>
 
