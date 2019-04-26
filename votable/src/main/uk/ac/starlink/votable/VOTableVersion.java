@@ -18,7 +18,7 @@ import javax.xml.validation.SchemaFactory;
  * @author   Mark Taylor
  * @since    15 Nov 2012
  */
-public abstract class VOTableVersion {
+public abstract class VOTableVersion implements Comparable<VOTableVersion> {
 
     /** VOTable 1.0. */
     public static final VOTableVersion V10;
@@ -120,6 +120,10 @@ public abstract class VOTableVersion {
      * @return  local URL from which the DTD can be retrieved, or null
      */
     public abstract URL getDtdUrl();
+
+    public int compareTo( VOTableVersion other ) {
+        return this.versionNumber_.compareTo( other.versionNumber_ );
+    }
    
     /**
      * Returns version number.

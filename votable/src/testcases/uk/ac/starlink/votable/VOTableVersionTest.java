@@ -2,9 +2,12 @@ package uk.ac.starlink.votable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import junit.framework.TestCase;
 
 public class VOTableVersionTest extends TestCase {
@@ -22,13 +25,19 @@ public class VOTableVersionTest extends TestCase {
     }
 
     public void testVersions() {
+        Collection<VOTableVersion> versions =
+            VOTableVersion.getKnownVersions().values();
         assertEquals( Arrays.asList( new VOTableVersion[] {
             VOTableVersion.V10,
             VOTableVersion.V11,
             VOTableVersion.V12,
             VOTableVersion.V13,
             VOTableVersion.V14,
-        } ), new ArrayList( VOTableVersion.getKnownVersions().values() ) );
+        } ), new ArrayList<VOTableVersion>( versions ) );
+        SortedSet<VOTableVersion> sortedVersions =
+            new TreeSet<VOTableVersion>( versions );
+        assertEquals( new ArrayList<VOTableVersion>( sortedVersions ),
+                      new ArrayList<VOTableVersion>( versions ) );
     }
 
     /**
