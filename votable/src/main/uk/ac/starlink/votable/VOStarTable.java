@@ -261,11 +261,6 @@ public class VOStarTable extends AbstractStarTable {
                     }
                 }
 
-                if ( field.hasAttribute( "ref" ) ) {
-                    String ref = field.getAttribute( "ref" );
-                    auxdata.add( new DescribedValue( REF_INFO, ref ) );
-                }
-
                 VOElement[] links = field.getChildrenByName( "LINK" );
                 for ( int j = 0; j < links.length; j++ ) {
                     auxdata.add( getDescribedValue( (LinkElement) 
