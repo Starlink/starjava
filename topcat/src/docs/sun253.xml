@@ -28339,6 +28339,9 @@ introduced since the last version:
         </li>
     <li>Downgrade log messages about UDFs with unparsable signatures
         when parsing TAPRegExt documents; now INFO not WARNING.</li>
+    <li>Use period not comma as decimal separator for non-sexagesimal
+        sky plot axis labels regardless of Locale;
+        also avoid trailing comma sometimes erroneously present.</li>
     </ul>
     </p></dd>
 

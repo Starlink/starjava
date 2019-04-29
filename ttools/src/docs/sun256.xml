@@ -12064,6 +12064,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             validation, which didn't used to happen.</li>
         </ul>
         </li>
+    <li>Use period not comma as decimal separator for non-sexagesimal
+        <code>plot2sky</code> axis labels regardless of Locale;
+        also avoid trailing comma sometimes erroneously present.</li>
     </ul>
     </p>
     </dd>

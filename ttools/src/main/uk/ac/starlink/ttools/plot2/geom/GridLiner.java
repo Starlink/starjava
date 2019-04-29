@@ -276,6 +276,11 @@ public class GridLiner  {
         if (label != null) {
             if (label != null) {
                 label = label.trim();
+
+                // Hack to cover the cases when the Locale has used a
+                // comma instead of a period for the decimal separator.
+                label = label.replace( ',', '.' );
+
                 if (label.indexOf(".") > 0) {
                     while (label.endsWith("0"))  {
                         label = label.substring(0,label.length()-1);
