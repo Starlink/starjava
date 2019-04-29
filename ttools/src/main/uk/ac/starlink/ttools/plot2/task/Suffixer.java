@@ -46,7 +46,7 @@ public abstract class Suffixer {
                                                   final boolean isBlank1 ) {
         return new Suffixer() {
             public List<String> createSuffixes( final int n ) {
-                if ( n == 1 && isBlank1 ) {
+                if ( n == 0 || ( n == 1 && isBlank1 ) ) {
                     return Collections.singletonList( "" );
                 }
                 else {

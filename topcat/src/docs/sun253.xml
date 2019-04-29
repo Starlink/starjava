@@ -28342,6 +28342,8 @@ introduced since the last version:
     <li>Use period not comma as decimal separator for non-sexagesimal
         sky plot axis labels regardless of Locale;
         also avoid trailing comma sometimes erroneously present.</li>
+    <li>Fix bug that prevented the STILTS window working for
+        an empty plot.</li>
     </ul>
     </p></dd>
 
