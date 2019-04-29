@@ -28337,6 +28337,8 @@ introduced since the last version:
             change or break some existing behaviour.</li>
         </ul>
         </li>
+    <li>Downgrade log messages about UDFs with unparsable signatures
+        when parsing TAPRegExt documents; now INFO not WARNING.</li>
     </ul>
     </p></dd>
 

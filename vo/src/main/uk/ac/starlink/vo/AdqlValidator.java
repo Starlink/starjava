@@ -164,9 +164,15 @@ public class AdqlValidator {
                 }
                 catch ( ParseException e ) {
                     udf = null;
-                    logger_.log( Level.WARNING,
-                                 "Failed to parse UDF def \"" + form + "\""
-                               + ": " + e, e );
+
+                    /* Arguably this should be a WARNING, but at time of
+                     * writing the ADQL library fails to parse many
+                     * reasonable UDFs, since it doesn't know about
+                     * ADQL 2.1 types.  So demote it to an INFO for now
+                     * to reduce logging noise. */
+                    logger_.log( Level.INFO,
+                                 "Failed to parse UDF def \"" + form + "\"",
+                                 e );
                 }
                 if ( udf != null ) {
                     udfList.add( udf );
