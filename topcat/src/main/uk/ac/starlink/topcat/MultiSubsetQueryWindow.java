@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -45,11 +46,22 @@ public class MultiSubsetQueryWindow extends QueryWindow {
      * @param   parent  parent component
      * @param   entries  list of subset expressions that are potentially
      *                   to be added
+     * @param   jelExpr  JEL expression giving generic description of subset
+     * @param   adqlExpr  ADQL expression giving generic description of subset
      */
     public MultiSubsetQueryWindow( String title, Component parent,
-                                   Entry[] entries ) {
+                                   Entry[] entries, String jelExpr,
+                                   String adqlExpr ) {
         super( title, parent, true, true );
         entries_ = entries;
+
+        /* Component for displaying generic expressions for subset. */
+        TextItemPanel exprPanel = new TextItemPanel();
+        exprPanel.addItem( "TOPCAT", jelExpr );
+        exprPanel.addItem( "ADQL", adqlExpr );
+        exprPanel.setBorder( BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder( 0, 0, 5, 0 ),
+            makeTitledBorder( "Expressions" ) ) );
 
         /* Component for selecting subset name.  This provides options
          * from the first table in the list not the other tables,
@@ -108,15 +120,16 @@ public class MultiSubsetQueryWindow extends QueryWindow {
         tcolCreate.setPreferredWidth( 50 );
         tcolTable.setMaxWidth( 150 );
         tcolTable.setPreferredWidth( 150 );
-        tcolTable.setMaxWidth( 800 );
+        tcolTable.setMaxWidth( 500 );
         jtable_.setAutoResizeMode( JTable.AUTO_RESIZE_LAST_COLUMN );
 
         /* Place components. */
         JComponent box = Box.createVerticalBox();
+        box.add( exprPanel );
         box.add( new LineBox( "Subset Name", nameSelector_ ) );
         box.add( Box.createVerticalStrut( 10 ) );
         box.add( new SizingScrollPane( jtable_ ) );
-        box.add( Box.createHorizontalStrut( 700 ) );
+        box.add( Box.createHorizontalStrut( 550 ) );
         getMainArea().add( box );
 
         /* Add actions. */

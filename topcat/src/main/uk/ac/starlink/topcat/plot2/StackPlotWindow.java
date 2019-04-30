@@ -155,6 +155,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ToggleButtonModel auxLockModel_;
     private final ZoneId dfltZone_;
     private boolean hasShader_;
+    private static final String[] XYZ = new String[] { "x", "y", "z" };
     private static final Level REPORT_LEVEL = Level.INFO;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
@@ -1637,7 +1638,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 entlist.toArray( new MultiSubsetQueryWindow.Entry[ 0 ] );
             MultiSubsetQueryWindow qw =
                 new MultiSubsetQueryWindow( "Add Figure Subset(s)",
-                                            this, entries );
+                                            this, entries, fig.getExpression(),
+                                            fig.getAdql() );
             qw.setVisible( true );
             if ( completionCallback != null ) {
                 qw.addWindowListener( new WindowAdapter() {
@@ -1668,14 +1670,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         List<MultiSubsetQueryWindow.Entry> entList =
             new ArrayList<MultiSubsetQueryWindow.Entry>();
         int nz = plotPanel_.getZoneCount();
+        String jelExpr = null;
+        String adqlExpr = null;
         for ( int iz = 0; iz < nz; iz++ ) {
             Surface surf = plotPanel_.getLatestSurface( iz );
+            RangeDescriber describer = new RangeDescriber( ranger, surf );
             PlotLayer[] layers = plotPanel_.getPlotLayers( iz );
             if ( layers.length > 0 ) {
                 int ndim = ranger.getDimCount();
-                double[][] dlims = ranger.getDataLimits( surf );
-                boolean[] logFlags = ranger.getLogFlags( surf );
-                int[] npixs = ranger.getPixelDims( surf );
                 TableCloud[] clouds =
                     TableCloud
                    .createTableClouds( SubCloud
@@ -1694,21 +1696,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                         isBlank = isBlank || jelVars[ idim ] == null;
                     }
                     if ( ! isBlank ) {
-                        StringBuffer sbuf = new StringBuffer();
-                        for ( int idim = 0; idim < ndim; idim++ ) {
-                            if ( idim > 0 ) {
-                                sbuf.append( " && " );
-                            }
-                            sbuf.append( TopcatJELUtils
-                                        .betweenExpression( jelVars[ idim ],
-                                                            dlims[ idim ][ 0 ],
-                                                            dlims[ idim ][ 1 ],
-                                                            logFlags[ idim ],
-                                                            npixs[ idim ] ) );
-                        }
+                        jelExpr = describer.createJelExpression( XYZ );
+                        adqlExpr = describer.createAdqlExpression( XYZ );
+                        String rangeExpr =
+                            describer.createJelExpression( jelVars );
                         String expr =
                             TopcatJELUtils
-                           .combineSubsetsExpression( tcModel, sbuf.toString(),
+                           .combineSubsetsExpression( tcModel, rangeExpr,
                                                       rsets );
                         entList.add( new MultiSubsetQueryWindow
                                         .Entry( tcModel, expr ) );
@@ -1720,7 +1714,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             MultiSubsetQueryWindow.Entry[] entries =
                 entList.toArray( new MultiSubsetQueryWindow.Entry[ 0 ] );
             new MultiSubsetQueryWindow( "Add Visible Subset(s)",
-                                        this, entries )
+                                        this, entries, jelExpr, adqlExpr )
                .setVisible( true );
         }
     }
@@ -1928,6 +1922,80 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }
         return false;
+    }
+
+    /**
+     * Utility class to produce textual descriptions based on CartesianRanger
+     * objects.
+     */
+    private static class RangeDescriber {
+        final int ndim_;
+        final double[][] dlims_;
+        final boolean[] logFlags_;
+        final int[] npixs_;
+
+        /**
+         * Constructor.
+         *
+         * @param  ranger  ranger
+         * @param  surf    plot surface
+         */
+        RangeDescriber( CartesianRanger ranger, Surface surf ) {
+            ndim_ = ranger.getDimCount();
+            dlims_ = ranger.getDataLimits( surf );
+            logFlags_ = ranger.getLogFlags( surf );
+            npixs_ = ranger.getPixelDims( surf );
+        }
+
+        /**
+         * Returns a JEL expression describing this range.
+         *
+         * @param  varNames   ndim-element arrray giving JEL-friendly names
+         *                    for the Cartesian variables
+         * @return  JEL expression
+         */
+        String createJelExpression( String[] varNames ) {
+            StringBuffer sbuf = new StringBuffer();
+            for ( int idim = 0; idim < ndim_; idim++ ) {
+                if ( idim > 0 ) {
+                    sbuf.append( " && " );
+                }
+                sbuf.append( TopcatJELUtils
+                            .betweenExpression( varNames[ idim ],
+                                                dlims_[ idim ][ 0 ],
+                                                dlims_[ idim ][ 1 ],
+                                                logFlags_[ idim ],
+                                                npixs_[ idim ] ) );
+            }
+            return sbuf.toString();
+        }
+
+        /**
+         * Returns an ADQL expression describing this range.
+         *
+         * @param  varNames   ndim-element arrray giving ADQL-friendly names
+         *                    for the Cartesian variables
+         * @return  ADQL expression
+         */
+        String createAdqlExpression( String[] varNames ) {
+            StringBuffer sbuf = new StringBuffer();
+            for ( int idim = 0; idim < ndim_; idim++ ) {
+                if ( idim > 0 ) {
+                    sbuf.append( " AND " );
+                }
+                String[] limits =
+                    TopcatJELUtils.formatAxisRangeLimits( dlims_[ idim ][ 0 ],
+                                                          dlims_[ idim ][ 1 ],
+                                                          logFlags_[ idim ],
+                                                          npixs_[ idim ] );
+                sbuf.append( varNames[ idim ] )
+                    .append( " BETWEEN " )
+                    .append( limits[ 0 ] )
+                    .append( " AND " )
+                    .append( limits[ 1 ] );
+            }
+            return sbuf.toString();
+        }
     }
 
     /**

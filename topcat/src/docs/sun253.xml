@@ -23311,6 +23311,24 @@ displayed, and you will have to choose again.
 button and the subset(s) will be created.
 </p>
 
+<p>An <label>Expressions</label> panel also appears
+at the top of the window.
+This will, if possible, show representations of the selected region:
+<label>TOPCAT</label> uses the expression
+language used elsewhere in the application, and
+<label>ADQL</label> uses ADQL syntax.
+The ADQL form can be cut and pasted for use in the WHERE clause
+of a query in the <ref id="TapTableLoadDialog">TAP window</ref>.
+The variable names in these expressions are generic
+(e.g. "<code>x</code>" and "<code>y</code>" for Cartesian axes),
+instead of the actual quantities plotted, which are used in the subset
+expressions below.
+<em><strong>Note:</strong> the display of expression information
+in this window is somewhat experimental;
+better support for region descriptions may be provided elsewhere
+in the application in some future release.</em>
+</p>
+
 </subsubsect>
 
 
@@ -28344,6 +28362,13 @@ introduced since the last version:
         also avoid trailing comma sometimes erroneously present.</li>
     <li>Fix bug that prevented the STILTS window working for
         an empty plot.</li>
+    <li>Better reporting of algebraic regions drawn using
+        <ref id="FigurePanel">Draw Algebraic Subset</ref> option:
+        the expression is reported continuously at the bottom of the
+        plot during drawing, and the topcat and ADQL versions of
+        the expression are displayed on completion in the
+        <ref id="MultiSubsetQueryWindow"
+             >Multi Algebraic Subset Window</ref>.</li>
     </ul>
     </p></dd>
 
