@@ -8,8 +8,10 @@
          timeorigin="MJD-origin"/>
 <TIMESYS ID="timesys_gaia" refposition="BARYCENTER" timescale="TCB"
          timeorigin="2455197.5"/>
-<TIMESYS ID="timesys_0ad" refposition="BARYCENTER" timescale="TCB"
-         timeorigin="1721044.5"/>
+<TIMESYS ID="timesys_2000ad" refposition="BARYCENTER" timescale="TCB"
+         timeorigin="2451544.5"/>
+<TIMESYS ID="timesys_jyear" refposition="BARYCENTER" timescale="TCB"/>
+<TIMESYS ID="timesys_syear" refposition="BARYCENTER" timescale="TCB"/>
 
 <TABLE name="TS" nrows="7">
 <PARAM arraysize="15" datatype="char" name="source_id" ucd="meta.id;meta.main" value="199286482883072">
@@ -40,8 +42,13 @@
 <FIELD datatype="double" name="jd" ref="timesys_jd" ucd="time.epoch" unit="d">
 <DESCRIPTION>Observation time (JD in barycentric TCB).</DESCRIPTION>
 </FIELD>
-<FIELD datatype="double" name="dyear" unit="a" ref="timesys_0ad">
-<DESCRIPTION>Expression: mjdToDecYear(mjd)</DESCRIPTION>
+<FIELD datatype="double" name="dyear" unit="a" ref="timesys_2000ad">
+</FIELD>
+<FIELD datatype="double" name="jyear" unit="yr" ref="timesys_jyear">
+<DESCRIPTION>Absolute julian year</DESCRIPTION>
+</FIELD>
+<FIELD datatype="char" arraysize="*" name="syear" xtype="timestamp" ref="timesys_syear">
+<DESCRIPTION>ISO-8601 timestamp</DESCRIPTION>
 </FIELD>
 <FIELD datatype="float" name="flux" ucd="em.opt;phot.flux;stat.mean" unit="e-/s" utype="spec:Spectrum.Data.SpectralAxis.Value">
 <DESCRIPTION>Band flux value for the transit. For G band, it is a combination of individual SM-AF CCD fluxes. For BP and RP bands, it is an integrated CCD flux.</DESCRIPTION>
@@ -60,7 +67,9 @@
     <TD>1821.3589550099923</TD>
     <TD>57018.35895500984</TD>
     <TD>2457018.85895501</TD>
+      <TD>14.987284808251</TD>
     <TD>2014.987284808251</TD>
+    <TD>2014-12-27T08:36:53</TD>
     <TD>204.91226</TD>
     <TD>30.74193</TD>
   </TR>
@@ -70,7 +79,9 @@
     <TD>1841.2853099516137</TD>
     <TD>57038.28530995175</TD>
     <TD>2457038.7853099518</TD>
+      <TD>15.041877561517</TD>
     <TD>2015.041877561517</TD>
+    <TD>2015-01-16T06:50:50</TD>
     <TD>134.89484</TD>
     <TD>39.70317</TD>
   </TR>
@@ -80,7 +91,9 @@
     <TD>2037.8967677943244</TD>
     <TD>57234.896767794155</TD>
     <TD>2457235.396767794</TD>
+      <TD>15.5805390898338</TD>
     <TD>2015.5805390898338</TD>
+    <TD>2015-07-31T21:31:20</TD>
     <TD>167.21097</TD>
     <TD>55.54014</TD>
   </TR>
@@ -90,7 +103,9 @@
     <TD>2067.315470469177</TD>
     <TD>57264.315470469184</TD>
     <TD>2457264.815470469</TD>
+      <TD>15.6611382752726</TD>
     <TD>2015.6611382752726</TD>
+    <TD>2015-08-30T07:34:16</TD>
     <TD>93.81063</TD>
     <TD>34.30825</TD>
   </TR>
@@ -100,7 +115,9 @@
     <TD>2195.8316964280575</TD>
     <TD>57392.83169642789</TD>
     <TD>2457393.331696428</TD>
+      <TD>16.0132013563486</TD>
     <TD>2016.0132013563486</TD>
+    <TD>2016-01-05T19:57:38</TD>
     <TD>163.88765</TD>
     <TD>26.725748</TD>
   </TR>
@@ -110,7 +127,9 @@
     <TD>2220.8976046345306</TD>
     <TD>57417.89760463452</TD>
     <TD>2457418.3976046345</TD>
+      <TD>16.0816874443433</TD>
     <TD>2016.0816874443433</TD>
+    <TD>2016-01-30T21:32:33</TD>
     <TD>70.57796</TD>
     <TD>24.216389</TD>
   </TR>
@@ -120,7 +139,9 @@
     <TD>2246.3870877654053</TD>
     <TD>57443.387087765615</TD>
     <TD>2457443.8870877656</TD>
+      <TD>16.1513308408912</TD>
     <TD>2016.1513308408912</TD>
+    <TD>2016-02-25T09:17:24</TD>
     <TD>40.59494</TD>
     <TD>45.587315</TD>
   </TR>

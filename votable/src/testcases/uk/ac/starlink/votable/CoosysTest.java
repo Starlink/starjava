@@ -179,6 +179,8 @@ public class CoosysTest extends TestCase {
         int icMjd = 3;
         int icJd = 4;
         int icYear = 5;
+        int icAbsyear = 6;
+        int icIso = 7;
         TimeMapper tmGaia =
             (TimeMapper) gaiats.getColumnInfo( icGaia ).getDomainMappers()[ 0 ];
         TimeMapper tmMjd =
@@ -187,6 +189,11 @@ public class CoosysTest extends TestCase {
             (TimeMapper) gaiats.getColumnInfo( icJd ).getDomainMappers()[ 0 ];
         TimeMapper tmYear =
             (TimeMapper) gaiats.getColumnInfo( icYear ).getDomainMappers()[ 0 ];
+        TimeMapper tmAbsyear =
+            (TimeMapper) gaiats.getColumnInfo( icAbsyear )
+                               .getDomainMappers()[0];
+        TimeMapper tmIso =
+            (TimeMapper) gaiats.getColumnInfo( icIso ).getDomainMappers()[ 0 ];
 
         for ( int ir = 0; ir < nr; ir++ ) {
             Object[] row = gaiats.getRow( ir );
@@ -194,22 +201,28 @@ public class CoosysTest extends TestCase {
             double mjd = ((Number) row[ icMjd ]).doubleValue();
             double jd = ((Number) row[ icJd ]).doubleValue();
             double dyear = ((Number) row[ icYear ]).doubleValue();
+            double ayear = ((Number) row[ icAbsyear]).doubleValue();
+            String iso = (String) row[ icIso ];
             assertTrue( jd > 2e6 && jd < 3e6 );
             assertTrue( mjd > 50000 && mjd < 60000 );
             assertTrue( gday > 0 && gday < 10000 );
-            assertTrue( dyear > 2000 && dyear < 2025 );
+            assertTrue( dyear > 0 && dyear < 25 );
+            assertTrue( ayear > 2000 && ayear < 2025 );
             double tGaia = tmGaia.toUnixSeconds( gday );
             double tMjd = tmMjd.toUnixSeconds( mjd );
             double tJd = tmJd.toUnixSeconds( jd );
             double tYear = tmYear.toUnixSeconds( dyear );
+            double tAyear = tmAbsyear.toUnixSeconds( ayear );
+            double tIso = tmIso.toUnixSeconds( iso );
             assertEquals( tGaia, tMjd, 1e-3 );
             assertEquals( tGaia, tJd, 1e-3 );
+            assertEquals( tGaia, tAyear, 1e-3 );
+            assertEquals( tGaia, tIso, 1 );
 
-            // The year value was got using
-            // uk.ac.starlink.ttools.func.Times.mjdToDecYear;
-            // I think this may do magic with leap years and Gregorian
-            // offsets etc; but this checks that the result is in the
-            // right ball park.
+            // I think this discrepancy is to do with the difference
+            // between calendar years (365 or 366 days) and Julian years
+            // (365.25 days).  In any case it checks that the result
+            // is in the right ball park.
             assertEquals( tGaia, tYear, 12*60*60 );
         }
  

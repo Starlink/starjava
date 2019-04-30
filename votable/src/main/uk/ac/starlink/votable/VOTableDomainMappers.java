@@ -87,7 +87,11 @@ class VOTableDomainMappers {
 
         /* Look for metadata imported from TIMESYS elements, which is how
          * it's supposed to be done post VOTable 1.4.  Just use the timeorigin,
-         * don't attempt anything clever with the refposition or timescale. */
+         * don't attempt anything clever with the refposition or timescale.
+         * Note that this ignores TIMESYS references where timeorigin is
+         * not set; that corresponds to an absolute date in years from 0AD.
+         * If timescale and refposition are to be extracted in future,
+         * handling for those cases will need to be added. */
         Timesys tsys = info instanceof ColumnInfo
                      ? Timesys.getTimesys( (ColumnInfo) info )
                      : null;
