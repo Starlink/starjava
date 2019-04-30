@@ -373,6 +373,15 @@ public class SkySurface implements Surface {
     }
 
     /**
+     * Returns the sky system into which coordinates are projected.
+     *
+     * @return  view sky system
+     */
+    public SkySys getViewSystem() {
+        return viewSystem_;
+    }
+
+    /**
      * Attempts to construct a GridLiner object which can
      * draw default grid lines on this plot.
      *
