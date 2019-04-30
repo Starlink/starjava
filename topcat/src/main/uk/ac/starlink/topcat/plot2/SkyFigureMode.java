@@ -316,6 +316,30 @@ public abstract class SkyFigureMode implements FigureMode {
     }
 
     /**
+     * Assembles an ADQL conditional expression representing inclusion
+     * in a closed shape.
+     *
+     * @param  lonVar  ADQL-friendly name of longitude variable
+     * @param  latVar  ADQL-friendly name of latitude variable
+     * @param  adqlShape   ADQL geometry expression definining shape
+     * @return  conditional ADQL expression testing inclusion of
+     *          <code>(lonVar,latVar)</code> in <code>adqlShape</code>
+     */
+    private static String adqlContains( String lonVar, String latVar,
+                                        String adqlShape ) {
+        return new StringBuffer()
+            .append( "1=CONTAINS(" )
+            .append( "POINT('', " )
+            .append( lonVar )
+            .append( ", " )
+            .append( latVar )
+            .append( "), " )
+            .append( adqlShape )
+            .append( ")" )
+            .toString();
+    }
+
+    /**
      * Partial Figure implementation for use with SkyFigureMode.
      */
     private static abstract class SkyFigure implements Figure {
@@ -353,6 +377,10 @@ public abstract class SkyFigureMode implements FigureMode {
             return createSkyExpression( "lon", "lat", SkyDataGeom.GENERIC );
         }
 
+        public String getAdql() {
+            return createSkyAdql( "lon", "lat", SkyDataGeom.GENERIC );
+        }
+
         /**
          * Returns a JEL expression defining the area in data space
          * defined by a set of graphics points, given the latitude and longitude
@@ -366,6 +394,18 @@ public abstract class SkyFigureMode implements FigureMode {
         abstract String createSkyExpression( String lonVar, String latVar,
                                              SkyDataGeom varGeom );
 
+        /**
+         * Returns an ADQL expression representing the area in data space
+         * defined by a set of graphics points, given the latitude and longitude
+         * variable expressions.
+         *
+         * @param  lonVar  ADQL-friendly expression naming longitude coordinate
+         * @param  latVar  ADQL-friendly expression naming latitude coordinate
+         * @param  varGeom  geometry of the lon and lat variable values
+         * @return   boolean ADQL inclusion expression, or null
+         */
+        abstract String createSkyAdql( String lonVar, String latVar,
+                                       SkyDataGeom varGeom );
     }
 
     /**
@@ -418,6 +458,18 @@ public abstract class SkyFigureMode implements FigureMode {
                   .append( " < " )
                   .append( formatRadius() )
                   .toString();
+        }
+
+        public String createSkyAdql( String lonVar, String latVar,
+                                     SkyDataGeom varGeom ) {
+            return adqlContains( lonVar, latVar, new StringBuffer()
+                .append( "CIRCLE(''" )
+                .append( referencePoints( surf_, new Point[] { p0_ }, varGeom ))
+                .append( ", " )
+                .append( formatRadius() )
+                .append( ")" )
+                .toString()
+            );
         }
 
         /**
@@ -486,6 +538,17 @@ public abstract class SkyFigureMode implements FigureMode {
                       .append( ")" )
                       .toString()
                  : null;
+        }
+
+        public String createSkyAdql( String lonVar, String latVar,
+                                     SkyDataGeom varGeom ) {
+            return adqlContains( lonVar, latVar, new StringBuffer()
+                .append( "POLYGON(" )
+                .append( "''" )
+                .append( referencePoints( surf_, points_, varGeom ) )
+                .append( ")" )
+                .toString()
+            );
         }
     }
 }

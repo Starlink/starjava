@@ -146,6 +146,27 @@ public abstract class PlaneFigureMode implements FigureMode {
     }
 
     /**
+     * Provides a string by which a linear coordinate can be referred to
+     * in ADQL.  This is either the supplied variable name itself, or
+     * an ADQL expression calculating its (base 10) logarithm.
+     *
+     * @param  surf  plotting surface
+     * @param  varname  ADQL-friendly data space variable name
+     * @param  icoord   coordinate index; 0 for X, 1 for Y
+     * @return  ADQL-friendly linear expression referencing <code>varname</code>
+     */
+    private static String referenceAdqlName( PlanarSurface surf, String varname,
+                                             int icoord ) {
+        return surf.getLogFlags()[ icoord ]
+             ? new StringBuffer()
+                  .append( "LOG10(" )
+                  .append( varname )
+                  .append( ")" )
+                  .toString()
+             : varname;
+    }
+
+    /**
      * Returns a string suitable for appending to an expression that
      * adds a given value to it.
      *
@@ -232,6 +253,20 @@ public abstract class PlaneFigureMode implements FigureMode {
                                                          String yvar ) {
                         return "!(" + inFig.createPlaneExpression( xvar, yvar )
                              + ")";
+                    }
+                    public String createPlaneAdql( String xvar, String yvar ) {
+                        String opp = inFig.createPlaneAdql( xvar, yvar );
+
+                        /* Currently only used to invert INSIDE_POLYGON
+                         * which is anyway not supported in ADQL, so no
+                         * point doing much work here. */
+                        if ( opp == null ) {
+                            return null;
+                        }
+                        else {
+                            assert false;
+                            return null;
+                        }
                     }
                 };
             }
@@ -353,8 +388,23 @@ public abstract class PlaneFigureMode implements FigureMode {
          */
         abstract String createPlaneExpression( String xvar, String yvar );
 
+        /**
+         * Returns an ADQL expression representing the area in data space
+         * defined by a set of graphics points, given the X and Y variable
+         * expressions.
+         *
+         * @param  xvar   ADQL-friendly expression naming the X coordinate
+         * @param  yvar   ADQL-friendly expression naming the Y coordinate
+         * @return   boolean ADQL inclusion expression, or null
+         */
+        abstract String createPlaneAdql( String xvar, String yvar );
+
         public String getExpression() {
             return createPlaneExpression( "X", "Y" );
+        }
+
+        public String getAdql() {
+            return createPlaneAdql( "X", "Y" );
         }
 
         /**
@@ -428,6 +478,13 @@ public abstract class PlaneFigureMode implements FigureMode {
                   .append( referencePoints( surf_, points_, true ) )
                   .append( ")" )
                   .toString();
+        }
+
+        public String createPlaneAdql( String xvar, String yvar ) {
+
+            /* ADQL POLYGON function is specific to spherical geometry,
+             * so there's no straightforward way to write this. */
+            return null;
         }
     }
 
@@ -529,6 +586,32 @@ public abstract class PlaneFigureMode implements FigureMode {
                  .append( "1" )
                  .toString();
         }
+
+        public String createPlaneAdql( String xvar, String yvar ) {
+            return new StringBuffer()
+                .append( "SQRT(" )
+                .append( "POWER(" )
+                .append( "(" )
+                .append( referenceAdqlName( surf_, xvar, 0 ) )
+                .append( addFormattedValue( -cx_, xEps_ ) )
+                .append( ")" )
+                .append( "/" )
+                .append( PlotUtil.formatNumber( dx_, xEps_ ) )
+                .append( ", 2)" )
+                .append( " + " )
+                .append( "POWER(" )
+                .append( "(" )
+                .append( referenceAdqlName( surf_, yvar, 1 ) )
+                .append( addFormattedValue( -cy_, yEps_ ) )
+                .append( ")" )
+                .append( "/" )
+                .append( PlotUtil.formatNumber( dy_, yEps_ ) )
+                .append( ", 2)" )
+                .append( ")" )
+                .append( " < " )
+                .append( "1" )
+                .toString();
+        }
     }
 
     /**
@@ -592,6 +675,12 @@ public abstract class PlaneFigureMode implements FigureMode {
                   .append( " " )
                   .append( value )
                   .toString();
+        }
+
+        public String createPlaneAdql( String xvar, String yvar ) {
+
+            /* No special functions; same as JEL expression. */
+            return createPlaneExpression( xvar, yvar );
         }
     }
 
@@ -729,6 +818,17 @@ public abstract class PlaneFigureMode implements FigureMode {
                       .append( referencePoints( surf_, points_, isYfunc_ ) )
                       .append( ")" )
                       .toString();
+            }
+        }
+
+        public String createPlaneAdql( String xvar, String yvar ) {
+            if ( points_.length <= 2 ) {
+                String adql = createPlaneExpression( xvar, yvar );
+                assert adql.indexOf( F_POLYLINE ) < 0;
+                return adql;
+            }
+            else {
+                return null;
             }
         }
         

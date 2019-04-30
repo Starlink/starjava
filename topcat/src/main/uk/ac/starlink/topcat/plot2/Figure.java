@@ -52,4 +52,17 @@ public interface Figure {
      * @return   boolean JEL inclusion expression, or null
      */
     String createExpression( TableCloud cloud );
+
+    /**
+     * Returns some ADQL text that represents this figure.
+     * It should be straightforward for the user to adapt the resulting text
+     * for use as part of an ADQL query.
+     *
+     * <p>At present no assumptions are specified about the ADQL version etc,
+     * but a widely-applicable dialect (for instance ADQL v2.0 with
+     * geometry support) should be used where possible.
+     *
+     * @return   ADQL representation of this figure
+     */
+    String getAdql();
 }
