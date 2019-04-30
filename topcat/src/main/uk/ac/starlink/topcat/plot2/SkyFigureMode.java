@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.geom.Projection;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
+import uk.ac.starlink.ttools.plot2.geom.SkySys;
 
 /**
  * FigureMode implementations for use with a SkySurface.
@@ -374,11 +375,15 @@ public abstract class SkyFigureMode implements FigureMode {
         }
 
         public String getExpression() {
-            return createSkyExpression( "lon", "lat", SkyDataGeom.GENERIC );
+            String[] names = getViewCoordNames();
+            return createSkyExpression( names[ 0 ], names[ 1 ],
+                                        SkyDataGeom.GENERIC );
         }
 
         public String getAdql() {
-            return createSkyAdql( "lon", "lat", SkyDataGeom.GENERIC );
+            String[] names = getViewCoordNames();
+            return createSkyAdql( names[ 0 ], names[ 1 ],
+                                  SkyDataGeom.GENERIC );
         }
 
         /**
@@ -406,6 +411,29 @@ public abstract class SkyFigureMode implements FigureMode {
          */
         abstract String createSkyAdql( String lonVar, String latVar,
                                        SkyDataGeom varGeom );
+
+        
+        /**
+         * Returns a pair of coordinate names suitable for this figure's
+         * view coordinate system.
+         *
+         * @return   2-element array giving suitable names for lon,lat coords
+         */
+        private String[] getViewCoordNames() {
+            SkySys sys = surf_.getViewSystem();
+            if ( SkySys.EQUATORIAL.equals( sys ) ) {
+                return new String[] { "ra", "dec" };
+            }
+            else if ( SkySys.GALACTIC.equals( sys ) ) {
+                return new String[] { "l", "b" };
+            }
+            else if ( SkySys.ECLIPTIC2000.equals( sys ) ) {
+                return new String[] { "ecl_lon", "ecl_lat" };
+            }
+            else {
+                return new String[] { "lon", "lat" };
+            }
+        }
     }
 
     /**
