@@ -406,14 +406,6 @@ public abstract class SkyFigureMode implements FigureMode {
 
         public String createSkyExpression( String lonVar, String latVar,
                                            SkyDataGeom varGeom ) {
-            double radius =
-                Math.toDegrees( surf_.screenDistanceRadians( p0_, p1_ ) );
-            double minPixArea = 4 * Math.PI;
-            for ( Point2D v : circleVertices_ ) {
-                minPixArea = Math.min( minPixArea,
-                                       surf_.pixelAreaSteradians( v ) );
-            }
-            double radiusEps = Math.toDegrees( Math.sqrt( minPixArea ) );
             return new StringBuffer()
                   .append( F_SKYDISTANCE )
                   .append( "(" )
@@ -424,8 +416,26 @@ public abstract class SkyFigureMode implements FigureMode {
                                             varGeom ) )
                   .append( ")" )
                   .append( " < " )
-                  .append( PlotUtil.formatNumber( radius, radiusEps ) )
+                  .append( formatRadius() )
                   .toString();
+        }
+
+        /**
+         * Returns a formatted string giving the radius in degrees
+         * for this circular figure.
+         *
+         * @return   radius string ready for insertion into expression
+         */
+        private String formatRadius() {
+            double radius =
+                Math.toDegrees( surf_.screenDistanceRadians( p0_, p1_ ) );
+            double minPixArea = 4 * Math.PI;
+            for ( Point2D v : circleVertices_ ) {
+                minPixArea = Math.min( minPixArea,
+                                       surf_.pixelAreaSteradians( v ) );
+            }
+            double radiusEps = Math.toDegrees( Math.sqrt( minPixArea ) );
+            return PlotUtil.formatNumber( radius, radiusEps );
         }
     }
 
