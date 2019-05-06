@@ -391,6 +391,8 @@ public class SplatBrowser
      */
     protected Integer selectAxis = null;
 
+    //  Whether spectra 2/3D Spectra will be collapsed or extracted
+    protected JMenu ndActionMenu = null;
     /**
      * Whether to purge extracted spectra with bad limits. Make's sure
      * the spectra can be displayed.
@@ -1128,6 +1130,29 @@ public class SplatBrowser
               "when they are same as long names" );
         showSimpleShortNamesItem.addItemListener( this );
 
+        //  Whether spectra 2/3D Spectra will be collapsed or extracted
+      
+        ndActionMenu = new JMenu("Action for 2/3D data");
+        ndActionMenu.setToolTipText( "Default action when dealing with 2/3D data" );
+        JMenuItem collapseItem = new JMenuItem(collapseDescription);
+        JMenuItem extractItem = new JMenuItem(extractDescription);
+        JMenuItem vectorizeItem = new JMenuItem(vectorizeDescription);
+        ActionListener ndActionListener = new ActionListener() {
+        	 public void actionPerformed(ActionEvent e) {
+                JMenuItem src = (JMenuItem) (e.getSource());
+                setNDAction(src.getText());
+         }
+        };
+		collapseItem.addActionListener(ndActionListener );
+        extractItem.addActionListener(ndActionListener);
+        vectorizeItem.addActionListener(ndActionListener);
+       
+        ndActionMenu.add(collapseItem);
+        ndActionMenu.add(extractItem);
+        ndActionMenu.add(vectorizeItem);
+        ndActionMenu.addItemListener(this);
+        optionsMenu.add(ndActionMenu);
+
         //  Whether spectra with bad data limits should be removed when
         //  opening nD data.
         purgeBadDataLimitsItem =
@@ -1307,6 +1332,21 @@ public class SplatBrowser
         }
         purgeBadDataLimits = purgeBadDataLimitsItem.isSelected();
         setPreference( "SplatBrowser_purgebaddatalimits", purgeBadDataLimits );
+    }
+    
+    /**
+     * Set whether to extract all spectra or collapse 2/3D data
+     */
+   
+    protected void setndActionItem( int action )
+    {
+    	// TO DO !!!!!!
+    //    if (action==SpecDataFactory.COLLAPSE)
+   //     	setndActionItem(true);
+   //     else 
+   //     	setndActionItem(false);
+   //     ndAction = ndActionItem.isSelected()?SpecDataFactory.COLLAPSE:SpecDataFactory.EXTRACT;
+   //     setPreference( "SplatBrowser_collapseSpectra", ndActionItem.isSelected());
     }
     
     /**
@@ -1670,11 +1710,9 @@ public class SplatBrowser
             ( BorderFactory.createTitledBorder( "2/3D data" ) );
 
         //  Method to handle 2/3D data.
-        ndActionBox = new JComboBox();
-        ndActionBox.addItem( collapseDescription );
-        ndActionBox.addItem( extractDescription );
-        ndActionBox.addItem( vectorizeDescription );
-        ndActionBox.setToolTipText( "Choose a method for handling 2/3D data" );
+        if (ndActionBox == null)
+        	initNdActionBox();
+        
 
         ndLayouter.add( "Action:", false );
         ndLayouter.add( ndActionBox, true );
@@ -1705,6 +1743,14 @@ public class SplatBrowser
 
         layouter.add( ndPanel, true );
         layouter.eatSpare();
+    }
+    
+    private void initNdActionBox() {
+    	ndActionBox = new JComboBox();
+    	ndActionBox.addItem( collapseDescription );
+    	ndActionBox.addItem( extractDescription );
+    	ndActionBox.addItem( vectorizeDescription );
+    	ndActionBox.setToolTipText( "Choose a method for handling 2/3D data" );
     }
 
     // StackAccessory components.
@@ -3381,6 +3427,7 @@ public class SplatBrowser
         if ( colourAsLoaded ) {
             spectrum.setLineColour( MathUtils.getRandomRGB());
         }
+        selectedProperties.setObjectType( spectrum.getObjectType());
     }
 
     /**
@@ -3669,6 +3716,7 @@ public class SplatBrowser
     public void itemStateChanged( ItemEvent e )
     {
         Object source = e.getSource();
+        
         if ( source.equals( splitOrientation ) ) {
             setSplitOrientation( false );
         }
@@ -3701,6 +3749,7 @@ public class SplatBrowser
     //
     public void actionPerformed( ActionEvent e )
     {
+    	
         // The cascade request.
         PlotWindowOrganizer organizer = new PlotWindowOrganizer();
         organizer.cascade();
