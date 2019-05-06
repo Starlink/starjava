@@ -178,7 +178,7 @@ public abstract class AbstractSpecDataImpl
     private ObjectTypeEnum objectType;
     private String timeSystem;
     private String timeRefpos;
-    private String time0;
+    private double time0;
     private String timeScale;
     private String timeField;
 
@@ -275,7 +275,7 @@ public abstract class AbstractSpecDataImpl
 		return timeField;
 	}
     
-    public String getTime0() {
+    public double getTime0() {
 		return time0;
 	}
     
@@ -296,8 +296,8 @@ public abstract class AbstractSpecDataImpl
 		this.timeField=timeField;		
 	}
 
-	public void setTime0(String time0) {
-		this.time0 = time0;		
+	public void setTime0(double time02) {
+		this.time0 = time02;		
 	}
 
 	public void setTimeScale(String timeScale) {

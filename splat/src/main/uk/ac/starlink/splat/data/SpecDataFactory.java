@@ -812,10 +812,7 @@ public class SpecDataFactory
             long rowCount = 0;
             String pos = i+"";
             
-            if (exttype.equals( "IMAGE" )) {
-               
-                
-            }
+            
             if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) || 
                     dims == null || dims[0] == 0 ) {
                 try {
@@ -947,8 +944,42 @@ public class SpecDataFactory
         		return new LineIDTableSpecDataImpl( starTable );
         	else { // is it a time series??
     			impl = new TableSpecDataImpl(starTable);
-        		try {
+    			// search for TIMESYS
+    			try {
+    				 VOElement root = new VOElementFactory().makeVOElement( specspec ); 
+    				 VOElement[] resource = root.getChildrenByName("RESOURCE");
+    				 for (int i=0;i<resource.length;i++) {
+    					 VOElement timesys = resource[i].getChildByName("TIMESYS");
+    					 if (timesys != null) {
+    						 double time0 = Double.parseDouble(timesys.getAttribute("timeorigin"));
+    						 String timeRefpos = timesys.getAttribute("refposition");
+    						 ((TableSpecDataImpl) impl).setTimeRefpos( timeRefpos );
+    						 ((TableSpecDataImpl) impl).setTime0(time0);
+    						 String timescale = timesys.getAttribute("timescale");
+    						 ((TableSpecDataImpl) impl).setTimeScale(timescale);
+    						 if (timescale != null &&  timeRefpos != null ) 
+    							 ((TableSpecDataImpl) impl).setTimeScale(TimeUtilities.getSupportedTimeScale(timeRefpos, timescale));
 
+    						 if (TimeUtilities.MJD_Origin == time0) { // TODO improve this
+    							 impl.setTimeSystem("MJD");
+    						 } else {
+    							 impl.setTimeSystem("JD");
+    						 }
+    						 //return impl;
+    					 }
+    				 }
+                 
+            	
+    	        }
+    	        catch (Exception e) {
+    	            // throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
+    	        	logger.info( "couldn't read TIMESYS" );
+    	        }
+
+    	       
+    			
+    			// search for VODML time parameters
+        		try {
         			VODMLReader vodml = new VODMLReader( datsrc );
         			String productType = vodml.getDataProductType(); 
         			String timeSystem = vodml.getTimeFrameKindParameter();                	
@@ -961,6 +992,7 @@ public class SpecDataFactory
         		} catch (SplatException e) {
         			logger.info(e.getMessage());
         		}
+        		
         		return impl;
         	}
         }
@@ -1938,7 +1970,7 @@ public class SpecDataFactory
         String timeRef = "";
         String timeSystem = "";
         String timeRefpos = "";
-    	String time0 = "";
+    	double time0 = 0;
     	String timeField = "";
     	String timeScale = "";
     	
@@ -1961,12 +1993,17 @@ public class SpecDataFactory
                     tagName = child[j].getTagName();
                     if ("TIMESYS".equals(tagName)) {
                     	timeRefpos = child[j].getAttribute("refposition");
-                    	time0 = child[j].getAttribute("timeorigin");
+                    	time0 = Double.parseDouble(child[j].getAttribute("timeorigin"));
                     	timeRef = child[j].getAttribute("ID");
                     	VOElement timeFieldElement = child[j].getReferencedElement(timeRef, "FIELD");
                     	if (timeFieldElement != null)
                     		timeField = timeFieldElement.getName();
                     	timeScale = child[j].getAttribute("timescale");
+                    	if (TimeUtilities.MJD_Origin == time0) { // TODO improve this
+                    		timeSystem="MJD";
+                    	} else {
+                    		timeSystem="JD";
+                    	}
                     	
                     	//productType = "TIMESERIES"; //!!!!!!!
                     }
@@ -1986,13 +2023,14 @@ public class SpecDataFactory
                                     if (timeField != null && ! timeField.isEmpty() ) 
                                         impl.setTimeField(timeField);
                                     if (timeRefpos != null && ! timeRefpos.isEmpty() )
-                                        impl.setTimeRefpos(timeRefpos);
-                                    if (time0 != null && ! time0.isEmpty() )
-                                        impl.setTime0(time0);                                    
+                                        impl.setTimeRefpos(timeRefpos);                                                                                                  
                                     if (timeScale != null && ! timeScale.isEmpty() ) {
                                     	timeScale = TimeUtilities.getSupportedTimeScale(timeRefpos, timeScale);
                                         impl.setTimeScale(timeScale);
                                     }
+                                    if (timeSystem != null && ! timeSystem.isEmpty() )
+                                        impl.setTimeSystem(timeSystem);
+                                    impl.setTime0(time0);       
                                 }
                                 specData = new SpecData( impl );
                                 

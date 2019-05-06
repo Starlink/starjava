@@ -68,6 +68,8 @@ public class TableColumnChooser
         addCoordNamePattern( "pos.*" );
         addCoordNamePattern( "x*." );
         addCoordNamePattern( "time*." );
+        addCoordNamePattern( "jd" );
+        addCoordNamePattern( ".*jd" );
         addCoordNamePattern( "loglam" ); // SDSS spectra
         addCoordNamePattern( "linewave"); // SDSS Lines 
 

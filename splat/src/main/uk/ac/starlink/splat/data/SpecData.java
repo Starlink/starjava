@@ -37,6 +37,7 @@ import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.TimeUtilities;
+import uk.ac.starlink.table.StarTable;
 
 //  IMPORT NOTE: modifying the member variables could change the
 //  serialization signature of this class. If really need to then
@@ -1900,6 +1901,8 @@ public class SpecData
                                           "coordinate system", e );
             }
             try {
+            	String xlabel=specref.getC("Label (1)");
+            	String ylabel=specref.getC("Label (2)");
                 astJ = new ASTJ( specref );
 
                 //  Get the mapping for the X axis and check that it is
@@ -1922,25 +1925,40 @@ public class SpecData
                 double[] tPos = ASTJ.astTran1( oned, xPos, true );
                 xPos = tPos;
                 tPos = null;
-
+              
                 if (impl.getObjectType()==ObjectTypeEnum.TIMESERIES ) {
-                    String ts = impl.getTimeSystem(); /////!!!!!!!!!!!!!!!!!!!!!!!
-                    if (ts != null && ! ts.isEmpty()) {
+                    String tsys = impl.getTimeSystem(); 
+                    String tscale = ((TableSpecDataImpl) impl).getTimeScale();
+                    if (tsys != null && ! tsys.isEmpty()) {
                     	
                         FrameSet frameSet = astJ.getRef();
                         try {
-                        	frameSet.setC("System", ts);
+                        	frameSet.setC("System", tsys);
                         } catch (Exception e) {
                         	logger.warning(e.getMessage()+"\n Using default (MJD)");
                         }
                     }
+                 
+                    if (tscale != null && ! tscale.isEmpty()) {
+                    	
+                        FrameSet frameSet = astJ.getRef();
+                        try {
+                        	frameSet.setC("TimeScale", tscale);
+                        } catch (Exception e) {
+                        	logger.warning(e.getMessage()+"\n Using default (MJD)");
+                        }
+                    }                
                 }
                 //  Set the apparent data units, if possible.
                 convertToApparentDataUnits();
 
                 //  Set the axis range.
                 setRangePrivate();
-
+              
+                if (xlabel != null && !xlabel.isEmpty())
+                	specref.setC("Label (1)", xlabel);  
+                if (ylabel != null && !ylabel.isEmpty())
+                    specref.setC("Label (2)", ylabel); //restore label
                 //  Establish the digits value used to format the wavelengths,
                 //  if not already set in the original data (the plot may
                 //  override this).

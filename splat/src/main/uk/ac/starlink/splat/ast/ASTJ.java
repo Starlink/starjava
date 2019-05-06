@@ -549,6 +549,7 @@ public class ASTJ
             f1 = getSpectralAxisFrame( axis, dofind );
         
         boolean haveSpecFrame = f1 instanceof SpecFrame;
+        boolean haveTimeFrame = f1 instanceof TimeFrame;
 
         // If we have data units that can be understood (as some kind of flux
         // in general), then create a FluxFrame using them, but only if we
@@ -558,7 +559,7 @@ public class ASTJ
         // SpecFluxFrame).  Otherwise we use a plain Frame to just represent
         // the data values.
         Frame f2 = null;
-        if ( haveSpecFrame &&
+        if ( (haveSpecFrame || haveTimeFrame) &&
              ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
             try {
                 f2 = createFluxFrame( units, null, true );
@@ -580,7 +581,7 @@ public class ASTJ
         Frame frame2 = null;
         if ( haveSpecFrame && haveFluxFrame ) {
             frame2 = new SpecFluxFrame( (SpecFrame) f1, (FluxFrame) f2 );
-        } else {
+        } else  {      
             frame2 = new CmpFrame( f1, f2 );
         }
 
@@ -913,6 +914,7 @@ public class ASTJ
         String unit = picked.getC( "Unit(1)" );
         TimeFrame simpleTimeFrame = new TimeFrame();
         if ( goodLabel ) {
+        	 result.setC("Label(1)" , label);
             if ( unit != null && ( ! unit.equals( "" ) ) ) {
                 try {
                     result.setC( "Unit", unit );

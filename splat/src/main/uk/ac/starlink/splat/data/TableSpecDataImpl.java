@@ -608,6 +608,9 @@ public class TableSpecDataImpl
                 }
             }
         }
+        if (detectTimeSeries(columnNames[coordColumn], columnInfos[coordColumn]))
+        	setObjectType(ObjectTypeEnum.TIMESERIES);
+        	
 
         dataColumn =
             TableColumnChooser.getInstance().getDataMatch( columnInfos,
@@ -680,7 +683,29 @@ public class TableSpecDataImpl
 
  
     
-    /**
+    private boolean detectTimeSeries(String colname, ColumnInfo colInfos) {
+		// check if the column information contains timeseries information
+    	String desc = colInfos.getDescription();
+    	String unit = colInfos.getUnitString();
+    	String ucd = colInfos.getUCD();
+    	String utype = colInfos.getUtype();
+    	// TODO to be improved
+    	if (utype != null && utype.contains("timeaxis")) {
+    		return true;
+    	}
+    	if (ucd != null && ucd.contains("time.epoch")) {
+    		return true;
+    	}
+    	if (desc != null && (
+    			desc.contains("time") || desc.contains("JD") )) // TODO to be improved
+    		return true;
+    	if ( colname != null &&  colname.contains("JD") || colname.contains("time"))
+    		return true;
+    	
+		return false;
+	}
+
+	/**
      * Read an array of data from a vector cell. Returns the values as a
      * double array.
      */ 
