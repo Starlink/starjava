@@ -44,7 +44,7 @@ import uk.ac.starlink.splat.util.Utilities;
  * @see "The Bridge Design Pattern"
  */
 public class FITSSpecDataImpl
-    extends AbstractSpecDataImpl
+    extends AbstractSpecDataImpl 
     implements FITSHeaderSource
 {
 //
@@ -805,12 +805,16 @@ public class FITSSpecDataImpl
                 e.printStackTrace();
                 astref = null;
             }
+            
             if ( astref == null ) {
+            	
                 //  Read failed for some reason, most likely no coordinates
                 //  (other than the pixel one) are defined. Just create a
                 //  dummy frameset.
                 astref = dummyAstSet();
             }
+           
+          
         }
 
         //  Try to repair any dodgy units strings.
@@ -828,14 +832,16 @@ public class FITSSpecDataImpl
      */
     protected FrameSet checkForNonStandardFormat( Header header )
     {
-    	if (isSDSSFITSHeader() ) {
+    	FrameSet frameset = null;
+    	
+    //	if (isSDSSFITSHeader() ) {
     		Header header0 = hdurefs[0].getHeader();
-    		HeaderCard ycard= header0.findCard("BUNIT");
-    		String yunits=ycard.getValue();
+    	//	HeaderCard ycard= header0.findCard("BUNIT");
+    	//	String yunits ==ycard.getValue();
     		//  SDSS format, in fact these may just need CTYPE1=WAVE-LOG
     		//  but that didn't seem to work (presumably conflict with
     		//  another header).
-    		     		 
+    	
     		HeaderCard c0 = header.findCard( "COEFF0" );
     		HeaderCard c1 = header.findCard( "COEFF1" );
     		if ( c0 != null && c1 != null ) {
@@ -849,15 +855,16 @@ public class FITSSpecDataImpl
     			String inv[] = {
     					"i = ( log10( w ) - " + c0s + ")/" + c1s };
 
-    			MathMap sdssMap = new MathMap( 1, 1, fwd, inv );
-    			Frame frame = new Frame( 1 );
-    			FrameSet frameset = new FrameSet( new Frame( 1 ) );   			
-    			SpecFrame specFrame = new SpecFrame();
-    			frameset.addFrame( 1, sdssMap, new SpecFrame() );
+  			
+    			MathMap logMap = new MathMap( 1, 1 , fwd, inv );
+    			
+    			frameset = new FrameSet(new Frame(1));
+    			frameset.addFrame( 1, logMap, new SpecFrame() );
+    			
     			return frameset;
     		}
 
-    	}
+    //	}
     	return null;
     }
 
