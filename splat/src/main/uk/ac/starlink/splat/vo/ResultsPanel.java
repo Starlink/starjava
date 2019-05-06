@@ -990,9 +990,15 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
         //        if (datatype==SSAP ) {
                     if ( ucd != null && !ucd.isEmpty()) {
 
+                        ucd = ucd.toLowerCase();
+                        
+                        if (ucd.equals("meta.ref.url;meta.dataset")) {
+                        	linkcol=k;
+                        }
+                        
+
                         //  Old-style UCDs for backwards compatibility.
 
-                        ucd = ucd.toLowerCase();
                         if ( ucd.equals( "data_link" ) ) {
                             linkcol = k;
                         }
