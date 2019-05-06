@@ -7,6 +7,7 @@
  */
 package uk.ac.starlink.splat.plot;
 
+import diva.canvas.Figure;
 import diva.canvas.event.MouseFilter;
 import diva.canvas.interactor.BoundedDragInteractor;
 import diva.canvas.interactor.Interactor;
@@ -14,9 +15,12 @@ import diva.canvas.interactor.Interactor;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Point;
+import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
+import uk.ac.starlink.ast.Grf;
+import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.diva.DrawCompositeFigure;
 import uk.ac.starlink.diva.DrawLabelFigure;
 import uk.ac.starlink.diva.DrawRectangleFigure;
@@ -53,7 +57,7 @@ public class SpecLegendFigure
     /**
      * List of labels for spectra.
      */
-    private ArrayList labels = new ArrayList();
+   // private ArrayList labels = new ArrayList();
 
     /**
      *  Create the legend, based on the given {@link SpecDataComp}.
@@ -68,11 +72,11 @@ public class SpecLegendFigure
                                               200.0, 200.0 );
         setBackgroundFigure( backFigure );
 
-        update();
+      //  update();
 
     }
 
-    protected void update()
+    public void update()
     {
         //  Add the shortnames of the spectra.
         SpecData spectra[] = divaPlot.getSpecDataComp().get();
@@ -86,20 +90,27 @@ public class SpecLegendFigure
             y[1] = y[0];
             DrawLabelFigure label =
                 new DrawLabelFigure( spectra[i].getShortName() );
-            label.translate( 55.0, y[0] );
-            labels.add( label );
+            label.translate( 50.0, y[0] );          
+ //           labels.add( label );
             add( label );
+          
 
             //  And get the spectra to render themselves at our location.
+          
             System.out.println( "drawLegendSpec: " + 
                                 divaPlot.getGrf() + " " + 
                                 x[0] + " " + y[0] + " -> " + 
                                 x[1] + " " + y[1] );
-            spectra[i].drawLegendSpec( divaPlot.getGrf(), x, y );
+            spectra[i].drawLegendSpec( (DefaultGrf) divaPlot.getGrf(), x, y );
         }
+       
+        backFigure = new DrawRectangleFigure( anchor.x, anchor.y, 
+                		200.0, y[1] );
+        setBackgroundFigure( backFigure );	
     }
 
-    /**
+    
+	/**
      * Set the local anchor position.
      */
     public void setLocalAnchor( Point anchor )

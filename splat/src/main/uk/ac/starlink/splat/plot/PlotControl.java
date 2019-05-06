@@ -249,11 +249,21 @@ public class PlotControl
      * Whether to show the synopsis.
      */
     protected boolean showSynopsis = false;
+    
+    /**
+     * Whether to show the legend.
+     */
+    protected boolean showLegend = false;
 
     /**
      * The synopsis figure.
      */
     protected JACSynopsisFigure synopsisFigure = null;
+
+    /**
+     * The legend figure.
+     */
+    protected SpecLegendFigure legendFigure = null;
 
     /**
      *  Position of the synopsis.
@@ -1566,6 +1576,8 @@ public class PlotControl
 
         // Update the synopsis to reflect any changes.
         updateSynopsis();
+        // update legend
+        updateLegend();
     }
 
     /**
@@ -1649,6 +1661,39 @@ public class PlotControl
             }
         }
     }
+    /**
+     * Update the legend. Needs to be done when enabling, or a change in
+     * current spectrum has occurred, or some property of the spectrum.
+     * Should also be called after an external repositioning of the anchor.
+     */
+    public void updateLegend()
+    {
+        if ( showLegend ) {
+        	 
+             if ( legendFigure == null ) { 
+            	 if ( legendAnchor == null ) 
+            		 positionLegendAnchor();
+                legendFigure = new SpecLegendFigure(plot);
+                legendFigure.setLocalAnchor(legendAnchor);               
+               // plot.getDrawActions().addDrawFigure( legendFigure );
+            }
+            else {
+              // legendFigure.setSpecData( getCurrentSpectrum() );
+               legendFigure.setLocalAnchor( legendAnchor );
+            }
+             legendFigure.update();
+        }
+        else {
+            //  Not showing the legend, so remove if exists. Keep
+            //  the anchor position so it can be used for restoration.
+            if ( legendFigure != null ) {
+                plot.getDrawActions().deleteFigure( legendFigure );
+                legendAnchor = legendFigure.getLocalAnchor();
+                legendFigure = null;
+            }
+        }
+    }
+
 
     /**
      * Position the anchor at the top-left of the visible plot.
@@ -1678,8 +1723,9 @@ public class PlotControl
     /**
      * Set whether we're displaying the legend.
      */
-    public void setShowLegend( boolean showLegend )
+    public void setShowLegend( boolean show )
     {
+    	showLegend=show;
         plot.setShowingLegendFigure( showLegend );
     }
 
@@ -1715,7 +1761,8 @@ public class PlotControl
         int tgap = yo + inset.top + (int)( h * ge.getYTop() );
         legendAnchor = new Point( lgap, tgap );
 
-        // XXX set legend position.
+        // XXX set legend position. !!!!!!!
+        
     }
 
     /**

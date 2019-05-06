@@ -578,6 +578,11 @@ public class SpecData
      */
     private boolean applyYOffset = false;
     
+    /**
+     * Properties of the spectrum legend
+     */
+    private SpecLegend legend;
+    
     //  ==============
     //  Public methods
     //  ==============
@@ -2636,16 +2641,26 @@ public class SpecData
      * @param xpos the graphics X positions.
      * @param ypos the graphics Y positions.
      */
-    public void drawLegendSpec( Grf grf, double xpos[], double ypos[] )
+    public void drawLegendSpec( DefaultGrf grf, double xpos[], double ypos[] )
     {
         boolean line = ( plotStyle != POINT );
-        DefaultGrf defaultGrf = (DefaultGrf) grf;
+        DefaultGrf defaultGrf =  grf;
+       
         DefaultGrfState oldState = setGrfAttributes( defaultGrf, line );
-        if ( line ) {
-            renderSpectrum( defaultGrf, xpos, ypos );
-        }
-        else {
-            renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
+        if (legend == null) 
+        	legend = new SpecLegend(defaultGrf, xpos, ypos);
+        try {
+        	legend.drawLegend(defaultGrf);
+         /*   try {
+        	if ( line ) {
+        		renderSpectrum( defaultGrf, xpos, ypos );
+        	}
+        	else {
+        		renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
+        	}
+        	*/
+        } catch (Exception e) {
+        	e.printStackTrace();
         }
         resetGrfAttributes( defaultGrf, oldState, line );
     }
@@ -3176,5 +3191,39 @@ public class SpecData
 		if (isSDSSTableSpecData())
 			return   (StarTable) ((SDSSTableSpecDataImpl) impl).getLineIDTable();
 		else return null;		
+	}
+	
+	public void removeLegend() {
+		if (legend != null)
+			legend.removeLegend();
+	}
+	
+	protected class SpecLegend {
+		boolean line=true;
+		boolean visible=false;
+		double xpos[];
+		double ypos[];
+		
+		public SpecLegend(DefaultGrf grf, double x[], double y[]) {
+			 xpos=x;
+			 ypos=y;
+			 line = ( plotStyle != POINT );
+			 visible=true;
+			// drawLegend(grf);			
+		}
+
+		public void drawLegend(DefaultGrf grf) {
+			if (!visible)
+				return;
+			if ( line ) {
+        		renderSpectrum( grf, xpos, ypos );
+        	}
+        	else {
+        		renderPointSpectrum( grf, xpos, ypos, pointType );
+        	}						
+		}
+		public void removeLegend() {
+			visible=false;					
+		}		
 	}
 }
