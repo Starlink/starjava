@@ -5,7 +5,11 @@
 
 package uk.ac.starlink.ttools.func;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.util.DoubleList;
 
 /**
  * Functions for converting between strings and numeric values.
@@ -14,6 +18,22 @@ import uk.ac.starlink.table.Tables;
  * @since    2 Sep 2004
  */
 public class Conversions {
+
+    private static final Pattern INT_REGEX =
+        Pattern.compile( "(?<![-+.0-9a-zA-Z])"
+                       + "[+-]?([0-9]+)"
+                       + "(?![-+.0-9a-zA-Z])" );
+     
+    private static final Pattern FLOAT_REGEX =
+        Pattern.compile( "(?<![-+.0-9a-zA-Z])"
+                       +  "([+-]?([0-9]*\\.[0-9]+|[0-9]+\\.?)"
+                       +  "([eE][-+]?[0-9]{1,3})?"
+                       +  "|none"
+                       +  "|null"
+                       +  "|nan"
+                       +  ")"
+                       + "(?![-+.0-9a-zA-Z])",
+                         Pattern.CASE_INSENSITIVE );
 
     /**
      * Private constructor prevents instantiation.
@@ -167,6 +187,78 @@ public class Conversions {
      */
     public static double parseDouble( String str ) {
         return Double.parseDouble( str.trim() );
+    }
+
+    /**
+     * Attempts to interpret a string as an array of integer values.
+     * An ad-hoc algorithm is used that tries to extract a list of
+     * integers from a string; a comma- or space-separated list of
+     * integer values will work, and other formats may or may not.
+     *
+     * <p>The details of this function's behaviour may change
+     * in future releases.
+     *
+     * @example <code>parseInts("9 8 -23") = [9, 8, -23]</code>
+     * @example <code>parseInts("tiddly-pom") = []</code>
+     *
+     * @param  str  string containing a list of integer values
+     * @return  array of integer values
+     */
+    public static int[] parseInts( String str ) {
+        IntList ilist = new IntList( 48 );
+        Matcher matcher = INT_REGEX.matcher( str );
+        while ( matcher.find() ) {
+            String match = str.substring( matcher.start(), matcher.end() );
+            try {
+                ilist.add( Integer.parseInt( match ) );
+            }
+            catch ( NumberFormatException e ) {
+                // not integer after all
+            }
+        }
+        return ilist.toIntArray();
+    }
+
+    /**
+     * Attempts to interpret a string as an array of floating point values.
+     * An ad-hoc algorithm is used that tries to extract a list of
+     * values from a string; a comma- or space-separated list of
+     * floating point values will work, and other formats may or may not.
+     *
+     * <p>The details of this function's behaviour may change
+     * in future releases.
+     *
+     * @example <code>parseDoubles("1.3, 99e1, NaN, -23")
+     *              = [1.3, 990.0, NaN, -23.0]</code>
+     * @example <code>parseDoubles("POLYGON(0.8, 2.1, 9.0, 2.1, 6.2, 8.6)")
+     *              = [0.8, 2.1, 9.0, 2.1, 6.2, 8.6]</code>
+     * @example <code>parseDoubles("La la la") = []</code>
+     *
+     * @param  str  string containing a list of floating point values
+     * @return  array of floating point values
+     */
+    public static double[] parseDoubles( String str ) {
+        DoubleList dlist = new DoubleList( 48 );
+        Matcher matcher = FLOAT_REGEX.matcher( str );
+        while ( matcher.find() ) {
+            String match = str.substring( matcher.start(), matcher.end() );
+            char c1 = match.charAt( 0 );
+            if ( c1 == 'n' || c1 == 'N' ) {
+                assert "nan".equalsIgnoreCase( match ) ||
+                       "none".equalsIgnoreCase( match ) ||
+                       "null".equalsIgnoreCase( match );
+                dlist.add( Double.NaN );
+            }
+            else {
+                try {
+                    dlist.add( Double.parseDouble( match ) );
+                }
+                catch ( NumberFormatException e ) {
+                    // not numeric after all
+                }
+            }
+        }
+        return dlist.toDoubleArray();
     }
 
     /**

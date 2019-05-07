@@ -355,6 +355,16 @@ public class FuncTest extends TestCase {
         catch ( NumberFormatException e ) {
         }
 
+        assertArrayEquals( new int[] { 9, 8, -23, },
+                           Conversions.parseInts( "9 8 -23" ) );
+        assertEquals( 0, Conversions.parseInts( "tiddly-pom" ).length );
+
+        assertArrayEquals( new double[] { 1.3, 990.0, Double.NaN, -23.0 },
+                           Conversions.parseDoubles( "1.3, 99e1, NaN, -23" ) );
+        assertArrayEquals( new double[] { 0.8, 2.1, 9.0, 2.1, 6.2, 8.6 },
+             Conversions.parseDoubles("POLYGON(0.8, 2.1, 9.0, 2.1, 6.2, 8.6)"));
+        assertEquals( 0, Conversions.parseDoubles( "La la la" ).length );
+
         assertEquals( (byte) 3, Conversions.toByte( 3.99 ) );
         try {
             Conversions.toByte( -190 );

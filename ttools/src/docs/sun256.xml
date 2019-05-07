@@ -12067,6 +12067,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Use period not comma as decimal separator for non-sexagesimal
         <code>plot2sky</code> axis labels regardless of Locale;
         also avoid trailing comma sometimes erroneously present.</li>
+    <li>New functions <code>parseInts</code> and <code>parseDoubles</code>
+        in class
+        <ref id="uk.ac.starlink.ttools.func.Conversions">Conversions</ref>
+        for extracting array values from strings (experimental).</li>
     </ul>
     </p>
     </dd>

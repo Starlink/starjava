@@ -28380,6 +28380,9 @@ introduced since the last version:
         the expression are displayed on completion in the
         <ref id="MultiSubsetQueryWindow"
              >Multi Algebraic Subset Window</ref>.</li>
+    <li>New functions <code>parseInts</code> and <code>parseDoubles</code>
+        in class <ref id="Conversions">Conversions</ref>
+        for extracting array values from strings (experimental).</li>
     </ul>
     </p></dd>
 
