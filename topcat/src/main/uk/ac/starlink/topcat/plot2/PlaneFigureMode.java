@@ -34,6 +34,9 @@ public abstract class PlaneFigureMode implements FigureMode {
         }
     };
 
+    /** PlanarSurface area within a rectangle aligned with the axes. */
+    public static final FigureMode BOX = createBoxMode( "Box" );
+
     /** PlanarSurface area within a graphics ellipse (center+radius). */
     public static final FigureMode ELLIPSE = createEllipseMode( "Ellipse" );
 
@@ -58,7 +61,7 @@ public abstract class PlaneFigureMode implements FigureMode {
 
     /** Available polygon modes for use with planar surfaces. */
     public static final FigureMode[] MODES = {
-        POLYGON, ELLIPSE, BELOW, ABOVE, LEFT, RIGHT,
+        POLYGON, BOX, ELLIPSE, BELOW, ABOVE, LEFT, RIGHT,
     };
 
     /**
@@ -229,6 +232,24 @@ public abstract class PlaneFigureMode implements FigureMode {
     }
 
     /**
+     * Returns a formatted string representing the numeric value in
+     * data coordinates corresponding to a given graphics coordinate value
+     * on a given axis.
+     * 
+     * @param  axis  axis
+     * @param  gval  position in graphics coordinates along axis
+     * @return   value in data coordinates along axis,
+     *           formatted to an appropriate precision
+     */
+    private static String formatGraphicsCoordinate( Axis axis, double gval ) {
+        double dval = axis.graphicsToData( gval );
+        double dval1 = axis.graphicsToData( gval - 0.5 / PIXTOL );
+        double dval2 = axis.graphicsToData( gval + 0.5 / PIXTOL );
+        double epsilon = Math.abs( dval2 - dval1 );
+        return PlotUtil.formatNumber( dval, epsilon );
+    }
+
+    /**
      * Returns a figure mode which includes the opposite of a given mode.
      *
      * @param  inMode  mode to invert
@@ -332,7 +353,25 @@ public abstract class PlaneFigureMode implements FigureMode {
     }
 
     /**
-     * Returns a mode for drawing ellpises.
+     * Returns a mode for drawing boxes.
+     *
+     * @param  name  mode name
+     * @return  new instance
+     */
+    private static FigureMode createBoxMode( String name ) {
+        return new PlaneFigureMode( name ) {
+            public Figure createFigure( Surface surf, Point[] points ) {
+                int np = points.length;
+                return surf instanceof PlanarSurface && np >= 2
+                     ? new BoxFigure( (PlanarSurface) surf,
+                                      points[ np - 2 ], points[ np - 1 ] )
+                     : null;
+            }
+        };
+    }
+
+    /**
+     * Returns a mode for drawing ellipses.
      *
      * @param  name  mode name
      * @return  new instance
@@ -492,6 +531,105 @@ public abstract class PlaneFigureMode implements FigureMode {
             /* ADQL POLYGON function is specific to spherical geometry,
              * so there's no straightforward way to write this. */
             return null;
+        }
+    }
+
+    /**
+     * Figure implementation for a rectangle aligned with the axes.
+     */
+    private static class BoxFigure extends PlaneFigure {
+
+        private final Point p0_;
+        private final Point p1_;
+        private final Rectangle rect_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  plot surface
+         * @param  p0    one corner
+         * @param  p1    opposite corner
+         */
+        BoxFigure( PlanarSurface surf, Point p0, Point p1 ) {
+            super( surf, new Point[] { p0, p1 } );
+            p0_ = p0;
+            p1_ = p1;
+            rect_ = new Rectangle( Math.min( p0.x, p1.x ),
+                                   Math.min( p0.y, p1.y ),
+                                   Math.abs( p1.x - p0.x ),
+                                   Math.abs( p1.y - p0.y ) );
+        }
+
+        public Area getArea() {
+            return new Area( rect_ );
+        }
+
+        public void paintPath( Graphics2D g ) {
+            g.draw( rect_ );
+        }
+
+        public Point[] getVertices() {
+            return new Point[] { p0_, p1_ };
+        }
+
+        public String createPlaneExpression( String xvar, String yvar ) {
+            String[] xLimits = getFormattedLimits( false );
+            String[] yLimits = getFormattedLimits( true );
+            return new StringBuffer()
+                .append( xvar )
+                .append( " > " )
+                .append( xLimits[ 0 ] )
+                .append( " && " )
+                .append( xvar )
+                .append( " < " )
+                .append( xLimits[ 1 ] )
+                .append( " && " )
+                .append( yvar )
+                .append( " > " )
+                .append( yLimits[ 0 ] )
+                .append( " && " )
+                .append( yvar )
+                .append( " < " )
+                .append( yLimits[ 1 ] )
+                .toString();
+        }
+
+        public String createPlaneAdql( String xvar, String yvar ) {
+            String[] xLimits = getFormattedLimits( false );
+            String[] yLimits = getFormattedLimits( true );
+            return new StringBuffer()
+               .append( xvar )
+               .append( " BETWEEN " )
+               .append( xLimits[ 0 ] )
+               .append( " AND " )
+               .append( xLimits[ 1 ] )
+               .append( " AND " )
+               .append( yvar )
+               .append( " BETWEEN " )
+               .append( yLimits[ 0 ] )
+               .append( " AND " )
+               .append( yLimits[ 1 ] )
+               .toString();
+        }
+
+        /**
+         * Returns a pair of formatted strings corresponding to data space
+         * coordinate values giving the bounds of this box on one of the axes.
+         *
+         * @param  isY  true for Y axis, false for X axis
+         * @return  2-element array giving (lower,upper) bound
+         */
+        private String[] getFormattedLimits( boolean isY ) {
+            Axis axis = surf_.getAxes()[ isY ? 1 : 0 ];
+            int g0 = isY ? p0_.y : p0_.x;
+            int g1 = isY ? p1_.y : p1_.x;
+            double d0 = axis.graphicsToData( g0 );
+            double d1 = axis.graphicsToData( g1 );
+            int[] gs = d0 < d1 ? new int[] { g0, g1 } : new int[] { g1, g0 };
+            return new String[] {
+                formatGraphicsCoordinate( axis, gs[ 0 ] ),
+                formatGraphicsCoordinate( axis, gs[ 1 ] ),
+            };
         }
     }
 
@@ -679,17 +817,12 @@ public abstract class PlaneFigureMode implements FigureMode {
                             : ( isLess_ ? "<" : ">=" );
             Axis axis = surf_.getAxes()[ isYfunc_ ? 1 : 0 ];
             double gval = isYfunc_ ? point_.y : point_.x;
-            double dval = axis.graphicsToData( gval );
-            double dval1 = axis.graphicsToData( gval - 0.5 / PIXTOL );
-            double dval2 = axis.graphicsToData( gval + 0.5 / PIXTOL );
-            double epsilon = Math.abs( dval2 - dval1 );
-            String value = PlotUtil.formatNumber( dval, epsilon );
             return new StringBuffer()
                   .append( isYfunc_ ? yvar : xvar )
                   .append( " " )
                   .append( operator )
                   .append( " " )
-                  .append( value )
+                  .append( formatGraphicsCoordinate( axis, gval ) )
                   .toString();
         }
 

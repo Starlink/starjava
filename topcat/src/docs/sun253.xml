@@ -8107,6 +8107,11 @@ unwieldy than they have to be.</p>
         The expression generated uses the function
         <code>isInside</code> from the <ref id="Shapes">Shapes</ref> class.
         </li>
+    <li><label>Box</label>:
+        Defines a rectangle aligned with the axes from two opposite corners.
+        The expression is just of the form
+        <code><![CDATA[x>x0 && x<x1 && y>y0 && y<y1]]></code>.
+        </li>
     <li><label>Ellipse</label>:
         Defines an ellipse aligned with the plot axes.
         The first point selected defines the ellipse center,
@@ -28278,10 +28283,10 @@ introduced since the last version:
         line along its length according to some third quantity.</li>
     <li>The <ref id="FigurePanel">Draw Algebraic Subset</ref> action
         (renamed from Draw Subset Polygon)
-        is now more general; a new Ellipse mode is added in the
+        is now more general; new Box and Ellipse modes are added in the
         Plane plot, and it is now available in the Sky plot,
-        with options to draw a polygon or circle.
-        Visual feedback during drawing is improved.</li>
+        with options to draw a Polygon or Circle.
+        Visual feedback during drawing has been improved.</li>
     <li>Vizier queries now use the output flag
         "<code>-out.meta=Dhul</code>" rather than
         "<code>-out.meta=DhuL</code>"; this means that some link
