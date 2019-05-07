@@ -72,6 +72,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
@@ -410,6 +411,13 @@ public class SplatBrowser
      */
     protected JCheckBoxMenuItem plotSampSpectraToSameWindowItem = null;
     protected boolean plotSampSpectraToSameWindow = false;
+    /**
+     * Whether to add samp spectra to the same window or overwrite them
+     * 
+     */
+    protected JRadioButtonMenuItem overplotSampSpectraToSameWindowItem = null;
+    protected boolean overplotSampSpectraToSameWindow = false;
+    
     
     /**
      * Whether to handle SAMP Mtype table.load.votable as results or spectra
@@ -417,6 +425,14 @@ public class SplatBrowser
     protected JCheckBoxMenuItem handleVOTableAsSpectraItem = null;
     protected boolean  handleVOTableAsSpectra = false;
 
+    /**
+     * Whether to open SAMP Mtype coord.pointat.sky in obscore or ssap browser
+     */
+    protected JCheckBoxMenuItem openSampCoordsInSSAPItem = null;
+    protected boolean  openSampCoordsInSSAP = false;
+    protected JCheckBoxMenuItem openSampCoordsInObsCoreItem = null;
+    protected boolean  openSampCoordsInObsCore = false;
+    
     /**
      * Controls communications for SAMP interoperability.
      */
@@ -698,10 +714,15 @@ public class SplatBrowser
 
         // showing spectra from SAMP in the same window
         setPlotSampSpectraToSameWindow( true );
+        // adding/overwriting spectra from SAMP in the same window
+        setOverplotSampSpectraToSameWindow( true );
         
-     // tread samp tables as spectra
-        setHandleVOTableAsSpectra( false );
-
+        // treat samp tables as spectra
+        setHandleVOTableAsSpectra( true );
+        
+       // open samp coords in SSAP/ObsCore 
+        setOpenSampCoordsInSSAP( true );
+        setOpenSampCoordsInObsCore( true );
         
         //  Set up split pane.
         splitPane.setOneTouchExpandable( true );
@@ -1231,11 +1252,26 @@ public class SplatBrowser
         interopMenu.add( plotSampSpectraToSameWindowItem );
         plotSampSpectraToSameWindowItem.setToolTipText( "Show spectra from SAMP in the same window" );
         plotSampSpectraToSameWindowItem.addItemListener( this );
+        overplotSampSpectraToSameWindowItem = new JRadioButtonMenuItem( "--- overwrite spectra" );
+        interopMenu.add( overplotSampSpectraToSameWindowItem );
+        overplotSampSpectraToSameWindowItem.setToolTipText( "If set, each incoming SAMP spectra will be overwritten, otherwise they will be added to the window" );
+        overplotSampSpectraToSameWindowItem.addItemListener( this );
+        
+        interopMenu.addSeparator();
+
         //  Add checkbox for opening the spectra from SAM to the same plot
         handleVOTableAsSpectraItem = new JCheckBoxMenuItem( "Handle table.load.votable as Spectra" );
         interopMenu.add( handleVOTableAsSpectraItem );
         handleVOTableAsSpectraItem.setToolTipText( "SAMP type table.load.votable are handled as spectra instead of results tables" );
         handleVOTableAsSpectraItem.addItemListener( this );
+        openSampCoordsInSSAPItem = new JCheckBoxMenuItem( "Open SAMP Coords in SSAP window" );
+        openSampCoordsInSSAPItem.setToolTipText( "SAMP type coord.pointat.sky adds the coordinates to SSAP Browser" );
+        openSampCoordsInSSAPItem.addItemListener( this );
+        interopMenu.add( openSampCoordsInSSAPItem );
+        openSampCoordsInObsCoreItem = new JCheckBoxMenuItem( "Open SAMP Coords in ObsCore window" );
+        openSampCoordsInObsCoreItem.setToolTipText( "SAMP type coord.pointat.sky adds the coordinates to ObsCore Browser" );
+        openSampCoordsInObsCoreItem.addItemListener( this );
+        interopMenu.add( openSampCoordsInObsCoreItem );
  
     }
 
@@ -1355,8 +1391,7 @@ public class SplatBrowser
     protected void setPlotSampSpectraToSameWindow( boolean init )
     {
         if ( init ) {
-            // TODO: add this to the preferences?
-            boolean state = false;
+            boolean state = getPreference( "SplatBrowser_plotsampspectratosamewindow", false );
             plotSampSpectraToSameWindowItem.setSelected( state );
         }
         plotSampSpectraToSameWindow = plotSampSpectraToSameWindowItem.isSelected();
@@ -1368,16 +1403,59 @@ public class SplatBrowser
     /**
      * Set whether to show spectra from SAMP in the same window
      */
-    protected void setHandleVOTableAsSpectra( boolean init )
+    protected void setOverplotSampSpectraToSameWindow( boolean init )
+    {
+        if ( init ) {
+            boolean state = getPreference( "SplatBrowser_overplotsampspectratosamewindow", false );
+            overplotSampSpectraToSameWindowItem.setSelected( state );
+        }
+        overplotSampSpectraToSameWindow = overplotSampSpectraToSameWindowItem.isSelected();
+        //if (plotSampSpectraToSameWindow)
+        //    globalList.setLastPlotForSourceType(SourceType.SAMP, null);
+        setPreference( "SplatBrowser_overplotsampspectratosamewindow", overplotSampSpectraToSameWindow );
+    }
+    
+    /**
+     * Set whether to open SAMP coordinates in SSAP browser 
+     */
+    protected void setOpenSampCoordsInSSAP( boolean init )
     {
         if ( init ) {
             
-            boolean state = false;
+            boolean state = getPreference( "SplatBrowser_openSampCoordsInSSAP", false );
+            openSampCoordsInSSAPItem.setSelected( state );
+        }
+        openSampCoordsInSSAP = openSampCoordsInSSAPItem.isSelected();
+        setPreference( "SplatBrowser_openSampCoordsInSSAP", openSampCoordsInSSAP);
+    }
+    
+    /**
+     * Set whether to open SAMP coordinates in ObsCore browser 
+     */
+    protected void setOpenSampCoordsInObsCore( boolean init )
+    {
+        if ( init ) {
+            
+            boolean state = getPreference( "SplatBrowser_openSampCoordsInObsCore", false );
+            openSampCoordsInObsCoreItem.setSelected( state );
+        }
+        openSampCoordsInObsCore = openSampCoordsInObsCoreItem.isSelected();
+        setPreference( "SplatBrowser_openSampCoordsInObsCore", openSampCoordsInObsCore);
+    }
+
+    /**
+     * Set whether to show spectra from SAMP in the same window
+     */
+    protected void setHandleVOTableAsSpectra( boolean init )
+    {
+        if ( init ) {            
+            boolean state = getPreference( "SplatBrowser_handleVOTableAsSpectra", false );
             handleVOTableAsSpectraItem.setSelected( state );
         }
         handleVOTableAsSpectra = handleVOTableAsSpectraItem.isSelected();
         setPreference( "SplatBrowser_handleVOTableAsSpectra", handleVOTableAsSpectra);
     }
+
 
 
     /**
@@ -2306,7 +2384,7 @@ public class SplatBrowser
                     props.setShortName(shortname+" ["+str+"]");
                 //props.apply( spectra[i] );
                 
-                System.out.println("and146: SED or TABLE #" + i);
+//                System.out.println("and146: SED or TABLE #" + i);
             }
         }
         else {
@@ -2534,6 +2612,7 @@ public class SplatBrowser
         int plotIndex = -1;
 
         boolean samePlotForSampSpectra = getPreference("SplatBrowser_plotsampspectratosamewindow", false);
+        boolean overplotSamePlotForSampSpectra = getPreference("SplatBrowser_overplotsampspectratosamewindow", false);
         
         int[] specIndices = getSelectedSpectra();
         if ( specIndices == null ) {
@@ -2587,8 +2666,9 @@ public class SplatBrowser
 
                 switch(sourceType) {
                     case SAMP:
-                        if (samePlotForSampSpectra)
+                        if (samePlotForSampSpectra) { 
                             sampSpectra.add(spectrum);
+                        }
                         else
                             allSelectedSpectra.add(spectrum);
                         break;
@@ -2650,8 +2730,13 @@ public class SplatBrowser
                 
                 if (firstSampSpectra)
                     sampSpectra.remove(0);
+                else if ( overplotSamePlotForSampSpectra ) {                		 
+					//  First, remove all existing spectra                      
+                     SpecData[] dispSpec = sampPlot.getSpecDataComp().get();
+                     sampPlot.getSpecDataComp().remove( dispSpec );
+        	    }
                 try {
-                    globalList.addSpectra( sampPlot, sampSpectra.toArray(new SpecData[sampSpectra.size()]) );
+                    	 globalList.addSpectra( sampPlot, sampSpectra.toArray(new SpecData[sampSpectra.size()]) );
                 }
                 catch (SplatException e) {
                     failed++;
@@ -3738,8 +3823,17 @@ public class SplatBrowser
         else if ( source.equals( plotSampSpectraToSameWindowItem ) ) {
             setPlotSampSpectraToSameWindow( false );
         }
+        else if ( source.equals( overplotSampSpectraToSameWindowItem ) ) {
+            setOverplotSampSpectraToSameWindow( false );
+        }
         else if ( source.equals( handleVOTableAsSpectraItem ) ) {
             setHandleVOTableAsSpectra( false );
+        }
+        else if ( source.equals( openSampCoordsInSSAPItem ) ) {
+            setOpenSampCoordsInSSAP( false );
+        }
+        else if ( source.equals( openSampCoordsInObsCoreItem ) ) {
+            setOpenSampCoordsInObsCore( false );
         }
     }
 
@@ -3869,12 +3963,16 @@ public class SplatBrowser
 	public void addSampCoords(Map coords) {
 		String ra = (String) coords.get("ra");
 		String dec = (String) coords.get("dec");
-		showSSAPBrowser();
-		ssapBrowser.setCoords(ra, dec);
-		ssapBrowser.repaint();
-		showObscorePanel();
-    	obscorePanel.setCoords(ra, dec);
-    	obscorePanel.repaint();
+		if (openSampCoordsInSSAP /*&& ssapBrowser != null*/) {
+			showSSAPBrowser();
+			ssapBrowser.setCoords(ra, dec);
+			ssapBrowser.repaint();
+		}
+		if (openSampCoordsInObsCore /*&& obscorePanel != null*/ ) {
+			showObscorePanel();
+			obscorePanel.setCoords(ra, dec);
+			obscorePanel.repaint();
+		}
 		
 	}
 
