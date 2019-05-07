@@ -62,6 +62,8 @@ public abstract class FigurePanel extends JComponent {
     private Point activePoint_;
     private static final Color fillColor_ = new Color( 0, 0, 0, 64 );
     private static final Color pathColor_ = Color.BLACK;
+    private static final Color vertexOutColor_ = Color.BLACK;
+    private static final Color vertexInColor_ = new Color( 255, 255, 255, 128 );
 
     /* Name of boolean property associated with isActive method. */
     public static final String PROP_ACTIVE = "active";
@@ -249,6 +251,7 @@ public abstract class FigurePanel extends JComponent {
                      : null;
         if ( surf != null ) {
             Rectangle bounds = surf.getPlotBounds();
+            Point[] points = points_.toArray( new Point[ 0 ] );
 
             /* Save state. */
             Color color0 = g.getColor();
@@ -257,14 +260,17 @@ public abstract class FigurePanel extends JComponent {
 
             /* Clip to the current zone. */
             g2.clip( bounds );
-            Figure fig0 =
-                currentMode_
-               .createFigure( surf, points_.toArray( new Point[ 0 ] ) );
+            Figure fig0 = currentMode_.createFigure( surf, points );
 
             /* Fill the defined region. */
             if ( fig0 != null ) {
                 g2.setColor( fillColor_ );
                 g2.fill( fig0.getArea() );
+            }
+
+            /* Mark vertex positions. */
+            for ( Point p : ( fig0 == null ? points : fig0.getVertices() ) ) {
+                paintVertex( g2, p );
             }
 
             /* Draw lines joining up the points so far added. */
@@ -310,6 +316,29 @@ public abstract class FigurePanel extends JComponent {
             g.setColor( color0 );
             g.setClip( clip0 );
         }
+
+        /* Display a marker under the mouse pointer, whether or not
+         * the actual drawing has started; this is useful visual feedback
+         * that you are in figure mode. */
+        if ( activePoint_ != null ) {
+            paintVertex( g, activePoint_ );
+        }
+    }
+
+    /**
+     * Marks the position of a user-chosen point that will define the
+     * output figure.
+     *
+     * @param   g  graphics context
+     * @param   p  vertex position
+     */
+    private void paintVertex( Graphics g, Point p ) {
+        Color color0 = g.getColor();
+        g.setColor( vertexOutColor_ );
+        g.drawRect( p.x - 3, p.y - 3, 6, 6 );
+        g.setColor( vertexInColor_ );
+        g.fillRect( p.x - 2, p.y - 2, 5, 5 );
+        g.setColor( color0 );
     }
 
     /**

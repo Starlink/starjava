@@ -8045,6 +8045,7 @@ plot windows.
 This shows use of mode <em>Below</em> in the Plane plot.
 </px></caption>
 <figureimage src="&FIG.StackPlotWindow_polygon;"/>
+<!-- UWE = sqrt(astrometric_chi2_al/(astrometric_n_good_obs_al-5)) -->
 </figure>
 
 <p>When you use this action to define a plot region,
@@ -8064,11 +8065,15 @@ The available modes are described at the end of this section.
     to choose a mode without the extra popup.
     </li>
 <li>Once in drawing mode, the toolbar button will appear
-    with a checkmark over it (&IMG.POLY_SUBSET_END;).
+    with a checkmark over it (&IMG.POLY_SUBSET_END;),
+    and a little square marker will appear near the mouse pointer
+    as long as it's over a suitable part of the plot.
     You can then click on the plotting area to mark
     the points, and the area thus defined
     (according to the mode you have chosen)
     will be shaded in grey.
+    Each point you have clicked on to define the area is marked with
+    the little square marker.
     The algebraic form of the expression for the points entered
     so far will be displayed at the bottom of the screen.
     A right-click (or Ctrl-click) will remove the most recently-added point.
@@ -28275,7 +28280,8 @@ introduced since the last version:
         (renamed from Draw Subset Polygon)
         is now more general; a new Ellipse mode is added in the
         Plane plot, and it is now available in the Sky plot,
-        with options to draw a polygon or circle.</li>
+        with options to draw a polygon or circle.
+        Visual feedback during drawing is improved.</li>
     <li>Vizier queries now use the output flag
         "<code>-out.meta=Dhul</code>" rather than
         "<code>-out.meta=DhuL</code>"; this means that some link

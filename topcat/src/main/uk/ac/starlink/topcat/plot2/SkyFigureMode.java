@@ -472,6 +472,10 @@ public abstract class SkyFigureMode implements FigureMode {
             radial.drawLabel( g, null );
         }
 
+        public Point[] getVertices() {
+            return new Point[] { p0_, p1_ };
+        }
+
         public String createSkyExpression( String lonVar, String latVar,
                                            SkyDataGeom varGeom ) {
             return new StringBuffer()
@@ -551,6 +555,10 @@ public abstract class SkyFigureMode implements FigureMode {
 
         public void paintPath( Graphics2D g ) {
             g.draw( createPath( lineVertices_, false ) );
+        }
+
+        public Point[] getVertices() {
+            return points_.clone();
         }
 
         public String createSkyExpression( String lonVar, String latVar,

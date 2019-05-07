@@ -249,6 +249,9 @@ public abstract class PlaneFigureMode implements FigureMode {
                     public void paintPath( Graphics2D g ) {
                         inFig.paintPath( g );
                     }
+                    public Point[] getVertices() {
+                        return inFig.getVertices();
+                    }
                     public String createPlaneExpression( String xvar,
                                                          String yvar ) {
                         return "!(" + inFig.createPlaneExpression( xvar, yvar )
@@ -468,6 +471,10 @@ public abstract class PlaneFigureMode implements FigureMode {
             paintPolyPath( g );
         }
 
+        public Point[] getVertices() {
+            return points_.clone();
+        }
+
         public String createPlaneExpression( String xvar, String yvar ) {
             return new StringBuffer()
                   .append( F_ISINSIDE )
@@ -564,6 +571,10 @@ public abstract class PlaneFigureMode implements FigureMode {
             }
         }
 
+        public Point[] getVertices() {
+            return new Point[] { p0_, p1_ };
+        }
+
         public String createPlaneExpression( String xvar, String yvar ) {
             return new StringBuffer()
                  .append( F_HYPOT )
@@ -657,6 +668,10 @@ public abstract class PlaneFigureMode implements FigureMode {
             return;
         }
 
+        public Point[] getVertices() {
+            return new Point[] { point_ };
+        }
+
         public String createPlaneExpression( String xvar, String yvar ) {
             String operator = surf_.getFlipFlags()[ isYfunc_ ? 1 : 0 ]
                             ? ( isLess_ ? ">" : "<=" )
@@ -729,6 +744,10 @@ public abstract class PlaneFigureMode implements FigureMode {
 
         public void paintPath( Graphics2D g ) {
             paintPolyPath( g );
+        }
+
+        public Point[] getVertices() {
+            return points_.clone();
         }
 
         public String createPlaneExpression( String xvar, String yvar ) {

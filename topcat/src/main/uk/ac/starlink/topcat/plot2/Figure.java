@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.geom.Area;
 
 /**
@@ -32,6 +33,16 @@ public interface Figure {
      * @param  g  destination graphics context
      */
     void paintPath( Graphics2D g );
+
+    /**
+     * Returns the array of vertices defining this figure.
+     * This may or may not be the same as the array of points that went
+     * into defining it, since in some cases some of the points are ignored.
+     * These points may be marked visually in some way.
+     *
+     * @return   array of significant user-chosen vertices for this figure
+     */
+    Point[] getVertices();
 
     /**
      * Returns a generic algebraic (JEL-like) expression for determining
