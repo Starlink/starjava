@@ -520,8 +520,9 @@ public abstract class PlaneFigureMode implements FigureMode {
             super( surf, new Point[] { p0, p1 } );
             p0_ = p0;
             p1_ = p1;
-            double rx = Math.abs( p1.x - p0.x );
-            double ry = Math.abs( p1.y - p0.y );
+            double scale = Math.sqrt( 2.0 );
+            double rx = Math.abs( p1.x - p0.x ) * scale;
+            double ry = Math.abs( p1.y - p0.y ) * scale;
             ellipse_ =
                 new Ellipse2D.Double( p0.x - rx, p0.y - ry, 2 * rx, 2 * ry );
             Axis[] axes = surf_.getAxes();
