@@ -5530,6 +5530,11 @@ At present <strong>no checking</strong> is performed on the link targets;
 tests are confined to the presented document itself.
 </p>
 
+<p>HTTP connections made by this validator are flagged in the
+<code>User-Agent</code> field with the token
+"<code>(IVOA-Validate)</code>".
+</p>
+
 &datalinklint-summary;
 
 <subsubsect>
@@ -6878,10 +6883,17 @@ be comprehensive.  An idea of what tests it does perform can be gained
 from the stages listed in the description of the <code>stages</code>
 parameter.  It does make a fairly good job of checking that declared
 metadata is consistent and matches the data actually returned from queries,
-and it tests job submission in most of the various ways permitted by the TAP
-standard.  Things it does not test much include complex ADQL queries, 
+it tests job submission in most of the various ways permitted by the TAP
+standard, and it checks all returned VOTables by effectively running them
+through <ref id="votlint"><code>votlint</code></ref>.
+Things it does not test much include complex ADQL queries, 
 coordinate/STC-related data types, queries in non-ADQL languages,
 and service registration.
+</p>
+
+<p>HTTP connections made by this validator are flagged in the
+<code>User-Agent</code> field with the token
+"<code>(IVOA-Validate)</code>".
 </p>
 
 &taplint-summary;
@@ -11920,32 +11932,48 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>New functions <code>indexOf</code> in class
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>
-        to find position of a given value in an array.</li>
-    <li>Fix bug/misfeature in CDF table parameter construction:
-        CDF global attributes were ignored
-        (with a "WARNING: Omitting complicated global attribute" message)
-        if they contained any null entries.
-        Now such entries are just ignored and the table parameter is
-        constructed from the global attribute using the
-        non-null entries.</li>
-    <li>Fix expressions so that <code>$ID</code> column references
-        referring to nonexistent columns are rejected at compile time 
-        rather than causing trouble during evaluation.</li>
-    <li>Fix some bugs relating to plotting values close to the limits
-        of the double precision range.</li>
-    <li>Fix misleading error message about <code>seq</code> parameter
-        for underconfigured plot layers in <code>plot2*</code>
-        commands.</li>
-    <li>The <ref id="layer-healpix">healpix</ref> plot layer can now
-        plot HEALPix levels up to 20 (previously the maximum was 13).
-        Also, autoranging now works, so if a plot is made of a HEALPix
-        file covering part of the sky, the sky view is centered on it
-        in the same way as for marker plots.
-        Memory management is improved for fairly large maps.</li>
-    <li>Various changes to support the semi-standard
+    <dl>
+    <dt>Plotting enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Introduced new colour scaling options <code>histogram</code>
+            and <code>histolog</code> for the parameters
+            <code>auxfunc</code>, <code>densefunc</code> etc
+            in <ref id="plot2plane"><code>plot2plane</code></ref>
+            and the other plotting commands.
+            This can make it much easier to see structure in quantities 
+            that do not vary smoothly over their min-max range.</li>
+        <li>New plot layer types
+            <ref id="layer-poly4">poly4</ref>,
+            <ref id="layer-mark4">mark4</ref>,
+            <ref id="layer-polygon">polygon</ref>
+            introduced for drawing outline or filled quadrilaterals and
+            other polygons in all plot types.</li>
+        <li>The <ref id="layer-line"><code>line</code></ref> plot layer
+            now has an <code>aux</code> parameter that can vary the colour
+            of the line along its length according to some
+            third quantity.</li>
+        <li><ref id="plot2sky"><code>plot2sky</code></ref> now by default
+            draws a small scale bar at the bottom left corner of the plot,
+            indicating the scale in degrees, minutes or seconds.
+            It can be switched off using the new <code>scalebar</code>
+            parameter.</li>
+        <li>New option <code>Car0</code> for the
+            <ref id="plot2sky"><code>plot2sky</code></ref>
+            <code>projection</code> parameter;
+            this is like <code>Car</code> (Plate Carr&#x00e9;e)
+            but has longitude=0 at the left/right edge
+            rather than the center of the plot.</li>
+        <li>The <ref id="layer-healpix">healpix</ref> plot layer can now
+            plot HEALPix levels up to 20 (previously the maximum was 13).
+            Also, autoranging now works, so if a plot is made of a HEALPix
+            file covering part of the sky, the sky view is centered on it
+            in the same way as for marker plots.
+            Memory management is improved for fairly large maps.</li>
+        </ul>
+        </p></dd>
+    <dt>HEALPix-FITS support</dt>
+    <dd><p>Various changes introduced to support the semi-standard
         <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
         serialization convention.
         Available information about HEALPix encoding
@@ -11964,50 +11992,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         the new <ref id="healpixmeta">healpixmeta</ref> filter.
         FITS support is not perfect: the <code>BAD_DATA</code>
         FITS keyword is ignored, and the 1024-element array-valued
-        column variant is not understood.</li>
-    <li><ref id="plot2sky"><code>plot2sky</code></ref> now by default
-        draws a small scale bar at the bottom left corner of the plot,
-        indicating the scale in degrees, minutes or seconds.
-        It can be switched off using the new <code>scalebar</code>
-        parameter.</li>
-    <li>The <ref id="layer-line"><code>line</code></ref> plot layer
-        now has an <code>aux</code> parameter that can vary the colour
-        of the line along its length according to some
-        third quantity.</li>
-    <li>Fix a problem with the <ref id="layer-link2">link2</ref>
-        plot layers on sky plots with Aitoff/Car projections
-        that caused short lines that should span the antimeridian
-        to appear as long lines crossing the whole sky.
-        Such links are now just not drawn.</li>
-    <li>New plot layer types
-        <ref id="layer-poly4">poly4</ref>,
-        <ref id="layer-mark4">mark4</ref>,
-        <ref id="layer-polygon">polygon</ref>
-        introduced for drawing outline or filled quadrilaterals and
-        other polygons in all plot types.</li>
-    <li>New option <code>Car0</code> for the
-        <ref id="plot2sky"><code>plot2sky</code></ref>
-        <code>projection</code> parameter;
-        this is like <code>Car</code> (Plate Carr&#x00e9;e)
-        but has longitude=0 at the left/right edge
-        rather than the center of the plot.</li>
-    <li>Introduced new colour scaling options <code>histogram</code>
-        and <code>histolog</code> for the parameters
-        <code>auxfunc</code>, <code>densefunc</code> etc
-        in <ref id="plot2plane"><code>plot2plane</code></ref>
-        and the other plotting commands.
-        This can make it much easier to see structure in quantities 
-        that do not vary smoothly over their min-max range.</li>
-    <li>Improve colour ramp quantisation
-        (plot parameters <code>auxquant</code> etc);
-        the full color range is now included.</li>
-    <li>Tasks <code>taplint</code> and <code>datalinklint</code> now
-        insert the token "<code>(IVOA-validate)</code>" into the
-        <code>User-Agent</code> header of all HTTP requests they make,
-        for convenience of services that want to identify validators.
-        This is a convention discussed within the IVOA Operations IG.</li>
-    <li>Experimental support for VOTable 1.4 and its new
-        <code>TIMESYS</code> element.
+        column variant is not understood.
+        </p></dd>
+    <dt>VOTable 1.4 support</dt>
+    <dd><p>Experimental support has been introduced for version 1.4
+        of the VOTable format and its new <code>TIMESYS</code> element.
         This support corresponds to WD-VOTable-1.4-20190403,
         with the correction that the RDF vocabularies for TIMESYS
         <code>timeframe</code> and <code>refposition</code> attributes
@@ -12016,6 +12005,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         on how the VOTable 1.4 specification evolves.
         <ul>
         <li><ref id="votlint"><code>votlint</code></ref>
+            (and hence <ref id="taplint"><code>taplint</code></ref>)
             now supports Version 1.4 VOTables:
             the 1.4 draft schema is used for XSD validation,
             and the TIMESYS element is checked
@@ -12060,18 +12050,62 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             change or break some existing behaviour.</li>
         <li><code>votlint</code> modifications above may now
             interrogate external vocabulary resources during validation,
-            meaning that external network connection may be made during
-            validation, which didn't used to happen.</li>
+            meaning that external network connections may be made during
+            validation, which didn't happen in previous versions.</li>
         </ul>
-        </li>
-    <li>Use period not comma as decimal separator for non-sexagesimal
-        <code>plot2sky</code> axis labels regardless of Locale;
-        also avoid trailing comma sometimes erroneously present.</li>
-    <li>New functions <code>parseInts</code> and <code>parseDoubles</code>
-        in class
-        <ref id="uk.ac.starlink.ttools.func.Conversions">Conversions</ref>
-        for extracting array values from strings (experimental).</li>
-    </ul>
+        </p></dd>
+    <dt>Other enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>New functions <code>indexOf</code> in class
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>
+            to find position of a given value in an array.</li>
+        <li>New functions <code>parseDoubles</code> and <code>parseInts</code>
+            in class
+            <ref id="uk.ac.starlink.ttools.func.Conversions">Conversions</ref>
+            for extracting array values from strings (experimental).</li>
+        <li>Fix expression compilation so that
+            <code>$ID</code> column references
+            referring to nonexistent columns are rejected at compile time 
+            rather than causing trouble during evaluation.</li>
+        <li>The validator tasks
+            <ref id="taplint"><code>taplint</code></ref> and
+            <ref id="datalinklint"><code>datalinklint</code></ref> now
+            insert the token "<code>(IVOA-validate)</code>" into the
+            <code>User-Agent</code> header of all HTTP requests they make,
+            for convenience of services that want to identify validators.
+            This is a convention discussed within the IVOA Operations IG.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug and misfeature fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Improve colour ramp quantisation
+            (plot parameters <code>auxquant</code> etc);
+            the full color range is now included.</li>
+        <li>Use period not comma as decimal separator for non-sexagesimal
+            <code>plot2sky</code> axis labels regardless of Locale;
+            also avoid trailing comma sometimes erroneously present.</li>
+        <li>Fix bug/misfeature in CDF table parameter construction:
+            CDF global attributes were ignored
+            (with a "WARNING: Omitting complicated global attribute" message)
+            if they contained any null entries.
+            Now such entries are just ignored and the table parameter is
+            constructed from the global attribute using the
+            non-null entries.</li>
+        <li>Fix some bugs relating to plotting values close to the limits
+            of the double precision range.</li>
+        <li>Fix a problem with the <ref id="layer-link2">link2</ref>
+            plot layers on sky plots with Aitoff/Car projections
+            that caused short lines that should span the antimeridian
+            to appear as long lines crossing the whole sky.
+            Such links are now just not drawn.</li>
+        <li>Fix misleading error message about <code>seq</code> parameter
+            for underconfigured plot layers in <code>plot2*</code>
+            commands.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p>
     </dd>
 

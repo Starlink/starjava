@@ -87,8 +87,13 @@ public class PolygonForms {
             "that define the polygon to be drawn.",
             "These coordinates are given as an interleaved array",
             "by this parameter, e.g. (x2,y2, x3,y3, y4,y4).",
-            "The <code>array()</code> function can be useful",
-            "when specifying this parameter.",
+            "Some expression language functions that can be useful",
+            "when specifying this parameter are",
+            "<code>array()</code> and <code>parseDoubles()</code>.",
+            "Although the first coordinate pair is supposed to be excluded",
+            "from this array, if it's more convenient to include it",
+            "in this list too, it doesn't usually affect the",
+            "appearance of the plot.",
             "</p>",
         } );
         return FloatingArrayCoord.createCoord( meta, true );
@@ -288,7 +293,6 @@ public class PolygonForms {
                 "(e.g. <code>X</code> and <code>Y</code> coordinates)",
                 "and the second, third etc vertices supplied as an array",
                 "using the <code>" + arrayCoordName + "</code> parameter.",
-                "The <code>array</code> function can be useful for this.",
                 "</p>",
                 "<p>Invocation might therefore look like",
                 "\"<code>xN=x1 yN=y1 " + arrayCoordName + "N="

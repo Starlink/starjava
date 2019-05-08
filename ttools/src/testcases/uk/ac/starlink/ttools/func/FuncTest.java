@@ -363,6 +363,8 @@ public class FuncTest extends TestCase {
                            Conversions.parseDoubles( "1.3, 99e1, NaN, -23" ) );
         assertArrayEquals( new double[] { 0.8, 2.1, 9.0, 2.1, 6.2, 8.6 },
              Conversions.parseDoubles("POLYGON(0.8, 2.1, 9.0, 2.1, 6.2, 8.6)"));
+        assertArrayEquals( new double[] { 0.8, 2.1, 9.0, 2.1, 6.2, 8.6 },
+             Conversions.parseDoubles("Polygon ICRS 0.8 2.1 9.0 2.1 6.2 8.6"));
         assertEquals( 0, Conversions.parseDoubles( "La la la" ).length );
 
         assertEquals( (byte) 3, Conversions.toByte( 3.99 ) );

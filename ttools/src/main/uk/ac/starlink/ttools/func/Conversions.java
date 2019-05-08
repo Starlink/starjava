@@ -222,15 +222,19 @@ public class Conversions {
     /**
      * Attempts to interpret a string as an array of floating point values.
      * An ad-hoc algorithm is used that tries to extract a list of
-     * values from a string; a comma- or space-separated list of
+     * numeric values from a string; a comma- or space-separated list of
      * floating point values will work, and other formats may or may not.
+     *
+     * <p>This function can be used as a hacky way to extract the
+     * numeric values from an STC-S
+     * (for instance ObsCore/EPNcore <code>s_region</code>) string.
      *
      * <p>The details of this function's behaviour may change
      * in future releases.
      *
      * @example <code>parseDoubles("1.3, 99e1, NaN, -23")
      *              = [1.3, 990.0, NaN, -23.0]</code>
-     * @example <code>parseDoubles("POLYGON(0.8, 2.1, 9.0, 2.1, 6.2, 8.6)")
+     * @example <code>parseDoubles("Polygon ICRS 0.8 2.1 9.0 2.1 6.2 8.6")
      *              = [0.8, 2.1, 9.0, 2.1, 6.2, 8.6]</code>
      * @example <code>parseDoubles("La la la") = []</code>
      *
