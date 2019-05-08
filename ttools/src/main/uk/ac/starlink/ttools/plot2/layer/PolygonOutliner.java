@@ -103,60 +103,63 @@ public class PolygonOutliner extends PixOutliner {
                      surf.dataToGraphics( dpos0, false, gpos0 ) &&
                      PlotUtil.isPointFinite( gpos0 ) ) {
                     int np = vdata.getVertexCount();
-                    int[] gxs = new int[ np ];
-                    int[] gys = new int[ np ];
-                    PlotUtil.quantisePoint( gpos0, igpos );
-                    gxs[ 0 ] = igpos.x;
-                    gys[ 0 ] = igpos.y;
+                    if ( np > 0 ) {
+                        int[] gxs = new int[ np ];
+                        int[] gys = new int[ np ];
+                        PlotUtil.quantisePoint( gpos0, igpos );
+                        gxs[ 0 ] = igpos.x;
+                        gys[ 0 ] = igpos.y;
 
-                    /* Get the graphics positions of the other vertices.
-                     * Reject the polygon if there is no continuous line
-                     * between the first vertex and each of the others.
-                     * This is to defend against drawing polygons going the
-                     * wrong way around the sphere in sky plots. */
-                    for ( int ip = 1; ip < np; ip++ ) {
-                        if ( vdata.readDataPos( ip, dpos ) &&
-                             surf.dataToGraphics( dpos, false, gpos ) &&
-                             surf.isContinuousLine( dpos0, dpos ) &&
-                             PlotUtil.isPointFinite( gpos ) ) {
-                            PlotUtil.quantisePoint( gpos, igpos );
-                            gxs[ ip ] = igpos.x;
-                            gys[ ip ] = igpos.y;
+                        /* Get the graphics positions of the other vertices.
+                         * Reject the polygon if there is no continuous line
+                         * between the first vertex and each of the others.
+                         * This is to defend against drawing polygons going the
+                         * wrong way around the sphere in sky plots. */
+                        for ( int ip = 1; ip < np; ip++ ) {
+                            if ( vdata.readDataPos( ip, dpos ) &&
+                                 surf.dataToGraphics( dpos, false, gpos ) &&
+                                 surf.isContinuousLine( dpos0, dpos ) &&
+                                 PlotUtil.isPointFinite( gpos ) ) {
+                                PlotUtil.quantisePoint( gpos, igpos );
+                                gxs[ ip ] = igpos.x;
+                                gys[ ip ] = igpos.y;
+                            }
+                            else {
+                                return;
+                            }
                         }
-                        else {
-                            return;
-                        }
-                    }
 
-                    /* Work out the bounds of the graphics rectangle
-                     * enclosing the polygon. */
-                    int gxMin = bxMax;
-                    int gxMax = bxMin;
-                    int gyMin = byMax;
-                    int gyMax = byMin;
-                    for ( int ip = 0; ip < np; ip++ ) {
-                        int gx = gxs[ ip ];
-                        int gy = gys[ ip ];
-                        gxMin = Math.min( gxMin, gx );
-                        gxMax = Math.max( gxMax, gx );
-                        gyMin = Math.min( gyMin, gy );
-                        gyMax = Math.max( gyMax, gy );
-                    }
-
-                    /* If the bounds are outside the plot, do nothing.
-                     * If the bounds are all the same (in integer
-                     * graphics coordinates), the polygon can be
-                     * represented cheaply as a single point.
-                     * Otherwise, draw it properly. */
-                    if ( gxMax >= bxMin && gxMin <= bxMax &&
-                         gyMax >= byMin && gyMin <= byMax ) {
-                        if ( gxMin == gxMax && gyMin == gyMax ) {
-                            paperType.placeGlyph( paper, gxMin, gyMin,
-                                                  pointGlyph, color );
+                        /* Work out the bounds of the graphics rectangle
+                         * enclosing the polygon. */
+                        int gxMin = bxMax;
+                        int gxMax = bxMin;
+                        int gyMin = byMax;
+                        int gyMax = byMin;
+                        for ( int ip = 0; ip < np; ip++ ) {
+                            int gx = gxs[ ip ];
+                            int gy = gys[ ip ];
+                            gxMin = Math.min( gxMin, gx );
+                            gxMax = Math.max( gxMax, gx );
+                            gyMin = Math.min( gyMin, gy );
+                            gyMax = Math.max( gyMax, gy );
                         }
-                        else {
-                            polyGlypher_.placeGlyphs2D( paperType, paper,
-                                                        gxs, gys, np, color );
+
+                        /* If the bounds are outside the plot, do nothing.
+                         * If the bounds are all the same (in integer
+                         * graphics coordinates), the polygon can be
+                         * represented cheaply as a single point.
+                         * Otherwise, draw it properly. */
+                        if ( gxMax >= bxMin && gxMin <= bxMax &&
+                             gyMax >= byMin && gyMin <= byMax ) {
+                            if ( gxMin == gxMax && gyMin == gyMax ) {
+                                paperType.placeGlyph( paper, gxMin, gyMin,
+                                                      pointGlyph, color );
+                            }
+                            else {
+                                polyGlypher_.placeGlyphs2D( paperType, paper,
+                                                            gxs, gys, np,
+                                                            color );
+                            }
                         }
                     }
                 }
@@ -182,61 +185,64 @@ public class PolygonOutliner extends PixOutliner {
             public void paintPoint( Tuple tuple, Color color, Paper paper ) {
                 VertexData vdata = vertReader.readVertexData( tuple );
                 int np = vdata.getVertexCount();
-                int[] gxs = new int[ np ];
-                int[] gys = new int[ np ];
-                double sz = 0;
+                if ( np > 0 ) {
+                    int[] gxs = new int[ np ];
+                    int[] gys = new int[ np ];
+                    double sz = 0;
 
-                /* Read all the vertex positions in graphics space.
-                 * In this case we only accept polygons for which all
-                 * vertices are visible within the 3d plot bounds,
-                 * because of the difficulty of partially clipping
-                 * polygons in 3d.  This means that polygons near the
-                 * edge of the visible cube may not be painted.
-                 * 3d plots don't have the possibility of discontinuous lines,
-                 * so we don't need to defend against that here. */
-                for ( int ip = 0; ip < np; ip++ ) {
-                    if ( vdata.readDataPos( ip, dpos ) &&
-                         surf.dataToGraphicZ( dpos, true, gpos ) &&
-                         PlotUtil.isPointFinite( gpos ) ) {
-                        PlotUtil.quantisePoint( gpos, igpos );
-                        gxs[ ip ] = igpos.x;
-                        gys[ ip ] = igpos.y;
-                        sz += gpos.z;
+                    /* Read all the vertex positions in graphics space.
+                     * In this case we only accept polygons for which all
+                     * vertices are visible within the 3d plot bounds,
+                     * because of the difficulty of partially clipping
+                     * polygons in 3d.  This means that polygons near the
+                     * edge of the visible cube may not be painted.
+                     * 3d plots don't have the possibility of discontinuous
+                     * lines, so we don't need to defend against that here. */
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        if ( vdata.readDataPos( ip, dpos ) &&
+                             surf.dataToGraphicZ( dpos, true, gpos ) &&
+                             PlotUtil.isPointFinite( gpos ) ) {
+                            PlotUtil.quantisePoint( gpos, igpos );
+                            gxs[ ip ] = igpos.x;
+                            gys[ ip ] = igpos.y;
+                            sz += gpos.z;
+                        }
+                        else {
+                            return;
+                        }
                     }
-                    else {
-                        return;
-                    }
-                }
 
-                /* Work out the bounding box in the two graphics dimensions
-                 * for the polygon. */
-                int gxMin = bxMax;
-                int gxMax = bxMin;
-                int gyMin = byMax;
-                int gyMax = byMin;
-                for ( int ip = 0; ip < np; ip++ ) {
-                    int gx = gxs[ ip ];
-                    int gy = gys[ ip ];
-                    gxMin = Math.min( gxMin, gx );
-                    gxMax = Math.max( gxMax, gx );
-                    gyMin = Math.min( gyMin, gy );
-                    gyMax = Math.max( gyMax, gy );
-                }
-
-                /* If it falls within the graphics bounds, plot it at the
-                 * mean Z coordinate of all the vertices.  This is a fudge,
-                 * but it's the best we can easily do.  Take a short cut
-                 * if it's a point. */
-                if ( gxMax >= bxMin && gxMin <= bxMax &&
-                     gyMax >= byMin && gyMin <= byMax ) {
-                    double gz = sz / np;
-                    if ( gxMin == gxMax && gyMin == gyMax ) {
-                        paperType.placeGlyph( paper, gxMin, gyMin, gz,
-                                              pointGlyph, color );
+                    /* Work out the bounding box in the two graphics dimensions
+                     * for the polygon. */
+                    int gxMin = bxMax;
+                    int gxMax = bxMin;
+                    int gyMin = byMax;
+                    int gyMax = byMin;
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        int gx = gxs[ ip ];
+                        int gy = gys[ ip ];
+                        gxMin = Math.min( gxMin, gx );
+                        gxMax = Math.max( gxMax, gx );
+                        gyMin = Math.min( gyMin, gy );
+                        gyMax = Math.max( gyMax, gy );
                     }
-                    else {
-                        polyGlypher_.placeGlyphs3D( paperType, paper,
-                                                    gxs, gys, np, gz, color );
+
+                    /* If it falls within the graphics bounds, plot it at the
+                     * mean Z coordinate of all the vertices.  This is a fudge,
+                     * but it's the best we can easily do.  Take a short cut
+                     * if it's a point. */
+                    if ( gxMax >= bxMin && gxMin <= bxMax &&
+                         gyMax >= byMin && gyMin <= byMax ) {
+                        double gz = sz / np;
+                        if ( gxMin == gxMax && gyMin == gyMax ) {
+                            paperType.placeGlyph( paper, gxMin, gyMin, gz,
+                                                  pointGlyph, color );
+                        }
+                        else {
+                            polyGlypher_.placeGlyphs3D( paperType, paper,
+                                                        gxs, gys, np, gz,
+                                                        color );
+                        }
                     }
                 }
             }
