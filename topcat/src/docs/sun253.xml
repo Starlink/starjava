@@ -149,6 +149,7 @@
            '&figs;GangLayerControl_pair_position.png'>
   <!ENTITY FIG.GangLayerControl_pair_form
            '&figs;GangLayerControl_pair_form.png'>
+  <!ENTITY FIG.GangLayerControl_quad '&figs;GangLayerControl_quad.png'>
   <!ENTITY FIG.GangLayerControl_quad_position
            '&figs;GangLayerControl_quad_position.png'>
   <!ENTITY FIG.GangLayerControl_quad_form
@@ -8098,7 +8099,7 @@ unwieldy than they have to be.</p>
 
 <p>The available inclusion modes depend on the plot type, as follows:
 <dl>
-<dt>Plane Plot</dt>
+<dt><ref id="PlanePlotWindow">Plane Plot</ref></dt>
 <dd><p>
     <ul>
     <li><label>Polygon</label>:
@@ -8142,7 +8143,7 @@ unwieldy than they have to be.</p>
         </li>
     </ul>
     </p></dd>
-<dt>Sky Plot</dt>
+<dt><ref id="SkyPlotWindow">Sky Plot</ref></dt>
 <dd><p>
     <ul>
     <li><label>Circle</label>:
@@ -9230,6 +9231,11 @@ but the <label>Position</label> tab has fields for four sets of
 coordinates to fill in.
 </p>
 
+<figure>
+<caption><px>Sky Plot Window with a Quad control</px></caption>
+<figureimage src="&FIG.GangLayerControl_quad;"/>
+</figure>
+
 <p>This control is a Table Data control as described in
 <ref id="tableDataControl"/>.  That section explains the
 <label>Subsets</label> tab;
@@ -9273,12 +9279,14 @@ currently selected form.
 <p>The available forms for a quad plot
 (select them using the &IMG.ADD; <label>Forms</label> button)
 are currently
-<ref id="form-poly4">Poly4</ref> (&IMG.FORM_POLYLINE;)
-which draws an outlined or filled quadrilateral, and
-<ref id="form-mark4">Mark4</ref> (&IMG.FORM_MARKS4;)
-which plots a marker on each point.
+<ul>
+<li>&IMG.FORM_POLYLINE; <ref id="form-poly4">Poly4</ref>:
+    draws an outlined or filled quadrilateral</li>
+<li>&IMG.FORM_MARKS4; <ref id="form-mark4">Mark4</ref>:
+    plots a marker on each point</li>
+</ul>
 You can have zero or more of each form and configure them separately.
-The detail panel for these forms are dependent on the form itself
+The detail panel for these forms is dependent on the form itself
 and are described in more detail in <ref id="ShapeForm"/>,
 but the detail panels are divided into these parts:
 <dl>
@@ -10523,8 +10531,6 @@ The first vertex is given in the
 <label>Position</label> tab,
 and the others are given in the Coordinates box within the
 <label>Form</label> tab.
-The <code>array</code> function (see <ref id="Arrays"/>)
-can be useful to specify these other coordinates.
 </p>
 
 <figure>
@@ -10547,8 +10553,16 @@ can be useful to specify these other coordinates.
     the first vertex, which is given by the main Position.
     These coordinates are given as an interleaved array,
     e.g. <code>(x2,y2, x3,y3, x4,y4)</code>.
-    Expression language functions from the <ref id="Arrays">Arrays</ref>
-    class, expecially <code>array(a,b,c,...)</code> can be useful here.
+    Expression language functions including
+    <code>array(a,b,c,...)</code>
+    from the  <ref id="Arrays">Arrays</ref> class, and
+    <code>parseDoubles(txt)</code>
+    from the <ref id="Conversions">Conversions</ref> class,
+    can be useful here.
+    Although the first coordinate pair is supposed to be given in the
+    Position tab and not in this array, if it's more convenient to
+    repeat the first pair here it doesn't usually affect the plot's
+    appearance.
     </p></dd>
 <dt>Polygon Mode</dt>
 <dd><p>Defines how the polygon is drawn.  Options are
@@ -23333,7 +23347,9 @@ The variable names in these expressions are generic
 (e.g. "<code>x</code>" and "<code>y</code>" for Cartesian axes),
 instead of the actual quantities plotted, which are used in the subset
 expressions below.
-<em><strong>Note:</strong> the display of expression information
+</p>
+
+<p><em><strong>Note:</strong> the display of expression information
 in this window is somewhat experimental;
 better support for region descriptions may be provided elsewhere
 in the application in some future release.</em>
@@ -28185,53 +28201,97 @@ introduced since the last version:
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>New functions <code>indexOf</code> in class
-        <ref id="Arrays">Arrays</ref>
-        to find position of a given value in an array.</li>
-    <li>Overflow or error flags indicated by DALI
-        <code>&lt;INFO name="QUERY_STATUS"/&gt;</code> elements
-        in loaded VOTables are now reported in the <label>Rows</label>
-        line of the Control Window
-        <ref id="controlProps">properties panel</ref>.</li>
-    <li>If an expression with bad syntax is entered in the
-        <ref id="FunctionLayerControl">Function Layer Control</ref>
-        Function Expression field, it is now greyed out like in
-        column selectors rather than deleted.
-        This makes it easier to enter function expressions.</li>
-    <li>Fix bug/misfeature in CDF table parameter construction:
-        CDF global attributes were ignored
-        (with a "WARNING: Omitting complicated global attribute" message)
-        if they contained any null entries.
-        Now such entries are just ignored and the table parameter is
-        constructed from the global attribute using the
-        non-null entries.</li>
-    <li>Fix synthetic column and subset definition GUIs so that
-        users are prevented from supplying an algebraic expression
-        which references itself.  Such recursive definitions cannot
-        be evaluated and lead to bad behaviour of the application.</li>
-    <li>Fix expressions so that <code>$ID</code> column references
-        referring to nonexistent columns are rejected at compile time
-        rather than causing trouble during evaluation.</li>
-    <li>Fix some bugs relating to plotting values close to the limits
-        of the double precision range.</li>
-    <li>Modify the <ref id="FigurePanel">Subset from polygon</ref>
-        toolbar icon slightly by putting a little "=" sign at the bottom;
-        this is to indicate that it produces an algebraic result.</li>
-    <li>Action
-        <ref id="jel-visible-subset">Algebraic Subset From Visible</ref>
-        added to Plane and Cube plot window Subsets menu.</li>
-    <li>Improvements to the
-        <ref id="HealpixLayerControl">Healpix plot</ref>.
-        It can now plot HEALPix levels up to 20 (previously the
-        maximum was 13);
-        autoranging now works properly, so the plot is correctly
-        centered on the data if it only covers part of the sky; 
-        and you can now select subsets and activate points
-        corresponding to (the centers of) HEALPix pixels in the same
-        way as for markers.
-        Memory management is improved for fairly large maps.</li>
-    <li>Various changes to support the semi-standard
+    <dl>
+    <dt>Plotting enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Introduced new colour scaling options <code>histogram</code>
+            and <code>histolog</code> for the <label>Scaling</label>
+            selector in the <ref id="ShaderControl">Aux Axis Control</ref>
+            and certain other places.
+            This can make it much easier to see structure in quantities
+            that do not vary smoothly over their min-max range.</li>
+        <li>Improvements to the
+            <ref id="FigurePanel">Draw Algebraic Subset</ref> action
+            (renamed from Draw Subset Polygon, and icon slightly adjusted):
+            <ul>
+            <li>New shape modes <label>Box</label> and <label>Ellipse</label>
+                in Plane Plot.</li>
+            <li>Now also available in Sky Plot, with shape modes
+                <label>Circle</label> and <label>Polygon</label>.</li>
+            <li>Visual feedback improved
+                (little squares mark click position and indicate
+                drawing mode).</li>
+            <li>Algebraic expression reported continuously at bottom of plot
+                during drawing.</li>
+            <li>On completion, 
+                <ref id="MultiSubsetQueryWindow"
+                     >Multi Algebraic Subset Window</ref>
+                now displays inclusion expression in TOPCAT and
+                (where possible) ADQL formats;
+                ADQL can be pasted into TAP queries.</li>
+            <li>New similar
+                <ref id="jel-visible-subset">Algebraic Subset From Visible</ref>
+                action added to Plane and Cube plots;
+                TOPCAT and ADQL expressions displayed.</li>
+            </ul>
+            </li>
+        <li>New options for measuring distances on plots:
+            <ul>
+            <li>The <ref id="SkyPlotWindow">Sky Plot</ref> window now by
+                default draws a small scale bar at the bottom left corner,
+                indicating the scale of the plot in degrees, minutes or
+                seconds.  It is controlled by the <label>Draw Scale Bar</label>
+                control in the <ref id="SkyAxisControl">Sky Axes Control</ref>
+                Grid tab.</li>
+            <li>A new <ref id="MeasurePanel">Measure Distance</ref>
+                action is available in the
+                Plane, Histogram, Sky and Time plot windows.
+                This lets you use the mouse interactively to measure
+                the distance and/or vector components between two points.</li>
+            </ul>
+            </li>
+        <li>Options to plot polygons:
+            <ul>
+            <li>New <ref id="GangLayerControl_quad"
+                         >Quad Position Layer Control</ref> in all plot types,
+                with new plot forms
+                <ref id="form-poly4">Poly4</ref> and
+                <ref id="form-mark4">Mark4</ref>
+                for plotting quadrilaterals (or triangles).</li>
+            <li>New <ref id="form-polygon">Polygon</ref> form for
+                polygons with arbitrary numbers of vertices
+                (may be improved or adapted in future).</li>
+            </ul>
+            </li>
+        <li>Improvements to the
+            <ref id="HealpixLayerControl">Healpix plot</ref>.
+            <ul>
+            <li>HEALPix levels up to 20 can now be plotted
+                (previous maximum was 13).</li>
+            <li>Autoranging now works properly, so the plot is correctly
+                centered on the data if it only covers part of the sky.</li>
+            <li>Graphical subset selection and point activation
+                now works for (the centers of) HEALPix pixels in the same
+                way as for markers.</li>
+            <li>Memory management is improved for fairly large maps.</li>
+            </ul>
+            </li>
+        <li>The <ref id="form-line">Line</ref> plot form now has an
+            <label>Aux</label> coordinate that can vary the colour of the
+            line along its length according to some third quantity.</li>
+        <li>Improve defaulting of coordinate values in plot windows.
+            Column names and UCDs are now used in more cases to
+            choose default values for plotting.</li>
+        <li>New projection option <label>Car0</label> available in the
+            <ref id="SkyAxisControl">Sky Axes Control</ref> Projection tab.
+            This is like Car (Plate Carr&#x00e9;e)
+            but has longitude=0 at the left/right edge
+            rather than the center of the plot.</li>
+        </ul>
+        </p></dd>
+    <dt>HEALPix-FITS support</dt>
+    <dd><p>Various changes to support the semi-standard
         <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
         serialization convention.
         Available information about HEALPix encoding
@@ -28254,80 +28314,11 @@ introduced since the last version:
         HEALPix metadata, it now makes use of that information to
         improve defaulting in HEALPix layer controls, and in some
         cases by defaulting the initial plot layer to be of type
-        HEALPix rather than scatter plot.</li>
-    <li>Healpix and Spectrogram layer controls now default to initially
-        displaying only the current subset if one is defined,
-        rather than the whole dataset.</li>
-    <li>You can now edit the <label>Shape</label> metadata item in the
-        <ref id="ColumnInfoWindow">Columns window</ref>
-        by double-clicking on it, e.g. to specify a fixed length for
-        unknown-length array columns.
-        This can be useful when preparing metadata for output and
-        also to enable the Explode Array Column action.</li>
-    <li>A sequence number is now appended to plot window titles,
-        which may make it easier to keep track of plots from the
-        window manager or desktop.</li>
-    <li>The <ref id="SkyPlotWindow">Sky Plot</ref> window now by
-        default draws a small scale bar at the bottom left corner,
-        indicating the scale of the plot in degrees, minutes or
-        seconds.  It is controlled by the <label>Draw Scale Bar</label>
-        control in the <ref id="SkyAxisControl">Sky Axes Control</ref>
-        Grid tab.</li>
-    <li>A new <ref id="MeasurePanel">Measure Distance</ref>
-        action is available in the
-        Plane, Histogram, Sky and Time plot windows.
-        This lets you use the mouse interactively to measure
-        the distance and vector components between two points.</li>
-    <li>The <ref id="form-line">Line</ref> plot form now has an
-        <label>Aux</label> coordinate that can vary the colour of the
-        line along its length according to some third quantity.</li>
-    <li>The <ref id="FigurePanel">Draw Algebraic Subset</ref> action
-        (renamed from Draw Subset Polygon)
-        is now more general; new Box and Ellipse modes are added in the
-        Plane plot, and it is now available in the Sky plot,
-        with options to draw a Polygon or Circle.
-        Visual feedback during drawing has been improved.</li>
-    <li>Vizier queries now use the output flag
-        "<code>-out.meta=Dhul</code>" rather than
-        "<code>-out.meta=DhuL</code>"; this means that some link
-        columns get meaningful content that did not before.</li>
-    <li>Fix a problem with the <ref id="form-link2">Link2</ref> plot form
-        that caused short lines that should span the antimeridian
-        to appear as long lines crossing the whole sky.
-        Such links are now just not drawn.</li>
-    <li>Improve defaulting of coordinate values in plot windows.
-        Column names and UCDs are now used in more cases to
-        choose default values for plotting.</li>
-    <li>Options to plot polygons introduced for all plot types: new
-        <ref id="GangLayerControl_quad">Quad Position Layer Control</ref>
-        added, with new plot forms
-        <ref id="form-poly4">Poly4</ref> and
-        <ref id="form-mark4">Mark4</ref>
-        for plotting quadrilaterals (or triangles).
-        Also new <ref id="form-polygon">Polygon</ref> form for
-        polygons with arbitrary numbers of vertices.</li>
-    <li>New projection option <label>Car0</label> available in the
-        <ref id="SkyAxisControl">Sky Axes Control</ref> Projection tab.
-        This is like Car (Plate Carr&#x00e9;e)
-        but has longitude=0 at the left/right edge
-        rather than the center of the plot.</li>
-    <li>Introduced new colour scaling options <code>histogram</code>
-        and <code>histolog</code> for the <label>Scaling</label>
-        selector in the <ref id="ShaderControl">Aux Axis Control</ref>
-        and certain other places.
-        This can make it much easier to see structure in quantities
-        that do not vary smoothly over their min-max range.</li>
-    <li>Improve colour ramp quantisation
-        (e.g. <label>Shader Quantise</label> control in
-        <ref id="ShaderControl">Aux Axis Control</ref>);
-        the full colour range is now included.</li>
-    <li>Worked round a performance issue that meant in some environments
-        (OpenJDK?) creating a large subset could lock up the GUI for
-        a long time.</li>
-    <li>Added bumper to Vizier table selection control in
-        CDS Upload Match window.</li>
-    <li>Experimental support for VOTable 1.4 and its new
-        <code>TIMESYS</code> element.
+        HEALPix rather than scatter plot.
+        </p></dd>
+    <dt>VOTable 1.4 support</dt>
+    <dd><p>Experimental support is introduced for version 1.4
+        of the VOTable format and its new <code>TIMESYS</code> element.
         This support corresponds to WD-VOTable-1.4-20190403.
         The functionality may be modified in future releases depending
         on how the VOTable 1.4 specification evolves.
@@ -28365,25 +28356,87 @@ introduced since the last version:
             this functionality makes sense, but beware that it might
             change or break some existing behaviour.</li>
         </ul>
-        </li>
-    <li>Downgrade log messages about UDFs with unparsable signatures
-        when parsing TAPRegExt documents; now INFO not WARNING.</li>
-    <li>Use period not comma as decimal separator for non-sexagesimal
-        sky plot axis labels regardless of Locale;
-        also avoid trailing comma sometimes erroneously present.</li>
-    <li>Fix bug that prevented the STILTS window working for
-        an empty plot.</li>
-    <li>Better reporting of algebraic regions drawn using
-        <ref id="FigurePanel">Draw Algebraic Subset</ref> option:
-        the expression is reported continuously at the bottom of the
-        plot during drawing, and the topcat and ADQL versions of
-        the expression are displayed on completion in the
-        <ref id="MultiSubsetQueryWindow"
-             >Multi Algebraic Subset Window</ref>.</li>
-    <li>New functions <code>parseInts</code> and <code>parseDoubles</code>
-        in class <ref id="Conversions">Conversions</ref>
-        for extracting array values from strings (experimental).</li>
-    </ul>
+        </p></dd>
+    <dt>Other enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Overflow or error flags indicated by DALI
+            <code>&lt;INFO name="QUERY_STATUS"/&gt;</code> elements
+            in loaded VOTables are now reported in the <label>Rows</label>
+            line of the Control Window
+            <ref id="controlProps">properties panel</ref>.</li>
+        <li>You can now edit the <label>Shape</label> metadata item in the
+            <ref id="ColumnInfoWindow">Columns window</ref>
+            by double-clicking on it, e.g. to specify a fixed length for
+            unknown-length array columns.
+            This can be useful when preparing metadata for output and
+            also to enable the Explode Array Column action.</li>
+        <li>New functions <code>indexOf</code> in class
+            <ref id="Arrays">Arrays</ref>
+            to find position of a given value in an array.</li>
+        <li>New functions <code>parseInts</code> and <code>parseDoubles</code>
+            in class <ref id="Conversions">Conversions</ref>
+            for extracting array values from strings (experimental).</li>
+        <li>If an expression with bad syntax is entered in the
+            <ref id="FunctionLayerControl">Function Layer Control</ref>
+            Function Expression field, it is now greyed out like in
+            column selectors rather than deleted.
+            This makes it easier to enter function expressions.</li>
+        <li>Fix synthetic column and subset definition GUIs so that
+            users are prevented from supplying an algebraic expression
+            which references itself.  Such recursive definitions cannot
+            be evaluated and lead to bad behaviour of the application.</li>
+        <li>Fix expressions so that <code>$ID</code> column references
+            referring to nonexistent columns are rejected when entered
+            rather than causing trouble during later evaluation.</li>
+        <li>A sequence number is now appended to plot window titles,
+            which may make it easier to keep track of plots from the
+            window manager or desktop.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug and misfeature fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Healpix and Spectrogram layer controls now default to initially
+            displaying only the current subset if one is defined,
+            rather than the whole dataset.</li>
+        <li>Vizier queries now use the output flag
+            "<code>-out.meta=Dhul</code>" rather than
+            "<code>-out.meta=DhuL</code>"; this means that some link
+            columns get meaningful content that did not before.</li>
+        <li>Added bumper to Vizier table selection control in
+            CDS Upload Match window.</li>
+        <li>Fix some bugs relating to plotting values close to the limits
+            of the double precision range.</li>
+        <li>Fix bug that prevented the
+            <ref id="StiltsControl">STILTS control</ref>
+            working when the plot is empty.</li>
+        <li>Fix bug/misfeature in CDF table parameter construction:
+            CDF global attributes were ignored
+            (with a "WARNING: Omitting complicated global attribute" message)
+            if they contained any null entries.
+            Now such entries are just ignored and the table parameter is
+            constructed from the global attribute using the
+            non-null entries.</li>
+        <li>Fix a problem with the <ref id="form-link2">Link2</ref> plot form
+            that caused short lines that should span the antimeridian
+            to appear as long lines crossing the whole sky.
+            Such links are now just not drawn.</li>
+        <li>Improve colour ramp quantisation
+            (e.g. <label>Shader Quantise</label> control in
+            <ref id="ShaderControl">Aux Axis Control</ref>);
+            the full colour range is now included.</li>
+        <li>Worked round a performance issue that meant in some environments
+            (OpenJDK?) creating a large subset could lock up the GUI for
+            a long time.</li>
+        <li>Downgrade log messages about UDFs with unparsable signatures
+            when parsing TAPRegExt documents; now INFO not WARNING.</li>
+        <li>Use period not comma as decimal separator for non-sexagesimal
+            sky plot axis labels regardless of Locale;
+            also avoid trailing comma sometimes erroneously present.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
