@@ -56,6 +56,7 @@ public class TextItemPanel extends JPanel {
         field.setCaretPosition( 0 );
         field.setEditable( false );
         field.setLineWrap( true );
+        field.setWrapStyleWord( true );
         field.setBackground( UIManager
                             .getColor( "TextField.inactiveBackground" ) );
         field.setBorder( UIManager.getBorder( "TextField.border" ) );
