@@ -28442,6 +28442,8 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Fix one RegTAP example query in accordance with
+        RegTAP-1.0 Erratum #1.</li>
     </ul>
     </p></dd>
 

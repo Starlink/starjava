@@ -228,7 +228,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
                     "  WHERE detail_xpath='/managedAuthority'",
                     "    AND ivoid='ivo://cds.vizier/registry')",
                     "  AS authpatterns",
-                    "ON (resource.ivoid LIKE authpatterns.pat)",
+                    "ON (1=ivo_nocasematch(resource.ivoid, authpatterns.pat))",
                 }
             ),
 
