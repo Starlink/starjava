@@ -340,11 +340,11 @@ public class ObsTapStage implements Stage {
         private void checkMetadata( ColumnMeta gotCol, ObsCol stdCol ) {
             String cname = gotCol.getName();
             compareItem( cname, "Utype", FixedCode.E_CUTP,
-                         stdCol.utype_, gotCol.getUtype(), false );
+                         stdCol.utype_, gotCol.getUtype(), false, null );
             compareItem( cname, "UCD", FixedCode.E_CUCD,
-                         stdCol.ucd_, gotCol.getUcd(), false );
+                         stdCol.ucd_, gotCol.getUcd(), false, stdCol.ucdOnce_ );
             compareItem( cname, "Unit", FixedCode.E_CUNI,
-                         stdCol.unit_, gotCol.getUnit(), true );
+                         stdCol.unit_, gotCol.getUnit(), true, null );
             checkType( gotCol, stdCol );
         }
 
@@ -558,14 +558,17 @@ public class ObsTapStage implements Stage {
          * @param  obsValue  correct value for metadata item
          * @param  gotValue  actual value of metadata item
          * @param  isCaseSensitive  true iff value comparison is case-sensitive
+         * @param  obsValueOnce   if not null, indicates a value that used
+         *                        to be OK, but has been changed by an
+         *                        ObsCore Erratum
          */
         private void compareItem( String colName, String itemName,
                                   ReportCode code,
                                   String obsValue, String gotValue,
-                                  boolean isCaseSensitive ) {
-            String badUcd = "meta.ref.uri;meta.curation";
-            String vGot = String.valueOf( gotValue );
-            String vObs = String.valueOf( obsValue );
+                                  boolean isCaseSensitive,
+                                  String obsValueOnce ) {
+            String vGot = gotValue == null ? "null" : gotValue;
+            String vObs = obsValue == null ? "null" : obsValue;
             if ( isCaseSensitive ? ( ! vGot.equals( vObs ) )
                                  : ( ! vGot.equalsIgnoreCase( vObs ) ) ) {
                 StringBuffer sbuf = new StringBuffer()
@@ -577,11 +580,11 @@ public class ObsTapStage implements Stage {
                     .append( gotValue )
                     .append( " != " )
                     .append( obsValue );
-                if ( badUcd.equalsIgnoreCase( obsValue ) ) {
-                    sbuf.append( "; NOTE \"" )
-                        .append( badUcd )
-                        .append( "\" is bad UCD1+ syntax" )
-                        .append( " - ObsCore/UCD erratum required" );
+                if ( obsValueOnce != null &&
+                     isCaseSensitive ? vGot.equals( obsValueOnce)
+                                     : vGot.equalsIgnoreCase( obsValueOnce ) ) {
+                    sbuf.append( " (used to be correct," )
+                        .append( " but changed by ObsCore Erratum)" );
                 }
                 reporter_.report( code, sbuf.toString() );
             }
@@ -651,7 +654,7 @@ public class ObsTapStage implements Stage {
             new ObsCol( "obs_id", Type.VARCHAR,
                         "DataID.observationID", "meta.id" ),
             new ObsCol( "obs_publisher_did", Type.VARCHAR,
-                        "Curation.PublisherDID", "meta.ref.uri;meta.curation" ),
+                        "Curation.PublisherDID", "meta.ref.ivoid" ),
             new ObsCol( "access_url", Type.CLOB,
                         "Access.Reference", "meta.ref.url" ),
             new ObsCol( "access_format", Type.VARCHAR,
@@ -772,6 +775,9 @@ public class ObsTapStage implements Stage {
         map.get( "obs_id" ).nullForbidden_ = true;
         map.get( "obs_publisher_did" ).nullForbidden_ = true;
 
+        /* ObsCore 1.1 Erratum #1. */
+        map.get( "obs_publisher_did" ).ucdOnce_ = "meta.ref.uri;meta.curation";
+
         return map;
     }
 
@@ -798,7 +804,7 @@ public class ObsTapStage implements Stage {
             new ObsCol( "obs_title", Type.VARCHAR,
                         "DataID.Title", "meta.title;obs" ),
             new ObsCol( "publisher_id", Type.VARCHAR,
-                        "Curation.PublisherID", "meta.ref.uri;meta.curation" ),
+                        "Curation.PublisherID", "meta.ref.ivoid" ),
             new ObsCol( "bib_reference", Type.VARCHAR,
                         "Curation.Reference", "meta.bib.bibcode" ),
             new ObsCol( "data_rights", Type.VARCHAR,
@@ -865,7 +871,7 @@ public class ObsTapStage implements Stage {
                         "meta.code.qual" ),
             new ObsCol( "o_stat_error", Type.DOUBLE,
                         "Char.ObservableAxis.Accuracy.StatError.refval.value",
-                        "stat.error;phot.flux" ),
+                        "stat.error" ),
             new ObsCol( "proposal_id", Type.VARCHAR,
                         "Provenance.Proposal.identifier",
                         "meta.id;obs.proposal" ),
@@ -905,6 +911,10 @@ public class ObsTapStage implements Stage {
         map.get( "o_calib_status" ).softOptions_ = new String[] {
             "absolute", "relative", "normalized", "any",
         };
+
+        /* ObsCore 1.1 Erratum #1. */
+        map.get( "publisher_id" ).ucdOnce_ = "meta.ref.uri;meta.curation";
+        map.get( "o_stat_error" ).ucdOnce_ = "stat.error;phot.flux";
 
         return map;
     }
@@ -1074,6 +1084,7 @@ public class ObsTapStage implements Stage {
         final String utype_;
         final String ucd_;
         final String unit_;
+        String ucdOnce_;
         boolean nullForbidden_;
         String[] hardOptions_;
         String[] softOptions_;

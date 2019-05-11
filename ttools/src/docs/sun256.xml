@@ -12112,6 +12112,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Updated <code>taplint</code> OBS stage according to
+        ObsCore-1.1 Erratum #1 (corrected UCDs).
+        No code changes required for ObsCore-1.1 Erratum #2.</li>
     </ul>
     </p></dd>
 
