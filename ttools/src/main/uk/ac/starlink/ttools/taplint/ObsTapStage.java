@@ -716,6 +716,7 @@ public class ObsTapStage implements Stage {
                         "Char.ObservableAxis.ucd", "meta.ucd" ),
 
             // Note ObsCore 1.1 inconsistent on mandatoryness of pol_states.
+            // Clarified in ObsCore-1.1 Erratum #2: it is mandatory.
             new ObsCol( "pol_states", Type.VARCHAR,
                         "Char.PolarizationAxis.stateList",
                         "meta.code;phys.polarization" ),
