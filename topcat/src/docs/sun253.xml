@@ -28444,6 +28444,9 @@ introduced since the last version:
     <ul>
     <li>Fix one RegTAP example query in accordance with
         RegTAP-1.0 Erratum #1.</li>
+    <li>Upgraded ADQL parser from 1.4 to VOLLT 1.5.
+        Should result in minor improvements to TAP ADQL
+        syntax highlighting.</li>
     </ul>
     </p></dd>
 
