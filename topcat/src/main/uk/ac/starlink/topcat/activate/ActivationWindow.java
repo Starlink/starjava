@@ -1088,10 +1088,14 @@ public class ActivationWindow extends AuxWindow {
                                   final ActivationEntry entry,
                                   final Activator activator ) {
             ViewerTableModel viewModel = tcModel_.getViewModel();
-            BoundedRangeModel progModel =
+            final BoundedRangeModel progModel =
                 new DefaultBoundedRangeModel( 0, 0, 0,
                                               viewModel.getRowCount() );
-            progBar_.setModel( progModel );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    progBar_.setModel( progModel );
+                }
+            } );
             try {
                 int ir = 0;
                 for ( Iterator<Long> it = viewModel.getRowIndexIterator();
@@ -1102,7 +1106,12 @@ public class ActivationWindow extends AuxWindow {
                             entry.activateRowSync( activator, lrow, meta_ );
                         }
                     } ).get();  // wait for completion
-                    progModel.setValue( ++ir );
+                    final int ir0 = ++ir;
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            progModel.setValue( ir0 );
+                        }
+                    } );
                 }
             }
             catch ( InterruptedException e ) {
@@ -1199,38 +1208,46 @@ public class ActivationWindow extends AuxWindow {
                 runSequence( final ExecutorService queue,
                              final Map<ActivationEntry,Activator> activators ) {
             ViewerTableModel viewModel = tcModel_.getViewModel();
-            BoundedRangeModel progModel =
+            final BoundedRangeModel progModel =
                 new DefaultBoundedRangeModel( 0, 0, 0,
                                               viewModel.getRowCount() );
-            progBar_.setModel( progModel );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    progBar_.setModel( progModel );
+                }
+            } );
             try {
 
                 /* Step through each row of the table. */
                 int ir = 0;
                 for ( Iterator<Long> it = viewModel.getRowIndexIterator();
                       it.hasNext() && ! queue.isShutdown(); ) {
-                     final long lrow = it.next().longValue();
+                    final long lrow = it.next().longValue();
 
-                     /* Prepare a list of all the actions to be invoked. */
-                     Collection<Callable<Void>> jobs =
-                         new ArrayList<Callable<Void>>();
-                     for ( Map.Entry<ActivationEntry,Activator> e :
-                           activators.entrySet() ) {
-                         final ActivationEntry entry = e.getKey();
-                         final Activator activator = e.getValue();
-                         jobs.add( new Callable<Void>() {
-                             public Void call() {
-                                 entry.activateRowSync( activator, lrow,
-                                                        meta_ );
-                                 return null;
-                             }
-                         } );
-                     }
+                    /* Prepare a list of all the actions to be invoked. */
+                    Collection<Callable<Void>> jobs =
+                        new ArrayList<Callable<Void>>();
+                    for ( Map.Entry<ActivationEntry,Activator> e :
+                          activators.entrySet() ) {
+                        final ActivationEntry entry = e.getKey();
+                        final Activator activator = e.getValue();
+                        jobs.add( new Callable<Void>() {
+                            public Void call() {
+                                entry.activateRowSync( activator, lrow, meta_ );
+                                return null;
+                            }
+                        } );
+                    }
 
-                     /* Invoke them all concurrently, waiting until
-                      * all are complete before moving on to the next row. */
-                     queue.invokeAll( jobs );
-                     progModel.setValue( ++ir );
+                    /* Invoke them all concurrently, waiting until
+                     * all are complete before moving on to the next row. */
+                    queue.invokeAll( jobs );
+                    final int ir0 = ++ir;
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            progModel.setValue( ir0 );
+                        }
+                    } );
                 }
             }
             catch ( InterruptedException e ) {
