@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -1732,8 +1731,7 @@ public class TableSetPanel extends JPanel {
             setFieldText( publisherField_, getRoleText( roles, "publisher" ) );
             setFieldText( creatorField_, getRoleText( roles, "creator" ) );
             setFieldText( contactField_, getRoleText( roles, "contact" ) );
-            URL logoUrl = getLogoUrl( roles );
-            setLogo( logoUrl == null ? null : new ImageIcon( logoUrl ) );
+            setLogoUrl( getLogoUrl( roles ) );
         }
 
         /**

@@ -28447,6 +28447,8 @@ introduced since the last version:
     <li>Upgraded ADQL parser from 1.4 to VOLLT 1.5.
         Should result in minor improvements to TAP ADQL
         syntax highlighting.</li>
+    <li>Fix TAP window to avoid locking up GUI
+        in case of slow loading service logo image.</li>
     </ul>
     </p></dd>
 

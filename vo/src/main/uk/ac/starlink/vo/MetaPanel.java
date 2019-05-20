@@ -9,12 +9,15 @@ import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -41,6 +44,9 @@ import javax.swing.text.html.HTMLEditorKit;
 public class MetaPanel extends JPanel implements Scrollable {
 
     private final JLabel logoLabel_;
+    private Thread logoWorker_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
@@ -244,6 +250,55 @@ public class MetaPanel extends JPanel implements Scrollable {
      */
     public void setLogo( Icon logoIcon ) {
         logoLabel_.setIcon( logoIcon );
+    }
+
+    /**
+     * Sets the URL of an image to be displayed at the top of this panel.
+     * This will take care not to block the GUI even if the image is slow
+     * to load.
+     *
+     * @param  iconUrl  URL of icon
+     */
+    public void setLogoUrl( final URL iconUrl ) {
+        setLogo( null );
+
+        /* Create the ImageIcon on a separate worker thread, and call setLogo
+         * when the icon is ready.  By my understanding of how ImageIcon works,
+         * this shouldn't be necessary, since ImageIcon appears to employ a
+         * MediaTracker to manage asynchronous loading.  However, in at
+         * least one case, I've found the ImageIcon(URL) constructor blocking
+         * for a minute and locking up the GUI when this method is invoked
+         * on the Event Dispatch Thread against a URL that eventually times
+         * out with a "Couldn't connect to host" error.  So jump through
+         * these hoops to avoid that. */
+        if ( iconUrl != null ) {
+            if ( logoWorker_ != null ) {
+                logoWorker_.interrupt();
+            }
+            logoWorker_ = new Thread( "ImageLoader" ) {
+                public void run() {
+                    final Thread worker = this;
+                    final Icon icon;
+                    try {
+                        icon = new ImageIcon( iconUrl );
+                    }
+                    catch ( Throwable e ) {
+                        logger_.log( Level.INFO, "Logo load failed: " + e, e );
+                        return;
+                    }
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            if ( logoWorker_ == worker ) {
+                                setLogo( icon );
+                                logoWorker_ = null;
+                            }
+                        }
+                    } );
+                }
+            };
+            logoWorker_.setDaemon( true );
+            logoWorker_.start();
+        }
     }
 
     public Dimension getPreferredScrollableViewportSize() {
