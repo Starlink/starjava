@@ -152,7 +152,8 @@ public class ResourceIcon implements Icon {
         REACTIVATE_ALL = makeIcon( "flash-2d.png" ),
         ACTIVATE_SEQ = makeIcon( "flash1seq.png" ),
         ACTIVATE_SEQ_ALL = makeIcon( "flash2seq.png" ),
-        CANCEL_SEQ = makeIcon( "noseq.png" ),
+        PAUSE_SEQ = makeIcon( "pauseseq.png" ),
+        CANCEL_SEQ = makeIcon( "stopseq.png" ),
         DELETE_INACTIVE = makeIcon( "trash2-box.png" ),
 
         /* Specific actions. */

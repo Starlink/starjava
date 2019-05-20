@@ -51,6 +51,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -62,6 +64,7 @@ import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.MethodWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.Safety;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.ViewerTableModel;
@@ -91,6 +94,7 @@ public class ActivationWindow extends AuxWindow {
     private final AllSequenceAction allSeqAct_;
     private final CancelSequenceAction cancelSeqAct_;
     private final ApproveAllAction approveAllAct_;
+    private final SequencePauser seqPauser_;
     private final ActionListener statusListener_;
     private final JProgressBar progBar_;
     private final ThreadFactory seqThreadFact_;
@@ -317,6 +321,8 @@ public class ActivationWindow extends AuxWindow {
         allSeqAct_ = new AllSequenceAction();
         cancelSeqAct_ = new CancelSequenceAction();
         approveAllAct_ = new ApproveAllAction();
+        seqPauser_ = new SequencePauser();
+        ToggleButtonModel pauseModel = seqPauser_.model_;
 
         list_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
@@ -444,6 +450,7 @@ public class ActivationWindow extends AuxWindow {
         actMenu.addSeparator();
         actMenu.add( singleSeqAct_ );
         actMenu.add( allSeqAct_ );
+        actMenu.add( pauseModel.createMenuItem() );
         actMenu.add( cancelSeqAct_ );
 
         /* Add tools. */
@@ -457,6 +464,7 @@ public class ActivationWindow extends AuxWindow {
         toolbar.addSeparator();
         toolbar.add( singleSeqAct_ );
         toolbar.add( allSeqAct_ );
+        toolbar.add( pauseModel.createToolbarButton() );
         toolbar.add( cancelSeqAct_ );
         toolbar.addSeparator();
         toolbar.add( MethodWindow.getWindowAction( this, true ) );
@@ -792,6 +800,7 @@ public class ActivationWindow extends AuxWindow {
         singleSeqAct_.configure();
         allSeqAct_.configure();
         cancelSeqAct_.configure();
+        seqPauser_.configure();
     }
 
     /**
@@ -886,6 +895,63 @@ public class ActivationWindow extends AuxWindow {
             new SendIndexActivationType( true ),
         } ) );
         return list.toArray( new ActivationType[ 0 ] );
+    }
+
+    /**
+     * Manages pausing of a programmed sequence of activation actions.
+     * The main job of this class is to mediate between activities on
+     * the Event Dispatch Thread whose sequence is ensured by the
+     * single-threaded nature of the GUI and a lock object that may
+     * be accessed from different threads.
+     */
+    private class SequencePauser {
+        private final Object lock_;
+        private final ToggleButtonModel model_;
+        private boolean isPaused_;
+        
+        SequencePauser() {
+            lock_ = this;
+            model_ = new ToggleButtonModel( "Pause Sequence",
+                                            ResourceIcon.PAUSE_SEQ,
+                                            "Pause (or unpause) a running "
+                                          + "sequence of actions" );
+            model_.setSelected( false );
+            model_.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    boolean isSelected = model_.isSelected();
+                    synchronized ( lock_ ) {
+                        if ( isPaused_ != isSelected ) {
+                            isPaused_ = isSelected;
+                            lock_.notifyAll();
+                        }
+                    }
+                }
+            } );
+            configure();
+        }
+
+        /**
+         * Will block until this object's button model is no longer
+         * in the paused state.
+         */
+        public void waitIfPaused() throws InterruptedException {
+            synchronized ( lock_ ) {
+                while ( isPaused_ ) {
+                    lock_.wait();
+                }
+            }
+        }
+
+        /** 
+         * Configure for current state.  Should be called if anything,
+         * especially anything that may affect the enabledness, changes.
+         */
+        public void configure() {
+            model_.setEnabled( sequenceQueue_ != null );
+            if ( sequenceQueue_ == null ) {
+                model_.setSelected( false );
+            }
+        }
     }
 
     /**
@@ -1100,6 +1166,7 @@ public class ActivationWindow extends AuxWindow {
                 int ir = 0;
                 for ( Iterator<Long> it = viewModel.getRowIndexIterator();
                       it.hasNext() && ! queue.isShutdown(); ) {
+                    seqPauser_.waitIfPaused();
                     final long lrow = it.next().longValue();
                     queue.submit( new Runnable() {
                         public void run() {
@@ -1222,6 +1289,7 @@ public class ActivationWindow extends AuxWindow {
                 int ir = 0;
                 for ( Iterator<Long> it = viewModel.getRowIndexIterator();
                       it.hasNext() && ! queue.isShutdown(); ) {
+                    seqPauser_.waitIfPaused();
                     final long lrow = it.next().longValue();
 
                     /* Prepare a list of all the actions to be invoked. */

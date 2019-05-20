@@ -21231,9 +21231,18 @@ If you see this, consult <ref id="activationSecurity"/> for an explanation.
     displayed in the <ref id="TableViewerWindow">Data Window</ref>
     one at a time.
     </p></dd>
+<dt>&IMG.PAUSE_SEQ; Pause Sequence</dt>
+<dd><p>Pauses/restarts a sequence of activations that was started by
+    either of the <label>... All Rows</label> actions above.
+    Once paused, the sequence can be restarted from the same position
+    by hitting this button again.
+    </p></dd>
 <dt>&IMG.CANCEL_SEQ; Cancel Sequence</dt>
 <dd><p>Cancels a sequence of activations that was started by
     either of the <label>... All Rows</label> actions above.
+    This may be done either while the sequence is running,
+    or while it is paused.
+    Once cancelled, re-running it will start again from the beginning.
     </p></dd>
 
 <dt>&IMG.FUNCTION; Available Functions</dt>
@@ -28449,6 +28458,8 @@ introduced since the last version:
         syntax highlighting.</li>
     <li>Fix TAP window to avoid locking up GUI
         in case of slow loading service logo image.</li>
+    <li>Add Pause Sequence action to
+        <ref id="ActivationWindow">Activation Window</ref>.</li>
     </ul>
     </p></dd>
 
