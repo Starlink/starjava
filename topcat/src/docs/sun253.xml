@@ -258,6 +258,7 @@
   <!ENTITY FIG.LoadTableActivationType '&figs;LoadTableActivationType.png'>
   <!ENTITY FIG.BrowserActivationType '&figs;BrowserActivationType.png'>
   <!ENTITY FIG.DownloadActivationType '&figs;DownloadActivationType.png'>
+  <!ENTITY FIG.DelayActivationType '&figs;DelayActivationType.png'>
   <!ENTITY FIG.JelActivationType '&figs;JelActivationType.png'>
   <!ENTITY FIG.ShellActivationType '&figs;ShellActivationType.png'>
   <!ENTITY FIG.CutoutActivationType '&figs;CutoutActivationType.png'>
@@ -21230,6 +21231,8 @@ If you see this, consult <ref id="activationSecurity"/> for an explanation.
     The effect is the same as clicking on every row of the table
     displayed in the <ref id="TableViewerWindow">Data Window</ref>
     one at a time.
+    If this is being used to generate a "slideshow",
+    the <ref id="DelayActivationType">Delay</ref> action may be useful.
     </p></dd>
 <dt>&IMG.PAUSE_SEQ; Pause Sequence</dt>
 <dd><p>Pauses/restarts a sequence of activations that was started by
@@ -21905,6 +21908,30 @@ a local file.
     or relative (to the current application directory) path.
     </p></dd>
 </dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="DelayActivationType">
+<subhead><title>Delay</title></subhead>
+
+<figure>
+<caption><px>Configuration for Delay action</px></caption>
+<figureimage src="&FIG.DelayActivationType;"/>
+</figure>
+
+<p>The <label>Delay</label> action just waits for the specified
+number of seconds before proceeding.
+Any whole or fractional number of seconds can be specified.
+It's not much use on its own, but it can be useful in combination
+with other actions when preparing a "slide show" with the
+<label>Activate All Rows</label> (&IMG.ACTIVATE_SEQ_ALL;) action.
+</p>
+
+<p>This action is a convenience;
+a similar effect can be achieved using, for instance,
+the <ref id="System"><code>sleep</code></ref> function in the
+<ref id="JelActivationType">Execute Code</ref> action.
 </p>
 
 </subsubsubsect>
@@ -28467,6 +28494,9 @@ introduced since the last version:
         activation action so that the Synchronous option is
         set false by default (this was a bug - true can cause
         responsiveness problems for slow commands).</li>
+    <li>New <ref id="DelayActivationType">Delay</ref>
+        activation action added as a convenience for use with
+        "slideshows".</li>
     </ul>
     </p></dd>
 

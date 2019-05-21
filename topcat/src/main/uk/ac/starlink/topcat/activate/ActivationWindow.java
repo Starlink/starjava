@@ -910,6 +910,7 @@ public class ActivationWindow extends AuxWindow {
             new CutoutActivationType(),
             new DownloadActivationType(),
             new BrowserActivationType(),
+            new DelayActivationType(),
             new JelActivationType(),
             new ShellActivationType(),
             new SendIndexActivationType( true ),
