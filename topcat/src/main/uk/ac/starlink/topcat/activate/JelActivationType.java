@@ -70,7 +70,7 @@ public class JelActivationType implements ActivationType {
             JComponent panel = getPanel();
             tcModel_ = tcModel;
             textPanel_ = new JTextPane();
-            syncSelector_ = new JCheckBox( "Synchronous", true );
+            syncSelector_ = new JCheckBox( "Synchronous", false );
 
             /* Ensure listeners are informed when configuration status
              * may have changed. */

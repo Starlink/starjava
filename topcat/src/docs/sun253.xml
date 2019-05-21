@@ -28463,6 +28463,10 @@ introduced since the last version:
     <li>Activation Window sequence actions now update activated row
         (display highlight in table viewer and plots)
         as they progress.</li>
+    <li>Fix <ref id="JelActivationType">Execute Code</ref>
+        activation action so that the Synchronous option is
+        set false by default (this was a bug - true can cause
+        responsiveness problems for slow commands).</li>
     </ul>
     </p></dd>
 
