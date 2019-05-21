@@ -643,6 +643,26 @@ public class ActivationWindow extends AuxWindow {
     }
 
     /**
+     * Updates the currently active row in the topcat model served
+     * by this activation window.  In most cases, it's not necessary
+     * to call this, since the activation actions defined here will
+     * have been invoked by a row being activated (made active)
+     * elsewhere in the application.  But for the sequences initiated
+     * here, the rest of the application doesn't automatically know the
+     * active row has changed, so this method should be called to
+     * pass back that information during sequence operation.
+     *
+     * <p>Note this method does not (and must not, on pain of infinite
+     * recursion) trigger the results of an activation action as defined
+     * by this window.
+     *
+     * @param  lrow  new active row
+     */
+    private void updateActiveRow( long lrow ) {
+        tcModel_.fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
+    }
+
+    /**
      * Adds a new entry to the list of currently configured/configurable
      * activation actions.
      *
@@ -1168,6 +1188,11 @@ public class ActivationWindow extends AuxWindow {
                       it.hasNext() && ! queue.isShutdown(); ) {
                     seqPauser_.waitIfPaused();
                     final long lrow = it.next().longValue();
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            updateActiveRow( lrow );
+                        }
+                    } );
                     queue.submit( new Runnable() {
                         public void run() {
                             entry.activateRowSync( activator, lrow, meta_ );
@@ -1291,6 +1316,11 @@ public class ActivationWindow extends AuxWindow {
                       it.hasNext() && ! queue.isShutdown(); ) {
                     seqPauser_.waitIfPaused();
                     final long lrow = it.next().longValue();
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            updateActiveRow( lrow );
+                        }
+                    } );
 
                     /* Prepare a list of all the actions to be invoked. */
                     Collection<Callable<Void>> jobs =

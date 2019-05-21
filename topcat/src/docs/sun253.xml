@@ -28460,6 +28460,9 @@ introduced since the last version:
         in case of slow loading service logo image.</li>
     <li>Add Pause Sequence action to
         <ref id="ActivationWindow">Activation Window</ref>.</li>
+    <li>Activation Window sequence actions now update activated row
+        (display highlight in table viewer and plots)
+        as they progress.</li>
     </ul>
     </p></dd>
 
