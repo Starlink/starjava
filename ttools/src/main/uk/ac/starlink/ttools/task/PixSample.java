@@ -5,6 +5,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
@@ -258,7 +259,19 @@ public class PixSample extends MapperTask {
                     }
                     else {
                         assert scheme == HealpixScheme.AUTO;
-                        isNested = PixSampler.inferNested( pixTable );
+                        Boolean guessNest = PixSampler.inferNested( pixTable );
+                        if ( guessNest == null ) {
+                            String msg = new StringBuffer()
+                                .append( "Can't determine ordering scheme" )
+                                .append( "; please supply " )
+                                .append( schemeParam_.getName() )
+                                .append( " parameter" )
+                                .toString();
+                            throw new ExecutionException( msg );
+                        }
+                        else {
+                            isNested = guessNest.booleanValue();
+                        }
                     }
                     PixSampler pixSampler =
                         new PixSampler( pixTable, nside, isNested );
