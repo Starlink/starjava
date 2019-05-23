@@ -12131,6 +12131,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-polygon"><code>polygon</code></ref> plot layer,
         to toggle inclusion of reference position
         in polygon vertex list.</li>
+    <li>Modified plot legend display so that small markers are displayed
+        a bit bigger in the legend than on the plot for readability.</li>
     </ul>
     </p></dd>
 

@@ -48,6 +48,9 @@ public abstract class MarkForm implements ShapeForm {
     private final String name_;
     private final Icon icon_;
 
+    /** Minimum size of marker in legend, even if plot size is smaller. */
+    public static final int MIN_LEGEND_SIZE = 2;
+
     /** MarkForm instance for a single point per tuple. */
     public static final MarkForm SINGLE = createMarkForm( 1 );
 
@@ -209,6 +212,27 @@ public abstract class MarkForm implements ShapeForm {
     }
 
     /**
+     * Creates a MarkStyle for use in generating legend images.
+     * This may be limited to a more visible size than the style used
+     * for plotting the actual data.
+     *
+     * @param  shape  marker shape
+     * @param  size   marker size in pixels
+     * @return   marker style
+     */
+    private static MarkStyle createLegendMarkStyle( MarkShape shape,
+                                                    int size ) {
+        if ( size == 0 ) {
+            return MarkShape.FILLED_SQUARE
+                  .getStyle( DUMMY_COLOR, MIN_LEGEND_SIZE );
+        }
+        else {
+            return shape
+                  .getStyle( DUMMY_COLOR, Math.max( size, MIN_LEGEND_SIZE ) );
+        }
+    }
+
+    /**
      * Creates a Glyph representing a marker.
      *
      * @param  shape  marker shape
@@ -253,7 +277,7 @@ public abstract class MarkForm implements ShapeForm {
      * @return   legend icon
      */
     public static Icon createLegendIcon( MarkShape shape, int size ) {
-        final MarkStyle style = createMarkStyle( shape, size );
+        final MarkStyle style = createLegendMarkStyle( shape, size );
         final Icon baseIcon = style.getLegendIcon();
         final int width = baseIcon.getIconWidth();
         final int height = baseIcon.getIconHeight();
@@ -283,7 +307,7 @@ public abstract class MarkForm implements ShapeForm {
      */
     private static Icon createMultiLegendIcon( MarkShape shape, int size,
                                                final int npos ) {
-        final MarkStyle style = createMarkStyle( shape, size );
+        final MarkStyle style = createLegendMarkStyle( shape, size );
         return new MultiPosIcon( npos ) {
             protected void paintPositions( Graphics g, Point[] positions ) {
                 for ( int ip = 0; ip < npos; ip++ ) {

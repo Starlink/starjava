@@ -28513,6 +28513,8 @@ introduced since the last version:
         <ref id="form-polygon">polygon</ref> plot form
         to toggle inclusion of reference position 
         in polygon vertex list.</li>
+    <li>Modified plot legend display so that small markers are displayed
+        a bit bigger in the legend than on the plot for readability.</li>
     </ul>
     </p></dd>
 
