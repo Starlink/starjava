@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import javax.vecmath.Vector3d;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 
@@ -246,22 +247,6 @@ public class PixSampler {
      * Constructs a PixSampler from a given table.
      * The current implementation works with any table having a row count
      * corresponding to a HEALPix pixel count, the nside is inferred.
-     * Parameters are interrogated in accordance with the conventions used by,
-     * for instance the FITS files used at NASA's
-     * <a href="http://lambda.gsfc.nasa.gov/">LAMBDA</a> archive,
-     * but other HEALPix tables that work in a more or less similar way
-     * will probably work.
-     *
-     * <p>I don't know of any proper reference for encoding of HEALPix maps
-     * in FITS files, but the documentation for the HPIC package
-     * (<a href="http://cmb.phys.cwru.edu/hpic/"
-     *          >http://cmb.phys.cwru.edu/hpic/</a>)
-     * has a useful list of heuristics (manual section 2.10.1).
-     * One of these acknowledges the fact that some HEALPix FITS files
-     * have columns which are 1024-element arrays
-     * (<code>TFORMn = '1024E'</code>).  This routine does not currently
-     * support this rather perverse convention.  If somebody requests it,
-     * maybe I'll consider implementing it.
      *
      * @param   pixTable   random access table containing HEALPix pixels 
      * @return  PixSampler object taking data from table
@@ -272,6 +257,9 @@ public class PixSampler {
             throws IOException {
         if ( ! pixTable.isRandom() ) {
             throw new IOException( "Pixel data not random access" );
+        }
+        if ( ! HealpixTableInfo.isHealpix( pixTable.getParameters() ) ) {
+            logger_.warning( "Table doesn't look like a HEALPix map" );
         }
         int nside = inferNside( pixTable );
         Boolean isNested = inferNested( pixTable );
@@ -290,34 +278,16 @@ public class PixSampler {
     /**
      * Tries to work out whether a given table uses the nested or ring
      * HEALPix ordering scheme.
-     * Parameters are interrogated in accordance with the conventions used by,
-     * for instance the FITS files used at NASA's
-     * <a href="http://lambda.gsfc.nasa.gov/">LAMBDA</a> archive.
      *
      * @param  pixTable  pixel data table
      * @return  TRUE for nested, FALSE for ring, null for don't know
      */
     public static Boolean inferNested( StarTable pixTable ) {
-        String orderKey = "ORDERING";
-        String ordering = getStringParam( pixTable, orderKey );
-        if ( ordering != null ) {
-            String hval = "Header " + orderKey + "=\"" + ordering.trim() + "\"";
-            if ( ordering.toUpperCase().startsWith( "NEST" ) ) {
-                logger_.info( hval + " - inferring NESTED HEALPix ordering" );
-                return Boolean.TRUE;
-            }
-            else if ( ordering.toUpperCase().startsWith( "RING" ) ) {
-                logger_.info( hval + " - inferring RING HEALPix ordering" );
-                return Boolean.FALSE;
-            }
-            else {
-                logger_.warning( hval + " - unknown value" );
-                return null;
-            }
-        }
-        else {
-            return null;
-        }
+        Object orderObj = Tables.getValue( pixTable.getParameters(),
+                                           HealpixTableInfo.HPX_ISNEST_INFO );
+        return orderObj instanceof Boolean
+             ? (Boolean) orderObj
+             : null;
     }
 
     /**
@@ -349,13 +319,22 @@ public class PixSampler {
         }
 
         /* Read and check declared nside if present. */
-        String pixtype = getStringParam( pixTable, "PIXTYPE" );
-        boolean dHealpix = "HEALPIX".equalsIgnoreCase( pixtype );
-        double dNside = getNumericParam( pixTable, "NSIDE" );
+        List<DescribedValue> pixParams = pixTable.getParameters();
+        DescribedValue levelParam =
+            pixTable.getParameterByName( HealpixTableInfo.HPX_LEVEL_INFO
+                                                         .getName() );
+        long dNside = -1;
+        if ( levelParam != null ) {
+            Object levelObj = levelParam.getValue();
+            if ( levelObj instanceof Integer || levelObj instanceof Long ) {
+                int level = ((Number) levelObj).intValue();
+                dNside = 1L << level;
+            }
+        }
         if ( dNside >= 0 && dNside != nside ) {
-            String msg = "NSIDE mismatch: declared (" + dNside + ")"
+            String msg = "NSIDE mismatch: declared NSIDE (" + dNside + ")"
                        + " != count (" + nside + ")";
-            if ( dHealpix ) {
+            if ( HealpixTableInfo.isHealpix( pixParams ) ) {
                 throw new IOException( msg );
             }
             else {
@@ -365,42 +344,6 @@ public class PixSampler {
 
         /* Return nside. */
         return Tables.checkedLongToInt( nside );
-    }
-
-    /**
-     * Returns the string value of a table parameter, if one exists.
-     *
-     * @param  table  table whose parameter list is to be examined
-     * @param  key  requested parameter name
-     * @return  string value of parameter <code>key</code>, or null
-     */
-    private static String getStringParam( StarTable table, String key ) {
-        DescribedValue dval = table.getParameterByName( key );
-        if ( dval != null ) {
-            Object value = dval.getValue();
-            if ( value instanceof String ) {
-                return (String) value;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns the floating point value of a table parameter, if one exists.
-     *
-     * @param  table  table whose parameter list is to be examined
-     * @param  key  requested parameter name
-     * @return  numeric value of parameter <code>key</code>, or NaN
-     */
-    private static double getNumericParam( StarTable table, String key ) {
-        DescribedValue dval = table.getParameterByName( key );
-        if ( dval != null ) {
-            Object value = dval.getValue();
-            if ( value instanceof Number ) {
-                return ((Number) value).doubleValue();
-            }
-        }
-        return Double.NaN;
     }
 
     /**

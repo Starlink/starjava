@@ -333,7 +333,6 @@ public class PixSample extends MapperTask {
                 "This is usually, but not necessarily, FITS.",
                 "</p>",
             } );
-            pixFmtParam.setStringDefault( "fits" );
 
             pixFilterParam_ = new FilterParameter( "pcmd" );
             pixFilterParam_.setTableDescription( "pixel data table", 

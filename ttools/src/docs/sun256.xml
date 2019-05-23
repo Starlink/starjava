@@ -5711,6 +5711,11 @@ archive has a number of maps in a suitable format,
 including foreground data like predicted reddening as well as CMB maps.
 </p>
 
+<p>Note at present this command only supports all-sky, not partial,
+HEALPix maps. Partial map support may be added at some point in
+the future if there is demand.
+</p>
+
 &pixsample-summary;
 
 <subsubsect id="pixsample-examples">
@@ -12115,6 +12120,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Updated <code>taplint</code> OBS stage according to
         ObsCore-1.1 Erratum #1 (corrected UCDs).
         No code changes required for ObsCore-1.1 Erratum #2.</li>
+    <li>Fix regression issues introduced at v3.1-6 relating to
+        <ref id="pixsample"><code>pixsample</code></ref> command;
+        it now reads HEALPix metadata from headers correctly again.</li>
     </ul>
     </p></dd>
 
