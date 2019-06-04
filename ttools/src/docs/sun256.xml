@@ -4170,6 +4170,8 @@ in STILTS algebraic expressions as follows:
 </dl>
 Note that if a parameter has a name in an unsuitable form (e.g. containing
 spaces) and has no UCD then it cannot be referenced in an expression.
+One possible workaround for that is to use the 
+<ref id="fixcolnames"><code>fixcolnames</code></ref> filter.
 </p>
 </subsect>
 
