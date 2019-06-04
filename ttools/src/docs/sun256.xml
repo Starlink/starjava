@@ -2453,7 +2453,7 @@ it means you must give a string which identifies one of the
 existing columns in a table.
 </p>
 
-<p>There are three ways you can specify a column in this context:
+<p>There are several ways you can specify a column in this context:
 <dl>
 <dt>Column Name</dt>
 <dd><p>The name of the column may be used if it contains no spaces
@@ -4028,7 +4028,7 @@ from the command line though.
 
 <p>To create a useful expression which can be evaluated for each row
 in a table, you will have to refer to cells in different columns of that row.
-You can do this in three ways:
+You can do this in several ways:
 <dl>
 <dt>By Name</dt>
 <dd><p>The Name of the column may be used if it is unique (no other column in
