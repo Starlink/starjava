@@ -12125,6 +12125,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix regression issues introduced at v3.1-6 relating to
         <ref id="pixsample"><code>pixsample</code></ref> command;
         it now reads HEALPix metadata from headers correctly again.</li>
+    <li>Avoid sometimes losing precision when reading ASCII/CSV values
+        in the range +/-(1e-38..1e-45).</li>
     </ul>
     </p></dd>
 

@@ -133,16 +133,19 @@ public class RowEvaluator {
         public boolean isValid( String value ) {
             try {
                 ParsedFloat pf = parseFloating( value );
-                if ( pf.sigFig > 6 ||
-                     ( Float.isInfinite( (float) pf.dValue ) &&
-                       ! Double.isInfinite( pf.dValue ) ) ) {
-                    return false;
-                }
-                return true;
+                double dval = pf.dValue;
+                return dval == 0
+                    || Double.isNaN( dval )
+                    || Double.isInfinite( dval )
+                    || ( pf.sigFig <= 6 && isSinglePrecision( dval ) );
             }
             catch ( NumberFormatException e ) {
                 return false;
             }
+        }
+        private boolean isSinglePrecision( double dval ) {
+            double absVal = Math.abs( dval );
+            return absVal > Float.MIN_NORMAL && absVal < Float.MAX_VALUE;
         }
     };
 

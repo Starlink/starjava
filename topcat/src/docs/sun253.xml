@@ -23950,6 +23950,7 @@ Some of the notable contributers are these:
 <li>Petr &#x0160;koda (AIAS, CZ)</li>
 <li>Mattia Vaccari (Western Cape)</li>
 <li>Juande Sandander Vela (IAA-CSIC)</li>
+<li>Benjamin Steltner (MPG)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Jonathan Zwart (Columbia)</li>
@@ -28497,6 +28498,8 @@ introduced since the last version:
     <li>New <ref id="DelayActivationType">Delay</ref>
         activation action added as a convenience for use with
         "slideshows".</li>
+    <li>Avoid sometimes losing precision when reading ASCII/CSV values
+        in the range +/-(1e-38..1e-45).</li>
     </ul>
     </p></dd>
 
