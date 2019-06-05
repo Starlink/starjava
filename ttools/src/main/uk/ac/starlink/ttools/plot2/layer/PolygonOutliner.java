@@ -293,14 +293,18 @@ public class PolygonOutliner extends PixOutliner {
      * (lon1,lat1, lon2,lat2, lon3,lat3).
      *
      * @param  arrayCoord   array-valued coordinate
+     * @param  includePos  if true, positional coordinate is included
+     *                     as the first vertex, if false it is ignored
      * @param  polyGlypher  polygon painter
      * @return  outliner
      */
     public static PolygonOutliner
             createArrayOutliner( FloatingArrayCoord arrayCoord,
+                                 boolean includePos,
                                  PolygonMode.Glypher polyGlypher ) {
         return new PolygonOutliner( polyGlypher,
-                                    new ArrayVertexReaderFactory( arrayCoord ));
+                                    new ArrayVertexReaderFactory( arrayCoord,
+                                                                  includePos ));
     }
 
     /**
@@ -433,19 +437,24 @@ public class PolygonOutliner extends PixOutliner {
     private static class ArrayVertexReaderFactory
             implements VertexReaderFactory {
         private final FloatingArrayCoord arrayCoord_;
+        private final boolean includePos_;
 
         /**
          * Constructor.
          *
          * @param  arrayCoord   array-valued coordinate
+         * @param  includePos  if true, positional coordinate is included
+         *                     as the first vertex, if false it is ignored
          */
-        ArrayVertexReaderFactory( FloatingArrayCoord arrayCoord ) {
+        ArrayVertexReaderFactory( FloatingArrayCoord arrayCoord,
+                                  boolean includePos ) {
             arrayCoord_ = arrayCoord;
+            includePos_ = includePos;
         }
 
         public VertexReader createVertexReader( DataGeom geom ) {
             if ( geom instanceof PlaneDataGeom ) {
-                return new ArrayVertexReader( arrayCoord_, geom ) {
+                return new ArrayVertexReader( arrayCoord_, geom, includePos_ ) {
                     boolean readArrayPos( double[] array, int icPos,
                                           double[] dpos ) {
                         double x = array[ icPos ];
@@ -462,7 +471,7 @@ public class PolygonOutliner extends PixOutliner {
                 };
             }
             else if ( geom instanceof CubeDataGeom ) {
-                return new ArrayVertexReader( arrayCoord_, geom ) {
+                return new ArrayVertexReader( arrayCoord_, geom, includePos_ ) {
                     boolean readArrayPos( double[] array, int icPos,
                                           double[] dpos ) {
                         double x = array[ icPos ];
@@ -484,7 +493,7 @@ public class PolygonOutliner extends PixOutliner {
             }
             else if ( geom instanceof SkyDataGeom ) {
                 final SkyDataGeom skyGeom = (SkyDataGeom) geom;
-                return new ArrayVertexReader( arrayCoord_, geom ) {
+                return new ArrayVertexReader( arrayCoord_, geom, includePos_ ) {
                     boolean readArrayPos( double[] array, int icPos,
                                           double[] dpos ) {
                         double latDeg = array[ icPos + 1 ];
@@ -518,6 +527,7 @@ public class PolygonOutliner extends PixOutliner {
         public int hashCode() {
             int code = 222389;
             code = 23 * code + arrayCoord_.hashCode();
+            code = 23 * code + ( includePos_ ? 17 : 29 );
             return code;
         }
 
@@ -525,7 +535,8 @@ public class PolygonOutliner extends PixOutliner {
         public boolean equals( Object o ) {
             if ( o instanceof ArrayVertexReaderFactory ) {
                 ArrayVertexReaderFactory other = (ArrayVertexReaderFactory) o;
-                return this.arrayCoord_.equals( other.arrayCoord_ );
+                return this.arrayCoord_.equals( other.arrayCoord_ )
+                    && this.includePos_ == other.includePos_;
             }
             else {
                 return false;
@@ -540,6 +551,7 @@ public class PolygonOutliner extends PixOutliner {
 
         private final FloatingArrayCoord arrayCoord_;
         private final DataGeom geom_;
+        private final boolean includePos_;
         private final int nuc_;
         private final int icPos0_;
         private final int icArray_;
@@ -549,10 +561,14 @@ public class PolygonOutliner extends PixOutliner {
          *
          * @param  arrayCoord  vertex array data coordinate
          * @param  geom      geometry for vertices
+         * @param  includePos  if true, positional coordinate is included
+         *                     as the first vertex, if false it is ignored
          */
-        ArrayVertexReader( FloatingArrayCoord arrayCoord, DataGeom geom ) {
+        ArrayVertexReader( FloatingArrayCoord arrayCoord, DataGeom geom,
+                           boolean includePos ) {
             arrayCoord_ = arrayCoord;
             geom_ = geom;
+            includePos_ = includePos;
 
             /* Work out how many elements of the array coordinate will
              * correspond to a single position. */
@@ -577,17 +593,31 @@ public class PolygonOutliner extends PixOutliner {
             final double[] array =
                 arrayCoord_.readArrayCoord( tuple, icArray_ );
             int nc = array.length;
-            final int nv = nc % nuc_ == 0 ? 1 + nc / nuc_ : 0;
-            return new VertexData() {
-                public int getVertexCount() {
-                    return nv;
-                }
-                public boolean readDataPos( int ipos, double[] dpos ) {
-                    return ipos == 0
-                         ? geom_.readDataPos( tuple, icPos0_, dpos )
-                         : readArrayPos( array, ( ipos - 1 ) * nuc_, dpos );
-                }
-            };
+            final int nv = nc % nuc_ == 0
+                         ? nc / nuc_ + ( includePos_ ? 1 : 0 )
+                         : 0;
+            if ( includePos_ ) {
+                return new VertexData() {
+                    public int getVertexCount() {
+                        return nv;
+                    }
+                    public boolean readDataPos( int ipos, double[] dpos ) {
+                        return ipos == 0
+                             ? geom_.readDataPos( tuple, icPos0_, dpos )
+                             : readArrayPos( array, ( ipos - 1 ) * nuc_, dpos );
+                    }
+                };
+            }
+            else {
+                return new VertexData() {
+                    public int getVertexCount() {
+                        return nv;
+                    }
+                    public boolean readDataPos( int ipos, double[] dpos ) {
+                        return readArrayPos( array, ipos * nuc_, dpos );
+                    }
+                };
+            }
         }
 
         /**

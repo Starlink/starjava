@@ -60,10 +60,28 @@ public class PolygonForms {
             } )
         , true );
 
+    /** Reference position inclusion toggle key. */
+    public static final ConfigKey<Boolean> INCLUDEPOS_KEY =
+        new BooleanConfigKey(
+            new ConfigMeta( "usepos", "Use Position" )
+           .setShortDescription( "Include reference position in vertices?" )
+           .setXmlDescription( new String[] {
+                "<p>Determines whether the basic positional coordinates",
+                "are included as one of the polygon vertices or not.",
+                "The polygon has N+1 vertices if true,",
+                "or N vertices if false,",
+                "where N is the number of vertices supplied by the",
+                "array coordinate.",
+                "If false, the basic position is ignored for the purposes",
+                "of drawing the polygon.",
+                "</p>",
+            } )
+        , true );
+
     /** Coordinate for array coordinate, used with ARRAY. */
     public static final FloatingArrayCoord ARRAY_COORD =
         createArrayCoord();
-                            
+
     /**
      * Private constructor prevents instantiation.
      */
@@ -81,19 +99,19 @@ public class PolygonForms {
         meta.setShortDescription( "array of positions" );
         meta.setValueUsage( "array" );
         meta.setXmlDescription( new String[] {
-            "<p>Array of coordinates giving the points of the other vertices",
-            "(excluding the first one, which is defined by the positional",
-            "coordinates of this dataset)",
-            "that define the polygon to be drawn.",
+            "<p>Array of coordinates giving the points of the vertices",
+            "defining the polygon to be drawn.",
             "These coordinates are given as an interleaved array",
-            "by this parameter, e.g. (x2,y2, x3,y3, y4,y4).",
-            "Some expression language functions that can be useful",
+            "by this parameter, e.g. (x1,y1, x2,y2, y3,y3).",
+            "The basic position for the row being plotted",
+            "either is or is not included as the first vertex,",
+            "according to the setting of the",
+            "<code>" + INCLUDEPOS_KEY.getMeta().getShortName() + "</code>",
+            "parameter.",
+            "</p>",
+            "<p>Some expression language functions that can be useful",
             "when specifying this parameter are",
             "<code>array()</code> and <code>parseDoubles()</code>.",
-            "Although the first coordinate pair is supposed to be excluded",
-            "from this array, if it's more convenient to include it",
-            "in this list too, it doesn't usually affect the",
-            "appearance of the plot.",
             "</p>",
         } );
         return FloatingArrayCoord.createCoord( meta, true );
@@ -311,16 +329,19 @@ public class PolygonForms {
 
         public ConfigKey[] getConfigKeys() {
             return new ConfigKey[] {
+                INCLUDEPOS_KEY,
                 POLYMODE_KEY,
                 ISFAST_KEY,
             };
         }
 
         public Outliner createOutliner( ConfigMap config ) {
+            boolean includePos = config.get( INCLUDEPOS_KEY );
             PolygonMode polyMode = config.get( POLYMODE_KEY );
             boolean isFast = config.get( ISFAST_KEY ).booleanValue();
             PolygonMode.Glypher glypher = polyMode.getGlypher( isFast );
-            return PolygonOutliner.createArrayOutliner( ARRAY_COORD, glypher );
+            return PolygonOutliner
+                  .createArrayOutliner( ARRAY_COORD, includePos, glypher );
         }
     }
 }

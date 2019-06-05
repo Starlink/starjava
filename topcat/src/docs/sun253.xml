@@ -10565,6 +10565,15 @@ and the others are given in the Coordinates box within the
     repeat the first pair here it doesn't usually affect the plot's
     appearance.
     </p></dd>
+<dt>Use Position</dt>
+<dd><p>Determines whether the basic positional coordinates for the
+    plotted row are included as one of the polygon vertices or not.
+    The polygon has N+1 vertices if this value is set, or N if it is not,
+    where N is the number of vertices supplied by the
+    <label>Other Points</label> array.
+    If unset, the reference position is ignored for the purposes of
+    drawing the polygon.
+    </p></dd>
 <dt>Polygon Mode</dt>
 <dd><p>Defines how the polygon is drawn.  Options are
     <ul>
@@ -28500,6 +28509,10 @@ introduced since the last version:
         "slideshows".</li>
     <li>Avoid sometimes losing precision when reading ASCII/CSV values
         in the range +/-(1e-38..1e-45).</li>
+    <li>Add new Use Position configuration option to
+        <ref id="form-polygon">polygon</ref> plot form
+        to toggle inclusion of reference position 
+        in polygon vertex list.</li>
     </ul>
     </p></dd>
 
