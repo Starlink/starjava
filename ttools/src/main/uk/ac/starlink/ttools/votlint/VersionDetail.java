@@ -397,7 +397,13 @@ public abstract class VersionDetail {
 
         protected Map<String,AttributeChecker>
                createAttributeCheckers( String name ) {
-            return V12.createAttributeCheckers( name );
+            Map<String,AttributeChecker> map =
+                V12.createAttributeCheckers( name );
+            if ( "FIELD".equals( name ) ||
+                 "PARAM".equals( name ) ) {
+                map.put( "arraysize", new ArraysizeChecker() );
+            }
+            return map;
         }
     }
 
