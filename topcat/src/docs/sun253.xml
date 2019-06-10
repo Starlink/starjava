@@ -20888,9 +20888,13 @@ you write "<code>TAP_UPLOAD.t&lt;n&gt;</code>", where
 <code>&lt;n&gt;</code> is the ID number of the table in TOPCAT,
 that is the number before the colon in the 
 <ref id="ControlWindow">Control Window</ref> Table List.
-So, if a table identified as "<code>1: messier.xml</code>"
+If the table's label has a suitable form
+(roughly, if it's alphanumeric and unique)
+you can use that instead of "<code>t&lt;n&gt;</code>".
+So, if a table is identified as "<code>1: messier</code>"
 in the table list, you can reference it in ADQL as
-"<code>TAP_UPLOAD.t1</code>" - see the <label>Upload</label>
+"<code>TAP_UPLOAD.t1</code>" or as "<code>TAP_UPLOAD.messier</code>"
+- see the <label>Upload</label>
 sub-menu of the <label>Examples</label> menu described above for
 some examples.
 Note the table uploaded in this way is the 
