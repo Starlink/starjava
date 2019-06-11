@@ -117,6 +117,32 @@ public class AdqlValidator {
     }
 
     /**
+     * Attempts to fix common errors in a submitted query.
+     * If some changes can be made that would make the query more correct,
+     * the fixed query is returned.  If no such changes can be made for
+     * whatever reason, null is returned.
+     *
+     * @param   query   input ADQL
+     * @return   EITHER ADQL which resembles, but is not identical to,
+     *           the input but which has a better chance of being correct;
+     *           OR null
+     */
+    public String fixup( String query ) {
+        if ( query != null && query.trim().length() > 0 ) {
+            try {
+                String fixQuery = parser_.tryQuickFix( query );
+                return query.equals( fixQuery ) ? null : fixQuery;
+            }
+            catch ( ParseException e ) {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * Creates an instance given a set of table metadata and a TapLanguage
      * description object.
      * The language object's TapLanguageFeature map is examined to determine
