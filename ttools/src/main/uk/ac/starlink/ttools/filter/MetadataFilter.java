@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.filter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -11,12 +10,14 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.util.MapGroup;
+import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Filter for extracting column metadata.
@@ -37,7 +38,6 @@ public class MetadataFilter extends BasicFilter {
     public static final ValueInfo UNIT_INFO;
     public static final ValueInfo DESCRIPTION_INFO;
     public static final ValueInfo UCD_INFO;
-    public static final ValueInfo UCDDESC_INFO;
     public static final ValueInfo UTYPE_INFO;
 
     /** All known metadata items. */
@@ -59,23 +59,19 @@ public class MetadataFilter extends BasicFilter {
                                         "Description of data in the column" ),
         UCD_INFO = new DefaultValueInfo( "UCD", String.class,
                                          "Unified Content Descriptor" ),
-        UCDDESC_INFO = new DefaultValueInfo( "UCD_desc", String.class,
-                                             "Textual description of UCD" ),
         UTYPE_INFO = new DefaultValueInfo( "Utype", String.class,
                                            "Type in data model" ),
-    };
-
-    /** Metadata items listed by default. */
-    private static final ValueInfo[] DEFAULT_INFOS = new ValueInfo[] {
-        INDEX_INFO,
-        NAME_INFO,
-        CLASS_INFO,
-        SHAPE_INFO,
-        ELSIZE_INFO,
-        UNIT_INFO,
-        DESCRIPTION_INFO,
-        UCD_INFO,
-        UTYPE_INFO,
+        VOStarTable.XTYPE_INFO,
+        VOStarTable.COOSYS_SYSTEM_INFO,
+        VOStarTable.COOSYS_EPOCH_INFO,
+        VOStarTable.COOSYS_EQUINOX_INFO,
+        VOStarTable.TIMESYS_TIMEORIGIN_INFO,
+        VOStarTable.TIMESYS_TIMESCALE_INFO,
+        VOStarTable.TIMESYS_REFPOSITION_INFO,
+        HealpixTableInfo.HPX_LEVEL_INFO,
+        HealpixTableInfo.HPX_ISNEST_INFO,
+        HealpixTableInfo.HPX_COLNAME_INFO,
+        HealpixTableInfo.HPX_CSYS_INFO,
     };
 
     /**
@@ -86,10 +82,6 @@ public class MetadataFilter extends BasicFilter {
     }
 
     protected String[] getDescriptionLines() {
-        Collection<ValueInfo> extras =
-            new ArrayList<ValueInfo>( Arrays.asList( KNOWN_INFOS ) );
-        extras.removeAll( Arrays.asList( DEFAULT_INFOS ) );
-        ValueInfo[] extraKnownInfos = extras.toArray( new ValueInfo[ 0 ] );
         return new String[] {
             "<p>Provides information about the metadata for each column.",
             "This filter turns the table sideways, so that each row",
@@ -98,19 +90,20 @@ public class MetadataFilter extends BasicFilter {
             "such as column name, units, UCD etc corresponding to each",
             "column of the input table.",
             "</p>",
-            "<p>By default the output table contains columns for the",
-            "following items:",
-            DocUtils.listInfos( DEFAULT_INFOS ),
-            "as well as any table-specific column metadata items that",
-            "the table contains.",
+            "<p>By default the output table contains columns for",
+            "all metadata items for which any of the columns have",
+            "non-blank values.",
             "</p>",
             "<p>However, the output may be customised by supplying",
-            "one or more <code>&lt;item&gt;</code> headings.",
-            "These may be selected from the above as well as the following:",
-            DocUtils.listInfos( extraKnownInfos ),
-            "as well as any table-specific metadata.  It is not an error",
+            "one or more <code>&lt;item&gt;</code> headings,",
+            "in which case exactly those columns will appear,",
+            "regardless of whether they have entries.",
+            "It is not an error",
             "to specify an item for which no metadata exists in any of",
             "the columns (such entries will result in empty columns).",
+            "</p>",
+            "<p>Some of the metadata items commonly found are:",
+            DocUtils.listInfos( KNOWN_INFOS ),
             "</p>",
             "<p>Any table parameters of the input table are propagated",
             "to the output one.",
@@ -137,7 +130,7 @@ public class MetadataFilter extends BasicFilter {
                 MapGroup<ValueInfo,Object> group = metadataMapGroup( base );
 
                 List<ValueInfo> seq = new ArrayList<ValueInfo>();
-                seq.addAll( Arrays.asList( DEFAULT_INFOS ) );
+                seq.addAll( Arrays.asList( KNOWN_INFOS ) );
                 seq.addAll( base.getColumnAuxDataInfos() );
                 group.setKeyOrder( seq );
                 group.setKnownKeys( Arrays.asList( getKeys( group, items ) ) );
@@ -200,12 +193,6 @@ public class MetadataFilter extends BasicFilter {
             map.put( DESCRIPTION_INFO, info.getDescription() );
             String ucd = info.getUCD();
             map.put( UCD_INFO, ucd );
-            if ( ucd != null ) {
-                UCD u = UCD.getUCD( ucd );
-                if ( u != null ) {
-                    map.put( UCDDESC_INFO, u.getDescription() );
-                }
-            }
             map.put( UTYPE_INFO, info.getUtype() );
 
             /* Add auxiliary items if there are any. */

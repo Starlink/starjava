@@ -291,7 +291,7 @@ public class TablePipeTest extends TableTestCase {
             new String[] { "Index", "Name", "Class" },
             getColNames( apply( "colmeta c; meta" ) ) );
         assertArrayEquals(
-            new String[] { "Index", "Name", "Class", "UCD", "UCD_desc" },
+            new String[] { "Index", "Name", "Class", "UCD" },
             getColNames( apply( "colmeta -ucd TIME_EPOCH a; meta" ) ) );
         assertArrayEquals(
             new String[] { "Index", "Name", "Class", "Units", "Description" },
