@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -623,19 +624,9 @@ public class TapQuery {
                   .makeVOElement( in, conn.getURL().toString() );
         }
         catch ( SAXException e ) {
-            StringBuffer sbuf = new StringBuffer()
-                .append( "TAP response is not a VOTable" );
-            byte[] buf = in.getHeadBuffer();
-            int nb = Math.min( (int) in.getReadCount(), buf.length );
-            if ( nb > 0 ) {
-                sbuf.append( " - " )
-                    .append( new String( buf, 0, nb, "UTF-8" ) );
-                if ( nb == buf.length ) {
-                    sbuf.append( " ..." );
-                }
-            }
-            throw (IOException)
-                  new IOException( sbuf.toString() ).initCause( e );
+            String msg =
+                createBadResponseMessage( "TAP response is not a VOTable", in );
+            throw (IOException) new IOException( msg ).initCause( e );
         }
         finally {
             in.close();
@@ -657,7 +648,12 @@ public class TapQuery {
                                + "not marked type='results'" );
             }
             else {
-                throw new IOException( "No RESOURCE with type='results'" );
+                String tagName = voEl.getTagName();
+                String txt = "VOTABLE".equalsIgnoreCase( tagName )
+                           ? "No RESOURCE with type='results'"
+                           : "TAP response is not VOTable (" + tagName + ")";
+                String msg = createBadResponseMessage( txt, in );
+                throw new IOException( createBadResponseMessage( txt, in ) );
             }
         }
         VOElement[] infoEls = resultsEl.getChildrenByName( "INFO" );
@@ -681,7 +677,8 @@ public class TapQuery {
             TableElement tableEl =
                 (TableElement) resultsEl.getChildByName( "TABLE" );
             if ( tableEl == null ) {
-                throw new IOException( "No TABLE in results resource" );
+                String msg = "No TABLE in results resource";
+                throw new IOException( createBadResponseMessage( msg, in ) );
             }
             return new VOStarTable( tableEl );
         }
@@ -785,6 +782,41 @@ public class TapQuery {
                                    .initCause( e );
             }
         }
+    }
+
+    /**
+     * Returns a string characterising a bad TAP response.
+     * As well as a supplied text message, this includes at least part of
+     * the actual response text; this is likely to be fairly incomprehensible
+     * to a normal user, but it probably makes sense to an expert and is
+     * in any case more use than no indication at all.
+     *
+     * @param  txt   user-readable explanation of what went wrong
+     * @param  in    caching input stream withing which response was sought
+     * @return   full bad response message; this may be quite long,
+     *           but is limited to HeadBufferInputStream buffer size
+     */
+    private static String createBadResponseMessage( String txt,
+                                                    HeadBufferInputStream in ) {
+        StringBuffer sbuf = new StringBuffer( txt );
+        byte[] buf = in.getHeadBuffer();
+        int nb = Math.min( (int) in.getReadCount(), buf.length );
+        if ( nb > 0 ) {
+            String bufstr;
+            try {
+                bufstr = new String( buf, 0, nb, "UTF-8" );
+            }
+            catch ( UnsupportedEncodingException e ) {
+                assert false;
+                bufstr = new String( buf, 0, nb );
+            }
+            sbuf.append( " - " )
+                .append( bufstr );
+            if ( nb == buf.length ) {
+                sbuf.append( " ..." );
+            }
+        }
+        return sbuf.toString();
     }
 
     /**

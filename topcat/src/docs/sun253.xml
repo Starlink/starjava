@@ -28530,6 +28530,8 @@ introduced since the last version:
         a bit bigger in the legend than on the plot for readability.</li>
     <li>Add new <label>Fix Errors</label> button for common ADQL errors
         in the <ref id="TapTableLoadDialog_query">TAP Window</ref>.</li>
+    <li>Add more detail (response content) to certain bad response
+        TAP error messages.</li>
     </ul>
     </p></dd>
 
