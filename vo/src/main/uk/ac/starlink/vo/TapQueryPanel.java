@@ -59,7 +59,6 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.Element;
-import javax.swing.text.PlainDocument;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
@@ -1180,7 +1179,7 @@ public class TapQueryPanel extends JPanel {
          * Constructor.
          */
         public ParseTextArea() {
-            super( new PlainDocument() );
+            super( new CustomReplacePlainDocument() );
             highlighter_ = new Color( 0x40ff0000, true );
             errorRects_ = new Rectangle[ 0 ];
         }
