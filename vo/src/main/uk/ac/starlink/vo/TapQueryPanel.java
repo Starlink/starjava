@@ -76,6 +76,7 @@ public class TapQueryPanel extends JPanel {
     private final TapCapabilityPanel tcapPanel_;
     private final Action examplesAct_;
     private final Action parseErrorAct_;
+    private final Action parseFixupAct_;
     private final JPopupMenu examplesMenu_;
     private final JMenu daliExampleMenu_;
     private final JTabbedPane textTabber_;
@@ -245,6 +246,20 @@ public class TapQueryPanel extends JPanel {
         parseErrorAct_.putValue( Action.SHORT_DESCRIPTION,
                                  "Show details of error "
                                + "parsing current query text" );
+
+        /* Option for making simple fixes to ADQL. */
+        parseFixupAct_ = new AbstractAction( "Fix Errors",
+                                             ResourceIcon.ADQL_FIXUP ) {
+            public void actionPerformed( ActionEvent evt ) {
+                String fixText = getFixedAdql();
+                if ( fixText != null ) {
+                    textPanel_.setText( fixText );
+                }
+            }
+        };
+        parseFixupAct_.putValue( Action.SHORT_DESCRIPTION,
+                                 "Attempt a quick fix of common "
+                               + "ADQL syntax errors" );
 
         /* Action to clear text in ADQL panel. */
         clearAct_ = new AdqlTextAction( "Clear", true );
@@ -523,7 +538,7 @@ public class TapQueryPanel extends JPanel {
             addTabAct_, copyTabAct_, removeTabAct_, titleTabAct_,
             clearAct_, undoAct_, redoAct_,
             interpolateTableAct_, interpolateColumnsAct_,
-            parseErrorAct_,
+            parseErrorAct_, parseFixupAct_,
         };
     }
 
@@ -996,7 +1011,30 @@ public class TapQueryPanel extends JPanel {
     private void setParseError( Throwable parseError ) {
         parseError_ = parseError;
         textPanel_.setParseError( parseError );
-        parseErrorAct_.setEnabled( parseError != null );
+        boolean hasError = parseError != null;
+        parseErrorAct_.setEnabled( hasError );
+        final boolean hasFix = hasError && getFixedAdql() != null;
+        parseFixupAct_.setEnabled( hasFix );
+    }
+
+    /**
+     * Attempts to provide an improved version of the ADQL currently
+     * being edited.  If such an improvement (generally, fixing common errors)
+     * can be made, the improved version is returned.
+     * If no such improvements can be made, for whatever reason,
+     * null is returned.
+     *
+     * @return  improved version of ADQL being edited, or null
+     */
+    private String getFixedAdql() {
+        String text = textPanel_.getText();
+        if ( text != null || text.trim().length() > 0 ) {
+            AdqlValidator validator = getValidator();
+            return validator == null ? null : validator.fixup( text );
+        }
+        else {
+            return null;
+        }
     }
 
     /**

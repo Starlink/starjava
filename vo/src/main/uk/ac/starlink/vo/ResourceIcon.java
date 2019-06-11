@@ -37,6 +37,7 @@ public class ResourceIcon {
         ADQL_REMOVETAB = readIcon( "remove_tab.png" ),
         ADQL_TITLETAB = readIcon( "title_tab.png" ),
         ADQL_ERROR = readIcon( "error.png" ),
+        ADQL_FIXUP = readIcon( "fixup.png" ),
         ADQL_CLEAR = readIcon( "clear.png" ),
         ADQL_INSERTTABLE = readIcon( "insert_table.png" ),
         ADQL_INSERTCOLS = readIcon( "insert_columns.png" ),

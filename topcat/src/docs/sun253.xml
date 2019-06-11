@@ -20750,6 +20750,12 @@ It has the following parts:
         Clicking this button pops up the actual parser error message,
         which may give you more idea what's wrong.
         </p></dd>
+    <dt>&IMG.ADQL_FIXUP; Fix Errors</dt>
+    <dd><p>If this button is enabled, it can fix some common errors in the
+        currently visible ADQL.  This includes things like putting quotes
+        around table or column names that non-alphanumeric or that clash
+        with ADQL reserved words.  There are plenty of problems it can't fix!
+        </p></dd>
     </dl>
     These actions are also available from the <label>Edit</label> menu.
     </p></dd>
@@ -20770,6 +20776,9 @@ It has the following parts:
     will be highlighted in pink (as in the figure above).
     To see more detail on the error,
     click the <label>Parse Errors (&IMG.ADQL_ERROR;)</label> button.
+    In some cases, the parser can guess how to fix such errors;
+    if the <label>Fix Errors (&IMG.ADQL_FIXUP;)</label> button is enabled,
+    you can try clicking that.
     The checking itself is reasonably reliable, but the position of the
     highlighted error, and the text of the error message, can sometimes
     be a bit misleading, so don't take the details too seriously.
@@ -28519,6 +28528,8 @@ introduced since the last version:
         in polygon vertex list.</li>
     <li>Modified plot legend display so that small markers are displayed
         a bit bigger in the legend than on the plot for readability.</li>
+    <li>Add new <label>Fix Errors</label> button for common ADQL errors
+        in the <ref id="TapTableLoadDialog_query">TAP Window</ref>.</li>
     </ul>
     </p></dd>
 
