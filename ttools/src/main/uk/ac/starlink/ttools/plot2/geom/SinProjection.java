@@ -40,6 +40,7 @@ public class SinProjection extends SkyviewProjection {
     /**
      * Overridden for slight efficiency gain.
      */
+    @Override
     public boolean project( double rx, double ry, double rz,
                             Point2D.Double pos ) {
         if ( rx >= 0 ) {

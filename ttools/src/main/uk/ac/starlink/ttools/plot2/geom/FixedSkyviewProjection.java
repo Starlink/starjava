@@ -29,27 +29,27 @@ public abstract class FixedSkyviewProjection extends SkyviewProjection {
     public static final FixedSkyviewProjection AIT =
          createProjection( new Ait(), "Aitoff",
                            "Hammer-Aitoff projection",
-                           Rotation.UNIT );
+                           FixedRotation.UNIT );
 
     /** Aitoff projection, lon=0 at edge. */
     public static final FixedSkyviewProjection AIT0 =
          createProjection( new Ait(), "Aitoff0",
                            "Hammer-Aitoff projection with lon=180 at center",
-                           Rotation.LON_PI );
+                           FixedRotation.LON_PI );
 
     /** Cartesian projection, lon=0 at center. */
     public static final FixedSkyviewProjection CAR1 =
          createProjection( new Car1(), "Car",
                            "Plate Carree projection (lon/lat on Cartesian axes)"
                          + " with lon=0 at center",
-                           Rotation.UNIT );
+                           FixedRotation.UNIT );
 
     /** Cartesian projection, lon=0 at edge. */
     public static final FixedSkyviewProjection CAR0 =
          createProjection( new Car1(), "Car0",
                            "Plate Carree Projection (lon/lat on Cartesian axes)"
                          + " with lon=180 at center",
-                           Rotation.LON_PI );
+                           FixedRotation.LON_PI );
 
     /** Gnomonic projection. */
     public static final FixedSkyviewProjection TAN =
@@ -185,7 +185,7 @@ public abstract class FixedSkyviewProjection extends SkyviewProjection {
      */
     private static FixedSkyviewProjection
             createProjection( Projecter projecter, String name, String descrip,
-                              final Rotation rotation ) {
+                              final FixedRotation rotation ) {
         return new FixedSkyviewProjection( projecter, getShape( projecter ),
                                            name, descrip ) {
             public boolean isContinuous() {
@@ -234,10 +234,10 @@ public abstract class FixedSkyviewProjection extends SkyviewProjection {
     /**
      * Characterises a fixed rotation to be applied to a projection.
      */
-    private static abstract class Rotation {
+    private static abstract class FixedRotation {
 
         /** Unit transformation (no rotation). */
-        public static final Rotation UNIT = new Rotation() {
+        public static final FixedRotation UNIT = new FixedRotation() {
             public double[] getMatrix( boolean reflect ) {
                 return reflect ? new double[] { 1,0,0, 0,-1,0, 0,0,1 }
                                : new double[] { 1,0,0, 0, 1,0, 0,0,1 };
@@ -249,7 +249,7 @@ public abstract class FixedSkyviewProjection extends SkyviewProjection {
         };
 
         /* Rotation 180 degrees around the Z axis. */
-        public static final Rotation LON_PI = new Rotation() {
+        public static final FixedRotation LON_PI = new FixedRotation() {
             public double[] getMatrix( boolean reflect ) {
                 return reflect ? new double[] { -1,0,0, 0, 1,0, 0,0,1 }
                                : new double[] { -1,0,0, 0,-1,0, 0,0,1 };
