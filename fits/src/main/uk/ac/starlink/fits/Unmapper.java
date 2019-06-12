@@ -1,7 +1,10 @@
 package uk.ac.starlink.fits;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.util.Loader;
@@ -51,10 +54,17 @@ public abstract class Unmapper {
 
     /**
      * Name of system property to control buffer unmapping ({@value}).
-     * Possible values are currently "<code>sun</code>" for
-     * <code>sun.misc.Cleaner</code>-based unmapping,
-     * and "<code>none</code>" for no explicit unmapping.
-     * The default is to use sun if available, else fall back to none.
+     * Possible values are currently:
+     * <ul>
+     * <li>"<code>sun</code>": best-efforts sun.misc-based option</li>
+     * <li>"<code>cleaner</code>": sun.misc.Cleaner-based option
+     *     (available in Oracle java6 through java8)</li>
+     * <li>"<code>unsafe</code>": sun.misc.Unsafe-based option
+     *     (available in Oracle java9 and later?)</li>
+     * <li>"<code>none</code>": no unmapping</li>
+     * </ul>
+     * The default is to use "<code>sun</code>" if available,
+     * else fall back to none.
      * You can also give the classname of an <code>Unmapper</code>
      * concrete subclass with a no-arg constructor.
      */
@@ -95,36 +105,38 @@ public abstract class Unmapper {
         catch ( SecurityException e ) {
             pref = null;
         }
-        if ( "sun".equalsIgnoreCase( pref ) ) {
-            logger_.info( "Using Sun buffer unmapper by explicit request" );
+        Option opt;
+        if ( pref == null ) {
+            logger_.info( "Buffer unmapping: "
+                        + "attempt to use sun.misc implementation" );
+            opt = Option.SUN;
+        }
+        else {
+            opt = Option.getOption( pref );
+            if ( opt != null ) {
+                logger_.info( "Buffer unmapping: "
+                            + "attempt to use " + opt
+                            + " by explicit request" );
+            }
+        }
+        if ( opt != null ) {
             try {
-                Unmapper unmapper = new SunUnmapper();
-                logger_.log( Level.CONFIG,
-                             "Explicit buffer unmapping should work" );
+                Unmapper unmapper = opt.createUnmapper();
+                logger_.config( "Buffer unmapping: using " + unmapper
+                              + "; unmapping should work" );
                 return unmapper;
             }
-            catch ( Exception e ) {
+            catch ( Throwable e ) {
                 logger_.log( Level.WARNING,
-                             "Can't use Sun unmapper, fall back to no-op", e );
+                             "Buffer unmapping failed, fall back to no-op", e );
                 return new NopUnmapper();
             }
         }
         else if ( "none".equalsIgnoreCase( pref ) ) {
-            logger_.info( "Using no-op buffer unmapper by explicit request" );
-            logger_.config( "No explicit unmapping" );
+            logger_.info( "Buffer unmapping: "
+                        + "using no-op unmapper by explicit request" );
+            logger_.config( "Buffer unmapping: no explicit unmapping" );
             return new NopUnmapper();
-        }
-        else if ( pref == null ) {
-            try {
-                Unmapper unmapper = new SunUnmapper();
-                logger_.log( Level.CONFIG,
-                             "Explicit buffer unmapping should work" );
-                return unmapper;
-            }
-            catch ( Exception e ) {
-                logger_.log( Level.CONFIG, "No explicit unmapping: " + e, e );
-                return new NopUnmapper();
-            }
         }
         else {
             Unmapper unmapper = Loader.getClassInstance( pref, Unmapper.class );
@@ -143,18 +155,36 @@ public abstract class Unmapper {
     }
 
     /**
-     * Unmapper implementation using Sun-specific classes.
+     * Returns an unmapper using one of the sun.misc-based classes,
+     * according to what's available.
      */
-    private static class SunUnmapper extends Unmapper {
-        private final Class directBufferClazz_;
-        private final Class cleanerClazz_;
+    private static Unmapper createSunUnmapper() throws Exception {
+        boolean hasCleaner;
+        try {
+            Class.forName( "sun.misc.Cleaner" );
+            hasCleaner = true;
+        }
+        catch ( ClassNotFoundException e ) {
+            hasCleaner = false;
+        }
+        return hasCleaner ? new CleanerUnmapper()
+                          : new UnsafeUnmapper();
+    }
+
+    /**
+     * Unmapper implementation using the Sun-specific sun.misc.Cleaner class.
+     * This is present in Oracle java6 through java8.
+     */
+    private static class CleanerUnmapper extends Unmapper {
+        private final Class<?> directBufferClazz_;
+        private final Class<?> cleanerClazz_;
         private final Method cleanerMethod_;
         private final Method cleanMethod_;
 
         /**
          * Constructor.
          */
-        SunUnmapper() throws Exception {
+        CleanerUnmapper() throws Exception {
             directBufferClazz_ = Class.forName( "sun.nio.ch.DirectBuffer" );
             cleanerClazz_ = Class.forName( "sun.misc.Cleaner" );
             cleanerMethod_ = directBufferClazz_.getMethod( "cleaner" );
@@ -175,6 +205,45 @@ public abstract class Unmapper {
                 return false;
             }
         }
+
+        @Override
+        public String toString() {
+            return "Cleaner";
+        }
+    }
+
+    /**
+     * Unmapper implementation using the Sun-specific sun.misc.Unsafe class.
+     * This is present in Oracle java9.
+     */
+    private static class UnsafeUnmapper extends Unmapper {
+        private final Object unsafe_;
+        private final Method invokeCleanerMethod_;
+
+        UnsafeUnmapper() throws Exception {
+            Class<?> unsafeClazz = Class.forName( "sun.misc.Unsafe" );
+            Field theUnsafe = unsafeClazz.getDeclaredField( "theUnsafe" );
+            theUnsafe.setAccessible( true );
+            unsafe_ = theUnsafe.get( null );
+            invokeCleanerMethod_ =
+                unsafeClazz.getDeclaredMethod( "invokeCleaner",
+                                               ByteBuffer.class );
+        }
+
+        public boolean unmap( MappedByteBuffer buf ) {
+            try {
+                invokeCleanerMethod_.invoke( unsafe_, buf );
+                return true;
+            }
+            catch ( Exception e ) {
+                return false;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "Unsafe";
+        }
     }
 
     /**
@@ -183,6 +252,52 @@ public abstract class Unmapper {
     private static class NopUnmapper extends Unmapper {
         public boolean unmap( MappedByteBuffer buf ) {
             return false;
+        }
+        public String toString() {
+            return "Nop";
+        }
+    }
+
+    /**
+     * Named user-selectable options for unmapping.
+     */
+    private enum Option {
+        CLEANER() {
+            Unmapper createUnmapper() throws Exception {
+                return new CleanerUnmapper();
+            }
+        },
+        UNSAFE() {
+            Unmapper createUnmapper() throws Exception {
+                return new UnsafeUnmapper();
+            }
+        },
+        SUN() {
+            Unmapper createUnmapper() throws Exception {
+                return createSunUnmapper();
+            }
+        };
+
+        /**
+         * Attempts to create an unmapper.
+         *
+         * @return  new unmapper
+         */
+        abstract Unmapper createUnmapper() throws Exception;
+
+        /**
+         * Returns a member of this enum if it matches the given name.
+         *
+         * @param  name  enum name, case-insensitive
+         * @return  named instance, or null
+         */
+        static Option getOption( String name ) {
+            for ( Option opt : values() ) {
+                if ( opt.toString().equalsIgnoreCase( name ) ) {
+                    return opt;
+                }
+            }
+            return null;
         }
     }
 }

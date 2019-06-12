@@ -4646,7 +4646,8 @@ The following ones have special significance within TOPCAT:
 
 <dt><code>startable.unmap</code></dt>
 <dd><p>Determines whether and how unmapping of memory mapped buffers is done.
-    Possible values are "<code>sun</code>" (the default) or "<code>none</code>".
+    Possible values are "<code>sun</code>" (the default),
+    "<code>cleaner</code>", "<code>unsafe</code>" or "<code>none</code>".
     In most cases you are advised to leave this alone, but in the event of
     unmapping-related JVM crashes (not expected!), setting it to 
     <code>none</code> may help.
@@ -28535,6 +28536,8 @@ introduced since the last version:
     <li>Permit FITS and VOTable files with zero-length string columns.
         Previously all-null or zero-length string columns were
         sometimes forced to single-character values.</li>
+    <li>Update mapped file unmapping implementation to work 
+        for java9+.</li>
     </ul>
     </p></dd>
 
