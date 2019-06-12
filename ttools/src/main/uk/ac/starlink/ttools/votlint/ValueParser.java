@@ -167,8 +167,8 @@ public abstract class ValueParser {
                                        arraysize + "'" );
                         return null;
                     }
-                    if ( shape[ i ] <= 0 ) {
-                        handler.error( "Non-positive dimensions element " +
+                    if ( shape[ i ] < 0 ) {
+                        handler.error( "Negative dimensions element " +
                                        shape[ i ] );
                         return null;
                     }

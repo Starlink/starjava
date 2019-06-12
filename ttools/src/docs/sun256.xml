@@ -12138,6 +12138,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>arraysize="1"</code> now provokes a Warning.</li>
     <li>Updates to <ref id="meta"><code>meta</code></ref>
         filter documentation.</li>
+    <li>Permit FITS and VOTable files with zero-length string columns.
+        Previously all-null or zero-length string columns were 
+        sometimes forced to single-character values.</li>
     </ul>
     </p></dd>
 

@@ -59,7 +59,7 @@ public class FieldElement extends VOElement {
                         logger_.warning( "Bad arraysize element " + dimtxt[ i ]
                                        + " - assuming 1" );
                     }
-                    if ( dim <= 0 ) {
+                    if ( dim < 0 ) {
                         dim = 1;
                         logger_.warning( "Bad arraysize element " + dimtxt[ i ]
                                        + " - assuming 1" );

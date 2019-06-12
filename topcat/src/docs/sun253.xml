@@ -28532,6 +28532,9 @@ introduced since the last version:
         in the <ref id="TapTableLoadDialog_query">TAP Window</ref>.</li>
     <li>Add more detail (response content) to certain bad response
         TAP error messages.</li>
+    <li>Permit FITS and VOTable files with zero-length string columns.
+        Previously all-null or zero-length string columns were
+        sometimes forced to single-character values.</li>
     </ul>
     </p></dd>
 
