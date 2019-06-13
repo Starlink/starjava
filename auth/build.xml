@@ -1,0 +1,1078 @@
+<?xml version="1.0"?>
+
+<!--
+ !   {Package} build file
+ !
+ !   This file describes how to build and install {Package} from
+ !   source and binary releases. {Package} is a class library
+ !   (i.e. provides an API and related documentation).
+ !
+ !   The main targets are:
+ !
+ !      build            -> compiles the source code
+ !      clean            -> cleans up build and dist products
+ !      deinstall        -> undo the install target
+ !      dist             -> creates the local binary distribution
+ !      export           -> creates the full distribution archives
+ !      export-runonly   -> creates the runonly distribution archives
+ !      export-source    -> creates the source distribution archives
+ !      install          -> installs the distribution
+ !      install-runonly  -> installs a runonly distribution
+ !      jars             -> creates the package jar file(s)
+ !      javadocs         -> creates the package API documentation
+ !      javadoc-sources  -> make source files for release API documention
+ !      test             -> runs JUnit test cases
+ !
+ !   Authors:
+ !      Peter W. Draper (17-SEP-2002)
+ !
+ !   Version:
+ !      $Id$
+ !
+ !-->
+
+<project name="Build file for {Package}" default="build" basedir=".">
+
+  <!-- If either or both of these files exist then any properties
+   !   contained within them will override those defined here.  -->
+  <property file="${user.home}/.stardev.properties"/>
+  <property file=".properties"/>
+
+  <!-- Properties will also be set for all environment variables
+   !   (PATH becomes "env.PATH"), generally not a good
+   !   idea as names are OS dependent -->
+  <property environment="env"/>
+
+  <!--
+   !  =================
+   !  Global Properties
+   !  =================
+   !-->
+
+  <!-- Directory for the Starlink installation (usually /star/java)-->
+  <property name="star.dir" value="${basedir}/../../"/>
+
+  <!-- Directory to install into (install target, usually /star/java)-->
+  <property name="star.install" value="${star.dir}"/>
+
+  <!-- Directory that contains the Starlink jar tree -->
+  <property name="star.jar.dir" value="${star.dir}/lib"/>
+
+  <!-- Directory that contains the locally built sources (usually
+   !   /star/java/source for full distribution) -->
+  <property name="star.build.dir" value="${basedir}/../"/>
+
+  <!-- Directory that any archives should be placed into. The local
+   !   directory by default -->
+  <property name="star.archive.dir" value="${basedir}"/>
+
+  <!-- URL and package-list for linking against full Java docs -->
+  <property name="javaapi.url" value="http://docs.oracle.com/javase/6/docs/api/"/>
+  <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
+
+  <!--
+   !  ================
+   !  Local Properties
+   !  ================
+   !-->
+
+  <!-- Define the package name and current versions -->
+  <property name="Name" value="{PACKAGE}"/>
+  <property name="name" value="{package}"/>
+  <property name="version" value="1.0"/>
+
+  <!-- The Java package name -->
+  <property name="package.name" value="{package.path}"/>
+
+  <!-- Compilation options -->
+  <property name="debug" value="true"/>
+  <property name="deprecation" value="false"/>
+  <property name="optimize" value="true"/>
+  <property name="source.version" value="1.5"/>
+
+  <!-- Extra task options, if any -->
+  <property name="chmod.fail" value="false"/>
+
+  <!-- JUnit test options -->
+  <property name="junit.fork" value="false"/>
+  <property name="junit.filtertrace" value="on"/>
+  <property name="junit.summary" value="no"/>
+  <property name="junit.assertions" value="-enableassertions"/>
+
+  <!-- Directory containing the package source -->
+  <property name="src.dir" value="${basedir}/src"/>
+
+  <!-- Directory containing the java source (top of the namespace)-->
+  <property name="java.dir" value="${src.dir}/main"/>
+
+  <!-- Directory containing miscellaneous docs -->
+  <property name="src.docs" value="${src.dir}/docs"/>
+
+  <!-- Directory containing any script required to execute or setup package-->
+  <property name="script.dir" value="${src.dir}/script"/>
+
+  <!-- Directory containing any third-party jars that should be
+   !   distributed (normally these would belong in a proper package)-->
+  <property name="src.jars.dir" value="${src.dir}/lib"/>
+
+  <!-- Directory containing any JNI source code -->
+  <property name="src.jni.dir" value="${src.dir}/jni"/>
+
+  <!-- Directories for JUnit test cases and related files -->
+  <property name="tests.dir" value="${src.dir}/testcases"/>
+  <property name="tests.etc.dir" value="${src.dir}/etc/testcases"/>
+
+  <!-- File types that should not be passed through a filterchain when
+   !   copying -->
+  <property name="unfiltered.files" value="**/*.gif,**/*.jpg,**/*.ico"/>
+
+  <!-- Directories to receive the various build components -->
+  <property name="build.dir" value="${basedir}/build"/>
+  <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.java" value="${build.dir}/java"/>
+  <property name="build.tests" value="${build.dir}/testcases"/>
+  <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
+
+  <!-- Distribution directories, these are created in the current
+   !   directory, unless dist.dir is redefined. Files that will be
+   !   installed under a package name prefixed directory should be
+   !   placed in the ".pkg" variants. Note some build components may
+   !   be placed directly here for efficiency-->
+  <property name="dist.dir" value="${basedir}"/>
+  <property name="dist.bin" value="${dist.dir}/bin"/>
+  <property name="dist.lib" value="${dist.dir}/lib"/>
+  <property name="dist.src" value="${dist.dir}/src"/>
+  <property name="dist.docs" value="${dist.dir}/docs"/>
+  <property name="dist.etc" value="${dist.dir}/etc"/>
+
+  <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
+  <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
+  <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
+  <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
+  <property name="dist.javadocs" value="${dist.docs}/${name}/javadocs"/>
+
+  <!-- Any achitecture-specific files (shared libraries) will be placed in
+   !   an appropriate subdirectory of dist.lib -->
+  <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
+
+  <!-- Version for zipped/tarred export files. -->
+  <property name="dist.version" value="${name}-${version}"/>
+
+  <!-- File for logging the files that are copied by the install target -->
+  <property name="install.log" value=".${name}.install"/>
+  <property name="install.overwrite" value="true"/>
+
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default. -->
+  <property name="webstart.codebase"
+            value="http://starlink.jach.hawaii.edu/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+
+  <!--
+   !   =========
+   !   CLASSPATH
+   !   =========
+   !-->
+
+  <!-- Installed jar files.
+   !
+   !   Name all the installed jar files of other packages that we depend on.
+   !
+   !   When compiling under Java 1.4 these will be used to produce a full
+   !   classpath that is equivalent to that generated when these are
+   !   referenced as optional bundled packages by the JVM.
+   !   When compiling under Java 1.5 (and probably later) this is just
+   !   a simple path of these jar files, as the expansion to a full optional
+   !   bundled package classpath is performed by the compiler
+   !
+   !   What that all means is that the manifest classpaths of these jar files
+   !   are honoured, the plain compiler pre Java 1.5 didn't do that. When Java
+   !   1.4 is no longer used the extclasspath type can be replaced by a simple
+   !   path.
+   !-->
+  <extclasspath id="installed.classpath">
+
+    <!-- {Other packages} -->
+    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
+    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
+
+    <!-- {More packages} -->
+  </extclasspath>
+
+  <!-- Local build system jar files.
+   !
+   !   Name all the jar files of other packages that we depend on, which have
+   !   not been installed (should be same packages as in installed.classpath).
+   !-->
+  <extclasspath id="built.jarpath">
+
+    <pathelement
+       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
+    <pathelement
+       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
+
+    <!-- {More packages} -->
+  </extclasspath>
+
+  <!-- Find all local third party jars files.
+   !
+   !   Normally these will be kept in their own third party package, but may
+   !   be kept here temporarily, say if there are version conflicts that
+   !   cannot be addressed. They are installed with the package jar files and
+   !   should be entered into the main jar file manifest.
+   !-->
+  <path id="package.jars">
+     <fileset dir="${src.jars.dir}">
+        <include name="*.jar"/>
+     </fileset>
+  </path>
+
+  <!-- Create the local build system CLASSPATH.
+   !
+   !   Create the classpath used when building this package as part of a full
+   !   build system without any dependency on any installed or external jar
+   !   files.
+   !
+   !   Classes compiled in the local build tree will be in the "build/classes"
+   !   part of each package. Third party packages, have do not have any source
+   !   code, just jar files, will have their jar files in their "dist"
+   !   directories (usually lib/{package_name}).
+   !
+   !   So the full built classpath is created by constructing a path
+   !   consisting of:
+   !
+   !      - all third party jar files in this package
+   !      - all build/classes directories in the local build system (these
+   !        will have the most recent class files)
+   !      - all jar files named in built.jarpath, i.e. named local build
+   !        system jar files (these can be normal packages in the "dist" state
+   !        or third party packages)
+   !      - all jar files in the "dist" directories of all packages in the
+   !        local build system (these are necessary to make sure that the jar
+   !        files in the previous part have their dependencies fulfilled,
+   !        without having them all installed)
+   !-->
+  <path id="built.classpath">
+
+    <!-- Third party jars held by this package -->
+    <path refid="package.jars"/>
+
+    <!-- All classes in the local build system -->
+    <dirset dir="${star.build.dir}">
+      <include name="*/build/classes"/>
+    </dirset>
+
+    <!-- Directly dependent jars in the local build system -->
+    <path refid="built.jarpath"/>
+
+    <!-- All "dist" jar files to make sure everything is resolved, including
+     !   relative URLs of the local packages, without installation -->
+    <fileset dir="${star.build.dir}">
+      <include name="*/lib/*/*.jar"/>
+    </fileset>
+
+  </path>
+
+  <!-- User-defined CLASSPATH.
+   !
+   !   This is set by the property "extra.class.path" (which can be defined
+   !   locally using say -Dextra.class.path=$CLASSPATH on the command line
+   !   or by setting the property in either of the properties files.-->
+  <property name="extra.class.path" value=""/>
+  <path id="local.classpath" path="${extra.class.path}"/>
+
+  <!-- Create the full CLASSPATH used during compilation.
+   !
+   !   This is created from the user-defined classpath, followed by the
+   !   classpath for building against the local system, followed by the
+   !   classpath for building against an installed system.
+   !-->
+  <path id="classpath">
+     <path refid="local.classpath"/>
+     <path refid="built.classpath"/>
+     <path refid="installed.classpath"/>
+  </path>
+
+  <!-- Create the JUnit tests CLASSPATH.
+   ! 
+   !   Note that in addition to the build/classes and build/tests directory
+   !   we also add tests.dir and tests.etc.dir so that resources may be
+   !   located there. The full classpath is also used.
+   !-->  
+ <path id="tests-classpath">
+    <pathelement location="${build.classes}"/>
+    <pathelement location="${build.tests}"/>
+    <pathelement location="${tests.dir}"/>
+    <pathelement location="${tests.etc.dir}"/>
+    <path refid="classpath"/>
+  </path>
+
+  <!-- Turn this path into a string which is passed to the tests -->
+  <property name="tests-classpath.value" refid="tests-classpath"/>
+
+  <!--
+   !    ============
+   !    Library path
+   !    ============
+   !    Used by test targets for locating native libraries.
+   !-->
+  <path id="tests-libpath.id">
+    <pathelement path="${java.library.path}"/>
+    <pathelement location="${star.jar.dir}/${os.arch}"/>
+  </path>
+  <property name="tests-libpath" refid="tests-libpath.id"/>
+
+  <!--
+   !    ===============
+   !    Extension tasks
+   !    ===============
+   !    Add any local or extension ANT tasks that are required. Local
+   !    tasks should be moved into the ANT package if used outside of this
+   !    package. 
+   !-->
+  <taskdef resource="axis-tasks.properties" classpathref="classpath"/>
+
+  <!--
+   !    =========================================
+   !    Check availability of direct dependencies
+   !    =========================================
+   !
+   !    Minimalist check of the required dependencies so that the build will
+   !    not proceed if some basic dependencies are not present on the
+   !    classpath. Optional components could also be checked here.
+   !-->
+  <target name="check_packages"
+          unless="runonly.install">
+
+    <!--  {Example package1} -->
+    <available property="{package1}.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.{package1}.{MainClass}"/>
+
+    <fail message="No {package1} available" unless="{package1}.present"/>
+
+    <!--  {Example package2} -->
+    <available property="{package2}.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.{package1}.{MainClass}"/>
+
+    <fail message="No {package2} available" unless="{package2}.present"/>
+
+    <!-- {More critical dependencies} -->
+
+    <!-- Need JUnit for testcases, not essential -->
+    <available property="junit.present"
+               classpathref="classpath"
+               classname="junit.framework.TestCase"/>
+
+  </target>
+
+  <!--
+   !   =================
+   !   Prepare the build
+   !   =================
+   !
+   !  Do any jobs that are required before any other target can proceed.
+   !-->
+  <target name="prepare">
+
+    <tstamp>
+      <format property="year" pattern="yyyy"/>
+    </tstamp>
+
+    <!-- This is a filterchain that can be used to copy-edit files
+     !   that require the package version, current date and/or time -->
+    <filterchain id="filters">
+      <replacetokens>
+        <token key="VERSION" value="${version}"/>
+        <token key="DATE" value="${TODAY}"/>
+        <token key="TIME" value="${TSTAMP}"/>
+      </replacetokens>
+    </filterchain>
+
+  </target>
+
+
+  <!--
+   !   ==============
+   !   Build the code
+   !   ==============
+   !
+   !  The results of the compilation are placed in the build.classes
+   !  directory. Other files that are also needed in the classes tree
+   !  (i.e. resources like images and property files) should also be
+   !  copied into place here.
+   !-->
+  <target name="build"
+          depends="prepare, check_packages"
+          unless="runonly.install"
+          description="-> compiles the source code">
+
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${java.dir}"
+           destdir="${build.classes}"
+           debug="${debug}"
+           deprecation="${deprecation}"
+           source="${source.version}"
+           optimize="${optimize}">
+
+      <classpath refid="classpath"/>
+
+      <!-- Exclude any files in the source tree that should not be
+       !   compiled -->
+      <exclude name="**/{Retired1.java}"/>
+      <exclude name="**/{Retired2.java}"/>
+      <exclude name="**/*.html"/>
+      <exclude name="**/*.properties*"/>
+    </javac>
+
+    <!-- Copy extra files that should live with packages classes
+     !   (i.e. are discovered using "getResource()"). -->
+    <copy todir="${build.classes}">
+      <fileset dir="${java.dir}">
+        <include name="**/{package.support.files}"/>
+        <include name="**/{more.package.support.files}"/>
+      </fileset>
+    </copy>
+
+    <!-- Local third party jars, if any. Copy straight into
+     !   distribution directories to save on unnecessary copies and to
+     !   make these available for resolution by other locally built
+     !   packages that are using this one -->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
+       <fileset dir="${src.jars.dir}"/>
+    </copy>
+
+  </target>
+
+  <!--
+   !   ============================
+   !   Create the package jar files
+   !   ============================
+   !
+   !  Creates a jar file from the build.classes directory tree. If
+   !  jars of sub-components are also required these should be also
+   !  created here. Note this requires a manifest file that defines the
+   !  jars that we directly depend on (using relative URLs). The jar
+   !  files should be placed directly in the distribution directories.
+   !-->
+  <target name="jars"
+          depends="build"
+          unless="runonly.install"
+          description="-> creates the package jar file(s)">
+
+    <mkdir dir="${dist.lib.pkg}"/>
+    <jar destfile="${dist.lib.pkg}/${name}.jar"
+         basedir="${build.classes}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
+      </manifest>
+    </jar>
+
+    <!-- Sign all jar files -->
+    <signjar jar="${dist.lib.pkg}/${name}.jar"
+             alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"/>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
+   !-->
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this class library.
+     !   This goes into "dist.lib" -->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+
+      <information>
+         <title>{Package} - {description}</title>
+         <vendor>Starlink UK</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>"Starlink {Package} - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+
+       <security>
+          <all_permissions/>
+       </security>
+
+       <resources>
+         <j2se version="1.5+"/>
+
+         <!-- Define the main library jar file -->
+         <jar href="${name}/${name}.jar"/>
+
+         <!-- Name any extension packages we directly depend on -->
+         <extension name="{EXT1}" href="{ext1}.jnlp"/>
+         <extension name="{EXT2}" href="{ext2}.jnlp"/>
+       </resources>
+
+       <!-- This is a component -->
+       <component_desc/>
+
+     </jnlp>
+
+  </target>
+
+  <!--
+   !   =================================
+   !   Configures the local distribution
+   !   =================================
+   !
+   !  Completes the creation of the local distribution into the
+   !  directory "dist.dir" (usually the current directory).
+   !  Installations and exports are based on the state of this
+   !  distribution, so it must be performed before installation or
+   !  export. If the "runonly.install" parameter is set then this
+   !  target is skipped (needed for releases that do not have
+   !  source). Much of the work of getting the distribution
+   !  directories into the correct state is performed by the dependency
+   !  targets.
+   !-->
+  <target name="dist"
+          depends="build,jars,javadocs,webstart"
+          unless="runonly.install"
+          description="-> configures the local binary distribution">
+
+    <!-- Make sure all the distribution directories exist -->
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="${dist.bin.pkg}"/>
+    <mkdir dir="${dist.lib.pkg}"/>
+    <mkdir dir="${dist.docs.pkg}"/>
+    <mkdir dir="${dist.etc.pkg}"/>
+
+    <!-- Copy any configuration/helper scripts etc. -->
+    <copy todir="${dist.bin.pkg}">
+      <fileset dir="${script.dir}/" />
+    </copy>
+
+    <!-- Copy extra documentation, note doesn't include javadocs these
+     !   are generated from the source-->
+    <copy todir="${dist.docs.pkg}">
+      <fileset dir="${src.docs}"/>
+    </copy>
+
+    <!-- Set permissions on contents of distribution directories -->
+    <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
+           failonerror="${chmod.fail}"/>
+    <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
+           failonerror="${chmod.fail}"/>
+    <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
+       <fileset dir="${dist.bin}"/>
+    </chmod>
+
+  </target>
+
+  <!--
+   !   ========================
+   !   Create the full releases
+   !   ========================
+   !
+   !  Creates the full "zip", "tar" and "bzip" archives of the
+   !  products of the "dist" target and the source directory.
+   !  The archives are designed to be unpacked such that the resultant
+   !  directory layout can be either used as a local distribution, or
+   !  installed into a Starlink tree (installation requires the
+   !  Starlink modified version of ANT, use as a local distribution
+   !  may need special handling of the extension path). This version
+   !  can also be used to rebuild the package from source.
+   !
+   !  The archive names are ${dist.version}.<ext>.
+   !-->
+  <target name="export"
+          description="-> creates the full distribution archives">
+
+    <antcall target="create_archives">
+      <param name="source.required" value="true"/>
+      <param name="binary.required" value="true"/>
+      <param name="archive.name" value="${dist.version}"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   !   ==========================
+   !   Create the source releases
+   !   ==========================
+   !
+   !  Creates the source only "zip", "tar" and "bzip" archives.
+   !  These can be used to rebuild the package (requires the Starlink
+   !  modified version of ANT).
+   !
+   !  The archive names are ${dist.version}-src.<ext>.
+   !-->
+  <target name="export-source"
+          description="-> creates the source distribution archives">
+
+     <antcall target="create_archives">
+      <param name="source.required" value="true"/>
+      <param name="archive.name" value="${dist.version}-src"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   !   ===========================
+   !   Create the runonly releases
+   !   ===========================
+   !
+   !  Creates the runonly "zip", "tar" and "bzip" archives of the
+   !  products of the "dist" target. The archives are designed to be
+   !  unpacked such that the resultant directory layout can be either
+   !  used as a local distribution, or installed into a Starlink tree
+   !  (installation requires the Starlink modified version of ANT).
+   !
+   !  The archive names are ${dist.version}-bin.<ext>.
+   !-->
+  <target name="export-runonly"
+          description="-> creates the runonly distribution archives">
+
+     <antcall target="create_archives">
+      <param name="binary.required" value="true"/>
+      <param name="archive.name" value="${dist.version}-bin"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   ! Create release archives of the various types required. Use this
+   ! by an <antcall> and set the property "archive.name" to define what
+   ! name to use for the outfile files. The archives are written into
+   ! the directory ${star.archive.dir} (the local directory by default).
+   !
+   ! If the property "binary.required" is set then the files needed
+   ! for a run-only release are included and if "source.required" is
+   ! defined the source code is also included.
+   !-->
+  <target name="create_archives"
+          depends="dist">
+
+    <mkdir dir="${star.archive.dir}"/>
+
+    <zip destfile="${star.archive.dir}/${archive.name}.zip">
+
+      <!-- All releases have the documentation and build file -->
+      <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
+      <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
+
+      <zipfileset dir="${dist.bin}" prefix="${name}/bin">
+        <include name="**" if="binary.required"/>
+      </zipfileset>
+      <zipfileset dir="${dist.lib}" prefix="${name}/lib">
+        <include name="**" if="binary.required"/>
+      </zipfileset>
+      <zipfileset dir="${dist.etc}" prefix="${name}/etc">
+        <include name="**" if="binary.required"/>
+      </zipfileset>
+
+      <zipfileset dir="${src.dir}" prefix="${name}/src">
+        <include name="**" if="source.required"/>
+
+        <!-- Exclude local development support from distribution-->
+        <exclude name="local/**" if="source.required"/>
+      </zipfileset>
+
+    </zip>
+
+    <!-- Note: creating a tar file with empty directories doesn't
+     !   work, so the directory structure may be incomplete -->
+    <tar longfile="gnu" destfile="${archive.name}.tar">
+
+      <!-- All releases have the documentation and build file -->
+      <tarfileset dir="${dist.docs}" prefix="${name}/docs"/>
+      <tarfileset dir="${dist.dir}" prefix="${name}">
+        <include name="build.xml"/>
+      </tarfileset>
+
+      <tarfileset dir="${dist.bin}" prefix="${name}/bin">
+        <include name="**" if="binary.required"/>
+      </tarfileset>
+      <tarfileset dir="${dist.lib}" prefix="${name}/lib">
+        <include name="**" if="binary.required"/>
+      </tarfileset>
+      <tarfileset dir="${dist.etc}" prefix="${name}/etc">
+        <include name="**" if="binary.required"/>
+      </tarfileset>
+
+      <tarfileset dir="${src.dir}" prefix="${name}/src">
+        <include name="**" if="source.required"/>
+        <exclude name="local/**" if="source.required"/>
+      </tarfileset>
+
+    </tar>
+
+    <gzip zipfile="${star.archive.dir}/${archive.name}.tar.gz"
+          src="${archive.name}.tar"/>
+    <bzip2 zipfile="${star.archive.dir}/${archive.name}.tar.bz2"
+           src="${archive.name}.tar"/>
+    <delete file="${archive.name}.tar"/>
+
+  </target>
+
+  <!--
+   !   ============================================
+   !   Cleans up build and distribution directories
+   !   ============================================
+   !-->
+  <target name="clean"
+          description="-> cleans up build and dist products">
+
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.bin}"/>
+    <delete dir="${dist.lib}"/>
+    <delete dir="${dist.docs}"/>
+    <delete dir="${dist.etc}"/>
+
+  </target>
+
+  <!--
+   !   ================================
+   !   Install into the "Starlink" tree
+   !   ================================
+   !
+   ! Installs the "dist" target products into another set of
+   ! directories.
+   !
+   ! An installed system is potentially "undoable" as the copied names
+   ! and package-specific directories are logged to "${install.log}".
+   !-->
+  <target name="install"
+          depends="dist"
+          description="-> installs distribution">
+
+    <!-- Installation based directories (based on "star.install")-->
+    <property name="star.bin" value="${star.install}/bin"/>
+    <property name="star.lib" value="${star.install}/lib"/>
+    <property name="star.etc" value="${star.install}/etc"/>
+    <property name="star.docs" value="${star.install}/docs"/>
+    <property name="star.bin.pkg" value="${star.bin}/${name}"/>
+    <property name="star.lib.pkg" value="${star.lib}/${name}"/>
+    <property name="star.etc.pkg" value="${star.etc}/${name}"/>
+    <property name="star.docs.pkg" value="${star.docs}/${name}"/>
+    <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
+    <mkdir dir="${star.install}"/>
+    <mkdir dir="${star.bin.pkg}"/>
+    <mkdir dir="${star.lib.pkg}"/>
+    <mkdir dir="${star.etc.pkg}"/>
+    <mkdir dir="${star.docs.pkg}"/>
+
+    <!-- Note: if you uncomment any of the following (reasonable since
+     !   the class library may not have any scripts), then make sure
+     !   that the first loggedcopy has logfileAppend="false" so that
+     !   the copy logfile is initialised -->
+    <loggedcopy todir="${star.bin}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="false">
+      <fileset dir="${dist.bin}"/>
+    </loggedcopy>
+
+    <chmod perm="ugo+rx" failonerror="${chmod.fail}">
+      <fileset dir="${star.bin}">
+        <present targetdir="${dist.bin}" present="both"/>
+      </fileset>
+    </chmod>
+
+    <loggedcopy todir="${star.lib}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.lib}">
+        <include name="**/*.jnlp"/>
+        <include name="**/*.jar"/>
+        <include name="**/*.zip"/>
+      </fileset>
+    </loggedcopy>
+
+    <!-- Also remove the package-specific directory.
+     !   Note exact format is required.-->
+    <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
+
+    <loggedcopy todir="${star.docs}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.docs}" excludes="${unfiltered.files}"/>
+      <filterchain refid="filters"/>
+    </loggedcopy>
+
+    <loggedcopy todir="${star.docs}" filtering="false"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.docs}" includes="${unfiltered.files}"/>
+    </loggedcopy>
+
+    <!-- Also remove the package-specific directory-->
+    <echo file="${install.log}" append="true">${star.docs.pkg}
+</echo>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Install runonly into the "Starlink" tree
+   !   ========================================
+   !
+   ! Do an install using only the contents of a binary release (a
+   ! source-free runonly system).
+   !-->
+  <target name="install-runonly"
+          description="-> install a runonly distribution into Starlink tree">
+
+     <!-- Make sure that the expected file structure exists, some
+          of these files can be missing if originally empty -->
+     <mkdir dir="${dist.dir}"/>
+     <mkdir dir="${dist.bin.pkg}"/>
+     <mkdir dir="${dist.lib.pkg}"/>
+     <mkdir dir="${dist.docs.pkg}"/>
+     <mkdir dir="${dist.etc.pkg}"/>
+
+     <!-- Do normal install, but with many targets switched off-->
+     <antcall target="install">
+      <param name="runonly.install" value="true"/>
+      <param name="javadoc.notrequired" value="true"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   !   ===================================
+   !   De-install from the "Starlink" tree
+   !   ===================================
+   !
+   !  Uses the content of the "${install.log}" to remove the files
+   !  that were copied into place by the install target. If this fails
+   !  then hopefully the log file will not be deleted!
+   !-->
+  <target name="deinstall"
+          description="-> undo the install target">
+
+    <available file="${install.log}" property="install.log.present"/>
+
+    <antcall target="real_deinstall"/>
+
+  </target>
+
+  <!-- Real deinstall target. Only activated if "install.log.present"
+   !   is defined -->
+  <target name="real_deinstall"
+          if="install.log.present">
+
+    <loadfile property="files" srcFile="${install.log}"/>
+    <listdelete>
+      <filelist dir="/" files="${files}"/>
+    </listdelete>
+
+    <delete file="${install.log}"/>
+
+  </target>
+
+  <!--
+   !   =============================
+   !   Creates the API documentation
+   !   =============================
+   !
+   !  Create documentation from the Java sources. Additional
+   !  documentation is kept in the ${src.docs} directory.
+   !-->
+  <target name="javadocs"
+          depends="prepare,javadoc_check"
+          unless="javadoc.notrequired"
+          description="-> creates the API documentation">
+
+    <mkdir dir="${dist.javadocs}"/>
+    <javadoc useexternalfile="yes"
+             destdir="${dist.javadocs}"
+             author="true"
+             version="true"
+             locale="en"
+             windowtitle="${Name} API"
+             doctitle="${Name}"
+             defaultexcludes="yes"
+             source="${source.version}"
+             classpathref="classpath">
+
+      <!-- Get a list of directories that name all the potential
+       !   java packages -->
+      <packageset dir="${java.dir}" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <!-- Link to the full Java API at SUNs website -->
+      <link offline="true" href="${javaapi.url}"
+            packagelistLoc="${javaapi.lis}"/>
+
+      <group title="${Name} API" packages="${package.name}*"/>
+
+      <bottom><![CDATA[<i>Copyright &#169; ${year} Central Laboratory of the Research Councils. All Rights Reserved.<i>]]></bottom>
+    </javadoc>
+
+  </target>
+
+  <!-- This checks if the javadocs are up to date with respect to the
+   !   java source, if so then the "javadoc.notrequired" variable is
+   !   set true. Note this is check is not performed if
+   !   javadoc.notrequired is already set (by .properties) -->
+  <target name="javadoc_check"
+          unless="javadoc.notrequired">
+
+    <uptodate property="javadoc.notrequired"
+              targetfile="${dist.javadocs}/packages.html" >
+        <srcfiles dir= "${java.dir}" includes="**/*.java"/>
+    </uptodate>
+
+  </target>
+
+  <!--
+   !   =========================================
+   !   Makes the API java source files available
+   !   =========================================
+   !
+   !  The full API documentation is created from all the various
+   !  packages (of which this package is just one). This target makes
+   !  the source code that should be used in the full public API
+   !  available in a special part of the build tree so that it can be
+   !  automatically discovered. This method works around two potential
+   !  problems, not all source code the in src/main directories should be
+   !  in the API docs, and it's not possible to make this distinction
+   !  easily outside this package (cannot pass out a fileset), plus
+   !  some code is generated, so cannot be located by scanning the
+   !  src/main tree. When javadocs can be generated incrementally this
+   !  arrangement should be reworked to generate whatever is needed as
+   !  part of the javadocs target.
+   !-->
+  <target name="javadoc-sources"
+          description="-> make source files for release API documention">
+
+    <mkdir dir="${build.java}"/>
+
+    <!-- Copy and/or generate the source to be included when creating
+     !   the full Starlink API javadocs-->
+    <copy todir="${build.java}">
+      <fileset dir="${java.dir}" defaultexcludes="yes">
+          <exclude name="**/README"/>
+      </fileset>
+    </copy>
+
+  </target>
+
+  <!--
+   !   =================
+   !   Compile testcases
+   !   =================
+   !-->
+  <target name="compile-tests"
+          depends="build"
+          if="junit.present">
+
+    <mkdir dir="${build.tests}"/>
+
+    <javac srcdir="${tests.dir}"
+           destdir="${build.tests}"
+           debug="${debug}"
+           source="${source.version}"
+           deprecation="${deprecation}" >
+
+      <classpath refid="tests-classpath"/>
+
+    </javac>
+
+  </target>
+
+  <!--
+   !   ============
+   !   Run testcase
+   !   ============
+   !-->
+  <target name="test"
+          depends="run-tests"
+          description="-> run JUnit tests"/>
+
+  <target name="run-tests"
+          depends="compile-tests"
+          if="junit.present">
+
+    <junit printsummary="${junit.summary}" haltonfailure="yes"
+           filtertrace="${junit.filtertrace}"
+           fork="${junit.fork}">
+
+      <classpath refid="tests-classpath"/>
+
+      <jvmarg value="${junit.assertions}"/>
+
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+
+      <formatter type="brief" usefile="false"/>
+
+      <batchtest>
+        <fileset dir="${tests.dir}">
+          <include name="**/JUnit*"/>
+        </fileset>
+      </batchtest>
+
+    </junit>
+
+  </target>
+
+  <target name="run-single-test"
+          if="testcase"
+          depends="compile-tests"
+          description="-> runs the single unit test defined in the testcase property">
+
+    <junit printsummary="${junit.summary}"
+          haltonfailure="yes"
+          fork="${junit.fork}"
+          filtertrace="${junit.filtertrace}">
+
+      <sysproperty key="hdx.home" value="${hdx.home}"/>
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
+      <formatter type="plain" usefile="false"/>
+      <test name="${testcase}"/>
+
+    </junit>
+
+  </target>
+
+  <!--
+   ! Get a DTD for this build file. Documentation suggests may be incomplete!
+   !
+   ! Use:
+   !
+   !    <!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "./project.dtd">
+   !
+   ! at head of document to include.
+   !-->
+  <target name="dtd">
+     <antstructure output="project.dtd"/>
+  </target>
+
+</project>
