@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   {Package} build file
+ !   AUTH build file
  !
- !   This file describes how to build and install {Package} from
- !   source and binary releases. {Package} is a class library
+ !   This file describes how to build and install AUTH from
+ !   source and binary releases. AUTH is a class library
  !   (i.e. provides an API and related documentation).
  !
  !   The main targets are:
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for AUTH" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,18 +77,18 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
-  <property name="version" value="1.0"/>
+  <property name="Name" value="AUTH"/>
+  <property name="name" value="auth"/>
+  <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="{package.path}"/>
+  <property name="package.name" value="uk.ac.starlink.auth"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
-  <property name="deprecation" value="false"/>
+  <property name="deprecation" value="true"/>
   <property name="optimize" value="true"/>
-  <property name="source.version" value="1.5"/>
+  <property name="source.version" value="1.8"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -197,12 +197,6 @@
    !   path.
    !-->
   <extclasspath id="installed.classpath">
-
-    <!-- {Other packages} -->
-    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
-    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
-
-    <!-- {More packages} -->
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -211,27 +205,7 @@
    !   not been installed (should be same packages as in installed.classpath).
    !-->
   <extclasspath id="built.jarpath">
-
-    <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
-    <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
-
-    <!-- {More packages} -->
   </extclasspath>
-
-  <!-- Find all local third party jars files.
-   !
-   !   Normally these will be kept in their own third party package, but may
-   !   be kept here temporarily, say if there are version conflicts that
-   !   cannot be addressed. They are installed with the package jar files and
-   !   should be entered into the main jar file manifest.
-   !-->
-  <path id="package.jars">
-     <fileset dir="${src.jars.dir}">
-        <include name="*.jar"/>
-     </fileset>
-  </path>
 
   <!-- Create the local build system CLASSPATH.
    !
@@ -259,9 +233,6 @@
    !        without having them all installed)
    !-->
   <path id="built.classpath">
-
-    <!-- Third party jars held by this package -->
-    <path refid="package.jars"/>
 
     <!-- All classes in the local build system -->
     <dirset dir="${star.build.dir}">
@@ -317,28 +288,6 @@
   <property name="tests-classpath.value" refid="tests-classpath"/>
 
   <!--
-   !    ============
-   !    Library path
-   !    ============
-   !    Used by test targets for locating native libraries.
-   !-->
-  <path id="tests-libpath.id">
-    <pathelement path="${java.library.path}"/>
-    <pathelement location="${star.jar.dir}/${os.arch}"/>
-  </path>
-  <property name="tests-libpath" refid="tests-libpath.id"/>
-
-  <!--
-   !    ===============
-   !    Extension tasks
-   !    ===============
-   !    Add any local or extension ANT tasks that are required. Local
-   !    tasks should be moved into the ANT package if used outside of this
-   !    package. 
-   !-->
-  <taskdef resource="axis-tasks.properties" classpathref="classpath"/>
-
-  <!--
    !    =========================================
    !    Check availability of direct dependencies
    !    =========================================
@@ -349,22 +298,6 @@
    !-->
   <target name="check_packages"
           unless="runonly.install">
-
-    <!--  {Example package1} -->
-    <available property="{package1}.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package1} available" unless="{package1}.present"/>
-
-    <!--  {Example package2} -->
-    <available property="{package2}.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package2} available" unless="{package2}.present"/>
-
-    <!-- {More critical dependencies} -->
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -421,6 +354,7 @@
            deprecation="${deprecation}"
            source="${source.version}"
            optimize="${optimize}">
+      <compilerarg value="-Xlint:all,-path,-serial"/>
 
       <classpath refid="classpath"/>
 
@@ -434,21 +368,25 @@
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+  <!--
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
         <include name="**/{package.support.files}"/>
         <include name="**/{more.package.support.files}"/>
       </fileset>
     </copy>
+   -->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
+    <!--
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+    -->
 
   </target>
 
@@ -473,17 +411,20 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" value="${jar.class.path}"/>
+  <!--  <attribute name="Class-Path" value="${jar.class.path}"/>  -->
       </manifest>
     </jar>
 
     <!-- Sign all jar files -->
+    <antcall target="signjars"/>
+  </target>
+
+  <target name="signjars" if="sign.jars">
     <signjar jar="${dist.lib.pkg}/${name}.jar"
              alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}"/>
-
   </target>
 
   <!--
@@ -501,11 +442,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
+         <title>AUTH - VO authentication classes</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink {Package} - Webstart edition"</description>
+         <description>"Starlink AUTH - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
@@ -514,7 +455,7 @@
        </security>
 
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.8+"/>
 
          <!-- Define the main library jar file -->
          <jar href="${name}/${name}.jar"/>
@@ -553,30 +494,34 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
 
     <!-- Copy any configuration/helper scripts etc. -->
+   <!--
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
+   !-->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
+   <!--
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
+    !-->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
+   <!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
+    !-->
 
   </target>
 
@@ -672,15 +617,19 @@
       <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
       <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
 
+     <!--
       <zipfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
       </zipfileset>
+      !-->
       <zipfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </zipfileset>
+     <!--
       <zipfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
       </zipfileset>
+      !-->
 
       <zipfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -701,15 +650,19 @@
         <include name="build.xml"/>
       </tarfileset>
 
+     <!--
       <tarfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
       </tarfileset>
+      !-->
       <tarfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </tarfileset>
+     <!--
       <tarfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
       </tarfileset>
+      !-->
 
       <tarfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -768,15 +721,14 @@
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
     <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
     <mkdir dir="${star.install}"/>
-    <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
 
     <!-- Note: if you uncomment any of the following (reasonable since
      !   the class library may not have any scripts), then make sure
      !   that the first loggedcopy has logfileAppend="false" so that
      !   the copy logfile is initialised -->
+    <!--
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -789,11 +741,12 @@
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
+    !-->
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}">
         <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
@@ -841,10 +794,8 @@
      <!-- Make sure that the expected file structure exists, some
           of these files can be missing if originally empty -->
      <mkdir dir="${dist.dir}"/>
-     <mkdir dir="${dist.bin.pkg}"/>
      <mkdir dir="${dist.lib.pkg}"/>
      <mkdir dir="${dist.docs.pkg}"/>
-     <mkdir dir="${dist.etc.pkg}"/>
 
      <!-- Do normal install, but with many targets switched off-->
      <antcall target="install">
@@ -910,6 +861,7 @@
              defaultexcludes="yes"
              source="${source.version}"
              classpathref="classpath">
+      <arg value="-Xdoclint:all,-missing"/>
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->
@@ -921,9 +873,11 @@
       <link offline="true" href="${javaapi.url}"
             packagelistLoc="${javaapi.lis}"/>
 
-      <group title="${Name} API" packages="${package.name}*"/>
+   <!--
+    ! <group title="${Name} API" packages="${package.name}*"/>
 
-      <bottom><![CDATA[<i>Copyright &#169; ${year} Central Laboratory of the Research Councils. All Rights Reserved.<i>]]></bottom>
+    ! <bottom><![CDATA[<i>Copyright &#169; ${year} Central Laboratory of the Research Councils. All Rights Reserved.<i>]]></bottom>
+    !-->
     </javadoc>
 
   </target>
@@ -1029,12 +983,11 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/JUnit*"/>
+          <include name="**/*Test.java"/>
         </fileset>
       </batchtest>
 
     </junit>
-
   </target>
 
   <target name="run-single-test"
