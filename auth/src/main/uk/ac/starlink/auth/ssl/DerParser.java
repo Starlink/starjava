@@ -1,4 +1,4 @@
-package sslUtil;
+package uk.ac.starlink.auth.ssl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

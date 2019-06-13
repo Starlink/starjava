@@ -1,4 +1,4 @@
-package sslUtil;
+package uk.ac.starlink.auth.ssl;
 
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;

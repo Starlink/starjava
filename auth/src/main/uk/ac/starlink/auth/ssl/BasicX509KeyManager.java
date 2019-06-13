@@ -1,4 +1,4 @@
-package sslUtil;
+package uk.ac.starlink.auth.ssl;
 
 import java.net.Socket;
 import java.security.Principal;
