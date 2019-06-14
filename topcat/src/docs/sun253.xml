@@ -28538,6 +28538,8 @@ introduced since the last version:
         sometimes forced to single-character values.</li>
     <li>Update mapped file unmapping implementation to work 
         for java9+.</li>
+    <li>Minor changes to behaviour when querying TAP 1.1 services
+        (REQUEST parameter is omitted).</li>
     </ul>
     </p></dd>
 

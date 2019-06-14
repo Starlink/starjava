@@ -12144,6 +12144,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         sometimes forced to single-character values.</li>
     <li>Update mapped file unmapping implementation to work
         for java9+.</li>
+    <li>Some <code>taplint</code> enhancements: add some new general tests,
+        and some only used when testing TAP 1.1 services.</li>
+    <li>Minor changes to behaviour when querying TAP 1.1 services
+        (REQUEST parameter is omitted).</li>
+    <li>New parameter <code>interface</code> added to TAP query tasks
+        <code>tapquery</code>, <code>tapskymatch</code> and
+        <code>taplint</code>.  This can control how TAP version
+        is determined.</li>
     </ul>
     </p></dd>
 
