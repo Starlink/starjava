@@ -51,7 +51,8 @@ public class UsageWriter {
         outln( "\"<code>stilts</code>\" - see <ref id=\"invoke\"/>." );
         outln( "The available <code>&lt;stilts-flags&gt;</code> are listed" );
         outln( "in <ref id=\"stilts-flags\"/>." );
-        outln( "For programmatic invocation, the Task class for this" );
+        outln( "For <ref id=\"taskApi\">programmatic invocation</ref>," );
+        outln( "the Task class for this" );
         outln( "command is <code>" + task_.getClass().getName() + "</code>." );
         outln( "</p>" );
         outln();
