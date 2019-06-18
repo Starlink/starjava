@@ -44,6 +44,7 @@
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY cdsskymatch-summary SYSTEM 'cdsskymatch-summary.xml'>
+  <!ENTITY cone-summary SYSTEM 'cone-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY datalinklint-summary SYSTEM 'datalinklint-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
@@ -259,6 +260,7 @@ same ground as the STIL and TOPCAT user documents
 <dt>Virtual Observatory access</dt>
 <dd><p>
     <ref id="cdsskymatch"><code>cdsskymatch</code></ref>,
+    <ref id="cone"><code>cone</code></ref>,
     <ref id="coneskymatch"><code>coneskymatch</code></ref>,
     <ref id="tapquery"><code>tapquery</code></ref>,
     <ref id="tapresume"><code>tapresume</code></ref>,
@@ -494,6 +496,7 @@ the available tasks are:
 <ul>
 <li><code>calc</code></li>
 <li><code>cdsskymatch</code></li>
+<li><code>cone</code></li>
 <li><code>coneskymatch</code></li>
 <li><code>datalinklint</code></li>
 <li><code>funcs</code></li>
@@ -2039,6 +2042,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="plot3d"><code>plot3d</code></ref>,
            <ref id="plothist"><code>plothist</code></ref>,
            <ref id="cdsskymatch"><code>cdsskymatch</code></ref>,
+           <ref id="cone"><code>cone</code></ref>,
            <ref id="coneskymatch"><code>coneskymatch</code></ref>,
            <ref id="sqlskymatch"><code>sqlskymatch</code></ref>,
            <ref id="tapquery"><code>tapquery</code></ref>,
@@ -4961,6 +4965,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="cdsskymatch" plaintextref="yes"><code>cdsskymatch</code></ref>:
         &cdsskymatch-purpose;
         </li>
+    <li><ref id="cone" plaintextref="yes"><code>cone</code></ref>:
+        &cone-purpose;
+        </li>
     <li><ref id="coneskymatch"
              plaintextref="yes"><code>coneskymatch</code></ref>:
         &coneskymatch-purpose;
@@ -5178,6 +5185,81 @@ stilts cdsskymatch in=3XMM_DR4cat_slim_v1.0.fits
     result to include only those sources identified as being of
     spectral type G.  Thanks to Ada Nebot (CDS) for this example.
     </p></dd>
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="cone" tocleaf="yes">
+<subhead><title><code>cone</code>: &cone-purpose;</title></subhead>
+
+<p><code>cone</code> is a utility to execute one of the
+"Simple" positional DAL query operations on a remote server:
+<webref url="http://www.ivoa.net/documents/latest/ConeSearch.html"
+        >Simple Cone Search</webref>,
+<webref url="http://www.ivoa.net/documents/SIA/"
+        >Simple Image Access</webref> (SIA) or
+<webref url="http://www.ivoa.net/documents/SSA/"
+        >Simple Spectral Access</webref> (SSA).
+The job it does is not very complicated: given a base URL for
+a service of one of these types and values for the central position
+and radius required, it assembles the query URL in the form required
+for the relevant protocol, retrieves the result of the query,
+and turns it into a table which can be operated on with the usual
+STILTS <ref id="pipes">pipeline operations</ref>.
+</p>
+
+&cone-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>cone</code>:
+<dl>
+
+<dt><verbatim><![CDATA[
+stilts cone serviceurl=http://gaia.ari.uni-heidelberg.de/cone/search
+            lon=56.75 lat=24.12 radius=0.8
+            out=pleiades.fits
+]]></verbatim></dt>
+<dd><p>Queries the ARI-Gaia cone search service for
+    sources within 0.8 of the given sky position,
+    and writes the result to a file.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+stilts cone serviceurl=http://gaia.ari.uni-heidelberg.de/cone/search
+            lon=56.75 lat=24.12 radius=0.8
+            verb=1
+            ocmd='sorthead 10 phot_g_mean_mag'
+            ocmd='keepcols "source_id ra dec phot_g_mean_mag"'
+]]></verbatim></dt>
+<dd><p>This does the same basic query as the previous example,
+    but post-processes the result so that a limited amount of data
+    (source identifier, position and magnitude) for only
+    the ten brightest sources is written to the console.
+    Since most of the columns are discarded, we specify
+    <code>verb=1</code> which indicates to the service that only
+    a minimal column set is required in the query result.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+stilts -verbose
+       cone servicetype=ssa serviceurl='http://archive.eso.org/ssap'
+            lon=0 lat=90 radius=1.0 skysys=galactic
+            omode=count
+]]></verbatim></dt>
+<dd><p>Queries the ESO Simple Spectral Access service for spectra
+    within one degree of the northern galactic pole.
+    The <code>omode=count</code> parameter means that it just counts
+    the rows and columns and prints the numbers to the console.
+    The <code>-verbose</code> flag means that (amongst other things)
+    the full URL that the command used to make the query
+    will be logged to the console.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -12152,6 +12234,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>tapquery</code>, <code>tapskymatch</code> and
         <code>taplint</code>.  This can control how TAP version
         is determined.</li>
+    <li>New <ref id="cone"><code>cone</code></ref> command to execute
+        simple spatial DAL queries (SCS, SIA, SSA).</li>
     </ul>
     </p></dd>
 

@@ -97,6 +97,7 @@ public class Stilts {
         String taskPkg = "uk.ac.starlink.ttools.task.";
         taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "cdsskymatch", taskPkg + "CdsUploadSkyMatch" );
+        taskFactory_.register( "cone", taskPkg + "TableCone" );
         taskFactory_.register( "coneskymatch", taskPkg + "MultiCone" );
         taskFactory_.register( "datalinklint", taskPkg + "DatalinkLint" );
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
