@@ -31,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
+import uk.ac.starlink.ttools.plot2.task.SimpleLayerType;
 
 /**
  * Fairly minimal example plotter implementation.
@@ -262,4 +263,13 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
             return color_.hashCode();
         }
     } 
+
+    /**
+     * LayerType corresponding to SpotPlotter.
+     */
+    public static class SpotLayerType extends SimpleLayerType {
+        public SpotLayerType() {
+            super( new SpotPlotter() );
+        }
+    }
 }
