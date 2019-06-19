@@ -227,7 +227,8 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
                 g.fillRect( -1, -1, 3, 3 );
             }
             public Pixer createPixer( Rectangle clip ) {
-                return Pixers.createArrayPixer( xs, ys, np );
+                return Pixers.clip( Pixers.createArrayPixer( xs, ys, np ),
+                                    clip );
             }
         };
     }
