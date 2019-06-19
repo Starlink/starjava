@@ -57,8 +57,8 @@ public class ColumnDataComboBoxModel
     private final TableColumnModel colModel_;
     private final boolean hasNone_;
     private final boolean hasIndex_;
-    private List activeColumns_;
-    private List modelColumns_;
+    private List<ColumnData> activeColumns_;
+    private List<ColumnData> modelColumns_;
     private Object selected_;
 
     private static final Logger logger =
@@ -92,8 +92,8 @@ public class ColumnDataComboBoxModel
 
         /* Set up a list of all the columns in the column model, and all the
          * ones we're using for this model. */
-        activeColumns_ = new ArrayList();
-        modelColumns_ = new ArrayList();
+        activeColumns_ = new ArrayList<ColumnData>();
+        modelColumns_ = new ArrayList<ColumnData>();
         if ( hasNone_ ) {
             activeColumns_.add( null );
         }
@@ -120,7 +120,8 @@ public class ColumnDataComboBoxModel
      * @param   hasIndex  true iff you want an index column entry in the
      *                    selector model
      */
-    public ColumnDataComboBoxModel( TopcatModel tcModel, final Class dataClazz,
+    public ColumnDataComboBoxModel( TopcatModel tcModel,
+                                    final Class<?> dataClazz,
                                     boolean hasNone, boolean hasIndex ) {
         this( tcModel,
               new Filter() {
@@ -139,7 +140,7 @@ public class ColumnDataComboBoxModel
      * @param   tcModel   table model containing columns
      * @param   hasNone   true iff you want a null entry in the selector model
      */
-    public ColumnDataComboBoxModel( TopcatModel tcModel, Class dataClazz,
+    public ColumnDataComboBoxModel( TopcatModel tcModel, Class<?> dataClazz,
                                     boolean hasNone ) {
         this( tcModel, dataClazz, hasNone, false );
     }
@@ -390,7 +391,7 @@ public class ColumnDataComboBoxModel
 
     public void columnRemoved( TableColumnModelEvent evt ) {
         int index = evt.getFromIndex();
-        ColumnData cdata = (ColumnData) modelColumns_.get( index );
+        ColumnData cdata = modelColumns_.get( index );
         modelColumns_.remove( cdata );
         int pos = activeColumns_.indexOf( cdata );
         if ( pos >= 0 ) {
@@ -402,9 +403,9 @@ public class ColumnDataComboBoxModel
     public void columnMoved( TableColumnModelEvent evt ) {
         int from = evt.getFromIndex();
         if ( activeColumns_.contains( modelColumns_.get( from ) ) ) {
-            List oldActive = activeColumns_;
-            activeColumns_ = new ArrayList();
-            modelColumns_ = new ArrayList();
+            List<ColumnData> oldActive = activeColumns_;
+            activeColumns_ = new ArrayList<ColumnData>();
+            modelColumns_ = new ArrayList<ColumnData>();
             if ( hasNone_ ) {
                 activeColumns_.add( null );
             }
@@ -463,7 +464,6 @@ public class ColumnDataComboBoxModel
         comboBox.setEditable( true );
         return comboBox;
     }
-
 
     /**
      * Creates a ColumnData object simply representing a single column
