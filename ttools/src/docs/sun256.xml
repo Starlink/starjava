@@ -12236,6 +12236,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         is determined.</li>
     <li>New <ref id="cone"><code>cone</code></ref> command to execute
         simple spatial DAL queries (SCS, SIA, SSA).</li>
+    <li>Fix plot axis ranging bug: padding was not always applied 
+        properly for logarithmic axes.</li>
     </ul>
     </p></dd>
 

@@ -28540,6 +28540,8 @@ introduced since the last version:
         for java9+.</li>
     <li>Minor changes to behaviour when querying TAP 1.1 services
         (REQUEST parameter is omitted).</li>
+    <li>Fix plot axis ranging bug: padding was not always applied
+        properly for logarithmic axes.</li>
     </ul>
     </p></dd>
 

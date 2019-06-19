@@ -517,7 +517,7 @@ public class PlotUtil {
      * @param  logFlag  true for logarithmic scaling, false for linear
      */
     public static void padRange( Range range, boolean logFlag ) {
-        double[] bounds = range.getBounds();
+        double[] bounds = range.getFiniteBounds( logFlag );
         double lo = bounds[ 0 ];
         double hi = bounds[ 1 ];
         if ( lo < hi ) {
