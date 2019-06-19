@@ -12238,6 +12238,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         simple spatial DAL queries (SCS, SIA, SSA).</li>
     <li>Fix plot axis ranging bug: padding was not always applied 
         properly for logarithmic axes.</li>
+    <li>JEL bug fix update, to avoid unwanted debugging output for
+        String function null returns.</li>
     </ul>
     </p></dd>
 
