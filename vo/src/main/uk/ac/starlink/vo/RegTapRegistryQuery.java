@@ -93,18 +93,19 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * Query restriction restricting results to standard interfaces.
      * This string is suitable for use in a sequence of ANDed conditions
      * (but not at the start of it) without additional brackets.
-     *
-     * <p>You might argue from looking at VOResource that the condition
-     * for this should be "intf_role LIKE 'std:%'".
-     * However, most registry records don't do that right, so following
-     * the recommendation in RegTAP 1.0 Section 10, we do as below instead.
-     * You want to restrict it somehhow, otherwise you can get
+     * You want to make this restriction somehow, otherwise you can get
      * interfaces with an intf_type of vs:webbrowser
      * (e.g. for TAP web pages alongside the programmatic interface),
      * which you don't want to pick up.
+     *
+     * <p>This used to test "<code>intf_type='vs:paramhttp'</code>",
+     * following RegTAP 1.0 section 10.
+     * However, following RegTAP 1.1, and associated cleanup of the
+     * contents of all the running searchable registries,
+     * it is now considered safe and preferable to use the more obvious
+     * form "<code>intf_role='std'</code>".
      */
-    private static final String AND_IS_STANDARD =
-        " AND intf_type='vs:paramhttp'";
+    private static final String AND_IS_STANDARD = " AND intf_role='std'";
 
     /**
      * Constructs a query which will return RegResource lists for

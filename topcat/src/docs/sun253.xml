@@ -28688,6 +28688,12 @@ introduced since the last version:
     <li>Fix load error encountered when specifying a Cone Search
         service by URL rather than selecting from a registry query list.
         This was a regression error since v4.6-2.</li>
+    <li>Registry queries for standard services now search for
+        <code>intf_role='std'</code> instead of
+        <code>intf_type='vs:paramhttp'</code>,
+        which is the recommended pattern for RegTAP 1.1,
+        and believed to work for current contents of known
+        searchable registries.</li>
     </ul>
     </p></dd>
 
