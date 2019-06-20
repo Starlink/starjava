@@ -28544,6 +28544,9 @@ introduced since the last version:
         properly for logarithmic axes.</li>
     <li>JEL bug fix update, to avoid unwanted debugging output for
         String function null returns.</li>
+    <li>New functions <code>bibcodeUrl</code>, <code>doiUrl</code>
+        and <code>arxivUrl</code>
+        in class <ref id="Strings">Strings</ref>.</li>
     </ul>
     </p></dd>
 

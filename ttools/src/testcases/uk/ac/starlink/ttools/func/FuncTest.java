@@ -638,6 +638,23 @@ public class FuncTest extends TestCase {
         assertEquals( null, Strings.desigToIcrs( "NGC 4993" ) );
         assertTrue( Double.isNaN( Strings.desigToRa( "HIP Z190012-230210" ) ) );
         assertTrue( Double.isNaN( Strings.desigToDec( "TYC J190012230210" ) ) );
+
+        assertEquals( "https://ui.adsabs.harvard.edu/abs/2018A%26A...616A...2L",
+                      Strings.bibcodeUrl( "2018A&A...616A...2L" ) );
+        assertEquals( null, Strings.bibcodeUrl( null ) );
+        assertEquals( null, Strings.bibcodeUrl( "Fredor" ) );
+        assertEquals( "https://doi.org/10.3390/informatics4030018",
+                      Strings.doiUrl( "10.3390/informatics4030018" ) );
+        assertEquals( "https://doi.org/10.3390/informatics4030018",
+                      Strings.doiUrl( "doi:10.3390/informatics4030018" ) );
+        assertEquals( null, Strings.doiUrl( "Fredor" ) );
+        assertEquals( null, Strings.doiUrl( null ) );
+        assertEquals( "https://arxiv.org/abs/1804.09379",
+                      Strings.arxivUrl( "1804.09379" ) );
+        assertEquals( "https://arxiv.org/abs/1804.09379",
+                      Strings.arxivUrl( "arXiv:1804.09379" ) );
+        assertEquals( null, Strings.arxivUrl( null ) );
+        assertEquals( null, Strings.arxivUrl( "Fredor" ) );
     }
 
     private void checkDesig( String raSex, String decSex, String desig ) {
