@@ -25,6 +25,7 @@ import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * ActivationType for displaying an image in the internal viewer.
@@ -115,8 +116,9 @@ public class GenericViewImageActivationType implements ActivationType {
                 queryPanel.add( Box.createVerticalStrut( 5 ) );
             }
             if ( hasViewerChoice_ ) {
-                getQueryPanel().add( new LineBox( "Image Viewer",
-                                                  viewerSelector_ ) );
+                getQueryPanel()
+               .add( new LineBox( "Image Viewer",
+                                  new ShrinkWrapper( viewerSelector_ ) ) );
             }
         }
         public Activator createActivator( ColumnData locCdata ) {

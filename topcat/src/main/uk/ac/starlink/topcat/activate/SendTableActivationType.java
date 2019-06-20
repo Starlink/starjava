@@ -10,6 +10,7 @@ import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * ActivationType for sending a VOTable to an external application.
@@ -65,8 +66,9 @@ public class SendTableActivationType implements ActivationType {
             JComboBox viewerSelector =
                 new JComboBox( votableSender_.getClientSelectionModel() );
             viewerSelector.addActionListener( forwarder );
-            getQueryPanel().add( new LineBox( "Table Viewer",
-                                              viewerSelector ) );
+            getQueryPanel()
+           .add( new LineBox( "Table Viewer",
+                              new ShrinkWrapper( viewerSelector ) ) );
         }
 
         protected Activator createActivator( final ColumnData cdata ) {

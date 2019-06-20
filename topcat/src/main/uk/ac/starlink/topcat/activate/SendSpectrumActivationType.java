@@ -20,6 +20,7 @@ import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * ActivationType for displaying a spectrum in an external viewer.
@@ -80,8 +81,9 @@ public class SendSpectrumActivationType implements ActivationType {
             JComboBox viewerSelector =
                 new JComboBox( specSender_.getClientSelectionModel() );
             viewerSelector.addActionListener( forwarder );
-            getQueryPanel().add( new LineBox( "Spectrum Viewer",
-                                              viewerSelector ) );
+            getQueryPanel()
+           .add( new LineBox( "Spectrum Viewer",
+                              new ShrinkWrapper( viewerSelector ) ) );
         }
 
         protected Activator createActivator( final ColumnData cdata ) {

@@ -10,6 +10,7 @@ import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * ActivationType for displaying a FITS image in an external viewer.
@@ -65,8 +66,9 @@ public class SendImageActivationType implements ActivationType {
             JComboBox viewerSelector =
                  new JComboBox( imageSender_.getClientSelectionModel() );
             viewerSelector.addActionListener( forwarder );
-            getQueryPanel().add( new LineBox( "Image Viewer",
-                                              viewerSelector ) );
+            getQueryPanel()
+           .add( new LineBox( "Image Viewer",
+                              new ShrinkWrapper( viewerSelector ) ) );
         }
 
         protected Activator createActivator( final ColumnData cdata ) {

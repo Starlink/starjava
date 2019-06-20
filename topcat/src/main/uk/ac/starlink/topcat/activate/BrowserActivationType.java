@@ -4,15 +4,14 @@ import java.awt.Desktop;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.Box;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.HtmlWindow;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * ActivationType for displaying a resource in a browser.
@@ -58,18 +57,14 @@ public class BrowserActivationType implements ActivationType {
         BrowserColumnConfigurator( TopcatModelInfo tinfo, Browser[] browsers ) {
             super( tinfo, "Web Page",
                    new ColFlag[] { ColFlag.HTML, ColFlag.URL, } );
-            JComponent queryPanel = getQueryPanel();
             browserChooser_ = new JComboBox();
             for ( Browser b : browsers ) {
                 browserChooser_.addItem( b );
             }
             browserChooser_.addActionListener( getActionForwarder() );
-            JLabel browserLabel = new JLabel( "Browser Type: " );
-            JComponent browserBox = Box.createHorizontalBox();
-            browserBox.add( browserLabel );
-            browserBox.add( browserChooser_ );
-            queryPanel.add( Box.createVerticalStrut( 5 ) );
-            queryPanel.add( browserBox );
+            getQueryPanel()
+           .add( new LineBox( "Browser Type",
+                              new ShrinkWrapper( browserChooser_ ) ) );
         }
 
         protected Activator createActivator( ColumnData cdata ) {
