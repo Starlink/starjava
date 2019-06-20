@@ -212,8 +212,9 @@ public class TopcatModelInfo {
                     isImage = true;
                 }
                 colMasks[ icol ] = ColFlag.STRING.toMask( isString )
-                                 | ColFlag.URL.toMask( isUrl )
                                  | ColFlag.DATALINK.toMask( isDatalink )
+                                 | ColFlag.URL.toMask( isUrl )
+                                 | ColFlag.HTML.toMask( isHtml )
                                  | ColFlag.IMAGE.toMask( isImage )
                                  | ColFlag.VOTABLE.toMask( isVotable )
                                  | ColFlag.SPECTRUM.toMask( isSpectrum );
