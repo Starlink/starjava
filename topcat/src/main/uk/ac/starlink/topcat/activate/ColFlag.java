@@ -28,7 +28,13 @@ public enum ColFlag {
     VOTABLE,
 
     /** Column (probably) contains a browser-friendly URL. */
-    HTML;
+    HTML,
+
+    /**
+     * Column (probably) contains a reference that can be mapped to a web page.
+     * An example is a DOI or Bibcode.
+     */
+    WEBREF;
 
     private final int mask1_;
 

@@ -10,6 +10,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.calc.WebMapper;
 
 /**
  * Summarises information about a TopcatModel that may be useful for
@@ -30,6 +31,12 @@ public class TopcatModelInfo {
     private final TopcatModel tcModel_;
     private final int[] colMasks_;
     private final boolean hasSkyCoords_;
+    private static final WebMapper WEBREF_MAPPER =
+            WebMapper.createMultiMapper( "Webref", new WebMapper[] {
+        WebMapper.DOI,
+        WebMapper.BIBCODE,
+        WebMapper.ARXIV,
+    } );
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.activate" );
@@ -153,6 +160,7 @@ public class TopcatModelInfo {
             boolean isImage = false;
             boolean isVotable = false;
             boolean isSpectrum = false;
+            boolean isWebref = false;
             if ( isString ) {
                 if ( ucd != null && ucd.startsWith( "meta.ref.url" ) ) {
                     isUrl = true;
@@ -191,6 +199,9 @@ public class TopcatModelInfo {
                     logger_.log( Level.WARNING, "Data read error: " + e, e );
                 }
                 if ( sval1 != null ) {
+                    if ( WEBREF_MAPPER.toUrl( sval1 ) != null ) {
+                        isWebref = true;
+                    }
                     sval1 = sval1.toLowerCase();
                     if ( sval1.startsWith( "http://" ) ||
                          sval1.startsWith( "https://" ) ||
@@ -217,7 +228,8 @@ public class TopcatModelInfo {
                                  | ColFlag.HTML.toMask( isHtml )
                                  | ColFlag.IMAGE.toMask( isImage )
                                  | ColFlag.VOTABLE.toMask( isVotable )
-                                 | ColFlag.SPECTRUM.toMask( isSpectrum );
+                                 | ColFlag.SPECTRUM.toMask( isSpectrum )
+                                 | ColFlag.WEBREF.toMask( isWebref );
             }
         }
         boolean hasSkyCoords = hasColumn( tcModel, Tables.RA_INFO ) 
