@@ -42,7 +42,6 @@ public class Strings {
         "0123456789" +
         "-_.~";
 
-
     /**
      * Private constructor prevents instantiation.
      */
@@ -571,6 +570,55 @@ public class Strings {
      */
     public static String arxivUrl( String arxivId ) {
         return webMap( WebMapper.ARXIV, arxivId );
+    }
+
+    /**
+     * Maps a source identifier to the URL of its
+     * <a href="http://simbad.u-strasbg.fr/simbad/">SIMBAD</a> web page.
+     * SIMBAD is the astronomical source information service run by
+     * the Centre de Donn&#x00e9;es astronomiques de Strasbourg.
+     *
+     * <p>The string
+     * "<code>http://simbad.u-strasbg.fr/simbad/sim-id?Ident=</code>"
+     * is prepended to the given id string, and any necessary character
+     * escaping is applied.
+     * No attempt is made to validate whether the supplied string is
+     * a real source identifier, so there is no guarantee that the
+     * returned URL will contain actual results.
+     *
+     * @example  <code>simbadUrl("Beta Pictoris") =
+     *   "http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris"</code>
+     *
+     * @param  sourceId   free text assumed to represent a source identifier
+     *                    known by SIMBAD
+     * @return  URL of the Simbad web page describing the identified source
+     */
+    public static String simbadUrl( String sourceId ) {
+        return webMap( WebMapper.SIMBAD, sourceId );
+    }
+
+    /**
+     * Maps a source identifier to the URL of its
+     * <a href="http://ned.ipac.caltech.edu/">NED</a> web page.
+     * NED is the NASA/IPAC Extragalactic Database.
+     *
+     * <p>The string
+     * "<code>http://ned.ipac.caltech.edu/byname?objname=</code>"
+     * is prepended to the given id string, and any necessary character
+     * escaping is applied.
+     * No attempt is made to validate whether the supplied string is
+     * a real source identifier, so there is no guarantee that the
+     * returned URL will contain actual results.
+     *
+     * @example  <code>nedUrl("NGC 3952") =
+     *           "http://ned.ipac.caltech.edu/byname?objname=NGC%203952"</code>
+     *
+     * @param  sourceId   free text assumed to represent a source identifier
+     *                    known by NED
+     * @return  URL of the NED web page describing the identified source
+     */
+    public static String nedUrl( String sourceId ) {
+        return webMap( WebMapper.NED, sourceId );
     }
 
     /**

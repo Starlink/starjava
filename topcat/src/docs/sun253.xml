@@ -21850,13 +21850,20 @@ are not included when a session is saved.
 <p>The <label>View in Web Browser</label> action uses some kind of
 location indicator from the activated row and causes it to be displayed
 in a web browser.
-In the most straightforward case, the location is a URL,
-however TOPCAT knows how to turn various other types of value
-such as DOIs and filenames into web page addresses,
-depending on the <label>Identifier Type</label> that's chosen.
-If the web page is HTML it should be displayed directly, other content types
+If the web page is HTML it should get displayed directly, other content types
 may get sent to other desktop applications depending on the
 capabilities and configuration of the browser in use.
+</p>
+
+<p>In the most straightforward case, the location is a URL
+supplied by one of the table columns.
+However TOPCAT knows how to turn various other types of value
+such as DOIs and filenames into web page addresses,
+depending on the <label>Identifier Type</label> that's chosen.
+If none of the identifier types listed below is suitable for you
+(for instance if you want to use NED with some non-standard options),
+you can construct your own URL based on column values
+using the expression language.
 </p>
 
 <p>Configuration:
@@ -21919,6 +21926,26 @@ capabilities and configuration of the browser in use.
         <webref url="https://arxiv.org/abs/1804.09381"
                     >https://arxiv.org/abs/1804.09381</webref>.
         See the <ref id="Strings"><code>arxivUrl</code></ref> function.
+        </p></dd>
+    <dt>SIMBAD:</dt>
+    <dd><p>The string is assumed to be a source identfier,
+        and the corresponding
+        <webref url="http://simbad.u-strasbg.fr/simbad/">SIMBAD</webref>
+        URL is used,
+        e.g. "<code>Beta Pictoris</code>" turns into
+        <webref
+           url="http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris"
+       >http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris</webref>.
+        See the <ref id="Strings"><code>simbadUrl</code></ref> function.
+        </p></dd>
+    <dt>NED:</dt>
+    <dd><p>The string is assumed to be a source identifier,
+        and the corresponding
+        <webref url="http://ned.ipac.caltech.edu/">NED</webref> URL is used,
+        e.g. "<code>NGC 3952</code>" turns into
+        <webref url="http://ned.ipac.caltech.edu/byname?objname=NGC%203952"
+              >http://ned.ipac.caltech.edu/byname?objname=NGC%203952</webref>.
+        See the <ref id="Strings"><code>nedUrl</code></ref> function.
         </p></dd>
     </dl>
     </p></dd>
@@ -28605,8 +28632,9 @@ introduced since the last version:
         properly for logarithmic axes.</li>
     <li>JEL bug fix update, to avoid unwanted debugging output for
         String function null returns.</li>
-    <li>New functions <code>bibcodeUrl</code>, <code>doiUrl</code>
-        and <code>arxivUrl</code>
+    <li>New functions <code>bibcodeUrl</code>, <code>doiUrl</code>,
+        <code>arxivUrl</code>, <code>simbadUrl</code> and
+        <code>nedUrl</code>
         in class <ref id="Strings">Strings</ref>.</li>
     <li>Rework the
         <ref id="BrowserActivationType">View in Web Browser</ref>

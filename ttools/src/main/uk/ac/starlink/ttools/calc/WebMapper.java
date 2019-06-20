@@ -3,6 +3,9 @@ package uk.ac.starlink.ttools.calc;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,13 +55,33 @@ public abstract class WebMapper {
     /** Mapper for an arXiv identifier. */
     public static final WebMapper ARXIV = createArxivMapper( "arXiv" );
 
+    /** Maps a source identifier to its Simbad web page. */
+    public static final WebMapper SIMBAD =
+        createPrefixMapper( "SIMBAD",
+                            "http://simbad.u-strasbg.fr/simbad/sim-id?Ident=" );
+
+    /** Maps a source identifier to its NED web page. */
+    public static final WebMapper NED =
+        createPrefixMapper( "NED",
+                            "http://ned.ipac.caltech.edu/byname?objname=" );
+
     private static final WebMapper[] SELECTIVE_MAPPERS = new WebMapper[] {
         URL, FILE, BIBCODE, DOI, ARXIV,
+    };
+
+    private static final WebMapper[] UNSELECTIVE_MAPPERS = new WebMapper[] {
+        SIMBAD, NED,
     };
 
     /** Mapper for a Bibcode, using the Classic web pages (deprecated by ADS).*/
     public static final WebMapper BIBCODE_OLD =
         createBibcodeMapper( "BibcodeClassic", true );
+
+    /** Maps a source identifier to its classic NED web page. */
+    public static final WebMapper NED_CLASSIC =
+        createPrefixMapper( "NED",
+                            "http://ned.ipac.caltech.edu/cgi-bin/objsearch"
+                          + "?extend=no&objname=" );
 
     /** Mapper that tries various strategies to turn a string into a URL. */
     public static final WebMapper AUTO =
@@ -111,12 +134,11 @@ public abstract class WebMapper {
      * @return  mapper list
      */
     public static WebMapper[] getMappers() {
-        WebMapper[] singles = SELECTIVE_MAPPERS;
-        int ns = singles.length;
-        WebMapper[] all = new WebMapper[ 1 + ns ];
-        System.arraycopy( singles, 0, all, 1, ns );
-        all[ 0 ] = AUTO;
-        return all;
+        List<WebMapper> list = new ArrayList<WebMapper>();
+        list.add( AUTO );
+        list.addAll( Arrays.asList( SELECTIVE_MAPPERS ) );
+        list.addAll( Arrays.asList( UNSELECTIVE_MAPPERS ) );
+        return list.toArray( new WebMapper[ 0 ] );
     }
 
     /**
@@ -249,6 +271,27 @@ public abstract class WebMapper {
                     return null;
                 }
             }
+        };
+    }
+
+    /**
+     * Returns a mapper that blindly appends the given location string
+     * to a supplied prefix URL, pausing only to URL-encode it.
+     * This implementation does not attempt to assess the supplied URL
+     * for suitability, so it never returns null except in case of a
+     * blank input string.
+     *
+     * @param  name  mapper name
+     * @return   new mapper
+     */
+    public static WebMapper createPrefixMapper( String name,
+                                                final String urlPrefix ) {
+        return new WebMapper( name ) {
+            public URL toUrl( String txt ) {
+                return txt == null || txt.trim().length() == 0
+                     ? null
+                     : stringToUrl( urlPrefix + Strings.urlEncode( txt ) );
+            } 
         };
     }
 
