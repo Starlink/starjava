@@ -6,11 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComboBox;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.HtmlWindow;
-import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.calc.WebMapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -26,8 +27,7 @@ public class BrowserActivationType implements ActivationType {
     }
 
     public String getDescription() {
-        return "Load the resource in a file or URL column"
-             + " into an external web browser";
+        return "Load an associated resource into a web browser";
     }
 
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
@@ -35,7 +35,8 @@ public class BrowserActivationType implements ActivationType {
     }
 
     public Suitability getSuitability( TopcatModelInfo tinfo ) {
-        return tinfo.tableHasFlag( ColFlag.HTML )
+        return tinfo.tableHasFlag( ColFlag.HTML ) ||
+               tinfo.tableHasFlag( ColFlag.WEBREF )
              ? Suitability.SUGGESTED
              : tinfo.getUrlSuitability();
     }
@@ -45,7 +46,9 @@ public class BrowserActivationType implements ActivationType {
      */
     private static class BrowserColumnConfigurator
                          extends UrlColumnConfigurator {
+        private final JComboBox mapperChooser_;
         private final JComboBox browserChooser_;
+        private static final String WEBMAPPER_KEY = "webMapper";
         private static final String BROWSER_KEY = "browser";
 
         /**
@@ -56,27 +59,43 @@ public class BrowserActivationType implements ActivationType {
          */
         BrowserColumnConfigurator( TopcatModelInfo tinfo, Browser[] browsers ) {
             super( tinfo, "Web Page",
-                   new ColFlag[] { ColFlag.HTML, ColFlag.URL, } );
+                   new ColFlag[] { ColFlag.HTML, ColFlag.WEBREF,
+                                   ColFlag.URL, } );
+            setLocationLabel( "Resource Identifier" );
+            mapperChooser_ = new JComboBox();
+            for ( WebMapper mapper : WebMapper.getMappers() ) {
+                mapperChooser_.addItem( mapper );
+            }
+            mapperChooser_.addActionListener( getActionForwarder() );
+
             browserChooser_ = new JComboBox();
             for ( Browser b : browsers ) {
                 browserChooser_.addItem( b );
             }
             browserChooser_.addActionListener( getActionForwarder() );
-            getQueryPanel()
-           .add( new LineBox( "Browser Type",
-                              new ShrinkWrapper( browserChooser_ ) ) );
+
+            LabelledComponentStack stack = new LabelledComponentStack();
+            stack.addLine( "Identifier Type", mapperChooser_ );
+            stack.addLine( "Browser", browserChooser_ );
+            getQueryPanel().add( stack );
         }
 
         protected Activator createActivator( ColumnData cdata ) {
-            final Object browser = browserChooser_.getSelectedItem();
+            final WebMapper mapper =
+                (WebMapper) mapperChooser_.getSelectedItem();
+            final Browser browser =
+                (Browser) browserChooser_.getSelectedItem();
             final String label = getWindowLabel( cdata );
-            return browser instanceof Browser
-                 ? new UrlColumnActivator( cdata, false ) {
-                       protected Outcome activateUrl( URL url, long lrow ) {
-                           return ((Browser) browser).browse( url, label );
-                       }
-                   }
-                 : null;
+            return new LocationColumnActivator( cdata, false ) {
+                protected Outcome activateLocation( String loc, long lrow ) {
+                    assert loc != null && loc.trim().length() > 0;
+                    URL url = mapper.toUrl( loc );
+                    return url == null
+                         ? Outcome.failure( "Not " + mapper.getName()
+                                          + ": " + loc )
+                         : browser.browse( url, label );
+                }
+            };
         }
 
         protected String getConfigMessage( ColumnData cdata ) {
@@ -91,12 +110,14 @@ public class BrowserActivationType implements ActivationType {
 
         public ConfigState getState() {
             ConfigState state = getUrlState();
+            state.saveSelection( WEBMAPPER_KEY, mapperChooser_ );
             state.saveSelection( BROWSER_KEY, browserChooser_ );
             return state;
         }
 
         public void setState( ConfigState state ) {
             setUrlState( state );
+            state.restoreSelection( WEBMAPPER_KEY, mapperChooser_ );
             state.restoreSelection( BROWSER_KEY, browserChooser_ );
         }
     }

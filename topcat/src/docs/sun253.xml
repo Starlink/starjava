@@ -21847,39 +21847,99 @@ are not included when a session is saved.
 <figureimage src="&FIG.BrowserActivationType;"/>
 </figure>
 
-<p>The <label>View in Web Browser</label> action takes a URL or filename
-in the table and sends that resource to a web browser.
-If it's HTML it should be displayed directly, other content types
+<p>The <label>View in Web Browser</label> action uses some kind of
+location indicator from the activated row and causes it to be displayed
+in a web browser.
+In the most straightforward case, the location is a URL,
+however TOPCAT knows how to turn various other types of value
+such as DOIs and filenames into web page addresses,
+depending on the <label>Identifier Type</label> that's chosen.
+If the web page is HTML it should be displayed directly, other content types
 may get sent to other desktop applications depending on the
 capabilities and configuration of the browser in use.
 </p>
 
 <p>Configuration:
 <dl>
-<dt>Web Page Location</dt>
-<dd><p>Gives the URL or filename of the resource to display for each row.
+<dt>Resource Identifier</dt>
+<dd><p>Gives the URL, filename or other identifier for
+    the resource to display for each row.
     A column name may be selected from the drop-down list,
     or the <ref id="jel">expression language</ref> may be used
-    to assemble a location string from other columns.
+    to assemble a string from other columns.
+    How this string is interpreted depends on the
+    <label>Identifier Type</label> setting.
     </p></dd>
-<dt>Browser Type</dt>
+<dt>Identifier Type</dt>
+<dd><p>Determines how the value from the <label>Resource Identifier</label>
+    is interpreted.
+    In most cases you can leave it to the default <label>auto</label>
+    setting, but for some specific identifier types (ones that cannot
+    be recognised just by looking at them) you may need to make a
+    more specific choice.  The options are:
+    <dl>
+    <dt>auto:</dt>
+    <dd><p>Looks at the string, and tries to interpret it as one of the
+        other types listed here, depending on its form.
+        </p></dd>
+    <dt>URL:</dt>
+    <dd><p>The string is interpreted directly as a URL.
+        </p></dd>
+    <dt>Filename:</dt>
+    <dd><p>The string is interpreted as a pathname of a file on the
+        local filesystem.
+        If the pathname is not absolute
+        (e.g. it doesn't start with a "/" on Un*x)
+        it is taken to be relative to the directory in which the
+        application was started.
+        </p></dd>
+    <dt>Bibcode:</dt>
+    <dd><p>The string is interpreted as a Bibcode, and turned into an
+        <webref url="https://ui.adsabs.harvard.edu/">ADS</webref> URL,
+        e.g. "<code>2018A&amp;A...616A...2L</code>" turns into
+        <webref url="https://ui.adsabs.harvard.edu/abs/2018A%26A...616A...2L"
+           >https://ui.adsabs.harvard.edu/abs/2018A%26A...616A...2L</webref>.
+        See the <ref id="Strings"><code>bibcodeUrl</code></ref> function.
+        </p></dd>
+    <dt>DOI:</dt>
+    <dd><p>The string is interpreted as a
+        <webref url="https://www.doi.org/">DOI</webref>
+        (Digital Object Identifier),
+        and turned into a DOI display URL,
+        e.g. "<code>10.3390/informatics4030018</code>" turns into
+        <webref url="https://doi.org/10.3390/informatics4030018"
+                    >https://doi.org/10.3390/informatics4030018</webref>.
+        See the <ref id="Strings"><code>doiUrl</code></ref> function.
+        </p></dd>
+    <dt>arXiv:</dt>
+    <dd><p>The string is interpreted as an
+        <webref url="https://arxiv.org">arXiv</webref>
+        identifier and turned into a URL for the relevant paper,
+        e.g. "<code>arXiv:1804.09379</code>" turns into
+        <webref url="https://arxiv.org/abs/1804.09381"
+                    >https://arxiv.org/abs/1804.09381</webref>.
+        See the <ref id="Strings"><code>arxivUrl</code></ref> function.
+        </p></dd>
+    </dl>
+    </p></dd>
+<dt>Browser</dt>
 <dd><p>A couple of options are available for controlling what browser is used
     to display the URL.
-    <ul>
-    <li><strong>System Browser:</strong>
-        Attempts to open the URL in the default desktop web browser.
+    <dl>
+    <dt>System Browser:</dt>
+    <dd><p>Attempts to open the URL in the default desktop web browser.
         There is, unfortunately, no control over whether the new web page
         will appear in the same tab/window or if the browser will open
-        a new one each time.
-        </li>
-    <li><strong>Basic Browser:</strong>
-        Displays the URL content in a basic HTML viewer implemented
+        a new one each time, it's down to the browser itself.
+        </p></dd>
+    <dt>Basic Browser:</dt>
+    <dd><p>Displays the URL content in a basic HTML viewer implemented
         within TOPCAT (see <ref id="documentViewers"/>).
         This is OK for basic HTML and images,
         but more complex or non-web-page content may not work.
         The same window is re-used every time the action is invoked.
-        </li>
-    </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 </dl>
 </p>
@@ -23924,6 +23984,7 @@ Some of the notable contributers are these:
 <li>Sebastien Derriere (CDS)</li>
 <li>Emilio Donoso (ICATE)</li>
 <li>Peter Draper (Starlink, Durham)</li>
+<li>St#x00e9phane Erard (Observatoire de Paris)</li>
 <li>Heinz-Bernd Eggenstein (AEI, Hannover)</li>
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
@@ -28547,6 +28608,11 @@ introduced since the last version:
     <li>New functions <code>bibcodeUrl</code>, <code>doiUrl</code>
         and <code>arxivUrl</code>
         in class <ref id="Strings">Strings</ref>.</li>
+    <li>Rework the
+        <ref id="BrowserActivationType">View in Web Browser</ref>
+        activation action so that it can show web pages for not only
+        URLs and filenames, but things like DOIs, bibcodes and
+        arXiv identifiers too.</li>
     </ul>
     </p></dd>
 
