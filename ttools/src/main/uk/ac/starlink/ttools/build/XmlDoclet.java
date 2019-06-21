@@ -4,6 +4,7 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Type;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -85,6 +86,9 @@ public abstract class XmlDoclet extends MemberDoclet {
     }
 
     protected void outExamples( String[] examples ) throws IOException {
+    }
+
+    protected void outSees( SeeTag[] seeTags ) throws IOException {
     }
 
     /**

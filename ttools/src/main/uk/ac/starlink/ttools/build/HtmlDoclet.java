@@ -6,16 +6,19 @@ import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Type;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 /**
- * Generates HTML pages for display at in a function browser.
+ * Generates HTML pages for display in a function browser.
  *
  * @author   Mark Taylor (Starlink)
  * @since    1 Sep 2004
@@ -190,6 +193,62 @@ public class HtmlDoclet extends MemberDoclet {
             } );
         }
     }
+
+    protected void outSees( SeeTag[] seeTags ) throws IOException {
+        List<String> fsees = new ArrayList<String>();
+        for ( SeeTag tag : seeTags ) {
+            String fsee = formatSeeTag( tag );
+            if ( fsee != null && fsee.trim().length() > 0 ) {
+                fsees.add( fsee );
+            }
+        }
+        int ns = fsees.size();
+        if ( ns > 0 ) {
+            out( new String[] {
+                "<dl>",
+                "<dt><strong>See Also:</strong></dt>",
+                "<dd>",
+            } );
+            if ( ns == 1 ) {
+                out( fsees.get( 0 ) );
+            }
+            else {
+                out( "<ul>" );
+                for ( String fsee : fsees ) {
+                    out( "<li>" + fsee + "</li>" );
+                }
+                out( "</ul>" );
+            }
+            out( "</dd>" );
+            out( "</dl>" );
+        }
+    }
+
+    /**
+     * Attempts to convert the content of a @see tag to
+     * HTML suitable for output.
+     *
+     * @param  stag  @see tag
+     * @return   XML version of tag, or null
+     */
+    private String formatSeeTag( SeeTag stag ) {
+
+        /* This implementation is not complete,
+         * it only copes with HTML-style references (&lt;a&gt; tags)
+         * not references to other classes/members. */
+        String txt = stag.text();
+        if ( txt == null || txt.trim().length() == 0 ) {
+            return null;
+        }
+        txt = txt.trim().replaceAll( "\\s+", " " );
+        if ( txt.startsWith( "<a " ) ) {
+            return txt;
+        }
+        else {
+            return null;
+        }
+    }
+           
 
     /**
      * Returns the abstract filename in which the documentation for a

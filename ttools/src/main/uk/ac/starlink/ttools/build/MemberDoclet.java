@@ -18,6 +18,7 @@ import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.ProgramElementDoc;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Tag;
 import com.sun.javadoc.Type;
 
@@ -139,6 +140,14 @@ public abstract class MemberDoclet {
      * @param  examples  array of strings each representing an example
      */
     protected abstract void outExamples( String[] examples ) throws IOException;
+
+    /**
+     * Output any See tags from the current documentandum.
+     * This only includes explicit @see tags, not @links.
+     *
+     * @param  seeTags  @see tag contents
+     */
+    protected abstract void outSees( SeeTag[] seeTags ) throws IOException;
 
     /**
      * Output a description item.
@@ -323,6 +332,13 @@ public abstract class MemberDoclet {
             examples[ i ] = extags[ i ].text();
         }
 
+        /* Get see tags. */
+        Tag[] stags = method.tags( "see" );
+        SeeTag[] sees = new SeeTag[ stags.length ];
+        for ( int i = 0; i < stags.length; i++ ) {
+            sees[ i ] = (SeeTag) stags[ i ];
+        }
+
         /* Output information. */
         Type rtype = method.returnType();
         startMember( method, "Function", method.name() + paramList );
@@ -333,6 +349,9 @@ public abstract class MemberDoclet {
         }
         if ( examples.length > 0 ) {
             outExamples( examples );
+        }
+        if ( sees.length > 0 ) {
+            outSees( sees );
         }
         String signature = new StringBuffer()
             .append( "<tt>" )

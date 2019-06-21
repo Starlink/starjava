@@ -4,8 +4,11 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Type;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Doclet which documents public static members of classes in XML
@@ -218,6 +221,60 @@ public class FullXmlDoclet extends XmlDoclet {
             }
             out( "</ul>" );
             out( "</li>" );
+        }
+    }
+
+    @Override
+    protected void outSees( SeeTag[] seeTags ) throws IOException {
+        List<String> fsees = new ArrayList<String>();
+        for ( SeeTag tag : seeTags ) {
+            String fsee = formatSeeTag( tag );
+            if ( fsee != null && fsee.trim().length() > 0 ) {
+                fsees.add( fsee );
+            }
+        }
+        int ns = fsees.size();
+        if ( ns > 0 ) {
+            out( "<li>See Also:" );
+            out( "<ul>" );
+            for ( String fsee : fsees ) {
+                out( "<li>" + fsee + "</li>" );
+            }
+            out( "</ul>" );
+            out( "</li>" );
+        }
+    }
+
+    /**
+     * Attempts to convert the content of a @see tag to
+     * XML suitable for output.
+     *
+     * @param  stag  @see tag
+     * @return   XML version of tag, or null
+     */
+    private String formatSeeTag( SeeTag stag ) {
+
+        /* This implementation is neither complete nor bulletproof.
+         * It only copes with HTML-style references (&lt;a&gt; tags)
+         * not references to other classes/members.
+         * It also might get the translation wrong, potentially into
+         * invalid XML, if the input tag is written in a non-standard way.
+         * It would be nice to fix the former, but the latter doesn't
+         * matter too much - this is only invoked during package build,
+         * where the document unit tests are very likely to
+         * pick up any mistakes it makes. */
+        String txt = stag.text();
+        if ( txt == null || txt.trim().length() == 0 ) {
+            return null;
+        }
+        txt = txt.trim().replaceAll( "\\s+", " " );
+        if ( txt.startsWith( "<a" ) ) {
+            return txt.replaceAll( "^<a ", "<webref " )
+                      .replaceAll( "</a>", "</webref>" )
+                      .replaceAll( "href=", "url=" );
+        }
+        else {
+            return null;
         }
     }
 
