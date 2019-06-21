@@ -122,6 +122,7 @@ public class EscapeTest extends TestCase {
         exerciseSet( "LabelOne", "LabelTwo" );
         exerciseSet( "%%%%%%%%", "label %d %s" );
         exerciseSet( "label %d %s", "  %% %%x% %% " );
+        GrfEscape.setEscapes( false );
     }
 
     public void exerciseSet( String l1, String l2 ) {
