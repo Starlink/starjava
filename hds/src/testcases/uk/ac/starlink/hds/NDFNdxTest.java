@@ -28,6 +28,7 @@ import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.util.URLUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -44,7 +45,7 @@ public class NDFNdxTest extends TestCase {
             tmpdir = System.getProperty( "java.io.tmpdir" );
             containerName = tmpdir + File.separatorChar + "test_ndf";
             containerFile = new File( containerName + ".sdf" );
-	    ndfURL = containerFile.toURI().toURL();
+	    ndfURL = URLUtils.makeFileURL( containerFile );
             InputStream istrm = getClass()
                                .getClassLoader()
                                .getResourceAsStream( NDF_FILE );
