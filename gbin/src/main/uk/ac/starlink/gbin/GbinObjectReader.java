@@ -53,7 +53,7 @@ public class GbinObjectReader {
      */
     public GbinObjectReader( Object gbinReaderObj ) {
         gbinReaderObj_ = gbinReaderObj;
-        Class clazz = gbinReaderObj.getClass();
+        Class<?> clazz = gbinReaderObj.getClass();
         hasNextMethod_ = getNoArgMethod( clazz, "hasNext", boolean.class );
         nextMethod_ = getNoArgMethod( clazz, "next", null );
     }
@@ -126,7 +126,7 @@ public class GbinObjectReader {
                                           Class<?> retClazz ) {
         Method method;
         try {
-            method = clazz.getMethod( name, new Class[ 0 ] );
+            method = clazz.getMethod( name );
             int mods = method.getModifiers();
             if ( Modifier.isStatic( mods ) ||
                  ! Modifier.isPublic( mods ) ||
@@ -223,7 +223,7 @@ public class GbinObjectReader {
             logger_.info( "Invoking " + sig );
             try {
                 Class.forName( loaderClassName )
-                     .getMethod( loaderMethodName, new Class[ 0 ] )
+                     .getMethod( loaderMethodName )
                      .invoke( null, new Object[ 0 ] );
             }
             catch ( Throwable e ) {
@@ -250,8 +250,7 @@ public class GbinObjectReader {
             Class<?> factClazz =
                 Class.forName( "gaia.cu1.tools.dal.gbin.GbinFactory" );
             Method getReaderMethod =
-                factClazz.getMethod( "getGbinReader",
-                                     new Class[] { InputStream.class } );
+                factClazz.getMethod( "getGbinReader", InputStream.class );
             try {
                 return getReaderMethod.invoke( null, in );
             }

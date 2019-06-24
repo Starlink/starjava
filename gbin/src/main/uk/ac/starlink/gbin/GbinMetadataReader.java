@@ -46,7 +46,7 @@ public class GbinMetadataReader {
     public static GbinMeta attemptReadMetadata( Object gbinReaderObj )
             throws Throwable {
         Object metaObj = gbinReaderObj.getClass()
-                        .getMethod( "getGbinMetaData", new Class[ 0 ] )
+                        .getMethod( "getGbinMetaData" )
                         .invoke( gbinReaderObj, new Object[ 0 ] );
         return Proxies.createReflectionProxy( GbinMeta.class, metaObj );
     }

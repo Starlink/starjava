@@ -99,15 +99,15 @@ public class ItemReader {
     /**
      * Reads the value for this reader in the context of a given
      * row object.  The row object is represented as a map which
-     * caches ItemReader->value pairs.  The map will be updated
+     * caches ItemReader-&gt;value pairs.  The map will be updated
      * by this method, not only by inserting its own value, but
      * also by inserting the values of any missing parent objects
      * as required.  Thus each method only needs to be invoked
      * reflectively once per row even for hierarchically nested
      * data items.  The only precondition is that the map
-     * must contain the entry ROOT->rowObject.
+     * must contain the entry ROOT-&gt;rowObject.
      *
-     * @param  itemMap  reader->value map, may be modified
+     * @param  itemMap  reader-&gt;value map, may be modified
      * @return  value associated with this reader for the row
      *          represented by the submitted map
      */
@@ -161,7 +161,7 @@ public class ItemReader {
      * @param   profile  table configuration
      */
     public static ItemReader[]
-            createItemReaders( Class rootClazz, GbinTableProfile profile ) {
+            createItemReaders( Class<?> rootClazz, GbinTableProfile profile ) {
         List<ItemReader> rdrList = new ArrayList<ItemReader>();
         addItemReaders( rootClazz, ItemReader.ROOT, rdrList, 0, profile );
         return rdrList.toArray( new ItemReader[ 0 ] );
@@ -214,7 +214,8 @@ public class ItemReader {
      * @param  iLevel       current recursion depth
      * @param  profile      configures details of table construction
      */
-    private static void addItemReaders( Class parentClazz, ItemReader parentRdr,
+    private static void addItemReaders( Class<?> parentClazz,
+                                        ItemReader parentRdr,
                                         List<ItemReader> rdrList, int iLevel,
                                         GbinTableProfile profile ) {
  
@@ -362,7 +363,7 @@ public class ItemReader {
      * @param   clazz  type to check against
      * @return  true iff rdr or any ancestor has a content class of clazz
      */
-    private static boolean hasAncestorType( ItemReader rdr, Class clazz ) {
+    private static boolean hasAncestorType( ItemReader rdr, Class<?> clazz ) {
         if ( rdr.isRoot() ) {
             return false;
         }
