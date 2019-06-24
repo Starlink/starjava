@@ -164,7 +164,7 @@ public abstract class AbstractArrayDataIO
     /**
      * Not implemented - this method is deprecated in any case.
      *
-     * @throws  UnsupportedOperationException
+     * @throws  UnsupportedOperationException  always
      * @deprecated  see {@link java.io.DataInputStream#readLine}
      */
     public String readLine() throws IOException {
