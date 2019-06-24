@@ -26,6 +26,7 @@ public class CdfDomains {
     /**
      * Returns an appropriate DomainMapper for a given CDF data type.
      *
+     * @param   dtype   data type
      * @return   appropriate domain mapper, or null
      */
     public static DomainMapper getMapper( DataType dtype ) {

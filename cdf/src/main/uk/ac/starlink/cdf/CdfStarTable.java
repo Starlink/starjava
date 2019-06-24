@@ -55,6 +55,7 @@ public class CdfStarTable extends AbstractStarTable {
      * @param   content  CDF data content object
      * @param   profile  parameterisation of how CDFs should get turned
      *                   into StarTables
+     * @throws  IOException  in case of error
      */
     public CdfStarTable( CdfContent content, CdfTableProfile profile )
             throws IOException {
@@ -312,7 +313,7 @@ public class CdfStarTable extends AbstractStarTable {
             return array;
         }
         else {
-            Class elClass = dtype.getArrayElementClass();
+            Class<?> elClass = dtype.getArrayElementClass();
             Object array =Array.newInstance( elClass, nent );
             for ( int i = 0; i < nent; i++ ) {
                 Array.set( array, i, entries[ i ].getShapedValue() );
@@ -332,7 +333,7 @@ public class CdfStarTable extends AbstractStarTable {
     private static ValueInfo createValueInfo( Variable var, String descrip,
                                               String units ) {
         String name = var.getName();
-        Class clazz = var.getShaper().getShapeClass();
+        Class<?> clazz = var.getShaper().getShapeClass();
         DataType dtype = var.getDataType();
         int grpSize = dtype.getGroupSize();
         final int[] shape; 
