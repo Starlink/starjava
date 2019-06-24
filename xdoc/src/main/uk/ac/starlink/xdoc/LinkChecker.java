@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +42,7 @@ public class LinkChecker {
     private final boolean attemptExternal;
     private int localFailures;
     private int extFailures;
-    private Map urlNames = new HashMap();
+    private Map<URL,Set<String>> urlNames = new HashMap<URL,Set<String>>();
     private static Pattern namePattern1 =
         Pattern.compile( "<a\\b[^>]*\\bname=['\"]([^'\"]*)['\"]",
                          Pattern.CASE_INSENSITIVE );
@@ -188,7 +187,7 @@ public class LinkChecker {
     private boolean checkUrlContains( URL url, String frag )
             throws IOException {
         if ( urlNames.get( url ) == null ) {
-            Set names = new HashSet();
+            Set<String> names = new HashSet<String>();
             URLConnection conn = url.openConnection();
             if ( conn instanceof HttpURLConnection ) {
                 ((HttpURLConnection) conn).setInstanceFollowRedirects( true );
@@ -209,7 +208,7 @@ public class LinkChecker {
             strm.close();
             urlNames.put( url, names );
         }
-        return ((Collection) urlNames.get( url )).contains( frag );
+        return urlNames.get( url ).contains( frag );
     }
 
     /**
@@ -240,16 +239,16 @@ public class LinkChecker {
      * @return  true  iff all the links in the resulting XHTML document
      *          can be successfully resolved
      */
-    public boolean checkLinks( Source xsltSrc, Source xmlSrc, Map params )
+    public boolean checkLinks( Source xsltSrc, Source xmlSrc,
+                               Map<String,String> params )
             throws TransformerException, MalformedURLException {
         Transformer trans = TransformerFactory.newInstance()
                            .newTransformer( xsltSrc );
 
         if ( params != null ) {
-            for ( Iterator it = params.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                String name = (String) entry.getKey();
-                String value = (String) entry.getValue();
+            for ( Map.Entry<String,String> entry : params.entrySet() ) {
+                String name = entry.getKey();
+                String value = entry.getValue();
                 trans.setParameter( name, value );
             }
         }
@@ -358,7 +357,7 @@ public class LinkChecker {
         HttpURLConnection hconn = (HttpURLConnection) conn;
         String requestMethod = hconn.getRequestMethod();
         connectWithTimeout( hconn );
-        Set urlSet = new HashSet<String>();
+        Set<URL> urlSet = new HashSet<URL>();
         urlSet.add( hconn.getURL() );
         for ( int code;
               ( isRedirectCode( code = hconn.getResponseCode() ) ); ) {
@@ -431,12 +430,11 @@ public class LinkChecker {
                      + "stylesheet [xmldoc]";
 
         /* Process flags. */
-        List argList = new ArrayList( Arrays.asList( args ) );
-        Map params = new HashMap();
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
+        Map<String,String> params = new HashMap<String,String>();
         boolean attemptExternal = true;
-        while ( argList.size() > 0 &&
-                ((String) argList.get( 0 )).startsWith( "-" ) ) {
-            String flag = (String) argList.remove( 0 );
+        while ( argList.size() > 0 && argList.get( 0 ).startsWith( "-" ) ) {
+            String flag = argList.remove( 0 );
             if ( flag.startsWith( "-param" ) && argList.size() >= 2 ) {
                 params.put( argList.remove( 0 ), argList.remove( 0 ) );
             }
@@ -456,7 +454,7 @@ public class LinkChecker {
         }
 
         /* Get stylesheet source. */
-        File stylesheet = new File( (String) argList.get( 0 ) );
+        File stylesheet = new File( argList.get( 0 ) );
         if ( ! stylesheet.isFile() ) {
             System.err.println( "No stylesheet " + stylesheet );
             System.exit( 1 );
@@ -466,7 +464,7 @@ public class LinkChecker {
         /* Get document source. */
         Source docSrc;
         if ( args.length > 1 ) {
-            docSrc = new StreamSource( (String) argList.get( 1 ) );
+            docSrc = new StreamSource( argList.get( 1 ) );
         }
         else {
             docSrc = new StreamSource( System.in );
@@ -474,7 +472,8 @@ public class LinkChecker {
 
         try {
             LinkChecker checker =
-                new LinkChecker( new File( "." ).toURL(), attemptExternal );
+                new LinkChecker( new File( "." ).toURI().toURL(),
+                                 attemptExternal );
             boolean ok = checker.checkLinks( styleSrc, docSrc, params );
             int localFailures = checker.getLocalFailures();
             int extFailures = checker.getExternalFailures();
@@ -577,8 +576,8 @@ public class LinkChecker {
     private class LinkCheckHandler extends DefaultHandler {
 
         boolean ok = true;
-        private Set namesSeen = new HashSet();
-        private List namesReferenced = new ArrayList();
+        private Set<String> namesSeen = new HashSet<String>();
+        private List<String> namesReferenced = new ArrayList<String>();
 
         public void startElement( String namespaceURI, String localName,
                                   String qName, Attributes atts )
@@ -615,8 +614,7 @@ public class LinkChecker {
         }
 
         public void endDocument() throws SAXException {
-            for ( Iterator it = namesReferenced.iterator(); it.hasNext(); ) {
-                String name = (String) it.next();
+            for ( String name : namesReferenced ) {
                 if ( ! namesSeen.contains( name ) ) {
                     localFailures++;
                     ok = false;

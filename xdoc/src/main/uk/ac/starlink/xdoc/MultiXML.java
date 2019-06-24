@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
@@ -68,7 +67,7 @@ public class MultiXML {
     private String destdir;
     private String in;
     private String stylesheet;
-    private Map params = new HashMap();
+    private Map<String,Object> params = new HashMap<String,Object>();
 
     /**
      * Runs the transformation.
@@ -76,7 +75,7 @@ public class MultiXML {
      * <pre>
      *   MultiXML [-verbose] [-style sheet] 
      *            [-param name=value [-param name=value] ...]
-                  infile outdir
+     *            infile outdir
      * </pre>
      * Where:
      * <dl>
@@ -108,20 +107,20 @@ public class MultiXML {
                        "[-verbose] [-style sheet] [-param name=value ...] " +
                        "infile outdir";
         try {
-            List argv = new ArrayList( Arrays.asList( args ) );
-            while ( ((String) argv.get( 0 )).startsWith( "-" ) ) {
-                String arg = (String) argv.get( 0 );
+            List<String> argv = new ArrayList<String>( Arrays.asList( args ) );
+            while ( argv.get( 0 ).startsWith( "-" ) ) {
+                String arg = argv.get( 0 );
                 if ( arg.equals( "-verbose" ) ) {
                     argv.remove( 0 );
                     worker.setVerbose( 2 );
                 }
                 else if ( arg.equals( "-style" ) ) {
                     argv.remove( 0 );
-                    worker.setStylesheet( (String) argv.remove( 0 ) );
+                    worker.setStylesheet( argv.remove( 0 ) );
                 }
                 else if ( arg.equals( "-param" ) ) {
                     argv.remove( 0 );
-                    String setting = (String) argv.remove( 0 );
+                    String setting = argv.remove( 0 );
                     int epos = setting.indexOf( "=" );
                     String name = setting.substring( 0, epos );
                     String value = setting.substring( epos + 1 );
@@ -135,8 +134,8 @@ public class MultiXML {
                     throw new IllegalArgumentException();
                 }
             }
-            worker.setIn( (String) argv.remove( 0 ) );
-            worker.setDestdir( (String) argv.remove( 0 ) );
+            worker.setIn( argv.remove( 0 ) );
+            worker.setDestdir( argv.remove( 0 ) );
             if ( argv.size() != 0 ) {
                 throw new IllegalArgumentException();
             }
@@ -211,7 +210,7 @@ public class MultiXML {
      *
      * @return  modifiable parameter map
      */
-    public Map getParams() {
+    public Map<String,Object> getParams() {
         return params;
     }
 
@@ -249,10 +248,8 @@ public class MultiXML {
                                 .newTransformer( ssrc );
 
             /* Customise the stylesheet with parameters as required. */
-            for ( Iterator it = params.keySet().iterator(); it.hasNext(); ) {
-                String name = (String) it.next();
-                Object value = params.get( name );
-                styler.setParameter( name, value );
+            for ( Map.Entry<String,Object> entry : params.entrySet() ) {
+                styler.setParameter( entry.getKey(), entry.getValue() );
             }
             DOMSource xsrc = new DOMSource( doc );
             DOMResult xres = new DOMResult();

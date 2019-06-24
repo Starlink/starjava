@@ -28,11 +28,10 @@ public class XalanProc {
                      + "stylesheet [doc]";
 
         /* Process flags. */
-        List argList = new ArrayList( Arrays.asList( args ) );
-        Map params = new HashMap();
-        while ( argList.size() > 0 &&
-                ((String) argList.get( 0 )).startsWith( "-" ) ) {
-            String flag = (String) argList.remove( 0 );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
+        Map<String,String> params = new HashMap<String,String>();
+        while ( argList.size() > 0 && argList.get( 0 ).startsWith( "-" ) ) {
+            String flag = argList.remove( 0 );
             if ( flag.endsWith( "-param" ) && argList.size() >= 2 ) {
                 params.put( argList.remove( 0 ), argList.remove( 0 ) );
             }
@@ -49,7 +48,7 @@ public class XalanProc {
         }
 
         /* Get stylesheet source. */
-        File stylesheet = new File( (String) argList.get( 0 ) );
+        File stylesheet = new File( argList.get( 0 ) );
         if ( ! stylesheet.isFile() ) {
             System.err.println( "No stylesheet " + stylesheet );
             System.exit( 1 );
@@ -59,7 +58,7 @@ public class XalanProc {
         /* Get document source. */
         Source docSrc;
         if ( args.length > 1 ) {
-            docSrc = new StreamSource( (String) argList.get( 1 ) );
+            docSrc = new StreamSource( argList.get( 1 ) );
         }
         else {
             docSrc = new StreamSource( System.in );
@@ -69,11 +68,8 @@ public class XalanProc {
         Transformer trans = TransformerFactory
                            .newInstance()
                            .newTransformer( styleSrc );
-        for ( Iterator it = params.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            String name = (String) entry.getKey();
-            String value = (String) entry.getValue();
-            trans.setParameter( name, value );
+        for ( Map.Entry<String,String> entry : params.entrySet() ) {
+            trans.setParameter( entry.getKey(), entry.getValue() );
         }
        
         /* Do the transformation. */

@@ -38,8 +38,8 @@ public class XdocUtils {
     public static String classUsage( String clazzName )
             throws ClassNotFoundException, NoSuchMethodException,
                    IllegalAccessException, InvocationTargetException {
-        Class clazz = Class.forName( clazzName );
-        Method main = clazz.getMethod( "main", new Class[] { String[].class } );
+        Class<?> clazz = Class.forName( clazzName );
+        Method main = clazz.getMethod( "main", String[].class );
         PrintStream origOut = System.out;
         ByteArrayOutputStream bufOut = new ByteArrayOutputStream();
         PrintStream pout = new PrintStream( bufOut );

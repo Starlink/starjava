@@ -42,7 +42,7 @@ public abstract class Arrow {
      * Draws an arrow line and head from (x1, 0) to the origin.
      *
      * @param   g2   graphics context
-     * @param   x1   X coordinate of tail of arrow; x1 >= 0
+     * @param   x1   X coordinate of tail of arrow; x1 &gt;= 0
      */
     protected abstract void drawArrow( Graphics2D g2, int x1 );
 

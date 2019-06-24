@@ -287,14 +287,14 @@ public abstract class FigureIcon implements Icon {
         String usage = ubuf.toString();
 
         /* Process arguments. */
-        List argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         String destination = null;
         Mode mode = null;
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.equals( "-o" ) && it.hasNext() ) {
                 it.remove();
-                destination = (String) it.next();
+                destination = it.next();
                 it.remove();
             }
             else if ( arg.startsWith( "-h" ) ) {
@@ -318,7 +318,7 @@ public abstract class FigureIcon implements Icon {
             }
             else if ( fig == null ) {
                 it.remove();
-                Class clazz;
+                Class<?> clazz;
                 try {
                     clazz = Class.forName( arg );
                 }
