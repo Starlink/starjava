@@ -12,10 +12,10 @@ import uk.ac.starlink.util.IOUtils;
 /**
  * Decoder object associated with a Field.
  * Instances of this class know about the size and shape of fields
- * as well as their numeric type, and can decode various data sources 
+ * as well as their numeric type, and can decode various data sources
  * into the objects they represent.  To construct a decoder use the
  * static {@link #makeDecoder} method.
- * 
+ *
  * <p>The various <tt>decode</tt> methods turn some kind of representation of
  * the given object into a standard representation.  The standard
  * representation is in accordance with the recommendations made in
@@ -83,9 +83,9 @@ abstract class Decoder {
     /**
      * Does required setup for a decoder given its shape.
      *
-     * @param  clazz  the class to which all objects returned by the 
+     * @param  clazz  the class to which all objects returned by the
      *         <tt>decode*</tt> methods will belong
-     * @param  arraysize  the dimensions of objects with this type - 
+     * @param  arraysize  the dimensions of objects with this type -
      *         the last element of the array may be negative to
      *         indicate unknown slowest-varying dimension
      */
@@ -155,12 +155,12 @@ abstract class Decoder {
 
     /**
      * Gets the shape of items returned by this decoder.  By default this
-     * is the same as the <tt>arraysize</tt>, but decoders may 
-     * change the shape from that defined by the <tt>arraysize</tt> attribute 
-     * of the FIELD element.  In particular, the <tt>char</tt> and 
+     * is the same as the <tt>arraysize</tt>, but decoders may
+     * change the shape from that defined by the <tt>arraysize</tt> attribute
+     * of the FIELD element.  In particular, the <tt>char</tt> and
      * <tt>unicodeChar</tt> decoders package an array of characters as
      * a String.
-     * 
+     *
      * @return  the shape of objects returned by this decoder.
      *          The last element might be negative to indicate variable size
      */
@@ -170,7 +170,7 @@ abstract class Decoder {
 
     /**
      * Gets the 'element size' of items returned by this decoder.
-     * This has the same meaning as 
+     * This has the same meaning as
      * {@link uk.ac.starlink.table.ValueInfo#getElementSize};
      * the Decoder implementation returns -1, but character-type decoders
      * override this.
@@ -194,7 +194,7 @@ abstract class Decoder {
 
     /**
      * Create a decoder given its datatype, shape and blank (bad) value.
-     * The shape is specified by the <tt>arraysize</tt> parameter, 
+     * The shape is specified by the <tt>arraysize</tt> parameter,
      * which gives array dimensions.   The last element of this array
      * may be negative to indicate an unknown last (slowest varying)
      * dimension.
@@ -215,7 +215,7 @@ abstract class Decoder {
      * <li>doubleComplex
      * </ul>
      *
-     * @param  datatype  the datatype name, that is the value of the 
+     * @param  datatype  the datatype name, that is the value of the
      *         VOTable "datatype" attribute
      * @param  arraysize  shape of the array
      * @param  blank  a string giving the bad value
@@ -246,28 +246,28 @@ abstract class Decoder {
         /* Construct a decoder for the arraysize and datatype. */
         Decoder dec;
         if ( datatype.equals( "boolean" ) ) {
-            dec = isScalar ? new ScalarBooleanDecoder()
+            dec = isScalar ? BooleanDecoder.createScalarBooleanDecoder()
                            : new BooleanDecoder( arraysize );
         }
         else if ( datatype.equals( "bit" ) ) {
-            dec = isScalar ? new ScalarBitDecoder()
+            dec = isScalar ? BitDecoder.createScalarBitDecoder()
                            : new BitDecoder( arraysize );
         }
         else if ( datatype.equals( "unsignedByte" ) ) {
-            dec = isScalar ? new ScalarUnsignedByteDecoder()
-                           : new UnsignedByteDecoder( arraysize );
+            dec = isScalar ? new NumericDecoder.ScalarUnsignedByteDecoder()
+                           : new NumericDecoder.UnsignedByteDecoder( arraysize);
         }
         else if ( datatype.equals( "short" ) ) {
-            dec = isScalar ? new ScalarShortDecoder() 
-                           : new ShortDecoder( arraysize );
+            dec = isScalar ? new NumericDecoder.ScalarShortDecoder()
+                           : new NumericDecoder.ShortDecoder( arraysize );
         }
         else if ( datatype.equals( "int" ) ) {
-            dec = isScalar ? new ScalarIntDecoder() 
-                           : new IntDecoder( arraysize );
+            dec = isScalar ? new NumericDecoder.ScalarIntDecoder()
+                           : new NumericDecoder.IntDecoder( arraysize );
         }
         else if ( datatype.equals( "long" ) ) {
-            dec = isScalar ? new ScalarLongDecoder() 
-                           : new LongDecoder( arraysize );
+            dec = isScalar ? new NumericDecoder.ScalarLongDecoder()
+                           : new NumericDecoder.LongDecoder( arraysize );
         }
         else if ( datatype.equals( "char" ) ) {
             dec = CharDecoders.makeCharDecoder( arraysize );
@@ -276,27 +276,27 @@ abstract class Decoder {
             dec = CharDecoders.makeUnicodeCharDecoder( arraysize );
         }
         else if ( datatype.equals( "float" ) ) {
-            dec = isScalar ? new ScalarFloatDecoder()
-                           : new FloatDecoder( arraysize );
+            dec = isScalar ? new NumericDecoder.ScalarFloatDecoder()
+                           : new NumericDecoder.FloatDecoder( arraysize );
         }
         else if ( datatype.equals( "double" ) ) {
-            dec = isScalar ? new ScalarDoubleDecoder()
-                           : new DoubleDecoder( arraysize );
+            dec = isScalar ? new NumericDecoder.ScalarDoubleDecoder()
+                           : new NumericDecoder.DoubleDecoder( arraysize );
         }
         else if ( datatype.equals( "floatComplex" ) ) {
             long[] arraysize2 = new long[ arraysize.length + 1 ];
             arraysize2[ 0 ] = 2L;
             System.arraycopy( arraysize, 0, arraysize2, 1, arraysize.length );
-            dec = new FloatDecoder( arraysize2 );
+            dec = new NumericDecoder.FloatDecoder( arraysize2 );
         }
         else if ( datatype.equals( "doubleComplex" ) ) {
             long[] arraysize2 = new long[ arraysize.length + 1 ];
             arraysize2[ 0 ] = 2L;
             System.arraycopy( arraysize, 0, arraysize2, 1, arraysize.length );
-            dec = new DoubleDecoder( arraysize2 );
+            dec = new NumericDecoder.DoubleDecoder( arraysize2 );
         }
         else {
-            logger.warning( "Unknown data type " + datatype + 
+            logger.warning( "Unknown data type " + datatype +
                             " - treat as string"
                           + ", but may cause problems" );
             dec = new UnknownDecoder();

@@ -67,14 +67,13 @@ class BitDecoder extends NumericDecoder {
         ((boolean[]) array)[ index ] = txt.length() > 0
                                     && txt.charAt( 0 ) == '1';
     }
-}
 
-class ScalarBitDecoder extends BitDecoder {
-    ScalarBitDecoder() {
-        super( Boolean.class, SCALAR_SIZE );
-    }
-    Object packageArray( Object array ) {
-        boolean[] arr = (boolean[]) array;
-        return isNull( arr, 0 ) ? null : Boolean.valueOf( arr[ 0 ] );
+    static BitDecoder createScalarBitDecoder() {
+        return new BitDecoder( Boolean.class, SCALAR_SIZE ) {
+            Object packageArray( Object array ) {
+                boolean[] arr = (boolean[]) array;
+                return isNull( arr, 0 ) ? null : Boolean.valueOf( arr[ 0 ] );
+            }
+        };
     }
 }

@@ -63,49 +63,51 @@ class BooleanDecoder extends NumericDecoder {
     void setBad1( Object array, int index ) {
         // can't get here?
     }
-}
 
-class ScalarBooleanDecoder extends BooleanDecoder {
-    ScalarBooleanDecoder() {
-        super( Boolean.class, SCALAR_SIZE );
-    }
-    private Boolean decodeChar( char c ) {
-        switch ( c ) {
-            case 'T':
-            case 't':
-            case '1':
-                return Boolean.TRUE;
-            case 'F':
-            case 'f':
-            case '0':
-                return Boolean.FALSE;
-            case '\0':
-            case '?':
-            case ' ':
-                return null;
-            default:
-                return null;
-        }
-    }
-    public Object decodeString( String txt ) {
-        int nchar = txt.length();
-        if ( nchar == 0 ) {
-            return null;
-        }
-        else if ( nchar == 1 ) {
-            return decodeChar( txt.charAt( 0 ) );
-        }
-        else if ( txt.equalsIgnoreCase( "true" ) ) {
-            return Boolean.TRUE;
-        }
-        else if ( txt.equalsIgnoreCase( "false" ) ) {
-            return Boolean.FALSE;
-        }
-        else {
-            return null;
-        }
-    }
-    public Object decodeStream( DataInput strm ) throws IOException {
-        return decodeChar( (char) ( (char) 0x00ff & (char) strm.readByte() ) );
+    static BooleanDecoder createScalarBooleanDecoder() {
+        return new BooleanDecoder( Boolean.class, SCALAR_SIZE ) {
+            private Boolean decodeChar( char c ) {
+                switch ( c ) {
+                    case 'T':
+                    case 't':
+                    case '1':
+                        return Boolean.TRUE;
+                    case 'F':
+                    case 'f':
+                    case '0':
+                        return Boolean.FALSE;
+                    case '\0':
+                    case '?':
+                    case ' ':
+                        return null;
+                    default:
+                        return null;
+                }
+            }
+            @Override
+            public Object decodeString( String txt ) {
+                int nchar = txt.length();
+                if ( nchar == 0 ) {
+                    return null;
+                }
+                else if ( nchar == 1 ) {
+                    return decodeChar( txt.charAt( 0 ) );
+                }
+                else if ( txt.equalsIgnoreCase( "true" ) ) {
+                    return Boolean.TRUE;
+                }
+                else if ( txt.equalsIgnoreCase( "false" ) ) {
+                    return Boolean.FALSE;
+                }
+                else {
+                    return null;
+                }
+            }
+            @Override
+            public Object decodeStream( DataInput strm ) throws IOException {
+                return decodeChar( (char)
+                                   ( (char) 0x00ff & (char) strm.readByte() ) );
+            }
+        };
     }
 }

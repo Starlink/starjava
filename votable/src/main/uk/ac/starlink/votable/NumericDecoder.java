@@ -11,8 +11,8 @@ abstract class NumericDecoder extends Decoder {
     /**
      * Does required setup for a NumericDecoder.
      *
-     * @param  arraysize the dimensions of objects with this type - 
-     *         the last element of the array may be negative to 
+     * @param  arraysize the dimensions of objects with this type -
+     *         the last element of the array may be negative to
      *         indicate unknown slowest-varying dimension
      * @param  clazz  class to which all return values of <tt>decode*</tt>
      *         methods will belong
@@ -260,245 +260,245 @@ abstract class NumericDecoder extends Decoder {
         }
         return Double.parseDouble( txt );
     }
-}
 
-class ShortDecoder extends NumericDecoder {
-    private short bad;
-    private boolean hasBad = false;
-    ShortDecoder( long[] arraysize ) {
-        this( short[].class, arraysize, 2 );
+    static class ShortDecoder extends NumericDecoder {
+        private short bad;
+        private boolean hasBad = false;
+        ShortDecoder( long[] arraysize ) {
+            this( short[].class, arraysize, 2 );
+        }
+        ShortDecoder( Class<?> clazz, long[] arraysize, int size1 ) {
+            super( clazz, arraysize, size1 );
+        }
+        void setNullValue( String txt ) {
+            bad = parseShort( txt );
+            hasBad = true;
+        }
+        Object getEmptyArray( int size ) {
+            return new short[ size ];
+        }
+        void decodeString1( Object array, int index, String txt ) {
+            ((short[]) array)[ index ] = parseShort( txt );
+        }
+        void decodeStream1( Object array, int index, DataInput strm )
+                throws IOException {
+            ((short[]) array)[ index ] = strm.readShort();
+        }
+        void setBad1( Object array, int index ) {
+            ((short[]) array)[ index ] = bad;
+        }
+        public boolean isNull( Object array, int index ) {
+            return hasBad && ((short[]) array)[ index ] == bad;
+        }
     }
-    ShortDecoder( Class clazz, long[] arraysize, int size1 ) {
-        super( clazz, arraysize, size1 );
-    }
-    void setNullValue( String txt ) {
-        bad = parseShort( txt );
-        hasBad = true;
-    }
-    Object getEmptyArray( int size ) {
-        return new short[ size ];
-    }
-    void decodeString1( Object array, int index, String txt ) {
-        ((short[]) array)[ index ] = parseShort( txt );
-    }
-    void decodeStream1( Object array, int index, DataInput strm )
-            throws IOException {
-        ((short[]) array)[ index ] = strm.readShort();
-    }
-    void setBad1( Object array, int index ) {
-        ((short[]) array)[ index ] = bad;
-    }
-    public boolean isNull( Object array, int index ) {
-        return hasBad && ((short[]) array)[ index ] == bad;
-    }
-}
 
-class ScalarShortDecoder extends ShortDecoder {
-    ScalarShortDecoder() {
-        super( Short.class, SCALAR_SIZE, 2 );
+    static class ScalarShortDecoder extends ShortDecoder {
+        ScalarShortDecoder() {
+            super( Short.class, SCALAR_SIZE, 2 );
+        }
+        Object packageArray( Object array ) {
+            short[] arr = (short[]) array;
+            return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
+        }
+        public Object decodeString( String txt ) {
+            return scalarDecodeString( txt );
+        }
     }
-    Object packageArray( Object array ) {
-        short[] arr = (short[]) array;
-        return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
-    }
-    public Object decodeString( String txt ) {
-        return scalarDecodeString( txt );
-    }
-}
 
-class UnsignedByteDecoder extends ShortDecoder {
-    UnsignedByteDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize, 1 );
+    static class UnsignedByteDecoder extends ShortDecoder {
+        UnsignedByteDecoder( Class<?> clazz, long[] arraysize ) {
+            super( clazz, arraysize, 1 );
+        }
+        UnsignedByteDecoder( long[] arraysize ) {
+            this( short[].class, arraysize );
+        }
+        void decodeStream1( Object array, int index, DataInput strm )
+                throws IOException {
+            ((short[]) array)[ index ] =
+                (short) ( (short) 0x00ff & (short) strm.readByte() );
+        }
     }
-    UnsignedByteDecoder( long[] arraysize ) {
-        this( short[].class, arraysize );
-    }
-    void decodeStream1( Object array, int index, DataInput strm )
-            throws IOException {
-        ((short[]) array)[ index ] = 
-            (short) ( (short) 0x00ff & (short) strm.readByte() );
-    }
-}
 
-class ScalarUnsignedByteDecoder extends UnsignedByteDecoder {
-    ScalarUnsignedByteDecoder() {
-        super( Short.class, SCALAR_SIZE );
+    static class ScalarUnsignedByteDecoder extends UnsignedByteDecoder {
+        ScalarUnsignedByteDecoder() {
+            super( Short.class, SCALAR_SIZE );
+        }
+        Object packageArray( Object array ) {
+            short[] arr = (short[]) array;
+            return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
+        }
+        public Object decodeString( String txt ) {
+            return scalarDecodeString( txt );
+        }
     }
-    Object packageArray( Object array ) {
-        short[] arr = (short[]) array;
-        return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
-    }
-    public Object decodeString( String txt ) {
-        return scalarDecodeString( txt );
-    }
-}
 
-class IntDecoder extends NumericDecoder {
-    private int bad;
-    private boolean hasBad = false;
-    IntDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize, 4 );
+    static class IntDecoder extends NumericDecoder {
+        private int bad;
+        private boolean hasBad = false;
+        IntDecoder( Class<?> clazz, long[] arraysize ) {
+            super( clazz, arraysize, 4 );
+        }
+        IntDecoder( long[] arraysize ) {
+            this( int[].class, arraysize );
+        }
+        void setNullValue( String txt ) {
+            bad = parseInt( txt );
+            hasBad = true;
+        }
+        Object getEmptyArray( int size ) {
+            return new int[ size ];
+        }
+        void decodeString1( Object array, int index, String txt ) {
+            ((int[]) array)[ index ] = parseInt( txt );
+        }
+        void decodeStream1( Object array, int index, DataInput strm )
+                throws IOException {
+            ((int[]) array)[ index ] = strm.readInt();
+        }
+        void setBad1( Object array, int index ) {
+            ((int[]) array)[ index ] = bad;
+        }
+        public boolean isNull( Object array, int index ) {
+            return hasBad && ((int[]) array)[ index ] == bad;
+        }
     }
-    IntDecoder( long[] arraysize ) {
-        this( int[].class, arraysize );
-    }
-    void setNullValue( String txt ) {
-        bad = parseInt( txt );
-        hasBad = true;
-    }
-    Object getEmptyArray( int size ) {
-        return new int[ size ];
-    }
-    void decodeString1( Object array, int index, String txt ) {
-        ((int[]) array)[ index ] = parseInt( txt );
-    }
-    void decodeStream1( Object array, int index, DataInput strm )
-            throws IOException {
-        ((int[]) array)[ index ] = strm.readInt();
-    }
-    void setBad1( Object array, int index ) {
-        ((int[]) array)[ index ] = bad;
-    }
-    public boolean isNull( Object array, int index ) {
-        return hasBad && ((int[]) array)[ index ] == bad;
-    }
-}
 
-class ScalarIntDecoder extends IntDecoder {
-    ScalarIntDecoder() {
-        super( Integer.class, SCALAR_SIZE );
+    static class ScalarIntDecoder extends IntDecoder {
+        ScalarIntDecoder() {
+            super( Integer.class, SCALAR_SIZE );
+        }
+        Object packageArray( Object array ) {
+            int[] arr = (int[]) array;
+            return isNull( arr, 0 ) ? null : new Integer( arr[ 0 ] );
+        }
+        public Object decodeString( String txt ) {
+            return scalarDecodeString( txt );
+        }
     }
-    Object packageArray( Object array ) {
-        int[] arr = (int[]) array;
-        return isNull( arr, 0 ) ? null : new Integer( arr[ 0 ] );
-    }
-    public Object decodeString( String txt ) {
-        return scalarDecodeString( txt );
-    }
-}
 
-class LongDecoder extends NumericDecoder {
-    private long bad;
-    private boolean hasBad = false;
-    LongDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize, 8 );
+    static class LongDecoder extends NumericDecoder {
+        private long bad;
+        private boolean hasBad = false;
+        LongDecoder( Class<?> clazz, long[] arraysize ) {
+            super( clazz, arraysize, 8 );
+        }
+        LongDecoder( long[] arraysize ) {
+            this( long[].class, arraysize );
+        }
+        void setNullValue( String txt ) {
+            bad = parseLong( txt );
+            hasBad = true;
+        }
+        Object getEmptyArray( int size ) {
+            return new long[ size ];
+        }
+        void decodeString1( Object array, int index, String txt ) {
+            ((long[]) array)[ index ] = parseLong( txt );
+        }
+        void decodeStream1( Object array, int index, DataInput strm )
+                throws IOException {
+            ((long[]) array)[ index ] = strm.readLong();
+        }
+        void setBad1( Object array, int index ) {
+            ((long[]) array)[ index ] = bad;
+        }
+        public boolean isNull( Object array, int index ) {
+            return hasBad && ((long[]) array)[ index ] == bad;
+        }
     }
-    LongDecoder( long[] arraysize ) {
-        this( long[].class, arraysize );
-    }
-    void setNullValue( String txt ) {
-        bad = parseLong( txt );
-        hasBad = true;
-    }
-    Object getEmptyArray( int size ) {
-        return new long[ size ];
-    }
-    void decodeString1( Object array, int index, String txt ) {
-        ((long[]) array)[ index ] = parseLong( txt );
-    }
-    void decodeStream1( Object array, int index, DataInput strm )
-            throws IOException {
-        ((long[]) array)[ index ] = strm.readLong();
-    }
-    void setBad1( Object array, int index ) {
-        ((long[]) array)[ index ] = bad;
-    }
-    public boolean isNull( Object array, int index ) {
-        return hasBad && ((long[]) array)[ index ] == bad;
-    }
-}
 
-class ScalarLongDecoder extends LongDecoder {
-    ScalarLongDecoder() {
-        super( Long.class, SCALAR_SIZE );
+    static class ScalarLongDecoder extends LongDecoder {
+        ScalarLongDecoder() {
+            super( Long.class, SCALAR_SIZE );
+        }
+        Object packageArray( Object array ) {
+            long[] arr = (long[]) array;
+            return isNull( arr, 0 ) ? null : new Long( arr[ 0 ] );
+        }
+        public Object decodeString( String txt ) {
+            return scalarDecodeString( txt );
+        }
     }
-    Object packageArray( Object array ) {
-        long[] arr = (long[]) array;
-        return isNull( arr, 0 ) ? null : new Long( arr[ 0 ] );
-    }
-    public Object decodeString( String txt ) {
-        return scalarDecodeString( txt );
-    }
-}
 
-class FloatDecoder extends NumericDecoder {
-    FloatDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize, 4 );
+    static class FloatDecoder extends NumericDecoder {
+        FloatDecoder( Class<?> clazz, long[] arraysize ) {
+            super( clazz, arraysize, 4 );
+        }
+        FloatDecoder( long[] arraysize ) {
+            this( float[].class, arraysize );
+        }
+        void setNullValue( String txt ) {
+            // no action
+        }
+        Object getEmptyArray( int size ) {
+            return new float[ size ];
+        }
+        void decodeString1( Object array, int index, String txt ) {
+            ((float[]) array)[ index ] = parseFloat( txt );
+        }
+        void decodeStream1( Object array, int index, DataInput strm )
+                throws IOException {
+            ((float[]) array)[ index ] = strm.readFloat();
+        }
+        void setBad1( Object array, int index ) {
+            ((float[]) array)[ index ] = Float.NaN;
+        }
+        public boolean isNull( Object array, int index ) {
+            return Float.isNaN( ((float[]) array)[ index ] );
+        }
     }
-    FloatDecoder( long[] arraysize ) {
-        this( float[].class, arraysize );
-    }
-    void setNullValue( String txt ) {
-        // no action
-    }
-    Object getEmptyArray( int size ) {
-        return new float[ size ];
-    }
-    void decodeString1( Object array, int index, String txt ) {
-        ((float[]) array)[ index ] = parseFloat( txt );
-    }
-    void decodeStream1( Object array, int index, DataInput strm )
-            throws IOException {
-        ((float[]) array)[ index ] = strm.readFloat();
-    }
-    void setBad1( Object array, int index ) {
-        ((float[]) array)[ index ] = Float.NaN;
-    }
-    public boolean isNull( Object array, int index ) {
-        return Float.isNaN( ((float[]) array)[ index ] );
-    }
-}
 
-class ScalarFloatDecoder extends FloatDecoder {
-    ScalarFloatDecoder() {
-        super( Float.class, SCALAR_SIZE );
+    static class ScalarFloatDecoder extends FloatDecoder {
+        ScalarFloatDecoder() {
+            super( Float.class, SCALAR_SIZE );
+        }
+        Object packageArray( Object array ) {
+            float[] arr = (float[]) array;
+            return isNull( arr, 0 ) ? null : new Float( arr[ 0 ] );
+        }
+        public Object decodeString( String txt ) {
+            return scalarDecodeString( txt );
+        }
     }
-    Object packageArray( Object array ) {
-        float[] arr = (float[]) array;
-        return isNull( arr, 0 ) ? null : new Float( arr[ 0 ] );
-    }
-    public Object decodeString( String txt ) {
-        return scalarDecodeString( txt );
-    }
-}
 
-class DoubleDecoder extends NumericDecoder {
-    DoubleDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize, 8 );
+    static class DoubleDecoder extends NumericDecoder {
+        DoubleDecoder( Class<?> clazz, long[] arraysize ) {
+            super( clazz, arraysize, 8 );
+        }
+        DoubleDecoder( long[] arraysize ) {
+            this( double[].class, arraysize );
+        }
+        void setNullValue( String txt ) {
+            // no action
+        }
+        Object getEmptyArray( int size ) {
+            return new double[ size ];
+        }
+        void decodeString1( Object array, int index, String txt ) {
+            ((double[]) array)[ index ] = parseDouble( txt );
+        }
+        void decodeStream1( Object array, int index, DataInput strm )
+                throws IOException {
+            ((double[]) array)[ index ] = strm.readDouble();
+        }
+        void setBad1( Object array, int index ) {
+            ((double[]) array)[ index ] = Double.NaN;
+        }
+        public boolean isNull( Object array, int index ) {
+            return Double.isNaN( ((double[]) array)[ index ] );
+        }
     }
-    DoubleDecoder( long[] arraysize ) {
-        this( double[].class, arraysize );
-    }
-    void setNullValue( String txt ) {
-        // no action
-    }
-    Object getEmptyArray( int size ) {
-        return new double[ size ];
-    }
-    void decodeString1( Object array, int index, String txt ) {
-        ((double[]) array)[ index ] = parseDouble( txt );
-    }
-    void decodeStream1( Object array, int index, DataInput strm )
-            throws IOException {
-        ((double[]) array)[ index ] = strm.readDouble();
-    }
-    void setBad1( Object array, int index ) {
-        ((double[]) array)[ index ] = Double.NaN;
-    }
-    public boolean isNull( Object array, int index ) {
-        return Double.isNaN( ((double[]) array)[ index ] );
-    }
-}
 
-class ScalarDoubleDecoder extends DoubleDecoder {
-    ScalarDoubleDecoder() {
-        super( Double.class, SCALAR_SIZE );
-    }
-    Object packageArray( Object array ) {
-        double[] arr = (double[]) array;
-        return isNull( arr, 0 ) ? null : new Double( arr[ 0 ] );
-    }
-    public Object decodeString( String txt ) {
-        return scalarDecodeString( txt );
+    static class ScalarDoubleDecoder extends DoubleDecoder {
+        ScalarDoubleDecoder() {
+            super( Double.class, SCALAR_SIZE );
+        }
+        Object packageArray( Object array ) {
+            double[] arr = (double[]) array;
+            return isNull( arr, 0 ) ? null : new Double( arr[ 0 ] );
+        }
+        public Object decodeString( String txt ) {
+            return scalarDecodeString( txt );
+        }
     }
 }
