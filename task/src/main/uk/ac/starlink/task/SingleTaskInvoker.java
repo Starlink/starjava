@@ -106,15 +106,11 @@ public class SingleTaskInvoker {
         ubuf.append( " [-help]" )
             .append( " [-debug]" );
 
-        /* Get an ordered list of task parameters. */
-        Parameter[] params =
-            InvokeUtils.sortParameters( task_.getParameters() );
-
-        /* Add an entry for each parameter. */
-        for ( int i = 0; i < params.length; i++ ) {
+        /* Add an entry for each parameter in sequence. */
+        for ( Parameter<?> param :
+              InvokeUtils.sortParameters( task_.getParameters() ) ) {
             ubuf.append( '\n' )
                 .append( padding );
-            Parameter param = params[ i ];
             boolean optional = param.isNullPermitted()
                             || param.getStringDefault() != null;
             ubuf.append( optional ? "[" : "" )

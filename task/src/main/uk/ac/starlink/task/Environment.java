@@ -26,14 +26,14 @@ public interface Environment {
      *
      * @param   par  the Parameter whose value is to be obtained and set
      */
-    void acquireValue( Parameter par ) throws TaskException;
+    void acquireValue( Parameter<?> par ) throws TaskException;
 
     /**
      * Clears a value for a given parameter.
      *
      * @param  par  the Parameter whose value is to be cleared
      */
-    void clearValue( Parameter par );
+    void clearValue( Parameter<?> par );
 
     /**
      * Returns an array of parameter names which have been specified.

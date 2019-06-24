@@ -40,9 +40,9 @@ public abstract class Parameter<T> {
     private boolean gotValue_;
 
     /** Compares parameters alphabetically by parameter name. */
-    public static final Comparator<Parameter> BY_NAME =
-            new Comparator<Parameter>() {
-        public int compare( Parameter p1, Parameter p2 ) {
+    public static final Comparator<Parameter<?>> BY_NAME =
+            new Comparator<Parameter<?>>() {
+        public int compare( Parameter<?> p1, Parameter<?> p2 ) {
             return p1.getName().compareTo( p2.getName() );
         }
     };
@@ -535,7 +535,7 @@ public abstract class Parameter<T> {
             Class<? extends T> vtclazz = vclazz.asSubclass( clazz );
             Constructor<? extends T> constructor;
             try {
-                constructor = vtclazz.getConstructor( new Class[ 0 ] );
+                constructor = vtclazz.getConstructor();
             }
             catch ( NoSuchMethodException e ) {
                 throw new ParameterValueException( this,

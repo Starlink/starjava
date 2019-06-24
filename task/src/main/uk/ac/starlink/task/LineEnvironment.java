@@ -30,7 +30,8 @@ public class LineEnvironment implements Environment {
     private Argument[] arguments_;
     private PrintStream out_ = System.out;
     private PrintStream err_ = System.err;
-    private final Set<Parameter> clearedParams_ = new HashSet<Parameter>();
+    private final Set<Parameter<?>> clearedParams_ =
+        new HashSet<Parameter<?>>();
     private final List<String> acquiredValues_ = new ArrayList<String>();
 
     static final String NULL_STRING = "";
@@ -56,7 +57,7 @@ public class LineEnvironment implements Environment {
      * @param    args  command-line arguments
      * @param   params  parameters that <code>args</code> provide values for
      */
-    public LineEnvironment( String[] args, Parameter[] params )
+    public LineEnvironment( String[] args, Parameter<?>[] params )
             throws UsageException {
         this();
         LineWord[] words = new LineWord[ args.length ];
@@ -90,7 +91,7 @@ public class LineEnvironment implements Environment {
      * @param   param  parameter
      * @return   formatted documentation for <code>param</code>
      */
-    public String getParamHelp( Parameter param ) {
+    public String getParamHelp( Parameter<?> param ) {
         return param.getPrompt();
     }
 
@@ -102,7 +103,7 @@ public class LineEnvironment implements Environment {
      * @param  param  param
      * @return  true if param is hidden type
      */
-    public boolean isHidden( Parameter param ) {
+    public boolean isHidden( Parameter<?> param ) {
         return false;
     }
 
@@ -114,17 +115,17 @@ public class LineEnvironment implements Environment {
      *
      * @param  params   parameter list
      */
-    public void checkParameters( Parameter[] params ) throws UsageException {
+    public void checkParameters( Parameter<?>[] params ) throws UsageException {
         int narg = arguments_.length;
-        Set<Parameter> paramSet =
-            new HashSet<Parameter>( Arrays.asList( params ) );
+        Set<Parameter<?>> paramSet =
+            new HashSet<Parameter<?>>( Arrays.asList( params ) );
         int position = 1;
         for ( int ia = 0; ia < narg; ia++ ) {
             LineWord word = arguments_[ ia ].word_;
             boolean found = false;
-            for ( Iterator<Parameter> it = paramSet.iterator();
+            for ( Iterator<Parameter<?>> it = paramSet.iterator();
                   ! found && it.hasNext(); ) {
-                Parameter param = it.next();
+                Parameter<?> param = it.next();
                 if ( ! found && paramNameMatches( word.getName(), param ) ) {
                     found = true;
                     if ( ! ( param instanceof MultiParameter ) ) {
@@ -215,7 +216,7 @@ public class LineEnvironment implements Environment {
      * @param   param  parameter to locate
      * @return  string value for <tt>param</tt>
      */
-    private String findValue( Parameter param ) throws TaskException {
+    private String findValue( Parameter<?> param ) throws TaskException {
 
         /* If it's a multiparameter, concatenate all the appearances
          * on the command line. */
@@ -298,7 +299,7 @@ public class LineEnvironment implements Environment {
      * @param   param  parameter
      * @return   the value to which the parameter was set
      */
-    private String promptForValue( Parameter param ) throws TaskException {
+    private String promptForValue( Parameter<?> param ) throws TaskException {
 
         /* Assemble a prompt string. */
         String name = param.getName();
@@ -366,7 +367,7 @@ public class LineEnvironment implements Environment {
         throw new ParameterValueException( param, "Too many tries" );
     }
 
-    public void clearValue( Parameter par ) {
+    public void clearValue( Parameter<?> par ) {
         clearedParams_.add( par );
     }
 
@@ -396,7 +397,7 @@ public class LineEnvironment implements Environment {
         return err_;
     }
 
-    public void acquireValue( Parameter param ) throws TaskException {
+    public void acquireValue( Parameter<?> param ) throws TaskException {
 
         /* Unless the value has been explicitly cleared, search for it
          * in the values specified on the command line. */
@@ -448,7 +449,7 @@ public class LineEnvironment implements Environment {
      * @param   param   parameter whose value is to be set
      * @param   sval    string representation of <code>param</code>'s value
      */
-    private void setValueFromString( Parameter param, String sval )
+    private void setValueFromString( Parameter<?> param, String sval )
             throws TaskException {
         if ( sval == null && ! param.isNullPermitted() ) {
             throw new ParameterValueException( param,
@@ -464,7 +465,7 @@ public class LineEnvironment implements Environment {
      * @param  value  parameter value
      * @return  formatted assignment string
      */
-    private String formatAssignment( Parameter param, String value ) {
+    private String formatAssignment( Parameter<?> param, String value ) {
         if ( value != null && value.indexOf( ' ' ) >= 0 ) {
             if ( value.indexOf( '\'' ) < 0 ) {
                 value = '\'' + value + '\'';
@@ -523,7 +524,7 @@ public class LineEnvironment implements Environment {
      * @return   true iff <code>envName</code> is considered to name 
      *           <code>param</code>
      */
-    public boolean paramNameMatches( String envName, Parameter param ) {
+    public boolean paramNameMatches( String envName, Parameter<?> param ) {
         return param.getName().equalsIgnoreCase( envName );
     }
 

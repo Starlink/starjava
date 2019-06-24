@@ -14,7 +14,7 @@ public interface Task {
      * @return  an array of the Parameter objects this task may request
      *          values for during its invocation
      */
-    Parameter[] getParameters();
+    Parameter<?>[] getParameters();
 
     /**
      * Creates an executable object which will do the work of this task

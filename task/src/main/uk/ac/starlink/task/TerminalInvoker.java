@@ -121,7 +121,7 @@ public class TerminalInvoker {
             try {
 
                 /* Get the parameter objects associated with this task. */
-                Parameter[] params = task.getParameters();
+                Parameter<?>[] params = task.getParameters();
 
                 /* Construct an execution environment for this task based
                  * on the command line. */
@@ -202,15 +202,13 @@ public class TerminalInvoker {
         /* Assemble a list of parameters in the right order, that is all
          * the numbered ones first and all the unnumbered ones (in the
          * order they were submitted) following. */
-        Parameter[] params = task.getParameters();
-        List<Parameter> numbered = new ArrayList<Parameter>();
-        List<Parameter> unNumbered = new ArrayList<Parameter>();
-        for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
+        List<Parameter<?>> numbered = new ArrayList<Parameter<?>>();
+        List<Parameter<?>> unNumbered = new ArrayList<Parameter<?>>();
+        for ( Parameter<?> param : task.getParameters() ) {
             ( param.getPosition() > 0 ? numbered : unNumbered ).add( param );
         }
-        Collections.sort( numbered, new Comparator<Parameter>() {
-            public int compare( Parameter p1, Parameter p2 ) {
+        Collections.sort( numbered, new Comparator<Parameter<?>>() {
+            public int compare( Parameter<?> p1, Parameter<?> p2 ) {
                 int pos1 = p1.getPosition();
                 int pos2 = p2.getPosition();
                 if ( pos1 < pos2 ) { 
@@ -225,13 +223,14 @@ public class TerminalInvoker {
                 }
             } 
         } );
-        List<Parameter> paramList = numbered;
+        List<Parameter<?>> paramList = numbered;
         paramList.addAll( unNumbered );
 
         /* Assemble the usage message with one element for each parameter. */
         StringBuffer usage = new StringBuffer();
-        for ( Iterator<Parameter> it = paramList.iterator(); it.hasNext(); ) {
-            Parameter param = it.next();
+        for ( Iterator<Parameter<?>> it = paramList.iterator();
+              it.hasNext(); ) {
+            Parameter<?> param = it.next();
             boolean optional = param.isNullPermitted()
                             || param.getStringDefault() != null;
             if ( optional ) {

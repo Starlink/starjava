@@ -285,7 +285,7 @@ public class TaskServlet extends HttpServlet {
         out.println( "<p><code>" );
         out.println( baseUrl + "/" + taskName );
         out.println( "<blockquote>" );
-        Parameter[] params = task.getParameters();
+        Parameter<?>[] params = task.getParameters();
         for ( int i = 0; i < params.length; i++ ) {
             Parameter param = params[ i ];
             out.print( " <font color='green'>"
@@ -304,7 +304,7 @@ public class TaskServlet extends HttpServlet {
         out.println( "<dl>" );
         Arrays.sort( params, Parameter.BY_NAME );
         for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
+            Parameter<?> param = params[ i ];
             out.println( "<dt><b><a name='" + param.getName() + "'>"
                        + escape( param.getName() + " = " + param.getUsage() )
                        + "</a></b></dt>" );

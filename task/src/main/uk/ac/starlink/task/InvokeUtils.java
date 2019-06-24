@@ -119,15 +119,15 @@ public class InvokeUtils {
      * @param   params  input list
      * @return  output list
      */
-    public static Parameter[] sortParameters( Parameter[] params ) {
-        List<Parameter> numbered = new ArrayList<Parameter>();
-        List<Parameter> unNumbered = new ArrayList<Parameter>();
+    public static Parameter<?>[] sortParameters( Parameter<?>[] params ) {
+        List<Parameter<?>> numbered = new ArrayList<Parameter<?>>();
+        List<Parameter<?>> unNumbered = new ArrayList<Parameter<?>>();
         for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
+            Parameter<?> param = params[ i ];
             ( param.getPosition() > 0 ? numbered : unNumbered ).add( param );
         }
-        Collections.sort( numbered, new Comparator<Parameter>() {
-            public int compare( Parameter p1, Parameter p2 ) {
+        Collections.sort( numbered, new Comparator<Parameter<?>>() {
+            public int compare( Parameter<?> p1, Parameter<?> p2 ) {
                 int pos1 = p1.getPosition();
                 int pos2 = p2.getPosition();
                 if ( pos1 < pos2 ) {
@@ -142,9 +142,9 @@ public class InvokeUtils {
                 }
              }
         } );
-        List<Parameter> paramList = numbered;
+        List<Parameter<?>> paramList = numbered;
         paramList.addAll( unNumbered );
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -190,7 +190,7 @@ public class InvokeUtils {
         configureLogging( nverb, debug );
         try {
             String clazzName = argList.remove( 0 );
-            Class clazz = Class.forName( clazzName );
+            Class<?> clazz = Class.forName( clazzName );
             Method mainMethod = clazz.getMethod( "main", String[].class );
             mainMethod.invoke( (Object) null,
                                new Object[] {

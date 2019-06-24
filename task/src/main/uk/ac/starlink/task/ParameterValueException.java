@@ -8,22 +8,22 @@ package uk.ac.starlink.task;
  */
 public class ParameterValueException extends UsageException {
 
-    private final Parameter param_;
+    private final Parameter<?> param_;
 
-    public ParameterValueException( Parameter par ) {
+    public ParameterValueException( Parameter<?> par ) {
         super( "Bad value for parameter " + par );
         param_ = par;
     }
-    public ParameterValueException( Parameter par, String message ) {
+    public ParameterValueException( Parameter<?> par, String message ) {
         super( "Bad value for parameter " + par + ": " + message );
         param_ = par;
     }
-    public ParameterValueException( Parameter par, String message, 
+    public ParameterValueException( Parameter<?> par, String message, 
                                     Throwable cause ) {
         super( "Bad value for parameter " + par + ": " + message, cause );
         param_ = par;
     }
-    public ParameterValueException( Parameter par, Throwable cause ) {
+    public ParameterValueException( Parameter<?> par, Throwable cause ) {
         super( "Bad value for parameter " + par, cause );
         param_ = par;
     }
@@ -33,7 +33,7 @@ public class ParameterValueException extends UsageException {
      *
      * @return  parameter
      */
-    public Parameter getParameter() {
+    public Parameter<?> getParameter() {
         return param_;
     }
 }

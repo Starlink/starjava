@@ -57,13 +57,14 @@ public class ShapeModeDoc {
      */
     public String getXmlDoc( ShapeMode mode ) {
         String mname = mode.getModeName();
-        Parameter[] coordParams =
+        Parameter<?>[] coordParams =
             LayerTypeParameter
            .getCoordParams( mode.getExtraCoords(), suffix_, true );
-        Parameter[] styleParams =
+        Parameter<?>[] styleParams =
             LayerTypeParameter
            .getLayerConfigParams( mode.getConfigKeys(), suffix_, false );
-        Parameter[] params = PlotUtil.arrayConcat( coordParams, styleParams );
+        Parameter<?>[] params =
+            PlotUtil.arrayConcat( coordParams, styleParams );
         StringBuffer sbuf = new StringBuffer();
 
         /* Start section. */
@@ -80,7 +81,7 @@ public class ShapeModeDoc {
         /* Usage overview. */
         List<String> usageWords = new ArrayList<String>();
         usageWords.add( paramPrefix_ + suffix_ + "=" + mname );
-        for ( Parameter param : params ) {
+        for ( Parameter<?> param : params ) {
             usageWords.add( LayerTypeParameter.usageWord( param ) );
         }
         sbuf.append( "<p>\n" )
@@ -122,7 +123,7 @@ public class ShapeModeDoc {
             sbuf.append( "<p>Associated parameters are as follows:\n" );
             sbuf.append( "<dl>\n" );
             Arrays.sort( params, Parameter.BY_NAME );
-            for ( Parameter param : params ) {
+            for ( Parameter<?> param : params ) {
                 sbuf.append( UsageWriter.xmlItem( param, basicXml_ ) );
             }
             sbuf.append( "</dl>\n" );

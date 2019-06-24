@@ -23,8 +23,8 @@ import java.util.Set;
  */
 public class TerminalEnvironment implements Environment {
 
-    private Map<Parameter,String> valueMap;
-    private Set<Parameter> paramSet;
+    private Map<Parameter<?>,String> valueMap;
+    private Set<Parameter<?>> paramSet;
 
     /** The number of goes you get to put in an invalid parameter. */
     public static int NUM_TRIES = 5;
@@ -43,13 +43,13 @@ public class TerminalEnvironment implements Environment {
      * @param  params  an array of Parameter objects which this Environment
      *                 may be asked to get values for
      */
-    public TerminalEnvironment( String[] args, Parameter[] params )
+    public TerminalEnvironment( String[] args, Parameter<?>[] params )
             throws UsageException {
-        paramSet = new HashSet<Parameter>( params.length );
+        paramSet = new HashSet<Parameter<?>>( params.length );
         for ( int i = 0; i < params.length; i++ ) {
             paramSet.add( params[ i ] );
         }
-        valueMap = new LinkedHashMap<Parameter,String>();
+        valueMap = new LinkedHashMap<Parameter<?>,String>();
         for ( int i = 0; i < args.length; i++ ) {
             boolean found = false;
             String[] pp = args[ i ].split( "=" );
@@ -80,7 +80,7 @@ public class TerminalEnvironment implements Environment {
         }
     }
 
-    public void clear( Parameter par ) {
+    public void clear( Parameter<?> par ) {
         valueMap.remove( par );
     }
 
@@ -97,11 +97,11 @@ public class TerminalEnvironment implements Environment {
      *
      * @param   par  the parameter whose value is to be set
      */
-    public void acquireValue( Parameter par ) throws TaskException {
+    public void acquireValue( Parameter<?> par ) throws TaskException {
         acquireValue( par, NUM_TRIES );
     }
 
-    private void acquireValue( Parameter par, int ntries )
+    private void acquireValue( Parameter<?> par, int ntries )
             throws TaskException {
 
         /* If we've run out of attempts, bail out. */
@@ -169,13 +169,13 @@ public class TerminalEnvironment implements Environment {
         }
     }
 
-    public void clearValue( Parameter par ) {
+    public void clearValue( Parameter<?> par ) {
         valueMap.remove( par );
     }
 
     public String[] getNames() {
         List<String> nameList = new ArrayList<String>();
-        for ( Parameter param : paramSet ) {
+        for ( Parameter<?> param : paramSet ) {
             nameList.add( param.getName() );
         }
         return nameList.toArray( new String[ 0 ] );

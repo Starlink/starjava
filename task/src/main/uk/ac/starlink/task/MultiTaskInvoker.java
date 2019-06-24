@@ -93,7 +93,7 @@ public class MultiTaskInvoker {
             System.err.println( getUsage() );
             return 1;
         }
-        String taskName = (String) argList.remove( 0 );
+        String taskName = argList.remove( 0 );
         Task task;
         try {
             task = taskFactory_.createObject( taskName );
@@ -106,7 +106,7 @@ public class MultiTaskInvoker {
 
         /* Report task-specific help if required. */
         if ( argList.size() > 0 ) {
-            String arg1 = ((String) argList.get( 0 )).toLowerCase();
+            String arg1 = argList.get( 0 ).toLowerCase();
             if ( arg1.startsWith( "-help" ) ||
                  arg1.equals( "help" ) ) {
                 System.out.println( getUsage( taskName, task ) );
@@ -115,7 +115,7 @@ public class MultiTaskInvoker {
         }
 
         /* Execute the task. */
-        String[] taskArgs = (String[]) argList.toArray( new String[ 0 ] );
+        String[] taskArgs = argList.toArray( new String[ 0 ] );
         try {
             Environment env =
                 new LineEnvironment( taskArgs, task.getParameters() );
@@ -191,9 +191,8 @@ public class MultiTaskInvoker {
             .append( taskName );
         String padding = ubuf.toString().replaceAll( ".", " " ) + " ";
         ubuf.append( "\n" );
-        Parameter[] params = InvokeUtils.sortParameters( task.getParameters() );
-        for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
+        for ( Parameter<?> param :
+              InvokeUtils.sortParameters( task.getParameters() ) ) {
             ubuf.append( padding );
             boolean optional = param.isNullPermitted()
                             || param.getStringDefault() != null;

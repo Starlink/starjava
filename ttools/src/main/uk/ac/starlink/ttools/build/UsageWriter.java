@@ -57,7 +57,7 @@ public class UsageWriter {
         outln( "</p>" );
         outln();
 
-        Parameter[] params = task_.getParameters();
+        Parameter<?>[] params = task_.getParameters();
         if ( params.length > 0 ) {
             outln( "<p>Parameter values are assigned on the command line" );
             outln( "as explained in <ref id=\"task-args\"/>." );

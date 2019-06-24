@@ -99,11 +99,11 @@ public class LayerTypeDoc {
 
         /* Prepare lists of usage words and parameters. */
         List<String> usageWords = new ArrayList<String>();
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         usageWords.add( AbstractPlot2Task.LAYER_PREFIX + suffix_
                       + "=" + lname );
         if ( hasStyle ) {
-            Parameter[] styleParams =
+            Parameter<?>[] styleParams =
                 LayerTypeParameter
                .getLayerConfigParams( styleKeys, suffix_, false );
             paramList.addAll( Arrays.asList( styleParams ) );
@@ -133,7 +133,7 @@ public class LayerTypeDoc {
                     assert geoms.length == 1;
                     geom = geoms[ 0 ];
                 }
-                List<Parameter> posParamList = new ArrayList<Parameter>();
+                List<Parameter<?>> posParamList = new ArrayList<Parameter<?>>();
                 for ( int ipos = 0; ipos < npos; ipos++ ) {
                     String posSuffix = npos == 1
                                      ? ""
@@ -148,8 +148,8 @@ public class LayerTypeDoc {
                     }
                 }
                 paramList.addAll( posParamList );
-                Parameter[] posParams =
-                    posParamList.toArray( new Parameter[ 0 ] );
+                Parameter<?>[] posParams =
+                    posParamList.toArray( new Parameter<?>[ 0 ] );
                 usageWords.addAll( LayerTypeParameter.usageWords( posParams ) );
                 posPlaceholderWords = new String[ 0 ];
             }
@@ -171,14 +171,14 @@ public class LayerTypeDoc {
             posPlaceholderWords = new String[ 0 ];
         }
         if ( hasExtra ) {
-            Parameter[] extraParams =
+            Parameter<?>[] extraParams =
                 LayerTypeParameter
                .getCoordParams( extraCoords, suffix_, false );
             paramList.addAll( Arrays.asList( extraParams ) );
             usageWords.addAll( LayerTypeParameter.usageWords( extraParams ) );
         }
         if ( hasTable ) {
-            Parameter[] tableParams =
+            Parameter<?>[] tableParams =
                 LayerTypeParameter.getInputParams( suffix_ );
             paramList.addAll( Arrays.asList( tableParams ) );
             usageWords.addAll( LayerTypeParameter.usageWords( tableParams ) );
