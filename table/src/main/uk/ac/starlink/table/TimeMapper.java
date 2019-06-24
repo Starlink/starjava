@@ -73,7 +73,7 @@ public abstract class TimeMapper implements DomainMapper {
     /**
      * Constructor.
      *
-     * @param   sourceClass  
+     * @param   sourceClass    source class
      * @param   sourceName  source type name
      * @param   sourceDescription  source type description
      */
