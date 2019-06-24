@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 class BitDecoder extends NumericDecoder {
 
-    BitDecoder( Class clazz, long[] arraysize ) {
+    BitDecoder( Class<?> clazz, long[] arraysize ) {
         // The third argument is not used, since skipStream is overridden.
         super( clazz, arraysize, -1 );
     }

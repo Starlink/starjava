@@ -19,7 +19,7 @@ public class AxisTableDeserializerFactory implements DeserializerFactory {
         return new AxisTableDeserializer( StoragePolicy.getDefaultPolicy() );
     }
 
-    public Iterator getSupportedMechanismTypes() {
+    public Iterator<String> getSupportedMechanismTypes() {
         return Collections.singleton( Constants.AXIS_SAX ).iterator();
     }
 }

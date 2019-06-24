@@ -65,7 +65,7 @@ public interface TabularData {
      * @return  a class to which any non-null element returned by this 
      *          object in column <tt>icol</tt> will belong
      */
-    Class getContentClass( int icol );
+    Class<?> getContentClass( int icol );
 
     /**
      * Returns an object which can iterate over all the rows in the

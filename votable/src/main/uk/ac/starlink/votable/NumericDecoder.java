@@ -19,7 +19,7 @@ abstract class NumericDecoder extends Decoder {
      * @param  size1  number of bytes that a call to
      *         <code>decodeStream1</code> will read
      */
-    NumericDecoder( Class clazz, long[] arraysize, int size1 ) {
+    NumericDecoder( Class<?> clazz, long[] arraysize, int size1 ) {
         super( clazz, arraysize );
         size1_ = size1;
     }

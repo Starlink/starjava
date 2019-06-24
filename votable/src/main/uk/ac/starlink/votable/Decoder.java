@@ -32,7 +32,7 @@ abstract class Decoder {
     protected boolean isVariable;
     protected int sliceSize;
     protected long[] arraysize;
-    private final Class clazz;
+    private final Class<?> clazz;
 
     /**
      * Sets the null (bad) value to be used by the decoder from a string.
@@ -89,7 +89,7 @@ abstract class Decoder {
      *         the last element of the array may be negative to
      *         indicate unknown slowest-varying dimension
      */
-    protected Decoder( Class clazz, long[] arraysize ) {
+    protected Decoder( Class<?> clazz, long[] arraysize ) {
         this.clazz = clazz;
         this.arraysize = arraysize;
         int ndim = arraysize.length;
@@ -122,7 +122,7 @@ abstract class Decoder {
      *
      * @param  returned object class
      */
-    public Class getContentClass() {
+    public Class<?> getContentClass() {
         return clazz;
     }
 

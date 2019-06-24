@@ -358,8 +358,8 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                                           + " - column counts differ" );
         }
         for ( int ic = 0; ic < fields.length; ic++ ) {
-            Class fclazz = dataTable.getColumnInfo( ic ).getContentClass();
-            Class vclazz = fields[ ic ].getDecoder().getContentClass();
+            Class<?> fclazz = dataTable.getColumnInfo( ic ).getContentClass();
+            Class<?> vclazz = fields[ ic ].getDecoder().getContentClass();
             if ( fclazz.equals( vclazz )
                  || ( ( fclazz.equals( String.class ) ||
                         fclazz.equals( Character.class ) ||

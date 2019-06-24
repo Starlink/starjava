@@ -271,7 +271,7 @@ abstract class Encoder {
 
         final CharWriter cwrite = useUnicodeChar ? CharWriter.UCS2
                                                  : CharWriter.ASCII;
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         int[] dims = info.getShape();
         final boolean isNullable = info.isNullable() && magicNulls;
         final boolean isVariable = dims != null 

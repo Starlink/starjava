@@ -85,7 +85,7 @@ public abstract class VOSerializer {
         for ( DescribedValue dval : table.getParameters() ) {
             ValueInfo pinfo = dval.getInfo();
             String pname = pinfo.getName();
-            Class pclazz = pinfo.getContentClass();
+            Class<?> pclazz = pinfo.getContentClass();
             Object value = dval.getValue();
             if ( pname != null && pclazz != null ) {
                 if ( pname.equalsIgnoreCase( "description" ) &&
@@ -647,7 +647,8 @@ public abstract class VOSerializer {
                     break;
                 case '\'':
                     napos++;
-                    // fall through
+                    buf.append( ensureLegalXml( c ) );
+                    break;
                 default:
                     buf.append( ensureLegalXml( c ) );
             }
@@ -810,7 +811,7 @@ public abstract class VOSerializer {
             boolean isUbyte =
                 Boolean.TRUE
                .equals( cinfo.getAuxDatumValue( ubyteKey, Boolean.class ) );
-            Class clazz = cinfo.getContentClass();
+            Class<?> clazz = cinfo.getContentClass();
             if ( magicNulls && cinfo.isNullable() && 
                  Number.class.isAssignableFrom( clazz ) &&
                  cinfo.getAuxDatum( badKey ) == null ) {

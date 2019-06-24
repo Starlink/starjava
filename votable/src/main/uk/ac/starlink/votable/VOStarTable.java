@@ -211,7 +211,7 @@ public class VOStarTable extends AbstractStarTable {
                 if ( blankstr != null ) {
                     Object blank = blankstr;
                     try {
-                        Class clazz = cinfo.getContentClass();
+                        Class<?> clazz = cinfo.getContentClass();
                         if ( clazz == Byte.class ) {
                             blank = Byte.valueOf( blankstr );
                         }
@@ -586,7 +586,7 @@ public class VOStarTable extends AbstractStarTable {
      */
     public static ValueInfo getValueInfo( FieldElement field ) {
         Decoder decoder = field.getDecoder();
-        Class clazz = decoder.getContentClass();
+        Class<?> clazz = decoder.getContentClass();
         String name = field.getHandle();
         long[] shapel = decoder.getDecodedShape();
         DefaultValueInfo info = new DefaultValueInfo( name, clazz );

@@ -32,9 +32,9 @@ class TableBodies {
      */
     abstract static class SequentialTabularData implements TabularData {
         final int ncol;
-        final Class[] classes;
+        final Class<?>[] classes;
                             
-        public SequentialTabularData( Class[] classes ) {
+        public SequentialTabularData( Class<?>[] classes ) {
             this.classes = classes;
             this.ncol = classes.length;
         }           
@@ -47,7 +47,7 @@ class TableBodies {
             return -1L;
         }
 
-        public Class getContentClass( int icol ) {
+        public Class<?> getContentClass( int icol ) {
             return classes[ icol ];
         }
 
@@ -70,7 +70,7 @@ class TableBodies {
      * TabularData implementation with no rows.
      */
     static class EmptyTabularData extends SequentialTabularData {
-        public EmptyTabularData( Class[] classes ) {
+        public EmptyTabularData( Class<?>[] classes ) {
             super( classes );
         }
         public long getRowCount() {
@@ -99,7 +99,7 @@ class TableBodies {
             return startab.getRowCount();
         }
 
-        public Class getContentClass( int icol ) {
+        public Class<?> getContentClass( int icol ) {
             return startab.getColumnInfo( icol ).getContentClass();
         }
 
@@ -302,9 +302,9 @@ class TableBodies {
     /**
      * Returns the column content classes associated with an array of decoders.
      */
-    static Class[] getClasses( Decoder[] decoders ) {
+    static Class<?>[] getClasses( Decoder[] decoders ) {
         int ncol = decoders.length;
-        Class[] classes = new Class[ ncol ];
+        Class<?>[] classes = new Class<?>[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             classes[ icol ] = decoders[ icol ].getContentClass();
         }

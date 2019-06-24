@@ -18,7 +18,7 @@ public class AxisTableSerializerFactory implements SerializerFactory {
         return new AxisTableSerializer();
     }
 
-    public Iterator getSupportedMechanismTypes() {
+    public Iterator<String> getSupportedMechanismTypes() {
         return Collections.singleton( Constants.AXIS_SAX ).iterator();
     }
 }

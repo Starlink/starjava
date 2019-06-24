@@ -50,7 +50,7 @@ class VOTableDomainMappers {
      * @return  domain mapper for time data, or null if not successful
      */
     private static TimeMapper getTimeMapper( ValueInfo info, String xtype ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         String units = info.getUnitString();
         String ucd = info.getUCD();
         String utype = info.getUtype();

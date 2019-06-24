@@ -243,7 +243,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      * cards (SIMPLE, BITPIX, NAXIS, NAXIS1 ) are added and just before
      * the EXTEND card.
      *
-     * @param   hdr
+     * @param   hdr  header
      */
     protected abstract void customisePrimaryHeader( Header hdr )
             throws HeaderCardException;
@@ -258,8 +258,9 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
     private boolean primaryHeaderOK( Header hdr ) {
         boolean ok = true;
         ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
-        for ( Iterator it = hdr.iterator(); it.hasNext(); ) {
-            String card = ((HeaderCard) it.next()).toString();
+        for ( @SuppressWarnings("unchecked")
+              Iterator<HeaderCard> it = hdr.iterator(); it.hasNext(); ) {
+            String card = it.next().toString();
             ok = ok && card.length() == 80;
             for ( int i = 0; i < card.length(); i++ ) {
                 bstrm.write( (byte) card.charAt( i ) );

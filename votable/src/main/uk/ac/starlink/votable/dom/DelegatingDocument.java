@@ -489,8 +489,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
 
     public NodeList getElementsByTagNameNS( String namespaceURI,
                                             String localName ) {
-        return (NodeList) base_.getElementsByTagNameNS( namespaceURI,
-                                                        localName );
+        return base_.getElementsByTagNameNS( namespaceURI, localName );
     }
 
     public Element getElementById( String elementId ) {

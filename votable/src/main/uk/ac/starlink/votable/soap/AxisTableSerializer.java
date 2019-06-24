@@ -63,6 +63,7 @@ public class AxisTableSerializer implements Serializer {
      * DOM exception.  I can only imagine this is an AXIS bug, arising
      * from AXIS not calling importNode on the returned Element.
      */
+    @SuppressWarnings("rawtypes")
     public Element writeSchema( Class javaType, Types types ) {
         if ( schema_ == null ) {
             try {

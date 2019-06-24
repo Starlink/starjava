@@ -177,7 +177,7 @@ public class TableElement extends VOElement {
         /* Construct a dummy TabularData containing no data. */
         FieldElement[] fields = getFields();
         int ncol = fields.length;
-        Class[] clazzes = new Class[ ncol ];
+        Class<?>[] clazzes = new Class<?>[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             clazzes[ icol ] = fields[ icol ].getDecoder().getContentClass();
         }
@@ -208,7 +208,7 @@ public class TableElement extends VOElement {
         int ncol = fields.length;
 
         /* Get the associated decoders and content types. */
-        final Class[] clazzes = new Class[ ncol ];
+        final Class<?>[] clazzes = new Class<?>[ ncol ];
         final Decoder[] decoders = new Decoder[ ncol ];
         for ( int i = 0; i < ncol; i++ ) {
             decoders[ i ] = fields[ i ].getDecoder();
@@ -332,7 +332,7 @@ public class TableElement extends VOElement {
      * @return   tabularData containing the data
      */
     private TabularData makeBinaryTabularData( VOElement binaryEl,
-                                               Class[] clazzes,
+                                               Class<?>[] clazzes,
                                                final Decoder[] decoders,
                                                final boolean isBinary2 ) {
         final VOElement streamEl = binaryEl.getChildByName( "STREAM" );
