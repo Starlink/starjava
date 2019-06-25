@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public abstract class Connection {
 
-    private final Map keys_;
+    private final Map<AuthKey,?> keys_;
     private final Connector connector_;
     private boolean tidy_;
     private LogoutThread shutdownHook_;
@@ -30,7 +30,7 @@ public abstract class Connection {
      * Constructs a connection with no information.
      */
     protected Connection() {
-        this( null, new HashMap() );
+        this( null, new HashMap<AuthKey,Object>() );
     }
 
     /**
@@ -41,10 +41,10 @@ public abstract class Connection {
      * @param   keys   map giving the set of authorization values
      *                 used when opening this connection
      */
-    protected Connection( Connector connector, Map keys ) {
+    protected Connection( Connector connector, Map<AuthKey,?> keys ) {
         connector_ = connector;
-        keys_ = keys == null ? new HashMap()
-                             : new HashMap( keys );
+        keys_ = keys == null ? new HashMap<AuthKey,Object>()
+                             : new HashMap<AuthKey,Object>( keys );
     }
 
     /**
@@ -56,7 +56,7 @@ public abstract class Connection {
      *           or null
      */
     public Object getAuthValue( AuthKey key ) {
-        return (String) keys_.get( key );
+        return keys_.get( key );
     }
 
     /**

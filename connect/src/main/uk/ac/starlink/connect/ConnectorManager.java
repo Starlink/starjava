@@ -46,13 +46,12 @@ public class ConnectorManager {
      */
     public static Connector[] getConnectors() {
         if ( connectors_ == null ) {
-            connectors_ = 
-                (Connector[]) Loader.getClassInstances( KNOWN_CONNECTORS, 
-                                                        CONNECTORS_PROPERTY,
-                                                        Connector.class )
-                                    .toArray( new Connector[ 0 ] );
+            connectors_ = Loader.getClassInstances( KNOWN_CONNECTORS, 
+                                                    CONNECTORS_PROPERTY,
+                                                    Connector.class )
+                                .toArray( new Connector[ 0 ] );
         }
-        return (Connector[]) connectors_.clone();
+        return connectors_.clone();
     }
 
     /**
@@ -75,7 +74,7 @@ public class ConnectorManager {
                 connectorActions_[ i ] = new ConnectorAction( connectors[ i ] );
             }
         }
-        return (ConnectorAction[]) connectorActions_.clone();
+        return connectorActions_.clone();
     }
 
     /**

@@ -11,7 +11,7 @@ import java.util.Comparator;
  * @author   Mark Taylor (Starlink)
  * @since    25 Feb 2005
  */
-public class NodeComparator implements Comparator {
+public class NodeComparator implements Comparator<Node> {
 
     private Collator collator_;
 
@@ -36,9 +36,7 @@ public class NodeComparator implements Comparator {
         return collator_;
     }
 
-    public int compare( Object o1, Object o2 ) {
-        Node i1 = (Node) o1;
-        Node i2 = (Node) o2;
+    public int compare( Node i1, Node i2 ) {
         if ( ( i1 instanceof Branch ) && ! ( i2 instanceof Branch ) ) {
             return -1;
         }

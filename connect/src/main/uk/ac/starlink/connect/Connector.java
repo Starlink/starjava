@@ -54,6 +54,6 @@ public interface Connector {
      * @throws   IOException  if there was some error, for instance
      *           authorization failure
      */
-    Connection logIn( Map authValues ) throws IOException;
+    Connection logIn( Map<AuthKey,?> authValues ) throws IOException;
 
 }

@@ -76,7 +76,7 @@ public class FilestoreChooser extends JPanel {
     private Branch currentBranch_;
     private Branch prevBranch_;
     private ConnectorAction connectorAction_;
-    private List connectorActions_;
+    private List<ConnectorAction> connectorActions_;
     private static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.connect" );
 
@@ -102,7 +102,7 @@ public class FilestoreChooser extends JPanel {
         add( main, BorderLayout.CENTER );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
         Border etchBorder = BorderFactory.createEtchedBorder();
-        List activeList = new ArrayList();
+        List<Component> activeList = new ArrayList<Component>();
 
         /* Construct and place a chooser for the current directory. */
         branchSelector_ = new BranchComboBox();
@@ -279,8 +279,7 @@ public class FilestoreChooser extends JPanel {
                 }
             }
         };
-        activeComponents_ = (Component[]) 
-                            activeList.toArray( new Component[ 0 ] );
+        activeComponents_ = activeList.toArray( new Component[ 0 ] );
     }
 
     /**
@@ -300,10 +299,11 @@ public class FilestoreChooser extends JPanel {
      *
      * @return  mutable list of {@link ConnectorAction} objects
      */
-    public synchronized List getConnectorActions() {
+    public synchronized List<ConnectorAction> getConnectorActions() {
         if ( connectorActions_ == null ) {
             connectorActions_ = 
-                new ArrayList( Arrays.asList( ConnectorManager
+                new ArrayList<ConnectorAction>
+                             ( Arrays.asList( ConnectorManager
                                              .getConnectorActions() ) );
         }
         return connectorActions_;
@@ -467,8 +467,8 @@ public class FilestoreChooser extends JPanel {
      * @return  array of selected nodes
      */
     public Node[] getSelectedNodes() {
-        return (Node[]) Arrays.asList( nodeList_.getSelectedValues() )
-                       .toArray( new Node[ 0 ] );
+        return Arrays.asList( nodeList_.getSelectedValues() )
+                     .toArray( new Node[ 0 ] );
     }
 
     /**

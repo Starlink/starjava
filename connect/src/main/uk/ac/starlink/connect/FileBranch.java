@@ -36,14 +36,14 @@ public class FileBranch extends FileNode implements Branch {
         if ( files == null ) {
             return new Node[ 0 ];
         }
-        List nodeList = new ArrayList( files.length );
+        List<Node> nodeList = new ArrayList<Node>( files.length );
         for ( int i = 0; i < files.length; i++ ) {
             File file = files[ i ];
             if ( ! hidingEnabled_ || ! fsv_.isHiddenFile( file ) ) {
                 nodeList.add( createNode( file ) );
             }
         }
-        return (Node[]) nodeList.toArray( new Node[ 0 ] );
+        return nodeList.toArray( new Node[ 0 ] );
     }
 
     public Node createNode( String location ) {

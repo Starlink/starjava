@@ -13,7 +13,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -51,7 +50,7 @@ public class ConnectorAction extends AbstractAction {
 
     private final Connector connector_;
     private final JPanel entryPanel_;
-    private final Map fieldMap_;
+    private final Map<AuthKey,JTextField> fieldMap_;
     private final Action okAction_;
     private final boolean noAuth_;
     private final static Logger logger_ =
@@ -88,7 +87,7 @@ public class ConnectorAction extends AbstractAction {
         JPanel stack = new JPanel( layer );
         AuthKey[] keys = connector.getKeys();
         noAuth_ = keys.length == 0;
-        fieldMap_ = new HashMap();
+        fieldMap_ = new HashMap<AuthKey,JTextField>();
         JTextField firstField = null;
         JTextField firstEmpty = null;
         for ( int i = 0; i < keys.length; i++ ) {
@@ -296,9 +295,8 @@ public class ConnectorAction extends AbstractAction {
 
         /* Prepare a map of authorization key -> value pairs to describe
          * the login attempt. */
-        Map valueMap = new HashMap();
-        for ( Iterator it = fieldMap_.keySet().iterator(); it.hasNext(); ) {
-            AuthKey key = (AuthKey) it.next();
+        Map<AuthKey,Object> valueMap = new HashMap<AuthKey,Object>();
+        for ( AuthKey key : fieldMap_.keySet() ) {
             Object value;
             if ( key.isHidden() ) {
                 JPasswordField field = (JPasswordField) fieldMap_.get( key );
@@ -306,7 +304,7 @@ public class ConnectorAction extends AbstractAction {
                 value = pass == null || pass.length == 0 ? null : pass;
             }
             else {
-                JTextField field = (JTextField) fieldMap_.get( key );
+                JTextField field = fieldMap_.get( key );
                 String text = field.getText();
                 value = text == null || text.length() == 0 ? null : text;
             }
@@ -327,7 +325,7 @@ public class ConnectorAction extends AbstractAction {
      *
      * @param  authorization key-value pairs
      */
-    private void attemptLogin( final Map authMap ) {
+    private void attemptLogin( final Map<AuthKey,?> authMap ) {
 
         /* Asynchronously attempt to make a connection using these values. */
         setEnabled( false );
@@ -364,8 +362,8 @@ public class ConnectorAction extends AbstractAction {
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
         okAction_.setEnabled( enabled );
-        for ( Iterator it = fieldMap_.keySet().iterator(); it.hasNext(); ) {
-            ((JTextField) fieldMap_.get( it.next() )).setEnabled( enabled );
+        for ( JTextField field : fieldMap_.values() ) {
+            field.setEnabled( enabled );
         }
     }
 

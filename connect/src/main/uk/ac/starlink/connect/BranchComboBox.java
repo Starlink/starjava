@@ -218,9 +218,10 @@ public class BranchComboBox extends JComboBox {
         public void addBranch( Branch branch ) {
             int oldSize = getSize();
             final BranchHolder holder = new BranchHolder( branch );
-            List hlist = new ArrayList( Arrays.asList( holders_ ) );
+            List<BranchHolder> hlist =
+                new ArrayList<BranchHolder>( Arrays.asList( holders_ ) );
             hlist.add( holder );
-            holders_ = (BranchHolder[]) hlist.toArray( new BranchHolder[ 0 ] );
+            holders_ = hlist.toArray( new BranchHolder[ 0 ] );
             fireIntervalAdded( this,
                                Math.max( 0, oldSize - 1 ), getSize() - 1 );
 
@@ -378,13 +379,13 @@ public class BranchComboBox extends JComboBox {
          * @param  branch  new branch
          */
         void setBranch( Branch branch ) {
-            List ancestors = new ArrayList();
+            List<Branch> ancestors = new ArrayList<Branch>();
             for ( Branch ancestor = branch; ancestor != null;
                   ancestor = ancestor.getParent() ) {
                 ancestors.add( ancestor );
             }
             Collections.reverse( ancestors );
-            chain_ = (Branch[]) ancestors.toArray( new Branch[ 0 ] );
+            chain_ = ancestors.toArray( new Branch[ 0 ] );
         }
 
         /**
