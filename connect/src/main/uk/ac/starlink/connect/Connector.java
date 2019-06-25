@@ -15,6 +15,8 @@ public interface Connector {
     /**
      * Returns the name of the type of facility to which this connector
      * can connect.
+     *
+     * @return  connector type
      */
     String getName();
 
@@ -46,7 +48,7 @@ public interface Connector {
      * or <tt>null</tt> (<tt>char[]</tt> may be used for hidden values for
      * security reasons).
      *
-     * @param    authValues   AuthKey->value map containing connection
+     * @param    authValues   AuthKey-&gt;value map containing connection
      *           information
      * @return   a live connection object
      * @throws   IOException  if there was some error, for instance

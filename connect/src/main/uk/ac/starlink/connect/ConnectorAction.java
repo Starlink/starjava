@@ -99,7 +99,7 @@ public class ConnectorAction extends AbstractAction {
             c.insets = new Insets( 2, 2, 0, 0 );
             c.gridy = i;
             c.gridx = 0;
-            c.anchor = c.WEST;
+            c.anchor = GridBagConstraints.WEST;
             JLabel label = new JLabel( key.getName() + ": " );
 
             /* Place a text entry field for this key. */
@@ -107,7 +107,7 @@ public class ConnectorAction extends AbstractAction {
             stack.add( label );
             c.gridx = 1;
             c.weightx = 1.0;
-            c.fill = c.HORIZONTAL;
+            c.fill = GridBagConstraints.HORIZONTAL;
             JTextField field = key.isHidden() 
                              ? (JTextField) new JPasswordField( 20 )
                              : new JTextField( 20 );

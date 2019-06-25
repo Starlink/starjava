@@ -38,8 +38,8 @@ public abstract class Connection {
      * it was created.
      *
      * @param   connector   Connector which generated this connection
-     * @param   keys   {@link AuthKey} -> value map giving the set of
-     *          authorization values used when opening this connection
+     * @param   keys   map giving the set of authorization values
+     *                 used when opening this connection
      */
     protected Connection( Connector connector, Map keys ) {
         connector_ = connector;
@@ -73,11 +73,15 @@ public abstract class Connection {
      * Hopefully it will return true until {@link #logOut} has been called,
      * but it's possible that the connection may expire for some reason
      * before that.
+     *
+     * @return   true iff connection is up
      */
     public abstract boolean isConnected();
 
     /**
      * Closes this connection.
+     *
+     * @throws   IOException  if something went wrong
      */
     public abstract void logOut() throws IOException;
 

@@ -86,6 +86,7 @@ public class ConnectorManager {
      * informed of any errors that occur and invited to retry.
      *
      * @param  parent component for the dialogue
+     * @param  connector   connector
      * @return  new connection, or null
      */
     public static Connection showConnectionDialog( Component parent, 

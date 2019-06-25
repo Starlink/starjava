@@ -57,6 +57,7 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor (Starlink)
  * @since    18 Feb 2005
  */
+@SuppressWarnings({"unchecked","rawtypes","deprecation"})
 public class FilestoreChooser extends JPanel {
 
     private final BranchComboBox branchSelector_;
@@ -272,7 +273,7 @@ public class FilestoreChooser extends JPanel {
                     ConnectorAction connAct = (ConnectorAction) evt.getSource();
                     if ( branchSelector_.getConnectorAction() == connAct &&
                          evt.getPropertyName()
-                            .equals( connAct.CONNECTION_PROPERTY ) ) {
+                            .equals( ConnectorAction.CONNECTION_PROPERTY ) ) {
                         refreshList();
                     }
                 }

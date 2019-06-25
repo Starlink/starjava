@@ -31,6 +31,7 @@ import javax.swing.filechooser.FileView;
  * @author   Mark Taylor (Starlink)
  * @since    18 Feb 2005
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class BranchComboBox extends JComboBox {
 
     private BranchComboBoxModel model_;

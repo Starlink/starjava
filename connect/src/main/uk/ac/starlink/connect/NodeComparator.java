@@ -6,6 +6,7 @@ import java.util.Comparator;
 /**
  * Comparator for nodes.  It returns all Branch nodes first, followed
  * by all Leaf nodes.  Within each group, items are ordered alphabetically.
+ * This is a singleton class.
  *
  * @author   Mark Taylor (Starlink)
  * @since    25 Feb 2005
@@ -17,10 +18,9 @@ public class NodeComparator implements Comparator {
     private static final NodeComparator INSTANCE = new NodeComparator();
 
     /**
-     * Returns an instance of this class.
+     * Private constructor prevents instantiation.
      */
-    public static NodeComparator getInstance() {
-        return INSTANCE;
+    private NodeComparator() {
     }
 
     /**
@@ -48,5 +48,14 @@ public class NodeComparator implements Comparator {
         else {
             return getCollator().compare( i1.getName(), i2.getName() );
         }
+    }
+
+    /**
+     * Returns an instance of this class.
+     *
+     * @return  sole instance
+     */
+    public static NodeComparator getInstance() {
+        return INSTANCE;
     }
 }

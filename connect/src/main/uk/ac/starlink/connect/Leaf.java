@@ -1,5 +1,6 @@
 package uk.ac.starlink.connect;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.util.DataSource;
