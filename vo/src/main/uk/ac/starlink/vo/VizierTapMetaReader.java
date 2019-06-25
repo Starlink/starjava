@@ -71,7 +71,7 @@ public class VizierTapMetaReader implements TapMetaReader {
         return fkeys;
     }
 
-    /** @throws UnsupportedOperationException */
+    /** @throws UnsupportedOperationException  always */
     public TableMeta[] readTables( SchemaMeta schema ) {
         throw new UnsupportedOperationException( "Schemas contain tables; "
                                                + "shouldn't need this method" );

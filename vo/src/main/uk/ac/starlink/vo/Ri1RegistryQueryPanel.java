@@ -27,6 +27,7 @@ import javax.swing.MutableComboBoxModel;
  * @see   <a href="http://www.ivoa.net/documents/RegistryInterface/20091104/"
  *           >Registry Interface 1.0</a>
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class Ri1RegistryQueryPanel extends JPanel {
 
     private RegistrySelector urlSelector_;
@@ -77,7 +78,7 @@ public class Ri1RegistryQueryPanel extends JPanel {
      * @return  query object
      */
     public RegistryQuery getRegistryQuery() throws MalformedURLException {
-        String regServ = (String) urlSelector_.getUrl();
+        String regServ = urlSelector_.getUrl();
         String query = (String) querySelector_.getSelectedItem();
         if ( query == null || query.trim().length() == 0 ) {
             throw new MalformedURLException( "Query URL is blank" );

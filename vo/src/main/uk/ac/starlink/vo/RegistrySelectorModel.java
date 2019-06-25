@@ -9,6 +9,7 @@ import javax.swing.DefaultComboBoxModel;
  * @author   Mark Taylor
  * @since    9 Apr 2014
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class RegistrySelectorModel {
 
     private final RegistryProtocol proto_;

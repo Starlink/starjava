@@ -26,6 +26,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    19 Dec 2008
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class KeywordServiceQueryFactory implements RegistryQueryFactory {
 
     private final Capability capability_;

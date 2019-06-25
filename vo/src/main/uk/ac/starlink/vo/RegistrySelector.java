@@ -37,6 +37,7 @@ import uk.ac.starlink.util.gui.Downloader;
  * @author   Mark Taylor
  * @since    9 Feb 2009
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class RegistrySelector extends JPanel {
 
     private final JComboBox comboBox_;

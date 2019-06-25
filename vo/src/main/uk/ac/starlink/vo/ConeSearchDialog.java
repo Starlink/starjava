@@ -27,6 +27,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class ConeSearchDialog extends SkyDalTableLoadDialog {
 
     private final ContentCoding coding_;

@@ -28,6 +28,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    5 Dec 2005
  * @see      <a href="http://www.ivoa.net/Documents/latest/SIA.html">SIA</a>
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
 
     private final ContentCoding coding_;

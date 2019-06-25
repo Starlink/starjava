@@ -250,7 +250,7 @@ public class RegistryPanel extends JPanel {
     /**
      * Returns an array of all the relevant capabilities of a given resource.
      *
-     * @param  resource
+     * @param  resource   resource
      * @return   capability list
      */
     public RegCapabilityInterface[] getCapabilities( RegResource resource ) {

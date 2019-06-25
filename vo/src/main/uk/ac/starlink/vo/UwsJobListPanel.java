@@ -41,6 +41,7 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor
  * @since    25 Feb 2011
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class UwsJobListPanel extends JPanel {
 
     private final DefaultListModel listModel_;

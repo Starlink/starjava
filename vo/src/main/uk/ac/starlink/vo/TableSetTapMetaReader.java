@@ -69,17 +69,17 @@ public class TableSetTapMetaReader implements TapMetaReader {
         return schemas;
     }
 
-    /** @throws UnsupportedOperationException */
+    /** @throws UnsupportedOperationException always */
     public TableMeta[] readTables( SchemaMeta schema ) {
         throw readNotNeeded();
     }
 
-    /** @throws UnsupportedOperationException */
+    /** @throws UnsupportedOperationException always */
     public ColumnMeta[] readColumns( TableMeta table ) {
         throw readNotNeeded();
     }
 
-    /** @throws UnsupportedOperationException */
+    /** @throws UnsupportedOperationException always */
     public ForeignMeta[] readForeignKeys( TableMeta table ) {
         throw readNotNeeded();
     }

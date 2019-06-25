@@ -123,7 +123,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
      * This list is taken from section 10 of RegTAP 1.0.
      *
      * @return   example list
-     * @see   <a href="http://www.ivoa.net/documents/RegTAP/>RegTAP 1.0</a>
+     * @see   <a href="http://www.ivoa.net/documents/RegTAP/">RegTAP 1.0</a>
      */
     public static DataModelAdqlExample[] createRegTapExamples() {
         return new DataModelAdqlExample[] {

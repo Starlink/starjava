@@ -22,6 +22,7 @@ import javax.swing.table.TableModel;
  * or not shown (don't appear in this ColumnModel).
  * It does this by using an associated ListModel and ListSelectionModel.
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class MetaColumnModel extends DefaultTableColumnModel {
 
     private DefaultListModel listModel;

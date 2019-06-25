@@ -204,11 +204,13 @@ public abstract class LinksDoc {
             return false;
         }
         int ncol = table.getColumnCount();
-        Set<LinkColMap.ColDef> correctDefs = new HashSet<LinkColMap.ColDef>();
-        Set<LinkColMap.ColDef> presentDefs = new HashSet<LinkColMap.ColDef>();
+        Set<LinkColMap.ColDef<?>> correctDefs =
+            new HashSet<LinkColMap.ColDef<?>>();
+        Set<LinkColMap.ColDef<?>> presentDefs =
+            new HashSet<LinkColMap.ColDef<?>>();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo cinfo = table.getColumnInfo( icol );
-            LinkColMap.ColDef coldef =
+            LinkColMap.ColDef<?> coldef =
                 LinkColMap.COLDEF_MAP.get( cinfo.getName() );
             if ( coldef != null ) {
                 if ( ((Class<?>) coldef.getContentClass())

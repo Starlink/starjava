@@ -21,6 +21,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    8 Mar 2011
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class TapCapabilityPanel extends JPanel {
 
     private TapCapability capability_;

@@ -21,7 +21,7 @@ import uk.ac.starlink.util.ContentCoding;
  * the detailed metadata may be obtained from a child URL /tables/(table-name).
  * The service may accept a <code>detail</code> parameter for the /tables URL,
  * with possible values <code>min</code> or <code>max</code>
- * (that is <code>/tables?detail=min</code> or </code>/tables?detail=max</code>)
+ * (that is <code>/tables?detail=min</code> or <code>/tables?detail=max</code>)
  * to give it a non-binding hint about whether detail is returned
  * in child tables.
  *
@@ -127,7 +127,7 @@ public class Vosi11TapMetaReader implements TapMetaReader {
     }
 
     /**
-     * @throws  UnsupportedOperationException
+     * @throws  UnsupportedOperationException  always
      */
     public TableMeta[] readTables( SchemaMeta schema ) {
         String msg = "You shouldn't need to call this method"

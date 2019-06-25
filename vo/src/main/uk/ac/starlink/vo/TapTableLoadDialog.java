@@ -67,6 +67,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    18 Jan 2011
  * @see <a href="http://www.ivoa.net/Documents/TAP/">IVOA TAP Recommendation</a>
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class TapTableLoadDialog extends AbstractTableLoadDialog
                                 implements DalLoader {
 

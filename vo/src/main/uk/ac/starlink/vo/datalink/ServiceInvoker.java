@@ -164,7 +164,7 @@ public class ServiceInvoker {
     /**
      * Assembles an invocation URL from the base URL of this service and any
      * name-value pairs supplied in a given map.
-     * Values are appended in the form ?n1=v1&n2=v2.
+     * Values are appended in the form "<code>?n1=v1&amp;n2=v2</code>".
      *
      * @param   paramMap  map representing parameter values to be
      *                    appended to this service's base URL

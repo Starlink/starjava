@@ -323,7 +323,7 @@ public class MaskTreeModel implements TreeModel {
          * is to appear in the masked tree.
          *
          * @param  node  base model node
-         * @return   true iff mask allows <code>node<code>
+         * @return   true iff mask allows <code>node</code>
          */
         boolean isIncluded( Object node );
     }

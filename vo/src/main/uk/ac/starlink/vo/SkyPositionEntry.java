@@ -226,6 +226,7 @@ public class SkyPositionEntry extends JPanel {
      * @param   field  field to set
      * @param   degValue  value in degrees
      */
+    @SuppressWarnings("rawtypes")
     private void setDegrees( DoubleValueField field, double degValue ) {
         JComboBox convSel = field.getConverterSelector();
         for ( int i = 0; i < convSel.getItemCount(); i++ ) {

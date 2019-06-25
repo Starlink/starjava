@@ -452,8 +452,8 @@ public class DatalinkValidator {
 
         /* Iterate over each table column, populating a map from ColDef
          * to column index. */
-        Map<LinkColMap.ColDef,Integer> icolMap =
-            new HashMap<LinkColMap.ColDef,Integer>();
+        Map<LinkColMap.ColDef<?>,Integer> icolMap =
+            new HashMap<LinkColMap.ColDef<?>,Integer>();
         int ncol = table.getColumnCount();
         int nExtraCol = 0;
         for ( int ic = 0; ic < ncol; ic++ ) {
@@ -461,7 +461,7 @@ public class DatalinkValidator {
             String name = info.getName();
 
             /* See if it's a DataLink column. */
-            LinkColMap.ColDef coldef = LinkColMap.COLDEF_MAP.get( name );
+            LinkColMap.ColDef<?> coldef = LinkColMap.COLDEF_MAP.get( name );
             if ( coldef != null ) {
 
                 /* Check UCD against DataLink specification. */

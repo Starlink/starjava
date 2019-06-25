@@ -23,7 +23,7 @@ import uk.ac.starlink.table.Tables;
  */
 public class LinkColMap {
 
-    private final Map<ColDef,Integer> icolMap_;
+    private final Map<ColDef<?>,Integer> icolMap_;
 
     /** ID column definition. */
     public static final ColDef<String> COL_ID;
@@ -50,10 +50,10 @@ public class LinkColMap {
     public static final ColDef<Number> COL_CONTENTLENGTH;
 
     /** Map by column name of all columns required in a DataLink table. */
-    public static final Map<String,ColDef> COLDEF_MAP;
+    public static final Map<String,ColDef<?>> COLDEF_MAP;
     static {
-        Map<String,ColDef> map = new LinkedHashMap<String,ColDef>();
-        ColDef[] coldefs = {
+        Map<String,ColDef<?>> map = new LinkedHashMap<String,ColDef<?>>();
+        ColDef<?>[] coldefs = {
             COL_ID =
                 new ColDef<String>( "ID", "meta.id;meta.main", String.class ),
             COL_ACCESSURL =
@@ -75,7 +75,7 @@ public class LinkColMap {
                 new ColDef<Number>( "content_length", "phys.size;meta.file",
                                     Number.class ),
         };
-        for ( ColDef coldef : coldefs ) {
+        for ( ColDef<?> coldef : coldefs ) {
             map.put( coldef.getName(), coldef );
         }
         COLDEF_MAP = Collections.unmodifiableMap( map );
@@ -90,7 +90,7 @@ public class LinkColMap {
      * @param  icolMap  map from column definition to column index,
      *                  providing the state of this object
      */
-    protected LinkColMap( Map<ColDef,Integer> icolMap ) {
+    protected LinkColMap( Map<ColDef<?>,Integer> icolMap ) {
         icolMap_ = icolMap;
     }
 
@@ -220,14 +220,14 @@ public class LinkColMap {
      */
     public static LinkColMap getMap( StarTable table ) {
         if ( table == null ) {
-            return new LinkColMap( new HashMap<ColDef,Integer>() );
+            return new LinkColMap( new HashMap<ColDef<?>,Integer>() );
         }
         int ncol = table.getColumnCount();
-        Map<ColDef,Integer> icolMap = new LinkedHashMap<ColDef,Integer>();
+        Map<ColDef<?>,Integer> icolMap = new LinkedHashMap<ColDef<?>,Integer>();
         for ( int ic = 0; ic < ncol; ic++ ) {
             ColumnInfo info = table.getColumnInfo( ic );
             String name = info.getName();
-            ColDef coldef = COLDEF_MAP.get( name );
+            ColDef<?> coldef = COLDEF_MAP.get( name );
             if ( coldef != null ) {
                 String ucd = info.getUCD();
                 Class<?> clazz = info.getContentClass();

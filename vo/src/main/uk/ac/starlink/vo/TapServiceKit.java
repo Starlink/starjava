@@ -48,7 +48,7 @@ public class TapServiceKit {
     private final String ivoid_;
     private final TapMetaPolicy metaPolicy_;
     private final ContentCoding coding_;
-    private final Map<Populator,Collection<Runnable>> runningMap_;
+    private final Map<Populator<?>,Collection<Runnable>> runningMap_;
     private final ExecutorService metaExecutor_;
     private volatile FutureTask<TapMetaReader> rdrFuture_;
 
@@ -74,7 +74,7 @@ public class TapServiceKit {
         metaPolicy_ = metaPolicy;
         coding_ = coding;
         metaExecutor_ = createExecutorService( queueLimit );
-        runningMap_ = new HashMap<Populator,Collection<Runnable>>();
+        runningMap_ = new HashMap<Populator<?>,Collection<Runnable>>();
     }
 
     /**
@@ -619,7 +619,7 @@ public class TapServiceKit {
     /**
      * Typed callable that only throws an IOException.
      */
-    private static interface DataCallable<T> extends Callable {
+    private static interface DataCallable<T> extends Callable<T> {
         T call() throws IOException;
     }
 
@@ -726,7 +726,7 @@ public class TapServiceKit {
         @Override
         public boolean equals( Object o ) {
             return getClass().equals( o.getClass() )
-                && this.id_.equals( ((Populator) o).id_ );
+                && this.id_.equals( ((Populator<?>) o).id_ );
         }
     }
 

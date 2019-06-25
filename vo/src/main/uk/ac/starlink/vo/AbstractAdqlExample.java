@@ -285,7 +285,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 }
             }
         }
-        return (TableMeta[]) tlist.toArray( new TableMeta[ 0 ] );
+        return tlist.toArray( new TableMeta[ 0 ] );
     }
 
     /**

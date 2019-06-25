@@ -794,7 +794,7 @@ public class UwsJob {
         byte[] bbuf = new byte[ nc ];
         for ( int i = 0; i < nc; i++ ) {
             char c = sbuf.charAt( i );
-            assert (int) c == (int) ( c & 0x7f );
+            assert (int) c == ( c & 0x7f );
             bbuf[ i ] = (byte) sbuf.charAt( i );
         }
         return bbuf;

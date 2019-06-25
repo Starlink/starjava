@@ -24,6 +24,7 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class DoubleValueField {
 
     private final DefaultValueInfo info_;

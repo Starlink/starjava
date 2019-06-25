@@ -1487,7 +1487,7 @@ public class TableSetPanel extends JPanel {
         @Override
         public boolean equals( Object o ) {
             if ( o instanceof ExtraColumn ) {
-                ExtraColumn other = (ExtraColumn) o;
+                ExtraColumn<?> other = (ExtraColumn<?>) o;
                 return this.key_.equals( other.key_ )
                     && this.clazz_.equals( other.clazz_ );
             }

@@ -28,6 +28,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    2 Feb 2009
  * @see      <a href="http://www.ivoa.net/Documents/latest/SSA.html">SSA</a>
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
 
     private final ContentCoding coding_;
