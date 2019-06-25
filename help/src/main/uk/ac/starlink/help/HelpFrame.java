@@ -110,6 +110,8 @@ public class HelpFrame
     /**
      * Create an instance. Protected as there is usually only one 
      * instance of this class per application.
+     *
+     * @throws  HelpSetException  in case of error
      */
     protected HelpFrame()
         throws HelpSetException
@@ -122,6 +124,8 @@ public class HelpFrame
     /**
      * Add a HelpSet, must do this at least once before a request to display
      * help is made.
+     *
+     * @param  helpSetURL  url of help set
      */
     public static void addHelpSet( URL helpSetURL )
     {
@@ -142,6 +146,8 @@ public class HelpFrame
 
     /**
      * Set the title.
+     *
+     * @param  title  title
      */
     public static void setHelpTitle( String title )
     {
@@ -319,6 +325,8 @@ public class HelpFrame
 
     /**
      * Initialise the Help display components.
+     *
+     * @throws   HelpSetException   in case of error
      */
     protected void initHelp()
         throws HelpSetException
@@ -342,6 +350,8 @@ public class HelpFrame
     /**
      * Show a specific page in the help window. If null then the
      * default page is shown.
+     *
+     * @param  id  identifier of help entry to display
      */
     protected void showID( String id )
     {
@@ -485,6 +495,8 @@ public class HelpFrame
 
     /**
      *  Requested to show the action help topic.
+     *
+     * @param   id   identifier of help item
      */
     protected static void showHelpEvent( String id )
     {
