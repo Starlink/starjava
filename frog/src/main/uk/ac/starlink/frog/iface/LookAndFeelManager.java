@@ -250,8 +250,8 @@ public class LookAndFeelManager implements ActionListener
                     debugManager.print( "setTheme( " + name + " )");
 
                     Constructor ct =
-                         ((Class)themeMapping[i][1]).getConstructor(null);
-                    setTheme( (DefaultMetalTheme)ct.newInstance(null) );
+                         ((Class)themeMapping[i][1]).getConstructor();
+                    setTheme( (DefaultMetalTheme)ct.newInstance() );
                 }
                 catch (Exception ex) {
                     ex.printStackTrace();
