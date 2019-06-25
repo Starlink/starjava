@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -90,7 +91,7 @@ public class FitsConstants {
      * @return unmodifiable list of default FITS extensions - 
      *         ".fits", ".fit" etc
      */
-    public static List defaultFitsExtensions() {
+    public static List<String> defaultFitsExtensions() {
         return Collections.unmodifiableList( Arrays.asList( extensions ) );
     }
 
@@ -171,6 +172,21 @@ public class FitsConstants {
      */
     public static HeaderCard createHeaderCard( String cardImage ) {
         return HeaderCard.create( cardImage );
+    }
+
+    /**
+     * Returns an iterable over HeaderCards for a given Header.
+     *
+     * @param   hdr  header
+     * @return  iterable over hdr's cards
+     */
+    public static Iterable<HeaderCard> headerIterable( final Header hdr ) {
+        return new Iterable<HeaderCard>() {
+            @SuppressWarnings("unchecked")
+            public Iterator<HeaderCard> iterator() {
+                return (Iterator<HeaderCard>) hdr.iterator();
+            }
+        };
     }
 
     /**

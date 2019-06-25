@@ -284,7 +284,7 @@ abstract class FileColumnStore implements ColumnStore {
      */
     public static ColumnStore createColumnStore( ValueInfo info )
             throws IOException {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
 
         if ( clazz == Boolean.class ) {
             return new FileColumnStore( info, 'L', 1, true ) {
@@ -614,7 +614,7 @@ abstract class FileColumnStore implements ColumnStore {
             buffer_ = Array.newInstance( handler.getComponentClass(),
                                          blockSize_ );
             byteBuffer_ = new byte[ blockSize_ * handler.getTypeBytes() ];
-            blankBuffer_ = (byte[]) byteBuffer_.clone();
+            blankBuffer_ = byteBuffer_.clone();
         }
 
         protected void storeValue( Object value, DataOutput out )

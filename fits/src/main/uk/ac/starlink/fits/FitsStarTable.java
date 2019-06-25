@@ -216,7 +216,7 @@ public class FitsStarTable extends RandomStarTable {
                           new IOException( "Error reading test cell" )
                          .initCause( e );
                 }
-                Class cls = packagedType( test, icol );
+                Class<?> cls = packagedType( test, icol );
                 cinfo.setContentClass( cls );
             }
             else if ( isScaled[ icol ] ) {
@@ -285,6 +285,7 @@ public class FitsStarTable extends RandomStarTable {
      * @param   icol  the column from which <tt>base</tt> comes
      * @return  the object representing the value of the cell
      */
+    @SuppressWarnings("cast")
     private Object packageValue( Object base, int icol ) {
 
         /* Null goes to null. */
@@ -293,8 +294,8 @@ public class FitsStarTable extends RandomStarTable {
         }
 
         /* Scalar data is normally returned as a 1-element array. */
-        Class bcls = base.getClass();
-        Class cls = bcls.isArray() ? bcls.getComponentType() : null;
+        Class<?> bcls = base.getClass();
+        Class<?> cls = bcls.isArray() ? bcls.getComponentType() : null;
         if ( cls != null && Array.getLength( base ) == 1 ) {
             boolean hasblank = hasBlank[ icol ];
             long blank = blanks[ icol ]; 
@@ -388,12 +389,12 @@ public class FitsStarTable extends RandomStarTable {
      * @return  the class that <tt>packageValue(base,icol)</tt> 
      *          would return an instance of
      */
-    private Class packagedType( Object base, int icol ) {
+    private Class<?> packagedType( Object base, int icol ) {
         if ( base == null ) {
             return Object.class;
         }
 
-        Class cls = base.getClass().getComponentType();
+        Class<?> cls = base.getClass().getComponentType();
         if ( cls != null && Array.getLength( base ) == 1 ) {
             boolean scaled = isScaled[ icol ];
             if ( scaled ) {

@@ -115,8 +115,8 @@ public class FitsNdxHandler
         HdxFactory.registerHdxDocumentFactory(getInstance());
     }
 
-    private List extensions = 
-        new ArrayList( FitsConstants.defaultFitsExtensions() );
+    private List<String> extensions = 
+        new ArrayList<String>( FitsConstants.defaultFitsExtensions() );
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
     
@@ -210,12 +210,13 @@ public class FitsNdxHandler
             /* Get the WCS information, if possible. */
             final FrameSet wcs;
             if ( AstPackage.isAvailable() ) {
-                final Iterator cardIt = hdr.iterator();
-                Iterator lineIt = new Iterator() {
+                final Iterator<HeaderCard> cardIt =
+                    FitsConstants.headerIterable( hdr ).iterator();
+                Iterator<String> lineIt = new Iterator<String>() {
                     public boolean hasNext() { 
                         return cardIt.hasNext();
                     }
-                    public Object next() {
+                    public String next() {
                         return cardIt.next().toString();
                     }
                     public void remove() { 
@@ -332,7 +333,7 @@ public class FitsNdxHandler
         int xhdu;
         HeaderCard[] cards;
         try {
-            List cardlist = new ArrayList();
+            List<HeaderCard> cardlist = new ArrayList<HeaderCard>();
 
             cardlist.add( commentCard( "DATA component of NDX structure" ) );
 
@@ -362,12 +363,14 @@ public class FitsNdxHandler
                 FitsChan fchan = new FitsChan();
                 fchan.setEncoding( FitsConstants.WCS_ENCODING );
                 fchan.write( ndx.getAst() );
-                for ( Iterator it = fchan.iterator(); it.hasNext(); ) {
+                @SuppressWarnings("unchecked")
+                Iterator<String> fchit = (Iterator<String>) fchan.iterator();
+                while ( fchit.hasNext() ) {
                     cardlist.add( FitsConstants
-                                 .createHeaderCard( (String) it.next() ) );
+                                 .createHeaderCard( fchit.next() ) );
                 }
             }
-            cards = (HeaderCard[]) cardlist.toArray( new HeaderCard[ 0 ] );
+            cards = cardlist.toArray( new HeaderCard[ 0 ] );
         }
         catch ( HeaderCardException e ) {
             throw (IOException) new IOException( e.getMessage() )
@@ -405,7 +408,7 @@ public class FitsNdxHandler
             Number vbadval = 
                 vtype.isFloating() ? vtype.defaultBadValue()
                                    : var.getBadHandler().getBadValue();
-            List vcardlist = new ArrayList();
+            List<HeaderCard> vcardlist = new ArrayList<HeaderCard>();
             vcardlist.add( 
                 commentCard( "VARIANCE component of NDX structure" ) );
             if ( ndx.hasUnits() ) {
@@ -419,8 +422,7 @@ public class FitsNdxHandler
                                   + vunits );
                 }
             }
-            HeaderCard[] vcards = 
-                (HeaderCard[]) vcardlist.toArray( new HeaderCard[ 0 ] );
+            HeaderCard[] vcards = vcardlist.toArray( new HeaderCard[ 0 ] );
             ArrayImpl vimpl = 
                 new WritableFitsArrayImpl( var.getShape(), vtype, vbadval, 
                                            strm, false, vcards );

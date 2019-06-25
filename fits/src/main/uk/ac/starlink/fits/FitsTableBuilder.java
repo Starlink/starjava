@@ -298,8 +298,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             FitsConstants.readHeader( hdr, in );
         }
         catch ( IOException e ) {
-            throw (TableFormatException)
-                  new TableFormatException( "Can't read FITS header", e );
+            throw new TableFormatException( "Can't read FITS header", e );
         }
         String xtension = hdr.getStringValue( "XTENSION" );
         if ( "BINTABLE".equals( xtension ) ) {

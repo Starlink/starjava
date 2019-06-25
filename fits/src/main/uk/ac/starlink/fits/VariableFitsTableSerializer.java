@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
@@ -81,13 +80,12 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
         /* Header manipulation methods leave a bit to be desired.
          * It is a bit fiddly to make sure these cards go in the right place. */
-        final List cardList = new ArrayList();
+        final List<HeaderCard> cardList = new ArrayList<HeaderCard>();
         assert hdr.containsKey( "PCOUNT" );
         assert hdr.containsKey( "GCOUNT" );
         hdr.removeCard( "THEAP" );
         assert hdr.containsKey( "NAXIS2" );
-        for ( Iterator it = hdr.iterator(); it.hasNext(); ) {
-            HeaderCard card = (HeaderCard) it.next();
+        for ( HeaderCard card : FitsConstants.headerIterable( hdr ) ) {
             String key = card.getKey();
             if ( "PCOUNT".equals( key ) ) {
                 cardList.add( new HeaderCard( "PCOUNT", pcount,
@@ -104,8 +102,8 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         }
         return new Header() {
             {
-                for ( Iterator it = cardList.iterator(); it.hasNext(); ) {
-                    addLine( (HeaderCard) it.next() );
+                for ( HeaderCard card : cardList ) {
+                    addLine( card );
                 }
             }
         };
@@ -119,14 +117,14 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
      */
     private VariableArrayColumnWriter[] getVariableArrayColumnWriters() {
         ColumnWriter[] colWriters = getColumnWriters();
-        List vcwList = new ArrayList();
+        List<VariableArrayColumnWriter> vcwList =
+            new ArrayList<VariableArrayColumnWriter>();
         for ( int icol = 0; icol < colWriters.length; icol++ ) {
             if ( colWriters[ icol ] instanceof VariableArrayColumnWriter ) {
-                vcwList.add( colWriters[ icol ] );
+                vcwList.add( (VariableArrayColumnWriter) colWriters[ icol ] );
             }
         }
-        return (VariableArrayColumnWriter[])
-               vcwList.toArray( new VariableArrayColumnWriter[ 0 ] );
+        return vcwList.toArray( new VariableArrayColumnWriter[ 0 ] );
     }
 
     /**
@@ -181,7 +179,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
                                      boolean varShape, int eSize,
                                      int maxEls, long totalEls,
                                      boolean nullableInt ) {
-        Class clazz = cinfo.getContentClass();
+        Class<?> clazz = cinfo.getContentClass();
         if ( ! varShape || clazz == String.class || clazz == String[].class ) {
             return super.createColumnWriter( cinfo, shape, varShape, eSize,
                                              maxEls, totalEls, nullableInt );

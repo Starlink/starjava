@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import nom.tam.fits.Header;
@@ -147,8 +146,7 @@ public class HeaderCards {
         List<DescribedValue> paramList = new ArrayList<DescribedValue>();
         Map<String,DescribedValue> paramMap =
             new HashMap<String,DescribedValue>();
-        for ( Iterator<HeaderCard> it = hdr_.iterator(); it.hasNext(); ) {
-            HeaderCard card = it.next();
+        for ( HeaderCard card : FitsConstants.headerIterable( hdr_ ) ) {
             String name = card.getKey();
 
             /* HISTORY and COMMENT cards are special - they are multi-valued.
@@ -220,7 +218,7 @@ public class HeaderCards {
         String key = card.getKey();
         String comment = card.getComment();
         Object value = toObject( card.getValue() );
-        Class clazz = value == null ? String.class : value.getClass();
+        Class<?> clazz = value == null ? String.class : value.getClass();
         DefaultValueInfo info = new DefaultValueInfo( key, clazz );
         if ( comment != null && comment.trim().length() > 0 ) {
             info.setDescription( comment.trim() );

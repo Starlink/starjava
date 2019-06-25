@@ -78,7 +78,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
     public static ScalarColumnWriter
                   createColumnWriter( ColumnInfo cinfo, boolean nullableInt,
                                       boolean allowSignedByte ) {
-        Class clazz = cinfo.getContentClass();
+        Class<?> clazz = cinfo.getContentClass();
         Number blankNum = null;
         if ( nullableInt ) {
             DescribedValue blankVal =

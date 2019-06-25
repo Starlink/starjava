@@ -2,7 +2,6 @@ package uk.ac.starlink.fits;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
@@ -70,7 +69,7 @@ class WritableFitsArrayImpl implements ArrayImpl {
         }
 
         /* Assemble the stack of header cards to put in the FITS header. */
-        List cardlist = new ArrayList();
+        List<HeaderCard> cardlist = new ArrayList<HeaderCard>();
         try {
             long[] origin = oshape.getOrigin();
             long[] dims = oshape.getDims();
@@ -162,8 +161,8 @@ class WritableFitsArrayImpl implements ArrayImpl {
 
         /* Write the header cards into a new Header object. */
         header = new AddableHeader();
-        for ( Iterator it = cardlist.iterator(); it.hasNext(); ) {
-            ((AddableHeader) header).addLine( (HeaderCard) it.next() );
+        for ( HeaderCard card : cardlist ) {
+            ((AddableHeader) header).addLine( card );
         }
 
         /* Construct an object for writing data. */

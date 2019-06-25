@@ -88,7 +88,7 @@ abstract class ArrayWriter {
      */
     public static ArrayWriter createArrayWriter( ColumnInfo cinfo,
                                                  boolean allowSignedByte ) {
-        Class clazz = cinfo.getContentClass();
+        Class<?> clazz = cinfo.getContentClass();
         final boolean isUbyte =
             Boolean.TRUE
            .equals( cinfo.getAuxDatumValue( Tables.UBYTE_FLAG_INFO,

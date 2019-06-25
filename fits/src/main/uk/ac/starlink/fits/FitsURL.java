@@ -39,7 +39,7 @@ class FitsURL {
      * one of the ways of specifying an HDU  
      * (ends with "#num", "[num]" or no specifier).
      */
-    static FitsURL parseURL( URL url, List extensions ) {
+    static FitsURL parseURL( URL url, List<String> extensions ) {
         String urlstr = url.toExternalForm();
         URL basicURL;
         int hduIndex;
@@ -88,8 +88,8 @@ class FitsURL {
         /* See if the basic URL ends in one of the known FITS extensions,
          * and return null if not. */
         boolean isFits = false;
-        for ( Iterator it = extensions.iterator(); it.hasNext(); ) {
-            if ( basicURL.getPath().endsWith( (String) it.next() ) ) {
+        for ( Iterator<String> it = extensions.iterator(); it.hasNext(); ) {
+            if ( basicURL.getPath().endsWith( it.next() ) ) {
                 isFits = true;
                 break;
             }
@@ -106,18 +106,25 @@ class FitsURL {
         return container + "#" + hdu;
     }
 
-    public boolean equals( Object other ) {
-        if ( ! ( other instanceof FitsURL ) ) {
+    @Override
+    public int hashCode() {
+        int code = 99801;
+        code = 23 * code + hdu;
+        code = 23 * code + container.toString().hashCode();
+        return code;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( o instanceof FitsURL ) {
+            FitsURL other = (FitsURL) o;
+            return this.hdu == other.hdu
+                && this.container.toString()
+                  .equals( other.container.toString() );
+        }
+        else {
             return false;
         }
-        FitsURL fother = (FitsURL) other;
-        if ( fother.hdu != hdu ) {
-            return false;
-        }
-        if ( ! fother.container.toString().equals( container.toString() ) ) {
-            return false;
-        }
-        return true;
     }
 
 }

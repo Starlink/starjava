@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 abstract class ArrayStorage {
 
-    private final Class componentClass_;
+    private final Class<?> componentClass_;
     private final char formatChar_;
     private final int typeBytes_;
 
@@ -24,7 +24,7 @@ abstract class ArrayStorage {
      * @param   formatChar      FITS format identification character
      * @param   typeBytes       number of bytes required for a single element
      */
-    protected ArrayStorage( Class componentClass, char formatChar,
+    protected ArrayStorage( Class<?> componentClass, char formatChar,
                             int typeBytes ) {
         componentClass_ = componentClass;
         formatChar_ = formatChar;
@@ -36,7 +36,7 @@ abstract class ArrayStorage {
      *
      * @return  array element class
      */
-    public Class getComponentClass() {
+    public Class<?> getComponentClass() {
         return componentClass_;
     }
 

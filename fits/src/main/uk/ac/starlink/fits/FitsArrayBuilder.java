@@ -75,8 +75,8 @@ public class FitsArrayBuilder implements ArrayBuilder {
     /** Maximum size of MappedFile (NIO mapped buffer). */
     private static final int MAPPED_MAX_SIZE = Integer.MAX_VALUE;
 
-    private List extensions = 
-        new ArrayList( FitsConstants.defaultFitsExtensions() );
+    private List<String> extensions = 
+        new ArrayList<String>( FitsConstants.defaultFitsExtensions() );
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**

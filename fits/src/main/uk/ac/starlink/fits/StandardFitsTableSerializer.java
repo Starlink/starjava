@@ -123,9 +123,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         boolean[] hasNulls = new boolean[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo colinfo = colInfos[ icol ];
-            Class clazz = colinfo.getContentClass();
+            Class<?> clazz = colinfo.getContentClass();
             if ( clazz.isArray() ) {
-                shapes[ icol ] = (int[]) colinfo.getShape().clone();
+                shapes[ icol ] = colinfo.getShape().clone();
                 int[] shape = shapes[ icol ];
                 if ( shape[ shape.length - 1 ] < 0 ) {
                     varShapes[ icol ] = true;
@@ -595,7 +595,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                                      boolean varShape, int eSize,
                                      final int maxEls, long totalEls,
                                      boolean nullableInt ) {
-        Class clazz = cinfo.getContentClass();
+        Class<?> clazz = cinfo.getContentClass();
         if ( clazz == String.class ) {
             final int maxChars = eSize;
             final int[] dims = new int[] { maxChars };

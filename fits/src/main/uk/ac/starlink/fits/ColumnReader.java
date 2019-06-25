@@ -19,7 +19,7 @@ import uk.ac.starlink.table.Tables;
  */
 abstract class ColumnReader {
 
-    private final Class clazz_;
+    private final Class<?> clazz_;
     private final int[] shape_;
     private final int length_;
     private final boolean isUnsignedByte_;
@@ -37,7 +37,7 @@ abstract class ColumnReader {
      *                the stream
      * @param  isUnsignedByte  true iff data represents unsigned bytes
      */
-    ColumnReader( Class clazz, int[] shape, int length,
+    ColumnReader( Class<?> clazz, int[] shape, int length,
                   boolean isUnsignedByte ) {
         clazz_ = clazz;
         shape_ = shape;
@@ -54,7 +54,7 @@ abstract class ColumnReader {
      *                the stream
      * @param  isUnsignedByte  true iff data represents unsigned bytes
      */
-    ColumnReader( Class clazz, int length, boolean isUnsignedByte ) {
+    ColumnReader( Class<?> clazz, int length, boolean isUnsignedByte ) {
         this( clazz, null, length, isUnsignedByte );
     }
 
@@ -73,7 +73,7 @@ abstract class ColumnReader {
      *
      * @return  value class
      */
-    Class getContentClass() {
+    Class<?> getContentClass() {
         return clazz_;
     }
 
@@ -342,6 +342,7 @@ abstract class ColumnReader {
      *                  (only used if hasBlank is true)
      * @return  new column reader
      */
+    @SuppressWarnings("cast")
     private static ColumnReader createScalarColumnReader(
             char type, final double scale, final Number zeroNum,
             final boolean hasBlank, final long blank ) {
@@ -687,6 +688,7 @@ abstract class ColumnReader {
      *                  (not necessarily same as dimensions of read data)
      * @return  new array reader
      */
+    @SuppressWarnings("cast")
     private static ArrayReader createArrayReader( char type, final double scale,
                                                   final Number zeroNum,
                                                   final boolean hasBlank,
@@ -1271,7 +1273,7 @@ abstract class ColumnReader {
      */
     private static abstract class ArrayReader {
 
-        private final Class clazz_;
+        private final Class<?> clazz_;
         private final int[] shape_;
         private final int elBytes_;
         private final boolean isUnsignedByte_;
@@ -1284,7 +1286,7 @@ abstract class ColumnReader {
          * @param   elBytes  number of bytes read from stream for each element
          * @parma   isUnsignedByte  special flag indicating unsigned byte data
          */
-        ArrayReader( Class clazz, int[] shape, int elBytes,
+        ArrayReader( Class<?> clazz, int[] shape, int elBytes,
                      boolean isUnsignedByte ) {
             clazz_ = clazz;
             shape_ = shape;
@@ -1306,7 +1308,7 @@ abstract class ColumnReader {
          *
          * @return  content class
          */
-        Class getContentClass() {
+        Class<?> getContentClass() {
             return clazz_;
         }
 

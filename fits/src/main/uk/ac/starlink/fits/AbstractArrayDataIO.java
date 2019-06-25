@@ -167,6 +167,7 @@ public abstract class AbstractArrayDataIO
      * @throws  UnsupportedOperationException  always
      * @deprecated  see {@link java.io.DataInputStream#readLine}
      */
+    @Deprecated
     public String readLine() throws IOException {
         throw new UnsupportedOperationException();
     }
@@ -341,7 +342,7 @@ public abstract class AbstractArrayDataIO
             return nread;
         }
      
-        Class elclass = o.getClass().getComponentType();
+        Class<?> elclass = o.getClass().getComponentType();
         if ( elclass == null ) {
             throw new IllegalArgumentException(
                 "Invalid object: " + o + " is not an array" );
@@ -566,7 +567,7 @@ public abstract class AbstractArrayDataIO
         if ( o instanceof String ) {
             write( ((String) o).getBytes() );
         }
-        Class elclass = o.getClass().getComponentType();
+        Class<?> elclass = o.getClass().getComponentType();
         if ( elclass == null ) {
             throw new IllegalArgumentException(
                 "Invalid object: " + o + " is not an array" );
