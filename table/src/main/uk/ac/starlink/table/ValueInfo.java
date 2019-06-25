@@ -91,7 +91,7 @@ public interface ValueInfo {
      *
      * @return  the java class
      */
-    Class getContentClass();
+    Class<?> getContentClass();
 
     /**
      * Indicates whether the values described by this object are java arrays.
