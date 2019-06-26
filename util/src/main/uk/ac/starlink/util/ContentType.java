@@ -236,6 +236,7 @@ public class ContentType {
      * @param   txt   parameter value text
      * @return   string suitable for representing a parameter value
      */
+    @SuppressWarnings("fallthrough")
     private static String quote( String txt ) {
         if ( TOKEN_REGEX.matcher( txt ).matches() ) {
             return txt;

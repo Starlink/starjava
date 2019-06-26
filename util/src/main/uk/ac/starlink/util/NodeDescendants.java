@@ -250,14 +250,14 @@ public class NodeDescendants {
      * @return an iterator which returns in turn the given node, then
      * all of its descendants.
      */
-    public Iterator iterator() {
-        return new Iterator() {
+    public Iterator<Node> iterator() {
+        return new Iterator<Node>() {
                 private Node nextNode = nextFilteredNode();
                 public boolean hasNext() {
                     return nextNode != null;
                 }
-                public Object next() {
-                    Object ret = nextNode;
+                public Node next() {
+                    Node ret = nextNode;
                     nextNode = nextFilteredNode();
                     return ret;
                 }

@@ -23,6 +23,7 @@ import uk.ac.starlink.util.images.ImageHolder;
  * @author   Mark Taylor
  * @since    10 Nov 2005
  */
+@SuppressWarnings("rawtypes")
 public class ComboBoxBumper extends JPanel {
 
     private final JComboBox comboBox_;

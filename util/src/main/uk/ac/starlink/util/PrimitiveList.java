@@ -14,7 +14,7 @@ import java.lang.reflect.Array;
  */
 public abstract class PrimitiveList {
 
-    private final Class componentType_;
+    private final Class<?> componentType_;
     private int size_;
     Object array_;
     static final int DEFAULT_SIZE = 16;

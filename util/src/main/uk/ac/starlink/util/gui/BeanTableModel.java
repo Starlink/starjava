@@ -45,7 +45,7 @@ public class BeanTableModel extends AbstractTableModel {
      *
      * @param  clazz  class of items which will be displayed in this table
      */
-    public BeanTableModel( Class clazz ) throws IntrospectionException {
+    public BeanTableModel( Class<?> clazz ) throws IntrospectionException {
         beanClass_ = clazz;
         if ( clazz.isPrimitive() ) {
             throw new IllegalArgumentException( "Can't do primitive class" );
@@ -109,7 +109,7 @@ public class BeanTableModel extends AbstractTableModel {
              Comparable.class.isAssignableFrom( prop.getPropertyType() ) ) {
             final Method getter = prop.getReadMethod();
             if ( getter != null ) {
-                return new Comparator() {
+                return new Comparator<Object>() {
                     public int compare( Object o1, Object o2 ) {
                         Object v1;
                         Object v2;
@@ -166,7 +166,7 @@ public class BeanTableModel extends AbstractTableModel {
      * @return  whether to use <tt>prop<tt> as a column in this model
      */
     private boolean useProperty( PropertyDescriptor prop ) {
-        Class pclazz = prop.getPropertyType();
+        Class<?> pclazz = prop.getPropertyType();
         return prop.getReadMethod() != null
             && ( pclazz == String.class || pclazz.isPrimitive() );
     }
@@ -175,8 +175,8 @@ public class BeanTableModel extends AbstractTableModel {
         return properties_[ icol ].getDisplayName();
     }
 
-    public Class getColumnClass( int icol ) {
-        Class clazz = properties_[ icol ].getPropertyType();
+    public Class<?> getColumnClass( int icol ) {
+        Class<?> clazz = properties_[ icol ].getPropertyType();
         if ( clazz.isPrimitive() ) {
             if ( clazz == boolean.class ) {
                 return Boolean.class;

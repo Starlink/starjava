@@ -17,6 +17,7 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class CustomComboBoxRenderer<T> implements ListCellRenderer {
 
     private final Class<T> clazz_;

@@ -20,6 +20,7 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  * @author   Mark Taylor
  * @since    12 Jan 2006
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class RenderingComboBox extends JComboBox implements ListCellRenderer {
 
     private final ListCellRenderer renderer_;

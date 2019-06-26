@@ -55,7 +55,7 @@ import uk.ac.starlink.util.SourceReader;
  * The format of the XML file is just determined by the practices
  * adopted in this file and by the {@link StoreSource}
  * implementation, rather than by a DTD or Schema. The root element is
- * <configs> each child of this element is called whatever
+ * &lt;configs&gt; each child of this element is called whatever
  * {@link StoreSource#getTagName} returns, with the attributes "description"
  * and "date-stamp", what goes after this is determined by the writer
  * of the configurations, but the general idea is for each object in
@@ -220,7 +220,7 @@ public class StoreConfiguration
      */
     public Element getState( int index )
     {
-       return (Element) getChildElements( rootElement ).get( index );
+       return getChildElements( rootElement ).get( index );
     }
 
     /**
@@ -229,11 +229,11 @@ public class StoreConfiguration
      */
     public Element reGetState( int index )
     {
-        Element parent = (Element)getChildElements( rootElement ).get( index );
-        List children = getChildElements( parent );
+        Element parent = getChildElements( rootElement ).get( index );
+        List<Element> children = getChildElements( parent );
         int size = children.size();
         for ( int i = 0; i < size; i++ ) {
-            parent.removeChild( (Element) children.get( i ) );
+            parent.removeChild( children.get( i ) );
         }
         return parent;
     }

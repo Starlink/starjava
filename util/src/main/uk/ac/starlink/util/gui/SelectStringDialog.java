@@ -63,7 +63,7 @@ public class SelectStringDialog
                                                             labelText,
                                                             initialValue );
         dialog.setLocationRelativeTo( frame );
-        dialog.show();
+        dialog.setVisible( true );
         return dialog.getValue();
     }
 

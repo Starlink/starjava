@@ -67,7 +67,7 @@ public class ObjectFactory<T> {
      * @return  nickname array
      */
     public String[] getNickNames() {
-        return (String[]) nameList_.toArray( new String[ 0 ] );
+        return nameList_.toArray( new String[ 0 ] );
     }
 
     /**
@@ -120,7 +120,7 @@ public class ObjectFactory<T> {
         if ( ! isRegistered( name ) ) {
             throw new LoadException( "Unknown classname/nickname " + name );
         }
-        String className = (String) nameMap_.get( name );
+        String className = nameMap_.get( name );
         logger_.config( "Instantiating " + className + " for " + name );
         Class<?> clazz; 
         try {
@@ -139,7 +139,7 @@ public class ObjectFactory<T> {
                                         + superClass_ );
         }
         try {
-            return superClass_.cast( clazz.getConstructor( new Class[ 0 ] )
+            return superClass_.cast( clazz.getConstructor( new Class<?>[ 0 ] )
                                     .newInstance( new Object[ 0 ] ) );
         }
         catch ( IllegalAccessException e ) {

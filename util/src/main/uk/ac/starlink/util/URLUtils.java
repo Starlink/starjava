@@ -2,6 +2,7 @@ package uk.ac.starlink.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -350,10 +351,14 @@ public class URLUtils {
                  * as required.  So by converting + to its hex-escaped
                  * form before using URLDecoder we get what we need. 
                  * An alternative would be to do the hex decoding by hand. */
-                path = URLDecoder.decode( path.replace( "+", "%2B" ) );
+                path = URLDecoder.decode( path.replace( "+", "%2B" ), "utf-8" );
             }
             catch ( IllegalArgumentException e ) {
                 // probably a badly-formed URL - try with the undecoded form
+            }
+            catch ( UnsupportedEncodingException e ) {
+                // UTF-8 not accepted?  fall back in this unlikely event.
+                assert false;
             }
             String filename = File.separatorChar == '/'
                             ? path
@@ -395,7 +400,7 @@ public class URLUtils {
      * method does something like this, but it refuses to redirect
      * between different URL protocols, for security reasons
      * (see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4620571).
-     * Considering similar arguments, this method will direct HTTP->HTTPS,
+     * Considering similar arguments, this method will direct HTTP-&gt;HTTPS,
      * but not vice versa.
      *
      * @param  conn   initial URL connection

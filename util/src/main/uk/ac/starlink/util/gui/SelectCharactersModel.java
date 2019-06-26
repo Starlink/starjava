@@ -106,7 +106,7 @@ public class SelectCharactersModel
     /**
      *  Return the column classes. All Strings.
      */
-    public Class getColumnClass( int index ) 
+    public Class<?> getColumnClass( int index ) 
     {
         return "".getClass();
     }

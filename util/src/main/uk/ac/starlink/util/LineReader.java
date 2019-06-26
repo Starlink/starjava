@@ -92,7 +92,7 @@ public class LineReader {
                 ostrm.print( '\r' + prompt + " \r" + prompt );
                 ostrm.flush();
                 try {
-                    this.sleep( 10 );
+                    Thread.sleep( 10 );
                 }
                 catch ( InterruptedException e ) {
                     interrupt();

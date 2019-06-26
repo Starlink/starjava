@@ -35,6 +35,7 @@ import javax.swing.JList;
  * @author Peter W. Draper
  * @version $Id$
  */
+@SuppressWarnings("rawtypes")
 public class FileNameListCellRenderer
     extends DefaultListCellRenderer
 {

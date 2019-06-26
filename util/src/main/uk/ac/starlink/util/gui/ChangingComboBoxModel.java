@@ -9,12 +9,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 /**
- * ComboBoxModel which can notify {@link javax.swing.event.ChangeListener}s
- * and {@link javax.swing.event.ActionListener}s of changes in the selection.
+ * ComboBoxModel which can notify {@link ChangeListener}s
+ * and {@link ActionListener}s of changes in the selection.
  *
  * @author   Mark Taylor
  * @since    6 Jun 2007
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ChangingComboBoxModel extends DefaultComboBoxModel {
 
     private final Collection<ChangeListener> changeListeners_;

@@ -85,7 +85,8 @@ public class SuperJar {
          * input jar file, minus any class-path entry. */
         Manifest inManifest = readManifest( jarFiles_[ 0 ] );
         Manifest outManifest = new Manifest();
-        for ( Map.Entry entry : inManifest.getMainAttributes().entrySet() ) {
+        for ( Map.Entry<Object,Object> entry :
+              inManifest.getMainAttributes().entrySet() ) {
             Attributes outAtts = outManifest.getMainAttributes();
             if ( ! entry.getKey().equals( Attributes.Name.CLASS_PATH ) ) {
                 outAtts.put( entry.getKey(), entry.getValue() );
@@ -397,8 +398,8 @@ public class SuperJar {
     /**
      * Writes a new jar or zip file based on the contents of an existing
      * jar file and the jar files referenced by its manifest.
-     * <p>
-     * <h4>Usage:</h4>
+     *
+     * <h3>Usage:</h3>
      * <pre>
      *    SuperJar [-oj outjar] [-oz outzip]
      *             [[-xjar jar] -xjar jar ...]

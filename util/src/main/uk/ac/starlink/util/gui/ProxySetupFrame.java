@@ -277,7 +277,7 @@ public class ProxySetupFrame
             matchToProperties();
         }
         proxySetup.store();
-        this.hide();
+        this.setVisible( false );
     }
 
     /**

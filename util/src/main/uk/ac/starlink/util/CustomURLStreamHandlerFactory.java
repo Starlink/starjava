@@ -43,7 +43,7 @@ public class CustomURLStreamHandlerFactory implements URLStreamHandlerFactory {
     }
 
     /**
-     * Returns the protocol->&gt;classname map that describes this factory.
+     * Returns the protocol-&gt;classname map that describes this factory.
      * It may be altered to modify behaviour.
      *
      * @return   handler class map

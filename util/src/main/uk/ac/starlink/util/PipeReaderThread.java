@@ -17,7 +17,7 @@ import java.io.OutputStream;
  *     PipeReaderThread reader = new PipeReaderThread() {
  *        protected void doReading( InputStream dataIn ) throws IOException {
  *            int i;
- *            while ( dataIn.read() >= 0 ) i++;
+ *            while ( dataIn.read() &gt;= 0 ) i++;
  *            System.out.println( i );
  *        }
  *     };

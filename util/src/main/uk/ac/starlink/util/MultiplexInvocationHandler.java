@@ -80,7 +80,7 @@ public class MultiplexInvocationHandler<T> implements InvocationHandler {
         // class specified as a proxy interface.
         @SuppressWarnings( "unchecked" )
         T proxy = (T) Proxy.newProxyInstance( clazz.getClassLoader(),
-                                              new Class[] { clazz }, this );
+                                              new Class<?>[] { clazz }, this );
         return proxy;
     }
 }

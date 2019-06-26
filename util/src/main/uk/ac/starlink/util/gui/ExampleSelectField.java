@@ -22,6 +22,7 @@ import javax.swing.UIManager;
  * @author   Mark Taylor
  * @since    14 Jul 2015
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ExampleSelectField extends JPanel {
 
     private final String exampleText_;

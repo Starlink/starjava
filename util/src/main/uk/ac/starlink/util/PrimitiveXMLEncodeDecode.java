@@ -90,13 +90,13 @@ public abstract class PrimitiveXMLEncodeDecode
     //  implementation in the specific class.
     public void decode( Element rootElement )
     {
-        List children = getChildElements( rootElement );
+        List<Element> children = getChildElements( rootElement );
         int size = children.size();
         Element element = null;
         String name = null;
         String value = null;
         for ( int i = 0; i < size; i++ ) {
-            element = (Element) children.get( i );
+            element = children.get( i );
             name = getElementName( element );
             value = getElementValue( element );
             setFromString( name, value );

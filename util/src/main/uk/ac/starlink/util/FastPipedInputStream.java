@@ -22,6 +22,7 @@ import java.io.InputStream;
  * @see FastPipedOutputStream
  */
 
+@SuppressWarnings("cast")
 class FastPipedInputStream extends InputStream
 
 {

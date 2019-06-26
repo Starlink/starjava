@@ -178,7 +178,7 @@ public class IOUtils {
      * @return resource content string
      * @see    java.lang.Class#getResourceAsStream
      */
-    public static String getResourceContents( Class clazz, String name,
+    public static String getResourceContents( Class<?> clazz, String name,
                                               Level level ) {
         List<Object> key = Arrays.asList( new Object[] { clazz, name } );
         if ( ! resourceMap_.containsKey( key ) ) {

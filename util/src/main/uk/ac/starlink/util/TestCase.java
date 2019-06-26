@@ -98,10 +98,10 @@ public class TestCase extends junit.framework.TestCase {
         assertEquals( combineMessages( message, 
                                        "array component class mismatch" ),
                       getClassName( expected ), getClassName( actual ) );
-        Class clazz = actual.getClass();
+        Class<?> clazz = actual.getClass();
 
         /* Check both objects are arrays. */
-        Class ctype = clazz.getComponentType();
+        Class<?> ctype = clazz.getComponentType();
         assertNotNull( combineMessages( message, "not array objects" ),
                        ctype );
 
@@ -315,10 +315,10 @@ public class TestCase extends junit.framework.TestCase {
         assertEquals( combineMessages( message, 
                                        "array component class mismatch" ),
                       getClassName( expected ), getClassName( actual ) );
-        Class clazz = actual.getClass();
+        Class<?> clazz = actual.getClass();
 
         /* Check both objects are arrays. */
-        Class ctype = clazz.getComponentType();
+        Class<?> ctype = clazz.getComponentType();
         assertNotNull( combineMessages( message, "not array objects" ),
                        ctype );
 
@@ -559,8 +559,7 @@ public class TestCase extends junit.framework.TestCase {
             javax.xml.parsers.ParserConfigurationException {
         assertDOMEquals( url.openStream(),
                         actual, 
-                        url.toString().replaceFirst( ".*/", ".../" )+":",
-                        (int)0 );
+                        url.toString().replaceFirst( ".*/", ".../" )+":", 0 );
     }
 
     /**
@@ -1024,7 +1023,7 @@ public class TestCase extends junit.framework.TestCase {
      *         of a suitable primitive type
      */
     public void fillRandom( Object array, double min, double max ) {
-        Class clazz = array.getClass().getComponentType();
+        Class<?> clazz = array.getClass().getComponentType();
         int size = Array.getLength( array );
         if ( clazz == byte.class ) {
             min = Math.max( min, (double) Byte.MIN_VALUE );
@@ -1075,7 +1074,7 @@ public class TestCase extends junit.framework.TestCase {
             double range = max - min;
             double[] arr = (double[]) array;
             for ( int i = 0; i < size; i++ ) {
-                arr[ i ] = (double) ( min + rand.nextDouble() * range );
+                arr[ i ] = min + rand.nextDouble() * range;
             }
         }
         else {
@@ -1123,7 +1122,7 @@ public class TestCase extends junit.framework.TestCase {
      *         of a suitable primitive type
      */
     public void fillCycle( Object array, int min, int max ) {
-        Class clazz = array.getClass().getComponentType();
+        Class<?> clazz = array.getClass().getComponentType();
         int size = Array.getLength( array );
         if ( clazz == byte.class ) {
             byte[] arr = (byte[]) array;
@@ -1190,7 +1189,7 @@ public class TestCase extends junit.framework.TestCase {
      * @param  sourceArray  array containing source items
      */
     public void fillCycle( Object destArray, Object sourceArray ) {
-        Class clazz = destArray.getClass();
+        Class<?> clazz = destArray.getClass();
         if ( ! clazz.isArray() || ! clazz.equals( sourceArray.getClass() ) ) {
             throw new IllegalArgumentException();
         }

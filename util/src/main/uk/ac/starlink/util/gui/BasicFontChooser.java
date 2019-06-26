@@ -39,6 +39,7 @@ import javax.swing.SwingConstants;
  * @author Peter W. Draper
  * @version $Id$
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class BasicFontChooser
     extends JDialog
 {
@@ -371,6 +372,6 @@ public class BasicFontChooser
     protected void closeWindow( boolean accepted )
     {
         this.accepted = accepted;
-        hide();
+        setVisible( false );
     }
 }

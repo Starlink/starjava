@@ -9,7 +9,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -204,9 +203,7 @@ public class Loader {
              * system properties, since they were probably specified 
              * explicitly on the command line so should take precedence. */
             Properties sysProps = System.getProperties();
-            for ( Iterator it = starProps.entrySet().iterator();
-                  it.hasNext(); ) {
-                Map.Entry starProp = (Map.Entry) it.next();
+            for ( Map.Entry<Object,Object> starProp : starProps.entrySet() ) {
                 String key = (String) starProp.getKey();
                 if ( ! sysProps.containsKey( key ) ) {
                     sysProps.put( key, starProp.getValue() );
@@ -256,9 +253,9 @@ public class Loader {
         if ( className == null || className.trim().length() == 0 ) {
             return null;
         }
-        Class clazz;
+        Class<?> clazz;
         try {
-            clazz = new Object().getClass().forName( className );
+            clazz = Class.forName( className );
         }
         catch ( ClassNotFoundException e ) {
             warn( "Class " + className + " not found" );

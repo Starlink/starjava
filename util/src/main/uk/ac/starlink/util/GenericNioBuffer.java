@@ -3,11 +3,12 @@ package uk.ac.starlink.util;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-import java.nio.FloatBuffer;
-import java.nio.DoubleBuffer;
+import java.nio.ReadOnlyBufferException;
+import java.nio.ShortBuffer;
 
 /**
  * Convenience class which wraps one of the NIO &lt;Type&gt;Buffer
@@ -27,7 +28,7 @@ public class GenericNioBuffer {
         abstract boolean hasArray();
         abstract int arrayOffset();
         abstract Object array();
-        abstract Class getElementClass();
+        abstract Class<?> getElementClass();
     }
 
     private final Accessor acc;
@@ -63,7 +64,7 @@ public class GenericNioBuffer {
                 Object array() {
                     return buffer.array();
                 }
-                Class getElementClass() {
+                Class<?> getElementClass() {
                     return byte.class;
                 }
             };
@@ -89,7 +90,7 @@ public class GenericNioBuffer {
                 Object array() {
                     return buffer.array();
                 }
-                Class getElementClass() {
+                Class<?> getElementClass() {
                     return short.class;
                 }
             };
@@ -115,7 +116,7 @@ public class GenericNioBuffer {
                 Object array() {
                     return buffer.array();
                 }
-                Class getElementClass() {
+                Class<?> getElementClass() {
                     return int.class;
                 }
             };
@@ -141,7 +142,7 @@ public class GenericNioBuffer {
                 Object array() {
                     return buffer.array();
                 }
-                Class getElementClass() {
+                Class<?> getElementClass() {
                     return float.class;
                 }
             };
@@ -167,7 +168,7 @@ public class GenericNioBuffer {
                 Object array() {
                     return buffer.array();
                 }
-                Class getElementClass() {
+                Class<?> getElementClass() {
                     return double.class;
                 }
             };
@@ -325,7 +326,7 @@ public class GenericNioBuffer {
      * 
      * @return  the class of the primitive elements that this buffer holds
      */
-    public Class getElementClass() {
+    public Class<?> getElementClass() {
         return acc.getElementClass();
     }
 

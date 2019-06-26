@@ -199,8 +199,7 @@ public class DOMUtils {
         String val = nodeTypeMap[nodeType];
         if (val == null)
             val = "UNKNOWN!!!";
-        assert val instanceof String;
-        return (String)val;
+        return val;
     }
 
     /**
