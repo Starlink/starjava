@@ -181,7 +181,7 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
     public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
         double maxRadius = 0;
         for ( NdRange inRange : inRanges ) {
-            Comparable[] maxs = inRange.getMaxs();
+            Comparable<?>[] maxs = inRange.getMaxs();
             maxRadius = Math.max( maxRadius,
                                   Math.max( getNumberValue( maxs[ 2 ] ),
                                             getNumberValue( maxs[ 3 ] ) ) );

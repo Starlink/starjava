@@ -159,6 +159,7 @@ public class CsvTableWriter extends StreamStarTableWriter {
      * @param  out  output stream
      * @param  value  field to write
      */
+    @SuppressWarnings("fallthrough")
     private void writeField( Writer out, String value ) throws IOException {
 
         /* Empty or null string, no output required. */

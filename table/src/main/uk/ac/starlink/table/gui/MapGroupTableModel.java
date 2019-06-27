@@ -13,35 +13,35 @@ import uk.ac.starlink.util.MapGroup;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class MapGroupTableModel extends AbstractTableModel {
+public class MapGroupTableModel<K,V> extends AbstractTableModel {
 
-    private List maps;
-    private List keys;
+    private List<Map<K,V>> maps_;
+    private List<K> keys_;
 
     /**
      * Constructs a TableModel from a given MapGroup.
      *
      * @param   mapgroup  group to snapshot
      */
-    public MapGroupTableModel( MapGroup mapgroup ) {
-        maps = mapgroup.getMaps();
-        keys = mapgroup.getKnownKeys();
+    public MapGroupTableModel( MapGroup<K,V> mapgroup ) {
+        maps_ = mapgroup.getMaps();
+        keys_ = mapgroup.getKnownKeys();
     }
 
     public int getRowCount() {
-        return maps.size();
+        return maps_.size();
     }
 
     public int getColumnCount() {
-        return keys.size();
+        return keys_.size();
     }
 
-    public Object getValueAt( int irow, int icol ) {
-        return ((Map) maps.get( irow )).get( keys.get( icol ) );
+    public V getValueAt( int irow, int icol ) {
+        return maps_.get( irow ).get( keys_.get( icol ) );
     }
 
     public String getColumnName( int icol ) {
-        return keys.get( icol ).toString();
+        return keys_.get( icol ).toString();
     }
 
 }

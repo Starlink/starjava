@@ -254,7 +254,7 @@ public class RowMatcher {
                     /* Identify rows from table R which may match table S. */
                     Object[] keys = engine.getBins( srowData );
                     int nkey = keys.length;
-                    Set rrowSet = new HashSet();
+                    Set<Long> rrowSet = new HashSet<Long>();
                     for ( int ikey = 0; ikey < nkey; ikey++ ) {
                         long[] rrows = binner.getLongs( keys[ ikey ] );
                         if ( rrows != null ) {
@@ -265,13 +265,13 @@ public class RowMatcher {
                     }
                     long[] rrows = new long[ rrowSet.size() ];
                     int ir = 0;
-                    for ( Iterator it = rrowSet.iterator(); it.hasNext(); ) {
-                        rrows[ ir++ ] = ((Long) it.next()).longValue();
+                    for ( Long rr : rrowSet ) {
+                        rrows[ ir++ ] = rr.longValue();
                     }
                     Arrays.sort( rrows );
 
                     /* Score and accumulate matched links. */
-                    List linkList = new ArrayList( 1 );
+                    List<RowLink2> linkList = new ArrayList<RowLink2>( 1 );
                     double bestScore = Double.MAX_VALUE;
                     for ( ir = 0; ir < rrows.length; ir++ ) {
                         long irrow = rrows[ ir ];
@@ -293,8 +293,7 @@ public class RowMatcher {
                     }
 
                     /* Add matched links to output set. */
-                    for ( Iterator it = linkList.iterator(); it.hasNext(); ) {
-                        RowLink2 pairLink = (RowLink2) it.next();
+                    for ( RowLink2 pairLink : linkList ) {
                         assert ! linkSet.containsLink( pairLink );
                         linkSet.addLink( pairLink );
                     }
@@ -352,16 +351,16 @@ public class RowMatcher {
         }
         for ( int i = 0; i < nTable; i++ ) {
             if ( missing[ i ] != null ) {
-                for ( Iterator it = missing[ i ].iterator(); it.hasNext(); ) {
-                    multiLinks.addLink( (RowLink) it.next() );
+                for ( RowLink link : missing[ i ] ) {
+                    multiLinks.addLink( link );
                 }
                 missing[ i ] = null;
             }
         }
 
         /* Filter the links to contain only those rows we're interested in. */
-        for ( Iterator it = multiLinks.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( Iterator<RowLink> it = multiLinks.iterator(); it.hasNext(); ) {
+            RowLink link = it.next();
             if ( ! acceptRow( link, joinTypes ) ) {
                 it.remove();
             }
@@ -428,8 +427,8 @@ public class RowMatcher {
         }
         for ( int i = 0; i < nTable; i++ ) {
             if ( missing[ i ] != null ) {
-                for ( Iterator it = missing[ i ].iterator(); it.hasNext(); ) {
-                    links.addLink( (RowLink) it.next() );
+                for ( RowLink link : missing[ i ] ) {
+                    links.addLink( link );
                 }
                 missing[ i ] = null;
             }
@@ -437,8 +436,8 @@ public class RowMatcher {
 
         /* Now filter the links to contain only those composite rows we're
          * interested in. */
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( Iterator<RowLink> it = links.iterator(); it.hasNext(); ) {
+            RowLink link = it.next();
             if ( ! acceptRow( link, joinTypes ) ) {
                 it.remove();
             }
@@ -477,9 +476,9 @@ public class RowMatcher {
 
         /* Add unmatched rows if required. */
         if ( includeSingles ) {
-            for ( Iterator it = missingSingles( links, 0 ).iterator();
+            for ( Iterator<RowLink> it = missingSingles( links, 0 ).iterator();
                   it.hasNext(); ) {
-                links.addLink( (RowLink) it.next() );
+                links.addLink( it.next() );
                 it.remove();
             }
         }
@@ -508,11 +507,11 @@ public class RowMatcher {
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
         indicator.startStage( "Locating pairs" );
-        for ( Iterator it = possibleLinks.iterator(); it.hasNext(); ) {
+        for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
             /* Obtain the link and remove it from the input set for 
              * memory efficiency. */
-            RowLink link = (RowLink) it.next();
+            RowLink link = it.next();
             it.remove();
 
             /* Check whether this link is non-trivial. */
@@ -707,8 +706,8 @@ public class RowMatcher {
         int iLink = 0;
         int nReplace = 0;
         int nRemove = 0;
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( Iterator<RowLink> it = links.iterator(); it.hasNext(); ) {
+            RowLink link = it.next();
             int nref = link.size();
             if ( link.size() > 1 ) {
 
@@ -732,7 +731,7 @@ public class RowMatcher {
                  * set and schedule a replacement for addition later. */
                 if ( dup ) {
                     it.remove();
-                    List repRefs = new ArrayList();
+                    List<RowRef> repRefs = new ArrayList<RowRef>();
                     for ( int i = 0; i < nTable; i++ ) {
                         if ( refs[ i ] != null ) {
                             repRefs.add( refs[ i ] );
@@ -759,8 +758,8 @@ public class RowMatcher {
         if ( nRemove > 0 ) {
             indicator.logMessage( "Internal links removed: " + nRemove );
         }
-        for ( Iterator it = replacements.iterator(); it.hasNext(); ) {
-            RowLink repLink = (RowLink) it.next();
+        for ( Iterator<RowLink> it = replacements.iterator(); it.hasNext(); ) {
+            RowLink repLink = it.next();
             links.addLink( repLink );
             it.remove();
         }
@@ -780,8 +779,7 @@ public class RowMatcher {
 
         /* Find out what rowrefs for this table are present in all the links. */
         BitSet present = new BitSet();
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( RowLink link : links ) {
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
@@ -907,11 +905,11 @@ public class RowMatcher {
         int iLink = 0;
         indicator.startStage( "Locating pair matches between " + index0
                             + " and other tables");
-        for ( Iterator it = possibleLinks.iterator(); it.hasNext(); ) {
+        for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
             /* Get the next link and delete it from the input list, for
              * memory efficiency. */
-            RowLink link = (RowLink) it.next();
+            RowLink link = it.next();
             it.remove();
 
             /* Work out if this link contains any rows which are not from the
@@ -972,7 +970,7 @@ public class RowMatcher {
         /* Store all the pairs in a map keyed by row reference of the reference
          * table. */
         ObjectBinner pairBinner = Binners.createObjectBinner();
-        for ( Iterator it = pairs.iterator(); it.hasNext(); ) {
+        for ( Iterator<RowLink> it = pairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
             it.remove();
             RowRef refA = pair.getRef( 0 );
@@ -1000,11 +998,10 @@ public class RowMatcher {
 
         /* Convert the pairs in pairMap to a LinkSet. */
         LinkSet multiLinks = createLinkSet();
-        for ( Iterator it = pairBinner.getKeyIterator(); it.hasNext(); ) {
+        for ( Iterator<?> it = pairBinner.getKeyIterator(); it.hasNext(); ) {
             RowRef ref0 = (RowRef) it.next();
             ScoredRef[] sref1s =
-                (ScoredRef[]) pairBinner.getList( ref0 )
-                                        .toArray( new ScoredRef[ 0 ] );
+                pairBinner.getList( ref0 ).toArray( new ScoredRef[ 0 ] );
             int nref1 = sref1s.length;
             if ( nref1 > 0 ) {
                 RowRef[] ref1s = new RowRef[ nref1 ];
@@ -1059,8 +1056,9 @@ public class RowMatcher {
         /* Sort the input pairs in ascending score order.  In this way,
          * better links will be favoured (inserted into the output set)
          * over worse ones. */
-        Collection inPairs = toSortedList( pairs, new Comparator() {
-            public int compare( Object o1, Object o2 ) {
+        Collection<RowLink> inPairs =
+                toSortedList( pairs, new Comparator<RowLink>() {
+            public int compare( RowLink o1, RowLink o2 ) {
                 RowLink2 r1 = (RowLink2) o1;
                 RowLink2 r2 = (RowLink2) o2;
                 double score1 = r1.getScore();
@@ -1083,14 +1081,14 @@ public class RowMatcher {
         LinkSet outPairs = createLinkSet();
 
         /* Prepare to keep track of which rows we have seen. */
-        Set seenRows = new HashSet();
+        Set<RowRef> seenRows = new HashSet<RowRef>();
 
         /* Iterate over each entry in the input set, selectively copying
          * to the output set as we go. */
         double nPair = inPairs.size();
         int iPair = 0;
         indicator.startStage( "Eliminating multiple row references" );
-        for ( Iterator it = inPairs.iterator(); it.hasNext(); ) {
+        for ( Iterator<RowLink> it = inPairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
             double score = pair.getScore();
             if ( pair.size() != 2 || Double.isNaN( score ) || score < 0.0 ) {
@@ -1151,9 +1149,8 @@ public class RowMatcher {
         indicator.startStage( "Mapping rows to links" );
         double nlink1 = links.size();
         int ilink1 = 0;
-        for ( Iterator linkIt = links.iterator(); linkIt.hasNext(); ) {
+        for ( RowLink link : links ) {
             indicator.setLevel( ++ilink1 / nlink1 );
-            RowLink link = (RowLink) linkIt.next();
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
@@ -1175,14 +1172,13 @@ public class RowMatcher {
         indicator.startStage( "Identifying isolated links" );
         double nlink2 = links.size();
         int ilink2 = 0;
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
+        for ( RowLink link : links ) {
             indicator.setLevel( ++ilink2 / nlink2 );
-            RowLink link = (RowLink) it.next();
             int nref = link.size();
             boolean isolated = true;
             for ( int i = 0; isolated && i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
-                Collection refLinks = refBinner.getList( ref );
+                Collection<?> refLinks = refBinner.getList( ref );
                 assert refLinks.size() > 0;
                 isolated = isolated && refLinks.size() == 1;
             } 
@@ -1213,7 +1209,7 @@ public class RowMatcher {
         while ( refBinner.getBinCount() > 0 ) {
             indicator.setLevel( 1.0 - ( refBinner.getBinCount() / nRefs ) );
             RowRef ref1 = (RowRef) refBinner.getKeyIterator().next();
-            Set refSet = new HashSet();
+            Set<RowRef> refSet = new HashSet<RowRef>();
             walkLinks( ref1, refBinner, refSet );
             RowLink link = new RowLink( refSet );
             assert ! agglomeratedLinks.containsLink( link );
@@ -1253,14 +1249,15 @@ public class RowMatcher {
      *                   connected to baseRef should be inserted
      */
     private static void walkLinks( RowRef baseRef, ObjectBinner refBinner,
-                                   Set outSet ) {
+                                   Set<RowRef> outSet ) {
 
         /* Do nothing if the output set already contains the requested
          * reference; without this test we would recurse to infinite depth. */
         if ( ! outSet.contains( baseRef ) ) {
 
             /* Get all the links of which this reference is a member. */
-            Collection links = refBinner.getList( baseRef );
+            @SuppressWarnings("unchecked")
+            List<RowLink> links = (List<RowLink>) refBinner.getList( baseRef );
             if ( ! links.isEmpty() ) {
 
                 /* Add the current row to the output set. */
@@ -1268,8 +1265,9 @@ public class RowMatcher {
 
                 /* Recurse over all the so-far untraversed rows which are
                  * linked to this one. */
-                for ( Iterator linkIt = links.iterator(); linkIt.hasNext(); ) {
-                    RowLink link = (RowLink) linkIt.next();
+                for ( Iterator<RowLink> linkIt = links.iterator();
+                      linkIt.hasNext(); ) {
+                    RowLink link = linkIt.next();
                     for ( int i = 0; i < link.size(); i++ ) {
                         RowRef rref = link.getRef( i );
                         walkLinks( rref, refBinner, outSet );
@@ -1339,8 +1337,8 @@ public class RowMatcher {
 
         /* Go through each row finding the minimum and maximum value 
          * for each column (coordinate). */
-        Comparable[] mins = new Comparable[ ncol ];
-        Comparable[] maxs = new Comparable[ ncol ];
+        Comparable<?>[] mins = new Comparable<?>[ ncol ];
+        Comparable<?>[] maxs = new Comparable<?>[ ncol ];
         ProgressRowSequence rseq =
             new ProgressRowSequence( table, indicator,
                                      "Assessing range of coordinates " +
@@ -1353,7 +1351,7 @@ public class RowMatcher {
                         Object cell = row[ icol ];
                         if ( cell instanceof Comparable &&
                              ! Tables.isBlank( cell ) ) {
-                            Comparable val = (Comparable) cell;
+                            Comparable<?> val = (Comparable<?>) cell;
                             mins[ icol ] =
                                 NdRange.min( mins[ icol ], val, false );
                             maxs[ icol ] =
@@ -1484,9 +1482,10 @@ public class RowMatcher {
         indicator.startStage( "Consolidating potential match groups" );
         double nl = (double) nbin;
         long il = 0;
-        for ( Iterator it = binner.getKeyIterator(); it.hasNext(); ) {
+        for ( Iterator<?> it = binner.getKeyIterator(); it.hasNext(); ) {
             Object key = it.next();
-            List refList = binner.getList( key );
+            @SuppressWarnings("unchecked")
+            List<RowRef> refList = (List<RowRef>) binner.getList( key );
 
             /* If there is more than one RowRef, create and store the
              * corresponding RowLink.  Items with 0 or 1 entry are not
@@ -1524,7 +1523,7 @@ public class RowMatcher {
         indicator.startStage( "Consolidating potential match groups" );
         double nl = (double) nbin;
         long il = 0;
-        for ( Iterator it = binner.getKeyIterator(); it.hasNext(); ) {
+        for ( Iterator<?> it = binner.getKeyIterator(); it.hasNext(); ) {
             Object key = it.next();
             long[] irs = binner.getLongs( key );
             int nir = irs.length;
@@ -1582,12 +1581,13 @@ public class RowMatcher {
      *                     <code>linkSet</code>, or null for natural order
      * @return  sorted collection of {@link RowLink}s
      */
-    private Collection toSortedList( LinkSet linkSet, Comparator comparator ) {
+    private Collection<RowLink> toSortedList( LinkSet linkSet,
+                                              Comparator<RowLink> comparator ) {
         int nLink = linkSet.size();
         RowLink[] links = new RowLink[ nLink ];
         int il = 0;
-        for ( Iterator it = linkSet.iterator(); it.hasNext(); ) {
-            links[ il++ ] = (RowLink) it.next();
+        for ( RowLink link : linkSet ) {
+            links[ il++ ] = link;
         }
 
         /* Don't use Collections.sort, it's evil. */

@@ -17,15 +17,15 @@ import java.util.Map;
  */
 public class EditableColumn extends WrapperColumn {
 
-    private final ColumnData base;
-    private final Map changedEntries = new HashMap();
+    private final ColumnData base_;
+    private final Map<Long,Object> changedEntries_ = new HashMap<Long,Object>();
 
     /**
      * Constructs a new EditableColumn based on an existing column.
      */
     public EditableColumn( ColumnData base ) {
         super( base );
-        this.base = base;
+        base_ = base;
 
         /* Arrange for a private copy of the ColumnInfo in this object
          * rather than a reference to that of the base. */
@@ -42,9 +42,9 @@ public class EditableColumn extends WrapperColumn {
     }
 
     public Object readValue( long irow ) throws IOException {
-        Object key = new Long( irow );
-        return changedEntries.containsKey( key ) ? changedEntries.get( key )
-                                                 : base.readValue( irow );
+        Long key = new Long( irow );
+        return changedEntries_.containsKey( key ) ? changedEntries_.get( key )
+                                                  : base_.readValue( irow );
     }
 
     public void storeValue( long irow, Object value ) throws IOException {
@@ -58,7 +58,7 @@ public class EditableColumn extends WrapperColumn {
                 "Value " + value + " is a " + value.getClass() + " not a " + 
                 getColumnInfo().getContentClass() );
         }
-        Object key = new Long( irow );
-        changedEntries.put( key, value );
+        Long key = new Long( irow );
+        changedEntries_.put( key, value );
     }
 }

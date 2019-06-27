@@ -194,7 +194,7 @@ public class TstTableWriter extends StreamStarTableWriter {
         RowSequence rseq = st.getRowSequence();
         try {
             while ( rseq.next() ) {
-                Object[] row = (Object[]) rseq.getRow();
+                Object[] row = rseq.getRow();
                 String[] srow = new String[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     String sval = colInfos[ icol ]
@@ -291,7 +291,7 @@ public class TstTableWriter extends StreamStarTableWriter {
             String name = info.getName();
             String ucd = info.getUCD();
             String units = info.getUnitString();
-            Class clazz = info.getContentClass();
+            Class<?> clazz = info.getContentClass();
             String lucd = ucd == null ? "" : ucd.toLowerCase();
             String lname = name == null ? "" : name.toLowerCase();
             String lunits = units == null ? "" : units.toLowerCase();

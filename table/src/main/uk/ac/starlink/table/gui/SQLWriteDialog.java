@@ -21,6 +21,7 @@ import uk.ac.starlink.table.jdbc.WriteMode;
  * A popup dialog for querying the user about the location of a new
  * JDBC table to write.
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class SQLWriteDialog extends JPanel implements TableSaveDialog {
 
     private SQLPanel sqlPanel_;

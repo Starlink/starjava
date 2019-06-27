@@ -57,25 +57,21 @@ public class TableCopy {
         /* Construct the help message. */
         StringBuffer help = new StringBuffer( usage );
         help.append( "\n   Auto-detected in-formats:\n" );
-        for ( Iterator it = treader.getDefaultBuilders().iterator();
-              it.hasNext(); ) {
+        for ( TableBuilder builder : treader.getDefaultBuilders() ) {
             help.append( "      " )
-                .append( ((TableBuilder) it.next())
-                        .getFormatName().toLowerCase() )
+                .append( builder.getFormatName().toLowerCase() )
                 .append( '\n' );
         }
         help.append( "\n   Known in-formats:\n" );
-        for ( Iterator it = treader.getKnownFormats().iterator();
-              it.hasNext(); ) {
+        for ( String fmt : treader.getKnownFormats() ) {
             help.append( "      " )
-                .append( ((String) it.next()).toLowerCase() )
+                .append( fmt.toLowerCase() )
                 .append( '\n' );
         }
         help.append( "\n   Known out-formats:\n" );
-        for ( Iterator it = twriter.getKnownFormats().iterator(); 
-              it.hasNext(); ) {
+        for ( String fmt : twriter.getKnownFormats() ) {
             help.append( "      " )
-                .append( ((String) it.next()).toLowerCase() )
+                .append( fmt.toLowerCase() )
                 .append( '\n' );
         }
 
@@ -86,12 +82,13 @@ public class TableCopy {
         String oloc = null;
         boolean debug = false;
         boolean verbose = false;
-        for ( Iterator it = Arrays.asList( args ).iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = Arrays.asList( args ).iterator();
+              it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 if ( arg.equals( "-ifmt" ) ) {
                     if ( it.hasNext() ) {
-                        ifmt = (String) it.next();
+                        ifmt = it.next();
                     }
                     else {
                         System.err.println( usage );
@@ -100,7 +97,7 @@ public class TableCopy {
                 }
                 else if ( arg.equals( "-ofmt" ) ) {
                     if ( it.hasNext() ) {
-                        ofmt = (String) it.next();
+                        ofmt = it.next();
                     }
                     else {
                         System.err.println( usage );

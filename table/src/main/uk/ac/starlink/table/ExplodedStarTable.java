@@ -33,7 +33,7 @@ public class ExplodedStarTable extends WrapperStarTable {
     public ExplodedStarTable( StarTable baseTable, boolean[] colFlags ) {
         super( baseTable );
         baseTable_ = baseTable;
-        List colList = new ArrayList();
+        List<ColPointer> colList = new ArrayList<ColPointer>();
         for ( int icol = 0; icol < baseTable.getColumnCount(); icol++ ) {
             if ( colFlags[ icol ] ) {
                 ColumnInfo baseInfo = baseTable.getColumnInfo( icol );
@@ -55,7 +55,7 @@ public class ExplodedStarTable extends WrapperStarTable {
                 colList.add( new ColPointer( icol ) );
             }
         }
-        pointers_ = (ColPointer[]) colList.toArray( new ColPointer[ 0 ] );
+        pointers_ = colList.toArray( new ColPointer[ 0 ] );
     }
 
     /**
@@ -164,8 +164,8 @@ public class ExplodedStarTable extends WrapperStarTable {
      * @param  aclazz  array class
      * @return  element type
      */
-    private static Class getComponentType( Class aclazz ) {
-        Class clazz = aclazz.getComponentType();
+    private static Class<?> getComponentType( Class<?> aclazz ) {
+        Class<?> clazz = aclazz.getComponentType();
         if ( clazz == boolean.class ) {
             return Boolean.class;
         }

@@ -19,7 +19,7 @@ public class ConstantColumn extends ColumnData {
      */
     public ConstantColumn( ColumnInfo colinfo, Object value ) {
         super( colinfo );
-        Class clazz = colinfo.getContentClass();
+        Class<?> clazz = colinfo.getContentClass();
         if ( value != null &&
              ! clazz.isAssignableFrom( value.getClass() ) ) {
             throw new IllegalArgumentException( value + " is not a "

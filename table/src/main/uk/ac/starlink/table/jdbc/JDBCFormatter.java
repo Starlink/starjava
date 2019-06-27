@@ -38,7 +38,7 @@ public class JDBCFormatter {
     private final StarTable table_;
     private final SqlColumn[] sqlCols_;
     private final int[] sqlTypes_;
-    private final Map typeNameMap_;
+    private final Map<Integer,String> typeNameMap_;
     private final SqlSyntax sqlSyntax_;
     private final boolean upperCasePreferred_;
 
@@ -109,7 +109,7 @@ public class JDBCFormatter {
 
         /* Work out and store column specifications. */
         sqlCols_ = new SqlColumn[ ncol ];
-        Set cnames = new HashSet();
+        Set<String> cnames = new HashSet<String>();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo col = table_.getColumnInfo( icol );
             String colName = fixName( col.getName(), maxColLeng_, "column" );
@@ -280,7 +280,7 @@ public class JDBCFormatter {
      * @param  clazz   java class of data
      * @return   one of the {@link java.sql.Types} codes
      */
-    public int getSqlType( Class clazz ) {
+    public int getSqlType( Class<?> clazz ) {
         if ( clazz.equals( Byte.class ) ) {
             return Types.TINYINT;
         }
@@ -321,10 +321,7 @@ public class JDBCFormatter {
      * @return  connection-specific type name
      */
     public String typeName( int sqlType ) throws SQLException {
-        Object key = new Integer( sqlType );
-        return typeNameMap_.containsKey( key )
-             ? (String) typeNameMap_.get( key )
-             : null;
+        return typeNameMap_.get( new Integer( sqlType ) );
     }
 
     /**
@@ -336,13 +333,14 @@ public class JDBCFormatter {
      * @param  conn  the connection to work out the mapping for
      * @return   a new type id-&gt;name mapping for <tt>conn</tt>
      */
-    private static Map makeTypesMap( Connection conn ) throws SQLException {
-        Map types = new HashMap();
+    private static Map<Integer,String> makeTypesMap( Connection conn )
+            throws SQLException {
+        Map<Integer,String> types = new HashMap<Integer,String>();
         ResultSet typeInfos = conn.getMetaData().getTypeInfo();
         while ( typeInfos.next() ) {
             String name = typeInfos.getString( "TYPE_NAME" );
             int id = (int) typeInfos.getShort( "DATA_TYPE" );
-            Object key = new Integer( id );
+            Integer key = new Integer( id );
             if ( ! types.containsKey( key ) ) {
                 types.put( key, name );
             }
@@ -377,9 +375,10 @@ public class JDBCFormatter {
      * @param  req   required type code
      * @param  fallback  fallback type code
      */
-    private static void setTypeFallback( Map types, int req, int fallback ) {
-        Object reqKey = new Integer( req );
-        Object fallbackKey = new Integer( fallback );
+    private static <V> void setTypeFallback( Map<Integer,V> types,
+                                             int req, int fallback ) {
+        Integer reqKey = new Integer( req );
+        Integer fallbackKey = new Integer( fallback );
         if ( ! types.containsKey( reqKey ) &&
              types.containsKey( fallbackKey ) ) {
             types.put( reqKey, types.get( fallbackKey ) );

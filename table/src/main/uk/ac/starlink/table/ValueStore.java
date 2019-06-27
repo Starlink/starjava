@@ -14,7 +14,7 @@ public interface ValueStore {
      *
      * @return  primitive class
      */
-    Class getType();
+    Class<?> getType();
 
     /**
      * Returns the length of the vector.

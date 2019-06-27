@@ -31,7 +31,7 @@ interface ObjectBinner {
      * @return   a list of the items which have been added to the bin;
      *           if the bin is empty null may be returned
      */
-    List getList( Object key );
+    List<?> getList( Object key );
 
     /**
      * Removes a bin from this map (optional operation).
@@ -47,7 +47,7 @@ interface ObjectBinner {
      *
      * @return  iterator over non-empty bins   
      */
-    Iterator getKeyIterator();
+    Iterator<?> getKeyIterator();
 
     /**
      * Indicates whether a given bin contains a non-zero number of items.

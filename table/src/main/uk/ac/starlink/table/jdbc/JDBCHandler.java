@@ -3,6 +3,7 @@ package uk.ac.starlink.table.jdbc;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
@@ -107,7 +108,7 @@ public class JDBCHandler {
             StringBuffer sbuf = new StringBuffer()
                 .append( "Error making connection " )
                 .append( url );
-            Enumeration den = DriverManager.getDrivers();
+            Enumeration<Driver> den = DriverManager.getDrivers();
             if ( den.hasMoreElements() ) {
                 sbuf.append( " - known JDBC drivers:\n" );
                 while ( den.hasMoreElements() ) {

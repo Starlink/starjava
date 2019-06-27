@@ -31,15 +31,15 @@ import java.util.Set;
  */
 public class JoinStarTable extends AbstractStarTable {
 
-    private final StarTable[] tables;
-    private final StarTable[] tablesByColumn;
-    private final int[] indicesByColumn;
-    private final int[] nCols;
-    private final int nTab;
-    private final int nCol;
-    private final boolean isRandom;
-    private final ColumnInfo[] colInfos;
-    private final List auxData;
+    private final StarTable[] tables_;
+    private final StarTable[] tablesByColumn_;
+    private final int[] indicesByColumn_;
+    private final int[] nCols_;
+    private final int nTab_;
+    private final int nCol_;
+    private final boolean isRandom_;
+    private final ColumnInfo[] colInfos_;
+    private final List<ValueInfo> auxData_;
 
     /**
      * Constructs a new JoinStarTable from a list of constituent tables,
@@ -51,13 +51,13 @@ public class JoinStarTable extends AbstractStarTable {
      *         the originals (may be null for no action)
      */
     public JoinStarTable( StarTable[] tables, JoinFixAction[] fixCols ) {
-        nTab = tables.length;
-        this.tables = (StarTable[]) tables.clone();
+        nTab_ = tables.length;
+        tables_ = tables.clone();
         if ( fixCols == null ) {
-            fixCols = new JoinFixAction[ nTab ];
+            fixCols = new JoinFixAction[ nTab_ ];
             Arrays.fill( fixCols, JoinFixAction.NO_ACTION );
         }
-        if ( fixCols.length != nTab ) {
+        if ( fixCols.length != nTab_ ) {
             throw new IllegalArgumentException( 
                 "Incompatible length of array arguments" );
         }
@@ -65,78 +65,78 @@ public class JoinStarTable extends AbstractStarTable {
         /* Work out the total number of columns in this table (sum of all
          * constituent tables). */
         int nc = 0;
-        nCols = new int[ nTab ];
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            nCols[ itab ] = tables[ itab ].getColumnCount();
-            nc += nCols[ itab ];
+        nCols_ = new int[ nTab_ ];
+        for ( int itab = 0; itab < nTab_; itab++ ) {
+            nCols_[ itab ] = tables[ itab ].getColumnCount();
+            nc += nCols_[ itab ];
         }
-        nCol = nc;
+        nCol_ = nc;
 
         /* Set up lookup tables to find the base table and index within it
          * of each column in this table. */
-        tablesByColumn = new StarTable[ nCol ];
-        indicesByColumn = new int[ nCol ];
+        tablesByColumn_ = new StarTable[ nCol_ ];
+        indicesByColumn_ = new int[ nCol_ ];
         int icol = 0;
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
-                tablesByColumn[ icol ] = tables[ itab ];
-                indicesByColumn[ icol ] = ic;
+        for ( int itab = 0; itab < nTab_; itab++ ) {
+            for ( int ic = 0; ic < nCols_[ itab ]; ic++ ) {
+                tablesByColumn_[ icol ] = tables[ itab ];
+                indicesByColumn_[ icol ] = ic;
                 icol++;
             }
         }
-        assert icol == nCol;
+        assert icol == nCol_;
 
         /* Set up the column infos as copies of those from the base tables. */
-        colInfos = new ColumnInfo[ nCol ];
-        List nameList = new ArrayList();
+        colInfos_ = new ColumnInfo[ nCol_ ];
+        List<String> nameList = new ArrayList<String>();
         icol = 0;
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
-                colInfos[ icol ] =
+        for ( int itab = 0; itab < nTab_; itab++ ) {
+            for ( int ic = 0; ic < nCols_[ itab ]; ic++ ) {
+                colInfos_[ icol ] =
                     new ColumnInfo( tables[ itab ].getColumnInfo( ic ) );
-                nameList.add( colInfos[ icol ].getName() );
+                nameList.add( colInfos_[ icol ].getName() );
                 icol++;
             }
         }
-        assert icol == nCol;
+        assert icol == nCol_;
 
         /* Deduplicate column names as required. */
         icol = 0;
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
-                String origName = (String) nameList.remove( icol );
-                assert origName.equals( colInfos[ icol ].getName() );
+        for ( int itab = 0; itab < nTab_; itab++ ) {
+            for ( int ic = 0; ic < nCols_[ itab ]; ic++ ) {
+                String origName = nameList.remove( icol );
+                assert origName.equals( colInfos_[ icol ].getName() );
                 String name = fixCols[ itab ]
                              .getFixedName( origName, nameList );
                 nameList.add( icol, origName );
                 nameList.add( name );
-                colInfos[ icol ].setName( name );
+                colInfos_[ icol ].setName( name );
                 icol++;
             }
         }
-        assert icol == nCol;
+        assert icol == nCol_;
 
         /* Store auxiliary metadata. */
-        Set auxInfos = new LinkedHashSet();
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            auxInfos.addAll( tables[ itab ].getColumnAuxDataInfos() );
+        Set<ValueInfo> auxInfos = new LinkedHashSet<ValueInfo>();
+        for ( StarTable table : tables ) {
+            auxInfos.addAll( table.getColumnAuxDataInfos() );
         }
-        auxData = new ArrayList( auxInfos );
+        auxData_ = new ArrayList<ValueInfo>( auxInfos );
 
         /* Store the parameters as the ordered union of all the parameters
          * of the constituent tables. */
-        Set params = new LinkedHashSet();
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            params.addAll( tables[ itab ].getParameters() );
+        Set<DescribedValue> params = new LinkedHashSet<DescribedValue>();
+        for ( StarTable table : tables ) {
+            params.addAll( table.getParameters() );
         }
-        setParameters( new ArrayList( params ) );
+        setParameters( new ArrayList<DescribedValue>( params ) );
 
         /* Check random access. */
         boolean rand = true;
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            rand = rand && tables[ itab ].isRandom();
+        for ( StarTable table : tables ) {
+            rand = rand && table.isRandom();
         }
-        isRandom = rand;
+        isRandom_ = rand;
     }
 
     /**
@@ -156,54 +156,55 @@ public class JoinStarTable extends AbstractStarTable {
      *
      * @return   list of tables
      */
-    public List getTables() {
-        return Collections.unmodifiableList( Arrays.asList( tables ) );
+    public List<StarTable> getTables() {
+        return Collections.unmodifiableList( Arrays.asList( tables_ ) );
     }
 
     public int getColumnCount() {
-        return nCol;
+        return nCol_;
     }
 
     public long getRowCount() {
-        if ( nTab == 0 ) {
+        if ( nTab_ == 0 ) {
             return 0L;
         }
         else {
             long nrow = Long.MAX_VALUE;
-            for ( int itab = 0; itab < nTab; itab++ ) {
-                nrow = Math.min( nrow, tables[ itab ].getRowCount() );
+            for ( StarTable table : tables_ ) {
+                nrow = Math.min( nrow, table.getRowCount() );
             }
             return nrow;
         }
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return colInfos[ icol ];
+        return colInfos_[ icol ];
     }
 
     public boolean isRandom() {
-        return isRandom;
+        return isRandom_;
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
         if ( ! isRandom() ) {
             throw new UnsupportedOperationException( "No random access" );
         }
-        return tablesByColumn[ icol ].getCell( irow, indicesByColumn[ icol ] );
+        return tablesByColumn_[ icol ]
+              .getCell( irow, indicesByColumn_[ icol ] );
     }
 
     public Object[] getRow( long irow ) throws IOException {
         if ( ! isRandom() ) {
             throw new UnsupportedOperationException( "No random access" );
         }
-        Object[] row = new Object[ nCol ];
+        Object[] row = new Object[ nCol_ ];
         int icol = 0;
-        for ( int itab = 0; itab < nTab; itab++ ) {
-            Object[] subrow = tables[ itab ].getRow( irow );
-            System.arraycopy( subrow, 0, row, icol, nCols[ itab ] );
-            icol += nCols[ itab ];
+        for ( int itab = 0; itab < nTab_; itab++ ) {
+            Object[] subrow = tables_[ itab ].getRow( irow );
+            System.arraycopy( subrow, 0, row, icol, nCols_[ itab ] );
+            icol += nCols_[ itab ];
         }
-        assert icol == nCol;
+        assert icol == nCol_;
         return row;
     }
 
@@ -218,27 +219,27 @@ public class JoinStarTable extends AbstractStarTable {
      */
     private class JoinRowSequence implements RowSequence {
 
-        RowSequence[] rseqs;
-        RowSequence[] rseqsByColumn;
+        final RowSequence[] rseqs_;
+        final RowSequence[] rseqsByColumn_;
 
         JoinRowSequence() throws IOException {
-            rseqs = new RowSequence[ nTab ];
-            rseqsByColumn = new RowSequence[ nCol ];
+            rseqs_ = new RowSequence[ nTab_ ];
+            rseqsByColumn_ = new RowSequence[ nCol_ ];
             int icol = 0;
-            for ( int itab = 0; itab < nTab; itab++ ) {
-                rseqs[ itab ] = tables[ itab ].getRowSequence();
-                for ( int ic = 0; ic < nCols[ itab ]; ic++ ) {
-                    rseqsByColumn[ icol ] = rseqs[ itab ];
-                    assert indicesByColumn[ icol ] == ic;
+            for ( int itab = 0; itab < nTab_; itab++ ) {
+                rseqs_[ itab ] = tables_[ itab ].getRowSequence();
+                for ( int ic = 0; ic < nCols_[ itab ]; ic++ ) {
+                    rseqsByColumn_[ icol ] = rseqs_[ itab ];
+                    assert indicesByColumn_[ icol ] == ic;
                     icol++;
                 }
             }
-            assert icol == nCol;
+            assert icol == nCol_;
         }
 
         public boolean next() throws IOException {
-            for ( int itab = 0; itab < nTab; itab++ ) {
-                if ( ! rseqs[ itab ].next() ) {
+            for ( RowSequence rseq : rseqs_ ) {
+                if ( ! rseq.next() ) {
                     return false;
                 }
             }
@@ -246,24 +247,24 @@ public class JoinStarTable extends AbstractStarTable {
         }
 
         public Object getCell( int icol ) throws IOException {
-            return rseqsByColumn[ icol ].getCell( indicesByColumn[ icol ] );
+            return rseqsByColumn_[ icol ].getCell( indicesByColumn_[ icol ] );
         }
 
         public Object[] getRow() throws IOException {
-            Object[] row = new Object[ nCol ];
+            Object[] row = new Object[ nCol_ ];
             int icol = 0;
-            for ( int itab = 0; itab < nTab; itab++ ) {
-                Object[] subrow = rseqs[ itab ].getRow();
-                System.arraycopy( subrow, 0, row, icol, nCols[ itab ] );
-                icol += nCols[ itab ];
+            for ( int itab = 0; itab < nTab_; itab++ ) {
+                Object[] subrow = rseqs_[ itab ].getRow();
+                System.arraycopy( subrow, 0, row, icol, nCols_[ itab ] );
+                icol += nCols_[ itab ];
             }
-            assert icol == nCol;
+            assert icol == nCol_;
             return row;
         }
 
         public void close() throws IOException {
-            for ( int itab = 0; itab < nTab; itab++ ) {
-                rseqs[ itab ].close();
+            for ( RowSequence rseq : rseqs_ ) {
+                rseq.close();
             }
         }
     }

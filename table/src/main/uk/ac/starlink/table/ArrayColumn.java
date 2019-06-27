@@ -22,7 +22,7 @@ public abstract class ArrayColumn extends ColumnData {
      */
     ArrayColumn( final ColumnInfo base, Object data ) {
         super( new ColumnInfo( base ) {
-            public void setContentClass( Class clazz ) {
+            public void setContentClass( Class<?> clazz ) {
                 if ( ! clazz.equals( base.getContentClass() ) ) {
                     throw new IllegalArgumentException( "Can't change class" );
                 }
@@ -71,7 +71,7 @@ public abstract class ArrayColumn extends ColumnData {
      * @param  clazz  the class to check for compatibility
      * @throws  IllegalArgumentException  if not compatible
      */
-    void checkContentClass( Class clazz ) {
+    void checkContentClass( Class<?> clazz ) {
         ColumnInfo colinfo = getColumnInfo();
         if ( colinfo.getContentClass() == null ) {
              colinfo.setContentClass( clazz );
@@ -109,7 +109,7 @@ public abstract class ArrayColumn extends ColumnData {
         assert (long) nrow == rowCount;
 
         /* Get the base class. */
-        Class clazz = base.getContentClass();
+        Class<?> clazz = base.getContentClass();
 
         /* Bail out if there isn't one. */
         if ( clazz == null ) {
@@ -155,7 +155,7 @@ public abstract class ArrayColumn extends ColumnData {
     public static ArrayColumn makeColumn( ColumnInfo base, Object data ) {
 
         /* Find out what it's an array of. */
-        Class eclazz = data.getClass().getComponentType();
+        Class<?> eclazz = data.getClass().getComponentType();
 
         /* Bail out if it's not an array. */
         if ( eclazz == null ) {
@@ -183,7 +183,7 @@ public abstract class ArrayColumn extends ColumnData {
      *         the storage for this column
      */
     public static ArrayColumn makeColumn( String name, Object data ) {
-        Class contentClass = data.getClass().getComponentType();
+        Class<?> contentClass = data.getClass().getComponentType();
         if ( contentClass.isPrimitive() ) {
             if ( contentClass == byte.class ) {
                 contentClass = Byte.class;

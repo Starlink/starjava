@@ -21,8 +21,8 @@ import java.util.logging.Logger;
 public class ConcatStarTable extends WrapperStarTable {
 
     private final ColumnInfo[] colInfos_;
-    private final List tableList_;
-    private Iterator tableIt_;
+    private final List<StarTable> tableList_;
+    private Iterator<StarTable> tableIt_;
     private Boolean isRandom_;
     private long nrow_ = -1L;
     private static final Logger logger_ =
@@ -40,11 +40,11 @@ public class ConcatStarTable extends WrapperStarTable {
      * @param  tableIt iterator over constituent {@link StarTable}s which
      *                 taken in sequence supply the row data for this one
      */
-    public ConcatStarTable( StarTable meta, Iterator tableIt ) {
+    public ConcatStarTable( StarTable meta, Iterator<StarTable> tableIt ) {
         super( meta );
         colInfos_ = Tables.getColumnInfos( meta );
         tableIt_ = tableIt;
-        tableList_ = new ArrayList();
+        tableList_ = new ArrayList<StarTable>();
     }
 
     /**
@@ -78,8 +78,7 @@ public class ConcatStarTable extends WrapperStarTable {
 
     public Object getCell( long irow, int icol ) throws IOException {
         if ( isRandom() ) {
-            for ( Iterator it = tableList_.iterator(); it.hasNext(); ) {
-                StarTable table = (StarTable) it.next();
+            for ( StarTable table : tableList_ ) {
                 long nr = table.getRowCount();
                 assert nr >= 0;
                 if ( irow < nr ) {
@@ -96,8 +95,7 @@ public class ConcatStarTable extends WrapperStarTable {
 
     public Object[] getRow( long irow ) throws IOException {
         if ( isRandom() ) {
-            for ( Iterator it = tableList_.iterator(); it.hasNext(); ) {
-                StarTable table = (StarTable) it.next();
+            for ( StarTable table : tableList_ ) {
                 long nr = table.getRowCount();
                 assert nr >= 0;
                 if ( irow < nr ) {
@@ -160,8 +158,7 @@ public class ConcatStarTable extends WrapperStarTable {
         assert isRandom_ == null;
         boolean isRand = true;
         long nrow = 0L;
-        for ( Iterator it = tableList_.iterator(); it.hasNext(); ) {
-            StarTable table = (StarTable) it.next();
+        for ( StarTable table : tableList_ ) {
             isRand = isRand && table.isRandom();
             if ( nrow >= 0 ) {
                 long nr = table.getRowCount();
@@ -179,7 +176,7 @@ public class ConcatStarTable extends WrapperStarTable {
      *
      * @return  iterator over tables
      */
-    private synchronized Iterator getTableIterator() {
+    private synchronized Iterator<StarTable> getTableIterator() {
 
         /* If the list of constituent tables is complete, just return an
          * iterator over it. */
@@ -195,7 +192,7 @@ public class ConcatStarTable extends WrapperStarTable {
          * get confused about who is picking the next table from the initial
          * iterator, so careful use of synchronisation is made. */
         else {
-            return new Iterator() {
+            return new Iterator<StarTable>() {
                 private int index_;
                 public boolean hasNext() {
                     synchronized ( ConcatStarTable.this ) {
@@ -206,7 +203,7 @@ public class ConcatStarTable extends WrapperStarTable {
                             return false;
                         }
                         else if ( tableIt_.hasNext() ) {
-                            StarTable table = (StarTable) tableIt_.next();
+                            StarTable table = tableIt_.next();
                             try {
                                 checkCompatible( table );
                             }
@@ -226,7 +223,7 @@ public class ConcatStarTable extends WrapperStarTable {
                         }
                     }
                 }
-                public Object next() {
+                public StarTable next() {
                     if ( hasNext() ) {
                         return tableList_.get( index_++ );
                     }
@@ -312,7 +309,7 @@ public class ConcatStarTable extends WrapperStarTable {
      */
     private class ConcatRowSequence implements RowSequence {
 
-        private final Iterator tIt_;
+        private final Iterator<StarTable> tIt_;
         private RowSequence rseq_;
 
         /**
@@ -321,7 +318,7 @@ public class ConcatStarTable extends WrapperStarTable {
          *
          * @param  tableIt  iterator over {@link StarTable} objects
          */
-        ConcatRowSequence( Iterator tableIt ) {
+        ConcatRowSequence( Iterator<StarTable> tableIt ) {
             tIt_ = tableIt;
             rseq_ = EmptyRowSequence.getInstance();
         }
@@ -330,7 +327,7 @@ public class ConcatStarTable extends WrapperStarTable {
             while ( ! rseq_.next() ) {
                 rseq_.close();
                 if ( tIt_.hasNext() ) {
-                    rseq_ = ((StarTable) tIt_.next()).getRowSequence();
+                    rseq_ = tIt_.next().getRowSequence();
                 }
                 else {
                     return false;

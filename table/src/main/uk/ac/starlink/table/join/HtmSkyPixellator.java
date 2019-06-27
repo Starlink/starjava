@@ -87,9 +87,9 @@ public class HtmSkyPixellator implements SkyPixellator {
         domain.intersect( htm_, range, false );
 
         /* Accumulate a list of the pixel IDs. */
-        List binList = new ArrayList();
+        List<Object> binList = new ArrayList<Object>();
         try {
-            for ( Iterator it = new HTMrangeIterator( range, false );
+            for ( Iterator<?> it = new HTMrangeIterator( range, false );
                   it.hasNext(); ) {
                 binList.add( it.next() );
             }

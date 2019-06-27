@@ -16,7 +16,7 @@ class LineSequence {
 
     private final InputStream in_;
     private final StringBuffer sbuf_;
-    private final List readyLines_;
+    private final List<String> readyLines_;
 
     /**
      * Constructs a new LineSequence.
@@ -26,7 +26,7 @@ class LineSequence {
     public LineSequence( InputStream in ) {
         in_ = in;
         sbuf_ = new StringBuffer();
-        readyLines_ = new ArrayList();
+        readyLines_ = new ArrayList<String>();
     }
 
     /**
@@ -43,7 +43,7 @@ class LineSequence {
      */
     public String nextLine() throws IOException {
         if ( readyLines_.size() > 0 ) {
-            return (String) readyLines_.remove( 0 );
+            return readyLines_.remove( 0 );
         }
         else {
             sbuf_.setLength( 0 );

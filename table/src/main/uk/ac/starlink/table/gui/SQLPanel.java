@@ -31,6 +31,7 @@ import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class SQLPanel extends JPanel {
 
     private LabelledComponentStack stack;

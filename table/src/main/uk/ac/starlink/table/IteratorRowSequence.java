@@ -13,8 +13,8 @@ import java.util.Iterator;
  */
 public class IteratorRowSequence implements RowSequence {
 
-    private Iterator rowIt;
-    private Object[] currentRow;
+    private Iterator<Object[]> rowIt_;
+    private Object[] currentRow_;
 
     /**
      * Constructs a new RowSequence from an Iterator.
@@ -26,13 +26,13 @@ public class IteratorRowSequence implements RowSequence {
      *
      * @param   rowIt  iterator over the rows
      */
-    public IteratorRowSequence( Iterator rowIt ) {
-        this.rowIt = rowIt;
+    public IteratorRowSequence( Iterator<Object[]> rowIt ) {
+        rowIt_ = rowIt;
     }
 
     public boolean next() throws IOException {
-        if ( rowIt.hasNext() ) {
-            currentRow = (Object[]) rowIt.next();
+        if ( rowIt_.hasNext() ) {
+            currentRow_ = rowIt_.next();
             return true;
         }
         else {
@@ -41,11 +41,11 @@ public class IteratorRowSequence implements RowSequence {
     }
 
     public Object[] getRow() {
-        if ( currentRow == null ) {
+        if ( currentRow_ == null ) {
             throw new IllegalStateException( "No current row" );
         }
         else {
-            return currentRow;
+            return currentRow_;
         }
     }
 

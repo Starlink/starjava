@@ -206,7 +206,7 @@ public class MatchStarTables {
         int nScore = 0;
 
         /* Get ready to calculate the link groups if requested. */
-        Map grpMap = null;
+        Map<RowLink,LinkGroup> grpMap = null;
         int[] grpSizes = null;
         int[] grpIds = null;
         if ( addGroups ) {
@@ -233,8 +233,7 @@ public class MatchStarTables {
 
         /* Populate the index maps from the RowLink list. */
         int iLink = 0;
-        for ( Iterator it = rowLinks.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( RowLink link : rowLinks ) {
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
@@ -256,7 +255,7 @@ public class MatchStarTables {
 
             /* If we're adding groups, store the values. */
             if ( grpMap != null ) {
-                LinkGroup grp = (LinkGroup) grpMap.get( link );
+                LinkGroup grp = grpMap.get( link );
                 if ( grp != null ) {
                     grpIds[ iLink ] = grp.getID();
                     grpSizes[ iLink ] = grp.getSize();
@@ -270,8 +269,8 @@ public class MatchStarTables {
         /* Construct a new table with reordered rows for each of the 
          * input tables; the N'th row of each one corresponds to the
          * N'th RowLink. */
-        List subTableList = new ArrayList();
-        List fixActList = new ArrayList();
+        List<StarTable> subTableList = new ArrayList<StarTable>();
+        List<JoinFixAction> fixActList = new ArrayList<JoinFixAction>();
         for ( int iTable = 0; iTable < nTable; iTable++ ) {
             StarTable table = tables[ iTable ];
             if ( table != null ) {
@@ -317,7 +316,7 @@ public class MatchStarTables {
         }
 
         /* We may want to add some additional columns. */
-        List extraCols = new ArrayList();
+        List<ColumnData> extraCols = new ArrayList<ColumnData>();
 
         /* If we're collecting group sizes and IDs, add columns containing
          * these values. */
@@ -364,18 +363,16 @@ public class MatchStarTables {
         if ( extraCols.size() > 0 ) {
             ColumnStarTable extraTable =
                 ColumnStarTable.makeTableWithRows( nRow );
-            for ( Iterator it = extraCols.iterator(); it.hasNext(); ) {
-                extraTable.addColumn( (ColumnData) it.next() );
+            for ( ColumnData cdata : extraCols ) {
+                extraTable.addColumn( cdata );
             }
             subTableList.add( extraTable );
             fixActList.add( JoinFixAction.NO_ACTION );
         }
 
         /* Join all the subtables up to make one big one. */
-        StarTable[] subTables = 
-            (StarTable[]) subTableList.toArray( new StarTable[ 0 ] );
-        JoinFixAction[] subFixes = (JoinFixAction[])
-                                   fixActList.toArray( new JoinFixAction[ 0 ] );
+        StarTable[] subTables = subTableList.toArray( new StarTable[ 0 ] );
+        JoinFixAction[] subFixes = fixActList.toArray( new JoinFixAction[ 0 ] );
         JoinStarTable joined = new JoinStarTable( subTables, subFixes );
         joined.setName( "Joined" );
         return joined;
@@ -407,12 +404,12 @@ public class MatchStarTables {
 
         /* Prepare subtables, one for each input table but based on the
          * given row links (these control row ordering). */
-        List subTableList = new ArrayList();
-        List fixActList = new ArrayList();
+        List<StarTable> subTableList = new ArrayList<StarTable>();
+        List<JoinFixAction> fixActList = new ArrayList<JoinFixAction>();
         for ( int iTable = 0; iTable < tables.length; iTable++ ) {
             StarTable table = tables[ iTable ];
             subTableList.add( new RowLinkTable( table, iTable ) {
-                public Iterator getLinkIterator() {
+                public Iterator<RowLink> getLinkIterator() {
                     return rowLinks.iterator();
                 }
             } );
@@ -434,12 +431,12 @@ public class MatchStarTables {
                     return -1L;
                 }
                 public RowSequence getRowSequence() {
-                    final Iterator linkIt = rowLinks.iterator();
+                    final Iterator<RowLink> linkIt = rowLinks.iterator();
                     return new RowSequence() {
                         RowLink link_;
                         public boolean next() {
                             if ( linkIt.hasNext() ) {
-                                link_ = (RowLink) linkIt.next();
+                                link_ = linkIt.next();
                                 return true;
                             }
                             else {
@@ -472,10 +469,8 @@ public class MatchStarTables {
         }
 
         /* Amalgamate tables and return. */
-        RowLinkTable[] subTables =
-            (RowLinkTable[]) subTableList.toArray( new RowLinkTable[ 0 ] );
-        JoinFixAction[] subFixes =
-            (JoinFixAction[]) fixActList.toArray( new JoinFixAction[ 0 ] );
+        RowLinkTable[] subTables = subTableList.toArray( new RowLinkTable[ 0 ]);
+        JoinFixAction[] subFixes = fixActList.toArray( new JoinFixAction[ 0 ] );
         StarTable joined = new JoinStarTable( subTables, subFixes );
         joined.setName( "Joined" );
         return joined;
@@ -518,8 +513,7 @@ public class MatchStarTables {
         final int[] grpIds = new int[ nrow ];
         final int[] grpSizes = new int[ nrow ];
         int grpId = 0;
-        for ( Iterator it = rowLinks.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( RowLink link : rowLinks ) {
             grpId++;
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
@@ -600,8 +594,8 @@ public class MatchStarTables {
                                                     JoinFixAction[] fixActs ) {
 
         /* Get rid of any links which we won't be using. */
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( Iterator<RowLink> it = links.iterator(); it.hasNext(); ) {
+            RowLink link = it.next();
             int nref = link.size();
             int n0ref = 0;
             for ( int i = 0; i < nref; i++ ) {
@@ -631,8 +625,7 @@ public class MatchStarTables {
 
         /* Populate these indices from the link set. */
         int iLink = 0;
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( RowLink link : links ) {
             int nref = link.size();
             int refPos = 0;
             for ( int i = 0; i < nref && refPos < width; i++ ) {
@@ -717,16 +710,15 @@ public class MatchStarTables {
      * @return  RowLink -&gt; LinkGroup mapping describing connected groups
      *          in <code>links</code> 
      */
-    public static Map findGroups( LinkSet links ) {
+    public static Map<RowLink,LinkGroup> findGroups( LinkSet links ) {
  
         /* Populate a map from RowRefs to Tokens for every RowRef in
          * the input link set.  Each token is joined to any other tokens
          * in which its RowRef participates. */
-        Map refMap = new HashMap();
+        Map<RowRef,Token> refMap = new HashMap<RowRef,Token>();
         int iLink = 0;
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
+        for ( RowLink link : links ) {
             iLink++;
-            RowLink link = (RowLink) it.next();
             Token linkToken = new Token( iLink );
             for ( int i = 0; i < link.size(); i++ ) {
                 RowRef ref = link.getRef( i );
@@ -734,7 +726,7 @@ public class MatchStarTables {
                 /* If we've already seen this ref, inform it about this
                  * link by joining its token with the one for this link. */
                 if ( refMap.containsKey( ref ) ) {
-                    Token refToken = (Token) refMap.get( ref );
+                    Token refToken = refMap.get( ref );
                     refToken.join( linkToken );
                 }
 
@@ -746,9 +738,8 @@ public class MatchStarTables {
         }
 
         /* Remove any entries for groups which only contain a single link. */
-        for ( Iterator it = refMap.entrySet().iterator(); it.hasNext(); ) {
-             Map.Entry entry = (Map.Entry) it.next();
-             Token token = (Token) entry.getValue();
+        for ( Iterator<Token> it = refMap.values().iterator(); it.hasNext(); ) {
+             Token token = it.next();
              if ( token.getGroupSize() == 1 ) {
                  it.remove();
              }
@@ -761,10 +752,14 @@ public class MatchStarTables {
         /* Now replace every Token in the map with a LinkGroup that contains
          * the same information.  LinkGroups can be smaller and simpler,
          * since they are immutable. */
-        Map knownGroups = new HashMap();
-        for ( Iterator it = refMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            Token token = (Token) entry.getValue();
+        Map<RowRef,LinkGroup> refMapGrp = new HashMap<RowRef,LinkGroup>();
+        Map<Integer,LinkGroup> knownGroups = new HashMap<Integer,LinkGroup>();
+        for ( Iterator<Map.Entry<RowRef,Token>> it =
+                  refMap.entrySet().iterator();
+              it.hasNext(); ) {
+            Map.Entry<RowRef,Token> entry = it.next();
+            RowRef ref = entry.getKey();
+            Token token = entry.getValue();
             int grpSize = token.getGroupSize();
             assert grpSize > 1;
 
@@ -775,20 +770,23 @@ public class MatchStarTables {
             if ( ! knownGroups.containsKey( groupKey ) ) { 
                 knownGroups.put( groupKey, new LinkGroup( id, grpSize ) );
             }
-            entry.setValue( knownGroups.get( groupKey ) );
+            LinkGroup group = knownGroups.get( groupKey );
+            refMapGrp.put( ref, group );
+            it.remove();
         }
+        assert refMap.size() == 0;
+        refMap = null;
         knownGroups = null;
 
         /* Prepare a RowLink to LinkGroup mapping which can be the result. */
-        Map result = new HashMap();
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        Map<RowLink,LinkGroup> result = new HashMap<RowLink,LinkGroup>();
+        for ( RowLink link : links ) {
 
             /* See if one of the link's RowRefs has an entry in the refMap.
              * If so, it points to a LinkGroup object that the link
              * participates in, so store it in the map. */
             RowRef ref0 = link.getRef( 0 );
-            LinkGroup group = (LinkGroup) refMap.get( ref0 );
+            LinkGroup group = refMapGrp.get( ref0 );
             if ( group != null ) {
                 result.put( link, group );
             }
@@ -796,7 +794,7 @@ public class MatchStarTables {
             /* Sanity check: all the refs of any link must point to the
              * same LinkGroup object. */
             for ( int i = 0; i < link.size(); i++ ) {
-                assert group == refMap.get( link.getRef( i ) );
+                assert group == refMapGrp.get( link.getRef( i ) );
             }
         }
         return result;
@@ -810,16 +808,15 @@ public class MatchStarTables {
      * @return  sorted array of unique group ID values which were represented
      *          in <code>tokens</code>
      */
-    private static int[] getSortedGroupIds( Collection tokens ) {
-        Set idSet = new HashSet();
-        for ( Iterator it = tokens.iterator(); it.hasNext(); ) {
-            Token token = (Token) it.next();
+    private static int[] getSortedGroupIds( Collection<Token> tokens ) {
+        Set<Integer> idSet = new HashSet<Integer>();
+        for ( Token token : tokens ) {
             idSet.add( new Integer( token.getGroupId() ) );
         }
         int[] ids = new int[ idSet.size() ];
         int index = 0;
-        for ( Iterator it = idSet.iterator(); it.hasNext(); ) {
-            ids[ index++ ] = ((Integer) it.next() ).intValue();
+        for ( Integer id : idSet ) {
+            ids[ index++ ] = id.intValue();
         }
         assert index == idSet.size();
         Arrays.sort( ids );
@@ -832,7 +829,7 @@ public class MatchStarTables {
      * other associated Tokens, and thereby work out how many
      * refs constitute a group.
      */
-    private static class Token implements Comparable {
+    private static class Token implements Comparable<Token> {
 
         private final int id_;
         private TokenGroup group_;
@@ -875,9 +872,7 @@ public class MatchStarTables {
                 assert other.group_.contains( other );
                 if ( this.group_ != other.group_ ) {
                     TokenGroup otherGroup = other.group_;
-                    for ( Iterator it = other.group_.tokenIterator();
-                          it.hasNext(); ) {
-                        Token tok = (Token) it.next();
+                    for ( Token tok : other.group_ ) {
                         assert tok.group_ == otherGroup;
                         assert tok.group_ != this.group_;
                         this.group_.add( tok );
@@ -917,8 +912,7 @@ public class MatchStarTables {
                  + "-" + id_;
         }
 
-        public int compareTo( Object o ) {
-            Token other = (Token) o;
+        public int compareTo( Token other ) {
             if ( this.id_ == other.id_ ) {
                 return 0;
             }
@@ -932,8 +926,8 @@ public class MatchStarTables {
      * Container for Token objects.  Like a Set, each token (by equals())
      * can only be contained once.
      */
-    private static class TokenGroup {
-        private final Set set_ = new HashSet();
+    private static class TokenGroup implements Iterable<Token> {
+        private final Set<Token> set_ = new HashSet<Token>();
         private int minTokenId_ = Integer.MAX_VALUE;
 
         /**
@@ -981,7 +975,7 @@ public class MatchStarTables {
          *
          * @return  iterator over Token objects
          */
-        Iterator tokenIterator() {
+        public Iterator<Token> iterator() {
             return set_.iterator();
         }
     }

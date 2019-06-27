@@ -56,7 +56,8 @@ public class PixtoolsHealpixSkyPixellator extends HealpixSkyPixellator {
     public Object[] getPixels( double alpha, double delta, double radius ) {
         double theta = Math.PI * 0.5 - delta;
         Vector3d vec = pixTools_.Ang2Vec( theta, alpha );
-        List pixList = pixTools_.query_disc( nside_, vec, radius, scheme_, 1 );
+        List<?> pixList =
+            pixTools_.query_disc( nside_, vec, radius, scheme_, 1 );
         return pixList.toArray();
     }
 

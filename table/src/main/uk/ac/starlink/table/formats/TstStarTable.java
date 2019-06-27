@@ -69,16 +69,16 @@ class TstStarTable extends StreamStarTable {
         PushbackInputStream in = super.getInputStream();
 
         /* Read all the text before the data itself. */
-        List lineList = readHeaderLines( in );
+        List<String> lineList = readHeaderLines( in );
 
         /* Acquire and validate the column names. */
-        String ruler = (String) lineList.remove( lineList.size() - 1 );
-        String colsLine = (String) lineList.remove( lineList.size() - 1 );
+        String ruler = lineList.remove( lineList.size() - 1 );
+        String colsLine = lineList.remove( lineList.size() - 1 );
         assert RULER_REGEX.matcher( ruler ).matches();
-        List colNames = tabSplit( colsLine );
+        List<String> colNames = tabSplit( colsLine );
 
         /* SExtractor likes to add a trailing TAB to this line. */
-        if ( ((String) colNames.get( colNames.size() - 1 )).length() == 0 ) {
+        if ( colNames.get( colNames.size() - 1 ).length() == 0 ) {
             colNames.remove( colNames.size() - 1 );
         }
         ncol_ = colNames.size();
@@ -90,11 +90,11 @@ class TstStarTable extends StreamStarTable {
         /* Get table title from first line. */
         String title = null;
         if ( ! lineList.isEmpty() ) {
-            String line0 = (String) lineList.get( 0 );
+            String line0 = lineList.get( 0 );
             if ( ! COMMENT_REGEX.matcher( line0 ).matches() &&
                  ! BLANK_REGEX.matcher( line0 ).matches() &&
                  ! PARAM_REGEX.matcher( line0 ).matches() ) {
-                setName( ((String) lineList.remove( 0 )).trim() );
+                setName( lineList.remove( 0 ).trim() );
             }
         }
 
@@ -106,9 +106,9 @@ class TstStarTable extends StreamStarTable {
         int yIndex = -1;
 
         /* Read table parameters. */
-        List paramList = new ArrayList();
-        for ( Iterator it = lineList.iterator(); it.hasNext(); ) {
-            String line = (String) it.next();
+        List<DescribedValue> paramList = new ArrayList<DescribedValue>();
+        for ( Iterator<String> it = lineList.iterator(); it.hasNext(); ) {
+            String line = it.next();
             Matcher pmatcher = PARAM_REGEX.matcher( line );
             if ( ! COMMENT_REGEX.matcher( line ).matches() &&
                  pmatcher.matches() ) {
@@ -146,8 +146,7 @@ class TstStarTable extends StreamStarTable {
 
         /* Get table description from all the other comment lines. */
         StringBuffer descBuf = new StringBuffer();
-        for ( Iterator it = lineList.iterator(); it.hasNext(); ) {
-            String line = (String) it.next();
+        for ( String line : lineList ) {
             if ( ! COMMENT_REGEX.matcher( line ).matches() &&
                  ! BLANK_REGEX.matcher( line ).matches() ) {
                 if ( descBuf.length() != 0 ) {
@@ -166,7 +165,7 @@ class TstStarTable extends StreamStarTable {
         /* Now read through all the data rows to find out what kind of
          * values each column contains. */
         RowEvaluator evaluator = new RowEvaluator( ncol_ );
-        for ( List row; ( row = readRow( in ) ) != null; ) {
+        for ( List<String> row; ( row = readRow( in ) ) != null; ) {
             evaluator.submitRow( row );
         }
         RowEvaluator.Metadata metadata = evaluator.getMetadata();
@@ -175,7 +174,7 @@ class TstStarTable extends StreamStarTable {
          * acquired. */
         ColumnInfo[] colInfos = metadata.colInfos_;
         for ( int icol = 0; icol < ncol_; icol++ ) {
-            colInfos[ icol ].setName( (String) colNames.get( icol ) );
+            colInfos[ icol ].setName( colNames.get( icol ) );
         }
         if ( raIndex >= 0 ) {
             ColumnInfo info = colInfos[ raIndex ];
@@ -213,7 +212,8 @@ class TstStarTable extends StreamStarTable {
         return in;
     }
 
-    protected List readRow( PushbackInputStream in )
+    @SuppressWarnings("fallthrough")
+    protected List<String> readRow( PushbackInputStream in )
             throws TableFormatException, IOException {
         StringBuffer sbuf = new StringBuffer();
         String line = null;
@@ -242,11 +242,10 @@ class TstStarTable extends StreamStarTable {
         }
 
         /* Split the line into fields. */
-        List words = tabSplit( line );
+        List<String> words = tabSplit( line );
 
         /* SExtractor likes to put a trailing tab at the end of each line. */
-        if ( words.size() == ncol_ + 1 &&
-             ((String) words.get( ncol_ )).length() == 0 ) {
+        if ( words.size() == ncol_ + 1 && words.get( ncol_ ).length() == 0 ) {
             words.remove( ncol_ );
         }
 
@@ -267,9 +266,9 @@ class TstStarTable extends StreamStarTable {
      * @param   in  input stream
      * @return  list of strings containing header lines
      */
-    private static List readHeaderLines( InputStream in ) 
+    private static List<String> readHeaderLines( InputStream in ) 
             throws TableFormatException, IOException {
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         while ( lineList.size() < 10000 ) {
             String line = readHeaderLine( in );
             lineList.add( line );
@@ -286,6 +285,7 @@ class TstStarTable extends StreamStarTable {
      * @param  in  input stream
      * @return  line (excluding terminators)
      */
+    @SuppressWarnings("fallthrough")
     private static String readHeaderLine( InputStream in )
             throws TableFormatException, IOException {
         StringBuffer sbuf = new StringBuffer();
@@ -313,8 +313,8 @@ class TstStarTable extends StreamStarTable {
      * @param   line  line of text
      * @return  list of strings constituting the tab-separated tokens
      */
-    private static List tabSplit( String line ) {
-        List fields = new ArrayList();
+    private static List<String> tabSplit( String line ) {
+        List<String> fields = new ArrayList<String>();
         for ( int start = 0; start >= 0; ) {
             int end = line.indexOf( '\t', start );
             if ( end >= 0 ) {

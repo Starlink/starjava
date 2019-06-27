@@ -38,7 +38,8 @@ class TableSorter {
         for ( int i = 0; i < nrow; i++ ) {
             rowMap[ i ] = new Integer( i );
         }
-        Comparator comp = new RowComparator( table, colIndices, up, nullsLast );
+        Comparator<Number> comp =
+            new RowComparator( table, colIndices, up, nullsLast );
         try {
             Arrays.sort( rowMap, comp );
         }
@@ -57,7 +58,7 @@ class TableSorter {
      * a table.  The objects compared using this comparator must be
      * <tt>Number</tt>s containing the row index of a table.
      */
-    private static class RowComparator implements Comparator {
+    private static class RowComparator implements Comparator<Number> {
 
         final StarTable table_;
         final int[] colIndices_;
@@ -98,9 +99,9 @@ class TableSorter {
         /**
          * Compares two Numbers.
          */
-        public int compare( Object o1, Object o2 ) {
-            long irow1 = ((Number) o1).longValue();
-            long irow2 = ((Number) o2).longValue();
+        public int compare( Number num1, Number num2 ) {
+            long irow1 = num1.longValue();
+            long irow2 = num2.longValue();
             int c = 0;
             for ( int i = 0; i < ncol_ && c == 0; i++ ) {
                 int icol = colIndices_[ i ];
@@ -114,8 +115,8 @@ class TableSorter {
                     throw new SortException( "Sort Error", e );
                 }
                 try {
-                    c = compareValues( (Comparable) val1,
-                                       (Comparable) val2 );
+                    c = compareValues( (Comparable<?>) val1,
+                                       (Comparable<?>) val2 );
                 }
                 catch ( ClassCastException e ) {
                     throw new SortException(
@@ -135,6 +136,7 @@ class TableSorter {
          * @return  +1, 0, or -1 according to o1 greater than, equal to, or
          *          less than o2
          */
+        @SuppressWarnings({"rawtypes","unchecked"})
         private int compareValues( Comparable o1, Comparable o2 ) {
             boolean null1 = Tables.isBlank( o1 );
             boolean null2 = Tables.isBlank( o2 );

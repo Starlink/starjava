@@ -75,7 +75,7 @@ class Profiler {
      * @return  elapsed time string
      */
     public String formatTime( long millis ) {
-        int tenths = (int) Math.round( millis / 100 );
+        long tenths = millis / 100;
         return ( tenths / 10 ) + "." + ( tenths % 10 ) + "s";
     }
 

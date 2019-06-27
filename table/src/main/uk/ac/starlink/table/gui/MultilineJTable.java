@@ -35,13 +35,13 @@ import javax.swing.table.TableModel;
 public class MultilineJTable extends JTable {
 
     /** The TableModel which represents the actual data in the table. */
-    private TableModel baseModel;
+    private TableModel baseModel_;
 
     /** The TableModel which is used by the superclass. */
-    private MultilineTableModel multiModel;
+    private MultilineTableModel multiModel_;
 
-    private Border firstBorder;
-    private Border otherBorder;
+    private Border firstBorder_;
+    private Border otherBorder_;
  
     /**
      * Constructs a new table given a base TableModel.  
@@ -76,10 +76,9 @@ public class MultilineJTable extends JTable {
      *                     will display
      */
     public void setModel( TableModel baseModel ) {
-        this.baseModel = baseModel;
-        this.multiModel = new CachingMultilineTableModel( baseModel );
-        super.setModel( multiModel );
-       //  super.setModel( baseModel );
+        baseModel_ = baseModel;
+        multiModel_ = new CachingMultilineTableModel( baseModel );
+        super.setModel( multiModel_ );
     }
 
     /**
@@ -98,14 +97,14 @@ public class MultilineJTable extends JTable {
                                       int col ) {
         JComponent cell = 
             (JComponent) super.prepareRenderer( rend, row, col );
-        boolean isFirst = multiModel.isFirstRowOfGroup( row );
-        cell.setBorder( isFirst ? firstBorder : otherBorder );
+        boolean isFirst = multiModel_.isFirstRowOfGroup( row );
+        cell.setBorder( isFirst ? firstBorder_ : otherBorder_ );
         return cell;
     }
 
     public void setGridColor( Color gridColor ) {
-        firstBorder = BorderFactory.createMatteBorder( 1, 0, 0, 1, gridColor );
-        otherBorder = BorderFactory.createMatteBorder( 0, 0, 0, 1, gridColor );
+        firstBorder_ = BorderFactory.createMatteBorder( 1, 0, 0, 1, gridColor );
+        otherBorder_ = BorderFactory.createMatteBorder( 0, 0, 0, 1, gridColor );
     }
 
     
@@ -120,10 +119,10 @@ public class MultilineJTable extends JTable {
         private int multiNrow;
         private int[] firstMultiRowOfBaseRow;
         private int[] baseRowOfMultiRow;
-        private TableModel baseModel;
+        private TableModel baseModel_;
 
         public MultilineTableModel( TableModel baseModel ) {
-            this.baseModel = baseModel;
+            baseModel_ = baseModel;
             int baseNrow = baseModel.getRowCount();
             ncol = baseModel.getColumnCount();
 
@@ -169,7 +168,7 @@ public class MultilineJTable extends JTable {
 
         public Object getValueAt( int multiRow, int col ) {
             int baseRow = baseRowOfMultiRow[ multiRow ];
-            Object baseValue = baseModel.getValueAt( baseRow, col );
+            Object baseValue = baseModel_.getValueAt( baseRow, col );
             boolean singleRowGroup = firstMultiRowOfBaseRow[ baseRow + 1 ]
                                   == firstMultiRowOfBaseRow[ baseRow ] + 1;
             if ( singleRowGroup ) {
@@ -216,28 +215,28 @@ public class MultilineJTable extends JTable {
         }
 
         /* Other TableModel methods are delegated. */
-        public Class getColumnClass( int colIndex ) {
-            return baseModel.getColumnClass( colIndex );
+        public Class<?> getColumnClass( int colIndex ) {
+            return baseModel_.getColumnClass( colIndex );
         }
         public String getColumnName( int colIndex ) {
-            return baseModel.getColumnName( colIndex );
+            return baseModel_.getColumnName( colIndex );
         }
     }
 
     private static class CachingMultilineTableModel 
             extends MultilineTableModel {
         private static Object BLANK = new Object();
-        private ArrayList[] cellValues;
+        private final List<ArrayList<Object>> cellValues_;
         public CachingMultilineTableModel( TableModel baseModel ) {
             super( baseModel );
             int ncol = getColumnCount();
-            cellValues = new ArrayList[ ncol ];
+            cellValues_ = new ArrayList<ArrayList<Object>>();
             for ( int i = 0; i < ncol; i++ ) {
-                cellValues[ i ] = new ArrayList( 16 );
+                cellValues_.add( new ArrayList<Object>( 16 ) );
             }
         }
         public Object getValueAt( int irow, int icol ) {
-            ArrayList colValues = cellValues[ icol ];
+            ArrayList<Object> colValues = cellValues_.get( icol );
             if ( colValues.size() <= irow ) {
                 colValues.ensureCapacity( (int) ( irow * 1.5 ) );
             }

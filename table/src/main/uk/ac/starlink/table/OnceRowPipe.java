@@ -17,7 +17,7 @@ import java.util.LinkedList;
  */
 public class OnceRowPipe implements RowPipe, RowSequence {
 
-    private final LinkedList rowQueue_;
+    private final LinkedList<Object[]> rowQueue_;
     private final int queueSize_;
     private StarTable table_;
     private Object[] seqRow_;
@@ -42,7 +42,7 @@ public class OnceRowPipe implements RowPipe, RowSequence {
      */
     public OnceRowPipe( int queueSize ) {
         queueSize_ = queueSize;
-        rowQueue_ = new LinkedList();
+        rowQueue_ = new LinkedList<Object[]>();
     }
 
     public synchronized void setError( IOException error ) {
@@ -159,7 +159,7 @@ public class OnceRowPipe implements RowPipe, RowSequence {
             throw (IOException) new IOException( "Thread interrupted" )
                                .initCause( e );
         }
-        seqRow_ = (Object[]) rowQueue_.removeFirst();
+        seqRow_ = rowQueue_.removeFirst();
         if ( seqRow_ == END_ROWS ) {
             seqEnded_ = true;
         }

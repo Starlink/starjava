@@ -10,6 +10,7 @@ import java.util.List;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -22,7 +23,7 @@ import uk.ac.starlink.util.DataSource;
  * A table builder which reads tables in IPAC format.
  * The data format is defined at
  * <a href="http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html"
-           >http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html</a>.
+      >http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html</a>.
  *
  * @author   Mark Taylor
  * @since    7 Feb 2006
@@ -101,8 +102,9 @@ public class IpacTableBuilder implements TableBuilder {
          */
         IpacStarTable( IpacReader reader ) {
             reader_ = reader;
-            setParameters( new ArrayList( Arrays.asList( reader_
-                                                        .getParameters() ) ) );
+            setParameters( new ArrayList<DescribedValue>(
+                                        Arrays.asList( reader_
+                                                      .getParameters() ) ) );
         }
 
         public int getColumnCount() {

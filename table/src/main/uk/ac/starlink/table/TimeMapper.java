@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  */
 public abstract class TimeMapper implements DomainMapper {
 
-    private final Class sourceClass_;
+    private final Class<?> sourceClass_;
     private final String sourceName_;
     private final String sourceDescription_;
 
@@ -77,7 +77,7 @@ public abstract class TimeMapper implements DomainMapper {
      * @param   sourceName  source type name
      * @param   sourceDescription  source type description
      */
-    protected TimeMapper( Class sourceClass, String sourceName,
+    protected TimeMapper( Class<?> sourceClass, String sourceName,
                           String sourceDescription ) {
         sourceClass_ = sourceClass;
         sourceName_ = sourceName;
@@ -91,7 +91,7 @@ public abstract class TimeMapper implements DomainMapper {
         return TARGET_NAME;
     }
 
-    public Class getSourceClass() {
+    public Class<?> getSourceClass() {
         return sourceClass_;
     }
 

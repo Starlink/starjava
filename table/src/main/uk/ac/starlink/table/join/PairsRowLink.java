@@ -67,12 +67,13 @@ public class PairsRowLink extends RowLink {
         /* If only the best matches are required, throw out any 
          * non-best ones. */
         if ( bestOnly ) {
-            Map refMap = new HashMap();
+            Map<Integer,ScoredRowRef> refMap =
+                new HashMap<Integer,ScoredRowRef>();
             for ( int i = 0; i < sref1s.length; i++ ) {
                 ScoredRowRef ref = sref1s[ i ];
-                Object key = new Integer( ref.getTableIndex() );
+                Integer key = new Integer( ref.getTableIndex() );
                 if ( refMap.containsKey( key ) ) {
-                    ScoredRowRef bestRef = (ScoredRowRef) refMap.get( key );
+                    ScoredRowRef bestRef = refMap.get( key );
                     if ( ref.getScore() < bestRef.getScore() ) {
                         refMap.put( key, ref );
                     }
@@ -81,8 +82,7 @@ public class PairsRowLink extends RowLink {
                     refMap.put( key, ref );
                 }
             }
-            sref1s = (ScoredRowRef[])
-                     refMap.values().toArray( new ScoredRowRef[ 0 ] );
+            sref1s = refMap.values().toArray( new ScoredRowRef[ 0 ] );
         }
 
         /* Stick all of the refs together in a single array and return. */

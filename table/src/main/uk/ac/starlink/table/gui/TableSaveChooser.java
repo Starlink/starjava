@@ -9,7 +9,6 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -47,12 +46,13 @@ import uk.ac.starlink.table.StarTableWriter;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public abstract class TableSaveChooser extends JPanel {
 
     private final JComboBox formatSelector_;
     private final JComponent[] activeComponents_;
     private final FilestoreChooser filestoreChooser_;
-    private final List activeActionList_;
+    private final List<Action> activeActionList_;
     private final Action[] tsdActions_;
     private StarTableOutput sto_;
     private JDialog dialog_;
@@ -85,8 +85,8 @@ public abstract class TableSaveChooser extends JPanel {
         add( actionBox, BorderLayout.CENTER );
 
         /* Prepare a list of components which can be enabled/disabled. */
-        List activeList = new ArrayList();
-        activeActionList_ = new ArrayList();
+        List<JComponent> activeList = new ArrayList<JComponent>();
+        activeActionList_ = new ArrayList<Action>();
 
         /* Construct and place format selector. */
         JComponent formatBox = Box.createHorizontalBox();
@@ -138,15 +138,15 @@ public abstract class TableSaveChooser extends JPanel {
         filestoreChooser_ = fsd.getChooser();
 
         /* Prepare buttons for each dialogue type. */
-        List buttList = new ArrayList();
-        List tsdActionList = new ArrayList();
-        for ( int i = 0; i < saveDialogs.length; i++ ) {
-            Action tsdAction = createSaveDialogAction( saveDialogs[ i ] );
+        List<JButton> buttList = new ArrayList<JButton>();
+        List<Action> tsdActionList = new ArrayList<Action>();
+        for ( TableSaveDialog tsd : saveDialogs ) {
+            Action tsdAction = createSaveDialogAction( tsd );
             tsdActionList.add( tsdAction );
             buttList.add( new JButton( tsdAction ) );
         }
-        JButton[] buttons = (JButton[]) buttList.toArray( new JButton[ 0 ] );
-        tsdActions_ = (Action[]) tsdActionList.toArray( new Action[ 0 ] );
+        JButton[] buttons = buttList.toArray( new JButton[ 0 ] );
+        tsdActions_ = tsdActionList.toArray( new Action[ 0 ] );
         int nopt = buttons.length;
 
         /* Position buttons. */
@@ -172,8 +172,7 @@ public abstract class TableSaveChooser extends JPanel {
         actionBox.add( dialogLine );
 
         /* Store list of components that can be enabled/disabled. */
-        activeComponents_ = (JComponent[])
-                            activeList.toArray( new JComponent[ 0 ] );
+        activeComponents_ = activeList.toArray( new JComponent[ 0 ] );
     }
 
     /**
@@ -301,11 +300,11 @@ public abstract class TableSaveChooser extends JPanel {
 
     public void setEnabled( boolean isEnabled ) {
         if ( isEnabled != isEnabled() ) {
-            for ( int i = 0; i < activeComponents_.length; i++ ) {
-                activeComponents_[ i ].setEnabled( isEnabled );
+            for ( JComponent c : activeComponents_ ) {
+                c.setEnabled( isEnabled );
             }
-            for ( Iterator it = activeActionList_.iterator(); it.hasNext(); ) {
-                ((Action) it.next()).setEnabled( isEnabled );
+            for ( Action act : activeActionList_ ) {
+                act.setEnabled( isEnabled );
             }
         }
         super.setEnabled( isEnabled );
@@ -450,8 +449,7 @@ public abstract class TableSaveChooser extends JPanel {
                                                     boolean multi ) {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         model.addElement( StarTableOutput.AUTO_HANDLER );
-        for ( Iterator it = sto.getHandlers().iterator(); it.hasNext(); ) {
-            StarTableWriter handler = (StarTableWriter) it.next();
+        for ( StarTableWriter handler : sto.getHandlers() ) {
             if ( ! multi || handler instanceof MultiStarTableWriter ) {
                 model.addElement( handler.getFormatName() );
             }

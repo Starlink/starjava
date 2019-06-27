@@ -81,7 +81,7 @@ public class LatexTableWriter extends StreamStarTableWriter {
         int[] maxWidths = new int[ ncol ];
         for ( int i = 0; i < ncol; i++ ) {
             ColumnInfo colinfo = colinfos[ i ];
-            Class clazz = colinfo.getContentClass();
+            Class<?> clazz = colinfo.getContentClass();
             if ( Number.class.isAssignableFrom( clazz ) ) {
                 tfmt.append( 'r' );
                 maxWidths[ i ] = 32;

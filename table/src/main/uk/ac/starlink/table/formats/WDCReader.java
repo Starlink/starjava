@@ -43,8 +43,8 @@ class WDCReader {
         }
 
         /* Loop over header lines. */
-        List colinfoList = new ArrayList();
-        List eaterList = new ArrayList();
+        List<ColumnInfo> colinfoList = new ArrayList<ColumnInfo>();
+        List<Eater> eaterList = new ArrayList<Eater>();
         while ( true ) {
             String line = WDCTableBuilder.readLine( strm );
 
@@ -106,7 +106,7 @@ class WDCReader {
                 assert matcher.find();
                 String colname = matcher.group( 1 );
                 char fmt = matcher.group( 2 ).charAt( 0 );
-                Class clazz;
+                Class<?> clazz;
                 Eater eater;
                 switch ( fmt ) {
                     case 'd':
@@ -167,8 +167,8 @@ class WDCReader {
         }
 
         /* Store these as arrays for efficiency. */
-        colinfos = (ColumnInfo[]) colinfoList.toArray( new ColumnInfo[ 0 ] );
-        eaters = (Eater[]) eaterList.toArray( new Eater[ 0 ] );
+        colinfos = colinfoList.toArray( new ColumnInfo[ 0 ] );
+        eaters = eaterList.toArray( new Eater[ 0 ] );
         assert colinfos.length == eaters.length;
     }
 

@@ -13,7 +13,7 @@ package uk.ac.starlink.table.join;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class RowRef implements Comparable {
+public class RowRef implements Comparable<RowRef> {
     private final int iTable;
     private final long lRow;
 
@@ -64,8 +64,7 @@ public class RowRef implements Comparable {
         return result;
     }
 
-    public int compareTo( Object o ) {
-        RowRef other = (RowRef) o;
+    public int compareTo( RowRef other ) {
         if ( this.iTable != other.iTable ) {
             return this.iTable < other.iTable ? -1 : +1;
         }

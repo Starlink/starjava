@@ -17,7 +17,7 @@ import java.util.Set;
  */
 class HashSetLinkSet implements LinkSet {
 
-    private Collection links_ = new HashSet();
+    private Collection<RowLink> links_ = new HashSet<RowLink>();
 
     public void addLink( RowLink link ) {
         getSet().add( link );
@@ -31,7 +31,7 @@ class HashSetLinkSet implements LinkSet {
         return getSet().remove( link );
     }
 
-    public Iterator iterator() {
+    public Iterator<RowLink> iterator() {
         return links_.iterator();
     }
 
@@ -54,13 +54,13 @@ class HashSetLinkSet implements LinkSet {
      *
      * @return  list view
      */
-    private List getList() {
+    private List<RowLink> getList() {
         if ( ! ( links_ instanceof List ) ) {
-            List list = new ArrayList();
+            List<RowLink> list = new ArrayList<RowLink>();
             transfer( links_, list );
             links_ = list;
         }
-        return (List) links_;
+        return (List<RowLink>) links_;
     }
 
     /**
@@ -68,13 +68,13 @@ class HashSetLinkSet implements LinkSet {
      *
      * @return  set view
      */
-    private Set getSet() {
+    private Set<RowLink> getSet() {
         if ( ! ( links_ instanceof Set ) ) {
-            Set set = new HashSet();
+            Set<RowLink> set = new HashSet<RowLink>();
             transfer( links_, set );
             links_ = set;
         }
-        return (Set) links_;
+        return (Set<RowLink>) links_;
     }
 
     /**
@@ -85,15 +85,16 @@ class HashSetLinkSet implements LinkSet {
      * @param   src  source collection (empty on exit)
      * @param   dest  destination collection (empty on entry)
      */
-    private static void transfer( Collection src, Collection dest ) {
+    private static void transfer( Collection<RowLink> src,
+                                  Collection<RowLink> dest ) {
         int n = src.size();
         if ( src instanceof List && src instanceof RandomAccess ) {
             for ( int i = src.size() - 1; i >= 0; i-- ) {
-                dest.add( ((List) src).remove( i ) );
+                dest.add( ((List<RowLink>) src).remove( i ) );
             }
         }
         else {
-            for ( Iterator it = src.iterator(); it.hasNext(); ) {
+            for ( Iterator<RowLink> it = src.iterator(); it.hasNext(); ) {
                 dest.add( it.next() );
                 it.remove();
             }

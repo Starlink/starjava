@@ -129,7 +129,7 @@ public class IpacTableWriter extends AbstractTextTableWriter {
     }
 
     protected void printParam( OutputStream out, String name, String value,
-                               Class clazz )
+                               Class<?> clazz )
             throws IOException {
         String[] lines = value.split( "[\\n\\r]+" );
         int maxl = 320;
@@ -219,7 +219,7 @@ public class IpacTableWriter extends AbstractTextTableWriter {
                 unit = "";
             }
             final String type;
-            Class clazz = info.getContentClass();
+            Class<?> clazz = info.getContentClass();
             if ( clazz.equals( Integer.class ) ||
                  clazz.equals( Short.class ) ||
                  clazz.equals( Byte.class ) ) {

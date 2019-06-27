@@ -24,7 +24,7 @@ public class ValueInfoCellEditor {
      * @return  a TableCellEditor
      */
     public static TableCellEditor makeEditor( final ValueInfo vinfo ) {
-        Class clazz = vinfo.getContentClass();
+        Class<?> clazz = vinfo.getContentClass();
         if ( clazz == Boolean.class ) {
             return new DefaultCellEditor( new JCheckBox() ) {
                 public boolean stopCellEditing() {

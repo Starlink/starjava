@@ -39,6 +39,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor (Starlink)
  * @since    25 Feb 2005
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class FilestoreTableSaveDialog implements TableSaveDialog {
 
     private final FilestoreChooser chooser_;

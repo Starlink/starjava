@@ -95,10 +95,10 @@ public class EqualsMatchEngine implements MatchEngine {
         else if ( o1.equals( o2 ) ) {
             return true;
         }
-        Class c1 = o1.getClass();
-        Class c2 = o2.getClass();
+        Class<?> c1 = o1.getClass();
+        Class<?> c2 = o2.getClass();
         if ( c1.isArray() && c2.equals( c1 ) ) {
-            Class clazz = c1.getComponentType();
+            Class<?> clazz = c1.getComponentType();
             assert clazz == c2.getComponentType();
             if ( clazz == byte.class ) {
                 return Arrays.equals( (byte[]) o1, (byte[]) o2 );

@@ -65,8 +65,8 @@ import uk.ac.starlink.util.Loader;
  */
 public class StarTableOutput {
 
-    private List handlers;
-    private JDBCHandler jdbcHandler;
+    private List<StarTableWriter> handlers_;
+    private JDBCHandler jdbcHandler_;
     private static String[] defaultHandlerClasses = {
         "uk.ac.starlink.votable.FitsPlusTableWriter",
         "uk.ac.starlink.fits.FitsTableWriter",
@@ -86,7 +86,7 @@ public class StarTableOutput {
     };
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
 
-    private StarTableWriter voWriter;
+    private StarTableWriter voWriter_;
 
     /**
      * Special output handler name indicating automatic format selection.
@@ -103,24 +103,27 @@ public class StarTableOutput {
      * Constructs a StarTableOutput with a default list of handlers.
      */
     public StarTableOutput() {
-        handlers = new ArrayList();
+        handlers_ = new ArrayList<StarTableWriter>();
 
         /* Attempt to add default handlers if they are available. */
         for ( int i = 0; i < defaultHandlerClasses.length; i++ ) {
             String className = defaultHandlerClasses[ i ];
             try {
-                Class clazz = this.getClass().forName( className );
+                @SuppressWarnings("unchecked")
+                Class<? extends StarTableWriter> clazz =
+                    (Class<? extends StarTableWriter>)
+                    Class.forName( className );
 
                 /* See if the class provides a method which can return
                  * a list of handlers. */
                 StarTableWriter[] writers = null;
                 try {
                     Method getList = clazz.getMethod( "getStarTableWriters", 
-                                                       new Class[ 0 ] );
+                                                       new Class<?>[ 0 ] );
                     int mods = getList.getModifiers();
                     if ( Modifier.isStatic( mods ) && 
                          Modifier.isPublic( mods ) ) {
-                        Class retClass = getList.getReturnType();
+                        Class<?> retClass = getList.getReturnType();
                         if ( retClass.isArray() && 
                              StarTableWriter.class
                             .isAssignableFrom( retClass.getComponentType() ) ) {
@@ -137,7 +140,7 @@ public class StarTableOutput {
                 if ( writers != null ) {
                     for ( int j = 0; j < writers.length; j++ ) {
                         StarTableWriter handler = writers[ j ];
-                        handlers.add( handler );
+                        handlers_.add( handler );
                         logger.config( "Handler " + handler.getFormatName() +
                                        " registered" );
                     }
@@ -146,9 +149,8 @@ public class StarTableOutput {
                 /* Otherwise, just instantiate the class with a no-arg
                  * constructor. */
                 else {
-                    StarTableWriter handler = 
-                        (StarTableWriter) clazz.newInstance();
-                    handlers.add( handler );
+                    StarTableWriter handler = clazz.newInstance();
+                    handlers_.add( handler );
                     logger.config( "Handler " + handler.getFormatName() +
                                    " registered" );
                 }
@@ -162,13 +164,13 @@ public class StarTableOutput {
         }
 
         /* Add any further handlers specified by system property. */
-        handlers.addAll( Loader.getClassInstances( EXTRA_WRITERS_PROPERTY,
-                                                   StarTableWriter.class ) );
+        handlers_.addAll( Loader.getClassInstances( EXTRA_WRITERS_PROPERTY,
+                                                    StarTableWriter.class ) );
 
         /* Further initialization. */
-        voWriter = getTransferableWriter( (StarTableWriter[])
-                                          handlers
-                                         .toArray( new StarTableWriter[ 0 ] ) );
+        voWriter_ =
+            getTransferableWriter( handlers_
+                                  .toArray( new StarTableWriter[ 0 ] ) );
     }
 
     /**
@@ -179,8 +181,8 @@ public class StarTableOutput {
      *
      * @return  handlers  a list of <tt>StarTableWriter</tt> objects 
      */
-    public List getHandlers() {
-        return handlers;
+    public List<StarTableWriter> getHandlers() {
+        return handlers_;
     }
 
     /**
@@ -191,7 +193,8 @@ public class StarTableOutput {
      * @param  handlers  an array of <tt>StarTableWriter</tt> objects
      */
     public void setHandlers( StarTableWriter[] handlers ) {
-        this.handlers = new ArrayList( Arrays.asList( handlers ) );
+        handlers_ =
+            new ArrayList<StarTableWriter>( Arrays.asList( handlers ) );
     }
 
     /**
@@ -473,12 +476,11 @@ public class StarTableOutput {
 
         /* See if the format is the class name of a StarTableWriter. */
         try {
-            Class fcls = this.getClass().forName( format );
+            Class<?> fcls = Class.forName( format );
             if ( StarTableWriter.class.isAssignableFrom( fcls ) ) {
 
                 /* Is it one of the registered ones? */
-                for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-                    StarTableWriter handler = (StarTableWriter) it.next();
+                for ( StarTableWriter handler : handlers_ ) {
                     if ( fcls.isInstance( handler ) ) {
                         return handler;
                     }
@@ -502,8 +504,7 @@ public class StarTableOutput {
         }
 
         /* Otherwise, see if it names an output format. */
-        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-            StarTableWriter handler = (StarTableWriter) it.next();
+        for ( StarTableWriter handler : handlers_ ) {
             if ( handler.getFormatName().toLowerCase()
                         .startsWith( format.toLowerCase() ) ) { 
                 return handler;
@@ -549,8 +550,7 @@ public class StarTableOutput {
         /* If no format has been specified, offer it to the first handler 
          * which likes the look of its filename. */
         else {
-            for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-                StarTableWriter handler = (StarTableWriter) it.next();
+            for ( StarTableWriter handler : handlers_ ) {
                 if ( handler.looksLikeFile( location ) ) {
                     return handler;
                 }
@@ -560,7 +560,8 @@ public class StarTableOutput {
             StringBuffer msg = new StringBuffer();
             msg.append( "No handler specified for writing table.\n" )
                .append( "Known formats: " );
-            for ( Iterator it = getKnownFormats().iterator(); it.hasNext(); ) {
+            for ( Iterator<String> it = getKnownFormats().iterator();
+                  it.hasNext(); ) {
                 msg.append( it.next() );
                 if ( it.hasNext() ) {
                     msg.append( ", " );
@@ -576,11 +577,11 @@ public class StarTableOutput {
      * list can be passed as the <tt>format</tt> argument to the 
      * {@link #writeStarTable} method.
      */
-    public List getKnownFormats() {
-        List kf = new ArrayList();
+    public List<String> getKnownFormats() {
+        List<String> kf = new ArrayList<String>();
         kf.add( "jdbc" );
-        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-            kf.add( ((StarTableWriter) it.next()).getFormatName() );
+        for ( StarTableWriter handler : handlers_ ) {
+            kf.add( handler.getFormatName() );
         }
         return kf;
     }
@@ -592,10 +593,10 @@ public class StarTableOutput {
      * @return  the JDBC handler
      */
     public JDBCHandler getJDBCHandler() {
-        if ( jdbcHandler == null ) {
-            jdbcHandler = new JDBCHandler();
+        if ( jdbcHandler_ == null ) {
+            jdbcHandler_ = new JDBCHandler();
         }
-        return jdbcHandler;
+        return jdbcHandler_;
     }
 
     /**
@@ -605,7 +606,7 @@ public class StarTableOutput {
      * @param  handler  the handler to use
      */
     public void setJDBCHandler( JDBCHandler handler ) {
-        this.jdbcHandler = handler;
+        jdbcHandler_ = handler;
     }
 
     /**
@@ -616,7 +617,7 @@ public class StarTableOutput {
      * @see  StarTableFactory#makeStarTable(java.awt.datatransfer.Transferable)
      */
     public Transferable transferStarTable( final StarTable startab ) {
-        if ( voWriter != null ) {
+        if ( voWriter_ != null ) {
             return new StarTableTransferable( this, startab );
         }
         else {
@@ -630,7 +631,7 @@ public class StarTableOutput {
      * @return  transfer writer
      */
     StarTableWriter getTransferWriter() {
-        return voWriter;
+        return voWriter_;
     }
 
     /**

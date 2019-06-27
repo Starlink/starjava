@@ -64,7 +64,7 @@ class Binners {
      */
     private static abstract class MapObjectBinner implements ObjectBinner {
 
-        private final Map map_ = new HashMap();
+        private final Map<Object,Object> map_ = new HashMap<Object,Object>();
         private long nItem_;
 
         public void addItem( Object key, Object item ) {
@@ -72,7 +72,7 @@ class Binners {
             map_.put( key, addToListable( map_.get( key ), item ) );
         }
 
-        public List getList( Object key ) {
+        public List<?> getList( Object key ) {
             return getListFromListable( map_.get( key ) );
         }
 
@@ -84,7 +84,7 @@ class Binners {
             map_.remove( key );
         }
 
-        public Iterator getKeyIterator() {
+        public Iterator<?> getKeyIterator() {
             return map_.keySet().iterator();
         }
 
@@ -118,7 +118,7 @@ class Binners {
          * @param  listable  existing listable or null
          * @return  List containing <code>listable</code>'s items
          */
-        protected abstract List getListFromListable( Object listable );
+        protected abstract List<?> getListFromListable( Object listable );
     }
 
     /**
@@ -127,14 +127,15 @@ class Binners {
     private static class StorageListObjectBinner extends MapObjectBinner {
 
         protected Object addToListable( Object listable, Object item ) {
-            List list = listable == null ? new StorageList()
-                                         : (List) listable;
+            @SuppressWarnings("unchecked")
+            List<Object> list = listable == null ? new StorageList()
+                                                 : (List<Object>) listable;
             list.add( item );
             return list;
         }
 
-        protected List getListFromListable( Object listable ) {
-            return (List) listable;
+        protected List<?> getListFromListable( Object listable ) {
+            return (List<?>) listable;
         }
     }
 
@@ -159,18 +160,18 @@ class Binners {
                 return item;
             }
             else if ( listable instanceof StorageList ) {
-                ((List) listable).add( item );
+                ((StorageList) listable).add( item );
                 return listable;
             }
             else {
-                List list = new StorageList();
+                StorageList list = new StorageList();
                 list.add( listable );
                 list.add( item );
                 return list;
             }
         }
 
-        protected List getListFromListable( Object listable ) {
+        protected List<?> getListFromListable( Object listable ) {
             if ( listable == null ) {
                 return null;
             }
@@ -191,7 +192,7 @@ class Binners {
      * a list of integer values.
      */
     private static abstract class MapLongBinner implements LongBinner {
-        private final Map map_ = new HashMap();
+        private final Map<Object,Object> map_ = new HashMap<Object,Object>();
 
         public void addItem( Object key, long item ) {
             map_.put( key, addToListable( map_.get( key ), item ) );
@@ -201,7 +202,7 @@ class Binners {
             return getLongsFromListable( map_.get( key ) );
         }
 
-        public Iterator getKeyIterator() {
+        public Iterator<?> getKeyIterator() {
             return map_.keySet().iterator();
         }
 
@@ -360,6 +361,6 @@ class Binners {
      * between Lists created/managed by <code>CombinationObjectBinner</code>
      * and those added as items.
      */
-    private static class StorageList extends LinkedList {
+    private static class StorageList extends LinkedList<Object> {
     }
 }

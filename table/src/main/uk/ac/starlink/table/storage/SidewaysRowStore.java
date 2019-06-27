@@ -25,7 +25,7 @@ import uk.ac.starlink.table.TableFormatException;
 public class SidewaysRowStore implements RowStore {
 
     private final File file_;
-    private final Set tempFiles_;
+    private final Set<File> tempFiles_;
     private int ncol_;
     private StarTable template_;
     private long lrow_;
@@ -42,7 +42,7 @@ public class SidewaysRowStore implements RowStore {
      */
     public SidewaysRowStore( File file ) throws IOException {
         file_ = file;
-        tempFiles_ = new HashSet();
+        tempFiles_ = new HashSet<File>();
     }
 
     /**
@@ -211,8 +211,8 @@ public class SidewaysRowStore implements RowStore {
     private void tidy() {
 
         /* Deletes any temporary files we have created to store data. */
-        for ( Iterator it = tempFiles_.iterator(); it.hasNext(); ) {
-            File file = (File) it.next();
+        for ( Iterator<File> it = tempFiles_.iterator(); it.hasNext(); ) {
+            File file = it.next();
             if ( file.exists() ) {
                 if ( file.delete() ) {
                     logger_.info( "Deleted temporary file " + file );

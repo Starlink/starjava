@@ -92,9 +92,8 @@ public abstract class StoragePolicy {
                 else {
                     StoragePolicy named =
                         Loader.getClassInstance( pref, StoragePolicy.class );
-                    defaultInstance_ = named != null 
-                                     ? named
-                                     : (StoragePolicy) ADAPTIVE;
+                    defaultInstance_ = named != null ? named
+                                                     : ADAPTIVE;
                 }
             }
             catch ( SecurityException e ) {

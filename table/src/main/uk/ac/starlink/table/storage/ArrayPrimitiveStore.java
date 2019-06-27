@@ -12,7 +12,7 @@ import uk.ac.starlink.table.ValueStore;
  */
 public class ArrayPrimitiveStore implements ValueStore {
 
-    private final Class clazz_;
+    private final Class<?> clazz_;
     private final Object data_;
     private final long size_;
 
@@ -23,7 +23,7 @@ public class ArrayPrimitiveStore implements ValueStore {
      * @param  clazz  primitive type to store
      * @param  size   length of the vector
      */
-    public ArrayPrimitiveStore( Class clazz, int size ) {
+    public ArrayPrimitiveStore( Class<?> clazz, int size ) {
         if ( ! clazz.isPrimitive() ) {
             throw new IllegalArgumentException( clazz + " not primitive" );
         }
@@ -32,7 +32,7 @@ public class ArrayPrimitiveStore implements ValueStore {
         data_ = Array.newInstance( clazz, size );
     }
 
-    public Class getType() {
+    public Class<?> getType() {
         return clazz_;
     }
 

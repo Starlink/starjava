@@ -48,7 +48,8 @@ public class ColumnInfo extends DefaultValueInfo {
      *         instances
      * @param  description  a textual description of the described values
      */
-    public ColumnInfo( String name, Class contentClass, String description ) {
+    public ColumnInfo( String name, Class<?> contentClass,
+                       String description ) {
         this( new DefaultValueInfo( name, contentClass, description ) );
     }
 
@@ -121,7 +122,7 @@ public class ColumnInfo extends DefaultValueInfo {
      *          column if it exists and is an instance of <tt>clazz</tt> or
      *          one of its subtypes, otherwise <tt>null</tt>
      */
-    public Object getAuxDatumValue( ValueInfo vinfo, Class clazz ) {
+    public Object getAuxDatumValue( ValueInfo vinfo, Class<?> clazz ) {
         DescribedValue dval = getAuxDatum( vinfo );
         if ( dval != null ) {
             Object val = dval.getValue();
@@ -146,7 +147,7 @@ public class ColumnInfo extends DefaultValueInfo {
      *          instance of <tt>clazz</tt> or one of its subtypes, 
      *          otherwise <tt>null</tt>
      */
-    public Object getAuxDatumValueByName( String name, Class clazz ) {
+    public Object getAuxDatumValueByName( String name, Class<?> clazz ) {
         DescribedValue dval = getAuxDatumByName( name );
         if ( dval != null ) {
             Object val = dval.getValue();

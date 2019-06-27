@@ -78,7 +78,7 @@ import uk.ac.starlink.util.DataSource;
  */
 public class AsciiStarTable extends StreamStarTable {
 
-    private List comments_;
+    private List<String> comments_;
     private boolean dataStarted_;
 
     /**
@@ -104,10 +104,10 @@ public class AsciiStarTable extends StreamStarTable {
         /* Look at each row in it counting cells and assessing what sort of
          * data they look like. */
         RowEvaluator evaluator = new RowEvaluator();
-        comments_ = new ArrayList();
+        comments_ = new ArrayList<String>();
         long lrow = 0;
         try {
-            for ( List row; ( row = readRow( in ) ) != null; ) {
+            for ( List<String> row; ( row = readRow( in ) ) != null; ) {
                 lrow++;
                 evaluator.submitRow( row );
             }
@@ -149,8 +149,9 @@ public class AsciiStarTable extends StreamStarTable {
         /* Try to interpret the last remaining comment line as a set of
          * column headings. */
         if ( comments_.size() > 0 ) {
-            String hline = (String) comments_.get( comments_.size() - 1 );
-            List headings = readHeadings( new PushbackInputStream(
+            String hline = comments_.get( comments_.size() - 1 );
+            List<String> headings =
+                readHeadings( new PushbackInputStream(
                               new ByteArrayInputStream( hline.getBytes() ) ) );
 
             /* If this line looks like a set of headings (there are the
@@ -159,7 +160,7 @@ public class AsciiStarTable extends StreamStarTable {
             if ( headings.size() == ncol ) {
                 comments_.remove( comments_.size() - 1 );
                 for ( int i = 0; i < ncol; i++ ) {
-                    colInfos[ i ].setName( (String) headings.get( i ) );
+                    colInfos[ i ].setName( headings.get( i ) );
                 }
                 trimLines( comments_ );
             }
@@ -169,8 +170,8 @@ public class AsciiStarTable extends StreamStarTable {
          * them into a description parameter. */
         if ( comments_.size() > 0 ) {
             StringBuffer dbuf = new StringBuffer();
-            for ( Iterator it = comments_.iterator(); it.hasNext(); ) {
-                dbuf.append( (String) it.next() );
+            for ( Iterator<String> it = comments_.iterator(); it.hasNext(); ) {
+                dbuf.append( it.next() );
                 if ( it.hasNext() ) {
                     dbuf.append( '\n' );
                 }
@@ -191,8 +192,10 @@ public class AsciiStarTable extends StreamStarTable {
      * @return  list of Strings one for each cell in the row, or 
      *          <tt>null</tt> for end of stream
      */
-    protected List readRow( PushbackInputStream in ) throws IOException {
-        List cellList = new ArrayList();
+    @SuppressWarnings("fallthrough")
+    protected List<String> readRow( PushbackInputStream in )
+            throws IOException {
+        List<String> cellList = new ArrayList<String>();
         while ( cellList.size() == 0 ) {
             boolean startLine = true;
             for ( boolean endLine = false; ! endLine; ) {
@@ -354,8 +357,9 @@ public class AsciiStarTable extends StreamStarTable {
      *
      * @param  stream  the input stream
      */
-    private List readHeadings( PushbackInputStream stream ) throws IOException {
-        List headings = new ArrayList();
+    private List<String> readHeadings( PushbackInputStream stream )
+            throws IOException {
+        List<String> headings = new ArrayList<String>();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
             switch ( (char) c ) {
@@ -387,11 +391,12 @@ public class AsciiStarTable extends StreamStarTable {
      *
      * @param  lines  a List of String objects to trim
      */
-    private static void trimLines( List lines ) {
+    private static void trimLines( List<String> lines ) {
 
         /* Strip any blank lines from the top. */
-        for ( ListIterator it = lines.listIterator( 0 ); it.hasNext(); ) {
-            String line = (String) it.next();
+        for ( ListIterator<String> it = lines.listIterator( 0 );
+              it.hasNext(); ) {
+            String line = it.next();
             if ( line.trim().length() == 0 ) {
                 it.remove();
             }
@@ -401,9 +406,9 @@ public class AsciiStarTable extends StreamStarTable {
         }
 
         /* Strip any blank lines from the bottom. */
-        for ( ListIterator it = lines.listIterator( lines.size() );
+        for ( ListIterator<String> it = lines.listIterator( lines.size() );
               it.hasPrevious(); ) {
-            String line = (String) it.previous();
+            String line = it.previous();
             if ( line.trim().length() == 0 ) {
                 it.remove();
             }

@@ -79,11 +79,10 @@ public class CoinsTableBuilder implements TableBuilder {
             if ( in.read() != 0xff || in.read() != 0xfe ) {
                 throw new TableFormatException( "Unexpected/bad BOM" );
             }
-            String[] colNames =
-                (String[]) readRow( in ).toArray( new String[ 0 ] );
+            String[] colNames = readRow( in ).toArray( new String[ 0 ] );
     
             RowEvaluator evaluator = new RowEvaluator();
-            for ( List row; ( row = readRow( in ) ) != null; ) {
+            for ( List<String> row; ( row = readRow( in ) ) != null; ) {
                 evaluator.submitRow( row );
             }
             in.close();
@@ -101,8 +100,10 @@ public class CoinsTableBuilder implements TableBuilder {
             return new RowEvaluator.Metadata( colinfos, decoders, nrow );
         }
     
-        protected List readRow( PushbackInputStream in ) throws IOException {
-            List cellList = new ArrayList();
+        @SuppressWarnings("fallthrough")
+        protected List<String> readRow( PushbackInputStream in )
+                throws IOException {
+            List<String> cellList = new ArrayList<String>();
             StringBuffer buffer = new StringBuffer();
             for ( boolean endLine = false; ! endLine; ) {
                 int c1 = in.read();

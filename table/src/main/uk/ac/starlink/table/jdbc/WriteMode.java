@@ -110,6 +110,6 @@ public class WriteMode {
      * @return  write mode array
      */
     public static WriteMode[] getAllModes() {
-        return (WriteMode[]) ALL_MODES.clone();
+        return ALL_MODES.clone();
     }
 }

@@ -61,15 +61,15 @@ abstract class RowLinkTable extends WrapperStarTable {
      *
      * @param   iterator over RowLinks
      */
-    public abstract Iterator getLinkIterator() throws IOException;
+    public abstract Iterator<RowLink> getLinkIterator() throws IOException;
 
     public ColumnInfo getColumnInfo( int icol ) {
         if ( hasBlanks_ == null ) {
             boolean hasBlanks = false;
             try {
-                for ( Iterator it = getLinkIterator();
+                for ( Iterator<RowLink> it = getLinkIterator();
                       it.hasNext() && ! hasBlanks; ) {
-                    RowLink link = (RowLink) it.next();
+                    RowLink link = it.next();
                     if ( getBaseRowIndex( link ) < 0 ) {
                         hasBlanks = true;
                     }
@@ -142,7 +142,7 @@ abstract class RowLinkTable extends WrapperStarTable {
      * random access to the base table.
      */
     private class RandomLinkRowSequence implements RowSequence {
-        final Iterator linkIt_;
+        final Iterator<RowLink> linkIt_;
         RowLink link_;
 
         RandomLinkRowSequence() throws IOException {
@@ -151,7 +151,7 @@ abstract class RowLinkTable extends WrapperStarTable {
 
         public boolean next() {
             if ( linkIt_.hasNext() ) {
-                link_ = (RowLink) linkIt_.next();
+                link_ = linkIt_.next();
                 return true;
             }
             else {
@@ -179,7 +179,7 @@ abstract class RowLinkTable extends WrapperStarTable {
      * monotonically increasing row indices for the base table.
      */
     private class SequentialLinkRowSequence extends WrapperRowSequence {
-        final Iterator linkIt_;
+        final Iterator<RowLink> linkIt_;
         long irow_ = -1L;
 
         SequentialLinkRowSequence() throws IOException {
@@ -189,7 +189,7 @@ abstract class RowLinkTable extends WrapperStarTable {
 
         public boolean next() throws IOException {
             if ( linkIt_.hasNext() ) {
-                RowLink link = (RowLink) linkIt_.next();
+                RowLink link = linkIt_.next();
                 return advanceTo( getBaseRowIndex( link ) );
             }
             else {

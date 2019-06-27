@@ -196,7 +196,7 @@ public class Tables {
 
         /* Check the shape arrays look OK. */
         int[] nels = new int[ ncol ];
-        Class[] classes = new Class[ ncol ];
+        Class<?>[] classes = new Class<?>[ ncol ];
         ColumnInfo[] colinfos = new ColumnInfo[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo cinfo = table.getColumnInfo( icol );
@@ -332,10 +332,10 @@ public class Tables {
      * @return  table sequence containing input tables
      */
     public static TableSequence arrayTableSequence( StarTable[] tables ) {
-        final Iterator it = Arrays.asList( tables ).iterator();
+        final Iterator<StarTable> it = Arrays.asList( tables ).iterator();
         return new TableSequence() {
             public StarTable nextTable() {
-                return it.hasNext() ? (StarTable) it.next()
+                return it.hasNext() ? it.next()
                                     : null;
             }
         };
@@ -470,6 +470,7 @@ public class Tables {
      * @return   utype string, or null if none is available
      * @see   #setUtype
      */
+    @Deprecated
     public static String getUtype( ValueInfo info ) {
         return info.getUtype();
     }
@@ -482,6 +483,7 @@ public class Tables {
      * @param  utype  new utype value
      * @see   #getUtype
      */
+    @Deprecated
     public static void setUtype( ValueInfo info, String utype ) {
         if ( info instanceof DefaultValueInfo ) {
             ((DefaultValueInfo) info).setUtype( utype );
@@ -501,7 +503,7 @@ public class Tables {
     public static Object getValue( Collection<DescribedValue> dvals,
                                    ValueInfo info ) {
         String iname = info.getName();
-        Class iclazz = info.getContentClass();
+        Class<?> iclazz = info.getContentClass();
         if ( iname != null && iclazz != null ) {
             for ( DescribedValue dval : dvals ) {
                 ValueInfo dinfo = dval.getInfo();

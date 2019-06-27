@@ -16,8 +16,8 @@ import java.util.Arrays;
 public class NdRange {
 
     private final int ndim_;
-    private final Comparable[] mins_;
-    private final Comparable[] maxs_;
+    private final Comparable<?>[] mins_;
+    private final Comparable<?>[] maxs_;
     private final boolean isBounded_;
 
     /**
@@ -29,17 +29,17 @@ public class NdRange {
      * @param   mins   minimum bounds
      * @param   maxs   maximum bounds
      */
-    public NdRange( Comparable[] mins, Comparable[] maxs ) {
-        mins_ = (Comparable[]) mins.clone();
-        maxs_ = (Comparable[]) maxs.clone();
+    public NdRange( Comparable<?>[] mins, Comparable<?>[] maxs ) {
+        mins_ = mins.clone();
+        maxs_ = maxs.clone();
         ndim_ = mins.length;
         if ( ndim_ != maxs.length ) {
             throw new IllegalArgumentException( "Array length mismatch" );
         }
         boolean isBounded = false;
         for ( int i = 0; i < ndim_; i++ ) {
-            Comparable min = mins_[ i ];
-            Comparable max = maxs_[ i ];
+            Comparable<?> min = mins_[ i ];
+            Comparable<?> max = maxs_[ i ];
             boolean hasMin = min != null;
             boolean hasMax = max != null;
             isBounded = isBounded || hasMin || hasMax;
@@ -57,7 +57,7 @@ public class NdRange {
      * @param  ndim  dimensionality
      */
     public NdRange( int ndim ) {
-        this( new Comparable[ ndim ], new Comparable[ ndim ] );
+        this( new Comparable<?>[ ndim ], new Comparable<?>[ ndim ] );
         assert ! isBounded();
     }
 
@@ -76,7 +76,7 @@ public class NdRange {
      *
      * @return  <code>ndim</code>-element array of minima, some may be null
      */
-    public Comparable[] getMins() {
+    public Comparable<?>[] getMins() {
         return mins_.clone();
     }
 
@@ -86,7 +86,7 @@ public class NdRange {
      *
      * @return  <code>ndim</code>-element array of maxima, some may be null
      */
-    public Comparable[] getMaxs() {
+    public Comparable<?>[] getMaxs() {
         return maxs_.clone();
     }
 
@@ -104,12 +104,12 @@ public class NdRange {
         if ( isBounded_ ) {
             for ( int i = 0; i < ndim_; i++ ) {
                 if ( coords[ i ] instanceof Comparable ) {
-                    Comparable coord = (Comparable) coords[ i ];
-                    Comparable min = mins_[ i ];
+                    Comparable<?> coord = (Comparable<?>) coords[ i ];
+                    Comparable<?> min = mins_[ i ];
                     if ( min != null && compare( coord, min ) < 0 ) {
                         return false;
                     }
-                    Comparable max = maxs_[ i ];
+                    Comparable<?> max = maxs_[ i ];
                     if ( max != null && compare( coord, max ) > 0 ) {
                         return false;
                     }
@@ -178,8 +178,8 @@ public class NdRange {
         }
         else {
             int ndim = r1.ndim_;
-            Comparable[] mins = new Comparable[ ndim ];
-            Comparable[] maxs = new Comparable[ ndim ];
+            Comparable<?>[] mins = new Comparable<?>[ ndim ];
+            Comparable<?>[] maxs = new Comparable<?>[ ndim ];
             for ( int i = 0; i < ndim; i++ ) {
                 mins[ i ] = max( r1.mins_[ i ], r2.mins_[ i ], false );
                 maxs[ i ] = min( r1.maxs_[ i ], r2.maxs_[ i ], false );
@@ -207,8 +207,8 @@ public class NdRange {
         }
         else {
             int ndim = r1.ndim_;
-            Comparable[] mins = new Comparable[ ndim ];
-            Comparable[] maxs = new Comparable[ ndim ];
+            Comparable<?>[] mins = new Comparable<?>[ ndim ];
+            Comparable<?>[] maxs = new Comparable<?>[ ndim ];
             for ( int i = 0; i < ndim; i++ ) {
                 mins[ i ] = min( r1.mins_[ i ], r2.mins_[ i ], true );
                 maxs[ i ] = max( r1.maxs_[ i ], r2.maxs_[ i ], true );
@@ -227,8 +227,8 @@ public class NdRange {
      * @return  minimum
      * @throws  ClassCastException  if objects are not mutually comparable
      */
-    public static Comparable min( Comparable c1, Comparable c2,
-                                  boolean failNull ) {
+    public static Comparable<?> min( Comparable<?> c1, Comparable<?> c2,
+                                     boolean failNull ) {
         if ( c1 == null ) {
             return failNull ? null : c2;
         }
@@ -250,8 +250,8 @@ public class NdRange {
      * @return   maximum
      * @throws  ClassCastException  if objects are not mutually comparable
      */
-    public static Comparable max( Comparable c1, Comparable c2,
-                                  boolean failNull ) {
+    public static Comparable<?> max( Comparable<?> c1, Comparable<?> c2,
+                                     boolean failNull ) {
         if ( c1 == null ) {
             return failNull ? null : c2;
         }
@@ -275,6 +275,7 @@ public class NdRange {
      * @throws  ClassCastException  if <code>o1</code> and <code>o2</code>
      *                              are not mutually comparable
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static int compare( Comparable o1, Comparable o2 ) {
         try {
             return o1.compareTo( o2 );
@@ -296,7 +297,7 @@ public class NdRange {
      * @param   c  object
      * @return  string
      */
-    private static String formatObject( Comparable c ) {
+    private static String formatObject( Comparable<?> c ) {
         if ( c == null ) {
             return "null";
         }

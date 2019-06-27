@@ -8,7 +8,7 @@ import java.util.List;
  * It has a fixed number of columns and a variable number of rows;
  * rows can be added, removed and modified.
  * <p>
- * The current implementation stores the data List of Object[] arrays - 
+ * The current implementation stores the data in a List of Object[] arrays - 
  * each list element contains the cells of one row of the table.
  * Thus currently you can't store more than Integer.MAX_VALUE rows.
  * <p>
@@ -20,8 +20,8 @@ import java.util.List;
  */
 public class RowListStarTable extends RandomStarTable {
 
-    private final List rows;
-    private final ColumnInfo[] colInfos;
+    private final List<Object[]> rows_;
+    private final ColumnInfo[] colInfos_;
 
     /**
      * Constructs a new RowListStarTable specifying the columns that it
@@ -30,8 +30,8 @@ public class RowListStarTable extends RandomStarTable {
      * @param colInfos array of objects defining the columns of the table
      */
     public RowListStarTable( ColumnInfo[] colInfos ) {
-        this.rows = new ArrayList();
-        this.colInfos = (ColumnInfo[]) colInfos.clone();
+        rows_ = new ArrayList<Object[]>();
+        colInfos_ = colInfos.clone();
     }
 
     /**
@@ -44,19 +44,20 @@ public class RowListStarTable extends RandomStarTable {
     public RowListStarTable( StarTable template ) {
         this( Tables.getColumnInfos( template ) );
         setName( template.getName() );
-        setParameters( new ArrayList( template.getParameters() ) );
+        setParameters( new ArrayList<DescribedValue>( template
+                                                     .getParameters() ) );
     }
 
     public long getRowCount() {
-        return rows.size();
+        return rows_.size();
     }
 
     public int getColumnCount() {
-        return colInfos.length;
+        return colInfos_.length;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return colInfos[ icol ];
+        return colInfos_[ icol ];
     }
 
     public Object getCell( long lrow, int icol ) {
@@ -65,7 +66,7 @@ public class RowListStarTable extends RandomStarTable {
 
     public Object[] getRow( long lrow ) {
         int irow = checkedLongToInt( lrow );
-        return (Object[]) rows.get( irow );
+        return rows_.get( irow );
     }
 
     /**
@@ -98,7 +99,7 @@ public class RowListStarTable extends RandomStarTable {
     public void setRow( long lrow, Object[] values ) {
         validateRow( values );
         int irow = checkedLongToInt( lrow );
-        rows.set( irow, values );
+        rows_.set( irow, values );
     }
 
     /**
@@ -113,7 +114,7 @@ public class RowListStarTable extends RandomStarTable {
      */
     public void addRow( Object[] values ) {
         validateRow( values );
-        rows.add( values );
+        rows_.add( values );
     }
 
     /**
@@ -131,7 +132,7 @@ public class RowListStarTable extends RandomStarTable {
     public void insertRow( long lrow, Object[] values ) {
         validateRow( values );
         int irow = checkedLongToInt( lrow );
-        rows.add( irow, values );
+        rows_.add( irow, values );
     }
 
     /**
@@ -142,14 +143,14 @@ public class RowListStarTable extends RandomStarTable {
      */
     public void removeRow( long lrow ) {
         int irow = checkedLongToInt( lrow );
-        rows.remove( irow );
+        rows_.remove( irow );
     }
 
     /**
      * Removes all rows from the table.
      */
     public void clearRows() {
-        rows.clear();
+        rows_.clear();
     }
 
     /**
@@ -181,8 +182,8 @@ public class RowListStarTable extends RandomStarTable {
      */
     void validateCell( int icol, Object value ) {
         if ( value != null ) {
-            Class valClazz = value.getClass();
-            Class colClazz = colInfos[ icol ].getContentClass();
+            Class<?> valClazz = value.getClass();
+            Class<?> colClazz = colInfos_[ icol ].getContentClass();
             if ( ! colClazz.isAssignableFrom( valClazz ) ) {
                 throw new IllegalArgumentException(
                     "Value class incompatible with column: " +

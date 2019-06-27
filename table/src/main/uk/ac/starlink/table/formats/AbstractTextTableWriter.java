@@ -3,7 +3,6 @@ package uk.ac.starlink.table.formats;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
@@ -73,7 +72,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
         /* Fill a buffer with a sample of the rows.  This will be used to
          * work out field widths, prior to being written out as normal
          * row data. */
-        List sampleList = new ArrayList();
+        List<Object[]> sampleList = new ArrayList<Object[]>();
         boolean allRowsSampled = false;
         int maxSamples = getSampledRows();
         logger_.config( "Reading <=" + maxSamples 
@@ -103,8 +102,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
         }
 
         /* Go through the sample to determine field widths. */
-        for ( Iterator it = sampleList.iterator(); it.hasNext(); ) {
-            Object[] row = (Object[]) it.next();
+        for ( Object[] row : sampleList ) {
             for ( int i = 0; i < ncol; i++ ) {
                 String formatted = cinfos[ i ]
                                   .formatValue( row[ i ], maxDataWidths[ i ] );
@@ -153,8 +151,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
 
         /* Print sample rows. */
         String[] data = new String[ ncol ];
-        for ( Iterator it = sampleList.iterator(); it.hasNext(); ) {
-            Object[] row = (Object[]) it.next();
+        for ( Object[] row : sampleList ) {
             for ( int icol = 0; icol < ncol; icol++ ) {
                 data[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
                                             cwidths[ icol ] );
@@ -300,7 +297,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
      * @param   clazz  type of value
      */
     protected abstract void printParam( OutputStream strm, String name,
-                                        String value, Class clazz )
+                                        String value, Class<?> clazz )
             throws IOException;
 
     /**
@@ -324,7 +321,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
         return buf;
     }
 
-    private int getMaxDataWidth( Class clazz ) {
+    private int getMaxDataWidth( Class<?> clazz ) {
         if ( clazz == Double.class ) {
             return Math.max( Double.toString( - Double.MAX_VALUE ).length(),
                              Double.toString( - Double.MIN_VALUE ).length() );

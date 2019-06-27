@@ -87,7 +87,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
      */
     public static PrimitiveArrayColumn makePrimitiveColumn( ColumnInfo base,
                                                             Object data ) {
-        Class clazz = data.getClass();
+        Class<?> clazz = data.getClass();
         if ( clazz == boolean[].class ) {
             return new BooleanArrayColumn( base, (boolean[]) data );
         }
@@ -145,7 +145,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
         assert (long) nrow == rowCount;
 
         /* Get the base class. */
-        Class clazz = base.getContentClass();
+        Class<?> clazz = base.getContentClass();
 
         /* Bail out if there isn't one. */
         if ( clazz == null ) {

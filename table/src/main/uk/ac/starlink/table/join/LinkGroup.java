@@ -10,7 +10,7 @@ package uk.ac.starlink.table.join;
  * @since    7 Sep 2005
  * @see    MatchStarTables#findGroups
  */
-public class LinkGroup implements Comparable {
+public class LinkGroup implements Comparable<LinkGroup> {
 
     private final int id_;
     private final int size_;
@@ -59,8 +59,7 @@ public class LinkGroup implements Comparable {
         return size_ * 7777 + id_;
     }
 
-    public int compareTo( Object o ) {
-        LinkGroup other = (LinkGroup) o;
+    public int compareTo( LinkGroup other  ) {
         if ( this.id_ == other.id_ ) {
             if ( this.size_ == other.size_ ) {
                 return 0;

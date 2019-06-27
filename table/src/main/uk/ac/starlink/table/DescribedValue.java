@@ -55,7 +55,7 @@ public class DescribedValue {
      *          compatible with <tt>getValueInfo().getContentClass()</tt>
      */
     public void setValue( Object value ) {
-        Class cclass = vinfo.getContentClass();
+        Class<?> cclass = vinfo.getContentClass();
         if ( cclass == null ) {
             throw new IllegalArgumentException(
                 "ValueInfo " + vinfo + " has no contentClass set" );

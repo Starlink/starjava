@@ -1,7 +1,6 @@
 package uk.ac.starlink.table.join;
 
 import java.util.BitSet;
-import java.util.Iterator;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -209,8 +208,7 @@ public abstract class JoinType {
         }
         public LinkSet processLinks( LinkSet links, int[] rowCounts ) {
             BitSet matched = new BitSet();
-            for ( Iterator it = links.iterator(); it.hasNext(); ) {
-                RowLink link = (RowLink) it.next();
+            for ( RowLink link : links ) {
                 int nref = link.size();
                 long noRow = -1;
                 long yesRow = -1;
@@ -315,8 +313,7 @@ public abstract class JoinType {
      */
     private static BitSet getInclusion( LinkSet links, int iTable ) {
         BitSet present = new BitSet();
-        for ( Iterator it = links.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( RowLink link : links ) {
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );

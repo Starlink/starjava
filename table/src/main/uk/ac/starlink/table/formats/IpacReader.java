@@ -208,7 +208,7 @@ class IpacReader implements RowSequence {
      */
     private static String[] readHeaderLines( LineSequence lseq )
             throws IOException {
-        List lines = new ArrayList();
+        List<String> lines = new ArrayList<String>();
         boolean done = false;
         for ( String line; ! done && ( line = lseq.nextLine() ) != null; ) {
             if ( line.length() > 0 ) {
@@ -221,7 +221,7 @@ class IpacReader implements RowSequence {
                 }
             }
         }
-        return (String[]) lines.toArray( new String[ 0 ] );
+        return lines.toArray( new String[ 0 ] );
     }
 
     /**
@@ -383,7 +383,7 @@ class IpacReader implements RowSequence {
      * @param  value  parameter value
      */
     private static DescribedValue createParameter( String name, Object value ) {
-        Class clazz = value == null ? String.class : value.getClass();
+        Class<?> clazz = value == null ? String.class : value.getClass();
         return new DescribedValue( new DefaultValueInfo( name, clazz ), value );
     }
 

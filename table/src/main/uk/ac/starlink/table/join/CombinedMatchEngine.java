@@ -156,7 +156,7 @@ public class CombinedMatchEngine implements MatchEngine {
         Object[] bins = new Object[ nBin ];
         int[] offset = new int[ nPart ];
         for ( int ibin = 0; ibin < nBin; ibin++ ) {
-            List bin = new ArrayList( nPart );
+            List<Object> bin = new ArrayList<Object>( nPart );
             for ( int i = 0; i < nPart; i++ ) {
                 bin.add( binBag[ i ][ offset[ i ] ] );
             }
@@ -220,8 +220,8 @@ public class CombinedMatchEngine implements MatchEngine {
 
     public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
         int nr = inRanges.length;
-        Comparable[] outMins = inRanges[ index ].getMins().clone();
-        Comparable[] outMaxs = inRanges[ index ].getMaxs().clone();
+        Comparable<?>[] outMins = inRanges[ index ].getMins().clone();
+        Comparable<?>[] outMaxs = inRanges[ index ].getMaxs().clone();
         for ( int ip = 0; ip < nPart; ip++ ) {
             MatchEngine engine = engines[ ip ];
             if ( engine.canBoundMatch() ) {
@@ -229,8 +229,8 @@ public class CombinedMatchEngine implements MatchEngine {
                 int start = tupleStarts[ ip ];
                 NdRange[] subInRanges = new NdRange[ nr ];
                 for ( int ir = 0; ir < nr; ir++ ) {
-                    Comparable[] subInMins = new Comparable[ size ];
-                    Comparable[] subInMaxs = new Comparable[ size ];
+                    Comparable<?>[] subInMins = new Comparable<?>[ size ];
+                    Comparable<?>[] subInMaxs = new Comparable<?>[ size ];
                     System.arraycopy( inRanges[ ir ].getMins(), start,
                                       subInMins, 0, size );
                     System.arraycopy( inRanges[ ir ].getMaxs(), start,

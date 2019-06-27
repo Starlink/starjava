@@ -21,7 +21,7 @@ public class DefaultValueInfo implements ValueInfo {
     private String ucd = null;
     private String utype = null;
     private String description = "";
-    private Class contentClass = Object.class;
+    private Class<?> contentClass = Object.class;
     private DomainMapper[] domainMappers = new DomainMapper[ 0 ];
     private boolean isNullable = true;
     private int[] shape = new int[] { -1 };
@@ -55,7 +55,7 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  contentClass  the class of which described values should be
      *         instances
      */
-    public DefaultValueInfo( String name, Class contentClass ) {
+    public DefaultValueInfo( String name, Class<?> contentClass ) {
         this( name );
         setContentClass( contentClass );
     }
@@ -69,7 +69,7 @@ public class DefaultValueInfo implements ValueInfo {
      *         instances
      * @param  description  a textual description of the described values
      */
-    public DefaultValueInfo( String name, Class contentClass,
+    public DefaultValueInfo( String name, Class<?> contentClass,
                              String description ) {
         this( name );
         setContentClass( contentClass );
@@ -165,7 +165,7 @@ public class DefaultValueInfo implements ValueInfo {
         return description;
     }
 
-    public Class getContentClass() {
+    public Class<?> getContentClass() {
         return contentClass;
     }
 
@@ -175,7 +175,7 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  contentClass  the class of items in this column
      * @throws  IllegalArgumentException if <tt>contentClass</tt> is primitive
      */
-    public void setContentClass( Class contentClass ) {
+    public void setContentClass( Class<?> contentClass ) {
         if ( contentClass.isPrimitive() ) {
             throw new IllegalArgumentException( 
                 "Primitive content class " + contentClass + " not permitted" );
@@ -203,7 +203,7 @@ public class DefaultValueInfo implements ValueInfo {
     }
 
     public int[] getShape() {
-        return shape == null ? null : (int[]) shape.clone();
+        return shape == null ? null : shape.clone();
     }
 
     /**
@@ -327,9 +327,9 @@ public class DefaultValueInfo implements ValueInfo {
         }
 
         /* Set the classes to be consistent. */
-        Class c2 = vi2.getContentClass();
+        Class<?> c2 = vi2.getContentClass();
         vi.setContentClass( Object.class );
-        for ( Class c1 = vi1.getContentClass(); c1 != null;
+        for ( Class<?> c1 = vi1.getContentClass(); c1 != null;
               c1 = c1.getSuperclass() ) {
             if ( c1.isAssignableFrom( c2 ) ) {
                 vi.setContentClass( c1 );
@@ -478,7 +478,7 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  clazz  the class
      * @return  a string showing the class and shape of <tt>clazz</tt>
      */
-    public static String formatClass( Class clazz ) {
+    public static String formatClass( Class<?> clazz ) {
         String cname = clazz.getName();
         int pos = -1;
         int ndim = 0;
@@ -601,7 +601,7 @@ public class DefaultValueInfo implements ValueInfo {
         if ( rep == null || rep.length() == 0 ) {
             return null;
         }
-        Class clazz = getContentClass();
+        Class<?> clazz = getContentClass();
         if ( clazz == Boolean.class ) {
             return Boolean.valueOf( rep );
         }
@@ -688,7 +688,7 @@ public class DefaultValueInfo implements ValueInfo {
      * that value will be adjusted according to the number of elements.
      */
     private static int[] getActualShape( int[] basicShape, int nel ) {
-        int[] ashape = (int[]) basicShape.clone();
+        int[] ashape = basicShape.clone();
         int ndim = ashape.length;
         if ( ashape[ ndim - 1 ] <= 0 ) {
             int slice = 1;

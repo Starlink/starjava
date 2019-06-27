@@ -28,9 +28,9 @@ import java.util.Map;
  */
 public class BeanStarTable extends RandomStarTable {
 
-    private final Class beanClass_;
-    private final Map colInfos_;
-    private final Map props_;
+    private final Class<?> beanClass_;
+    private final Map<String,ColumnInfo> colInfos_;
+    private final Map<String,PropertyDescriptor> props_;
     private PropertyDescriptor[] colProps_;
     private Object[] data_;
 
@@ -44,16 +44,17 @@ public class BeanStarTable extends RandomStarTable {
      *
      * @param   clazz  class of which all beans held by this table are members
      */
-    public BeanStarTable( Class clazz ) throws IntrospectionException {
+    public BeanStarTable( Class<?> clazz ) throws IntrospectionException {
         if ( clazz.isPrimitive() ) {
             throw new IllegalArgumentException( "Can't do primitive class" );
         }
         beanClass_ = clazz;
         PropertyDescriptor[] props =
             Introspector.getBeanInfo( clazz ).getPropertyDescriptors();
-        List colPropList = new ArrayList();
-        colInfos_ = new HashMap();
-        props_ = new HashMap();
+        List<PropertyDescriptor> colPropList =
+            new ArrayList<PropertyDescriptor>();
+        colInfos_ = new HashMap<String,ColumnInfo>();
+        props_ = new HashMap<String,PropertyDescriptor>();
         for ( int i = 0; i < props.length; i++ ) {
             PropertyDescriptor prop = props[ i ];
             String progName = prop.getName();
@@ -69,8 +70,7 @@ public class BeanStarTable extends RandomStarTable {
                 colPropList.add( prop );
             }
         }
-        colProps_ = (PropertyDescriptor[])
-                    colPropList.toArray( new PropertyDescriptor[ 0 ] );
+        colProps_ = colPropList.toArray( new PropertyDescriptor[ 0 ] );
         data_ = (Object[]) Array.newInstance( clazz, 0 );
     }
 
@@ -111,7 +111,7 @@ public class BeanStarTable extends RandomStarTable {
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return (ColumnInfo) colInfos_.get( colProps_[ icol ].getName() );
+        return colInfos_.get( colProps_[ icol ].getName() );
     }
 
     /**
@@ -162,7 +162,7 @@ public class BeanStarTable extends RandomStarTable {
         for ( int i = 0; i < propNames.length; i++ ) {
             String name = propNames[ i ];
             if ( props_.containsKey( name ) ) {
-                props[ i ] = (PropertyDescriptor) props_.get( name );
+                props[ i ] = props_.get( name );
             }
             else {
                 throw new IllegalArgumentException( "No such property "
@@ -222,7 +222,7 @@ public class BeanStarTable extends RandomStarTable {
      * @return  whether to use <tt>prop<tt> as a column in this model
      */
     private static boolean useProperty( PropertyDescriptor prop ) {
-        Class pclazz = prop.getPropertyType();
+        Class<?> pclazz = prop.getPropertyType();
         return prop.getReadMethod() != null
             && ! prop.isHidden()
             && ( pclazz == String.class || pclazz.isPrimitive() );
@@ -231,7 +231,7 @@ public class BeanStarTable extends RandomStarTable {
     /**
      * Translates primitive to wrapper class.
      */
-    private static Class getObjectType( Class clazz ) {
+    private static Class<?> getObjectType( Class<?> clazz ) {
         if ( clazz.isPrimitive() ) {
             if ( clazz == boolean.class ) {
                 return Boolean.class;

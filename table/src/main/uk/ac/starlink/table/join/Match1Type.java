@@ -1,7 +1,6 @@
 package uk.ac.starlink.table.join;
 
 import java.util.BitSet;
-import java.util.Iterator;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
@@ -133,8 +132,7 @@ public abstract class Match1Type {
         int nrow = Tables.checkedLongToInt( inTable.getRowCount() );
         BitSet bits = new BitSet( nrow );
         bits.set( 0, nrow );
-        for ( Iterator it = rowLinks.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( RowLink link : rowLinks ) {
             int nref = link.size();
             for ( int i = retainCount; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );

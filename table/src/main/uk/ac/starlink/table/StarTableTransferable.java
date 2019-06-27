@@ -22,7 +22,7 @@ import java.util.ArrayList;
  */
 class StarTableTransferable implements Transferable {
 
-    private final List flavorList = new ArrayList();
+    private final List<DataFlavor> flavorList = new ArrayList<DataFlavor>();
     private final StarTable table;
     private final StarTableOutput outputter;
 
@@ -41,7 +41,7 @@ class StarTableTransferable implements Transferable {
     }
 
     public DataFlavor[] getTransferDataFlavors() {
-        return (DataFlavor[]) flavorList.toArray( new DataFlavor[ 0 ] );
+        return flavorList.toArray( new DataFlavor[ 0 ] );
     }
 
     public boolean isDataFlavorSupported( DataFlavor flavor ) {

@@ -202,12 +202,12 @@ public class EllipseToy extends JComponent {
                                          e2_.y_ + Math.max( e2_.a_, e2_.b_ ) ));
                 Point p1 = Double.isNaN( match.alpha1_ + match.delta1_ )
                          ? null
-                         : new Point( (int) alphaToX( match.alpha1_, qp ),
-                                      (int) deltaToY( match.delta1_, qp ) );
+                         : new Point( alphaToX( match.alpha1_, qp ),
+                                      deltaToY( match.delta1_, qp ) );
                 Point p2 = Double.isNaN( match.alpha2_ + match.delta2_ )
                          ? null
-                         : new Point( (int) alphaToX( match.alpha2_, qp ),
-                                      (int) deltaToY( match.delta2_, qp ) );
+                         : new Point( alphaToX( match.alpha2_, qp ),
+                                      deltaToY( match.delta2_, qp ) );
                 if ( p1 != null ) {
                     g2.drawLine( e1_.x_, e1_.y_, p1.x, p1.y );
                 }

@@ -137,6 +137,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      * @param   delta2  declination of point 2 in radians
      * @return  angular separation of point 1 and point 2 in radians
      */
+    @Deprecated
     private static double
             cosineSeparationFormula( double alpha1, double delta1,
                                      double alpha2, double delta2 ) {
@@ -190,8 +191,8 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      */
     static NdRange createExtendedSkyBounds( NdRange inRange, int ialpha,
                                             int idelta, double err ) {
-        Comparable[] minTuple = inRange.getMins();
-        Comparable[] maxTuple = inRange.getMaxs();
+        Comparable<?>[] minTuple = inRange.getMins();
+        Comparable<?>[] maxTuple = inRange.getMaxs();
 
         /* Get numeric values of sky coordinate input limits. */
         double alphaMinIn = getNumberValue( minTuple[ ialpha ] );
@@ -240,8 +241,8 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
 
         /* Finally insert the values as objects into appropriate output
          * Comparable arrays and return the result. */
-        Comparable[] minOuts = new Comparable[ minTuple.length ];
-        Comparable[] maxOuts = new Comparable[ maxTuple.length ];
+        Comparable<?>[] minOuts = new Comparable<?>[ minTuple.length ];
+        Comparable<?>[] maxOuts = new Comparable<?>[ maxTuple.length ];
         minOuts[ ialpha ] = toFloatingNumber( alphaMinOut, minTuple[ ialpha ] );
         minOuts[ idelta ] = toFloatingNumber( deltaMinOut, minTuple[ idelta ] );
         maxOuts[ ialpha ] = toFloatingNumber( alphaMaxOut, maxTuple[ ialpha ] );
@@ -272,8 +273,8 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      * @return  Float or Double object of same type as template and value
      *          as value, or null
      */
-    private static Comparable toFloatingNumber( double value,
-                                                Comparable template ) {
+    private static Comparable<?> toFloatingNumber( double value,
+                                                   Comparable<?> template ) {
         if ( Double.isNaN( value ) ) {
             return null;
         }

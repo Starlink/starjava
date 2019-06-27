@@ -111,8 +111,8 @@ import uk.ac.starlink.util.URLDataSource;
  */
 public class StarTableFactory {
 
-    private List defaultBuilders_;
-    private List knownBuilders_;
+    private List<TableBuilder> defaultBuilders_;
+    private List<TableBuilder> knownBuilders_;
     private JDBCHandler jdbcHandler_;
     private boolean requireRandom_;
     private StoragePolicy storagePolicy_;
@@ -164,14 +164,16 @@ public class StarTableFactory {
      */
     public StarTableFactory( boolean requireRandom ) {
         requireRandom_ = requireRandom;
-        defaultBuilders_ = new ArrayList();
+        defaultBuilders_ = new ArrayList<TableBuilder>();
 
         /* Attempt to add default handlers if they are available. */
         for ( int i = 0; i < defaultBuilderClasses.length; i++ ) {
             String className = defaultBuilderClasses[ i ];
             try {
-                Class clazz = this.getClass().forName( className );
-                TableBuilder builder = (TableBuilder) clazz.newInstance();
+                @SuppressWarnings("unchecked")
+                Class<? extends TableBuilder> clazz =
+                    (Class<? extends TableBuilder>) Class.forName( className );
+                TableBuilder builder = clazz.newInstance();
                 defaultBuilders_.add( builder );
                 logger.config( className + " registered" );
             }
@@ -185,12 +187,14 @@ public class StarTableFactory {
 
         /* Assemble list of all known builders - this includes the default
          * list plus perhaps some others. */
-        knownBuilders_ = new ArrayList( defaultBuilders_ );
+        knownBuilders_ = new ArrayList<TableBuilder>( defaultBuilders_ );
         for ( int i = 0; i < knownBuilderClasses.length; i++ ) {
             String className = knownBuilderClasses[ i ];
             try {
-                Class clazz = this.getClass().forName( className );
-                TableBuilder builder = (TableBuilder) clazz.newInstance();
+                @SuppressWarnings("unchecked")
+                Class<? extends TableBuilder> clazz =
+                    (Class<? extends TableBuilder>) Class.forName( className );
+                TableBuilder builder = clazz.newInstance();
                 knownBuilders_.add( builder );
                 logger.config( className + " registered as known" );
             }
@@ -215,8 +219,8 @@ public class StarTableFactory {
      */
     public StarTableFactory( StarTableFactory fact ) {
         this( fact.requireRandom() );
-        defaultBuilders_ = new ArrayList( fact.defaultBuilders_ );
-        knownBuilders_ = new ArrayList( fact.knownBuilders_ );
+        defaultBuilders_ = new ArrayList<TableBuilder>( fact.defaultBuilders_ );
+        knownBuilders_ = new ArrayList<TableBuilder>( fact.knownBuilders_ );
         jdbcHandler_ = fact.jdbcHandler_;
         storagePolicy_ = fact.storagePolicy_;
         tablePrep_ = fact.tablePrep_;
@@ -231,7 +235,7 @@ public class StarTableFactory {
      * @return  a mutable list of {@link TableBuilder} objects used to
      *          construct <tt>StarTable</tt>s
      */
-    public List getDefaultBuilders() {
+    public List<TableBuilder> getDefaultBuilders() {
         return defaultBuilders_;
     }
 
@@ -244,7 +248,8 @@ public class StarTableFactory {
      *         construct <tt>StarTable</tt>s
      */
     public void setDefaultBuilders( TableBuilder[] builders ) {
-        defaultBuilders_ = new ArrayList( Arrays.asList( builders ) );
+        defaultBuilders_ =
+            new ArrayList<TableBuilder>( Arrays.asList( builders ) );
     }
 
     /**
@@ -257,7 +262,7 @@ public class StarTableFactory {
      * @return  a mutable list of {@link TableBuilder} objects which may be 
      *          specified for table building
      */
-    public List getKnownBuilders() {
+    public List<TableBuilder> getKnownBuilders() {
         return knownBuilders_;
     }
 
@@ -271,7 +276,8 @@ public class StarTableFactory {
      *         construct <tt>StarTable</tt>s
      */
     public void setKnownBuilders( TableBuilder[] builders ) {
-        knownBuilders_ = new ArrayList( Arrays.asList( builders ) );
+        knownBuilders_ =
+            new ArrayList<TableBuilder>( Arrays.asList( builders ) );
     }
 
     /**
@@ -280,13 +286,10 @@ public class StarTableFactory {
      * 
      * @return   list of format name strings
      */
-    public List getKnownFormats() {
-        List formats = new ArrayList();
-        for ( Iterator it = getKnownBuilders().iterator(); it.hasNext(); ) {
-            Object b = it.next();
-            if ( b instanceof TableBuilder ) {
-                formats.add( ((TableBuilder) b).getFormatName() );
-            }
+    public List<String> getKnownFormats() {
+        List<String> formats = new ArrayList<String>();
+        for ( TableBuilder b : getKnownBuilders() ) {
+            formats.add( b.getFormatName() );
         }
         return formats;
     }
@@ -395,8 +398,7 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        for ( Iterator it = defaultBuilders_.iterator(); it.hasNext(); ) {
-            TableBuilder builder = (TableBuilder) it.next();
+        for ( TableBuilder builder : defaultBuilders_ ) {
             try {
                 StarTable startab = 
                     builder.makeStarTable( datsrc, requireRandom(),
@@ -419,12 +421,12 @@ public class StarTableFactory {
         msg.append( "Can't make StarTable from \"" )
            .append( datsrc.getName() )
            .append( "\"" );
-        Iterator it = defaultBuilders_.iterator();
+        Iterator<TableBuilder> it = defaultBuilders_.iterator();
         if ( it.hasNext() ) {
             msg.append( " (tried" );
             while ( it.hasNext() ) {
                 msg.append( " " )
-                   .append( ((TableBuilder) it.next()).getFormatName() );
+                   .append( it.next().getFormatName() );
                 if ( it.hasNext() ) {
                     msg.append( ',' );
                 }
@@ -451,8 +453,7 @@ public class StarTableFactory {
      */
     public TableSequence makeStarTables( DataSource datsrc ) 
             throws TableFormatException, IOException {
-        for ( Iterator it = defaultBuilders_.iterator(); it.hasNext(); ) {
-            TableBuilder builder = (TableBuilder) it.next();
+        for ( TableBuilder builder : defaultBuilders_ ) {
             try {
                 if ( builder instanceof MultiTableBuilder ) {
                     MultiTableBuilder mbuilder = (MultiTableBuilder) builder;
@@ -485,12 +486,12 @@ public class StarTableFactory {
         msg.append( "Can't make StarTables from \"" )
            .append( datsrc.getName() )
            .append( "\"" );
-        Iterator it = defaultBuilders_.iterator();
+        Iterator<TableBuilder> it = defaultBuilders_.iterator();
         if ( it.hasNext() ) {
             msg.append( " (tried" );
             while ( it.hasNext() ) {
                 msg.append( " " )
-                   .append( ((TableBuilder) it.next()).getFormatName() );
+                   .append( it.next().getFormatName() );
                 if ( it.hasNext() ) {
                     msg.append( ',' );
                 }
@@ -542,6 +543,7 @@ public class StarTableFactory {
      *         constructing a table
      * @deprecated  Use <code>makeStarTable(new URLDataSource(url))</code>
      */
+    @Deprecated
     public StarTable makeStarTable( URL url ) throws IOException {
         return makeStarTable( new URLDataSource( url ) );
     }
@@ -767,6 +769,7 @@ public class StarTableFactory {
      * @deprecated  Use 
      *         <code>makeStarTable(new URLDataSource(url),handler)</code>
      */
+    @Deprecated
     public StarTable makeStarTable( URL url, String handler )
             throws TableFormatException, IOException {
         return makeStarTable( new URLDataSource( url ), handler );
@@ -831,7 +834,7 @@ public class StarTableFactory {
         for ( int i = 0; i < flavors.length; i++ ) {
             final DataFlavor flavor = flavors[ i ];
             String mimeType = flavor.getMimeType();
-            Class clazz = flavor.getRepresentationClass();
+            Class<?> clazz = flavor.getRepresentationClass();
 
             /* If it represents a URL, get the URL and offer it to the
              * URL factory method. */
@@ -856,20 +859,23 @@ public class StarTableFactory {
              * take it. */
             if ( InputStream.class.isAssignableFrom( clazz ) && 
                  ! flavor.isFlavorSerializedObjectType() ) {
-                for ( Iterator it = defaultBuilders_.iterator(); 
-                      it.hasNext(); ) {
-                    TableBuilder builder = (TableBuilder) it.next();
+                for ( TableBuilder builder : defaultBuilders_ ) {
                     if ( builder.canImport( flavor ) ) {
-                        InputStream in;
+                        Object data;
                         try {
-                            in = (InputStream) trans.getTransferData( flavor );
+                            data = trans.getTransferData( flavor );
                         }
                         catch ( UnsupportedFlavorException e ) {
                             throw new RuntimeException(
                                 "DataFlavor " + flavor + 
                                 " support withdrawn?" );
                         }
-                        return makeStarTable( in, builder );
+                        if ( data instanceof InputStream ) {
+                            return makeStarTable( (InputStream) data, builder );
+                        }
+                        else {
+                            throw new RuntimeException( "Flavour lies?" );
+                        }
                     }
                 }
             }
@@ -896,14 +902,12 @@ public class StarTableFactory {
         for ( int i = 0; i < flavors.length; i++ ) {
             DataFlavor flavor = flavors[ i ];
             String mimeType = flavor.getMimeType();
-            Class clazz = flavor.getRepresentationClass();
+            Class<?> clazz = flavor.getRepresentationClass();
             if ( clazz.equals( URL.class ) ) {
                 return true;
             }
             else {
-                for ( Iterator it = defaultBuilders_.iterator();
-                      it.hasNext(); ) {
-                    TableBuilder builder = (TableBuilder) it.next();
+                for ( TableBuilder builder : defaultBuilders_ ) {
                     if ( builder.canImport( flavor ) ) {
                         return true;
                     }
@@ -954,9 +958,7 @@ public class StarTableFactory {
         }
 
         /* Try all the known handlers, matching against format name. */
-        List builders = new ArrayList( knownBuilders_ );
-        for ( Iterator it = builders.iterator(); it.hasNext(); ) {
-            TableBuilder builder = (TableBuilder) it.next();
+        for ( TableBuilder builder : knownBuilders_ ) {
             if ( builder.getFormatName().equalsIgnoreCase( name ) ) {
                 return builder;
             }
@@ -964,7 +966,7 @@ public class StarTableFactory {
 
         /* See if it's a classname */
         try {
-            Class clazz = this.getClass().forName( name );
+            Class<?> clazz = Class.forName( name );
             if ( TableBuilder.class.isAssignableFrom( clazz ) ) {
                 return (TableBuilder) clazz.newInstance();
             }

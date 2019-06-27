@@ -24,6 +24,7 @@ import uk.ac.starlink.table.StarTableFactory;
  * @author   Mark Taylor
  * @since    13 Sept 2010
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class AbstractTableLoadDialog implements TableLoadDialog {
 
     private final String name_;
@@ -143,8 +144,7 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
         /* Set formats. */
         FormatComboBoxModel fcm = formatSelectorModel_;
         fcm.fireAllRemoved();
-        formats_ =
-            (String[]) tfact.getKnownFormats().toArray( new String[ 0 ] );
+        formats_ = tfact.getKnownFormats().toArray( new String[ 0 ] );
         fcm.fireAllAdded();
         if ( fcm.getSelectedItem() == null && fcm.getSize() > 0 ) {
             fcm.setSelectedItem( fcm.getElementAt( 0 ) );

@@ -66,7 +66,7 @@ public class StarTableColumn extends TableColumn {
      * @return   cell renderer
      */
     public static TableCellRenderer createCellRenderer( ValueInfo info ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         if ( Number.class.isAssignableFrom( clazz ) ) {
             return new NumericCellRenderer( clazz );
         }

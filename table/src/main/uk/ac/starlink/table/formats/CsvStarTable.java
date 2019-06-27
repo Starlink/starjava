@@ -66,14 +66,14 @@ public class CsvStarTable extends StreamStarTable {
         /* Read and store the first column.  It could be a special header
          * row, or it could be just data. */
         long lrow = 0;
-        String[] row0 = (String[]) readRow( in ).toArray( new String[ 0 ] );
+        String[] row0 = readRow( in ).toArray( new String[ 0 ] );
         lrow++;
 
         /* Look at each subsequent row assessing what sort of data they
          * look like. */
         RowEvaluator evaluator = new RowEvaluator();
         try {
-            for ( List row; ( row = readRow( in ) ) != null; ) {
+            for ( List<String> row; ( row = readRow( in ) ) != null; ) {
                 evaluator.submitRow( row );
                 lrow++;
             }
@@ -147,8 +147,10 @@ public class CsvStarTable extends StreamStarTable {
      * @return  list of Strings one for each cell in the row, or
      *          <tt>null</tt> for end of stream
      */
-    protected List readRow( PushbackInputStream in ) throws IOException {
-        List cellList = new ArrayList();
+    @SuppressWarnings("fallthrough")
+    protected List<String> readRow( PushbackInputStream in )
+            throws IOException {
+        List<String> cellList = new ArrayList<String>();
         StringBuffer buffer = new StringBuffer();
         boolean discard = false;
         boolean endFile = false;

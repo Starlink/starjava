@@ -1,7 +1,6 @@
 package uk.ac.starlink.table;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,7 +22,8 @@ public abstract class JoinFixAction {
     /** Action which causes names to be left alone. */
     public static final JoinFixAction NO_ACTION =
         new JoinFixAction( "No Action" ) {
-            public String getFixedName( String orig, Collection others ) {
+            public String getFixedName( String orig,
+                                        Collection<String> others ) {
                 return orig;
             }
         };
@@ -47,7 +47,7 @@ public abstract class JoinFixAction {
      * @return output name - may or may not be the same as <code>origName</code>
      */
     public abstract String getFixedName( String origName,
-                                         Collection otherNames );
+                                         Collection<String> otherNames );
 
     /**
      * Returns this action's name.
@@ -67,16 +67,15 @@ public abstract class JoinFixAction {
      * @return  true iff <code>name</code> matches any of the entries in
      *          <code>others</code>
      */
-    public static boolean isDuplicate( String name, Collection others,
+    public static boolean isDuplicate( String name, Collection<String> others,
                                        boolean caseSensitive ) {
         if ( caseSensitive ) {
             return others.contains( name );
         }
         else {
             name = String.valueOf( name ).toLowerCase();
-            for ( Iterator it = others.iterator(); it.hasNext(); ) {
-                if ( String.valueOf( it.next() ).toLowerCase()
-                                                .equals( name ) ) {
+            for ( String other : others ) {
+                if ( String.valueOf( other ).toLowerCase().equals( name ) ) {
                     return true;
                 }
             }
@@ -95,7 +94,7 @@ public abstract class JoinFixAction {
      * @return  name similar to <code>name</code> but not matching
      *          <code>others</code>
      */
-    public static String ensureUnique( String name, Collection others,
+    public static String ensureUnique( String name, Collection<String> others,
                                        boolean caseSensitive ) {
         if ( ! isDuplicate( name, others, caseSensitive ) ) {
             return name;
@@ -166,7 +165,8 @@ public abstract class JoinFixAction {
                                                final boolean caseSensitive,
                                                final boolean ensureUnique ) {
         return new JoinFixAction( "Fix Duplicates: " + appendage ) {
-            public String getFixedName( String orig, Collection others ) {
+            public String getFixedName( String orig,
+                                        Collection<String> others ) {
                 if ( isDuplicate( orig, others, caseSensitive ) ) {
                     String name = orig + appendage;
                     return ensureUnique
@@ -208,7 +208,8 @@ public abstract class JoinFixAction {
                                               final boolean caseSensitive,
                                               final boolean ensureUnique ) {
         return new JoinFixAction( "Rename All: " + appendage ) {
-            public String getFixedName( String orig, Collection others ) {
+            public String getFixedName( String orig,
+                                        Collection<String> others ) {
                 String name = orig + appendage;
                 return ensureUnique
                      ? ensureUnique( name, others, caseSensitive )
@@ -236,7 +237,8 @@ public abstract class JoinFixAction {
         final Pattern regex =
             Pattern.compile( "(.*)\\Q" + delim + "\\E([0-9]+)" );
         return new JoinFixAction( name ) {
-            public String getFixedName( String orig, Collection others ) {
+            public String getFixedName( String orig,
+                                        Collection<String> others ) {
                 if ( ! isDuplicate( orig, others, caseSensitive ) ) {
                     return orig;
                 }
@@ -244,9 +246,8 @@ public abstract class JoinFixAction {
                 String origStrip = oMatch.matches() ? oMatch.group( 1 )
                                                     : orig;
                 long maxNum = 0;
-                for ( Iterator it = others.iterator(); it.hasNext(); ) {
-                    String other = String.valueOf( it.next() );
-                    Matcher matcher = regex.matcher( other );
+                for ( String other : others ) {
+                    Matcher matcher = regex.matcher( String.valueOf( other ) );
                     if ( matcher.matches() ) {
                         String strip = matcher.group( 1 );
                         boolean same = caseSensitive

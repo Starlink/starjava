@@ -46,6 +46,7 @@ public class SystemTableSaveDialog implements TableSaveDialog {
         return true;
     }
 
+    @SuppressWarnings("rawtypes")
     public boolean showSaveDialog( Component parent, final StarTableOutput sto,
                                    ComboBoxModel formatModel,
                                    StarTable[] tables ) {

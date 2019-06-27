@@ -65,7 +65,7 @@ abstract class Codec {
      * @return  codec for the job
      */
     public static Codec getCodec( ValueInfo info ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         if ( clazz == Byte.class ) {
             return new FlaggedCodec( new ByteCodec() );
         }

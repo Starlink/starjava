@@ -128,7 +128,7 @@ public class StarTableModel extends AbstractTableModel {
         }
     }
 
-    public Class getColumnClass( int icol ) {
+    public Class<?> getColumnClass( int icol ) {
         if ( rowHeader && icol == 0 ) {
             return Integer.class;
         }

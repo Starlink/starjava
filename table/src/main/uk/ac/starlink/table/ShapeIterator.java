@@ -45,7 +45,7 @@ public class ShapeIterator implements Iterator<int[]> {
     }
 
     public int[] next() { 
-        int[] next = (int[]) pos_.clone();
+        int[] next = pos_.clone();
         for ( int j = 0; j < ndim_; j++ ) {
             if ( ++pos_[ j ] < shape_[ j ] ) {
                     return next;         

@@ -31,8 +31,8 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class StarJTable extends JTable {
 
-    private boolean rowHeader;
-    private StarTable startable;
+    private boolean rowHeader_;
+    private StarTable startable_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.gui" );
@@ -51,7 +51,7 @@ public class StarJTable extends JTable {
      */
     public StarJTable( boolean rowHeader ) {
         super();
-        this.rowHeader = rowHeader;
+        rowHeader_ = rowHeader;
     }
 
     /**
@@ -77,7 +77,7 @@ public class StarJTable extends JTable {
      * @return  <tt>true</tt> iff column 0 displays row index
      */
     public boolean hasRowHeader() {
-        return rowHeader;
+        return rowHeader_;
     }
 
     /**
@@ -96,14 +96,14 @@ public class StarJTable extends JTable {
      */
     public void setStarTable( StarTable startable, boolean rowHeader ) {
         setModel( new StarTableModel( startable, rowHeader ) );
-        this.startable = startable;
+        startable_ = startable;
 
         /* Set up the column and column model. */
         TableColumnModel tcm = new DefaultTableColumnModel();
         int jcol = 0;
 
         /* Construct a dummy column for the index entries if required. */
-        if ( rowHeader ) {
+        if ( rowHeader_ ) {
             ColumnInfo rhColInfo = new ColumnInfo( new DefaultValueInfo(
                 "Index", Integer.class, "Row index" ) );
             TableColumn rhcol = new StarTableColumn( rhColInfo, jcol++ );
@@ -129,7 +129,7 @@ public class StarJTable extends JTable {
      */
     public StarTable getStarTable()
     {
-        return startable;
+        return startable_;
     }
 
     /**
@@ -145,7 +145,7 @@ public class StarJTable extends JTable {
      */
     public void configureColumnWidths( int maxpix, int nrows ) {
         configureColumnWidths( this, maxpix, nrows );
-        if ( rowHeader ) {
+        if ( rowHeader_ ) {
             int hwidth = Math.max( getCellWidth( this, 0, 0 ),
                                    getCellWidth( this, getRowCount() - 1, 0 ) )
                        + 8;
@@ -180,10 +180,11 @@ public class StarJTable extends JTable {
 
         /* Take a sample of rows to see if the cells in each one are going
          * to require more width. */
-        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample,
-                                            MAX_CONFIG_TIME );
+        for ( Iterator<Integer> it =
+                  sampleIterator( table.getRowCount(), rowSample,
+                                  MAX_CONFIG_TIME );
               it.hasNext(); ) {
-            int irow = ((Integer) it.next()).intValue();
+            int irow = it.next().intValue();
             for ( int icol = 0; icol < ncol; icol++ ) {
                 if ( widths[ icol ] < maxpix ) {
                     int w = getCellWidth( table, irow, icol );
@@ -249,10 +250,11 @@ public class StarJTable extends JTable {
         int width = getHeaderWidth( table, icol );
 
         /* Go through a sample of to see if any of them need more width. */
-        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample,
-                                            MAX_CONFIG_TIME );
+        for ( Iterator<Integer> it =
+                  sampleIterator( table.getRowCount(), rowSample,
+                                  MAX_CONFIG_TIME );
               it.hasNext(); ) {
-            int irow = ((Integer) it.next()).intValue();
+            int irow = it.next().intValue();
             int w = getCellWidth( table, irow, icol );
             width = Math.max( w, width );
         }
@@ -336,16 +338,16 @@ public class StarJTable extends JTable {
      * @return  iterator over <tt>Integer</tt> objects each representing 
      *          a table row index 
      */
-    private static Iterator sampleIterator( final int nrow,
-                                            final int nsample,
-                                            final long maxTime ) {
+    private static Iterator<Integer> sampleIterator( final int nrow,
+                                                     final int nsample,
+                                                     final long maxTime ) {
         if ( nsample >= nrow ) {
-            return new Iterator() {
+            return new Iterator<Integer>() {
                 int irow = 0;
                 public boolean hasNext() {
                     return irow < nrow;
                 }
-                public Object next() {
+                public Integer next() {
                     return new Integer( irow++ );
                 }
                 public void remove() {
@@ -354,7 +356,7 @@ public class StarJTable extends JTable {
             };
         }
         else {
-            return new Iterator() {
+            return new Iterator<Integer>() {
                 final int NS4 = nsample / 4;
                 final int NS2 = nsample / 2;
                 final int NR4 = nrow / 4;
@@ -365,7 +367,7 @@ public class StarJTable extends JTable {
                 public boolean hasNext() {
                     return next_ >= 0;
                 }
-                public Object next() {
+                public Integer next() {
                     if ( next_ >= 0 ) {
                         Integer nobj = new Integer( next_ );
                         next_ = nextInt();
@@ -402,13 +404,4 @@ public class StarJTable extends JTable {
             };
         }
     }
-
- // public static void main( String[] args ) {
- //     int nrow = Integer.parseInt( args[ 0 ] );
- //     int nsamp = Integer.parseInt( args[ 1 ] );
- //     for ( Iterator it = sampleIterator( nrow, nsamp ); it.hasNext(); ) {
- //         System.out.println( (Integer) it.next() );
- //     }
- // }
-
 }

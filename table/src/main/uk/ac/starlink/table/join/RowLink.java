@@ -19,7 +19,7 @@ import java.util.Collection;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class RowLink implements Comparable {
+public class RowLink implements Comparable<RowLink> {
 
     private final RowRef[] rowRefs;
     private Integer hashCode;
@@ -31,8 +31,8 @@ public class RowLink implements Comparable {
      *
      * @param  rows  collection of <tt>RowRef</tt> objects
      */
-    public RowLink( Collection rows ) {
-        this( (RowRef[]) rows.toArray( new RowRef[ 0 ] ) );
+    public RowLink( Collection<RowRef> rows ) {
+        this( rows.toArray( new RowRef[ 0 ] ) );
     }
 
     /**
@@ -41,7 +41,7 @@ public class RowLink implements Comparable {
      * @param  rows  array of row references
      */
     public RowLink( RowRef[] rows ) {
-        this.rowRefs = (RowRef[]) rows.clone();
+        this.rowRefs = rows.clone();
         Arrays.sort( rowRefs );
     }
 
@@ -118,8 +118,7 @@ public class RowLink implements Comparable {
      * Comparison order compares first table (if present in both objects)
      * first, etc.
      */
-    public int compareTo( Object o ) {
-        RowLink other = (RowLink) o;
+    public int compareTo( RowLink other ) {
         int nTable = 
             Math.max( other.getRef( other.size() - 1 ).getTableIndex() + 1,
                       this.getRef( this.size() - 1 ).getTableIndex() + 1 );

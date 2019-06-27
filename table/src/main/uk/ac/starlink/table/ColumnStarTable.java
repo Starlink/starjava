@@ -21,7 +21,7 @@ import java.util.List;
  */
 public abstract class ColumnStarTable extends RandomStarTable {
 
-    public List columns = new ArrayList();
+    public List<ColumnData> columns_ = new ArrayList<ColumnData>();
 
     /**
      * Default constructor.
@@ -39,7 +39,8 @@ public abstract class ColumnStarTable extends RandomStarTable {
      */
     public ColumnStarTable( StarTable template ) {
         setName( template.getName() );
-        setParameters( new ArrayList( template.getParameters() ) );
+        setParameters( new ArrayList<DescribedValue>( template
+                                                     .getParameters() ) );
     }
 
     /**
@@ -52,7 +53,7 @@ public abstract class ColumnStarTable extends RandomStarTable {
     public abstract long getRowCount();
 
     public int getColumnCount() {
-        return columns.size();
+        return columns_.size();
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
@@ -92,7 +93,7 @@ public abstract class ColumnStarTable extends RandomStarTable {
      * @return the ColumnData for column <tt>icol</tt>
      */
     public ColumnData getColumnData( int icol ) {
-        return (ColumnData) columns.get( icol );
+        return columns_.get( icol );
     }
 
     /**
@@ -101,7 +102,7 @@ public abstract class ColumnStarTable extends RandomStarTable {
      * @param  coldata the new column object to add
      */
     public void addColumn( ColumnData coldata ) {
-        columns.add( coldata );
+        columns_.add( coldata );
     }
 
     /**
@@ -112,7 +113,7 @@ public abstract class ColumnStarTable extends RandomStarTable {
      * @param  coldata  the new column data object
      */
     public void setColumn( int icol, ColumnData coldata ) {
-        columns.set( icol, coldata );
+        columns_.set( icol, coldata );
     }
 
     /**

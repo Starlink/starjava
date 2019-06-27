@@ -19,7 +19,7 @@ import java.util.Iterator;
  * @author   Mark Taylor
  * @since    7 Sep 2005
  */
-public interface LinkSet {
+public interface LinkSet extends Iterable<RowLink> {
 
     /**
      * Adds a new link to this set.  If the set has any existing entries
@@ -52,7 +52,7 @@ public interface LinkSet {
      * @return  iterator, which should have a working <code>remove()</code>
      *          method
      */
-    public Iterator iterator();
+    public Iterator<RowLink> iterator();
 
     /**
      * Returns the number of items in this set.

@@ -47,7 +47,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     private boolean likeHeading;
     private String badText;
     private Object badValue = new Object();
-    private Class clazz;
+    private Class<?> clazz;
     private Font font;
 
     private static JTable dummyTable;
@@ -59,7 +59,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
      *
      * @param  clazz  the type of object it will expect to render on the whole
      */
-    public NumericCellRenderer( Class clazz ) {
+    public NumericCellRenderer( Class<?> clazz ) {
         this.clazz = clazz;
 
         /* Set the font. */

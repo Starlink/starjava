@@ -23,18 +23,23 @@ import javax.swing.JTextField;
  */
 public class LabelledComponentStack extends JPanel {
 
-    private Font inputFont = new JTextField().getFont();
-    private GridBagLayout layer = new GridBagLayout();
-    private GridBagConstraints cons = new GridBagConstraints();
-    private List labels = new ArrayList();
-    private List fields = new ArrayList();
+    private final Font inputFont_;
+    private final GridBagLayout layer_;
+    private final GridBagConstraints cons_;
+    private final List<JLabel> labels_;
+    private final List<Component> fields_;
 
     /**
      * Constructs a new stack of input fields.
      */
     public LabelledComponentStack() {
-        setLayout( layer );
-        cons.gridy = 0;
+        inputFont_ = new JTextField().getFont();
+        layer_ = new GridBagLayout();
+        cons_ = new GridBagConstraints();
+        labels_ = new ArrayList<JLabel>();
+        fields_ = new ArrayList<Component>();
+        setLayout( layer_ );
+        cons_.gridy = 0;
     }
 
     /**
@@ -66,51 +71,51 @@ public class LabelledComponentStack extends JPanel {
                          boolean xfill ) {
 
         /* Add some vertical padding except for the first added line. */
-        if ( cons.gridy > 0 ) {
-            cons.gridx = 0;
+        if ( cons_.gridy > 0 ) {
+            cons_.gridx = 0;
             Component strut = Box.createVerticalStrut( 4 );
-            layer.setConstraints( strut, cons );
+            layer_.setConstraints( strut, cons_ );
             add( strut );
-            cons.gridy++;
+            cons_.gridy++;
         }
 
         /* Add the name. */
-        Component nameComp = new JLabel( name + ":  " );
-        GridBagConstraints cons1 = (GridBagConstraints) cons.clone();
+        JLabel nameComp = new JLabel( name + ":  " );
+        GridBagConstraints cons1 = (GridBagConstraints) cons_.clone();
         cons1.gridx = 0;
         cons1.anchor = GridBagConstraints.EAST;
-        layer.setConstraints( nameComp, cons1 );
+        layer_.setConstraints( nameComp, cons1 );
         add( nameComp );
 
         /* Add the padding string, if there is one. */
         Component padComp = null;
         if ( pad != null ) {
-           GridBagConstraints cons2 = (GridBagConstraints) cons.clone();
+           GridBagConstraints cons2 = (GridBagConstraints) cons_.clone();
            padComp = new JLabel( pad + "  " );
-           padComp.setFont( inputFont );
+           padComp.setFont( inputFont_ );
            cons2.gridx = 1;
            cons2.anchor = GridBagConstraints.EAST;
-           layer.setConstraints( padComp, cons2 );
+           layer_.setConstraints( padComp, cons2 );
            add( padComp );
         }
 
         /* Add the query component. */
-        GridBagConstraints cons3 = (GridBagConstraints) cons.clone();
+        GridBagConstraints cons3 = (GridBagConstraints) cons_.clone();
         cons3.gridx = 2;
         cons3.anchor = GridBagConstraints.WEST;
         cons3.weightx = 1.0;
         cons3.fill = xfill ? GridBagConstraints.HORIZONTAL
                            : GridBagConstraints.NONE;
         cons3.gridwidth = GridBagConstraints.REMAINDER;
-        layer.setConstraints( comp, cons3 );
+        layer_.setConstraints( comp, cons3 );
         add( comp );
         
         /* Bump line index. */
-        cons.gridy++;
+        cons_.gridy++;
 
         /* Record the components placed. */
-        labels.add( nameComp );
-        fields.add( comp );
+        labels_.add( nameComp );
+        fields_.add( comp );
     }
    
     /**
@@ -137,7 +142,7 @@ public class LabelledComponentStack extends JPanel {
      * @return font
      */
     public Font getInputFont() {
-        return inputFont;
+        return inputFont_;
     }
 
     /**
@@ -147,7 +152,7 @@ public class LabelledComponentStack extends JPanel {
      * @return  an array of JLabels, one for each line
      */
     public JLabel[] getLabels() {
-        return (JLabel[]) labels.toArray( new JLabel[ 0 ] );
+        return labels_.toArray( new JLabel[ 0 ] );
     }
 
     /**
@@ -158,7 +163,7 @@ public class LabelledComponentStack extends JPanel {
      * @return   an array of field components, one for each line
      */
     public Component[] getFields() {
-        return (Component[]) fields.toArray( new Component[ 0 ] );
+        return fields_.toArray( new Component[ 0 ] );
     }
 
 }

@@ -16,13 +16,13 @@ import java.util.NoSuchElementException;
  */
 public class QueueTableSequence implements TableSequence {
 
-    private final List queue_;
+    private final List<Object> queue_;
 
     /**
      * Constructor.
      */
     public QueueTableSequence() {
-        queue_ = new LinkedList();
+        queue_ = new LinkedList<Object>();
     }
 
     /**

@@ -37,24 +37,24 @@ import java.util.regex.Pattern;
  * @see   <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
  *        Content Descriptors</a>
  */
-public class UCD implements Comparable {
+public class UCD implements Comparable<UCD> {
 
-    private static Map ucdMap;
-    private static List ucdList;
+    private static Map<String,UCD> ucdMap;
+    private static List<UCD> ucdList;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     public static final String UCD_DEFINITIONS_LOC = 
         "/uk/ac/starlink/table/text/UCDs";
 
-    private final String id;
-    private final String description;
+    private final String id_;
+    private final String description_;
 
     /**
      * Private constructor.  This is only invoked by the
      * {@link #ensureInitialised} method.
      */
     private UCD( String id, String description ) {
-        this.id = id;
-        this.description = description;
+        id_ = id;
+        description_ = description;
     }
 
     /**
@@ -63,7 +63,7 @@ public class UCD implements Comparable {
      * @return  the ID string (capitals, underscores and numbers only)
      */
     public String getID() {
-        return id;
+        return id_;
     }
 
     /**
@@ -72,15 +72,15 @@ public class UCD implements Comparable {
      * @return  a few words describing the meaning of this UCD
      */
     public String getDescription() {
-        return description;
+        return description_;
     }
 
     /**
      * Implements the {@link java.lang.Comparable} interface, comparing
      * alphabetically by ID.
      */
-    public int compareTo( Object other ) {
-        return id.compareTo( ((UCD) other).id );
+    public int compareTo( UCD other ) {
+        return id_.compareTo( other.id_ );
     }
 
     /**
@@ -94,7 +94,7 @@ public class UCD implements Comparable {
      */
     public static UCD getUCD( String id ) {
         ensureInitialised();
-        UCD ucd = (UCD) ucdMap.get( id.trim() );
+        UCD ucd = ucdMap.get( id.trim() );
         return ucd;
     }
 
@@ -106,7 +106,7 @@ public class UCD implements Comparable {
      * @return  an Iterator which iterates over all the existing <tt>UCD</tt> 
      *          objects
      */
-    public static Iterator getUCDs() {
+    public static Iterator<UCD> getUCDs() {
         ensureInitialised();
         return ucdList.iterator();
     }
@@ -117,7 +117,7 @@ public class UCD implements Comparable {
      * @return   a string representation of this UCD
      */
     public String toString() {
-        return id;
+        return id_;
     }
 
     /**
@@ -132,8 +132,8 @@ public class UCD implements Comparable {
         }
 
         /* Otherwise, populate the map. */
-        ucdMap = new HashMap();
-        ucdList = new ArrayList();
+        ucdMap = new HashMap<String,UCD>();
+        ucdList = new ArrayList<UCD>();
         InputStream strm = UCD.class.getResourceAsStream( UCD_DEFINITIONS_LOC );
         if ( strm == null ) {
             logger.warning( "No resource " + UCD_DEFINITIONS_LOC 

@@ -255,7 +255,7 @@ public class RowEvaluator {
      * @throws  TableFormatException  if the number of elements in
      *          <tt>row</tt> is not the same as on the first call
      */
-    public void submitRow( List row ) throws TableFormatException {
+    public void submitRow( List<String> row ) throws TableFormatException {
         nrow_++;
         if ( ncol_ < 0 ) {
             init( row.size() );
@@ -267,7 +267,7 @@ public class RowEvaluator {
         }
         for ( int icol = 0; icol < ncol_; icol++ ) {
             boolean done = false;
-            String cell0 = (String) row.get( icol );
+            String cell0 = row.get( icol );
             int leng0 = cell0 == null ? 0 : cell0.length();
             String cell = cell0 == null ? "" : cell0.trim();
             int leng = cell.length();
@@ -519,14 +519,14 @@ public class RowEvaluator {
      * object.
      */
     public static abstract class Decoder {
-        private final Class clazz_;
+        private final Class<?> clazz_;
 
         /**
          * Constructor.
          *
          * @param   clazz  class of object to be returned by decode method
          */
-        public Decoder( Class clazz ) {
+        public Decoder( Class<?> clazz ) {
             clazz_ = clazz;
         }
 

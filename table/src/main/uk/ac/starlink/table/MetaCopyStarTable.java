@@ -64,7 +64,7 @@ public class MetaCopyStarTable extends WrapperStarTable {
         return paramList_;
     }
 
-    public void setParameters( List paramList ) {
+    public void setParameters( List<DescribedValue> paramList ) {
         paramList_ = paramList;
     }
 

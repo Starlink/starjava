@@ -209,9 +209,9 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         /* Iterate over the cube of cells in ndim dimensions to construct
          * a list of all the cells inside it. */
         Cell[] cells = new Cell[ ncell ];
-        int[] label = (int[]) llo.clone();
+        int[] label = llo.clone();
         for ( int ic = 0; ic < ncell; ic++ ) {
-            cells[ ic ] = new Cell( (int[]) label.clone() );
+            cells[ ic ] = new Cell( label.clone() );
             for ( int jd = 0; jd < ndim_; jd++ ) {
                 if ( ++label[ jd ] <= lhi[ jd ] ) {
                     break;
@@ -290,10 +290,10 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      */
     static NdRange createExtendedBounds( NdRange inRange, double err,
                                          int[] idims ) {
-        Comparable[] inMins = inRange.getMins();
-        Comparable[] inMaxs = inRange.getMaxs();
-        Comparable[] outMins = new Comparable[ inMins.length ];
-        Comparable[] outMaxs = new Comparable[ inMaxs.length ];
+        Comparable<?>[] inMins = inRange.getMins();
+        Comparable<?>[] inMaxs = inRange.getMaxs();
+        Comparable<?>[] outMins = new Comparable<?>[ inMins.length ];
+        Comparable<?>[] outMaxs = new Comparable<?>[ inMaxs.length ];
         for ( int jd = 0; jd < idims.length; jd++ ) {
             int id = idims[ jd ];
             outMins[ id ] = add( inMins[ id ], -err );
@@ -382,12 +382,12 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * @return  object like <code>in</code>,
      *          but incremented by <code>incr</code>
      */
-    static Comparable add( Comparable in, double incr ) {
+    static Comparable<?> add( Comparable<?> in, double incr ) {
         if ( ! ( in instanceof Number) || Double.isNaN( incr ) ) {
             return null;
         }
         double dval = ((Number) in).doubleValue() + incr;
-        Class clazz = in.getClass();
+        Class<?> clazz = in.getClass();
         if ( incr < 0 ) {
             if ( clazz == Byte.class &&
                  Math.floor( dval ) >= Byte.MIN_VALUE ) {
@@ -444,7 +444,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         }
         else {
             assert incr == 0;
-            return in instanceof Comparable ? (Comparable) in : null;
+            return in instanceof Comparable ? (Comparable<?>) in : null;
         }
     }
 

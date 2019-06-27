@@ -40,7 +40,7 @@ public interface DomainMapper {
      * @return  class of mapper source objects to which this mapper can be
      *          applied
      */
-    Class getSourceClass();
+    Class<?> getSourceClass();
 
     /**
      * Returns a short name for the type of source values which this mapper

@@ -36,7 +36,7 @@ interface LongBinner {
      *
      * @return  iterator over non-empty bins
      */
-    Iterator getKeyIterator();
+    Iterator<?> getKeyIterator();
 
     /**
      * Returns the number of non-empty bins used.

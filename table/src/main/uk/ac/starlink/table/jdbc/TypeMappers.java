@@ -140,7 +140,7 @@ public class TypeMappers {
             String className = meta.getColumnClassName( jcol1 );
             if ( className != null ) {
                 try {
-                    Class clazz = getClass().forName( className );
+                    Class<?> clazz = Class.forName( className );
                     colInfo_.setContentClass( clazz );
                 }
                 catch ( ClassNotFoundException e ) {
@@ -192,7 +192,7 @@ public class TypeMappers {
          *                       values) will be members of
          */
         ForcedValueHandler( ResultSetMetaData meta, int jcol1,
-                            Class forcedClass ) throws SQLException {
+                            Class<?> forcedClass ) throws SQLException {
             String name = meta.getColumnName( jcol1 );
             colInfo_ = new ColumnInfo( name );
             if ( meta.isNullable( jcol1 ) == ResultSetMetaData.columnNoNulls ) {
@@ -336,7 +336,7 @@ public class TypeMappers {
                                                 int jcol1 )
                 throws SQLException {
             ValueHandler handler = createIdentityValueHandler( meta, jcol1 );
-            Class clazz = handler.getColumnInfo().getContentClass();
+            Class<?> clazz = handler.getColumnInfo().getContentClass();
 
             /* Timestamp. */
             if ( java.sql.Timestamp.class.isAssignableFrom( clazz ) ) {

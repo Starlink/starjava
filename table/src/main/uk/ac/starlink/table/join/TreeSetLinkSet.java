@@ -12,7 +12,7 @@ import java.util.TreeSet;
  */
 class TreeSetLinkSet implements LinkSet {
 
-    SortedSet set_ = new TreeSet();
+    SortedSet<RowLink> set_ = new TreeSet<RowLink>();
 
     public void addLink( RowLink link ) {
         set_.add( link );
@@ -26,7 +26,7 @@ class TreeSetLinkSet implements LinkSet {
         return set_.remove( link );
     }
 
-    public Iterator iterator() {
+    public Iterator<RowLink> iterator() {
         return set_.iterator();
     }
 

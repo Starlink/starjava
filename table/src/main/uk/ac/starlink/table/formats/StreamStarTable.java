@@ -89,7 +89,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
         final int ncol = getColumnCount();
         return new ReaderRowSequence() {
             protected Object[] readRow() throws IOException {
-                List cellList = StreamStarTable.this.readRow( in );
+                List<String> cellList = StreamStarTable.this.readRow( in );
                 if ( cellList == null ) {
                     in.close();
                     return null;
@@ -97,7 +97,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
                 else {
                     Object[] row = new Object[ ncol ];
                     for ( int icol = 0; icol < ncol; icol++ ) {
-                        String sval = (String) cellList.get( icol );
+                        String sval = cellList.get( icol );
                         if ( sval != null && sval.trim().length() > 0 ) {
                             row[ icol ] = decoders_[ icol ].decode( sval );
                         }
@@ -146,6 +146,6 @@ public abstract class StreamStarTable extends AbstractStarTable {
      *           kind of table
      * @throws   IOException   if I/O error is encountered
      */
-    protected abstract List readRow( PushbackInputStream in )
+    protected abstract List<String> readRow( PushbackInputStream in )
             throws TableFormatException, IOException;
 }

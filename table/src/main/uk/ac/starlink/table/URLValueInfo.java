@@ -48,7 +48,7 @@ public class URLValueInfo implements ValueInfo {
         return utype_;
     }
 
-    public Class getContentClass() {
+    public Class<?> getContentClass() {
         return URL.class;
     }
 

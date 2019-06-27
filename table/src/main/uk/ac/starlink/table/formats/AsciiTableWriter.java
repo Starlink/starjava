@@ -176,7 +176,7 @@ public class AsciiTableWriter extends AbstractTextTableWriter {
     }
 
     protected void printParam( OutputStream strm, String name, String value,
-                               Class clazz )
+                               Class<?> clazz )
             throws IOException {
         strm.write( '#' );
         strm.write( ' ' );
