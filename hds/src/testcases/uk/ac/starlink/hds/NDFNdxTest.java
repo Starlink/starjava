@@ -41,6 +41,11 @@ public class NDFNdxTest extends TestCase {
     public static String tmpdir;
 
     public void setUp() throws MalformedURLException, IOException {
+
+        // Ensure that the NDFNdxHandler has registered itself as an HDX
+        // handler before any of the tests requiring it have taken place.
+        NDFNdxHandler.getInstance();
+
         if ( containerFile == null ) {
             tmpdir = System.getProperty( "java.io.tmpdir" );
             containerName = tmpdir + File.separatorChar + "test_ndf";
