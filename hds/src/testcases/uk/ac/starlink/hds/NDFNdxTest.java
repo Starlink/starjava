@@ -80,6 +80,10 @@ public class NDFNdxTest extends TestCase {
                     h[i].setLevel(java.util.logging.Level.FINE);
             }
         }
+        else {
+            java.util.logging.Logger.getLogger("uk.ac.starlink.ndx")
+                                    .setLevel(java.util.logging.Level.WARNING);
+        }
     }
 
 
