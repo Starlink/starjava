@@ -1,7 +1,5 @@
 package uk.ac.starlink.ttools.join;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -138,9 +136,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
         sbuf.append( "   Available matchers, with associated parameters,"
                    + " include:\n" );
         try {
-            for ( Iterator it = Arrays.asList( getExampleValues() ).iterator();
-                  it.hasNext(); ) {
-                String name = (String) it.next();
+            for ( String name : getExampleValues() ) {
                 StringBuffer line = new StringBuffer();
                 MatchEngine engine = createEngine( name );
                 line.append( "      " )
@@ -186,7 +182,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      *
      * @return  params parameter
      */
-    public Parameter getMatchParametersParameter() {
+    public Parameter<String[]> getMatchParametersParameter() {
         return paramsParam_;
     }
 
@@ -196,7 +192,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      *
      * @return  tuning parameter
      */
-    public Parameter getTuningParametersParameter() {
+    public Parameter<String[]> getTuningParametersParameter() {
         return tuningParam_;
     }
 
@@ -207,7 +203,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      *
      * @return  match score parameter
      */
-    public Parameter getScoreParameter() {
+    public Parameter<String> getScoreParameter() {
         return scoreParam_;
     }
 
@@ -566,7 +562,8 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      * @param  configs   modifiable subparameters
      * @return  params usage - possibly empty, not null
      */
-    public String getConfigUsage( MatchEngine engine, Parameter wordsParam,
+    public String getConfigUsage( MatchEngine engine,
+                                  Parameter<String[]> wordsParam,
                                   DescribedValue[] configs ) {
         StringBuffer sbuf = new StringBuffer();
         if ( configs.length > 0 ) {

@@ -48,7 +48,7 @@ public class HtmTiling implements SkyTiling {
 
     public ValueInfo getIndexInfo() {
         String name = "htm" + level_;
-        Class clazz = level_ <= 14 ? Integer.class : Long.class;
+        Class<?> clazz = level_ <= 14 ? Integer.class : Long.class;
         String descrip = "HTM index at level " + level_;
         DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
         info.setUCD( "pos.HTM" );

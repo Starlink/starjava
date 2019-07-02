@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.mode;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -21,8 +21,8 @@ import org.astrogrid.samp.client.SampException;
 public class ClientRegWatcher implements CallableClient {
 
     private final HubConnection connection_;
-    private final Map clientMap_;
-    private final Map responseMap_;
+    private final Map<String,Map<?,?>> clientMap_;
+    private final Map<String,Response> responseMap_;
     private static final String REG_MTYPE = "samp.hub.event.register";
     private static final String UNREG_MTYPE = "samp.hub.event.unregister";
     private static final String METADATA_MTYPE = "samp.hub.event.metadata";
@@ -34,8 +34,8 @@ public class ClientRegWatcher implements CallableClient {
      */
     public ClientRegWatcher( HubConnection connection ) {
         connection_ = connection;
-        clientMap_ = new HashMap();
-        responseMap_ = new HashMap();
+        clientMap_ = new HashMap<String,Map<?,?>>();
+        responseMap_ = new HashMap<String,Response>();
     }
 
     /**
@@ -46,9 +46,9 @@ public class ClientRegWatcher implements CallableClient {
      */
     public Subscriptions getSubscriptions() {
         Subscriptions subs = new Subscriptions();
-        subs.put( REG_MTYPE, new HashMap() );
-        subs.put( UNREG_MTYPE, new HashMap() );
-        subs.put( METADATA_MTYPE, new HashMap() );
+        subs.put( REG_MTYPE, Collections.EMPTY_MAP );
+        subs.put( UNREG_MTYPE, Collections.EMPTY_MAP );
+        subs.put( METADATA_MTYPE, Collections.EMPTY_MAP );
         return subs;
     }
 
@@ -87,12 +87,12 @@ public class ClientRegWatcher implements CallableClient {
      *          or null if none is currently registered
      */
     public synchronized String getIdFromName( String name ) {
-        for ( Iterator it = clientMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            String id = (String) entry.getKey();
-            Map meta = (Map) entry.getValue();
+        for ( Map.Entry<String,Map<?,?>> entry : clientMap_.entrySet() ) {
+            String id = String.valueOf( entry.getKey() );
+            Map<?,?> meta = entry.getValue();
             if ( meta != null ) {
-                String clientName = (String) meta.get( Metadata.NAME_KEY );
+                String clientName =
+                    String.valueOf( meta.get( Metadata.NAME_KEY ) );
                 if ( name.equalsIgnoreCase( name ) ) {
                     return id;
                 }
@@ -117,14 +117,15 @@ public class ClientRegWatcher implements CallableClient {
                 return null;
             }
         }
-        return (Response) responseMap_.get( msgTag );
+        return responseMap_.get( msgTag );
     }
 
     public void receiveCall( String senderId, String msgId, Message msg )
             throws SampException {
         receiveNotification( senderId, msg );
         connection_.reply( msgId,
-                           Response.createSuccessResponse( new HashMap() ) );
+                           Response
+                          .createSuccessResponse( Collections.EMPTY_MAP ) );
     }
 
     public synchronized void receiveNotification( String senderId,
@@ -142,8 +143,8 @@ public class ClientRegWatcher implements CallableClient {
             clientMap_.notifyAll();
         }
         else if ( METADATA_MTYPE.equals( mtype ) ) {
-            clientMap_.put( msg.getParam( "id" ),
-                            msg.getParam( "metadata" ) );
+            clientMap_.put( (String) msg.getParam( "id" ),
+                            (Map<?,?>) msg.getParam( "metadata" ) );
             clientMap_.notifyAll();
         }
         else {

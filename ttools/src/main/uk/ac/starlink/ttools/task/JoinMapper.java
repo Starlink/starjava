@@ -29,8 +29,8 @@ public class JoinMapper implements TableMapper {
         fixcolParam_ = new JoinFixActionParameter( "fixcols" );
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             fixcolParam_,
             fixcolParam_.createSuffixParameter( VariableTablesInput
                                                .NUM_SUFFIX ),

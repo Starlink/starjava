@@ -112,7 +112,7 @@ public class ExternalFontMapper extends DefaultFontMapper {
     public static ExternalFontMapper
             createMapperFromResourcePaths( String[] paths ) {
         List<String> resourceList = new ArrayList<String>();
-        Class clazz = ExternalFontMapper.class;
+        Class<?> clazz = ExternalFontMapper.class;
         for ( int ip = 0; ip < paths.length; ip++ ) {
             URL url = clazz.getResource( paths[ ip ] );
             if ( url != null ) {

@@ -51,14 +51,14 @@ public class SqlClient implements Task {
         return "Executes SQL statements";
     }
 
-    public Parameter[] getParameters() {
-        List paramList = new ArrayList();
+    public Parameter<?>[] getParameters() {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.add( connParam_ );
         paramList.addAll( Arrays.asList( connParam_
                                         .getAssociatedParameters() ) );
         paramList.add( stmtParam_ );
         paramList.add( ofmtParam_ );
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     public Executable createExecutable( Environment env )

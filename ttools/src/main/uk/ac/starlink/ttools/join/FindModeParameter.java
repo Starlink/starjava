@@ -21,8 +21,8 @@ public class FindModeParameter extends ChoiceParameter<PairMode> {
      */
     public FindModeParameter( String name ) {
         super( name, PairMode.values() );
-        PairMode[] modes = (PairMode[]) Arrays.asList( getOptions() )
-                                       .toArray( new PairMode[ 0 ] );
+        PairMode[] modes =
+            Arrays.asList( getOptions() ).toArray( new PairMode[ 0 ] );
         setDefaultOption( PairMode.BEST );
         setPrompt( "Which pair matches to include" );
         StringBuilder optBuf = new StringBuilder();

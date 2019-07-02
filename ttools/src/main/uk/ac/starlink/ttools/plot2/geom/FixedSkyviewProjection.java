@@ -211,7 +211,7 @@ public abstract class FixedSkyviewProjection extends SkyviewProjection {
     private static Shape getShape( Projecter projecter ) {
         final double S2 = Math.sqrt( 2.0 );
         final double PI = Math.PI;
-        Class clazz = projecter.getClass();
+        Class<?> clazz = projecter.getClass();
         if ( clazz.equals( Ait.class ) ) {
             return new Ellipse2D.Double( -2 * S2, -S2, 4 * S2, 2 * S2 );
         }

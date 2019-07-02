@@ -691,7 +691,7 @@ public class Shaders {
             catch ( SecurityException e ) {
                 fileset = null;
             }
-            List shaderList = new ArrayList();
+            List<Shader> shaderList = new ArrayList<Shader>();
             if ( fileset != null && fileset.length() > 0 ) {
                 String[] files =
                     fileset.split( "\\Q" + File.pathSeparator + "\\E" );
@@ -707,7 +707,7 @@ public class Shaders {
                     }
                 }
             }
-            customShaders_ = (Shader[]) shaderList.toArray( new Shader[ 0 ] );
+            customShaders_ = shaderList.toArray( new Shader[ 0 ] );
         }
         return customShaders_;
     }
@@ -1288,7 +1288,7 @@ public class Shaders {
         }
 
         public String getName() {
-            return base_.getName() + "-" + (int) Math.round( nlevel_ );
+            return base_.getName() + "-" + Math.round( nlevel_ );
         }
 
         @Override
@@ -1933,7 +1933,7 @@ public class Shaders {
          * @return colour
          */
         private Color getColor( float value ) {
-            float[] rgba = (float[]) baseRgba_.clone();
+            float[] rgba = baseRgba_.clone();
             shader_.adjustRgba( rgba, value );
             return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         }
@@ -2011,7 +2011,7 @@ public class Shaders {
          * @return  colour
          */
         private Color getColor( float xval, float yval ) {
-            float[] rgba = (float[]) baseRgba_.clone();
+            float[] rgba = baseRgba_.clone();
             if ( xFirst_ ) {
                 xShader_.adjustRgba( rgba, xval );
                 yShader_.adjustRgba( rgba, yval );

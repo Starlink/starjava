@@ -35,7 +35,6 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -121,7 +120,7 @@ import uk.ac.starlink.ttools.task.TableProducer;
 public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
     private final boolean allowAnimate_;
-    private final GangerFactory gangerFact_;
+    private final GangerFactory<?,?> gangerFact_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
     private final PaddingParameter paddingParam_;
@@ -137,7 +136,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private final InputTableParameter animateParam_;
     private final FilterParameter animateFilterParam_;
     private final IntegerParameter parallelParam_;
-    private final Parameter[] basicParams_;
+    private final Parameter<?>[] basicParams_;
 
     public static final String LAYER_PREFIX = "layer";
     public static final String ZONE_PREFIX = "zone";
@@ -158,10 +157,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  gangerFact    controls how plots can be grouped
      */
     protected AbstractPlot2Task( boolean allowAnimate,
-                                 GangerFactory gangerFact ) {
+                                 GangerFactory<?,?> gangerFact ) {
         allowAnimate_ = allowAnimate;
         gangerFact_ = gangerFact;
-        List<Parameter> plist = new ArrayList<Parameter>();
+        List<Parameter<?>> plist = new ArrayList<Parameter<?>>();
 
         paddingParam_ = new PaddingParameter( "insets" );
 
@@ -331,8 +330,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         plist.add( createLegendPositionParameter( DOC_ZONE_SUFFIX ) );
         plist.add( createTitleParameter( DOC_ZONE_SUFFIX ) );
 
-        plist.addAll( getZoneKeyParams( StyleKeys.AUX_RAMP .getKeys() ) );
-        plist.addAll( getZoneKeyParams( new ConfigKey[] {
+        plist.addAll( getZoneKeyParams( StyleKeys.AUX_RAMP.getKeys() ) );
+        plist.addAll( getZoneKeyParams( new ConfigKey<?>[] {
             StyleKeys.SHADE_LOW,
             StyleKeys.SHADE_HIGH,
         } ) );
@@ -429,7 +428,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             animateFilterParam_ = null;
             parallelParam_ = null;
         }
-        basicParams_ = plist.toArray( new Parameter[ 0 ] );
+        basicParams_ = plist.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -437,7 +436,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @param  gangerFact    controls how plots can be grouped
      */
-    protected AbstractPlot2Task( GangerFactory gangerFact ) {
+    protected AbstractPlot2Task( GangerFactory<?,?> gangerFact ) {
         this( true, gangerFact );
     }
 
@@ -449,7 +448,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  env  execution environment
      * @return  context
      */
-    public abstract PlotContext getPlotContext( Environment env )
+    public abstract PlotContext<?,?> getPlotContext( Environment env )
             throws TaskException;
 
     /**
@@ -477,13 +476,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @return  basic parameter list
      */
-    public final Parameter[] getBasicParameters() {
+    public final Parameter<?>[] getBasicParameters() {
         return basicParams_;
     }
 
     public Executable createExecutable( final Environment env )
             throws TaskException {
-        final PlotContext context = getPlotContext( env );
+        final PlotContext<?,?> context = getPlotContext( env );
         final Painter painter = painterParam_.painterValue( env );
         final boolean isSwing = painter instanceof SwingPainter;
         final TableProducer animateProducer =
@@ -497,7 +496,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Single frame: prepare operation and return an executable that
          * has no reference to the environment. */
         if ( ! isAnimate ) {
-            final PlotExecutor executor = createPlotExecutor( env, context );
+            final PlotExecutor<?,?> executor =
+                createPlotExecutor( env, context );
             return new Executable() {
                 public void execute() throws IOException {
                     DataStore dataStore;
@@ -700,7 +700,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  parallel  thread count for calculations
      * @param  out0  name of first output frame
      */
-    private void animateOutput( Environment baseEnv, PlotContext context,
+    private void animateOutput( Environment baseEnv, PlotContext<?,?> context,
                                 StarTable animateTable, int parallel,
                                 String out0 )
             throws TaskException, IOException, InterruptedException {
@@ -719,7 +719,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 Environment frameEnv =
                     createFrameEnvironment( baseEnv, infos, aseq.getRow(),
                                             irow, nrow );
-                final PlotExecutor executor =
+                final PlotExecutor<?,?> executor =
                     createPlotExecutor( frameEnv, context );
                 final Painter painter = getPainter( frameEnv );
                 final DataStore dstore =
@@ -757,7 +757,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  animateTable  table providing per-frame adjustments
      *                       to environment
      */
-    private void animateSwing( Environment baseEnv, PlotContext context,
+    private void animateSwing( Environment baseEnv, PlotContext<?,?> context,
                                StarTable animateTable )
             throws TaskException, IOException, InterruptedException {
         final SwingPainter painter =
@@ -786,7 +786,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 Environment frameEnv =
                     createFrameEnvironment( baseEnv, infos, aseq.getRow(),
                                             irow, nrow );
-                PlotExecutor executor = createPlotExecutor( frameEnv, context );
+                PlotExecutor<?,?> executor =
+                    createPlotExecutor( frameEnv, context );
                 dataStore = executor.createDataStore( dataStore );
                 final JComponent panel =
                     executor.createPlotComponent( dataStore, true, caching );
@@ -885,7 +886,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     public Icon createPlotIcon( Environment env )
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( false );
-        PlotExecutor executor =
+        PlotExecutor<?,?> executor =
             createPlotExecutor( env, getPlotContext( env ) );
         return executor.createPlotIcon( executor.createDataStore( null ) );
     }
@@ -914,10 +915,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *                  at every repaint
      * @return  active plot view component
      */
-    public PlotDisplay createPlotComponent( Environment env, boolean caching )
+    public PlotDisplay<?,?> createPlotComponent( Environment env,
+                                                 boolean caching )
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( caching );
-        PlotExecutor executor =
+        PlotExecutor<?,?> executor =
             createPlotExecutor( env, getPlotContext( env ) );
         PlotCaching plotCaching = caching ? PlotCaching.createFullyCached()
                                           : PlotCaching.createUncached();
@@ -925,17 +927,17 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                              true, plotCaching );
     }
 
-    public Parameter[] getContextParameters( Environment env )
+    public Parameter<?>[] getContextParameters( Environment env )
             throws TaskException {
 
         /* Initialise list with non-context-sensitive parameters. */
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.addAll( Arrays.asList( getParameters() ) );
 
         /* Go through each layer that has been set in the environment
          * (by a layerN setting).  Get all the parameters associated
          * with that layer type and suffix. */
-        PlotContext context = getPlotContext( env );
+        PlotContext<?,?> context = getPlotContext( env );
         for ( Map.Entry<String,LayerType> entry :
               getLayers( env, context ).entrySet() ) {
             String suffix = entry.getKey();
@@ -950,22 +952,22 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
             /* Add entries for the parameters associated with that
              * layer type. */
-            for ( ParameterFinder finder :
+            for ( ParameterFinder<Parameter<?>> finder :
                   getLayerParameterFinders( env, context, layer, suffix ) ) {
                 paramList.add( finder.createParameter( suffix ) );
             }
         }
-        return paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public Parameter getParameterByName( Environment env, String paramName )
+    public Parameter<?> getParameterByName( Environment env, String paramName )
             throws TaskException {
+        PlotContext<?,?> context = getPlotContext( env );
 
         /* Check if the parameter is a layer parameter itself. */
         if ( paramName.toLowerCase()
                       .startsWith( LAYER_PREFIX.toLowerCase() ) ) {
             String suffix = paramName.substring( LAYER_PREFIX.length() );
-            PlotContext context = getPlotContext( env );
             return createLayerTypeParameter( suffix, context );
         }
 
@@ -974,14 +976,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
          * Then it's a case of going through all the parameters that
          * come with that layer type to see if any of them match the
          * requested on by name. */
-        PlotContext context = getPlotContext( env );
         for ( Map.Entry<String,LayerType> entry :
               getLayers( env, context ).entrySet() ) {
             String suffix = entry.getKey();
             LayerType layer = entry.getValue();
-            for ( ParameterFinder finder :
+            for ( ParameterFinder<Parameter<?>> finder :
                   getLayerParameterFinders( env, context, layer, suffix ) ) {
-                Parameter p = finder.findParameterByName( paramName, suffix );
+                Parameter<?> p =
+                    finder.findParameterByName( paramName, suffix );
                 if ( p != null ) {
                     return p;
                 }
@@ -1004,20 +1006,21 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   suffix  suffix associated with layer
      * @return  array of plot finder for layer-specific parameters
      */
-    private ParameterFinder[]
+    private List<ParameterFinder<Parameter<?>>>
             getLayerParameterFinders( Environment env,
-                                      final PlotContext context,
+                                      final PlotContext<?,?> context,
                                       final LayerType layer,
                                       final String suffix )
             throws TaskException {
-        List<ParameterFinder> finderList = new ArrayList<ParameterFinder>();
+        List<ParameterFinder<Parameter<?>>> finderList =
+            new ArrayList<ParameterFinder<Parameter<?>>>();
 
         /* Layer type associated parameters. */
         int nassoc = layer.getAssociatedParameters( "dummy" ).length;
         for ( int ia = 0; ia < nassoc; ia++ ) {
             final int iassoc = ia;
-            finderList.add( new ParameterFinder<Parameter>() {
-                public Parameter createParameter( String sfix ) {
+            finderList.add( new ParameterFinder<Parameter<?>>() {
+                public Parameter<?> createParameter( String sfix ) {
                     return layer.getAssociatedParameters( sfix )[ iassoc ];
                 }
             } );
@@ -1033,8 +1036,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                    : "";
             for ( Coord coord : posCoords ) {
                 for ( final Input input : coord.getInputs() ) {
-                    finderList.add( new ParameterFinder<Parameter>() {
-                        public Parameter createParameter( String sfix ) {
+                    finderList.add( new ParameterFinder<Parameter<?>>() {
+                        public Parameter<?> createParameter( String sfix ) {
                             return createDataParameter( input, posSuffix + sfix,
                                                         true );
                         }
@@ -1044,11 +1047,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Layer geometry-specific parameters. */
-        Parameter[] geomParams = context.getGeomParameters( suffix );
+        Parameter<?>[] geomParams = context.getGeomParameters( suffix );
         for ( int igp = 0; igp < geomParams.length; igp++ ) {
             final int igp0 = igp;
-            finderList.add( new ParameterFinder<Parameter>() {
-                public Parameter createParameter( String sfix ) {
+            finderList.add( new ParameterFinder<Parameter<?>>() {
+                public Parameter<?> createParameter( String sfix ) {
                     return context.getGeomParameters( sfix )[ igp0 ];
                 }
             } );
@@ -1058,8 +1061,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         Coord[] extraCoords = layer.getExtraCoords();
         for ( Coord coord : extraCoords ) {
             for ( final Input input : coord.getInputs() ) {
-                finderList.add( new ParameterFinder<Parameter>() {
-                    public Parameter createParameter( String sfix ) {
+                finderList.add( new ParameterFinder<Parameter<?>>() {
+                    public Parameter<?> createParameter( String sfix ) {
                         return createDataParameter( input, sfix, true );
                     }
                 } );
@@ -1067,10 +1070,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Layer style parameters. */
-        ConfigKey[] styleKeys = layer.getStyleKeys();
-        for ( final ConfigKey key : styleKeys ) {
-            finderList.add( new ParameterFinder<Parameter>() {
-                public Parameter createParameter( String sfix ) {
+        ConfigKey<?>[] styleKeys = layer.getStyleKeys();
+        for ( final ConfigKey<?> key : styleKeys ) {
+            finderList.add( new ParameterFinder<Parameter<?>>() {
+                public Parameter<?> createParameter( String sfix ) {
                     return ConfigParameter
                           .createLayerSuffixedParameter( key, sfix, true );
                 }
@@ -1092,8 +1095,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             Coord[] shadeCoords = shapeMode.getExtraCoords();
             for ( Coord coord : shadeCoords ) {
                 for ( final Input input : coord.getInputs() ) {
-                    finderList.add( new ParameterFinder<Parameter>() {
-                        public Parameter createParameter( String sfix ) {
+                    finderList.add( new ParameterFinder<Parameter<?>>() {
+                        public Parameter<?> createParameter( String sfix ) {
                             return createDataParameter( input, sfix, true );
                         }
                     } );
@@ -1101,17 +1104,17 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             }
 
             /* Shading config parameters. */
-            ConfigKey[] shadeKeys = shapeMode.getConfigKeys();
-            for ( final ConfigKey key : shadeKeys ) {
-                finderList.add( new ParameterFinder<Parameter>() {
-                    public Parameter createParameter( String sfix ) {
+            ConfigKey<?>[] shadeKeys = shapeMode.getConfigKeys();
+            for ( final ConfigKey<?> key : shadeKeys ) {
+                finderList.add( new ParameterFinder<Parameter<?>>() {
+                    public Parameter<?> createParameter( String sfix ) {
                         return ConfigParameter
                               .createLayerSuffixedParameter( key, sfix, true );
                     }
                 } ); 
             }
         }
-        return finderList.toArray( new ParameterFinder[ 0 ] );
+        return finderList;
     }
 
     /**
@@ -1161,13 +1164,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  context   plot context
      * @return   plot executor
      */
-    private PlotExecutor createPlotExecutor( Environment env,
-                                             PlotContext context )
+    private <P,A> PlotExecutor<P,A>
+            createPlotExecutor( Environment env, PlotContext<P,A> context )
             throws TaskException {
 
         /* What kind of plot? */
-        PlotType plotType = context.getPlotType();
-        final SurfaceFactory surfFact = plotType.getSurfaceFactory();
+        PlotType<P,A> plotType = context.getPlotType();
+        final SurfaceFactory<P,A> surfFact = plotType.getSurfaceFactory();
         final PaperTypeSelector ptSel = plotType.getPaperTypeSelector();
 
         /* Set up generic configuration. */
@@ -1177,7 +1180,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
         final Compositor compositor = compositorParam_.objectValue( env );
         Padding padding = paddingParam_.objectValue( env );
-        final Ganger ganger = gangerFact_.createGanger( padding );
+        @SuppressWarnings("unchecked")
+        final Ganger<P,A> ganger = ((GangerFactory<P,A>) gangerFact_)
+                                  .createGanger( padding );
 
         /* Gather the defined plot layers from the environment. */
         Map<String,PlotLayer> layerMap = createLayerMap( env, context );
@@ -1205,9 +1210,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Prepare lists of config keys. */
-        ConfigKey[] profileKeys = surfFact.getProfileKeys();
-        ConfigKey[] aspectKeys = surfFact.getAspectKeys();
-        ConfigKey[] shadeKeys = { StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH };
+        ConfigKey<?>[] profileKeys = surfFact.getProfileKeys();
+        ConfigKey<?>[] aspectKeys = surfFact.getAspectKeys();
+        ConfigKey<?>[] shadeKeys = { StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH};
 
         /* Prepare to get the navigator, but don't do it yet since we won't
          * need one if the display is not interactive. */
@@ -1222,7 +1227,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Prepare parallel arrays of per-zone information for the plotting. */
         final int nz = zoneSuffixes.length;
         final ZoneContent[] contents = new ZoneContent[ nz ];
-        final Object[] profiles = PlotUtil.createProfileArray( surfFact, nz );
+        final P[] profiles = PlotUtil.createProfileArray( surfFact, nz );
         final ConfigMap[] aspectConfigs = new ConfigMap[ nz ];
         final ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[ nz ];
         final Span[] shadeFixSpans = new Span[ nz ];
@@ -1252,7 +1257,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             ConfigMap profileConfig =
                 createZoneConfigMap( env, profileKeys,
                                      zoneSuffix, zoneLayerSuffixes );
-            Object profile = surfFact.createProfile( profileConfig );
+            P profile = surfFact.createProfile( profileConfig );
 
             /* Prepare to calculate aspect for the current zone. */
             ConfigMap aspectConfig =
@@ -1301,7 +1306,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* We have all we need.  Construct and return the object
          * that can do the plot. */
-        return new PlotExecutor() {
+        return new PlotExecutor<P,A>() {
 
             public DataStore createDataStore( DataStore prevStore )
                     throws IOException, InterruptedException {
@@ -1312,13 +1317,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 return store;
             }
 
-            public PlotDisplay createPlotComponent( DataStore dataStore,
-                                                    boolean navigable,
-                                                    PlotCaching caching ) {
-                Navigator navigator = navigable
-                                    ? surfFact.createNavigator( navConfig )
-                                    : null;
-                PlotDisplay panel =
+            public PlotDisplay<P,A> createPlotComponent( DataStore dataStore,
+                                                         boolean navigable,
+                                                         PlotCaching caching ) {
+                Navigator<A> navigator = navigable
+                                       ? surfFact.createNavigator( navConfig )
+                                       : null;
+                PlotDisplay<P,A> panel =
                     PlotDisplay
                    .createGangDisplay( ganger, surfFact, nz, contents,
                                        profiles, aspectConfigs,
@@ -1329,11 +1334,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             }
 
             public Icon createPlotIcon( DataStore dataStore ) {
-                Object[] aspects = new Object[ nz ];
+                A[] aspects = PlotUtil.createAspectArray( surfFact, nz );
                 long t0 = System.currentTimeMillis();
                 for ( int iz = 0; iz < nz; iz++ ) {
                     ZoneContent content = contents[ iz ];
-                    Object profile = profiles[ iz ];
+                    P profile = profiles[ iz ];
                     ConfigMap config = aspectConfigs[ iz ];
                     PlotLayer[] layers = content.getLayers();
                     Range[] ranges =
@@ -1363,11 +1368,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *           by the environment
      */
     private Map<String,PlotLayer> createLayerMap( Environment env,
-                                                  PlotContext context )
+                                                  PlotContext<?,?> context )
             throws TaskException {
 
         /* Work out what plotters/layers are requested. */
-        Map<String,Plotter> plotterMap = getPlotters( env, context );
+        Map<String,Plotter<?>> plotterMap = getPlotters( env, context );
 
         /* For each plotter, create a PlotLayer based on it using the
          * appropriately suffix-coded parameters in the environment.
@@ -1377,9 +1382,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
          * does not report specified but unplotted layer parameters as unused.
          * Creating layer objects is in any case cheap. */
         Map<String,PlotLayer> layerMap = new LinkedHashMap<String,PlotLayer>();
-        for ( Map.Entry<String,Plotter> entry : plotterMap.entrySet() ) {
+        for ( Map.Entry<String,Plotter<?>> entry : plotterMap.entrySet() ) {
             String suffix = entry.getKey();
-            Plotter plotter = entry.getValue();
+            Plotter<?> plotter = entry.getValue();
             DataGeom geom = plotter.getCoordGroup().getPositionCount() > 0
                           ? context.getGeom( env, suffix )
                           : null;
@@ -1617,7 +1622,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  mapping from suffixes to layer types for the environment
      */
     private static Map<String,LayerType> getLayers( Environment env,
-                                                    PlotContext context )
+                                                    PlotContext<?,?> context )
             throws TaskException {
         String prefix = LAYER_PREFIX;
         Map<String,LayerType> map = new LinkedHashMap<String,LayerType>();
@@ -1642,10 +1647,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  context  plot context
      * @return  mapping from suffixes to plotters for the environment
      */
-    private Map<String,Plotter> getPlotters( Environment env,
-                                             PlotContext context )
+    private Map<String,Plotter<?>> getPlotters( Environment env,
+                                                PlotContext<?,?> context )
             throws TaskException {
-        Map<String,Plotter> plotterMap = new LinkedHashMap<String,Plotter>();
+        Map<String,Plotter<?>> plotterMap =
+            new LinkedHashMap<String,Plotter<?>>();
         for ( Map.Entry<String,LayerType> entry :
               getLayers( env, context ).entrySet() ) {
             String suffix = entry.getKey();
@@ -1748,7 +1754,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  keys  config keys
      * @return  config map
      */
-    private ConfigMap createBasicConfigMap( Environment env, ConfigKey[] keys )
+    private ConfigMap createBasicConfigMap( Environment env,
+                                            ConfigKey<?>[] keys )
             throws TaskException {
         ConfigParameterFactory cpFact = new ConfigParameterFactory() {
             public <T> ConfigParameter<T> getParameter( Environment env,
@@ -1771,7 +1778,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     private <S extends Style>
             PlotLayer createPlotLayer( Environment env, String suffix,
-                                       Plotter plotter, DataGeom geom )
+                                       Plotter<S> plotter, DataGeom geom )
             throws TaskException {
 
         /* Get basic and additional coordinate specifications. */
@@ -1799,12 +1806,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         config.putAll( layerConfig );
 
         /* Work out the requested style. */
-        @SuppressWarnings("unchecked")
-        Plotter<S> splotter = (Plotter<S>) plotter;
         S style;
         try {
-            style = splotter.createStyle( config );
-            assert style.equals( splotter.createStyle( config ) );
+            style = plotter.createStyle( config );
+            assert style.equals( plotter.createStyle( config ) );
         }
         catch ( ConfigException e ) {
             throw new UsageException( e.getConfigKey().getMeta().getShortName()
@@ -1812,7 +1817,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Return a layer based on these. */
-        return splotter.createLayer( geom, dataSpec, style );
+        return plotter.createLayer( geom, dataSpec, style );
     }
 
     /**
@@ -1864,8 +1869,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         String[] exprs = new String[ ni ];
         for ( int ii = 0; ii < ni; ii++ ) {
             final Input input = inputs[ ii ];
-            Parameter param = new ParameterFinder<Parameter>() {
-                public Parameter createParameter( String sfix ) {
+            Parameter<?> param = new ParameterFinder<Parameter<?>>() {
+                public Parameter<?> createParameter( String sfix ) {
                     return createDataParameter( input, sfix, true );
                 }
             }.getParameter( env, suffix );
@@ -1887,7 +1892,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  config map with values for the supplied keys
      */
     private ConfigMap createLayerSuffixedConfigMap( Environment env,
-                                                    ConfigKey[] configKeys,
+                                                    ConfigKey<?>[] configKeys,
                                                     String layerSuffix )
             throws TaskException {
         return createSuffixedConfigMap( env, configKeys, layerSuffix, false );
@@ -1905,7 +1910,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  config map with values for the supplied keys
      */
     private ConfigMap createZoneSuffixedConfigMap( Environment env,
-                                                   ConfigKey[] configKeys,
+                                                   ConfigKey<?>[] configKeys,
                                                    String zoneSuffix )
             throws TaskException {
         return createSuffixedConfigMap( env, configKeys, zoneSuffix, true );
@@ -1927,7 +1932,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  config map with values for the supplied keys
      */
     private ConfigMap createSuffixedConfigMap( Environment env,
-                                               ConfigKey[] configKeys,
+                                               ConfigKey<?>[] configKeys,
                                                final String suffix,
                                                final boolean isZone )
             throws TaskException {
@@ -1961,7 +1966,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  config map containing entries specific to chosen zone
      */
     private ConfigMap createZoneConfigMap( Environment env,
-                                           ConfigKey[] zoneConfigKeys,
+                                           ConfigKey<?>[] zoneConfigKeys,
                                            final String zoneSuffix,
                                            final String[] zoneLayerSuffixes )
             throws TaskException {
@@ -2002,7 +2007,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  cpFact  turns config keys into Parameters
      * @return  config map with values for the supplied keys
      */
-    private ConfigMap createConfigMap( Environment env, ConfigKey[] configKeys,
+    private ConfigMap createConfigMap( Environment env,
+                                       ConfigKey<?>[] configKeys,
                                        ConfigParameterFactory cpFact )
             throws TaskException {
         Level level = Level.CONFIG;
@@ -2396,7 +2402,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return   plotter parameter
      */
     public static LayerTypeParameter
-            createLayerTypeParameter( String suffix, PlotContext context ) {
+            createLayerTypeParameter( String suffix,
+                                      PlotContext<?,?> context ) {
         return new LayerTypeParameter( LAYER_PREFIX, suffix, context );
     }
 
@@ -2441,7 +2448,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         InputMeta meta = input.getMeta();
         boolean hasSuffix = suffix.length() > 0;
         String cName = meta.getShortName();
-        Class cClazz = input.getValueClass();
+        Class<?> cClazz = input.getValueClass();
         final String typeTxt;
         final String typeUsage;
         if ( cClazz.equals( String.class ) ) {
@@ -2655,9 +2662,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  keys  config keys
      * @return  parameters for acquiring config key values
      */
-    public final List<Parameter> getZoneKeyParams( ConfigKey[] keys ) {
+    public final List<Parameter<?>> getZoneKeyParams( ConfigKey<?>[] keys ) {
         boolean isMultiZone = gangerFact_.isMultiZone();
-        List<Parameter> plist = new ArrayList<Parameter>();
+        List<Parameter<?>> plist = new ArrayList<Parameter<?>>();
         for ( int ik = 0; ik < keys.length; ik++ ) {
             plist.add( ConfigParameter
                       .createZoneSuffixedParameter( keys[ ik ], DOC_ZONE_SUFFIX,
@@ -2766,7 +2773,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * Object capable of executing a static or interactive plot.
      * All configuration options are contained.
      */
-    private interface PlotExecutor {
+    private interface PlotExecutor<P,A> {
 
         /**
          * Creates a data store suitable for use with this object.
@@ -2785,9 +2792,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
          *                   will be installed
          * @param  caching   plot caching policy
          */
-        PlotDisplay createPlotComponent( DataStore dataStore,
-                                         boolean navigable,
-                                         PlotCaching caching );
+        PlotDisplay<P,A> createPlotComponent( DataStore dataStore,
+                                              boolean navigable,
+                                              PlotCaching caching );
 
         /**
          * Generates an icon which will draw the plot.

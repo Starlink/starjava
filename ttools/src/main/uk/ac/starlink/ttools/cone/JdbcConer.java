@@ -160,8 +160,8 @@ public class JdbcConer implements Coner {
         return "";
     }
 
-    public Parameter[] getParameters() {
-        List<Parameter> pList = new ArrayList<Parameter>();
+    public Parameter<?>[] getParameters() {
+        List<Parameter<?>> pList = new ArrayList<Parameter<?>>();
         pList.add( connParam_ );
         pList.addAll( Arrays.asList( connParam_.getAssociatedParameters() ) );
         pList.add( dbtableParam_ );
@@ -173,10 +173,10 @@ public class JdbcConer implements Coner {
         pList.add( colsParam_ );
         pList.add( whereParam_ );
         pList.add( prepareParam_ );
-        return pList.toArray( new Parameter[ 0 ] );
+        return pList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public void configureParams( Environment env, Parameter srParam ) {
+    public void configureParams( Environment env, Parameter<?> srParam ) {
     }
 
     public boolean useDistanceFilter( Environment env ) {

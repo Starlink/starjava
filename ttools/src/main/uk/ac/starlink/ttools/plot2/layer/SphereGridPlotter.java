@@ -110,8 +110,8 @@ public class SphereGridPlotter
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getStyleKeys() {
+        return new ConfigKey<?>[] {
             RADIUS_KEY,
             COLOR_KEY,
             THICK_KEY,

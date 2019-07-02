@@ -104,7 +104,7 @@ import uk.ac.starlink.ttools.plot2.task.PointSelectionListener;
  */
 public class BasicPlotGui<P,A,S extends Style> extends JPanel {
 
-    private final PlotType plotType_;
+    private final PlotType<P,A> plotType_;
     private final SurfaceFactory<P,A> sfact_;
     private final Plotter<S> plotter_;
     private final DataGeom geom_;
@@ -117,16 +117,15 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
      * Constructor.
      *
      * @param  plotType  plot type
-     * @param  sfact    surface factory associated with the plot type
      * @param  plotter   plotter defining the single plot layer
      *                   this component plots
      * @param  table    table containing input data to plot
      */
-    public BasicPlotGui( PlotType plotType, SurfaceFactory<P,A> sfact,
-                         Plotter<S> plotter, StarTable table ) {
+    public BasicPlotGui( PlotType<P,A> plotType, Plotter<S> plotter,
+                                 StarTable table ) {
         super( new BorderLayout() );
         plotType_ = plotType;
-        sfact_ = sfact;
+        sfact_ = plotType.getSurfaceFactory();
         plotter_ = plotter;
         geom_ = plotType.getPointDataGeoms()[ 0 ];
 
@@ -254,6 +253,22 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
     }
 
     /**
+     * Creates a BasicPlotGui instance.
+     * This just invokes the constructor, but takes care of the
+     * parameterised types.
+     *
+     * @param  plotType  plot type
+     * @param  plotter   plotter defining the single plot layer
+     *                   this component plots
+     * @param  table    table containing input data to plot
+     */
+    public static <P,A,S extends Style> BasicPlotGui<P,A,S>
+            createBasicPlotGui( PlotType<P,A> plotType, Plotter<S> plotter,
+                                StarTable table ) {
+        return new BasicPlotGui<P,A,S>( plotType, plotter, table );
+    }
+
+    /**
      * Constructs an InputPanel instance that acquires configuration
      * and data input values required for a certain plot type.
      *
@@ -263,8 +278,9 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
      * @param   table     supplies the data columns
      * @return   GUI component to acquire plot information from the user
      */
-    private static InputPanel createInputPanel( Plotter plotter, DataGeom geom,
-                                                SurfaceFactory sfact,
+    private static InputPanel createInputPanel( Plotter<?> plotter,
+                                                DataGeom geom,
+                                                SurfaceFactory<?,?> sfact,
                                                 StarTable table ) {
 
         /* Work out the data values required to plot the layer. */
@@ -313,10 +329,10 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
          * @param  title  short title for this group of items
          * @param  keys  config keys
          */
-        public void addConfigKeys( String title, ConfigKey[] keys ) {
+        public void addConfigKeys( String title, ConfigKey<?>[] keys ) {
             LabelledComponentStack stack = new LabelledComponentStack();
             for ( ConfigKey<?> key : keys ) {
-                KeySpec kspec = createKeySpec( key );
+                KeySpec<?> kspec = createKeySpec( key );
                 klist_.add( kspec );
                 ConfigMeta meta = key.getMeta();
 
@@ -337,7 +353,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
          */
         public ConfigMap getConfig() {
             ConfigMap map = new ConfigMap();
-            for ( KeySpec k : klist_ ) {
+            for ( KeySpec<?> k : klist_ ) {
                 k.putValue( map );
             }
             return map;
@@ -384,6 +400,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
             CoordValue[] cvals = new CoordValue[ nc ];
             for ( int ic = 0; ic < nc; ic++ ) {
                 CoordInput cinput = clist_.get( ic );
+                @SuppressWarnings("rawtypes")
                 JComboBox[] entryBoxes = cinput.entryBoxes_;
                 int nin = entryBoxes.length;
                 String[] inExprs = new String[ nin ];
@@ -460,6 +477,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
          * Aggregates a coordinate description and a GUI component
          * that can acquire a value for it in the context of a given table.
          */
+        @SuppressWarnings({"unchecked","rawtypes"})
         private static class CoordInput {
             final StarTable table_;
             final Coord coord_;
@@ -491,7 +509,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
              * @param   clazz   requierd class for data column entries
              */
             private static JComboBox createColumnEntryBox( StarTable table,
-                                                           Class clazz ) {
+                                                           Class<?> clazz ) {
 
                 /* Add an item to the combo box for each column with a
                  * value of the right type.  But you can also type in
@@ -531,15 +549,14 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         StarTable table = new StarTableFactory().makeStarTable( args[ 0 ] );
 
         /* Plane plot - could be something different. */
-        PlotType plotType = PlanePlotType.getInstance();
-        SurfaceFactory<?,?> sfact = plotType.getSurfaceFactory();
+        PlotType<?,?> plotType = PlanePlotType.getInstance();
 
         /* Pick the first plotter it provides - could be something different. */
         Plotter<?> plotter = plotType.getPlotters()[ 0 ];
 
         /* Create and post GUI. */
         BasicPlotGui<?,?,?> gui =
-            new BasicPlotGui( plotType, sfact, plotter, table );
+            createBasicPlotGui( plotType, plotter, table );
         JFrame frm = new JFrame();
         frm.getContentPane().add( gui );
         frm.pack();

@@ -55,7 +55,7 @@ public class TransposeFilter extends BasicFilter {
             String arg = argIt.next();
             if ( arg.equals( "-namecol" ) && argIt.hasNext() ) {
                 argIt.remove();
-                namcol = (String) argIt.next();
+                namcol = argIt.next();
                 argIt.remove();
             }
         }

@@ -48,10 +48,10 @@ public class TapMapper implements TableMapper {
     private final ContentCodingParameter codingParam_;
     private final Parameter<VOTableWriter> vowriterParam_;
     private final TapResultReader resultReader_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
 
     public TapMapper() {
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         paramList.add( createUploadNameParameter( VariableTablesInput
                                                  .NUM_SUFFIX ) );
@@ -200,7 +200,7 @@ public class TapMapper implements TableMapper {
             "have non-standard requirements for serialization format.",
             "</p>",
         } );
-        vowriterParam_.setStringDefault( ((DataFormat) TapQuery.DFLT_UPLOAD_SER)                                        .toString() );
+        vowriterParam_.setStringDefault( TapQuery.DFLT_UPLOAD_SER.toString() );
         paramList.add( vowriterParam_ );
 
         langParam_ = new StringParameter( "language" );
@@ -221,10 +221,10 @@ public class TapMapper implements TableMapper {
         resultReader_ = new TapResultReader();
         paramList.addAll( Arrays.asList( resultReader_.getParameters() ) );
 
-        params_ = paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return params_;
     }
 
@@ -347,7 +347,7 @@ public class TapMapper implements TableMapper {
      * @param   label  parameter suffix 
      * @return   upload name parameter
      */
-    private static Parameter createUploadNameParameter( String label ) {
+    private static Parameter<String> createUploadNameParameter( String label ) {
         StringParameter upnameParam = new StringParameter( "upname" + label ) {
             @Override
             public String stringToObject( Environment env, String inval )

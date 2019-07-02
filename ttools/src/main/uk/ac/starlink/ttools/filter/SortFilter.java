@@ -121,7 +121,7 @@ public class SortFilter extends BasicFilter {
             for ( int i = 0; i < nrow; i++ ) {
                 rowMap[ i ] = new Integer( i );
             }
-            Comparator keyComparator;
+            Comparator<Number> keyComparator;
             try {
                 keyComparator = new RowComparator( baseTable, keys_, up_,
                                                    nullsLast_ );
@@ -148,7 +148,7 @@ public class SortFilter extends BasicFilter {
      * Comparator which will compare two objects which are Numbers 
      * representing row indices of a given table.
      */
-    private static class RowComparator implements Comparator {
+    private static class RowComparator implements Comparator<Number> {
 
         final CompiledExpression[] compExs_;
         final int nexpr_;
@@ -185,9 +185,9 @@ public class SortFilter extends BasicFilter {
             }
         }
 
-        public int compare( Object o1, Object o2 ) {
-            long row1 = ((Number) o1).longValue();
-            long row2 = ((Number) o2).longValue();
+        public int compare( Number o1, Number o2 ) {
+            long row1 = o1.longValue();
+            long row2 = o2.longValue();
             int c = 0;
             for ( int i = 0; i < nexpr_ && c == 0; i++ ) { 
                 CompiledExpression compEx = compExs_[ i ];
@@ -201,7 +201,7 @@ public class SortFilter extends BasicFilter {
                     throw new SortException( "Sort error", e );
                 }
                 try {
-                    c = compareValues( (Comparable) val1, (Comparable) val2 );
+                    c = compareValues( val1, val2 );
                 }
                 catch ( ClassCastException e ) {
                     throw new SortException( 
@@ -214,7 +214,8 @@ public class SortFilter extends BasicFilter {
         /**
          * Compares the actual cell values.
          */
-        private int compareValues( Comparable o1, Comparable o2 ) {
+        @SuppressWarnings("unchecked")
+        private int compareValues( Object o1, Object o2 ) {
             boolean null1 = Tables.isBlank( o1 );
             boolean null2 = Tables.isBlank( o2 );
             if ( null1 && null2 ) {
@@ -227,7 +228,7 @@ public class SortFilter extends BasicFilter {
                 return nullsLast_ ? -1 : +1;
             }
             else {
-                return o1.compareTo( o2 );
+                return ((Comparable<Object>) o1).compareTo( (Comparable) o2 );
             }
         }
     }

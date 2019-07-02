@@ -43,8 +43,8 @@ public class ColumnSelectionMapper implements TableMapper {
         colsParam_.setPrompt( "Space-separated list of input columns" );
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             colsParam_,
         };
     }

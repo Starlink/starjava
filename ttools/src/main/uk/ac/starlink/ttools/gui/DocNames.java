@@ -27,7 +27,7 @@ public class DocNames {
      */
     public static URL docURL( Object obj ) {
         if ( obj instanceof Class ) {
-            return classDocURL( (Class) obj );
+            return classDocURL( (Class<?>) obj );
         }
         else if ( obj instanceof Field ) {
             return fieldDocURL( (Field) obj );
@@ -43,13 +43,13 @@ public class DocNames {
         }
     }
 
-    private static URL docURL( Class clazz, String suffix ) {
+    private static URL docURL( Class<?> clazz, String suffix ) {
         String fqname = clazz.getName();
         String rpath = "/" + fqname.replaceAll( "\\.", "/" ) + suffix;
         return clazz.getResource( rpath );
     }
 
-    private static URL classDocURL( Class clazz ) {
+    private static URL classDocURL( Class<?> clazz ) {
         return docURL( clazz, ".html" );
     }
 
@@ -60,11 +60,11 @@ public class DocNames {
 
     private static URL methodDocURL( Method method ) {
         StringBuffer mangle = new StringBuffer();
-        Class[] types = method.getParameterTypes();
+        Class<?>[] types = method.getParameterTypes();
         for ( int i = 0; i < types.length; i++ ) {
             mangle.append( "-" );
             int narray = 0;
-            Class clazz = types[ i ];
+            Class<?> clazz = types[ i ];
             while ( clazz.isArray() ) {
                 narray++;
                 clazz = clazz.getComponentType();

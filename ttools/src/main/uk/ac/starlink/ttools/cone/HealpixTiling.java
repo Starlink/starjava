@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
 import gov.fnal.eag.healpix.PixTools;
-import java.util.Iterator;
 import java.util.List;
 import javax.vecmath.Vector3d;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -65,7 +64,7 @@ public class HealpixTiling implements SkyTiling {
 
     public ValueInfo getIndexInfo() {
         String name = "hpx" + k_;
-        Class clazz = k_ <= 13 ? Integer.class : Long.class;
+        Class<?> clazz = k_ <= 13 ? Integer.class : Long.class;
         String descrip = "HEALPix index at order " + k_;
         DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
         info.setUCD( "pos.healpix" );
@@ -91,12 +90,14 @@ public class HealpixTiling implements SkyTiling {
          * to calculate directly in the nest scheme, but early versions
          * of PixTools gave the wrong answer for this and later versions
          * are much slower. */
-        List tileList = pixTools_.query_disc( nside_, toVector( ra, dec ),
-                                              Math.toRadians( radius ), 0, 1 );
+        @SuppressWarnings("unchecked")
+        List<Long> tileList =
+            pixTools_.query_disc( nside_, toVector( ra, dec ),
+                                  Math.toRadians( radius ), 0, 1 );
         if ( nest_ ) {
             int ntile = tileList.size();
             for ( int itile = 0; itile < ntile; itile++ ) {
-                long ringIndex = ((Number) tileList.get( itile )).longValue();
+                long ringIndex = tileList.get( itile ).longValue();
                 long nestIndex = pixTools_.ring2nest( nside_, ringIndex );
                 tileList.set( itile, new Long( nestIndex ) );
             }
@@ -110,8 +111,8 @@ public class HealpixTiling implements SkyTiling {
          * not efficient. */
         long lo = Long.MAX_VALUE;
         long hi = Long.MIN_VALUE;
-        for ( Iterator it = tileList.iterator(); it.hasNext(); ) {
-            long tile = ((Number) it.next()).longValue();
+        for ( Long tl : tileList ) {
+            long tile = tl.longValue();
             if ( discIntersectsTile( ra, dec, radius, tile ) ) {
                 lo = Math.min( lo, tile );
                 hi = Math.max( hi, tile );

@@ -71,7 +71,7 @@ public abstract class SkyUnits {
      *           to the <code>decode</code> method and will be returned
      *           from the <code>encode</code> method
      */
-    public abstract Class[] getUnitTypes();
+    public abstract Class<?>[] getUnitTypes();
 
     /**
      * Returns the name of this unit system.
@@ -92,7 +92,7 @@ public abstract class SkyUnits {
      * @return   array of known unit systems
      */
     public static SkyUnits[] getKnownUnits() {
-        return (SkyUnits[]) KNOWN_UNITS.clone();
+        return KNOWN_UNITS.clone();
     }
 
     /**
@@ -138,8 +138,8 @@ public abstract class SkyUnits {
         public String[] getUnitStrings() {
             return new String[] { "radians", "radians" };
         }
-        public Class[] getUnitTypes() {
-            return new Class[] { Double.class, Double.class };
+        public Class<?>[] getUnitTypes() {
+            return new Class<?>[] { Double.class, Double.class };
         }
         public double[] decode( Object c1, Object c2 ) {
             return new double[] {
@@ -167,8 +167,8 @@ public abstract class SkyUnits {
         public String[] getUnitStrings() {
             return new String[] { "degrees", "degrees" };
         }
-        public Class[] getUnitTypes() {
-            return new Class[] { Double.class, Double.class };
+        public Class<?>[] getUnitTypes() {
+            return new Class<?>[] { Double.class, Double.class };
         }
         public double[] decode( Object c1, Object c2 ) {
             return new double[] {
@@ -202,8 +202,8 @@ public abstract class SkyUnits {
         public String[] getUnitStrings() {
             return new String[] { "hms", "dms" };
         }
-        public Class[] getUnitTypes() {
-            return new Class[] { String.class, String.class };
+        public Class<?>[] getUnitTypes() {
+            return new Class<?>[] { String.class, String.class };
         }
         public double[] decode( Object c1, Object c2 ) {
             return new double[] {

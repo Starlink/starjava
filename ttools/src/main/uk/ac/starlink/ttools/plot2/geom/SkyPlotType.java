@@ -34,12 +34,13 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  * @author   Mark Taylor
  * @since    20 Feb 2013
  */
-public class SkyPlotType implements PlotType {
+public class SkyPlotType
+        implements PlotType<SkySurfaceFactory.Profile,SkyAspect> {
 
     private final DataGeom[] dataGeoms_;
     private static final SkyPlotType INSTANCE = new SkyPlotType();
 
-    private static final SurfaceFactory SURFACE_FACTORY =
+    private static final SkySurfaceFactory SURFACE_FACTORY =
         new SkySurfaceFactory();
 
     /**
@@ -55,8 +56,8 @@ public class SkyPlotType implements PlotType {
         return dataGeoms_;
     }
 
-    public Plotter[] getPlotters() {
-        List<Plotter> list = new ArrayList<Plotter>();
+    public Plotter<?>[] getPlotters() {
+        List<Plotter<?>> list = new ArrayList<Plotter<?>>();
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
@@ -70,20 +71,21 @@ public class SkyPlotType implements PlotType {
             MarkForm.QUAD,
             PolygonForms.ARRAY,
         };
-        Plotter[] shapePlotters =
+        Plotter<?>[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( shapePlotters ) );
-        list.addAll( Arrays.asList( new Plotter[] {
+        list.addAll( Arrays.asList( new Plotter<?>[] {
             new LabelPlotter(),
             new ContourPlotter( true ),
             new SkyDensityPlotter( true, true ),
             new HealpixPlotter( true ),
             new SkyGridPlotter(),
         } ) );
-        return list.toArray( new Plotter[ 0 ] );
+        return list.toArray( new Plotter<?>[ 0 ] );
     }
 
-    public SurfaceFactory getSurfaceFactory() {
+    public SurfaceFactory<SkySurfaceFactory.Profile,SkyAspect>
+            getSurfaceFactory() {
         return SURFACE_FACTORY;
     }
 

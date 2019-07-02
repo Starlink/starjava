@@ -65,7 +65,7 @@ public class ErrorMode {
     private ErrorMode( String name, Extent[] extents,
                        double loOff, double hiOff ) {
         name_ = name;
-        extents_ = (Extent[]) extents.clone();
+        extents_ = extents.clone();
         loOff_ = loOff;
         hiOff_ = hiOff;
     }
@@ -76,7 +76,7 @@ public class ErrorMode {
      * @return  extent array
      */
     public Extent[] getExtents() {
-        return (Extent[]) extents_.clone();
+        return extents_.clone();
     }
 
     /**
@@ -111,7 +111,7 @@ public class ErrorMode {
      * @return   error bar count list
      */
     public static ErrorMode[] getOptions() {
-        return (ErrorMode[]) ALL_OPTIONS.clone();
+        return ALL_OPTIONS.clone();
     }
 
     /**

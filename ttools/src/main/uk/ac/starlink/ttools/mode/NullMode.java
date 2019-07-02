@@ -17,8 +17,8 @@ import uk.ac.starlink.ttools.filter.AssertFilter;
  */
 public class NullMode implements ProcessingMode {
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[ 0 ];
     }
 
     public String getDescription() {

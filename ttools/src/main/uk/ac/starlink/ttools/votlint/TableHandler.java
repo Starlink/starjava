@@ -13,7 +13,7 @@ public class TableHandler extends ElementHandler {
 
     private long nrowsSpecified_ = -1L;
     private long nrowsSeen_ = 0L;
-    private List fields_ = new ArrayList();
+    private List<FieldHandler> fields_ = new ArrayList<FieldHandler>();
 
     public void endElement() {
 
@@ -53,7 +53,7 @@ public class TableHandler extends ElementHandler {
      *
      * @return  parser list
      */
-    public List getFields() {
+    public List<FieldHandler> getFields() {
         return fields_;
     }
 

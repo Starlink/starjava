@@ -31,7 +31,7 @@ import uk.ac.starlink.util.LoadException;
 public class ChoiceMode implements ProcessingMode {
 
     private final OutputModeParameter modeParam_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
@@ -40,14 +40,14 @@ public class ChoiceMode implements ProcessingMode {
      */
     public ChoiceMode() {
         modeParam_ = new OutputModeParameter( "omode" );
-        List paramList = new ArrayList();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.add( modeParam_ );
         paramList.addAll( Arrays.asList( getDefaultAssociatedParameters(
                                               modeParam_ ) ) ); 
-        params_ = (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public Parameter[] getAssociatedParameters() {
+    public Parameter<?>[] getAssociatedParameters() {
         return params_;
     }
 
@@ -74,7 +74,7 @@ public class ChoiceMode implements ProcessingMode {
      *
      * @return   parameters associated with output mode
      */
-    private static Parameter[]
+    private static Parameter<?>[]
             getDefaultAssociatedParameters( OutputModeParameter modeParam ) {
 
         /* Get the default mode object, which is copy mode. */
@@ -85,22 +85,22 @@ public class ChoiceMode implements ProcessingMode {
         }
         catch ( LoadException e ) {
             logger_.warning( "Can't load default output mode?? " + e );
-            return new Parameter[ 0 ];
+            return new Parameter<?>[ 0 ];
         }
 
         /* Get its associated parameters; we know what sort they should be. */
-        Parameter[] modeParams = mode.getAssociatedParameters();
+        Parameter<?>[] modeParams = mode.getAssociatedParameters();
         if ( modeParams.length != 2 ||
              ! ( modeParams[ 0 ] instanceof OutputTableParameter ) ||
              ! ( modeParams[ 1 ] instanceof OutputFormatParameter ) ) {
             logger_.warning( "Output mode parameters out of sync?" );
-            return new Parameter[ 0 ];
+            return new Parameter<?>[ 0 ];
         }
-        Parameter outParam =
+        Parameter<?> outParam =
             new OutputTableParameter( modeParams[ 0 ].getName() );
-        Parameter fmtParam =
+        Parameter<?> fmtParam =
             new OutputFormatParameter( modeParams[ 1 ].getName() );
-        Parameter[] resultParams = new Parameter[] { outParam, fmtParam, };
+        Parameter<?>[] resultParams = new Parameter<?>[] { outParam, fmtParam };
 
         /* Doctor and return them. */
         for ( int i = 0; i < resultParams.length; i++ ) {

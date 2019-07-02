@@ -34,7 +34,7 @@ public class UploadConeTable extends AbstractStarTable {
      * @param  decName  column name for uploaded Dec column
      */
     public UploadConeTable( ConeQueryRowSequence coneSeq,
-                            RowMapper rowMapper,
+                            RowMapper<?> rowMapper,
                             String idName, String raName, String decName ) {
         coneSeq_ = coneSeq;
         rowMapper_ = rowMapper;

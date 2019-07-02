@@ -23,7 +23,7 @@ public class QuantCalcTest extends TestCase {
         final QuantCalc c4;
         final QuantCalc c5;
         QuantCalc[] calcs = new QuantCalc[] {
-            c1 = new QuantCalc.ObjectListQuantCalc( Double.class ),
+            c1 = new QuantCalc.DoubleListQuantCalc( Double.class ),
             c2 = new QuantCalc.FloatArrayQuantCalc( Long.class, values.length ),
             c3 = new QuantCalc.ByteSlotQuantCalc(),
             c4 = new QuantCalc.ShortSlotQuantCalc(),

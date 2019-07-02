@@ -28,7 +28,8 @@ public class StepFactory {
      * Private sole constructor.
      */
     private StepFactory() {
-        filterFactory_ = new ObjectFactory( ProcessingFilter.class );
+        filterFactory_ =
+            new ObjectFactory<ProcessingFilter>( ProcessingFilter.class );
         String pkg = "uk.ac.starlink.ttools.filter.";
         filterFactory_.register( "addcol", pkg + "AddColumnFilter" );
         filterFactory_.register( "addpixsample", pkg + "PixSampleFilter" );

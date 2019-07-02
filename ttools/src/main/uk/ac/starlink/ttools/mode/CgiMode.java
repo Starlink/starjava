@@ -23,7 +23,7 @@ import uk.ac.starlink.ttools.task.OutputFormatParameter;
  */
 public class CgiMode implements ProcessingMode {
 
-    private final Parameter formatParam_;
+    private final OutputFormatParameter formatParam_;
 
     public CgiMode() {
         formatParam_ = new OutputFormatParameter( "ofmt" );
@@ -37,8 +37,8 @@ public class CgiMode implements ProcessingMode {
         } );
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             formatParam_,
         };
     }

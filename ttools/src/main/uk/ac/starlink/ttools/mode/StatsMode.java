@@ -29,8 +29,8 @@ public class StatsMode implements ProcessingMode {
     private static final ValueInfo ROWCOUNT_INFO = 
         new DefaultValueInfo( "Total Rows", Long.class );
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[ 0 ];
     }
 
     public String getDescription() {

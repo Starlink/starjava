@@ -25,7 +25,7 @@ public abstract class SingleCoord implements Coord {
      * @param   domain  DomainMapper subtype for this coord, or null
      */
     protected SingleCoord( InputMeta meta, boolean isRequired,
-                           Class valueClass, StorageType storageType,
+                           Class<?> valueClass, StorageType storageType,
                            Class<? extends DomainMapper> domain ) {
         input_ = new Input( meta, valueClass, domain );
         isRequired_ = isRequired;

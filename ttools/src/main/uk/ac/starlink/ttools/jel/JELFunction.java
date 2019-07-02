@@ -39,12 +39,12 @@ public class JELFunction {
             throws CompilationException {
         xvarname_ = xvarname;
         fexpr_ = fexpr;
-        Class[] staticLib =
-            (Class[]) JELUtils.getStaticClasses().toArray( new Class[ 0 ] );
+        Class<?>[] staticLib =
+            JELUtils.getStaticClasses().toArray( new Class<?>[ 0 ] );
         xResolver_ = new XResolver( xvarname );
-        Class[] dynamicLib = new Class[] { xResolver_.getClass() };
-        Class[] dotClasses = new Class[ 0 ];
-        HashMap cnmap = null;
+        Class<?>[] dynamicLib = new Class<?>[] { xResolver_.getClass() };
+        Class<?>[] dotClasses = new Class<?>[ 0 ];
+        HashMap<String,Class<?>> cnmap = null;
         Library lib = new Library( staticLib, dynamicLib, dotClasses,
                                    xResolver_, cnmap );
         fCompex_ = Evaluator.compile( fexpr, lib, double.class );

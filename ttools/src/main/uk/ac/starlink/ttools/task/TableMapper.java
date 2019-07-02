@@ -19,7 +19,7 @@ public interface TableMapper {
      *
      * @return  parameter array
      */
-    Parameter[] getParameters();
+    Parameter<?>[] getParameters();
 
     /**
      * Creates a new mapping object, using a given execution environment

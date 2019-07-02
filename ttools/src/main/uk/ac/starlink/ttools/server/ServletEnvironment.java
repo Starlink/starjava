@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -43,7 +42,7 @@ public class ServletEnvironment implements TableEnvironment {
 
     private final ServletRequest request_;
     private final ServletResponse response_;
-    private final Map paramMap_;
+    private final Map<String,String[]> paramMap_;
     private final PrintStream outStream_;
     private final StarTableFactory tableFactory_;
     private final StarTableOutput tableOutput_;
@@ -70,18 +69,18 @@ public class ServletEnvironment implements TableEnvironment {
         tableFactory_ = tableFactory;
         tableOutput_ = tableOutput;
         jdbcAuth_ = jdbcAuth;
-        paramMap_ = new HashMap();
-        for ( Iterator it = request.getParameterMap().entrySet().iterator();
-              it.hasNext(); ) { 
-            Map.Entry entry = (Map.Entry) it.next();
-            paramMap_.put( LineTableEnvironment
-                          .normaliseName( (String) entry.getKey() ),
+        paramMap_ = new HashMap<String,String[]>();
+        @SuppressWarnings("unchecked")
+        Map<String,String[]> rpmap =
+            (Map<String,String[]>) request.getParameterMap();
+        for ( Map.Entry<String,String[]> entry : rpmap.entrySet() ) {
+            paramMap_.put( LineTableEnvironment.normaliseName( entry.getKey() ),
                            entry.getValue() );
         }
         outStream_ = new PrintStream( response.getOutputStream() );
     }
 
-    public void acquireValue( Parameter param ) throws TaskException {
+    public void acquireValue( Parameter<?> param ) throws TaskException {
         final String pname =
             LineTableEnvironment.normaliseName( param.getName() );
 
@@ -128,10 +127,10 @@ public class ServletEnvironment implements TableEnvironment {
          * servlet response. */
         else if ( isDefault && param instanceof PaintModeParameter ) {
             PaintModeParameter pmParam = (PaintModeParameter) param;
-            ChoiceParameter formatParam = pmParam.getFormatParameter();
+            ChoiceParameter<GraphicExporter> formatParam =
+                pmParam.getFormatParameter();
             formatParam.setStringDefault( "png" );
-            GraphicExporter exporter =
-                (GraphicExporter) formatParam.objectValue( this );
+            GraphicExporter exporter = formatParam.objectValue( this );
             pmParam.setValueFromPainter( this, new ServletPainter( exporter ) );
         }
 
@@ -139,7 +138,7 @@ public class ServletEnvironment implements TableEnvironment {
          * supplied by form or the query part of the URL. */
         else {
             final String stringVal;
-            String[] valueArray = (String[]) paramMap_.get( pname );
+            String[] valueArray = paramMap_.get( pname );
 
             /* No value supplied: use parameter default. */
             if ( isDefault ) {
@@ -207,7 +206,7 @@ public class ServletEnvironment implements TableEnvironment {
         }
     }
 
-    public void clearValue( Parameter param ) {
+    public void clearValue( Parameter<?> param ) {
         synchronized ( paramMap_ ) {
             paramMap_.remove( LineTableEnvironment
                              .normaliseName( param.getName() ) );
@@ -215,7 +214,7 @@ public class ServletEnvironment implements TableEnvironment {
     }
 
     public String[] getNames() {
-        return (String[]) paramMap_.keySet().toArray( new String[ 0 ] );
+        return paramMap_.keySet().toArray( new String[ 0 ] );
     }
 
     public PrintStream getOutputStream() {
@@ -264,8 +263,7 @@ public class ServletEnvironment implements TableEnvironment {
         if ( paramMap_.isEmpty() ) {
             return true;
         }
-        for ( Iterator it = paramMap_.keySet().iterator(); it.hasNext(); ) {
-            String key = (String) it.next();
+        for ( String key : paramMap_.keySet() ) {
             if ( key.equalsIgnoreCase( "help" ) ||
                  key.equalsIgnoreCase( "-help" ) ) {
                 return true;
@@ -295,7 +293,7 @@ public class ServletEnvironment implements TableEnvironment {
             response_.setContentType( tableWriter_.getMimeType() );
             if ( response_ instanceof HttpServletResponse ) {
                 HttpServletResponse hr = (HttpServletResponse) response_;
-                hr.setStatus( hr.SC_OK );
+                hr.setStatus( HttpServletResponse.SC_OK );
             }
             OutputStream out =
                 new BufferedOutputStream( response_.getOutputStream() );
@@ -332,7 +330,7 @@ public class ServletEnvironment implements TableEnvironment {
             }
             if ( response_ instanceof HttpServletResponse ) {
                 HttpServletResponse hr = (HttpServletResponse) response_;
-                hr.setStatus( hr.SC_OK );
+                hr.setStatus( HttpServletResponse.SC_OK );
             }
             OutputStream out =
                 new BufferedOutputStream( response_.getOutputStream() );

@@ -12,7 +12,6 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.task.BooleanParameter;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
@@ -52,8 +51,8 @@ public class ExtAppMode implements ProcessingMode {
         visParam_.setNullPermitted( true );
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             selParam_,
             showParam_,
             visParam_,
@@ -118,25 +117,25 @@ public class ExtAppMode implements ProcessingMode {
                                      new JELColumnSupplement( table, selexpr,
                                                               flagInfo ) );
         int flagcol = table.getColumnCount() - 1;
-        List idList = new ArrayList();
+        List<String> idList = new ArrayList<String>();
         RowSequence rseq = table.getRowSequence();
         while ( rseq.next() ) {
             if ( ((Boolean) rseq.getCell( flagcol )).booleanValue() ) {
-                idList.add( rseq.getCell( idcol ) );
+                idList.add( (String) rseq.getCell( idcol ) );
             }
         }
         rseq.close();
-        return (String[]) idList.toArray( new String[ 0 ] );
+        return idList.toArray( new String[ 0 ] );
     }
 
     private ExtApp getExtApp() throws IOException {
         try {
             Object controlWindow = 
                 Class.forName( "uk.ac.starlink.topcat.ControlWindow" )
-                     .getMethod( "getInstance", new Class[ 0 ] )
+                     .getMethod( "getInstance", new Class<?>[ 0 ] )
                      .invoke( null, new Object[ 0 ] );
             return (ExtApp) controlWindow.getClass()
-                           .getMethod( "getExtApp", new Class[ 0 ] )
+                           .getMethod( "getExtApp", new Class<?>[ 0 ] )
                            .invoke( controlWindow, new Object[ 0 ] );
         }
         catch ( Throwable e ) {

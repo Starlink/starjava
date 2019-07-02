@@ -215,8 +215,8 @@ public class VotCopy implements Task {
         return "Transforms between VOTable encodings";
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             inParam_,
             outParam_,
             formatParam_,
@@ -232,7 +232,7 @@ public class VotCopy implements Task {
     public Executable createExecutable( Environment env ) throws TaskException {
         String inLoc = inParam_.stringValue( env );
         String outLoc = outParam_.stringValue( env );
-        DataFormat format = (DataFormat) formatParam_.objectValue( env );
+        DataFormat format = formatParam_.objectValue( env );
         VOTableVersion forceVersion = versionParam_.objectValue( env );
         if ( format == DataFormat.BINARY2 &&
              forceVersion != null && ! forceVersion.allowBinary2() ) {

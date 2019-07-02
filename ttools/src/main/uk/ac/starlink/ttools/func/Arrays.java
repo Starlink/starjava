@@ -251,8 +251,7 @@ public class Arrays {
             }
             qc.ready();
             Number value = qc.getQuantile( quant );
-            return value instanceof Number ? ((Number) value).doubleValue()
-                                           : Double.NaN;
+            return value == null ? Double.NaN : value.doubleValue();
         }
         catch ( RuntimeException e ) {
             return Double.NaN;

@@ -42,7 +42,8 @@ public class SchlegelFilter
         };
     }
 
-    public ProcessingStep createStep( Iterator argIt ) throws ArgException {
+    public ProcessingStep createStep( Iterator<String> argIt )
+            throws ArgException {
         String[] tupleExprs = new String[ 2 ];
         SchlegelCalculator.ResultType[] rtypes =
             SchlegelCalculator.ResultType.values();
@@ -51,16 +52,16 @@ public class SchlegelFilter
         String raExpr = null;
         String decExpr = null;
         while ( argIt.hasNext() && ( raExpr == null || decExpr == null ) ) {
-            String arg = (String) argIt.next();
+            String arg = argIt.next();
             if ( arg.equals( "-results" ) && argIt.hasNext() ) {
                 argIt.remove();
-                String resultTxt = (String) argIt.next();
+                String resultTxt = argIt.next();
                 argIt.remove();
                 rtypes = decodeResultTypes( resultTxt );
             }
             else if ( arg.equals( "-stats" ) && argIt.hasNext() ) {
                 argIt.remove();
-                String statTxt = (String) argIt.next();
+                String statTxt = argIt.next();
                 argIt.remove();
                 stats = decodeStats( statTxt );
             }

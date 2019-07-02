@@ -79,9 +79,10 @@ public class JELTable extends WrapperStarTable {
 
             /* Check that the type of the compiled expression is compatible
              * with that specified in the ColInfos, if any. */
-            Class pClazz = JELUtils.getExpressionType( lib, baseTable, expr );
-            Class clazz = JELUtils.getWrapperType( pClazz );
-            Class reqClazz = colInfos_[ i ].getContentClass();
+            Class<?> pClazz =
+                JELUtils.getExpressionType( lib, baseTable, expr );
+            Class<?> clazz = JELUtils.getWrapperType( pClazz );
+            Class<?> reqClazz = colInfos_[ i ].getContentClass();
             if ( reqClazz != null &&
                  ! reqClazz.isAssignableFrom( clazz ) ) {
                 StringBuffer sbuf = new StringBuffer();

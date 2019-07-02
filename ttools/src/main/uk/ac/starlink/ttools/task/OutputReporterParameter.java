@@ -28,7 +28,7 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
     private final IntegerParameter repeatParam_;
     private final BooleanParameter debugParam_;
     private final IntegerParameter truncParam_;
-    private final Parameter[] reporterParams_;
+    private final Parameter<?>[] reporterParams_;
     private final OutputReporterFactory<?>[] orFactories_ = {
         new TextOutputReporterFactory( "text" ),
         new JsonOutputReporterFactory( "json" ),
@@ -41,11 +41,11 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
      */
     public OutputReporterParameter( String name ) {
         super( name, OutputReporter.class, true );
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         StringBuffer ubuf = new StringBuffer();
         StringBuffer lbuf = new StringBuffer();
-        for ( OutputReporterFactory f : orFactories_ ) {
+        for ( OutputReporterFactory<?> f : orFactories_ ) {
             if ( ubuf.length() > 0 ) {
                 ubuf.append( "|" );
                 lbuf.append( ", " );
@@ -137,7 +137,7 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
         debugParam_.setBooleanDefault( false );
         paramList.add( debugParam_ );
 
-        reporterParams_ = paramList.toArray( new Parameter[ 0 ] );
+        reporterParams_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -150,7 +150,7 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
      *
      * @return  list of associated parameters
      */
-    public Parameter[] getReporterParameters() {
+    public Parameter<?>[] getReporterParameters() {
         return reporterParams_;
     }
 

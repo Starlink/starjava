@@ -32,7 +32,7 @@ public abstract class SingleMapperTask extends ConsumerTask {
     public SingleMapperTask( String purpose, ProcessingMode outMode, 
                              boolean useOutFilter, boolean useInFilter ) {
         super( purpose, outMode, useOutFilter );
-        List paramList = new ArrayList();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         /* Input table parameter. */
         inTableParam_ = new InputTableParameter( "in" );

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
@@ -15,7 +16,8 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
  * @author   Mark Taylor
  * @since    3 Sep 2014
  */
-public class PlanePlot2Task extends TypedPlot2Task {
+public class PlanePlot2Task
+        extends TypedPlot2Task<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
     private static final Map<ConfigKey<String>,Input> AXLABEL_MAP =
         createAxisLabelMap();

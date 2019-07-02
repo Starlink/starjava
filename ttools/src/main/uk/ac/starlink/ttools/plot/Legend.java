@@ -62,7 +62,7 @@ public class Legend extends JComponent {
         if ( labels.length != styles.length ) {
             throw new IllegalArgumentException();
         }
-        List lsList = new ArrayList();
+        List<LabelledStyle> lsList = new ArrayList<LabelledStyle>();
         for ( int i = 0; i < styles.length; i++ ) {
             Style style = styles[ i ];
             String label = labels[ i ];
@@ -70,7 +70,7 @@ public class Legend extends JComponent {
                 lsList.add( new LabelledStyle( style, label ) );
             }
         }
-        setStyles( (LabelledStyle[]) lsList.toArray( new LabelledStyle[ 0 ] ) );
+        setStyles( lsList.toArray( new LabelledStyle[ 0 ] ) );
     }
 
     /**
@@ -81,7 +81,7 @@ public class Legend extends JComponent {
      * @param  labelledStyles  labelled style object array for display
      */
     private void setStyles( LabelledStyle[] labelledStyles ) {
-        labelledStyles_ = (LabelledStyle[]) labelledStyles.clone();
+        labelledStyles_ = labelledStyles.clone();
         int nstyle = labelledStyles.length;
 
         /* Calculate geometry. */

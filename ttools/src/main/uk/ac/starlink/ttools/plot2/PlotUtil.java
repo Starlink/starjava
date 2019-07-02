@@ -252,7 +252,7 @@ public class PlotUtil {
         List<T> list = new ArrayList<T>( count );
         list.addAll( Arrays.asList( a1 ) );
         list.addAll( Arrays.asList( a2 ) );
-        Class eClazz = a1.getClass().getComponentType();
+        Class<?> eClazz = a1.getClass().getComponentType();
         @SuppressWarnings("unchecked")
         T[] result =
             (T[]) list.toArray( (Object[]) Array.newInstance( eClazz, count ) );
@@ -394,6 +394,7 @@ public class PlotUtil {
      * @return   array containing element
      */
     public static <T> T[] singletonArray( T object ) {
+        @SuppressWarnings("unchecked")
         T[] array = (T[]) Array.newInstance( object.getClass(), 1 );
         array[ 0 ] = object;
         return array;
@@ -410,6 +411,7 @@ public class PlotUtil {
     public static <P> P[] createProfileArray( SurfaceFactory<P,?> surfFact,
                                               int length ) {
         P profile = surfFact.createProfile( new ConfigMap() );
+        @SuppressWarnings("unchecked")
         P[] array = (P[]) Array.newInstance( profile.getClass(), length );
         return array;
     }
@@ -427,6 +429,7 @@ public class PlotUtil {
         ConfigMap config = new ConfigMap();
         P profile = surfFact.createProfile( config );
         A aspect = surfFact.createAspect( profile, config, null );
+        @SuppressWarnings("unchecked")
         A[] array = (A[]) Array.newInstance( aspect.getClass(), length );
         return array;
     }
@@ -1002,12 +1005,12 @@ public class PlotUtil {
             return formatNumber( value, "0.#E0", nsf );
         }
         else if ( epsilon >= 0.9 ) {
-            return Long.toString( (long) Math.round( value ) );
+            return Long.toString( Math.round( value ) );
         }
         else {
             int ndp = (int) Math.round( Math.max( 0, -Math.log10( epsilon ) ) );
             return ndp == 0
-                 ? Long.toString( (long) Math.round( value ) )
+                 ? Long.toString( Math.round( value ) )
                  : formatNumber( value, "0.0", ndp );
         }
     }

@@ -44,17 +44,17 @@ public class NormalisedBinnedData implements BinnedData {
         return false;
     }
 
-    public Iterator getBinIterator( boolean includeEmpty ) {
-        final Iterator baseIt = base_.getBinIterator( includeEmpty );
-        return new Iterator() {
+    public Iterator<Bin> getBinIterator( boolean includeEmpty ) {
+        final Iterator<Bin> baseIt = base_.getBinIterator( includeEmpty );
+        return new Iterator<Bin>() {
             public boolean hasNext() {
                 return baseIt.hasNext();
             }
             public void remove() {
                 baseIt.remove();
             }
-            public Object next() {
-                final Bin baseBin = (Bin) baseIt.next();
+            public Bin next() {
+                final Bin baseBin = baseIt.next();
                 return new Bin() {
                     public double getLowBound() {
                         return baseBin.getLowBound();

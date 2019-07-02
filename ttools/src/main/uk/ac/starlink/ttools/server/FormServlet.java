@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -35,7 +34,7 @@ public class FormServlet extends HttpServlet {
     private ObjectFactory<Task> taskFactory_;
     private StarTableFactory tableFactory_;
     private String taskBase_;
-    private Map formWriterMap_;
+    private Map<String,FormWriter> formWriterMap_;
 
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
@@ -45,7 +44,7 @@ public class FormServlet extends HttpServlet {
         taskFactory_ = Stilts.getTaskFactory();
         tableFactory_ = sContext.getTableFactory();
 
-        Map fwmap = new HashMap();
+        Map<String,FormWriter> fwmap = new HashMap<String,FormWriter>();
         FormWriter[] fwriters;
         try { 
             fwriters = getFormWriters();
@@ -95,7 +94,7 @@ public class FormServlet extends HttpServlet {
         /* Get a FormWriter corresponding to the request. */
         String taskName = subpath == null ? ""
                                           : subpath.replaceAll( "^/*", "" );
-        FormWriter fwriter = (FormWriter) formWriterMap_.get( taskName );
+        FormWriter fwriter = formWriterMap_.get( taskName );
 
         /* If the request has no task part, send back a menu page 
          * with OK status. */
@@ -138,9 +137,7 @@ public class FormServlet extends HttpServlet {
             out.println( "<h2>No such form</h2>" );
             out.println( "<h3>Known forms:</h3>" );
             out.println( "<ul>" );
-            for ( Iterator it = formWriterMap_.keySet().iterator();
-                  it.hasNext(); ) {
-                String name = (String) it.next();
+            for ( String name : formWriterMap_.keySet() ) {
                 out.println( "<li><a href='" + baseUrl + "/" + name + "'>"
                            + name + "</a></li>" );
             }
@@ -215,7 +212,7 @@ public class FormServlet extends HttpServlet {
     private abstract class FormWriter {
         private final String taskName_;
         private final Task task_;
-        private final Map paramMap_;
+        private final Map<String,Parameter<?>> paramMap_;
 
         /**
          * Constructor.
@@ -225,8 +222,8 @@ public class FormServlet extends HttpServlet {
         public FormWriter( String taskName ) throws LoadException {
             taskName_ = taskName;
             task_ = taskFactory_.createObject( taskName );
-            paramMap_ = new HashMap();
-            Parameter[] params = task_.getParameters();
+            paramMap_ = new HashMap<String,Parameter<?>>();
+            Parameter<?>[] params = task_.getParameters();
             for ( int ip = 0; ip < params.length; ip++ ) {
                 paramMap_.put( params[ ip ].getName(), params[ ip ] );
             }
@@ -273,7 +270,7 @@ public class FormServlet extends HttpServlet {
          * @param   clazz  required content class superclass for column
          */
         protected void writeColumnControl( ServletOutputStream out, String name,
-                                           StarTable table, Class clazz )
+                                           StarTable table, Class<?> clazz )
                 throws IOException {
             out.println( "<dt><b>" + name + ":</b> <i>(required)</i></dt>" );
             out.println( "<dd>" );
@@ -302,7 +299,7 @@ public class FormServlet extends HttpServlet {
          * @param   param  parameter object being specified
          */
         protected void writeTextControl( ServletOutputStream out, String name,
-                                         Parameter param )
+                                         Parameter<?> param )
                 throws IOException {
             String dflt = param.getStringDefault();
             out.println( "<dt><b>" + name + ":</b></dt>" );
@@ -323,7 +320,7 @@ public class FormServlet extends HttpServlet {
          * @param   param  parameter object being specified
          */
         protected void writeOptionControl( ServletOutputStream out, String name,
-                                           ChoiceParameter param )
+                                           ChoiceParameter<?> param )
                 throws IOException {
             String dflt = param.getStringDefault();
             out.println( "<dt><b>" + name + ":</b></dt>" );
@@ -349,7 +346,7 @@ public class FormServlet extends HttpServlet {
          * @param   param  parameter object being specified
          */
         protected void writeBooleanControl( ServletOutputStream out,
-                                            String name, Parameter param )
+                                            String name, Parameter<?> param )
                 throws IOException {
             out.println( "<dt><b>" + name + ":</b></dt>" );
             out.println( "<dd>" );
@@ -369,8 +366,22 @@ public class FormServlet extends HttpServlet {
          * @param  paramName  parameter name as known by task
          * @return   parameter object
          */
-        protected Parameter getParameter( String paramName ) {
-            return (Parameter) paramMap_.get( paramName );
+        protected Parameter<?> getParameter( String paramName ) {
+            return paramMap_.get( paramName );
+        }
+
+        /**
+         * Returns the output format parameter,
+         * with default set to first option.
+         *
+         * @return   ofmt parameter
+         */
+        protected <T> ChoiceParameter<T> getOutputFormatParameter() {
+            @SuppressWarnings("unchecked")
+            ChoiceParameter<T> param =
+                (ChoiceParameter<T>) getParameter( "ofmt" );
+            param.setDefaultOption( param.getOptions()[ 0 ] );
+            return param;
         }
 
         /**
@@ -453,9 +464,7 @@ public class FormServlet extends HttpServlet {
             out.println( "</dl></dd>" );
             out.println( "<dt><b>Output Format</b></dt>" );
             out.println( "<dl><dd>" );
-            ChoiceParameter fmtParam = (ChoiceParameter) getParameter( "ofmt" );
-            fmtParam.setDefaultOption( fmtParam.getOptions()[ 0 ] );
-            writeOptionControl( out, "ofmt", fmtParam );
+            writeOptionControl( out, "ofmt", getOutputFormatParameter() );
             out.println( "</dd></dl>" );
             out.println( "</dd>" );
             out.println( "</dl>" );
@@ -510,9 +519,7 @@ public class FormServlet extends HttpServlet {
             out.println( "</dl></dd>" );
             out.println( "<dt><b>Output Format</b></dt>" );
             out.println( "<dl><dd>" );
-            ChoiceParameter fmtParam = (ChoiceParameter) getParameter( "ofmt" );
-            fmtParam.setDefaultOption( fmtParam.getOptions()[ 0 ] );
-            writeOptionControl( out, "ofmt", fmtParam );
+            writeOptionControl( out, "ofmt", getOutputFormatParameter() );
             out.println( "</dd></dl>" );
             out.println( "</dd>" );
             out.println( "</dl>" );
@@ -540,7 +547,7 @@ public class FormServlet extends HttpServlet {
             out.println( "</dl></dd>" );
             out.println( "<dt><b>Y Axis</b></dt>" );
             out.println( "<dd><dl>" );
-            Parameter yloParam = getParameter( "ylo" );
+            Parameter<?> yloParam = getParameter( "ylo" );
             yloParam.setStringDefault( null );
             writeTextControl( out, "ylo", getParameter( "ylo" ) );
             writeTextControl( out, "yhi", getParameter( "yhi" ) );
@@ -553,9 +560,7 @@ public class FormServlet extends HttpServlet {
             out.println( "</dl></dd>" );
             out.println( "<dt><b>Output Format</b></dt>" );
             out.println( "<dl><dd>" );
-            ChoiceParameter fmtParam = (ChoiceParameter) getParameter( "ofmt" );
-            fmtParam.setDefaultOption( fmtParam.getOptions()[ 0 ] );
-            writeOptionControl( out, "ofmt", fmtParam );
+            writeOptionControl( out, "ofmt", getOutputFormatParameter() );
             out.println( "</dd></dl>" );
             out.println( "</dd>" );
             out.println( "</dl>" );

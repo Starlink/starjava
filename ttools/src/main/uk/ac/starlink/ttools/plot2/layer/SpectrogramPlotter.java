@@ -197,13 +197,13 @@ public class SpectrogramPlotter
         return spectroCoordGrp_;
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
         if ( reportAuxKeys_ ) {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
             keyList.add( NULLCOLOR_KEY );
         }
-        return keyList.toArray( new ConfigKey[ 0 ] );
+        return keyList.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public SpectroStyle createStyle( ConfigMap config ) {

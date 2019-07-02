@@ -70,13 +70,13 @@ public class LayerTypeDoc {
      *                    if unique; otherwise null
      * @return  text of &lt;subsect&gt; element
      */
-    public String getXmlDoc( LayerType layerType, PlotType plotType ) {
+    public String getXmlDoc( LayerType layerType, PlotType<?,?> plotType ) {
 
         /* Get basic layer type information. */
         String lname = layerType.getName().toLowerCase();
         int npos = layerType.getPositionCount();
         Coord[] extraCoords = layerType.getExtraCoords();
-        ConfigKey[] styleKeys = layerType.getStyleKeys();
+        ConfigKey<?>[] styleKeys = layerType.getStyleKeys();
 
         /* Work out what groups of auxiliary parameters it has. */
         boolean hasPos = npos > 0;
@@ -276,7 +276,7 @@ public class LayerTypeDoc {
         Collections.sort( paramList, Parameter.BY_NAME );
         if ( paramList.size() > 0 ) {
             sbuf.append( "<p><dl>\n" );
-            for ( Parameter param : paramList ) {
+            for ( Parameter<?> param : paramList ) {
                 sbuf.append( UsageWriter.xmlItem( param, basicXml_ ) )
                     .append( "\n" );
             }
@@ -293,16 +293,17 @@ public class LayerTypeDoc {
      *
      * @return   plot tasks
      */
-    public static TypedPlot2Task[] getPlot2Tasks() throws LoadException {
-        List<TypedPlot2Task> plot2Tasks = new ArrayList<TypedPlot2Task>();
+    public static TypedPlot2Task<?,?>[] getPlot2Tasks() throws LoadException {
+        List<TypedPlot2Task<?,?>> plot2Tasks =
+            new ArrayList<TypedPlot2Task<?,?>>();
         ObjectFactory<Task> taskFact = Stilts.getTaskFactory();
         for ( String nickname : taskFact.getNickNames() ) {
             Task task = taskFact.createObject( nickname );
             if ( task instanceof TypedPlot2Task ) {
-                plot2Tasks.add( (TypedPlot2Task) task );
+                plot2Tasks.add( (TypedPlot2Task<?,?>) task );
             }
         }
-        return plot2Tasks.toArray( new TypedPlot2Task[ 0 ] );
+        return plot2Tasks.toArray( new TypedPlot2Task<?,?>[ 0 ] );
     }
 
     /**
@@ -312,7 +313,7 @@ public class LayerTypeDoc {
      */
     public static LayerType[] getLayerTypes() throws LoadException {
         Set<LayerType> ltypes = new LinkedHashSet<LayerType>();
-        for ( TypedPlot2Task task : getPlot2Tasks() ) {
+        for ( TypedPlot2Task<?,?> task : getPlot2Tasks() ) {
             ltypes.addAll( getLayerTypes( task ).values() );
         }
         return ltypes.toArray( new LayerType[ 0 ] );
@@ -325,7 +326,8 @@ public class LayerTypeDoc {
      * @param   task  geometry-specific plot task
      * @return  name->layer type map for given task
      */
-    private static Map<String,LayerType> getLayerTypes( TypedPlot2Task task ) {
+    private static Map<String,LayerType>
+            getLayerTypes( TypedPlot2Task<?,?> task ) {
         LayerTypeParameter ltParam =
             AbstractPlot2Task
            .createLayerTypeParameter( "", task.getPlotContext() );
@@ -390,12 +392,12 @@ public class LayerTypeDoc {
         }
 
         /* Get known layer types. */
-        TypedPlot2Task[] tasks = getPlot2Tasks();
+        TypedPlot2Task<?,?>[] tasks = getPlot2Tasks();
         Map<String,LayerType> typeMap =
             new LinkedHashMap<String,LayerType>();
-        Map<String,Set<TypedPlot2Task>> taskMap =
-            new LinkedHashMap<String,Set<TypedPlot2Task>>();
-        for ( TypedPlot2Task task : tasks ) {
+        Map<String,Set<TypedPlot2Task<?,?>>> taskMap =
+            new LinkedHashMap<String,Set<TypedPlot2Task<?,?>>>();
+        for ( TypedPlot2Task<?,?> task : tasks ) {
             for ( Map.Entry<String,LayerType> entry :
                   getLayerTypes( task ).entrySet() ) {
                 String lname = entry.getKey();
@@ -405,7 +407,7 @@ public class LayerTypeDoc {
                  * layer type.  This is so we can identify which layer
                  * types are specific to a single TypedPlot2Task. */
                 if ( ! taskMap.containsKey( lname ) ) {
-                    taskMap.put( lname, new HashSet<TypedPlot2Task>() );
+                    taskMap.put( lname, new HashSet<TypedPlot2Task<?,?>>() );
                 }
                 taskMap.get( lname ).add( task );
 
@@ -434,10 +436,10 @@ public class LayerTypeDoc {
         for ( Map.Entry<String,LayerType> entry : typeMap.entrySet() ) {
             String lname = entry.getKey();
             LayerType ltype = entry.getValue();
-            Set<TypedPlot2Task> ltasks = taskMap.get( lname );
-            PlotType plotType = ltasks != null && ltasks.size() == 1
-                              ? ltasks.iterator().next().getPlotType()
-                              : null;
+            Set<TypedPlot2Task<?,?>> ltasks = taskMap.get( lname );
+            PlotType<?,?> plotType = ltasks != null && ltasks.size() == 1
+                                   ? ltasks.iterator().next().getPlotType()
+                                   : null;
             out.println( doccer.getXmlDoc( ltype, plotType ) );
         }
         if ( doc ) {

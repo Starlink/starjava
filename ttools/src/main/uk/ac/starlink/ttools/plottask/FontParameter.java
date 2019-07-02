@@ -4,7 +4,6 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
@@ -105,8 +104,8 @@ public class FontParameter extends StyleParameter<String> {
      *
      * @return   array of font parameters
      */
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             sizeParam_,
             styleParam_,
         };
@@ -131,14 +130,14 @@ public class FontParameter extends StyleParameter<String> {
      * @param  sList  list of strings
      * @return   UL list
      */
-    private static String xmlList( List sList ) {
+    private static String xmlList( List<String> sList ) {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "<ul>\n" );
-        for ( Iterator it = sList.iterator(); it.hasNext(); ) {
+        for ( String str : sList ) {
             sbuf.append( "<li>" )
                 .append( "<code>" )
                 .append( "<![CDATA[" )
-                .append( (String) it.next() )
+                .append( str )
                 .append( "]]>" )
                 .append( "</code>" )
                 .append( "</li>" )

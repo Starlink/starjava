@@ -25,7 +25,7 @@ public class HomogeneousTablesInput implements TablesInput {
 
     private final InputTablesParameter inTablesParam_;
     private final FilterParameter inFilterParam_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
@@ -35,7 +35,7 @@ public class HomogeneousTablesInput implements TablesInput {
      * @param   useInFilter  whether preprocessing filters are permitted
      */
     public HomogeneousTablesInput( boolean useInFilter ) {
-        List<Parameter> paramList = new ArrayList();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         /* Input tables parameter. */
         inTablesParam_ = new InputTablesParameter( "in" );
@@ -56,10 +56,10 @@ public class HomogeneousTablesInput implements TablesInput {
         else {
             inFilterParam_ = null;
         }
-        params_ = paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return params_;
     }
 

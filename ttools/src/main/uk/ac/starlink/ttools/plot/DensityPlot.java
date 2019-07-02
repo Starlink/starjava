@@ -167,8 +167,8 @@ public class DensityPlot extends SurfacePlot {
                 styles[ is ] = data.getSetStyle( is );
             }
             if ( grids.length > 1 ) {
-                grids = (BinGrid[]) grids.clone();
-                styles = (Style[]) styles.clone();
+                grids = grids.clone();
+                styles = styles.clone();
                 foldGrids( grids, styles );
             }
 
@@ -176,7 +176,7 @@ public class DensityPlot extends SurfacePlot {
              * which will provide the image. */
             int[] rgb = new int[ npix ];
             Arrays.fill( rgb, 0xff000000 );
-            List cutList = new ArrayList();
+            List<double[]> cutList = new ArrayList<double[]>();
             if ( styles.length > 0 ) {
                 for ( int is = 0; is < grids.length; is++ ) {
                     DensityStyle style = (DensityStyle) styles[ is ];
@@ -201,7 +201,7 @@ public class DensityPlot extends SurfacePlot {
             hiCuts_ = new double[ cutList.size() ];
             styles_ = new DensityStyle[ cutList.size() ];
             for ( int i = 0; i < cutList.size(); i++ ) {
-                double[] cuts = (double[]) cutList.get( i );
+                double[] cuts = cutList.get( i );
                 loCuts_[ i ] = cuts[ 0 ];
                 hiCuts_[ i ] = cuts[ 1 ];
                 styles_[ i ] = (DensityStyle) styles[ i ];
@@ -242,7 +242,7 @@ public class DensityPlot extends SurfacePlot {
         }
         BinGrid[] rgbGrids = new BinGrid[ 3 ];
         DensityStyle[] rgbStyles = new DensityStyle[ 3 ];
-        List seenStyles = new ArrayList();
+        List<DensityStyle> seenStyles = new ArrayList<DensityStyle>();
         for ( int is = 0; is < ngrid; is++ ) {
             int iseen = seenStyles.indexOf( styles[ is ] );
             if ( iseen < 0 ) {

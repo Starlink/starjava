@@ -62,7 +62,7 @@ public class ServiceCeaWriter extends CeaWriter {
     }
 
     public int configure( String[] args ) {
-        List argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         if ( ! argList.isEmpty() ) {
             return 1;
         }

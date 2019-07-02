@@ -140,10 +140,11 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         binbaseParam_.setDoubleDefault( 0. );
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         String tSuffix = TABLE_VARIABLE;
-        List paramList =
-            new ArrayList( Arrays.asList( super.getParameters() ) );
+        List<Parameter<?>> paramList =
+            new ArrayList<Parameter<?>>( Arrays
+                                        .asList( super.getParameters() ) );
         paramList.add( yloParam_ );
         paramList.add( yhiParam_ );
         paramList.add( ylogParam_ );
@@ -153,7 +154,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         paramList.add( normParam_ );
         paramList.add( cumulativeParam_ );
         paramList.add( binbaseParam_ );
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     protected PlotState createPlotState() {
@@ -279,7 +280,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
 
             /* Make sure that the bounds accommodate the limits of the 
              * extreme bins. */
-            MapBinnedData.BinMapper mapper =
+            MapBinnedData.BinMapper<Long> mapper =
                 MapBinnedData.createBinMapper( xlog, binWidth, binBase );
             if ( xloCalc ) {
                 xlo = mapper.getBounds( mapper.getKey( xlo ) )[ 0 ];
@@ -322,9 +323,9 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             int nset = state.getPlotData().getSetCount();
             boolean norm = state.getNormalised();
             boolean cumulative = state.getCumulative();
-            MapBinnedData.BinMapper mapper =
-                MapBinnedData.createBinMapper( xlog, binWidth, binBase );
-            BinnedData binData = new MapBinnedData( nset, mapper );
+            BinnedData binData =
+                MapBinnedData.createBinMapper( xlog, binWidth, binBase )
+                             .createBinnedData( nset );
             if ( norm ) {
                 binData = new NormalisedBinnedData( binData );
             }
@@ -348,9 +349,10 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             /* Find the highest and lowest bin counts. */
             double[] sums = new double[ nset ];
             Range range = new Range();
-            for ( Iterator binIt = binData.getBinIterator( false );
+            for ( Iterator<BinnedData.Bin> binIt =
+                      binData.getBinIterator( false );
                   binIt.hasNext(); ) {
-                BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                BinnedData.Bin bin = binIt.next();
                 for ( int is = 0; is < nset; is++ ) {
                     double s = bin.getWeightedCount( is );
                     sums[ is ] += s;

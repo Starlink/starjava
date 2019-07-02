@@ -61,7 +61,7 @@ public abstract class BinResultColumnData<T> extends ColumnData {
     public static ColumnData createInstance( ValueInfo info,
                                              BinList.Result binResult,
                                              double binFactor ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         if ( Byte.class.equals( clazz ) ) {
             return new BinResultColumnData<Byte>( info, binResult,
                                                   binFactor ) {

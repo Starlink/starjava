@@ -202,7 +202,7 @@ public class SkyDensityMap extends SingleMapperTask {
         } );
         quantParam_.setNullPermitted( true );
 
-        getParameterList().addAll( Arrays.asList( new Parameter[] {
+        getParameterList().addAll( Arrays.asList( new Parameter<?>[] {
             lonParam_,
             latParam_,
             tilingParam_,

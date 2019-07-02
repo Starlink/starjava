@@ -8,8 +8,7 @@ package uk.ac.starlink.ttools.plot2;
  * required margins outside the plot area, but it may acquire more
  * detailed functions in the future.
  *
- * <p>You can find a basic single-zone implementation at
- * {@link SingleGanger#FACTORY}.
+ * <p>You can find a basic single-zone implementation in {@link SingleGanger}.
  *
  * @author   Mark Taylor
  * @since    12 Dec 2016

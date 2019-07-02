@@ -17,7 +17,7 @@ public interface TablesInput {
      *
      * @return  parameters
      */
-    Parameter[] getParameters();
+    Parameter<?>[] getParameters();
 
     /**
      * Returns an array of InputTableSpec objects describing the input tables

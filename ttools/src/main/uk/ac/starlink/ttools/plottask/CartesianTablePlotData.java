@@ -52,9 +52,9 @@ public class CartesianTablePlotData extends TablePlotData {
         super( table, setExprs, setNames, setStyles, labelExpr );
         labelExpr_ = labelExpr;
         setExprs_ = setExprs;
-        coordExprs_ = (String[]) coordExprs.clone();
+        coordExprs_ = coordExprs.clone();
         ndim_ = coordExprs.length;
-        errExprs_ = (String[]) errExprs.clone();
+        errExprs_ = errExprs.clone();
         int nerr = 0;
         StarTableJELRowReader dummyReader = new DummyJELRowReader( table );
         for ( int idim = 0; idim < errExprs.length; idim++ ) {
@@ -106,12 +106,12 @@ public class CartesianTablePlotData extends TablePlotData {
          * This is like a standard one, but contains an additional static
          * library, the PairCreator class.  This is used for evaluating
          * expressions of the form "lo,hi". */
-        List<Class> staticClassList =
-            new ArrayList<Class>( JELUtils.getStaticClasses() );
+        List<Class<?>> staticClassList =
+            new ArrayList<Class<?>>( JELUtils.getStaticClasses() );
         staticClassList.add( PairCreator.class );
-        Class[] staticLib = staticClassList.toArray( new Class[ 0 ] );
-        Class[] dynamicLib = new Class[] { jelReader.getClass(), };
-        Class[] dotClasses = new Class[ 0 ];
+        Class<?>[] staticLib = staticClassList.toArray( new Class<?>[ 0 ] );
+        Class<?>[] dynamicLib = new Class<?>[] { jelReader.getClass(), };
+        Class<?>[] dotClasses = new Class<?>[ 0 ];
         Library lib =
             new Library( staticLib, dynamicLib, dotClasses, jelReader, null );
         StarTable table = jelReader.getTable();
@@ -284,7 +284,7 @@ public class CartesianTablePlotData extends TablePlotData {
         }
 
         /* Prepare to generate error values. */
-        List errReaderList = new ArrayList();
+        List<ErrorReader> errReaderList = new ArrayList<ErrorReader>();
         for ( int idim = 0; idim < errExprs_.length; idim++ ) {
             ErrorReader errReader =
                 createErrorReader( idim, errExprs_[ idim ], rseq );
@@ -293,7 +293,7 @@ public class CartesianTablePlotData extends TablePlotData {
             }
         }
         final ErrorReader[] errorReaders =
-            (ErrorReader[]) errReaderList.toArray( new ErrorReader[ 0 ] );
+            errReaderList.toArray( new ErrorReader[ 0 ] );
         assert errorReaders.length == nerrPairs_;
 
         /* Construct and return the point sequence. */

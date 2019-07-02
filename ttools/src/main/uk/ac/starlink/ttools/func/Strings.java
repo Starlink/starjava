@@ -23,7 +23,7 @@ import uk.ac.starlink.ttools.convert.SkySystem;
  */
 public class Strings {
 
-    private static Map patterns = new HashMap();
+    private static Map<String,Pattern> patterns = new HashMap<String,Pattern>();
     private static final Pattern DESIG_REGEX = Pattern.compile(
           "([A-Za-z0-9][\\w.-]+[ _])?"   // 1. acronym + separator
         + "([BJG]?)"                     // 2. flag
@@ -866,7 +866,7 @@ public class Strings {
      * @return  pattern for <code>regex</code>
      */
     private static Pattern getPattern( String regex ) {
-        Pattern pat = (Pattern) patterns.get( regex );
+        Pattern pat = patterns.get( regex );
         if ( pat == null ) {
             pat = Pattern.compile( regex );
             patterns.put( regex, pat );

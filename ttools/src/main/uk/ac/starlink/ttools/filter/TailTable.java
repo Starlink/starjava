@@ -61,7 +61,7 @@ public class TailTable extends WrapperStarTable {
                 return baseSeq;
             }
             else {
-                LinkedList queue = new LinkedList();
+                LinkedList<Object[]> queue = new LinkedList<Object[]>();
                 long size = 0;
                 while ( baseSeq.next() ) {
                     queue.addLast( baseSeq.getRow() );

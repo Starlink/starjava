@@ -69,7 +69,8 @@ public class ClearParameterFilter extends BasicFilter {
      * @param  pnames   list of globs/names to remove
      * @see   uk.ac.starlink.ttools.ColumnIdentifier#globToRegex
      */
-    private static void removeParameters( List paramList, String[] pnames ) {
+    private static void removeParameters( List<DescribedValue> paramList,
+                                          String[] pnames ) {
         int nname = pnames.length;
         Pattern[] patterns = new Pattern[ nname ];
         for ( int iname = 0; iname < nname; iname++ ) {

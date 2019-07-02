@@ -71,9 +71,10 @@ public class TapWriter {
 
         /* Write header. */
         out.write( "<VOTABLE"
-                 + voser.formatAttribute( "version",
-                                          version_.getVersionNumber() )
-                 + voser.formatAttribute( "xmlns", version_.getXmlNamespace() )
+                 + VOSerializer.formatAttribute( "version",
+                                                 version_.getVersionNumber() )
+                 + VOSerializer.formatAttribute( "xmlns",
+                                                 version_.getXmlNamespace() )
                  + ">" );
         out.newLine();
         out.write( "<RESOURCE>" );

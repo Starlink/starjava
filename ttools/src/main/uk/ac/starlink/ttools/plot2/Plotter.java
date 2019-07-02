@@ -63,7 +63,7 @@ public interface Plotter<S extends Style> {
      *
      * @return    keys used when creating a style for this plotter.
      */
-    ConfigKey[] getStyleKeys();
+    ConfigKey<?>[] getStyleKeys();
 
     /**
      * Creates a style that can be used when creating a plot layer.

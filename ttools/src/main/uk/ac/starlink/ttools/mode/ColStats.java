@@ -162,7 +162,7 @@ public abstract class ColStats {
      * @return  ColStats object which can accumulate stats for <tt>info</tt>
      */
     public static ColStats makeColStats( ColumnInfo info ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         if ( Number.class.isAssignableFrom( clazz ) ) {
             return new NumberColStats( info );
         }

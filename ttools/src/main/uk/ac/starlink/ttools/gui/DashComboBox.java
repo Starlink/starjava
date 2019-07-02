@@ -39,8 +39,9 @@ public class DashComboBox extends RenderingComboBox {
      * @param  dashes  dash patterns for selection; 
      *                 null is OK for a solid line.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     public DashComboBox( float[][] dashes ) {
-        dashes = (float[][]) dashes.clone();
+        dashes = dashes.clone();
         setModel( new DefaultComboBoxModel( dashes ) );
     }
 

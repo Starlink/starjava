@@ -518,9 +518,9 @@ public class LinesPlot extends TablePlot {
         /* Otherwise return a modified set which is sorted according to the
          * sequence of the X values. */
         ArrayPlotData sortData = ArrayPlotData.copyPlotData( rawData );
-        Arrays.sort( sortData.getPoints(), new Comparator() {
-            public int compare( Object o1, Object o2 ) {
-                return compareByX( (PointData) o1, (PointData) o2 );
+        Arrays.sort( sortData.getPoints(), new Comparator<PointData>() {
+            public int compare( PointData p1, PointData p2 ) {
+                return compareByX( p1, p2 );
             }
         } );
         return sortData;

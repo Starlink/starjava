@@ -114,8 +114,8 @@ public class MocMode implements ProcessingMode {
         outParam_.setPrompt( "Location of output MOC file" );
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             orderParam_,
             raParam_,
             decParam_,

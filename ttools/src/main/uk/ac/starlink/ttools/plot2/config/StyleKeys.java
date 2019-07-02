@@ -98,6 +98,7 @@ public class StyleKeys {
             return null;
         }
         public Specifier<XYShape> createSpecifier() {
+            @SuppressWarnings("rawtypes")
             JComboBox shapeSelector = new RenderingComboBox( XYSHAPES ) {
                 @Override
                 protected Icon getRendererIcon( Object shape ) {
@@ -227,6 +228,7 @@ public class StyleKeys {
                 return null;
             }
             public Specifier<BarStyle.Form> createSpecifier() {
+                @SuppressWarnings("rawtypes")
                 JComboBox formSelector = new RenderingComboBox( BARFORMS ) {
                     protected Icon getRendererIcon( Object form ) {
                         return BarStyles.getIcon( (BarStyle.Form) form );
@@ -262,6 +264,7 @@ public class StyleKeys {
                 return fillMode.getDescription();
             }
             public Specifier<FillMode> createSpecifier() {
+                @SuppressWarnings("rawtypes")
                 JComboBox fillSelector = new RenderingComboBox( FILLMODES ) {
                     protected Icon getRendererIcon( Object fillmode ) {
                         return ((FillMode) fillmode)
@@ -615,8 +618,8 @@ public class StyleKeys {
      * @return  stroke key list
      * @see  #createStroke
      */
-    public static ConfigKey[] getStrokeKeys() {
-        return new ConfigKey[] {
+    public static ConfigKey<?>[] getStrokeKeys() {
+        return new ConfigKey<?>[] {
             THICKNESS,
             DASH,
         };
@@ -636,7 +639,7 @@ public class StyleKeys {
         int thick = config.get( THICKNESS );
         float[] dash = config.get( DASH );
         if ( dash != null && thick != 1 ) {
-            dash = (float[]) dash.clone();
+            dash = dash.clone();
             for ( int i = 0; i < dash.length; i++ ) {
                 dash[ i ] *= thick;
             }

@@ -21,8 +21,8 @@ public class AxisLabels {
      *                  <code>ticks</code>
      */
     public AxisLabels( double[] ticks, String[] labels ) {
-        ticks_ = (double[]) ticks.clone();
-        labels_ = (String[]) labels.clone();
+        ticks_ = ticks.clone();
+        labels_ = labels.clone();
         nTick_ = ticks_.length;
         if ( nTick_ != labels_.length ) {
             throw new IllegalArgumentException();

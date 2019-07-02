@@ -21,6 +21,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    5 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
 
     private final JComboBox comboBox_;

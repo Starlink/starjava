@@ -1,16 +1,15 @@
 package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.DoubleList;
 
 /**
  * Object for accumulating values in order to calculate quantiles.
@@ -23,7 +22,7 @@ public abstract class QuantCalc {
     /** Value by which Median Absolute Deviation is scaled to estimate SD. */
     public static final double MAD_SCALE = 1.4826;
 
-    private final Class clazz_;
+    private final Class<?> clazz_;
 
     /**
      * Constructor.
@@ -31,7 +30,7 @@ public abstract class QuantCalc {
      * @param  clazz  class of data objects which will be submitted;
      *          must be assignable from Number class
      */
-    protected QuantCalc( Class clazz ) {
+    protected QuantCalc( Class<?> clazz ) {
         if ( ! Number.class.isAssignableFrom( clazz ) ) {
             throw new IllegalArgumentException( clazz + " not number" );
         }
@@ -87,7 +86,8 @@ public abstract class QuantCalc {
      * @param  clazz  class of data objects which will be submitted;
      *         must be assignable from Number.class.
      */
-    public static QuantCalc createInstance( Class clazz, long nrow )
+    public static QuantCalc createInstance( Class<? extends Number> clazz,
+                                            long nrow )
             throws IOException {
         if ( clazz == Byte.class ) {
             return new ByteSlotQuantCalc();
@@ -110,7 +110,9 @@ public abstract class QuantCalc {
                                    Integer.MAX_VALUE );
         }
         else {
-            return new ObjectListQuantCalc( clazz );
+            assert nrow < 0
+               && ( clazz == Float.class || clazz == Double.class );
+            return new DoubleListQuantCalc( clazz );
         }
     }
 
@@ -135,53 +137,85 @@ public abstract class QuantCalc {
     }
 
     /**
-     * QuantCalc implementation which uses an ArrayList of Number objects
-     * to keep track of the accumulated data.  Not very efficient on
-     * memory.
+     * QuantCalc implementation which uses a DoubleList.
      */
-    static class ObjectListQuantCalc extends QuantCalc {
-
-        final Class clazz_;
-        final List<Number> list_;
+    static class DoubleListQuantCalc extends QuantCalc {
+        private final Class<? extends Number> clazz_;
+        private final DoubleList dlist_;
+        private double[] darray_;
 
         /**
          * Constructor.
          *
-         * @param   clazz  class of object data
+         * @param  clazz  content class
          */
-        public ObjectListQuantCalc( Class clazz ) {
+        public DoubleListQuantCalc( Class<? extends Number> clazz ) {
             super( clazz );
             clazz_ = clazz;
-            list_ = new ArrayList<Number>();
+            dlist_ = new DoubleList();
         }
 
         public void acceptDatum( Object obj ) {
-            if ( obj != null && obj.getClass().equals( clazz_ ) ) {
-                Number num = ((Number) obj);
-                double dval = num.doubleValue();
+            if ( clazz_.isInstance( obj ) ) {
+                double dval = clazz_.cast( obj ).doubleValue();
                 if ( ! Double.isNaN( dval ) ) {
-                    list_.add( num );
+                    dlist_.add( dval );
                 }
             }
         }
 
         public void ready() {
-            Collections.sort( (List) list_ );
+            darray_ = dlist_.toDoubleArray();
+            Arrays.sort( darray_ );
         }
 
         public long getValueCount() {
-            return list_.size();
+            return dlist_.size();
         }
 
         public Number getQuantile( double quant ) {
-            return list_.isEmpty() 
-                 ? null
-                 : list_.get( Math.min( (int) ( quant * list_.size() ),
-                                        list_.size() - 1 ) );
+            if ( darray_ == null ) {
+                return null;
+            }
+            int nd = darray_.length;
+            double quantile =
+                darray_[ Math.min( (int) ( quant * nd ), nd - 1 ) ];
+            if ( clazz_ == Double.class ) {
+                return new Double( quantile );
+            }
+            else if ( clazz_ == Float.class ) {
+                return new Float( (float) quantile );
+            }
+            else if ( clazz_ == Byte.class ) {
+                return new Byte( (byte) quantile );
+            }
+            else if ( clazz_ == Short.class ) {
+                return new Short( (short) quantile );
+            }
+            else if ( clazz_ == Integer.class ) {
+                return new Integer( (int) quantile );
+            }
+            else if ( clazz_ == Long.class ) {
+                return new Long( (long) quantile );
+            }
+            else {
+                return null;
+            }
         }
 
         public Iterator<Number> getValueIterator() {
-            return list_.iterator();
+            return new Iterator<Number>() {
+                int ix_ = 0;
+                public boolean hasNext() {
+                    return ix_ < darray_.length;
+                }
+                public Number next() {
+                    return new Double( darray_[ ix_++ ] );
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 
@@ -191,10 +225,10 @@ public abstract class QuantCalc {
     static class FloatArrayQuantCalc extends QuantCalc {
 
         final float[] array_;
-        final Class clazz_;
+        final Class<?> clazz_;
         int irow_;
 
-        public FloatArrayQuantCalc( Class clazz, int nrow ) {
+        public FloatArrayQuantCalc( Class<?> clazz, int nrow ) {
             super( clazz );
             clazz_ = clazz;
             array_ = new float[ nrow ];
@@ -402,7 +436,7 @@ public abstract class QuantCalc {
      * counts.
      */
     static class CountMapQuantCalc extends QuantCalc {
-        private final Class clazz_;
+        private final Class<?> clazz_;
         private Map<Number,Integer> countMap_;
         private long count_;
         private static final Integer ONE = new Integer( 1 );

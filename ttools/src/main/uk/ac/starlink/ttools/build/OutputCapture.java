@@ -13,10 +13,10 @@ import java.io.PrintStream;
  */
 public class OutputCapture {
 
-    private final Class clazz_;
+    private final Class<?> clazz_;
     private final String[] args_;
 
-    private OutputCapture( Class clazz, String[] args ) {
+    private OutputCapture( Class<?> clazz, String[] args ) {
         clazz_ = clazz;
         args_ = args;
     }
@@ -27,7 +27,7 @@ public class OutputCapture {
         PrintStream oldOut = System.out;
         System.setOut( pout );
         try {
-            clazz_.getMethod( "main", new Class[] { String[].class } )
+            clazz_.getMethod( "main", new Class<?>[] { String[].class } )
                   .invoke( null, new Object[] { args_ } );
             pout.flush();
         }
@@ -62,7 +62,7 @@ public class OutputCapture {
      * @param   args  argument vector
      */
     public static void main( String[] args ) throws Exception {
-        Class clazz = Class.forName( args[ 0 ] );
+        Class<?> clazz = Class.forName( args[ 0 ] );
         String[] subArgs = new String[ args.length - 1 ];
         System.arraycopy( args, 1, subArgs, 0, args.length - 1 );
         System.out.print( new OutputCapture( clazz, subArgs ).getXml() );

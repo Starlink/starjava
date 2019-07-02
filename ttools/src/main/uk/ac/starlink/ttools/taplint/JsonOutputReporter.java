@@ -47,7 +47,7 @@ public class JsonOutputReporter implements OutputReporter {
     public JsonOutputReporter( PrintStream out, ReportType[] types,
                                int maxRepeat, boolean debug, int maxChar ) {
         out_ = out;
-        typeList_ = new HashSet( Arrays.asList( types ) );
+        typeList_ = new HashSet<ReportType>( Arrays.asList( types ) );
         maxRepeat_ = maxRepeat;
         debug_ = debug;
         maxChar_ = maxChar;
@@ -69,7 +69,7 @@ public class JsonOutputReporter implements OutputReporter {
 
     public void end() {
         out_.print( jsoner_.getIndent( 1 ) + "]," ); // end sections
-        Map tmap = new TreeMap();
+        Map<String,Object> tmap = new TreeMap<String,Object>();
         int i = 0;
         for ( ReportType rtype : typeList_ ) {
             tmap.put( rtype.toString(),
@@ -120,13 +120,13 @@ public class JsonOutputReporter implements OutputReporter {
         String key = rtype.getChar() + "-" + scode_ + "-" + code.getLabel();
         int count = codeMap_.addItem( new SecCode( scode_, code ) );
         if ( count <= maxRepeat_ ) {
-            Map rmap = new LinkedHashMap();
+            Map<String,Object> rmap = new LinkedHashMap<String,Object>();
             rmap.put( "level", rtype.toString() );
             rmap.put( "code", code.getLabel() );
             rmap.put( "text", message );
             rmap.put( "iseq", new Integer( count ) );
             if ( err != null ) {
-                Map emap = new LinkedHashMap();
+                Map<String,String> emap = new LinkedHashMap<String,String>();
                 emap.put( "class", err.getClass().getName() );
                 emap.put( "errmsg", err.getMessage() );
                 if ( debug_ ) {
@@ -157,7 +157,8 @@ public class JsonOutputReporter implements OutputReporter {
                 if ( count > maxRepeat_ ) {
                     ReportCode code = sc.code_;
                     ReportType rtype = code.getType();
-                    Map rmap = new LinkedHashMap();
+                    Map<String,Object> rmap =
+                        new LinkedHashMap<String,Object>();
                     rmap.put( "level", rtype.toString() );
                     rmap.put( "code", code.getLabel() );
                     rmap.put( "more", new Integer( count - maxRepeat_ ) );

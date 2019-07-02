@@ -316,9 +316,9 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
             SpinnerModel model = spinner.getModel();
             if ( model instanceof SpinnerNumberModel ) {
                 SpinnerNumberModel nModel = (SpinnerNumberModel) model;
-                double step = ((Number) nModel.getStepSize()).doubleValue();
-                Comparable min = nModel.getMinimum();
-                Comparable max = nModel.getMaximum();
+                double step = nModel.getStepSize().doubleValue();
+                Object min = nModel.getMinimum();
+                Object max = nModel.getMaximum();
                 if ( ( step == 1 || step == -1 ) &&
                      ( min instanceof Number && max instanceof Number ) ) {
                     int imin = ((Number) min).intValue();

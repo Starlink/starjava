@@ -24,7 +24,8 @@ import uk.ac.starlink.util.IconUtils;
  */
 public class ShaderListCellRenderer extends BasicComboBoxRenderer {
 
-    private static final Map rendererIconMap_ = new HashMap();
+    private static final Map<Shader,Icon> rendererIconMap_ =
+        new HashMap<Shader,Icon>();
 
     /**
      * Constructs a renderer suitable for use with a combo box containing
@@ -34,6 +35,7 @@ public class ShaderListCellRenderer extends BasicComboBoxRenderer {
      *
      * @param  comboBox  combo box to contain renderer
      */
+    @SuppressWarnings("rawtypes")
     public ShaderListCellRenderer( final JComboBox comboBox ) {
 
         /* Message the renderer when the combo box is enabled/disabled,
@@ -49,6 +51,7 @@ public class ShaderListCellRenderer extends BasicComboBoxRenderer {
         } );
     }
 
+    @SuppressWarnings("rawtypes")
     public Component getListCellRendererComponent( JList list, Object value,
                                                    int index, boolean isSel,
                                                    boolean hasFocus ) {
@@ -86,6 +89,6 @@ public class ShaderListCellRenderer extends BasicComboBoxRenderer {
              * (Swing limitation). */
             rendererIconMap_.put( shader, IconUtils.toImageIcon( icon ) );
         }
-        return (Icon) rendererIconMap_.get( shader );
+        return rendererIconMap_.get( shader );
     }
 }

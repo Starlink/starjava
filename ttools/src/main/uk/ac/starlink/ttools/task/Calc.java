@@ -67,8 +67,8 @@ public class Calc implements Task {
         return "Evaluates expressions";
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             exprParam_,
             tableParam_,
         };

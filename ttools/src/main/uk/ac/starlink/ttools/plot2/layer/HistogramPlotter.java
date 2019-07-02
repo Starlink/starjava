@@ -235,9 +235,9 @@ public class HistogramPlotter
         return histoCoordGrp_;
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
-        list.addAll( Arrays.asList( new ConfigKey[] {
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             StyleKeys.COLOR,
             StyleKeys.TRANSPARENCY,
             BINSIZER_KEY,
@@ -247,14 +247,14 @@ public class HistogramPlotter
         if ( unitKey_ != null ) {
             list.add( unitKey_ );
         }
-        list.addAll( Arrays.asList( new ConfigKey[] {
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             StyleKeys.CUMULATIVE,
             StyleKeys.NORMALISE,
             StyleKeys.BAR_FORM,
             THICK_KEY,
             StyleKeys.DASH,
         } ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public HistoStyle createStyle( ConfigMap config ) {

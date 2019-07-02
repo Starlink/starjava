@@ -210,7 +210,7 @@ public class SortHeadFilter extends BasicFilter {
         /**
          * Helper class used as the sort key for table rows.
          */
-        private class SortKey implements Comparable {
+        private class SortKey implements Comparable<SortKey> {
             final int nkey1_;
             final Object[] keyVals_;
 
@@ -233,12 +233,10 @@ public class SortHeadFilter extends BasicFilter {
                 keyVals_[ nkey1_ - 1 ] = new Long( jelly.getCurrentRow() );
             }
 
-            public int compareTo( Object other ) {
-                SortKey o = (SortKey) other;
+            public int compareTo( SortKey other ) {
                 int c = 0;
                 for ( int i = 0; i < nkey1_ && c == 0; i++ ) {
-                    c = compareValues( (Comparable) this.keyVals_[ i ],
-                                       (Comparable) o.keyVals_[ i ] );
+                    c = compareValues( this.keyVals_[i], other.keyVals_[i] );
                 }
                 return up_ ? c : -c;
             }
@@ -247,7 +245,8 @@ public class SortHeadFilter extends BasicFilter {
         /**
          * Compares actual object values.
          */
-        private int compareValues( Comparable o1, Comparable o2 ) {
+        @SuppressWarnings("unchecked")
+        private int compareValues( Object o1, Object o2 ) {
             boolean null1 = Tables.isBlank( o1 );
             boolean null2 = Tables.isBlank( o2 );
             if ( null1 && null2 ) {
@@ -260,7 +259,14 @@ public class SortHeadFilter extends BasicFilter {
                 return nullsLast_ ? -1 : +1;
             }
             else {
-                return o1.compareTo( o2 );
+                if ( o1 instanceof Comparable &&
+                     o2 instanceof Comparable ) {
+                    return ((Comparable) o1).compareTo( (Comparable) o2 );
+                }
+                else {
+                    assert false;
+                    return 0;
+                }
             }
         }
     }

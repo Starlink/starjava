@@ -90,7 +90,7 @@ public abstract class NamedColorSet {
      *         >CSS Color Module Level 3 standard sec 4.3</a>
      */
     private static Map<String,Color> createCssMap() {
-        Map<String,Color> map = new LinkedHashMap();
+        Map<String,Color> map = new LinkedHashMap<String,Color>();
         putColor( map, 0xF0F8FF, "AliceBlue" );
         putColor( map, 0xFAEBD7, "AntiqueWhite" );
         putColor( map, 0x00FFFF, "Aqua" );

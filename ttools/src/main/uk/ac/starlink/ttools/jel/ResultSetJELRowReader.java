@@ -17,7 +17,7 @@ public class ResultSetJELRowReader extends JELRowReader {
     private final ResultSet rset_;
     private String[] colNames_;
     private String[] colLabels_;
-    private Class[] colClazzes_;
+    private Class<?>[] colClazzes_;
 
     /**
      * Constructor.
@@ -30,7 +30,7 @@ public class ResultSetJELRowReader extends JELRowReader {
         int ncol = rsetMeta.getColumnCount();
         colNames_ = new String[ ncol ];
         colLabels_ = new String[ ncol ];
-        colClazzes_ = new Class[ ncol ];
+        colClazzes_ = new Class<?>[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             int icol1 = icol + 1;
             colNames_[ icol ] = rsetMeta.getColumnName( icol1 );
@@ -72,7 +72,7 @@ public class ResultSetJELRowReader extends JELRowReader {
         }
     }
 
-    protected Class getColumnClass( int icol ) {
+    protected Class<?> getColumnClass( int icol ) {
         return icol < colClazzes_.length ? colClazzes_[ icol ] : null;
     }
 

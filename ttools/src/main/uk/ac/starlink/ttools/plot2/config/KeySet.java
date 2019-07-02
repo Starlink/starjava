@@ -14,7 +14,7 @@ public interface KeySet<T> {
      *
      * @return  fixed list of config keys
      */
-    ConfigKey[] getKeys();
+    ConfigKey<?>[] getKeys();
 
     /**
      * Creates a typed value based on the values in a map corresponding

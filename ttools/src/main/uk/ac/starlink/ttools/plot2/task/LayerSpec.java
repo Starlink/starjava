@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.task.CredibleString;
  */
 public class LayerSpec {
 
-    private final Plotter plotter_;
+    private final Plotter<?> plotter_;
     private final ConfigMap config_;
     private final String leglabel_;
     private final int izone_;
@@ -32,7 +32,7 @@ public class LayerSpec {
      * @param   leglabel legend label, or null to exclude from legend
      * @param   izone    zone index
      */
-    public LayerSpec( Plotter plotter, ConfigMap config, String leglabel,
+    public LayerSpec( Plotter<?> plotter, ConfigMap config, String leglabel,
                       int izone ) {
         this( plotter, config, leglabel, izone, null, null, null );
     }
@@ -54,7 +54,7 @@ public class LayerSpec {
      *                      the supplied table; if non-null, only true rows
      *                      are included
      */
-    public LayerSpec( Plotter plotter, ConfigMap config, String leglabel,
+    public LayerSpec( Plotter<?> plotter, ConfigMap config, String leglabel,
                       int izone, StarTable table, Map<String,String> coordMap,
                       CredibleString selectExpr ) {
         plotter_ = plotter;
@@ -71,7 +71,7 @@ public class LayerSpec {
      *
      * @return  plotter
      */
-    public Plotter getPlotter() {
+    public Plotter<?> getPlotter() {
         return plotter_;
     }
 

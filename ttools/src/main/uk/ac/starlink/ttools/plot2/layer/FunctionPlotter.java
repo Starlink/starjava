@@ -143,13 +143,13 @@ public class FunctionPlotter extends
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.addAll( Arrays.asList( getFunctionStyleKeys() ) );
         list.add( StyleKeys.COLOR );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         list.add( StyleKeys.ANTIALIAS );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     /**
@@ -158,8 +158,8 @@ public class FunctionPlotter extends
      *
      * @return   style keys for function definition
      */
-    public ConfigKey[] getFunctionStyleKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getFunctionStyleKeys() {
+        return new ConfigKey<?>[] {
             axisKey_,
             XNAME_KEY,
             FEXPR_KEY,

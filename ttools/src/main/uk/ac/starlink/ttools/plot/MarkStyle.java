@@ -494,7 +494,7 @@ public abstract class MarkStyle extends DefaultStyle {
             /* Now examine the pixels in the image we've just drawn to, and
              * extract a list of the touched pixels. */
             Raster raster = im.getData();
-            List pointList = new ArrayList( xdim * ydim );
+            List<Point> pointList = new ArrayList<Point>( xdim * ydim );
             for ( int ix = 0; ix < xdim; ix++ ) {
                 for ( int iy = 0; iy < ydim; iy++ ) {
                     int alpha = raster.getSample( ix, iy, 3 );
@@ -504,8 +504,7 @@ public abstract class MarkStyle extends DefaultStyle {
                     }
                 }
             }
-            Point[] points =
-                (Point[]) pointList.toArray( new Point[ 0 ] );
+            Point[] points = pointList.toArray( new Point[ 0 ] );
             pixoffs_ = new PointArrayPixellator( points );
         }
         return pixoffs_;

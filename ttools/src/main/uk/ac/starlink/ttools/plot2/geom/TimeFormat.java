@@ -290,7 +290,7 @@ public abstract class TimeFormat {
                 return PlotUtil.formatNumber( val, "0.#0", nsf - 1 );
             }
             else if ( ndp <= 0 ) {
-                return Long.toString( (long) Math.round( val ) );
+                return Long.toString( Math.round( val ) );
             }
             else {
                 return PlotUtil.formatNumber( val, "0.0", ndp );
@@ -346,10 +346,10 @@ public abstract class TimeFormat {
             if ( secPrec <= 0.1 ) {
                 int nSecDp =
                     (int) Math.round( Math.max( 0, -Math.log10( secPrec ) ) );
-                long scale = (long) Math.round( Math.pow( 10, nSecDp ) );
+                long scale = Math.round( Math.pow( 10, nSecDp ) );
                 double fracSec = unixSec - Math.floor( unixSec );
                 assert fracSec >= 0 && fracSec < 1;
-                long digits1 = (long) Math.round( scale * ( 1.  + fracSec ) );
+                long digits1 = Math.round( scale * ( 1.  + fracSec ) );
                 String digits = Long.toString( digits1 ).substring( 1 );
                 return new StringBuffer()
                       .append( txt )

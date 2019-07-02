@@ -309,14 +309,16 @@ public class SkySurfaceTiler {
                     v3list.add( new Vector3d( p[ 0 ], p[ 1 ], p[ 2 ] ) );
                 }
                 long nside = 1L << order;
-                final List<Long> indexList;
+                final List<?> ixList;
                 try {
-                    indexList = new PixTools()
-                               .query_polygon( nside, v3list, NEST, INCLUSIVE );
+                    ixList = new PixTools()
+                            .query_polygon( nside, v3list, NEST, INCLUSIVE );
                 }
                 catch ( Exception e ) {
                     return null;
                 }
+                @SuppressWarnings("unchecked")
+                List<Long> indexList = (List<Long>) ixList;
                 return new TreeSet<Long>( indexList );
             }
         };
@@ -367,9 +369,12 @@ public class SkySurfaceTiler {
                 try {
                     long nside = 1L << order;
                     Vector3d cv = new Vector3d( c0[ 0 ], c0[ 1 ], c0[ 2 ] );
-                    indexList = new PixTools()
-                               .query_disc( nside, cv, maxTheta,
-                                            NEST, INCLUSIVE );
+                    @SuppressWarnings("unchecked")
+                    List<Long> il =
+                        (List<Long>)
+                        new PixTools().query_disc( nside, cv, maxTheta,
+                                                   NEST, INCLUSIVE );
+                    indexList = il;
                 }
                 catch ( Exception e ) {
                     return null;

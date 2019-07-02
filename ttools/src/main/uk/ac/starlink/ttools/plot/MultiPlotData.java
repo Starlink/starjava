@@ -23,12 +23,12 @@ public class MultiPlotData implements PlotData {
      * @param   datas   constituent plot data objects
      */
     public MultiPlotData( PlotData[] datas ) {
-        datas_ = (PlotData[]) datas.clone();
+        datas_ = datas.clone();
         int ndata = datas_.length;
         ndim_ = datas_[ 0 ].getNdim();
         int nerror = 0;
         boolean hasLabels = false;
-        List setLocList = new ArrayList();
+        List<SetLoc> setLocList = new ArrayList<SetLoc>();
         for ( int id = 0; id < ndata; id++ ) {
             PlotData data = datas_[ id ];
             if ( data.getNdim() != ndim_ ) {
@@ -42,7 +42,7 @@ public class MultiPlotData implements PlotData {
         }
         nerror_ = nerror;
         hasLabels_ = hasLabels;
-        setLocs_ = (SetLoc[]) setLocList.toArray( new SetLoc[ 0 ] );
+        setLocs_ = setLocList.toArray( new SetLoc[ 0 ] );
     }
 
     public int getNdim() {

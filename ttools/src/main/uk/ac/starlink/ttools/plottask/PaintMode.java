@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
@@ -165,8 +164,9 @@ public abstract class PaintMode {
         }
 
         public String getModeUsage( PaintModeParameter modeParam ) {
-            Parameter outParam = modeParam.getOutputParameter();
-            Parameter formatParam = modeParam.getFormatParameter();
+            OutputStreamParameter outParam = modeParam.getOutputParameter();
+            Parameter<GraphicExporter> formatParam =
+                modeParam.getFormatParameter();
             return " " + outParam.getName() + "=" + outParam.getUsage()
                  + " " + formatParam.getName() + "=" + formatParam.getUsage();
         }
@@ -175,7 +175,7 @@ public abstract class PaintMode {
                                       PaintModeParameter param )
                 throws TaskException {
             OutputStreamParameter outParam = param.getOutputParameter();
-            ChoiceParameter formatParam = param.getFormatParameter();
+            Parameter<GraphicExporter> formatParam = param.getFormatParameter();
             final Destination dest = outParam.objectValue( env );
             String out = outParam.stringValue( env );
             GraphicExporter dfltExp = null;
@@ -193,8 +193,7 @@ public abstract class PaintMode {
             if ( dfltExp != null ) {
                 formatParam.setStringDefault( dfltExp.getName() );
             }
-            final GraphicExporter exporter =
-                (GraphicExporter) formatParam.objectValue( env );
+            final GraphicExporter exporter = formatParam.objectValue( env );
             return new Painter() {
                 public void paintPicture( Picture picture ) throws IOException {
                     OutputStream out =
@@ -232,7 +231,8 @@ public abstract class PaintMode {
         }
 
         public String getModeUsage( PaintModeParameter modeParam ) {
-            Parameter formatParam = modeParam.getFormatParameter();
+            Parameter<GraphicExporter> formatParam =
+                modeParam.getFormatParameter();
             return " " + formatParam.getName() + "=" + formatParam.getUsage();
         }
 
@@ -240,7 +240,7 @@ public abstract class PaintMode {
                                       PaintModeParameter param )
                 throws TaskException {
             final GraphicExporter exporter =
-                (GraphicExporter) param.getFormatParameter().objectValue( env );
+                param.getFormatParameter().objectValue( env );
             final OutputStream out = env.getOutputStream();
             return new Painter() {
                 public void paintPicture( Picture picture ) throws IOException {
@@ -295,7 +295,7 @@ public abstract class PaintMode {
                 private Image createImage( int w, int h ) {
                     GraphicsEnvironment genv =
                         GraphicsEnvironment.getLocalGraphicsEnvironment();
-                    return genv.isHeadless()
+                    return GraphicsEnvironment.isHeadless()
                          ? (Image)
                            new BufferedImage( w, h, BufferedImage.TYPE_INT_RGB )
                          : (Image) genv.getDefaultScreenDevice()
@@ -335,7 +335,7 @@ public abstract class PaintMode {
         }
 
         public String getModeUsage( PaintModeParameter modeParam ) {
-            Parameter outParam = modeParam.getOutputParameter();
+            OutputStreamParameter outParam = modeParam.getOutputParameter();
             return " " + "["
                        + outParam.getName() + "=" + outParam.getUsage()
                        + "]";
@@ -345,7 +345,6 @@ public abstract class PaintMode {
                                       PaintModeParameter param )
                 throws TaskException {
             OutputStreamParameter outParam = param.getOutputParameter();
-            ChoiceParameter formatParam = param.getFormatParameter();
             outParam.setNullPermitted( true );
             if ( outParam.stringValue( env ) == null ) {
                 return SWING_MODE.createPainter( env, param );

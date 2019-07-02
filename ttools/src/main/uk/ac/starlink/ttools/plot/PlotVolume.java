@@ -48,7 +48,7 @@ public abstract class PlotVolume {
                           double padFactor, int[] padBorders, 
                           double fogginess ) {
         graphics_ = g;
-        styles_ = (MarkStyle[]) styles.clone();
+        styles_ = styles.clone();
         int padLeft = padBorders[ 0 ];
         int padRight = padBorders[ 1 ];
         int padBottom = padBorders[ 2 ];

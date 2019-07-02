@@ -13,7 +13,7 @@ public class ParamHandler extends ElementHandler {
 
     private ValueParser parser_;
 
-    public void setAttributes( Map atts ) {
+    public void setAttributes( Map<String,String> atts ) {
         super.setAttributes( atts );
 
         /* Construct and store a parser which known how to check values

@@ -10,7 +10,6 @@ import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.PixtoolsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.TextProgressIndicator;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
@@ -30,8 +29,8 @@ import uk.ac.starlink.ttools.task.TableMapping;
  */
 public class SkyMatch2Mapper implements TableMapper {
 
-    private final Parameter[] raParams_;
-    private final Parameter[] decParams_;
+    private final Parameter<?>[] raParams_;
+    private final Parameter<?>[] decParams_;
     private final DoubleParameter errorParam_;
     private final JoinTypeParameter joinParam_;
     private final FindModeParameter modeParam_;
@@ -41,8 +40,8 @@ public class SkyMatch2Mapper implements TableMapper {
      * Constructor.
      */
     public SkyMatch2Mapper() {
-        raParams_ = new Parameter[ 2 ];
-        decParams_ = new Parameter[ 2 ];
+        raParams_ = new Parameter<?>[ 2 ];
+        decParams_ = new Parameter<?>[ 2 ];
         for ( int i = 0; i < 2; i++ ) {
             int i1 = i + 1;
             raParams_[ i ] =
@@ -92,8 +91,8 @@ public class SkyMatch2Mapper implements TableMapper {
         modeParam_ = new FindModeParameter( "find" );
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             raParams_[ 0 ],
             decParams_[ 0 ],
             raParams_[ 1 ],

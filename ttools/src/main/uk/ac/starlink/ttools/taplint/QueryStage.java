@@ -104,11 +104,10 @@ public class QueryStage implements Stage {
         new Querier( reporter, tapService, tmetas, adqlLangs ).run();
 
         /* Run some test queries that ought to fail. */
-        runErrorQuery( reporter,
-                       new TapQuery( tapService, "DUFF QUERY",
-                                     Collections.EMPTY_MAP ),
-                       "bad ADQL" );
         Map<String,String> extraParams = new HashMap<String,String>();
+        runErrorQuery( reporter,
+                       new TapQuery( tapService, "DUFF QUERY", extraParams ),
+                       "bad ADQL" );
         extraParams.put( "LANG", "OOBLECK" );
         runErrorQuery( reporter,
                        new TapQuery( tapService,
@@ -278,7 +277,7 @@ public class QueryStage implements Stage {
 
             /* Pick some representative tables for later testing.
              * Do it by choosing tables with column counts near the median. */
-            tmetas = (TableMeta[]) tmetas.clone();
+            tmetas = tmetas.clone();
             Arrays.sort( tmetas, new Comparator<TableMeta>() {
                 public int compare( TableMeta tm1, TableMeta tm2 ) {
                     return tm1.getColumns().length - tm2.getColumns().length;

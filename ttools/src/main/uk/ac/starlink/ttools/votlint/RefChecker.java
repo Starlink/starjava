@@ -15,7 +15,7 @@ import java.util.Set;
  */
 public class RefChecker implements AttributeChecker {
 
-    private final Set legalReferents_;
+    private final Set<String> legalReferents_;
 
     /**
      * Constructs a RefChecker which can only sensibly reference a given
@@ -25,7 +25,8 @@ public class RefChecker implements AttributeChecker {
      *          ref can sensibly point to
      */
     public RefChecker( String[] legalReferents ) {
-        legalReferents_ = new HashSet( Arrays.asList( legalReferents ) );
+        legalReferents_ =
+            new HashSet<String>( Arrays.asList( legalReferents ) );
     }
 
     /**

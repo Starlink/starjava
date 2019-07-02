@@ -120,14 +120,14 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
         return sbuf.toString();
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( THICK_KEY );
         if ( reportAuxKeys_ ) {
             list.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public AuxLineStyle createStyle( ConfigMap config ) {

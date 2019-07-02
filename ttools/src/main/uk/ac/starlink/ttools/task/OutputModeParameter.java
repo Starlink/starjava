@@ -107,9 +107,9 @@ public class OutputModeParameter
         ProcessingMode mode = getObjectFactory().createObject( modeName );
         List<String> wordList = new ArrayList<String>();
         wordList.add( getName() + "=" + modeName );
-        Parameter[] params = mode.getAssociatedParameters();
+        Parameter<?>[] params = mode.getAssociatedParameters();
         for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
+            Parameter<?> param = params[ i ];
             wordList.add( param.getName() + "=" + param.getUsage() );
         }
         return Formatter.formatWords( wordList, indent );
@@ -133,8 +133,8 @@ public class OutputModeParameter
             public TableConsumer createConsumer( Environment env ) {
                 return consumer;
             }
-            public Parameter[] getAssociatedParameters() {
-                return new Parameter[ 0 ];
+            public Parameter<?>[] getAssociatedParameters() {
+                return new Parameter<?>[ 0 ];
             }
             public String getDescription() {
                 return "";

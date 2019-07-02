@@ -258,8 +258,8 @@ public class SkyDensityPlotter
         return sbuf.toString();
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
         keyList.add( LEVEL_KEY );
         if ( weightCoord_ != null ) {
             keyList.add( COMBINER_KEY );
@@ -271,7 +271,7 @@ public class SkyDensityPlotter
         if ( transparent_ ) {
             keyList.add( TRANSPARENCY_KEY );
         }
-        return keyList.toArray( new ConfigKey[ 0 ] );
+        return keyList.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public SkyDenseStyle createStyle( ConfigMap config ) {
@@ -301,7 +301,7 @@ public class SkyDensityPlotter
      * An attempt is made to return the result for the "largest" screen pixel
      * (the one covering more of the sky than any other).
      *
-     * @param  surface
+     * @param  surface  plot surface
      * @return  approximately corresponding HEALPix level
      */
     public static int getPixelLevel( SkySurface surface ) {

@@ -59,7 +59,8 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
                                                  double dflt ) {
         return new DoubleConfigKey( meta, dflt ) {
             public Specifier<Double> createSpecifier() {
-                return new TextFieldSpecifier( this, new Double( Double.NaN ) );
+                return new TextFieldSpecifier<Double>
+                                             ( this, new Double( Double.NaN ) );
             }
         };
     }

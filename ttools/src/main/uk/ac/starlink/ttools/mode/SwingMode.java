@@ -40,8 +40,8 @@ public class SwingMode implements ProcessingMode, TableConsumer {
         return this;
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[ 0 ];
     }
 
     public String getDescription() {
@@ -105,7 +105,7 @@ public class SwingMode implements ProcessingMode, TableConsumer {
         }
         scroller.setViewportView( jt );
         rowHeader.installOnScroller( scroller );
-        jt.configureColumnWidths( jt, 600, 500 );
+        StarJTable.configureColumnWidths( jt, 600, 500 );
  
         /* Post window to screen. */
         final JFrame frame = new JFrame();

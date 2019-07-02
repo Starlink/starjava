@@ -106,7 +106,7 @@ public class BinGrid {
      */
     private double[] getBlockSorted() {
         if ( blockSorted_ == null ) {
-            double[] sorted = (double[]) sums_.clone();
+            double[] sorted = sums_.clone();
             Arrays.sort( sorted );
             int blockSize = Math.max( 1, npix_ / 1000 );
             int nblock = npix_ / blockSize;

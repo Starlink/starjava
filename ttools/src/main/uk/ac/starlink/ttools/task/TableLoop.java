@@ -83,7 +83,7 @@ public class TableLoop extends ConsumerTask {
         endParam_.setPosition( ++ipos );
         stepParam_.setPosition( ++ipos );
 
-        getParameterList().addAll( Arrays.asList( new Parameter[] {
+        getParameterList().addAll( Arrays.asList( new Parameter<?>[] {
             varParam_,
             startParam_,
             endParam_,

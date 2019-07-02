@@ -213,8 +213,8 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         return true;
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> keys = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> keys = new ArrayList<ConfigKey<?>>();
         keys.add( StyleKeys.COLOR );
         if ( weightCoord_ != null ) {
             keys.add( COMBINER_KEY );
@@ -223,7 +223,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         keys.add( SMOOTH_KEY );
         keys.add( StyleKeys.LEVEL_MODE );
         keys.add( OFFSET_KEY );
-        return keys.toArray( new ConfigKey[ 0 ] );
+        return keys.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public ContourStyle createStyle( ConfigMap config ) {

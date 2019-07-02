@@ -20,7 +20,7 @@ public class DataBounds {
      * @param  npoints  array of per-subset point counts, one for each set
      */
     public DataBounds( Range[] ranges, int npoint, int[] npoints ) {
-        ranges_ = (Range[]) ranges.clone();
+        ranges_ = ranges.clone();
         npoint_ = npoint;
         npoints_ = npoints;
     }

@@ -25,14 +25,14 @@ import uk.ac.starlink.util.ObjectFactory;
  */
 public class LayersWriter {
 
-    private final TypedPlot2Task task_;
+    private final TypedPlot2Task<?,?> task_;
 
     /**
      * Constructor.
      *
      * @param   task for which to write docs
      */
-    public LayersWriter( TypedPlot2Task task ) {
+    public LayersWriter( TypedPlot2Task<?,?> task ) {
         task_ = task;
     }
 
@@ -76,7 +76,7 @@ public class LayersWriter {
             for ( String nickname : taskFact.getNickNames() ) {
                 Task task = taskFact.createObject( nickname );
                 if ( task instanceof TypedPlot2Task ) {
-                    TypedPlot2Task p2task = (TypedPlot2Task) task;
+                    TypedPlot2Task<?,?> p2task = (TypedPlot2Task<?,?>) task;
                     String fname = nickname + "-layers.xml";
                     File file = new File( dir, fname );
                     System.out.println( "Writing " + fname );
@@ -91,7 +91,7 @@ public class LayersWriter {
         }
         else {
             LayersWriter writer =
-                new LayersWriter( (TypedPlot2Task)
+                new LayersWriter( (TypedPlot2Task<?,?>)
                                   taskFact.createObject( args[ 0 ] ) );
             System.out.println( writer.getXml() );
         }

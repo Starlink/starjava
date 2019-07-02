@@ -71,11 +71,11 @@ public class ShapeFamilyLayerType implements LayerType {
         return form_.getFormDescription();
     }
 
-    public Parameter[] getAssociatedParameters( String suffix ) {
-        return new Parameter[] { createShapeModeParameter( suffix ) };
+    public Parameter<?>[] getAssociatedParameters( String suffix ) {
+        return new Parameter<?>[] { createShapeModeParameter( suffix ) };
     }
 
-    public Plotter getPlotter( Environment env, String suffix )
+    public Plotter<?> getPlotter( Environment env, String suffix )
             throws TaskException {
         ShapeMode mode = new ParameterFinder<Parameter<ShapeMode>>() {
             public Parameter<ShapeMode> createParameter( String sfix ) {
@@ -109,15 +109,15 @@ public class ShapeFamilyLayerType implements LayerType {
         return coordList.toArray( new Coord[ 0 ] );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
         if ( plotters_.size() > 0 ) {
             ShapeModePlotter plotter = plotters_.get( 0 );
             ShapeMode mode = plotter.getMode();
             keyList.addAll( Arrays.asList( plotter.getStyleKeys() ) );
             keyList.removeAll( Arrays.asList( mode.getConfigKeys() ) );
         }
-        return keyList.toArray( new ConfigKey[ 0 ] );
+        return keyList.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     /**
@@ -204,10 +204,10 @@ public class ShapeFamilyLayerType implements LayerType {
             for ( ShapeMode mode : getOptions() ) {
                 List<String> modeWords = new ArrayList<String>();
                 modeWords.add( getName() + "=" + mode.getModeName() );
-                Parameter[] coordParams =
+                Parameter<?>[] coordParams =
                     LayerTypeParameter
                    .getCoordParams( mode.getExtraCoords(), suffix_, false );
-                Parameter[] configParams =
+                Parameter<?>[] configParams =
                     LayerTypeParameter
                    .getLayerConfigParams( mode.getConfigKeys(),
                                           suffix_, false );

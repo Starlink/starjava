@@ -47,7 +47,7 @@ import uk.ac.starlink.util.Loader;
  */
 public class JELUtils {
 
-    private static List<Class> staticClasses_;
+    private static List<Class<?>> staticClasses_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
 
     /** 
@@ -65,14 +65,13 @@ public class JELUtils {
      * @return   a JEL library
      */
     public static Library getLibrary( JELRowReader reader ) {
-        Class[] staticLib =
-            (Class[]) getStaticClasses().toArray( new Class[ 0 ] );
-        Class[] dynamicLib = reader == null
-                           ? new Class[ 0 ]
-                           : new Class[] { reader.getClass() };
-        Class[] dotClasses = new Class[ 0 ];
+        Class<?>[] staticLib = getStaticClasses().toArray( new Class<?>[ 0 ] );
+        Class<?>[] dynamicLib = reader == null
+                           ? new Class<?>[ 0 ]
+                           : new Class<?>[] { reader.getClass() };
+        Class<?>[] dotClasses = new Class<?>[ 0 ];
         DVMap resolver = reader;
-        HashMap cnmap = null;
+        HashMap<String,Class<?>> cnmap = null;
         return new Library( staticLib, dynamicLib, dotClasses,
                             resolver, cnmap );
     }
@@ -118,12 +117,12 @@ public class JELUtils {
      *
      * @return   list of classes with static methods
      */
-    public static List<Class> getStaticClasses() {
+    public static List<Class<?>> getStaticClasses() {
         if ( staticClasses_ == null ) {
 
             /* Basic classes always present. */
-            List<Class> classList =
-                    new ArrayList<Class>( Arrays.asList( new Class[] {
+            List<Class<?>> classList =
+                    new ArrayList<Class<?>>( Arrays.asList( new Class<?>[] {
                 Arithmetic.class,
                 uk.ac.starlink.ttools.func.Arrays.class,
                 Conversions.class,
@@ -155,8 +154,7 @@ public class JELUtils {
                     for ( int i = 0; i < cs.length; i++ ) {
                         String className = cs[ i ].trim();
                         try {
-                            Class clazz =
-                                JELRowReader.class.forName( className );
+                            Class<?> clazz = Class.forName( className );
                             if ( ! classList.contains( clazz ) ) {
                                 classList.add( clazz );
                             }
@@ -190,8 +188,8 @@ public class JELUtils {
      *          will return
      * @throws  CompilationException  if <tt>expr</tt> cannot be compiled
      */
-    public static Class getExpressionType( Library lib, StarTable table,
-                                           String expr )
+    public static Class<?> getExpressionType( Library lib, StarTable table,
+                                              String expr )
              throws CompilationException {
         return new Parser( tweakExpression( table, expr ), lib )
               .parse( null ).resType;
@@ -209,7 +207,7 @@ public class JELUtils {
      *          (or one of its subtypes)
      */
     public static void checkExpressionType( Library lib, StarTable table,
-                                            String expr, Class clazz )
+                                            String expr, Class<?> clazz )
              throws CompilationException {
         new Parser( tweakExpression( table, expr ), lib ).parse( clazz );
     }
@@ -228,7 +226,7 @@ public class JELUtils {
      * @return  compiled expression
      */
     public static CompiledExpression compile( Library lib, StarTable table,
-                                              String expr, Class clazz )
+                                              String expr, Class<?> clazz )
             throws CompilationException {
         try {
             return Evaluator.compile( tweakExpression( table, expr ),
@@ -280,7 +278,8 @@ public class JELUtils {
      */
     public static JELQuantity compileQuantity( Library lib,
                                                StarTableJELRowReader jelRdr,
-                                               final String expr, Class clazz )
+                                               final String expr,
+                                               Class<?> clazz )
             throws CompilationException {
         StarTable table = jelRdr.getTable();
         final String calcExpr = tweakExpression( table, expr );
@@ -366,7 +365,7 @@ public class JELUtils {
      * @param   clazz   input class
      * @return  non-primitive class matching <tt>clazz</tt>
      */
-    public static Class getWrapperType( Class clazz ) {
+    public static Class<?> getWrapperType( Class<?> clazz ) {
         if ( clazz.equals( boolean.class ) ) {
             return Boolean.class;
         }

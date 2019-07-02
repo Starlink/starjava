@@ -119,8 +119,8 @@ public class SizeForm implements ShapeForm {
         };
     }
 
-    public ConfigKey[] getConfigKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getConfigKeys() {
+        return new ConfigKey<?>[] {
             StyleKeys.MARK_SHAPE,
             StyleKeys.SCALE_PIX,
             StyleKeys.AUTOSCALE_PIX

@@ -220,8 +220,8 @@ public class HealpixPlotter
         return sbuf.toString();
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
         keyList.add( DATALEVEL_KEY );
         keyList.add( DATASYS_KEY );
         keyList.add( VIEWSYS_KEY );
@@ -234,7 +234,7 @@ public class HealpixPlotter
         if ( reportAuxKeys_ ) {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
-        return keyList.toArray( new ConfigKey[ 0 ] );
+        return keyList.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public HealpixStyle createStyle( ConfigMap config ) {

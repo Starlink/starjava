@@ -51,7 +51,7 @@ public class ModeDoc {
                     "No description for mode " + name );
             }
             out_.print( descrip );
-            Parameter[] params = mode.getAssociatedParameters();
+            Parameter<?>[] params = mode.getAssociatedParameters();
             if ( params.length > 0 ) {
                 out_.println( "<p>Additional parameters for this output mode "
                             + "are:<dl>" );

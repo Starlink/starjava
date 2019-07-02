@@ -144,7 +144,7 @@ public class ArrayPlotData implements PlotData {
             setNames[ is ] = data.getSetName( is );
             setStyles[ is ] = data.getSetStyle( is );
         }
-        List pointList = new ArrayList();
+        List<PointData> pointList = new ArrayList<PointData>();
         int ndim = data.getNdim();
         int nerror = data.getNerror();
         PointSequence pseq = data.getPointSequence();
@@ -153,7 +153,7 @@ public class ArrayPlotData implements PlotData {
             for ( int is = 0; is < nset; is++ ) {
                 isIncluded[ is ] = pseq.isIncluded( is );
             }
-            double[] pointCopy = (double[]) pseq.getPoint().clone();
+            double[] pointCopy = pseq.getPoint().clone();
             double[][] errors = pseq.getErrors();
             double[][] errorsCopy;
             if ( nerror > 0 && errors != null && errors.length > 0 ) {
@@ -161,7 +161,7 @@ public class ArrayPlotData implements PlotData {
                 for ( int ierr = 0; ierr < errors.length; ierr++ ) {
                     double[] error = errors[ ierr ];
                     if ( error != null ) {
-                        errorsCopy[ ierr ] = (double[]) error.clone();
+                        errorsCopy[ ierr ] = error.clone();
                     }
                 }
             }
@@ -171,8 +171,7 @@ public class ArrayPlotData implements PlotData {
             pointList.add( new PointData( pointCopy, errorsCopy,
                                           pseq.getLabel(), isIncluded ) );
         }
-        PointData[] points =
-            (PointData[]) pointList.toArray( new PointData[ 0 ] );
+        PointData[] points = pointList.toArray( new PointData[ 0 ] );
         return new ArrayPlotData( nset, setNames, setStyles, data.getNdim(),
                                   data.getNerror(), data.hasLabels(), points );
     }

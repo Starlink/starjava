@@ -31,13 +31,13 @@ public class DatalinkLint implements Task {
 
     private final Parameter<String> locParam_;
     private final OutputReporterParameter reporterParam_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
 
     /**
      * Constructor.
      */
     public DatalinkLint() {
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         locParam_ = new StringParameter( "votable" );
         locParam_.setPosition( 1 );
@@ -56,14 +56,14 @@ public class DatalinkLint implements Task {
         paramList.addAll( Arrays.asList( reporterParam_
                                         .getReporterParameters() ) );
 
-        params_ = paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     public String getPurpose() {
         return "Validates DataLink documents";
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return params_;
     }
 

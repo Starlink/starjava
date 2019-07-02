@@ -145,9 +145,9 @@ public class TimeSurfaceFactory
                               p.tcrowd_, p.ycrowd_, p.minor_, p.tannotate_ );
     }
 
-    public ConfigKey[] getProfileKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
-        list.addAll( Arrays.asList( new ConfigKey[] {
+    public ConfigKey<?>[] getProfileKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             YLOG_KEY,
             YFLIP_KEY,
             TLABEL_KEY,
@@ -159,7 +159,7 @@ public class TimeSurfaceFactory
             StyleKeys.MINOR_TICKS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Profile createProfile( ConfigMap config ) {
@@ -177,8 +177,8 @@ public class TimeSurfaceFactory
                             grid, tcrowd, ycrowd, tformat, minor, true );
     }
 
-    public ConfigKey[] getAspectKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getAspectKeys() {
+        return new ConfigKey<?>[] {
             TMIN_KEY, TMAX_KEY, TSUBRANGE_KEY,
             YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
         };
@@ -224,7 +224,7 @@ public class TimeSurfaceFactory
         return ranges;
     }
 
-    public ConfigKey[] getNavigatorKeys() {
+    public ConfigKey<?>[] getNavigatorKeys() {
         return TimeNavigator.getConfigKeys();
     }
 

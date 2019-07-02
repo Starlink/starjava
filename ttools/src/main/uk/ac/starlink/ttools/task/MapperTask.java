@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 
@@ -39,7 +40,7 @@ public abstract class MapperTask extends ConsumerTask {
         super( purpose, outMode, useOutFilter );
         mapper_ = mapper;
         tablesInput_ = tablesInput;
-        List paramList = getParameterList();
+        List<Parameter<?>> paramList = getParameterList();
         paramList.addAll( 0, Arrays.asList( tablesInput.getParameters() ) ); 
         paramList.addAll( Arrays.asList( mapper.getParameters() ) );
     }

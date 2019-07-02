@@ -485,7 +485,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * This is basically the kernel's extent, but it may be limited to some
      * maximum for practical purposes.
      *
-     * @param  kernel
+     * @param  kernel  smoothing kernel
      * @return  effective extent
      */
     public static int getEffectiveExtent( Kernel1d kernel ) {

@@ -105,11 +105,12 @@ public class Histogram extends SurfacePlot {
             int lastIxLead = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
             int lastIyhi = 0;
             double total = 0;
-            for ( Iterator it = binnedData.getBinIterator( cumulative );
+            for ( Iterator<BinnedData.Bin> it =
+                      binnedData.getBinIterator( cumulative );
                   it.hasNext(); ) {
 
                 /* Get the bin and its value. */
-                BinnedData.Bin bin = (BinnedData.Bin) it.next();
+                BinnedData.Bin bin = it.next();
                 double sum = bin.getWeightedCount( iset );
                 double tsum = cumulative ? total + sum
                                          : sum;
@@ -215,9 +216,9 @@ public class Histogram extends SurfacePlot {
         double[] bounds = getSurfaceBounds();
         double xbot = bounds[ 0 ];
         double xtop = bounds[ 2 ];
-        for ( Iterator it = binnedData.getBinIterator( false );
+        for ( Iterator<BinnedData.Bin> it = binnedData.getBinIterator( false );
               it.hasNext(); ) {
-            BinnedData.Bin bin = (BinnedData.Bin) it.next();
+            BinnedData.Bin bin = it.next();
             if ( bin.getLowBound() < xbot ) {
                 xbot = Math.max( xbot, bin.getHighBound() );
             }
@@ -294,11 +295,10 @@ public class Histogram extends SurfacePlot {
      */
     private BinnedData createBinnedData( int nset ) {
         HistogramPlotState state = (HistogramPlotState) getState();
-        MapBinnedData.BinMapper mapper =
-            MapBinnedData.createBinMapper( state.getLogFlags()[ 0 ],
-                                           state.getBinWidth(),
-                                           state.getBinBase() );
-        return new MapBinnedData( nset, mapper );
+        return MapBinnedData.createBinMapper( state.getLogFlags()[ 0 ],
+                                              state.getBinWidth(),
+                                              state.getBinBase() )
+                            .createBinnedData( nset );
     }
 
     /**

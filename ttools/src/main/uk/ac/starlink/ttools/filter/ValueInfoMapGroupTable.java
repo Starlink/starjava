@@ -49,7 +49,7 @@ public class ValueInfoMapGroupTable extends RandomStarTable {
     }
 
     public Object[] getRow( long irow ) {
-        Map map = maps_.get( checkedLongToInt( irow ) );
+        Map<ValueInfo,Object> map = maps_.get( checkedLongToInt( irow ) );
         int ncol = keys_.length;
         Object[] row = new Object[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {

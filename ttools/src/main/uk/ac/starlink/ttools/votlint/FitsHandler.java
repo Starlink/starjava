@@ -60,8 +60,8 @@ public class FitsHandler extends StreamingHandler
          * indirect check, and relies on the coding in ValueParser being
          * compatible with that in the equivalent VOTABLE package classes
          * (Decoder). */
-        Class vClass = vParser.getContentClass();
-        Class fClass = cinfo.getContentClass();
+        Class<?> vClass = vParser.getContentClass();
+        Class<?> fClass = cinfo.getContentClass();
         if ( ! vClass.equals( fClass ) ) {
             warning( "VOTable/FITS type mismatch for column " + 
                      vField.getRef() + " (" +

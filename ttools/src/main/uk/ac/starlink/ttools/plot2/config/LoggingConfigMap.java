@@ -17,7 +17,7 @@ public class LoggingConfigMap extends ConfigMap {
     private final ConfigMap base_;
     private final Level level_;
     private final Logger logger_;
-    private final Set<ConfigKey> logged_;
+    private final Set<ConfigKey<?>> logged_;
 
     /**
      * Constructor.
@@ -29,7 +29,7 @@ public class LoggingConfigMap extends ConfigMap {
         base_ = base;
         level_ = level;
         logger_ = Logger.getLogger( getClass().getName() );
-        logged_ = new HashSet<ConfigKey>();
+        logged_ = new HashSet<ConfigKey<?>>();
     }
 
     @Override

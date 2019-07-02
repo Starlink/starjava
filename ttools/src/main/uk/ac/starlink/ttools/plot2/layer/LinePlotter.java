@@ -140,8 +140,8 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
         return sbuf.toString();
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         list.add( SORTAXIS_KEY );
@@ -150,7 +150,7 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
             list.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         }
         list.add( StyleKeys.AUX_NULLCOLOR );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public LinesStyle createStyle( ConfigMap config ) {

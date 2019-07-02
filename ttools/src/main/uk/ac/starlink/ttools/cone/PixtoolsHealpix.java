@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.cone;
 
 import cds.moc.HealpixImpl;
 import gov.fnal.eag.healpix.PixTools;
-import java.util.Iterator;
 import java.util.List;
 import javax.vecmath.Vector3d;
 
@@ -54,11 +53,13 @@ public class PixtoolsHealpix implements HealpixImpl {
         double phiRad = Math.toRadians( lonDeg );
         double radiusRad = Math.toRadians( radiusDeg );
         Vector3d vec = pixTools_.Ang2Vec( thetaRad, phiRad );
-        List pixList = pixTools_.query_disc( nside, vec, radiusRad, 1, 1 );
+        @SuppressWarnings("unchecked")
+        List<Number> pixList =
+            (List<Number>) pixTools_.query_disc( nside, vec, radiusRad, 1, 1 );
         long[] pixs = new long[ pixList.size() ];
         int ip = 0;
-        for ( Iterator it = pixList.iterator(); it.hasNext(); ) {
-            pixs[ ip++ ] = ((Number) it.next()).longValue();
+        for ( Number pix : pixList ) {
+            pixs[ ip++ ] = pix.longValue();
         }
         assert ip == pixs.length;
         return pixs;
@@ -77,7 +78,7 @@ public class PixtoolsHealpix implements HealpixImpl {
     /**
      * Turns the MOC "order" parameter into the HEALPix Nside parameter.
      *
-     * @param  order
+     * @param  order   healpix order (&gt;=0)
      * @return   nside
      */
     public static long orderToNside( int order ) {

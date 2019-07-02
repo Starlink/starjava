@@ -43,7 +43,7 @@ public class TaskServlet extends HttpServlet {
     private StarTableFactory tableFactory_;
     private StarTableOutput tableOutput_;
     private JDBCAuthenticator jdbcAuth_;
-    private Collection taskNameSet_;
+    private Collection<String> taskNameSet_;
 
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
@@ -253,7 +253,7 @@ public class TaskServlet extends HttpServlet {
             throws IOException {
         out.println( "<p>Known tasks:</p>" );
         out.println( "<ul>" );
-        String[] taskNames = (String[]) taskNameSet_.toArray( new String[ 0 ] );
+        String[] taskNames = taskNameSet_.toArray( new String[ 0 ] );
         for ( int i = 0; i < taskNames.length; i++ ) {
             String taskName = taskNames[ i ];
             out.print( "<li>" );
@@ -287,7 +287,7 @@ public class TaskServlet extends HttpServlet {
         out.println( "<blockquote>" );
         Parameter<?>[] params = task.getParameters();
         for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
+            Parameter<?> param = params[ i ];
             out.print( " <font color='green'>"
                      + ( i > 0 ? "&amp;" : "?" )
                      + "</font> " );
@@ -326,14 +326,14 @@ public class TaskServlet extends HttpServlet {
      */
     public static String[] getTaskNames( ObjectFactory<Task> taskFactory,
                                          String taskList ) {
-        Collection knownTasks =
-            new HashSet( Arrays.asList( taskFactory.getNickNames() ) );
+        Collection<String> knownTasks =
+            new HashSet<String>( Arrays.asList( taskFactory.getNickNames() ) );
         if ( taskList == null || taskList.trim().length() == 0 ) {
-            return (String[]) knownTasks.toArray( new String[ 0 ] );
+            return knownTasks.toArray( new String[ 0 ] );
         }
         else {
             String[] taskNames = taskList.split( "\\s+" );
-            List okList = new ArrayList();
+            List<String> okList = new ArrayList<String>();
             for ( int i = 0; i < taskNames.length; i++ ) {
                 String task = taskNames[ i ];
                 if ( knownTasks.contains( task ) ) {
@@ -344,7 +344,7 @@ public class TaskServlet extends HttpServlet {
                                                       + task );
                 }
             }
-            return (String[]) okList.toArray( new String[ 0 ] );
+            return okList.toArray( new String[ 0 ] );
         }
     }
 

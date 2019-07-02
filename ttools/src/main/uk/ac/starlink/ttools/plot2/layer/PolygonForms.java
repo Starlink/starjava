@@ -138,6 +138,7 @@ public class PolygonForms {
                 return polyMode.getDescription();
             }
             @Override
+            @SuppressWarnings({"unchecked","rawtypes"})
             public Specifier<PolygonMode> createSpecifier() {
                 JComboBox comboBox = new JComboBox( modes );
                 comboBox.setRenderer( new PolygonModeRenderer() );
@@ -189,6 +190,7 @@ public class PolygonForms {
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public Component getListCellRendererComponent( JList list, Object value,
                                                        int index, boolean isSel,
                                                        boolean hasFocus ) {
@@ -264,8 +266,8 @@ public class PolygonForms {
             return new Coord[ 0 ];
         }
 
-        public ConfigKey[] getConfigKeys() {
-            return new ConfigKey[] {
+        public ConfigKey<?>[] getConfigKeys() {
+            return new ConfigKey<?>[] {
                 POLYMODE_KEY,
                 ISFAST_KEY,
             };
@@ -327,8 +329,8 @@ public class PolygonForms {
             return new Coord[] { ARRAY_COORD, };
         }
 
-        public ConfigKey[] getConfigKeys() {
-            return new ConfigKey[] {
+        public ConfigKey<?>[] getConfigKeys() {
+            return new ConfigKey<?>[] {
                 INCLUDEPOS_KEY,
                 POLYMODE_KEY,
                 ISFAST_KEY,

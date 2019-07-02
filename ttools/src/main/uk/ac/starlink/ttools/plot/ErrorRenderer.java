@@ -193,11 +193,12 @@ public abstract class ErrorRenderer {
         new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER );
     private static final Stroke CAP_BUTT = 
         new BasicStroke( 1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER );
-    private static final Iterator EMPTY_ITERATOR = new Iterator() {
+    private static final Iterator<int[][]> EMPTY_ITERATOR =
+            new Iterator<int[][]>() {
         public boolean hasNext() {
             return false;
         }
-        public Object next() {
+        public int[][] next() {
             throw new NoSuchElementException();
         }
         public void remove() {
@@ -632,7 +633,7 @@ public abstract class ErrorRenderer {
             int w2 = width / 2 - xpad;
             int h2 = height / 2 - ypad;
             int ndim = modes.length;
-            List offList = new ArrayList( ndim );
+            List<Point> offList = new ArrayList<Point>( ndim );
             if ( ndim > 0 ) {
                 ErrorMode xmode = modes[ 0 ];
                 if ( ! ErrorMode.NONE.equals( xmode ) ) {
@@ -670,7 +671,7 @@ public abstract class ErrorRenderer {
             xoffs_ = new int[ np ];
             yoffs_ = new int[ np ];
             for ( int ip = 0; ip < np; ip++ ) {
-                Point point = (Point) offList.get( ip );
+                Point point = offList.get( ip );
                 xoffs_[ ip ] = point.x;
                 yoffs_[ ip ] = point.y;
             }
@@ -2040,8 +2041,9 @@ public abstract class ErrorRenderer {
 
         public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
             Rectangle bounds = new Rectangle( x, y, 0, 0 );
-            for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
-                int[][] offs = (int[][]) it.next();
+            for ( Iterator<int[][]> it = get2dOffsets( xoffs, yoffs );
+                  it.hasNext(); ) {
+                int[][] offs = it.next();
                 bounds.add( rend2d_.getBounds( x, y, offs[ 0 ], offs[ 1 ] ) );
             }
             return bounds;
@@ -2049,8 +2051,9 @@ public abstract class ErrorRenderer {
 
         public void drawErrors( Graphics g, int x, int y, int[] xoffs,
                                 int[] yoffs ) {
-            for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
-                int[][] offs = (int[][]) it.next();
+            for ( Iterator<int[][]> it = get2dOffsets( xoffs, yoffs );
+                  it.hasNext(); ) {
+                int[][] offs = it.next();
                 rend2d_.drawErrors( g, x, y, offs[ 0 ], offs[ 1 ] );
             }
         }
@@ -2058,8 +2061,9 @@ public abstract class ErrorRenderer {
         public Pixellator getPixels( Rectangle clip, int x, int y,
                                      int[] xoffs, int[] yoffs ) {
             Drawing drawing = new Drawing( clip );
-            for ( Iterator it = get2dOffsets( xoffs, yoffs ); it.hasNext(); ) {
-                int[][] offs = (int[][]) it.next();
+            for ( Iterator<int[][]> it = get2dOffsets( xoffs, yoffs );
+                  it.hasNext(); ) {
+                int[][] offs = it.next();
                 drawing.addPixels( rend2d_.getPixels( clip, x, y,
                                                       offs[ 0 ], offs[ 1 ] ) );
             }
@@ -2079,7 +2083,8 @@ public abstract class ErrorRenderer {
          * @param  yoffs  2*ndim-element Y offset point array
          * @return  iterator of X,Y point arrays
          */
-        private Iterator get2dOffsets( final int[] xoffs, final int[] yoffs ) {
+        private Iterator<int[][]> get2dOffsets( final int[] xoffs,
+                                                final int[] yoffs ) {
 
             /* Number of dimensions is half the number of points (there 
              * must be an upper and lower bound point in each dimension). */
@@ -2127,12 +2132,12 @@ public abstract class ErrorRenderer {
                  * non-blank dimensions. */
                 else {
                     assert nActiveDim >= 2;
-                    return new Iterator() {
+                    return new Iterator<int[][]>() {
                         int[][] offPairs = new int[ 2 ][ 4 ];
                         boolean done;
                         int iActive = 0;
                         int jActive = 1;
-                        public Object next() {
+                        public int[][] next() {
                             if ( done ) {
                                 throw new NoSuchElementException();
                             }

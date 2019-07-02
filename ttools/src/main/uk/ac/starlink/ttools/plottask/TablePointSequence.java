@@ -114,7 +114,7 @@ public abstract class TablePointSequence implements PointSequence {
             throw new PlotDataException( e );
         }
         catch ( Error e ) {
-            throw (Error) e;
+            throw e;
         }
         catch ( Throwable e ) {
             throw new PlotDataException( "Unexpected error", e );
@@ -136,7 +136,7 @@ public abstract class TablePointSequence implements PointSequence {
             throw new PlotDataException( e );
         }
         catch ( Error e ) {
-            throw (Error) e;
+            throw e;
         }
         catch ( Throwable e ) {
             throw new PlotDataException( "Unexpected error", e );

@@ -8,7 +8,7 @@ package uk.ac.starlink.ttools.jel;
  */
 public class FixedConstant implements Constant {
 
-    private final Class clazz_;
+    private final Class<?> clazz_;
     private final Object value_;
 
     /**
@@ -17,7 +17,7 @@ public class FixedConstant implements Constant {
      * @param  clazz  content class
      * @param  value  value
      */
-    public FixedConstant( Object value, Class clazz ) {
+    public FixedConstant( Object value, Class<?> clazz ) {
         value_ = value;
         clazz_ = clazz;
     }
@@ -32,7 +32,7 @@ public class FixedConstant implements Constant {
         this( value, value.getClass() );
     }
 
-    public Class getContentClass() {
+    public Class<?> getContentClass() {
         return clazz_;
     }
 

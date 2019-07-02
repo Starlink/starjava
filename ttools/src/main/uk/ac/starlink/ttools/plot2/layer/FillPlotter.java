@@ -111,15 +111,15 @@ public class FillPlotter extends AbstractPlotter<FillPlotter.FillStyle> {
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
         if ( hasHorizontal_ ) {
             list.add( HORIZONTAL_KEY );
         }
         list.add( POSITIVE_KEY );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public FillStyle createStyle( ConfigMap config ) {

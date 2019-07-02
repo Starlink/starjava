@@ -131,16 +131,16 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.addAll( Arrays.asList( CAPTIONER_KEYSET.getKeys() ) );
-        list.addAll( Arrays.asList( new ConfigKey[] {
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             StyleKeys.ANCHOR,
             StyleKeys.COLOR,
             SPACING_KEY,
             CROWDLIMIT_KEY,
         } ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public LabelStyle createStyle( ConfigMap config ) throws ConfigException {
@@ -246,9 +246,9 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             for ( int i = 0; i < knownPlans.length; i++ ) {
                 Object plan = knownPlans[ i ];
                 if ( plan instanceof LabelPlan &&
-                    ((LabelPlan) plan).matches( geom_, dataSpec_, surface_,
-                                                spacing, crowdLimit,
-                                                clazz_ ) ) {
+                    ((LabelPlan<?>) plan).matches( geom_, dataSpec_, surface_,
+                                                   spacing, crowdLimit,
+                                                   clazz_ ) ) {
                     return plan;
                 }
             }
@@ -564,7 +564,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * @param  parameterising class
          */
         boolean matches( DataGeom geom, DataSpec dataSpec, Surface surface,
-                         int spacing, byte crowdLimit, Class clazz ) {
+                         int spacing, byte crowdLimit, Class<?> clazz ) {
             return geom.equals( geom_ )
                 && dataSpec.equals( dataSpec_ )
                 && surface.equals( surface_ )

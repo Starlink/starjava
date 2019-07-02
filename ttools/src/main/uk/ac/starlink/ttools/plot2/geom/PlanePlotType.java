@@ -48,13 +48,14 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  * @author   Mark Taylor
  * @since    19 Feb 2013
  */
-public class PlanePlotType implements PlotType {
+public class PlanePlotType
+        implements PlotType<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
     private static PlaneDataGeom DATAGEOM = PlaneDataGeom.INSTANCE;
     private static final PlanePlotType INSTANCE =
         new PlanePlotType( createDefaultPlotters(), true );
-    private final SurfaceFactory surfFact_;
-    private final Plotter[] plotters_;
+    private final PlaneSurfaceFactory surfFact_;
+    private final Plotter<?>[] plotters_;
 
     /**
      * Constructor.
@@ -63,7 +64,7 @@ public class PlanePlotType implements PlotType {
      * @param  has2dMetric  true if it may make sense to measure distances
      *                      that are not parallel to either axis
      */
-    public PlanePlotType( Plotter[] plotters, boolean has2dMetric ) {
+    public PlanePlotType( Plotter<?>[] plotters, boolean has2dMetric ) {
         plotters_ = plotters;
         surfFact_ = new PlaneSurfaceFactory( has2dMetric );
     }
@@ -72,11 +73,12 @@ public class PlanePlotType implements PlotType {
         return new DataGeom[] { DATAGEOM };
     }
 
-    public Plotter[] getPlotters() {
+    public Plotter<?>[] getPlotters() {
         return plotters_.clone();
     }
 
-    public SurfaceFactory getSurfaceFactory() {
+    public SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
+                          getSurfaceFactory() {
         return surfFact_;
     }
 
@@ -102,14 +104,14 @@ public class PlanePlotType implements PlotType {
      *
      * @return  plane plotter list
      */
-    private static Plotter[] createDefaultPlotters() {
+    private static Plotter<?>[] createDefaultPlotters() {
         Coord[] coords = DATAGEOM.getPosCoords();
         String[] axisNames = new String[ coords.length ];
         for ( int i = 0; i < coords.length; i++ ) {
             axisNames[ i ] = ((FloatingCoord) coords[ i ])
                             .getInput().getMeta().getLongName();
         };
-        List<Plotter> list = new ArrayList<Plotter>();
+        List<Plotter<?>> list = new ArrayList<Plotter<?>>();
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
@@ -130,11 +132,11 @@ public class PlanePlotType implements PlotType {
             MarkForm.QUAD,
             PolygonForms.ARRAY,
         };
-        Plotter[] shapePlotters =
+        Plotter<?>[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( shapePlotters ) );
         PerUnitConfigKey<Unit> unitKey = null;
-        list.addAll( Arrays.asList( new Plotter[] {
+        list.addAll( Arrays.asList( new Plotter<?>[] {
             new LinePlotter(),
             new LinearFitPlotter( true ),
             new LabelPlotter(),
@@ -150,6 +152,6 @@ public class PlanePlotType implements PlotType {
             new Stats1Plotter( PlaneDataGeom.X_COORD, true, unitKey ),
             FunctionPlotter.PLANE,
         } ) );
-        return list.toArray( new Plotter[ 0 ] );
+        return list.toArray( new Plotter<?>[ 0 ] );
     }
 }

@@ -28,7 +28,7 @@ public class ConfigException extends Exception {
      * @param  key  key whose value was being solicited when the error occurred
      * @param  msg  error message, may reference value but should not name key
      */
-    public ConfigException( ConfigKey key, String msg ) {
+    public ConfigException( ConfigKey<?> key, String msg ) {
         this( key, msg, null );
     }
 

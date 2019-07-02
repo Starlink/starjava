@@ -247,9 +247,8 @@ public class VersionDetector {
      * on standard input.
      */
     public static void main( String[] args ) throws IOException {
-        String version =
-            new VersionDetector()
-           .getVersionString( new BufferedInputStream( System.in ) );
+        String version = 
+           getVersionString( new BufferedInputStream( System.in ) );
         System.out.println( "version: " + version );
     }
 }

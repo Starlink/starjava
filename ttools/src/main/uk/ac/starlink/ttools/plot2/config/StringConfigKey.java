@@ -27,6 +27,6 @@ public class StringConfigKey extends ConfigKey<String> {
     }
 
     public Specifier<String> createSpecifier() {
-        return new TextFieldSpecifier( this, null );
+        return new TextFieldSpecifier<String>( this, null );
     }
 }

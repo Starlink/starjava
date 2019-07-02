@@ -188,8 +188,8 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         return sbuf.toString();
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
         keyList.add( XBINSIZER_KEY );
         keyList.add( YBINSIZER_KEY );
         keyList.add( COMBINER_KEY );
@@ -201,7 +201,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         }
         keyList.add( XPHASE_KEY );
         keyList.add( YPHASE_KEY );
-        return keyList.toArray( new ConfigKey[ 0 ] );
+        return keyList.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public GridStyle createStyle( ConfigMap config ) {

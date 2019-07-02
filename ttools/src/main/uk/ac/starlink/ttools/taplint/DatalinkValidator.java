@@ -488,7 +488,7 @@ public class DatalinkValidator {
                 }
 
                 /* Check datatype and units against DataLink specification. */
-                Class clazz = info.getContentClass();
+                Class<?> clazz = info.getContentClass();
 
                 /* Use special knowledge: content_length has
                  * datatype="long" and units="byte". */
@@ -553,7 +553,7 @@ public class DatalinkValidator {
                             + nExtraCol );
         }
         StringBuffer missingBuf = new StringBuffer();
-        for ( LinkColMap.ColDef coldef : LinkColMap.COLDEF_MAP.values() ) {
+        for ( LinkColMap.ColDef<?> coldef : LinkColMap.COLDEF_MAP.values() ) {
             if ( ! icolMap.containsKey( coldef ) ) {
                 if ( missingBuf.length() > 0 ) {
                     missingBuf.append( ", " );

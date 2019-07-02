@@ -29,7 +29,7 @@ public class VariableTablesInput implements TablesInput {
 
     private final IntegerParameter ninParam_;
     private final boolean useInFilters_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
     private final Naming inNaming_;
 
     /**
@@ -59,7 +59,7 @@ public class VariableTablesInput implements TablesInput {
                                 final String inName, final String inWord ) {
         inNaming_ = new Naming() {{pName_ = inName; pWord_ = inWord;}};
         useInFilters_ = useInFilters;
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         /* Prepare list of nominal per-table input parameters.  Note that
          * these parameters are not used for actually getting values, they
@@ -82,7 +82,7 @@ public class VariableTablesInput implements TablesInput {
         }
 
         /* Document the nin parameter. */
-        Parameter[] inParams = paramList.toArray( new Parameter[ 0 ] );
+        Parameter<?>[] inParams = paramList.toArray( new Parameter<?>[ 0 ] );
         StringBuffer sbuf = new StringBuffer();
         for ( int i = 0; i < inParams.length; i++ ) {
             String pName = inParams[ i ].getName();
@@ -108,7 +108,7 @@ public class VariableTablesInput implements TablesInput {
         } );
         paramList.add( 0, ninParam_ );
 
-        params_ = paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -121,7 +121,7 @@ public class VariableTablesInput implements TablesInput {
         return ninParam_;
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return params_;
     }
 

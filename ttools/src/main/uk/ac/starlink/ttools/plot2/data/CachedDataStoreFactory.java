@@ -165,7 +165,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      * @param  word   word for a single item
      * @return   string like "103 widgets"
      */
-    private static String itemCount( Collection collection, String word ) {
+    private static String itemCount( Collection<?> collection, String word ) {
         int count = collection.size();
         StringBuilder sbuf = new StringBuilder()
             .append( count )

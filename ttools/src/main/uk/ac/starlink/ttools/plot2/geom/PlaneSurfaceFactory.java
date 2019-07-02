@@ -181,9 +181,9 @@ public class PlaneSurfaceFactory
                               p.minor_, p.gridcolor_, p.axlabelcolor_ );
     }
 
-    public ConfigKey[] getProfileKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
-        list.addAll( Arrays.asList( new ConfigKey[] {
+    public ConfigKey<?>[] getProfileKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             XLOG_KEY,
             YLOG_KEY,
             XFLIP_KEY,
@@ -199,7 +199,7 @@ public class PlaneSurfaceFactory
             StyleKeys.AXLABEL_COLOR,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Profile createProfile( ConfigMap config ) {
@@ -222,8 +222,8 @@ public class PlaneSurfaceFactory
                             gridcolor, axlabelcolor );
     }
 
-    public ConfigKey[] getAspectKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getAspectKeys() {
+        return new ConfigKey<?>[] {
             XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
             YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
         };
@@ -268,8 +268,8 @@ public class PlaneSurfaceFactory
         return ranges;
     }
 
-    public ConfigKey[] getNavigatorKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getNavigatorKeys() {
+        return new ConfigKey<?>[] {
             NAVAXES_KEY,
             XANCHOR_KEY,
             YANCHOR_KEY,

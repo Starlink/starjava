@@ -44,8 +44,8 @@ public class TableCopy implements Task {
         return "Converts between table formats";
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             inParam_,
             outParam_,
             ifmtParam_,

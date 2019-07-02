@@ -37,7 +37,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
 
     private final String layerSuffix_;
     private final DataGeom[] geoms_;
-    private final Parameter[] geomParams_;
+    private final Parameter<?>[] geomParams_;
 
     /**
      * Constructor.
@@ -47,7 +47,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      * @param   context  plot context
      */
     public LayerTypeParameter( String prefix, String suffix,
-                               PlotContext context ) {
+                               PlotContext<?,?> context ) {
         super( prefix + suffix,
                getLayerTypes( context.getPlotType().getPlotters() ) );
         layerSuffix_ = suffix;
@@ -174,7 +174,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
             int npos = ltype.getPositionCount();
             Coord[] extraCoords = ltype.getExtraCoords();
             boolean hasData = npos > 0 || extraCoords.length > 0;
-            ConfigKey[] styleKeys = ltype.getStyleKeys();
+            ConfigKey<?>[] styleKeys = ltype.getStyleKeys();
             boolean hasStyle = styleKeys.length > 0;
             if ( hasData ) {
                 usageWords.add( tableUsage );
@@ -217,7 +217,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
             if ( hasStyle ) {
                 List<String> styleWords = new ArrayList<String>();
                 styleWords.add( styleUsage + ":" );
-                for ( Parameter param :
+                for ( Parameter<?> param :
                       ltype.getAssociatedParameters( layerSuffix_ ) ) {
                      styleWords.add( usageWord( param ) );
                 }
@@ -299,10 +299,10 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      * @param  suffix  layer suffix
      * @return  input table parameters
      */
-    public static Parameter[] getInputParams( String suffix ) {
+    public static Parameter<?>[] getInputParams( String suffix ) {
         InputTableParameter inParam =
             AbstractPlot2Task.createTableParameter( suffix );
-        return new Parameter[] {
+        return new Parameter<?>[] {
             inParam,
             inParam.getFormatParameter(),
             inParam.getStreamParameter(),
@@ -319,19 +319,19 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      *                     descriptions
      * @return  coord parameters
      */
-    public static Parameter[] getCoordParams( Coord[] coords, String suffix,
-                                              boolean fullDetail ) {
-        List<Parameter> paramList = new ArrayList<Parameter>();
+    public static Parameter<?>[] getCoordParams( Coord[] coords, String suffix,
+                                                 boolean fullDetail ) {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         for ( Coord coord : coords ) {
             for ( Input input : coord.getInputs() ) {
-                Parameter param =
+                Parameter<?> param =
                     AbstractPlot2Task
                    .createDataParameter( input, suffix, fullDetail );
                 param.setNullPermitted( ! coord.isRequired() );
                 paramList.add( param );
             }
         }
-        return paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -344,16 +344,16 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      *                     descriptions
      * @return  config parameters
      */
-    public static Parameter[] getLayerConfigParams( ConfigKey[] configKeys,
-                                                    String suffix,
-                                                    boolean fullDetail ) {
-        List<Parameter> paramList = new ArrayList<Parameter>();
-        for ( ConfigKey key : configKeys ) {
+    public static Parameter<?>[]
+            getLayerConfigParams( ConfigKey<?>[] configKeys, String suffix,
+                                  boolean fullDetail ) {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
+        for ( ConfigKey<?> key : configKeys ) {
             paramList.add( ConfigParameter
                           .createLayerSuffixedParameter( key, suffix,
                                                          fullDetail ) );
         }
-        return paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -362,9 +362,9 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      * @param  params  parameter list
      * @return  list of name=usage strings, one for each param
      */
-    public static List<String> usageWords( Parameter[] params ) {
+    public static List<String> usageWords( Parameter<?>[] params ) {
         List<String> wordList = new ArrayList<String>( params.length );
-        for ( Parameter param : params ) {
+        for ( Parameter<?> param : params ) {
             wordList.add( usageWord( param ) );
         }
         return wordList;
@@ -376,7 +376,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      * @param   param  parameter
      * @return  usage string
      */
-    public static String usageWord( Parameter param ) {
+    public static String usageWord( Parameter<?> param ) {
         return new StringBuffer()
               .append( param.getName() )
               .append( '=' )
@@ -390,11 +390,11 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      * @param  plotters  plotter list
      * @return  layer type list
      */
-    public static LayerType[] getLayerTypes( Plotter[] plotters ) {
+    public static LayerType[] getLayerTypes( Plotter<?>[] plotters ) {
         Map<ShapeForm,List<ShapeModePlotter>> shapePlotterMap =
             new LinkedHashMap<ShapeForm,List<ShapeModePlotter>>();
         List<LayerType> typeList = new ArrayList<LayerType>();
-        for ( Plotter plotter : plotters ) {
+        for ( Plotter<?> plotter : plotters ) {
             if ( plotter instanceof ShapeModePlotter ) {
                 ShapeModePlotter shapePlotter = (ShapeModePlotter) plotter;
                 ShapeForm form = shapePlotter.getForm();

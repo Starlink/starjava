@@ -14,14 +14,14 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
  */
 public class SimpleLayerType implements LayerType {
 
-    private final Plotter plotter_;
+    private final Plotter<?> plotter_;
 
     /**
      * Constructor.
      *
      * @param  plotter  plotter
      */
-    public SimpleLayerType( Plotter plotter ) {
+    public SimpleLayerType( Plotter<?> plotter ) {
         plotter_ = plotter;
     }
 
@@ -33,11 +33,11 @@ public class SimpleLayerType implements LayerType {
         return plotter_.getPlotterDescription();
     }
 
-    public Parameter[] getAssociatedParameters( String suffix ) {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getAssociatedParameters( String suffix ) {
+        return new Parameter<?>[ 0 ];
     }
 
-    public Plotter getPlotter( Environment env, String suffix ) {
+    public Plotter<?> getPlotter( Environment env, String suffix ) {
         return plotter_;
     }
 
@@ -46,7 +46,7 @@ public class SimpleLayerType implements LayerType {
      *
      * @return  plotter
      */
-    public Plotter getPlotter() {
+    public Plotter<?> getPlotter() {
         return plotter_;
     }
 
@@ -58,7 +58,7 @@ public class SimpleLayerType implements LayerType {
         return plotter_.getCoordGroup().getExtraCoords();
     }
 
-    public ConfigKey[] getStyleKeys() {
+    public ConfigKey<?>[] getStyleKeys() {
         return plotter_.getStyleKeys();
     }
 }

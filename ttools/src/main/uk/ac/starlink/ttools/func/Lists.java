@@ -76,7 +76,7 @@ public class Lists {
                 sum += v;
             }
         }
-        return count == 0 ? Double.NaN : sum / (double) count;
+        return count == 0 ? Double.NaN : sum / count;
     }
 
     /**
@@ -191,7 +191,7 @@ public class Lists {
         }
         qc.ready();
         Number median = qc.getQuantile( 0.5 );
-        return median instanceof Number ? ((Number) median).doubleValue()
+        return median instanceof Number ? median.doubleValue()
                                         : Double.NaN;
     }
 

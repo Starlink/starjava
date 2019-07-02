@@ -45,7 +45,7 @@ public class CeaParameter {
      *
      * @param   taskParam   parameter within the ttools/task parameter system
      */
-    public CeaParameter( Parameter taskParam ) {
+    public CeaParameter( Parameter<?> taskParam ) {
         name_ = taskParam.getName();
         description_ = taskParam.getDescription();
         summary_ = taskParam.getPrompt();
@@ -73,18 +73,19 @@ public class CeaParameter {
         }
 
         if ( taskParam instanceof ChoiceParameter ) {
-            options_ = ((ChoiceParameter) taskParam).getOptionNames();
+            options_ = ((ChoiceParameter<?>) taskParam).getOptionNames();
         }
         else if ( taskParam instanceof InputFormatParameter ) {
-            List opts = new ArrayList();
+            List<String> opts = new ArrayList<String>();
             opts.add( StarTableFactory.AUTO_HANDLER );
             opts.addAll( tableFactory_.getKnownFormats() );
-            options_ = (String[]) opts.toArray( new String[ 0 ] );
+            options_ = opts.toArray( new String[ 0 ] );
         }
         else if ( taskParam instanceof OutputFormatParameter ) {
-            List opts = new ArrayList( tableOutput_.getKnownFormats() );
+            List<String> opts =
+                new ArrayList<String>( tableOutput_.getKnownFormats() );
             opts.remove( "jdbc" );
-            options_ = (String[]) opts.toArray( new String[ 0 ] );
+            options_ = opts.toArray( new String[ 0 ] );
 
             /* Auto mode won't work because the output filename is munged
              * by CEA. */

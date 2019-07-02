@@ -49,7 +49,7 @@ public abstract class GraphicExporter {
         isVector_ = isVector;
         description_ = description;
         fileSuffixes_ = fileSuffixes == null ? new String[ 0 ]
-                                             : (String[]) fileSuffixes.clone();
+                                             : fileSuffixes.clone();
     }
 
     /**
@@ -117,7 +117,7 @@ public abstract class GraphicExporter {
      * @return  copy of file suffix list; may be empty but will not be null
      */
     public String[] getFileSuffixes() {
-        return (String[]) fileSuffixes_.clone();
+        return fileSuffixes_.clone();
     }
 
     public String toString() {

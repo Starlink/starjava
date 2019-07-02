@@ -17,7 +17,7 @@ public class TablelessJELRowReader extends JELRowReader {
     public TablelessJELRowReader() {
     }
 
-    protected Class getColumnClass( int icol ) {
+    protected Class<?> getColumnClass( int icol ) {
         return null;
     }
 

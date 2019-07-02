@@ -157,8 +157,8 @@ public class ConeSearchConer implements Coner {
         return "ICRS";
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             serviceParam_,
             urlParam_,
             verbParam_,
@@ -168,7 +168,7 @@ public class ConeSearchConer implements Coner {
         };
     }
 
-    public void configureParams( Environment env, Parameter srParam )
+    public void configureParams( Environment env, Parameter<?> srParam )
             throws TaskException {
         serviceParam_.objectValue( env ).configureParams( srParam );
     }
@@ -242,7 +242,7 @@ public class ConeSearchConer implements Coner {
          *
          * @param  srParam   search radius parameter
          */
-        abstract void configureParams( Parameter srParam );
+        abstract void configureParams( Parameter<?> srParam );
 
         /**
          * Indicates whether the result table should be subjected
@@ -331,7 +331,7 @@ public class ConeSearchConer implements Coner {
             return "not used";
         }
 
-        public void configureParams( Parameter srParam ) {
+        public void configureParams( Parameter<?> srParam ) {
             srParam.setNullPermitted( false );
         }
 
@@ -386,7 +386,7 @@ public class ConeSearchConer implements Coner {
                .toString();
         }
 
-        public void configureParams( Parameter srParam ) {
+        public void configureParams( Parameter<?> srParam ) {
 
             /* SIZE = 0 has a special meaning for SIA: it means any image
              * containing the given image.  This is a sensible default in 
@@ -451,7 +451,7 @@ public class ConeSearchConer implements Coner {
                .toString();
         }
 
-        public void configureParams( Parameter srParam ) {
+        public void configureParams( Parameter<?> srParam ) {
 
             /* SIZE param may be omitted in an SSA query; the service should
              * use some appropriate default value. */

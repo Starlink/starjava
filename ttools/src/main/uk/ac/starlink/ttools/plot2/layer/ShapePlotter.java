@@ -68,7 +68,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
+    public ConfigKey<?>[] getStyleKeys() {
         return PlotUtil.arrayConcat( form_.getConfigKeys(),
                                      mode_.getConfigKeys() );
     }
@@ -123,7 +123,6 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
             for ( int jf = 0; jf < nf; jf++ ) {
                 ShapeForm form = forms[ jf ];
                 String name = form.getFormName() + "-" + mode.getModeName();
-                @SuppressWarnings("unchecked")
                 ShapeModePlotter p = new ShapeModePlotter( name, form, mode );
                 plotters[ ip++ ] = p;
             }

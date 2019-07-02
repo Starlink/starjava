@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.task;
 
-import java.util.Iterator;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
@@ -37,7 +36,7 @@ public class InputFormatParameter extends StringParameter
      */ 
     public final void
             setTableDescription( String inDescrip,
-                                 AbstractInputTableParameter tableParam ) {
+                                 AbstractInputTableParameter<?> tableParam ) {
         setPrompt( "Format name for " + inDescrip );
         StringBuffer dbuf = new StringBuffer();
         dbuf.append( inDescrip );
@@ -70,19 +69,16 @@ public class InputFormatParameter extends StringParameter
         StarTableFactory tfact = env.getTableFactory();
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "   Auto-detected in-formats:\n" );
-        for ( Iterator it = tfact.getDefaultBuilders().iterator();
-              it.hasNext(); ) {
+        for ( TableBuilder handler : tfact.getDefaultBuilders() ) {
             sbuf.append( "      " )
-                .append( ((TableBuilder) it.next())
-                        .getFormatName().toLowerCase() )
+                .append( handler.getFormatName().toLowerCase() )
                 .append( '\n' );
         }
         sbuf.append( '\n' );
         sbuf.append( "   Known in-formats:\n" );
-        for ( Iterator it = tfact.getKnownFormats().iterator();
-              it.hasNext(); ) {
+        for ( String fmt : tfact.getKnownFormats() ) {
             sbuf.append( "      " )
-                .append( ((String) it.next()).toLowerCase() )
+                .append( fmt.toLowerCase() )
                 .append( '\n' );
         }
         return sbuf.toString();

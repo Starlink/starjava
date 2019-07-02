@@ -169,7 +169,7 @@ public abstract class SkySystem {
      * @return   system array
      */
     public static SkySystem[] getKnownSystems() {
-        return (SkySystem[]) KNOWN_SYSTEMS.clone();
+        return KNOWN_SYSTEMS.clone();
     }
 
     /**

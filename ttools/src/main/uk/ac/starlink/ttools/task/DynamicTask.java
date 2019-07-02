@@ -30,7 +30,7 @@ public interface DynamicTask {
      * @param   paramName  requested parameter name
      * @return   parameter with the given name, or null
      */
-    Parameter getParameterByName( Environment env, String paramName )
+    Parameter<?> getParameterByName( Environment env, String paramName )
             throws TaskException;
 
     /**
@@ -46,5 +46,5 @@ public interface DynamicTask {
      * @param  env  execution environment
      * @return   list of known parameters
      */
-    Parameter[] getContextParameters( Environment env ) throws TaskException;
+    Parameter<?>[] getContextParameters( Environment env ) throws TaskException;
 }

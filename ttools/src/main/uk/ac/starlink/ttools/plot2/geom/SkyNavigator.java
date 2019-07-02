@@ -117,8 +117,8 @@ public class SkyNavigator implements Navigator<SkyAspect> {
      *
      * @return  config keys
      */
-    public static ConfigKey[] getConfigKeys() {
-        return new ConfigKey[] {
+    public static ConfigKey<?>[] getConfigKeys() {
+        return new ConfigKey<?>[] {
             StyleKeys.ZOOM_FACTOR,
         };
     }

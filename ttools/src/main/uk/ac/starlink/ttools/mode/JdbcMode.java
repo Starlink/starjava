@@ -130,8 +130,8 @@ public class JdbcMode implements ProcessingMode {
         } );
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             protoParam_,
             hostParam_,
             dbParam_,

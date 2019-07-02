@@ -7,7 +7,6 @@ import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.ProgressIndicator;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
@@ -49,8 +48,8 @@ public class Match2Mapper implements TableMapper {
         progressParam_ = new ProgressIndicatorParameter( "progress" );
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             matcherParam_,
             tupleParams_[ 0 ],
             tupleParams_[ 1 ],

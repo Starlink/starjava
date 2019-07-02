@@ -102,8 +102,8 @@ public class CaptionerKeySet implements KeySet<Captioner> {
            .addOptionsXml();
     }
 
-    public ConfigKey[] getKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getKeys() {
+        return new ConfigKey<?>[] {
             textSyntaxKey_,
             fontSizeKey_,
             fontTypeKey_,

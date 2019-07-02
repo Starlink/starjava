@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
 import uk.ac.starlink.ttools.plot2.geom.CubeDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
@@ -15,7 +16,8 @@ import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
  * @author   Mark Taylor
  * @since    11 Sep 2014
  */
-public class CubePlot2Task extends TypedPlot2Task {
+public class CubePlot2Task
+        extends TypedPlot2Task<CubeSurfaceFactory.Profile,CubeAspect> {
 
     private static final Map<ConfigKey<String>,Input> AXLABEL_MAP =
         createAxisLabelMap();

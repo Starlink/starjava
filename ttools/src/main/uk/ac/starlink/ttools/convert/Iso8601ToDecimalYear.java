@@ -50,7 +50,7 @@ public class Iso8601ToDecimalYear extends Iso8601Converter {
         long y0 = cal.getTimeInMillis();
         cal.set( Calendar.YEAR, year + 1 );
         long y1 = cal.getTimeInMillis();
-        long t = y0 + (long) Math.round( frac * ( y1 - y0 ) );
+        long t = y0 + Math.round( frac * ( y1 - y0 ) );
         return unixMillisToMjd( t );
     }
 

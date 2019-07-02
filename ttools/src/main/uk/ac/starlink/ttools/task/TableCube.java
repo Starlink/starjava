@@ -21,7 +21,7 @@ public class TableCube extends SingleMapperTask {
         super( "Calculates N-dimensional histograms", new CubeMode(),
                false, true );
         CubeMode mode = (CubeMode) getOutputMode();
-        List paramList = new ArrayList();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         colsParam_ = new WordsParameter( "cols" );
         colsParam_.setWordUsage( "<col-id>" );

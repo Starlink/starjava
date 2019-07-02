@@ -95,7 +95,7 @@ public abstract class UnivariateStats {
      * @param  clazz  class of which all submitted values will be instances of
      *         (if they're not null)
      */
-    public static UnivariateStats createStats( Class clazz ) {
+    public static UnivariateStats createStats( Class<?> clazz ) {
         if ( Number.class.isAssignableFrom( clazz ) ) {
             return new NumberStats();
         }

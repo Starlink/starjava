@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.task;
 
-import java.util.Iterator;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
@@ -31,9 +30,7 @@ public class MultiOutputFormatParameter extends OutputFormatParameter
             .append( "      " )
             .append( StarTableOutput.AUTO_HANDLER )
             .append( '\n' );
-        for ( Iterator it = env.getTableOutput().getHandlers().iterator();
-              it.hasNext(); ) {
-            StarTableWriter writer = (StarTableWriter) it.next();
+        for ( StarTableWriter writer : env.getTableOutput().getHandlers() ) {
             if ( writer instanceof MultiStarTableWriter ) {
                 sbuf.append( "      " )
                     .append( writer.getFormatName().toLowerCase() )

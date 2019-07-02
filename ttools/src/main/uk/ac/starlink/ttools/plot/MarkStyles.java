@@ -211,8 +211,7 @@ public class MarkStyles {
             }
             public Style getStyle( int index ) {
                 Color color = colors[ Math.abs( index ) % colors.length ];
-                MarkStyle style =
-                    (MarkStyle) MarkShape.POINT.getStyle( color, 1 );
+                MarkStyle style = MarkShape.POINT.getStyle( color, 1 );
                 style.setLine( MarkStyle.DOT_TO_DOT );
                 style.setHidePoints( true );
                 return style;
@@ -232,8 +231,7 @@ public class MarkStyles {
                 return name;
             }
             public Style getStyle( int index ) {
-                MarkStyle style =
-                    (MarkStyle) MarkShape.POINT.getStyle( Color.BLACK, 1 );
+                MarkStyle style = MarkShape.POINT.getStyle( Color.BLACK, 1 );
                 style.setLine( MarkStyle.DOT_TO_DOT );
                 style.setHidePoints( true );
                 style.setDash( dashes[ Math.abs( index ) % dashes.length ] );

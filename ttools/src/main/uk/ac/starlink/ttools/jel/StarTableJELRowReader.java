@@ -138,7 +138,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         }
     }
 
-    protected Class getColumnClass( int icol ) {
+    protected Class<?> getColumnClass( int icol ) {
         return icol < table_.getColumnCount()
              ? table_.getColumnInfo( icol ).getContentClass()
              : null;
@@ -244,7 +244,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         /* Try special values for row and column count. */
         if ( name.equalsIgnoreCase( "$nrow" ) ) {
             return new Constant() {
-                public Class getContentClass() {
+                public Class<?> getContentClass() {
                     return Long.class;
                 }
                 public Object getValue() {
@@ -254,7 +254,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         }
         if ( name.equalsIgnoreCase( "$ncol" ) ) {
             return new Constant() {
-                public Class getContentClass() {
+                public Class<?> getContentClass() {
                     return Integer.class;
                 }
                 public Object getValue() {
@@ -283,7 +283,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
              name.equalsIgnoreCase( "Index" ) ||
              name.equalsIgnoreCase( "$index" ) ) {
             return new Constant() {
-                public Class getContentClass() {
+                public Class<?> getContentClass() {
                     return Long.class;
                 }
                 public Object getValue() {
@@ -294,7 +294,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         else if ( name.equalsIgnoreCase( "$random" ) ||
                   name.equals( "RANDOM" ) ) {
             return new Constant() {
-                public Class getContentClass() {
+                public Class<?> getContentClass() {
                     return Double.class;
                 }
                 public Object getValue() {
@@ -318,11 +318,11 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * @return   constant which evaluates to dval's value
      */
     protected Constant createDescribedValueConstant( DescribedValue dval ) {
-        final Class clazz = dval.getInfo().getContentClass();
+        final Class<?> clazz = dval.getInfo().getContentClass();
         Object val = dval.getValue();
         final Object value = Tables.isBlank( val ) ? null : val;
         return new Constant() {
-            public Class getContentClass() {
+            public Class<?> getContentClass() {
                 return clazz;
             }
             public Object getValue() {

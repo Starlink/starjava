@@ -25,8 +25,8 @@ import uk.ac.starlink.ttools.task.MapEnvironment;
  */
 public class EnvPlanePlotter implements SinePlot.PlanePlotter {
 
-    public PlotDisplay createPlotComponent( StarTable table,
-                                            boolean dataMayChange )
+    public PlotDisplay<?,?> createPlotComponent( StarTable table,
+                                                 boolean dataMayChange )
             throws InterruptedException, IOException, TaskException {
 
         /* Prepare an execution environment consisting of a set of name/value

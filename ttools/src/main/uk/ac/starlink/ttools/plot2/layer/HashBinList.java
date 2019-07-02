@@ -66,7 +66,7 @@ public class HashBinList implements BinList {
                 if ( frac > 0.25 && size_ < Integer.MAX_VALUE ) {
                     int isize = (int) size_;
                     double[] values = new double[ isize ];
-                    BitSet mask = new BitSet( (int) isize );
+                    BitSet mask = new BitSet( isize );
                     for ( Iterator<Long> it = indexIterator(); it.hasNext(); ) {
                         int index = it.next().intValue();
                         mask.set( index );

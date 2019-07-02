@@ -180,11 +180,11 @@ public class PostgresAsciiStarTable extends StreamStarTable {
         ncol_ = getColumnCount();
     }
 
-    protected List readRow( PushbackInputStream in )
+    protected List<String> readRow( PushbackInputStream in )
             throws TableFormatException, IOException {
         int icol = 0;
         cellBuf_.setLength( 0 );
-        Object[] row = new Object[ ncol_ ];
+        String[] row = new String[ ncol_ ];
         while ( true ) {
             char c = (char) in.read();
             switch ( c ) {

@@ -364,7 +364,7 @@ public abstract class CeaWriter extends XmlWriter {
          * name. */
         ObjectFactory<Task> taskFactory = Stilts.getTaskFactory();
         String[] taskNames = taskFactory.getNickNames();
-        Map appMap = new HashMap();
+        Map<String,CeaTask> appMap = new HashMap<String,CeaTask>();
         for ( int i = 0; i < taskNames.length; i++ ) {
             String name = taskNames[ i ];
             Task task = taskFactory.createObject( name );
@@ -400,23 +400,23 @@ public abstract class CeaWriter extends XmlWriter {
         /* Doctor some of the specific tasks as required; small changes
          * to parameters etc are required for sensible use in a CEA
          * environment. */
-        CeaTask tpipe = (CeaTask) appMap.get( "tpipe" );
+        CeaTask tpipe = appMap.get( "tpipe" );
         tpipe.removeParameter( "istream" );
 
-        CeaTask votcopy = (CeaTask) appMap.get( "votcopy" );
+        CeaTask votcopy = appMap.get( "votcopy" );
         votcopy.getParameter( "in" ).setRef( true );
         votcopy.getParameter( "out" ).setOutput( true );
 
-        CeaTask votlint = (CeaTask) appMap.get( "votlint" );
+        CeaTask votlint = appMap.get( "votlint" );
         votlint.getParameter( "out" ).setOutput( true );
 
         /* Prepare and return an array of CeaTask objects sorted by name. */
-        String[] appNames = (String[]) new ArrayList( appMap.keySet() )
-                                      .toArray( new String[ 0 ] );
+        String[] appNames = new ArrayList<String>( appMap.keySet() )
+                           .toArray( new String[ 0 ] );
         Arrays.sort( appNames );
         CeaTask[] tasks = new CeaTask[ appNames.length ];
         for ( int i = 0; i < appNames.length; i++ ) {
-            tasks[ i ] = (CeaTask) appMap.get( appNames[ i ] );
+            tasks[ i ] = appMap.get( appNames[ i ] );
         }
         return tasks;
     }
@@ -525,13 +525,13 @@ public abstract class CeaWriter extends XmlWriter {
         String cmdline = cmdBuf.toString();
 
         /* Process command line arguments. */
-        List argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         CeaTask task1 = null;
         PrintStream out = System.out;
         Boolean isImpl = null;
         boolean redirects = false;
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( "-h".equals( arg ) || "-help".equals( arg ) ) {
                 System.out.println( usage );
                 return 0;
@@ -554,7 +554,7 @@ public abstract class CeaWriter extends XmlWriter {
             }
             else if ( arg.equals( "-task" ) && it.hasNext() ) {
                 it.remove();
-                String taskName = (String) it.next();
+                String taskName = it.next();
                 it.remove();
                 if ( task1 != null ) {
                     System.err.println( usage );
@@ -590,8 +590,7 @@ public abstract class CeaWriter extends XmlWriter {
                                                 redirects, cmdline );
 
         /* Perform implementation-specific command-line arg configuration. */
-        int configStat =
-            writer.configure( (String[]) argList.toArray( new String[ 0 ] ) );
+        int configStat = writer.configure( argList.toArray( new String[ 0 ] ) );
         if ( configStat != 0 ) {
             System.err.println( usage );
             return configStat;

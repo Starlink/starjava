@@ -34,9 +34,10 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  * @author   Mark Taylor
  * @since    20 Feb 2013
  */
-public class SpherePlotType implements PlotType {
+public class SpherePlotType
+        implements PlotType<CubeSurfaceFactory.Profile,CubeAspect> {
 
-    private static final SurfaceFactory SURFACE_FACTORY =
+    private static final CubeSurfaceFactory SURFACE_FACTORY =
         new CubeSurfaceFactory( true );
     private static final SpherePlotType INSTANCE = new SpherePlotType();
     private final DataGeom[] dataGeoms_;
@@ -52,8 +53,8 @@ public class SpherePlotType implements PlotType {
         return dataGeoms_;
     }
 
-    public Plotter[] getPlotters() {
-        List<Plotter> list = new ArrayList<Plotter>();
+    public Plotter<?>[] getPlotters() {
+        List<Plotter<?>> list = new ArrayList<Plotter<?>>();
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
@@ -64,19 +65,20 @@ public class SpherePlotType implements PlotType {
             MarkForm.QUAD,
             PolygonForms.ARRAY,
         };
-        Plotter[] shapePlotters =
+        Plotter<?>[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );
         list.addAll( Arrays.asList( shapePlotters ) );
-        list.addAll( Arrays.asList( new Plotter[] {
+        list.addAll( Arrays.asList( new Plotter<?>[] {
             new LabelPlotter(),
             new Line3dPlotter(),
             new ContourPlotter( true ),
             new SphereGridPlotter(),
         } ) );
-        return list.toArray( new Plotter[ 0 ] );
+        return list.toArray( new Plotter<?>[ 0 ] );
     }
 
-    public SurfaceFactory getSurfaceFactory() {
+    public SurfaceFactory<CubeSurfaceFactory.Profile,CubeAspect>
+                          getSurfaceFactory() {
         return SURFACE_FACTORY;
     }
 

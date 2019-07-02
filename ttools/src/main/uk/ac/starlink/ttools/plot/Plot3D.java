@@ -211,7 +211,7 @@ public abstract class Plot3D extends TablePlot {
         boolean anyErrors = false;
         for ( int is = 0; is < nset && ! anyErrors; is++ ) {
             anyErrors = anyErrors ||
-                        MarkStyle.hasErrors( (MarkStyle) styles[ is ], data );
+                        MarkStyle.hasErrors( styles[ is ], data );
         }
 
         /* See if there may be labels to draw. */
@@ -264,7 +264,7 @@ public abstract class Plot3D extends TablePlot {
         boolean[] showPoints = new boolean[ nset ];
         boolean[] showErrors = new boolean[ nset ];
         for ( int is = 0; is < nset; is++ ) {
-            MarkStyle style = (MarkStyle) styles[ is ];
+            MarkStyle style = styles[ is ];
             showPoints[ is ] = ! style.getHidePoints();
             showErrors[ is ] = MarkStyle.hasErrors( style, data );
         }
@@ -744,7 +744,7 @@ public abstract class Plot3D extends TablePlot {
          */
         Transformer3D( double[] rotation, double[] loBounds,
                        double[] hiBounds, double zoom ) {
-            rot_ = (double[]) rotation.clone();
+            rot_ = rotation.clone();
             loBounds_ = new double[ 3 ];
             factors_ = new double[ 3 ];
             zoom_ = zoom;

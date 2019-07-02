@@ -34,7 +34,7 @@ import uk.ac.starlink.util.Destination;
 public abstract class MultiOutputTask implements Task {
 
     private final String purpose_;
-    private final List<Parameter> paramList_;
+    private final List<Parameter<?>> paramList_;
     private final OutputStreamParameter outParam_;
     private final OutputFormatParameter ofmtParam_;
 
@@ -45,7 +45,7 @@ public abstract class MultiOutputTask implements Task {
      */
     protected MultiOutputTask( String purpose ) {
         purpose_ = purpose;
-        paramList_ = new ArrayList<Parameter>();
+        paramList_ = new ArrayList<Parameter<?>>();
 
         outParam_ = new OutputStreamParameter( "out" );
         paramList_.add( outParam_ );
@@ -58,8 +58,8 @@ public abstract class MultiOutputTask implements Task {
         return purpose_;
     }
 
-    public Parameter[] getParameters() {
-        return paramList_.toArray( new Parameter[ 0 ] );
+    public Parameter<?>[] getParameters() {
+        return paramList_.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -67,7 +67,7 @@ public abstract class MultiOutputTask implements Task {
      *
      * @return  parameter list
      */
-    protected List<Parameter> getParameterList() {
+    protected List<Parameter<?>> getParameterList() {
         return paramList_;
     }
 

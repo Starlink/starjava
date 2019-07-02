@@ -177,8 +177,8 @@ public class TableCone extends ConsumerTask {
         } );
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {    
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {    
             urlParam_,
             lonParam_,
             latParam_,
@@ -263,7 +263,7 @@ public class TableCone extends ConsumerTask {
          *
          * @param  srParam   search radius parameter
          */
-        abstract void configureParams( Parameter srParam );
+        abstract void configureParams( Parameter<?> srParam );
 
         /**
          * Constructs a ConeSearcher instance suitable for this service type.
@@ -332,7 +332,7 @@ public class TableCone extends ConsumerTask {
             return "not used";
         }
 
-        public void configureParams( Parameter srParam ) {
+        public void configureParams( Parameter<?> srParam ) {
             srParam.setNullPermitted( false );
         }
 
@@ -372,7 +372,7 @@ public class TableCone extends ConsumerTask {
                .toString();
         }
 
-        public void configureParams( Parameter srParam ) {
+        public void configureParams( Parameter<?> srParam ) {
 
             /* SIZE = 0 has a special meaning for SIA: it means any image
              * containing the given image.  This is a sensible default in
@@ -422,7 +422,7 @@ public class TableCone extends ConsumerTask {
                .toString();
         }
 
-        public void configureParams( Parameter srParam ) {
+        public void configureParams( Parameter<?> srParam ) {
 
             /* SIZE param may be omitted in an SSA query; the service should
              * use some appropriate default value. */

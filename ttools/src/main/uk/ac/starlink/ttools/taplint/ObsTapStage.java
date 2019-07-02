@@ -440,7 +440,7 @@ public class ObsTapStage implements Stage {
          * @param   cname  column name
          * @param   [low,high] inclusive range permitted
          */
-        private void checkRange( String cname, Comparable[] range ) {
+        private void checkRange( String cname, Comparable<?>[] range ) {
             String adql = new StringBuffer()
                .append( "SELECT TOP 1 " )
                .append( cname )
@@ -1038,7 +1038,7 @@ public class ObsTapStage implements Stage {
         boolean nullForbidden_;
         String[] hardOptions_;
         String[] softOptions_;
-        Comparable[] range_;   // [low, high] inclusive
+        Comparable<?>[] range_;   // [low, high] inclusive
 
         /**
          * Constructor including units.

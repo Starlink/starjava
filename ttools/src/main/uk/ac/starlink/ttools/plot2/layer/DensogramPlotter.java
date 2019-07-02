@@ -111,8 +111,8 @@ public class DensogramPlotter
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( SMOOTHSIZER_KEY );
         list.add( KERNEL_KEY );
@@ -120,7 +120,7 @@ public class DensogramPlotter
         list.add( StyleKeys.CUMULATIVE );
         list.add( EXTENT_KEY );
         list.add( POSITION_KEY );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public DensoStyle createStyle( ConfigMap config ) {

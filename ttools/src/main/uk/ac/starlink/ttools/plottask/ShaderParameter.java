@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plottask;
 
 import java.util.ArrayList;
 import java.util.List;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -14,7 +13,7 @@ import uk.ac.starlink.ttools.plot.Shaders;
  * @author   Mark Taylor
  * @since    7 Aug 2008
  */
-public class ShaderParameter extends StyleParameter {
+public class ShaderParameter extends StyleParameter<Shader> {
 
     /** List of shaders.  Order is significant; the first absolute entry in
      *  this list is the default if there is only one shader, and if there
@@ -47,14 +46,14 @@ public class ShaderParameter extends StyleParameter {
     /** List of shaders with isAbsolute() false. */
     private static final Shader[] MOD_SHADERS;
     static {
-        List absList = new ArrayList();
-        List modList = new ArrayList();
+        List<Shader> absList = new ArrayList<Shader>();
+        List<Shader> modList = new ArrayList<Shader>();
         for ( int i = 0; i < SHADERS.length; i++ ) {
             Shader shader = SHADERS[ i ];
             ( shader.isAbsolute() ? absList : modList ).add( shader );
         }
-        ABS_SHADERS = (Shader[]) absList.toArray( new Shader[ 0 ] );
-        MOD_SHADERS = (Shader[]) modList.toArray( new Shader[ 0 ] );
+        ABS_SHADERS = absList.toArray( new Shader[ 0 ] );
+        MOD_SHADERS = modList.toArray( new Shader[ 0 ] );
     }
 
     /**
@@ -83,11 +82,11 @@ public class ShaderParameter extends StyleParameter {
      * @return   shader
      */
     public Shader shaderValue( Environment env ) throws TaskException {
-        return (Shader) objectValue( env );
+        return objectValue( env );
     }
 
-    public String getName( Object option ) {
-        return getShaderName( (Shader) option );
+    public String getName( Shader option ) {
+        return getShaderName( option );
     }
 
     /**

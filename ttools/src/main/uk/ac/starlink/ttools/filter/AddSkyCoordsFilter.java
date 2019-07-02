@@ -209,7 +209,8 @@ public class AddSkyCoordsFilter extends BasicFilter {
      * @param  dataClass  class provided by data
      * @return  true if the two are compatible
      */
-    private static boolean isCompatible( Class unitClass, Class dataClass ) {
+    private static boolean isCompatible( Class<?> unitClass,
+                                         Class<?> dataClass ) {
         if ( unitClass.equals( dataClass ) ) {
             return true;
         }

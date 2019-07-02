@@ -12,7 +12,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.BooleanParameter;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
@@ -158,7 +157,7 @@ public class PlotStateFactory {
      *
      * @return   array of parameters to be used for documentation
      */
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
 
         /* Create and return a list of parameters some of which have
          * "example" suffixes.  In some cases the parameters which 
@@ -171,14 +170,15 @@ public class PlotStateFactory {
         /* Per-table input parameters. */
         InputTableParameter inParam = createTableParameter( tSuffix );
         FilterParameter filterParam = createFilterParameter( tSuffix );
-        List paramList = new ArrayList();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.add( inParam );
         paramList.add( inParam.getFormatParameter() );
         paramList.add( inParam.getStreamParameter() );
         paramList.add( filterParam );
 
         /* Per-axis parameters. */
-        List axParamSetList = new ArrayList();
+        List<AxisParameterSet> axParamSetList =
+            new ArrayList<AxisParameterSet>();
         for ( int idim = 0; idim < mainDimNames_.length; idim++ ) {
             axParamSetList.add( new AxisParameterSet( mainDimNames_[ idim ] ) );
         }
@@ -186,10 +186,9 @@ public class PlotStateFactory {
             axParamSetList.add( new AxisParameterSet( auxAxName ) );
         }
         AxisParameterSet[] axParamSets =
-            (AxisParameterSet[])
             axParamSetList.toArray( new AxisParameterSet[ 0 ] );
         int allNdim = axParamSets.length;
-        Parameter[][] axScalarParams = new Parameter[ allNdim ][];
+        Parameter<?>[][] axScalarParams = new Parameter<?>[ allNdim ][];
         for ( int idim = 0; idim < allNdim; idim++ ) {
             AxisParameterSet axParamSet = axParamSets[ idim ];
             paramList.add( axParamSet.createCoordParameter( tSuffix ) );
@@ -223,7 +222,7 @@ public class PlotStateFactory {
         paramList.add( gridParam_ );
         paramList.add( aaParam_ );
         paramList.add( seqParam_ );
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -277,7 +276,7 @@ public class PlotStateFactory {
 
         /* Get a list of all the axis names being used.  This includes the
          * main axes and any auxiliary ones. */
-        List axNameList = new ArrayList();
+        List<String> axNameList = new ArrayList<String>();
         axNameList.addAll( Arrays.asList( mainDimNames_ ) );
         String[] auxLabels;
         if ( useAux_ ) {
@@ -290,7 +289,7 @@ public class PlotStateFactory {
         else {
             auxLabels = new String[ 0 ];
         }
-        String[] allAxNames = (String[]) axNameList.toArray( new String[ 0 ] );
+        String[] allAxNames = axNameList.toArray( new String[ 0 ] );
         int allNdim = allAxNames.length;
 
         /* Assemble parameter groups corresponding to each axis. */
@@ -303,7 +302,7 @@ public class PlotStateFactory {
         PlotData[] datas = new PlotData[ nTable ];
         String[] coordExprs0 = null;
         StyleFactory styleFactory = createStyleFactory( STYLE_PREFIX );
-        List setLabelList = new ArrayList();
+        List<String> setLabelList = new ArrayList<String>();
         for ( int itab = 0; itab < nTable; itab++ ) {
             String tlabel = tableLabels[ itab ];
             StarTable table = getInputTable( env, tlabel );
@@ -360,7 +359,7 @@ public class PlotStateFactory {
 
         /* Rearrange the set plot order if required. */
         StringBuffer seqbuf = new StringBuffer();
-        for ( Iterator it = setLabelList.iterator(); it.hasNext(); ) {
+        for ( Iterator<String> it = setLabelList.iterator(); it.hasNext(); ) {
             seqbuf.append( it.next() );
             if ( it.hasNext() ) {
                 seqbuf.append( seqParam_.getValueSeparator() );
@@ -956,7 +955,7 @@ public class PlotStateFactory {
      * @return  array of unique suffix values
      */
     private static String[] getSuffixes( String[] names, String prefix ) {
-        List suffixList = new ArrayList();
+        List<String> suffixList = new ArrayList<String>();
         for ( int i = 0; i < names.length; i++ ) {
             if ( names[ i ].toLowerCase().startsWith( prefix.toLowerCase() ) ) {
                 String suffix = names[ i ].substring( prefix.length() );
@@ -965,7 +964,7 @@ public class PlotStateFactory {
                 }
             }
         }
-        return (String[]) suffixList.toArray( new String[ 0 ] );
+        return suffixList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -977,7 +976,7 @@ public class PlotStateFactory {
         final DoubleParameter hiParam_;
         final BooleanParameter logParam_;
         final BooleanParameter flipParam_;
-        final Parameter labelParam_;
+        final StringParameter labelParam_;
 
         private static Pattern auxAxisRegex_;
 
@@ -1049,8 +1048,8 @@ public class PlotStateFactory {
          *
          * @return   array of parameters used by this axis
          */
-        public Parameter[] getScalarParameters() {
-            return new Parameter[] {
+        public Parameter<?>[] getScalarParameters() {
+            return new Parameter<?>[] {
                 loParam_,
                 hiParam_,
                 logParam_,
@@ -1095,9 +1094,9 @@ public class PlotStateFactory {
 
                 /* Assemble list of base parameter names (no prefixes). */
                 AxisParameterSet paramSet = new AxisParameterSet( "" );
-                List nameList = new ArrayList();
+                List<String> nameList = new ArrayList<String>();
                 nameList.add( paramSet.createCoordParameter( "" ).getName() );
-                Parameter[] scalarParams = paramSet.getScalarParameters();
+                Parameter<?>[] scalarParams = paramSet.getScalarParameters();
                 for ( int ip = 0; ip < scalarParams.length; ip++ ) {
                     nameList.add( scalarParams[ ip ].getName() );
                 }
@@ -1111,8 +1110,9 @@ public class PlotStateFactory {
                     .append( ".*" )
                     .append( ')' )
                     .append( '(' );
-                for ( Iterator it = nameList.iterator(); it.hasNext(); ) {
-                    String baseName = (String) it.next();
+                for ( Iterator<String> it = nameList.iterator();
+                      it.hasNext(); ) {
+                    String baseName = it.next();
                     sbuf.append( "\\Q" )
                         .append( baseName )
                         .append( "\\E" );
@@ -1142,14 +1142,14 @@ public class PlotStateFactory {
          */
         public static String[] getAuxAxisNames( String[] paramNames ) {
             Pattern regex = getAuxAxisRegex();
-            Set auxNameSet = new HashSet();
+            Set<String> auxNameSet = new HashSet<String>();
             for ( int in = 0; in < paramNames.length; in++ ) {
                 Matcher matcher = regex.matcher( paramNames[ in ] );
                 if ( matcher.matches() ) {
                     auxNameSet.add( matcher.group( 1 ) );
                 }
             }
-            return (String[]) auxNameSet.toArray( new String[ 0 ] );
+            return auxNameSet.toArray( new String[ 0 ] );
         }
     }
 

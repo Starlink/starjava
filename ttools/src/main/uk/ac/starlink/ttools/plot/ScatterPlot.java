@@ -242,7 +242,7 @@ public class ScatterPlot extends SurfacePlot {
                 pseq.close();
 
                 /* Draw regression line. */
-                Graphics2D g2 = (Graphics2D) g;
+                Graphics2D g2 = g;
                 Object aaHint =
                     g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
                 g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
@@ -663,7 +663,7 @@ public class ScatterPlot extends SurfacePlot {
             MarkStyle style = styles[ is ];
             ErrorRenderer errorRenderer = style.getErrorRenderer();
             boolean showMarks = ! style.getHidePoints();
-            boolean showErrors = style.hasErrors( style, data );
+            boolean showErrors = MarkStyle.hasErrors( style, data );
             Pixellator markPixer = style.getPixelOffsets();
             int[] pixoffs = style.getFlattenedPixelOffsets( xdim );
             int npixoff = pixoffs.length;

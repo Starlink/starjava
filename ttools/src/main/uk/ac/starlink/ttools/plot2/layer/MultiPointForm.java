@@ -62,7 +62,7 @@ public abstract class MultiPointForm implements ShapeForm {
     private final String description_;
     private final MultiPointCoordSet extraCoordSet_;
     private final MultiPointConfigKey rendererKey_;
-    private final ConfigKey[] otherKeys_;
+    private final ConfigKey<?>[] otherKeys_;
 
     /**
      * Constructor.
@@ -81,7 +81,7 @@ public abstract class MultiPointForm implements ShapeForm {
     public MultiPointForm( String name, Icon icon, String description,
                            MultiPointCoordSet extraCoordSet,
                            MultiPointConfigKey rendererKey,
-                           ConfigKey[] otherKeys ) {
+                           ConfigKey<?>[] otherKeys ) {
         name_ = name;
         icon_ = icon;
         description_ = description;
@@ -131,11 +131,11 @@ public abstract class MultiPointForm implements ShapeForm {
         return extraCoordSet_.getCoords();
     }
 
-    public ConfigKey[] getConfigKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getConfigKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( rendererKey_ );
         list.addAll( Arrays.asList( otherKeys_ ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Outliner createOutliner( ConfigMap config ) {
@@ -258,7 +258,7 @@ public abstract class MultiPointForm implements ShapeForm {
                                boolean canScale ) {
         if ( canScale ) {
             return new MultiPointForm( name, icon, description, extraCoordSet,
-                                       rendererKey, new ConfigKey[] {
+                                       rendererKey, new ConfigKey<?>[] {
                                            StyleKeys.SCALE, StyleKeys.AUTOSCALE,
                                        } ) {
                 protected double getScaleFactor( ConfigMap config ) {
@@ -271,7 +271,7 @@ public abstract class MultiPointForm implements ShapeForm {
         }
         else {
             return new MultiPointForm( name, icon, description, extraCoordSet,
-                                       rendererKey, new ConfigKey[ 0 ] ) {
+                                       rendererKey, new ConfigKey<?>[ 0 ] ) {
                 protected double getScaleFactor( ConfigMap config ) {
                     return 1;
                 }

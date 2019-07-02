@@ -63,7 +63,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
     public CdsUploadSkyMatch() {
         super( "Crossmatches table on sky position against VizieR/SIMBAD table",
                new ChoiceMode(), true, true );
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         String system = "ICRS";
         String inDescrip = "the input table";
 

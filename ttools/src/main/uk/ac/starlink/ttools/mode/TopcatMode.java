@@ -51,8 +51,8 @@ public class TopcatMode implements ProcessingMode {
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.tttools.mode" );
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[ 0 ];
     }
 
     public String getDescription() {
@@ -308,8 +308,8 @@ public class TopcatMode implements ProcessingMode {
      * The run() method does the load.
      */
     static class TopcatLoader implements Runnable {
-        private static Class driverClazz_;
-        private static Class controlClazz_;
+        private static Class<?> driverClazz_;
+        private static Class<?> controlClazz_;
         private static Method main_;
         private static Method getControlWindow_;
         private static Method addTable_;
@@ -371,17 +371,17 @@ public class TopcatMode implements ProcessingMode {
             controlClazz_ =
                 Class.forName( "uk.ac.starlink.topcat.ControlWindow" );
             main_ = driverClazz_
-                   .getMethod( "main", new Class[] { String[].class } );
+                   .getMethod( "main", new Class<?>[] { String[].class } );
             setStandalone_ = 
                 driverClazz_.getMethod( "setStandalone",
-                                        new Class[] { boolean.class } );
+                                        new Class<?>[] { boolean.class } );
             addTable_ =
                 controlClazz_.getMethod( "addTable",
-                                         new Class[] { StarTable.class,
-                                                       String.class,
-                                                       boolean.class } );
+                                         new Class<?>[] { StarTable.class,
+                                                          String.class,
+                                                          boolean.class } );
             getControlWindow_ =
-                controlClazz_.getMethod( "getInstance", new Class[ 0 ] );
+                controlClazz_.getMethod( "getInstance", new Class<?>[ 0 ] );
         }
     }
 }

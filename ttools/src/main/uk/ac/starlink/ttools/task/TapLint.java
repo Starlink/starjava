@@ -33,16 +33,16 @@ public class TapLint implements Task {
     private final TapServiceParams tapserviceParams_;
     private final StringMultiParameter stagesParam_;
     private final IntegerParameter maxtableParam_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
 
     /**
      * Constructor.
      */
     public TapLint() {
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         tapserviceParams_ = new TapServiceParams( "tapurl", true );
-        Parameter urlParam = tapserviceParams_.getBaseParameter();
+        Parameter<?> urlParam = tapserviceParams_.getBaseParameter();
         urlParam.setPosition( 1 );
         paramList.add( urlParam );
 
@@ -121,14 +121,14 @@ public class TapLint implements Task {
         paramList.addAll( tapserviceParams_.getInterfaceParameters() );
         paramList.addAll( tapserviceParams_.getOtherParameters() );
 
-        params_ = paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     public String getPurpose() {
         return "Tests TAP services";
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return params_;
     }
 

@@ -117,7 +117,7 @@ public class UniqueFilter extends BasicFilter {
 
                 /* Constructor. */ {
                     if ( rseq.next() ) {
-                        nextRow_ = (Object[]) rseq.getRow().clone();
+                        nextRow_ = rseq.getRow().clone();
                     }
                 }
 
@@ -146,7 +146,7 @@ public class UniqueFilter extends BasicFilter {
                     if ( doCount_ ) {
                         lastRow_[ 0 ] = new Integer( dupCount );
                     }
-                    nextRow_ = same ? null : (Object[]) row.clone();
+                    nextRow_ = same ? null : row.clone();
                     return true;
                 }
 

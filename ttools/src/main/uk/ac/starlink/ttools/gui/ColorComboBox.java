@@ -32,7 +32,7 @@ public class ColorComboBox extends RenderingComboBox {
      * @param   colors  colour array
      */
     public ColorComboBox( Color[] colors ) {
-        super( (Color[]) colors.clone() );
+        super( colors.clone() );
         setSelectedIndex( 0 );
     }
 

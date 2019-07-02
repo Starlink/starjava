@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.task;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.task.Environment;
@@ -51,10 +50,9 @@ public class XmlEncodingParameter extends Parameter<Charset>
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( '\n' )
             .append( "   Supported encodings:\n" );
-        for ( Iterator it = Charset.availableCharsets().keySet().iterator();
-              it.hasNext(); ) {
+        for ( String csetName : Charset.availableCharsets().keySet() ) {
             sbuf.append( "      " )
-                .append( it.next().toString() )
+                .append( csetName )
                 .append( '\n' );
         }
         return sbuf.toString();

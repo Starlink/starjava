@@ -6,7 +6,6 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -20,14 +19,14 @@ import org.jibble.epsgraphics.EpsGraphics2D;
  */
 public abstract class TablePlot extends JComponent {
 
-    private final List plotListeners_;
+    private final List<PlotListener> plotListeners_;
     private PlotState state_;
 
     /**
      * Constructor.
      */
     protected TablePlot() {
-        plotListeners_ = new ArrayList();
+        plotListeners_ = new ArrayList<PlotListener>();
     }
 
     /**
@@ -78,8 +77,8 @@ public abstract class TablePlot extends JComponent {
      * @param   evt   event to dispatch
      */
     private void firePlotChanged( PlotEvent evt ) {
-        for ( Iterator it = plotListeners_.iterator(); it.hasNext(); ) {
-            ((PlotListener) it.next()).plotChanged( evt );
+        for ( PlotListener listener : plotListeners_ ) {
+            listener.plotChanged( evt );
         }
     }
 

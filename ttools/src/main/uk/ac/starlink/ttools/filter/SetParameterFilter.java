@@ -108,7 +108,7 @@ public class SetParameterFilter extends BasicFilter {
         final String ucd = pucd;
         final String utype = putype;
         final String units = punits;
-        final Class clazz = type == null ? null : getClass( type );
+        final Class<?> clazz = type == null ? null : getClass( type );
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
                 Object value = evaluate( expr, base, clazz, type );
@@ -127,7 +127,7 @@ public class SetParameterFilter extends BasicFilter {
      * @param  type  data type
      * @return  class matching <code>type</code>
      */
-    private static Class getClass( String type ) throws ArgException {
+    private static Class<?> getClass( String type ) throws ArgException {
         type = type.toLowerCase().trim();
         if ( "byte".equals( type ) ) {
             return byte.class;
@@ -172,7 +172,7 @@ public class SetParameterFilter extends BasicFilter {
      *                (used for error messages only)
      */
     public static Object evaluate( String expr, StarTable table,
-                                   Class clazz, String type )
+                                   Class<?> clazz, String type )
             throws IOException {
         String qexpr = "\"" + expr + "\"";
 
@@ -250,10 +250,10 @@ public class SetParameterFilter extends BasicFilter {
                                                         String ucd,
                                                         String utype,
                                                         String units,
-                                                        Class clazz )
+                                                        Class<?> clazz )
             throws IOException {
-        Class pclazz = clazz == null ? value.getClass()
-                                     : JELUtils.getWrapperType( clazz );
+        Class<?> pclazz = clazz == null ? value.getClass()
+                                        : JELUtils.getWrapperType( clazz );
         DefaultValueInfo info = new DefaultValueInfo( name, pclazz, descrip );
         if ( ucd != null && ucd.trim().length() > 0 ) {
             info.setUCD( ucd );

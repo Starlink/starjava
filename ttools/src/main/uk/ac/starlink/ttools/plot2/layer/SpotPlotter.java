@@ -67,8 +67,8 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getStyleKeys() {
+        return new ConfigKey<?>[] {
             StyleKeys.COLOR,
         };
     }

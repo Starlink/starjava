@@ -95,14 +95,15 @@ public class SeqConcatStarTable extends WrapperStarTable {
      * RowSequence implementation for this table.
      */
     private class ConcatRowSequence implements RowSequence {
-        private final Iterator prodIt = Arrays.asList( tProds_ ).iterator();
+        private final Iterator<TableProducer> prodIt =
+            Arrays.asList( tProds_ ).iterator();
         private RowSequence rseq_ = EmptyRowSequence.getInstance();
 
         public boolean next() throws IOException {
             while ( ! rseq_.next() ) {
                 rseq_.close();
                 if ( prodIt.hasNext() ) {
-                    TableProducer tProd = (TableProducer) prodIt.next();
+                    TableProducer tProd = prodIt.next();
                     StarTable table;
                     try {
                         table = tProd.getTable();

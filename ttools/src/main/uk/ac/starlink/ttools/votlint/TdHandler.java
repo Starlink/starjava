@@ -15,8 +15,7 @@ public class TdHandler extends ElementHandler {
 
     public void endElement() {
         Ancestry family = getAncestry();
-        DataHandler data = (DataHandler) 
-                           family.getAncestor( DataHandler.class );
+        DataHandler data = family.getAncestor( DataHandler.class );
         if ( data != null ) {
             FieldHandler field = data.getField( family.getSiblingIndex() );
             if ( field != null ) {

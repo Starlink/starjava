@@ -58,7 +58,7 @@ public abstract class ColumnCalculatorFilter<S> extends BasicFilter {
      * Implements ProcessingStep for this filter.
      */
     private static class CalcStep<S> implements ProcessingStep {
-        private final ColumnCalculator calc_;
+        private final ColumnCalculator<S> calc_;
         private final String[] tupleExprs_;
         private final S spec_;
 
@@ -70,7 +70,7 @@ public abstract class ColumnCalculatorFilter<S> extends BasicFilter {
          *                     gives tuple values for each table input row
          * @param  spec    calculator-specific specification object
          */
-        CalcStep( ColumnCalculator calc, String[] tupleExprs, S spec ) {
+        CalcStep( ColumnCalculator<S> calc, String[] tupleExprs, S spec ) {
             calc_ = calc;
             tupleExprs_ = tupleExprs;
             spec_ = spec;

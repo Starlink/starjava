@@ -134,8 +134,8 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
         } );
     }
 
-    protected ConfigKey[] getKernelConfigKeys() {
-        return new ConfigKey[] {
+    protected ConfigKey<?>[] getKernelConfigKeys() {
+        return new ConfigKey<?>[] {
             KNN_CKEY,
             SYMMETRIC_CKEY,
             MINSIZER_CKEY,

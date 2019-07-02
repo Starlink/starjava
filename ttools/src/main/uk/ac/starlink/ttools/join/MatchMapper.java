@@ -116,8 +116,8 @@ public class MatchMapper implements TableMapper {
         progressParam_ = new ProgressIndicatorParameter( "progress" );
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             mmodeParam_,
             irefParam_,
             matcherParam_,

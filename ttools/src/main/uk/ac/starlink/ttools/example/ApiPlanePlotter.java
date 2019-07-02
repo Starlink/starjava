@@ -55,13 +55,13 @@ import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
  */
 public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
-    public PlotDisplay createPlotComponent( StarTable table,
-                                            boolean dataMayChange )
+    public PlotDisplay<?,?> createPlotComponent( StarTable table,
+                                                 boolean dataMayChange )
             throws InterruptedException, IOException {
 
         /* Prepare an object which knows how to draw the plot from the table. */
-        PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect> plotGen =
-            createPlotGenerator( table );
+        PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect>
+                      plotGen = createPlotGenerator( table );
 
         /* Set up a Navigator which determines what mouse gestures are
          * available to the user for plot pan/zoom etc. */
@@ -83,7 +83,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
      * @return   plot based on the first two columns of the table
      */
     private PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect>
-            createPlotGenerator( StarTable table )
+                          createPlotGenerator( StarTable table )
             throws IOException, InterruptedException {
 
         /* It's a 2d plot. */
@@ -149,7 +149,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         Padding padding = new Padding();
 
         /* Construct and return the plot generator. */
-        return new PlotGenerator( layers, surfFact, profile, aspect,
+        return new PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect>
+                                ( layers, surfFact, profile, aspect,
                                   legend, legPos, title, shadeFact,
                                   shadeFixSpan, ptSel, compositor,
                                   dataStore, xpix, ypix, padding );
@@ -209,7 +210,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         ShapeStyle style = new ShapeStyle( outliner, stamper );
 
         /* Combine the data and style to generate a scatter plot layer. */
-        Plotter plotter = ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE );
+        Plotter<ShapeStyle> plotter =
+            ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE );
         return plotter.createLayer( geom, dataSpec, style );
     }
 
@@ -246,7 +248,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
                                              dash, sizer, phase, combiner );
 
         /* Combine data and style to generate a histogram plot layer. */
-        Plotter plotter =
+        Plotter<HistogramPlotter.HistoStyle> plotter =
             new HistogramPlotter( PlaneDataGeom.X_COORD, false, null );
         return plotter.createLayer( geom, dataSpec, style );
     }

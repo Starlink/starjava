@@ -438,7 +438,7 @@ public abstract class MarkShape {
         Pixellator[] results = new Pixellator[ seeds.length ];
         for ( int size = 0; size < seeds.length; size++ ) {
             int[] seed = seeds[ size ];
-            Set pointSet = new HashSet();
+            Set<Point> pointSet = new HashSet<Point>();
             for ( int ip = 0; ip < seed.length / 2; ip++ ) {
                 int a = seed[ ip * 2 + 0 ];
                 int b = seed[ ip * 2 + 1 ];
@@ -451,7 +451,7 @@ public abstract class MarkShape {
                 pointSet.add( new Point( -b, -a ) );
                 pointSet.add( new Point( +a, -b ) );
             }
-            Point[] points = (Point[]) pointSet.toArray( new Point[ 0 ] );
+            Point[] points = pointSet.toArray( new Point[ 0 ] );
             results[ size ] = new PointArrayPixellator( points );
         }
         return results;

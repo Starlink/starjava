@@ -14,7 +14,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  * @author   Mark Taylor
  * @since    13 Feb 2013
  */
-public interface PlotType {
+public interface PlotType<P,A> {
 
     /**
      * Returns a list of one or more geometry variants which describe
@@ -34,7 +34,7 @@ public interface PlotType {
      *
      * @return   surface factory
      */
-    SurfaceFactory getSurfaceFactory();
+    SurfaceFactory<P,A> getSurfaceFactory();
 
     /**
      * Returns a list of plotters that can be used to paint
@@ -42,7 +42,7 @@ public interface PlotType {
      *
      * @return   plotter list
      */
-    Plotter[] getPlotters();
+    Plotter<?>[] getPlotters();
 
     /**
      * Returns an object which can provide graphics rendering functionality

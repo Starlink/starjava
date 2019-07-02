@@ -179,7 +179,7 @@ public class CollapseColsFilter extends BasicFilter {
     private static ColumnSupplement
             createArrayColumnSupplement( StarTable table, String colName,
                                          int icol0, int ncol ) {
-        Class eclazz = table.getColumnInfo( icol0 ).getContentClass();
+        Class<?> eclazz = table.getColumnInfo( icol0 ).getContentClass();
 
         /* Long (to long[]) and then other integer types (to int[]).
          * Note 0 is used for missing or mistyped values. */

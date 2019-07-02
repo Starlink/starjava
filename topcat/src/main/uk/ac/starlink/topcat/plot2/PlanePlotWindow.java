@@ -69,7 +69,7 @@ public class PlanePlotWindow
             return PlaneFigureMode.MODES;
         }
         public GangerFactory getGangerFactory() {
-            return SingleGanger.FACTORY;
+            return SingleGanger.createFactory( PLOT_TYPE );
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;

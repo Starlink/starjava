@@ -151,9 +151,9 @@ public class RangeSliderUtil {
             try {
                 Class<?> uiClass =
                     Class.forName( UIManager.getString( getActualUIClassID() ));
-                Class acClass = JComponent.class;
+                Class<JComponent> acClass = JComponent.class;
                 Method m = uiClass.getMethod( "createUI",
-                                              new Class[] { acClass } );
+                                              new Class<?>[] { acClass } );
                 if ( m != null ) {
                     Object uiObject = m.invoke( null, new Object[]{this} );
                     setUI( (ComponentUI) uiObject );

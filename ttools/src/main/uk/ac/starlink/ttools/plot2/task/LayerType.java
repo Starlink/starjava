@@ -45,7 +45,7 @@ public interface LayerType {
      * @param  suffix  layer suffix string for use in the execution environment
      * @return  zero or more associated parameters, for documentation purposes
      */
-    Parameter[] getAssociatedParameters( String suffix );
+    Parameter<?>[] getAssociatedParameters( String suffix );
 
     /**
      * Returns the number of coordinate positions associated with this layer.
@@ -68,7 +68,7 @@ public interface LayerType {
      * @return  zero or more style keys associated with every layer produced
      *          by this type
      */
-    ConfigKey[] getStyleKeys();
+    ConfigKey<?>[] getStyleKeys();
 
     /**
      * Acquires a Plotter for this layer type.
@@ -78,5 +78,6 @@ public interface LayerType {
      *
      * @return  plotter
      */
-    Plotter getPlotter( Environment env, String suffix ) throws TaskException;
+    Plotter<?> getPlotter( Environment env, String suffix )
+            throws TaskException;
 }

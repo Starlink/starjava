@@ -52,7 +52,7 @@ public abstract class ValueParser {
      *
      * @return  value class
      */
-    public abstract Class getContentClass();
+    public abstract Class<?> getContentClass();
 
     /**
      * Returns the number of items of class {@link #getContentClass} which
@@ -245,7 +245,7 @@ public abstract class ValueParser {
                     return null;
                 }
                 else {
-                    Class clazz = getArrayClass( base.getContentClass() );
+                    Class<?> clazz = getArrayClass( base.getContentClass() );
                     return nel < 0 
                        ? (ValueParser) new VariableArrayParser( base, clazz )
                        : (ValueParser) new FixedArrayParser( base, clazz, nel );
@@ -298,7 +298,7 @@ public abstract class ValueParser {
      * class and count.
      */
     private static abstract class AbstractParser extends ValueParser {
-        private final Class clazz_;
+        private final Class<?> clazz_;
         private final int count_;
 
         /**
@@ -307,11 +307,11 @@ public abstract class ValueParser {
          * @param   clazz  element class
          * @param   count  element count
          */
-        public AbstractParser( Class clazz, int count ) {
+        public AbstractParser( Class<?> clazz, int count ) {
             clazz_ = clazz;
             count_ = count;
         }
-        public Class getContentClass() {
+        public Class<?> getContentClass() {
             return clazz_;
         }
         public int getElementCount() {
@@ -325,7 +325,7 @@ public abstract class ValueParser {
      */
     private static abstract class SlurpParser extends ValueParser {
         private final int nbyte_;
-        private final Class clazz_;
+        private final Class<?> clazz_;
         private final int count_;
 
         /**
@@ -335,12 +335,12 @@ public abstract class ValueParser {
          * @param  clazz  class of elements
          * @param  count  number of elements
          */
-        SlurpParser( int nbyte, Class clazz, int count ) {
+        SlurpParser( int nbyte, Class<?> clazz, int count ) {
             nbyte_ = nbyte;
             clazz_ = clazz;
             count_ = count;
         }
-        public Class getContentClass() {
+        public Class<?> getContentClass() {
             return clazz_;
         }
         public int getElementCount() {
@@ -365,7 +365,7 @@ public abstract class ValueParser {
          * @param   base  parser which can read a scalar
          * @param   count  number of scalar elements read by this parser
          */
-        FixedArrayParser( ValueParser base, Class clazz, int count ) {
+        FixedArrayParser( ValueParser base, Class<?> clazz, int count ) {
             super( clazz, count );
             base_ = base;
             count_ = count;
@@ -406,7 +406,7 @@ public abstract class ValueParser {
          *
          * @param  base  parser which can read a scalar
          */
-        VariableArrayParser( ValueParser base, Class clazz ) {
+        VariableArrayParser( ValueParser base, Class<?> clazz ) {
             super( clazz, -1 );
             base_ = base;
             base_.toString();
@@ -501,7 +501,7 @@ public abstract class ValueParser {
          * @param   minVal  minimum legal value for integer
          * @param   maxVal  maximum legal value for integer
          */
-        IntegerParser( int nbyte, long minVal, long maxVal, Class clazz ) {
+        IntegerParser( int nbyte, long minVal, long maxVal, Class<?> clazz ) {
             super( nbyte, clazz, 1 );
             minVal_ = minVal;
             maxVal_ = maxVal;
@@ -857,7 +857,7 @@ public abstract class ValueParser {
      * @param   wclazz  wrapper class
      * @return  corresponding primitive array class
      */
-    private static Class getArrayClass( Class wclazz ) {
+    private static Class<?> getArrayClass( Class<?> wclazz ) {
         if ( wclazz == Boolean.class ) {
             return boolean[].class;
         }

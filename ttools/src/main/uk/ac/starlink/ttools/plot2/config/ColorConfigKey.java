@@ -208,10 +208,8 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
             new LinkedHashMap<String,Color>( STANDARD_COLORS );
         map.remove( COLORNAME_LIGHTGREY );
         map.remove( COLORNAME_BLACK );
-        for ( Iterator<Map.Entry<String,Color>> it = map.entrySet().iterator();
-              it.hasNext(); ) {
-            Map.Entry entry = it.next();
-            if ( Color.WHITE.equals( entry.getValue() ) ) {
+        for ( Iterator<Color> it = map.values().iterator(); it.hasNext(); ) {
+            if ( Color.WHITE.equals( it.next() ) ) {
                 it.remove();
             }
         }

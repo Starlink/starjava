@@ -106,9 +106,9 @@ public class BlockUploader {
 
         /* Work out how to do the blocking. */
         long nrow = inTable.getRowCount();
-        RowMapper rowMapper = nrow >= 0 && nrow < Integer.MAX_VALUE
-                            ? new IntegerMapper()
-                            : new LongMapper();
+        RowMapper<?> rowMapper = nrow >= 0 && nrow < Integer.MAX_VALUE
+                               ? new IntegerMapper()
+                               : new LongMapper();
 
         /* Perform an upload/match operation for each block of rows.
          * Each block takes its input from the next lot of rows from the

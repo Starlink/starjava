@@ -31,7 +31,7 @@ public class TapResume extends ConsumerTask {
     public TapResume() {
         super( "Resumes a previous query to a Table Access Protocol server",
                new ChoiceMode(), true );
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         urlParam_ = new URLParameter( "joburl" );
         urlParam_.setPrompt( "Job URL for a previously created TAP query" );

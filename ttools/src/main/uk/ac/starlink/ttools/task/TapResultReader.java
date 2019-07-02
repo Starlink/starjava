@@ -36,7 +36,7 @@ public class TapResultReader {
     private final IntegerParameter pollParam_;
     private final BooleanParameter progressParam_;
     private final ChoiceParameter<DeleteMode> deleteParam_;
-    private final Parameter[] parameters_;
+    private final Parameter<?>[] parameters_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
@@ -44,7 +44,7 @@ public class TapResultReader {
      * Constructor.
      */
     public TapResultReader() {
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         pollParam_ = new IntegerParameter( "poll" );
         pollParam_.setPrompt( "Polling interval in milliseconds" );
@@ -95,7 +95,7 @@ public class TapResultReader {
         deleteParam_.setDefaultOption( DeleteMode.finished );
         paramList.add( deleteParam_ );
 
-        parameters_ = paramList.toArray( new Parameter[ 0 ] );
+        parameters_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -103,7 +103,7 @@ public class TapResultReader {
      *
      * @return   parameters
      */
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return parameters_;
     }
 

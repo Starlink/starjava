@@ -48,6 +48,7 @@ public class NamedColorChooserPanel extends AbstractColorChooserPanel {
         chooser_ = chooser;
     }
 
+    @SuppressWarnings({"unchecked","rawtypes"})
     protected void buildChooser() {
         final JList list =
             new JList( colorMap_.keySet().toArray( new String[ 0 ] ) );

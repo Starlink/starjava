@@ -19,8 +19,8 @@ import uk.ac.starlink.ttools.TableConsumer;
  */
 public class CountMode implements ProcessingMode {
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[ 0 ];
     }
 
     public String getDescription() {

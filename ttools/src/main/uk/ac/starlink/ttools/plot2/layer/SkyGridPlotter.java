@@ -145,8 +145,8 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getStyleKeys() {
+        return new ConfigKey<?>[] {
             GRIDSYS_KEY,
             COLOR_KEY,
             TRANSPARENCY_KEY,

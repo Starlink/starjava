@@ -89,7 +89,7 @@ public class UsageWriter {
      *                  in plain text output
      * @return   XML snippet for <code>param</code>
      */
-    public static String xmlItem( Parameter param, boolean isBasic ) {
+    public static String xmlItem( Parameter<?> param, boolean isBasic ) {
         String descrip = param.getDescription();
         if ( descrip == null ) {
             throw new NullPointerException( "No description for parameter "
@@ -119,7 +119,7 @@ public class UsageWriter {
      * @param  param  parameter to describe
      * @return  XML snippet giving name=value
      */
-    private static String getUsageXml( Parameter param ) {
+    private static String getUsageXml( Parameter<?> param ) {
         return ( param.getName() + " = " + param.getUsage() )
               .replaceAll( "<", "&lt;" )
               .replaceAll( ">", "&gt;" );
@@ -134,10 +134,10 @@ public class UsageWriter {
      *                  in plain text output
      * @return  XML snippet
      */
-    private static String getTypeXml( Parameter param, boolean isBasic ) {
-        Class vClazz = param.getValueClass();
+    private static String getTypeXml( Parameter<?> param, boolean isBasic ) {
+        Class<?> vClazz = param.getValueClass();
         boolean isArray = vClazz.getComponentType() != null;
-        Class clazz = isArray ? vClazz.getComponentType() : vClazz;
+        Class<?> clazz = isArray ? vClazz.getComponentType() : vClazz;
         String arraySuffix = isArray ? "[]" : "";
         String clazzName = clazz.getName();
         int pkgLeng = clazzName.lastIndexOf( "." );
@@ -189,7 +189,7 @@ public class UsageWriter {
      * @param  param  parameter to describe
      * @return  XML snippet giving default string (may be empty)
      */
-    private static String getDefaultXml( Parameter param ) {
+    private static String getDefaultXml( Parameter<?> param ) {
         String dflt = param.getStringDefault();
         StringBuffer sbuf = new StringBuffer();
         if ( dflt != null && dflt.length() > 0 ) {

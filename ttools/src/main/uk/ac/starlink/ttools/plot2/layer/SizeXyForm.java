@@ -111,8 +111,8 @@ public class SizeXyForm implements ShapeForm {
         };
     }
 
-    public ConfigKey[] getConfigKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getConfigKeys() {
+        return new ConfigKey<?>[] {
             StyleKeys.XYSHAPE,
             StyleKeys.SCALE_PIX,
             StyleKeys.AUTOSCALE_PIX,

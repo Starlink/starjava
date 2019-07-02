@@ -42,6 +42,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  * @since    8 Feb 2006
  * @see  <a href="http://plastic.sourceforge.net/">PLASTIC</a>
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class PlasticMode implements ProcessingMode {
 
     private final Parameter<String> transportParam_;
@@ -112,8 +113,8 @@ public class PlasticMode implements ProcessingMode {
         clientParam_.setUsage( "<app-name>" );
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             transportParam_,
             clientParam_,
         };

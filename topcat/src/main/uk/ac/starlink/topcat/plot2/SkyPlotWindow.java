@@ -87,7 +87,7 @@ public class SkyPlotWindow
         }
 
         public GangerFactory getGangerFactory() {
-            return SingleGanger.FACTORY;
+            return SingleGanger.createFactory( PLOT_TYPE );
         }
 
         public ZoneFactory createZoneFactory() {

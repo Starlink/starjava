@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -137,7 +138,7 @@ public class ReplaceValueTable extends WrapperStarTable {
                                             String newStr )
             throws IOException {
         try {
-            final Class clazz = info.getContentClass();
+            final Class<?> clazz = info.getContentClass();
             boolean oldBlank = isBlank( oldStr, info );
             boolean newBlank = isBlank( newStr, info );
             final Object newValue = newBlank ? null
@@ -192,7 +193,8 @@ public class ReplaceValueTable extends WrapperStarTable {
                 catch ( IllegalArgumentException e ) {
                     logger_.info( "No replacements in column " 
                                 + info.getName() + " (" + oldStr + " not "
-                                + info.formatClass( info.getContentClass() )
+                                + DefaultValueInfo
+                                 .formatClass( info.getContentClass() )
                                 + ")" );
                     return unitReplacer_;
                 }
@@ -206,7 +208,8 @@ public class ReplaceValueTable extends WrapperStarTable {
         }
         catch ( IllegalArgumentException e ) {
             String msg = "Can't replace \"" + oldStr + "\" with \"" + newStr
-                       + "\" in " + info.formatClass( info.getContentClass() )
+                       + "\" in "
+                       + DefaultValueInfo.formatClass( info.getContentClass() )
                        + " column " + info.getName();
             throw (IOException) new IOException( msg ).initCause( e );
         }

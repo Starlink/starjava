@@ -35,7 +35,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
     private final OptionConfigKey<Scaling> scalingKey_;
     private final ConfigKey<Subrange> dataclipKey_;
     private final Map<Shader,Subrange> clipMap_;
-    private final ConfigKey[] keys_;
+    private final ConfigKey<?>[] keys_;
 
     /**
      * Constructor.
@@ -49,7 +49,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
     public RampKeySet( String axname, String axName, ClippedShader[] shaders,
                        Scaling dfltScaling, boolean hasDataclip ) {
         clipMap_ = new HashMap<Shader,Subrange>();
-        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+        List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
 
         List<Shader> shaderList = new ArrayList<Shader>();
         for ( ClippedShader cs : shaders ) {
@@ -202,10 +202,10 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         } );
         keyList.add( scalingKey_ );
 
-        keys_ = keyList.toArray( new ConfigKey[ 0 ] );
+        keys_ = keyList.toArray( new ConfigKey<?>[ 0 ] );
     }
 
-    public ConfigKey[] getKeys() {
+    public ConfigKey<?>[] getKeys() {
         return keys_;
     }
 

@@ -41,8 +41,8 @@ public class SphericalPlot3D extends Plot3D {
         hiBounds_ = new double[ 3 ];
         Arrays.fill( loBounds_, -rmax );
         Arrays.fill( hiBounds_, +rmax );
-        loBoundsG_ = (double[]) loBounds_.clone();
-        hiBoundsG_ = (double[]) hiBounds_.clone();
+        loBoundsG_ = loBounds_.clone();
+        hiBoundsG_ = hiBounds_.clone();
         final double range2 = rmax * rmax * 1.0001;
         return new RangeChecker() {
             boolean inRange( double[] coords ) {

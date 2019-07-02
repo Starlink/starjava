@@ -82,7 +82,7 @@ public class StrokeXYShape extends XYShape {
         int y0 = fat - Math.min( 0, y );
         GreyImage bitmap =
             GreyImage.createGreyImage( xmax - xmin, ymax - ymin );
-        Graphics2D g = (Graphics2D) bitmap.getImage().createGraphics();
+        Graphics2D g = bitmap.getImage().createGraphics();
         g.setStroke( stroke );
         g.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                             RenderingHints.VALUE_ANTIALIAS_OFF );

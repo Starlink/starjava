@@ -22,7 +22,7 @@ public class DalConeSearcher {
     private final boolean believeEmpty_;
     private final String stdName_;
     private final String stdVers_;
-    private Class[] colTypes_;
+    private Class<?>[] colTypes_;
     private Boolean typesFromEmpty_;
     private boolean warned_;
     private static final Logger logger_ =
@@ -67,7 +67,7 @@ public class DalConeSearcher {
         }
 
         /* Get the array of column data types from the result table. */
-        Class[] ctypes = getColumnTypes( table );
+        Class<?>[] ctypes = getColumnTypes( table );
 
         /* If we haven't encountered reliable column metadata before now,
          * set them from the values we have. */
@@ -237,9 +237,9 @@ public class DalConeSearcher {
      * @param  table  table
      * @return   ncol-element array of column content classes
      */
-    private static Class[] getColumnTypes( StarTable table ) {
+    private static Class<?>[] getColumnTypes( StarTable table ) {
         int ncol = table.getColumnCount();
-        Class[] types = new Class[ ncol ];
+        Class<?>[] types = new Class<?>[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             types[ icol ] = table.getColumnInfo( icol ).getContentClass();
         }

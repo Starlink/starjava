@@ -107,7 +107,7 @@ public abstract class DefaultStyle implements Style {
         int thick = getLineWidth();
         float[] dash = getDash();
         if ( dash != null && thick != 1 ) {
-            dash = (float[]) dash.clone();
+            dash = dash.clone();
             for ( int i = 0; i < dash.length; i++ ) {
                 dash[ i ] *= thick;
             }

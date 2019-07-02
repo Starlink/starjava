@@ -46,7 +46,7 @@ public class Match1Mapping implements SingleTableMapping {
                           String[] tupleExprs, ProgressIndicator progger ) {
         matchEngine_ = matchEngine;
         type1_ = type1;
-        tupleExprs_ = (String[]) tupleExprs.clone();
+        tupleExprs_ = tupleExprs.clone();
         progger_ = progger;
     }
 

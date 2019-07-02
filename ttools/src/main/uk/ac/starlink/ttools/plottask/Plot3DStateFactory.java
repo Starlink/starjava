@@ -74,13 +74,13 @@ public class Plot3DStateFactory extends PlotStateFactory {
         thetaParam_.setDoubleDefault( 15. );
     }
 
-    public Parameter[] getParameters() {
-        List paramList = new ArrayList();
+    public Parameter<?>[] getParameters() {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.addAll( Arrays.asList( super.getParameters() ) );
         paramList.add( fogParam_ );
         paramList.add( phiParam_ );
         paramList.add( thetaParam_ );
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     protected PlotState createPlotState() {

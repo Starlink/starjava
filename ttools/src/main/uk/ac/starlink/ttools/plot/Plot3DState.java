@@ -24,7 +24,7 @@ public class Plot3DState extends PlotState {
      * @param  matrix  9-element 3d rotation matrix
      */
     public void setRotation( double[] matrix ) {
-        rotation_ = (double[]) matrix.clone();
+        rotation_ = matrix.clone();
     }
 
     /**

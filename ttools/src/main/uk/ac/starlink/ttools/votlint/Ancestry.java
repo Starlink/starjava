@@ -31,7 +31,7 @@ public interface Ancestry {
      * @param  clazz   class required
      * @return   handler's ancestor of type <tt>clazz</tt>
      */
-    ElementHandler getAncestor( Class clazz );
+    <H extends ElementHandler> H getAncestor( Class<H> clazz );
 
     /**
      * Returns the index of this child in the list of its parent's children.

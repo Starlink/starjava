@@ -57,8 +57,8 @@ public class MarkStyleFactory extends StyleFactory {
         errNdim_ = errNdim;
     }
 
-    public Parameter[] getParameters( String stSuffix ) {
-        List paramList = new ArrayList();
+    public Parameter<?>[] getParameters( String stSuffix ) {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.add( createColorParameter( stSuffix ) );
         paramList.add( createShapeParameter( stSuffix ) );
         paramList.add( createSizeParameter( stSuffix ) );
@@ -70,7 +70,7 @@ public class MarkStyleFactory extends StyleFactory {
         if ( errNdim_ > 0 ) {
             paramList.add( createErrorRendererParameter( stSuffix ) );
         }
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -84,9 +84,10 @@ public class MarkStyleFactory extends StyleFactory {
             (MarkStyle) styleSet_.getStyle( getStyleIndex( stSuffix ) );
 
         /* Marker shape. */
-        ChoiceParameter shapeParam = createShapeParameter( stSuffix );
+        ChoiceParameter<MarkShape> shapeParam =
+            createShapeParameter( stSuffix );
         shapeParam.setDefaultOption( style0.getShapeId() );
-        MarkShape shape = (MarkShape) shapeParam.objectValue( env );
+        MarkShape shape = shapeParam.objectValue( env );
 
         /* Colour. */
         ColorParameter colorParam = createColorParameter( stSuffix );
@@ -108,9 +109,10 @@ public class MarkStyleFactory extends StyleFactory {
         style.setOpaqueLimit( transparParam.intValue( env ) );
 
         /* Configure line mode. */
-        ChoiceParameter lineParam = createLineParameter( stSuffix );
+        ChoiceParameter<MarkStyle.Line> lineParam =
+            createLineParameter( stSuffix );
         lineParam.setDefaultOption( style0.getLine() );
-        style.setLine( (MarkStyle.Line) lineParam.objectValue( env ) );
+        style.setLine( lineParam.objectValue( env ) );
         style.setDash( createDashParameter( stSuffix ).dashValue( env ) );
         style.setLineWidth( createLineWidthParameter( stSuffix )
                            .intValue( env ) );
@@ -122,9 +124,10 @@ public class MarkStyleFactory extends StyleFactory {
 
         /* Configure error renderer if appropriate. */
         if ( errNdim_ > 0 ) {
-            ChoiceParameter errParam = createErrorRendererParameter( stSuffix );
+            ChoiceParameter<ErrorRenderer> errParam =
+                createErrorRendererParameter( stSuffix );
             errParam.setDefaultOption( style.getErrorRenderer() );
-            ErrorRenderer errRend = (ErrorRenderer) errParam.objectValue( env );
+            ErrorRenderer errRend = errParam.objectValue( env );
             style.setErrorRenderer( errRend == null ? ErrorRenderer.NONE
                                                     : errRend );
         }
@@ -182,9 +185,10 @@ public class MarkStyleFactory extends StyleFactory {
      * @param   stSuffix  label identifying dataset
      * @return  parameter which returns MarkShapes
      */
-    private ChoiceParameter createShapeParameter( String stSuffix ) {
-        StyleParameter param =
-            new StyleParameter( paramName( "shape", stSuffix ), SHAPES );
+    private ChoiceParameter<MarkShape> createShapeParameter( String stSuffix ) {
+        StyleParameter<MarkShape> param =
+            new StyleParameter<MarkShape>( paramName( "shape", stSuffix ),
+                                           SHAPES );
         param.setPrompt( "Marker shape for data set " + stSuffix );
         param.setDescription( new String[] {
             "<p>Defines the shapes for the markers that are plotted in",
@@ -202,7 +206,8 @@ public class MarkStyleFactory extends StyleFactory {
      * @param  stSuffix  label identifying dataset
      * @return  parameter giving error renderer
      */
-    private ChoiceParameter createErrorRendererParameter( String stSuffix ) {
+    private ChoiceParameter<ErrorRenderer>
+            createErrorRendererParameter( String stSuffix ) {
         final ErrorRenderer[] options;
         if ( errNdim_ == 2 ) {
             options = ErrorRenderer.getOptions2d();
@@ -213,8 +218,9 @@ public class MarkStyleFactory extends StyleFactory {
         else {
             options = ErrorRenderer.getOptionsGeneral();
         }
-        StyleParameter param =
-            new StyleParameter( paramName( "errstyle", stSuffix ), options );
+        StyleParameter<ErrorRenderer> param =
+            new StyleParameter<ErrorRenderer>
+                              ( paramName( "errstyle", stSuffix ), options );
         param.setPrompt( "Error bar style for data set " + stSuffix );
         param.setDescription( new String[] {
             "<p>Defines the way in which error bars (or ellipses, or...)",
@@ -273,9 +279,11 @@ public class MarkStyleFactory extends StyleFactory {
      * @param  stSuffix  label identifying dataset
      * @return   parameter returning line mode
      */
-    private ChoiceParameter createLineParameter( String stSuffix ) {
-        ChoiceParameter param =
-            new ChoiceParameter( paramName( "line", stSuffix ),
+    private ChoiceParameter<MarkStyle.Line>
+            createLineParameter( String stSuffix ) {
+        ChoiceParameter<MarkStyle.Line> param =
+            new ChoiceParameter<MarkStyle.Line>
+                               ( paramName( "line", stSuffix ),
                                  new MarkStyle.Line[] { MarkStyle.DOT_TO_DOT,
                                                         MarkStyle.LINEAR, } );
         param.setNullPermitted( true );

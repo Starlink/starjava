@@ -20,8 +20,8 @@ public class ShowFunctions implements Task, Executable {
         return "Browses functions used by algebraic expression language";
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[ 0 ];
     }
 
     public Executable createExecutable( Environment env ) {
@@ -31,7 +31,7 @@ public class ShowFunctions implements Task, Executable {
     public void execute() {
         MethodBrowser browser = new MethodBrowser();
         browser.addStaticClasses( JELUtils.getStaticClasses()
-                                          .toArray( new Class[ 0 ] ) );
+                                          .toArray( new Class<?>[ 0 ] ) );
         JFrame frame = new JFrame( "Functions" );
         frame.getContentPane().add( browser );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );

@@ -30,8 +30,8 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
         super( xCoord, hasWeight, unitKey, "KDE", ResourceIcon.FORM_KDE );
     }
 
-    protected ConfigKey[] getKernelConfigKeys() {
-        return new ConfigKey[] {
+    protected ConfigKey<?>[] getKernelConfigKeys() {
+        return new ConfigKey<?>[] {
             SMOOTHSIZER_KEY,
             getCombinerKey(),
         };

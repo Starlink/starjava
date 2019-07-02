@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
@@ -27,12 +26,12 @@ import uk.ac.starlink.ttools.plot2.data.Input;
  * @author   Mark Taylor
  * @since    3 Sep 2014
  */
-public class TypedPlot2Task extends AbstractPlot2Task {
+public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
 
-    private final PlotType plotType_;
-    private final PlotContext context_;
+    private final PlotType<P,A> plotType_;
+    private final PlotContext<P,A> context_;
     private final Map<ConfigKey<String>,Input> axlabelMap_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
 
     /**
      * Constructs a plot task with a supplied PlotContext.
@@ -48,26 +47,26 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      *                     common data input coordinates, or null
      * @param  context   fixed plot context
      */
-    public TypedPlot2Task( PlotType plotType,
+    public TypedPlot2Task( PlotType<P,A> plotType,
                            Map<ConfigKey<String>,Input> axlabelMap,
-                           PlotContext context ) {
+                           PlotContext<P,A> context ) {
         super( context.getGangerFactory() );
         plotType_ = plotType;
         context_ = context;
         axlabelMap_ = axlabelMap == null
                     ? new HashMap<ConfigKey<String>,Input>()
                     : axlabelMap;
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         /* Standard parameters applicable to all plot tasks. */
         paramList.addAll( Arrays.asList( getBasicParameters() ) );
 
         /* Parameters specific to the plotting surface type. */
-        SurfaceFactory surfFact = plotType.getSurfaceFactory();
+        SurfaceFactory<P,A> surfFact = plotType.getSurfaceFactory();
         paramList.addAll( getZoneKeyParams( surfFact.getProfileKeys() ) );
         paramList.addAll( getZoneKeyParams( surfFact.getAspectKeys() ) );
-        for ( ConfigKey configKey : surfFact.getNavigatorKeys() ) {
-            paramList.add( new ConfigParameter( configKey ) );
+        for ( ConfigKey<?> configKey : surfFact.getNavigatorKeys() ) {
+            paramList.add( ConfigParameter.createConfigParameter( configKey ) );
         }
 
         /* Layer parameter, which defines what plotters are available. */
@@ -78,7 +77,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
             paramList.add( createZoneParameter( EXAMPLE_LAYER_SUFFIX ) );
         }
 
-        params_ = paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -98,10 +97,12 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      * @param  axlabelMap  mapping from axis label keys to corresponding
      *                     common data input coordinates, or null
      */
-    public TypedPlot2Task( PlotType plotType,
+    public TypedPlot2Task( PlotType<P,A> plotType,
                            Map<ConfigKey<String>,Input> axlabelMap ) {
         this( plotType, axlabelMap,
-              createDefaultPlotContext( plotType, SingleGanger.FACTORY ) );
+              createDefaultPlotContext( plotType,
+                                        SingleGanger
+                                       .createFactory( plotType ) ) );
     }
 
     /**
@@ -109,7 +110,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      *
      * @return  plotType;
      */
-    public PlotType getPlotType() {
+    public PlotType<P,A> getPlotType() {
         return plotType_;
     }
 
@@ -117,11 +118,11 @@ public class TypedPlot2Task extends AbstractPlot2Task {
         return "Draws a " + plotType_.toString() + " plot";
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return params_;
     }
 
-    public PlotContext getPlotContext( Environment env ) {
+    public PlotContext<P,A> getPlotContext( Environment env ) {
         return context_;
     }
 
@@ -130,7 +131,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      *
      * @return  plot context
      */
-    public PlotContext getPlotContext() {
+    public PlotContext<P,A> getPlotContext() {
         return context_;
     }
 
@@ -192,9 +193,9 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      * @param  gangerFact  defines plot grouping
      * @return  context
      */
-    public static PlotContext
-            createDefaultPlotContext( PlotType plotType,
-                                      GangerFactory gangerFact ) {
+    public static <P,A> PlotContext<P,A>
+            createDefaultPlotContext( PlotType<P,A> plotType,
+                                      GangerFactory<P,A> gangerFact ) {
         final DataGeom[] geoms = plotType.getPointDataGeoms();
         return geoms.length == 1
              ? PlotContext.createFixedContext( plotType, geoms[ 0 ],

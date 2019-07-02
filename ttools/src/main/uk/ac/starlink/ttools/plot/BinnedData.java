@@ -37,7 +37,7 @@ public interface BinnedData {
      *           bins may be omitted
      * @return   iterator which dispenses {@link BinnedData.Bin} instances
      */
-    Iterator getBinIterator( boolean includeEmpty );
+    Iterator<Bin> getBinIterator( boolean includeEmpty );
 
     /**
      * Returns the number of subsets for which this object maintains bins.

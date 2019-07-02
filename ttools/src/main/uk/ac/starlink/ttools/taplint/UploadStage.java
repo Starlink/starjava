@@ -47,7 +47,7 @@ public class UploadStage implements Stage {
      * Constructor.
      *
      * @param   tapRunner   runs TAP queries
-     * @param   capHolder   
+     * @param   capHolder     contains capability information
      */
     public UploadStage( TapRunner tapRunner, CapabilityHolder capHolder ) {
         tapRunner_ = tapRunner;
@@ -443,7 +443,7 @@ public class UploadStage implements Stage {
             cinfo.setAuxDatum( new DescribedValue( VOStarTable.XTYPE_INFO,
                                                    xtype ) );
         }
-        Class clazz = cinfo.getContentClass();
+        Class<?> clazz = cinfo.getContentClass();
         final boolean nullable;
         if ( clazz == String.class ) {
             nullable = false;

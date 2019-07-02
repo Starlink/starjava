@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.task;
 
 import gov.fnal.eag.healpix.PixTools;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -210,12 +209,14 @@ public class PixSampler {
         double thetaRad = deltaToTheta( deltaDeg );
         double radiusRad = radiusDeg * Math.PI / 180.;
         Vector3d vec = pixTools_.Ang2Vec( thetaRad, phiRad );
-        List pixList = pixTools_.query_disc( nside_, vec, radiusRad,
-                                             nested_ ? 1 : 0, 0 );
+        @SuppressWarnings("unchecked")
+        List<Long> pixList =
+            (List<Long>) pixTools_.query_disc( nside_, vec, radiusRad,
+                                               nested_ ? 1 : 0, 0 );
         long[] pixes = new long[ pixList.size() ];
         int ip = 0;
-        for ( Iterator it = pixList.iterator(); it.hasNext(); ) {
-            pixes[ ip++ ] = ((Number) it.next()).longValue();
+        for ( Number pix : pixList ) {
+            pixes[ ip++ ] = pix.longValue();
         }
         assert ip == pixes.length;
         return pixes;

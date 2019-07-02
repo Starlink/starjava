@@ -37,7 +37,7 @@ public class CubeWriter implements TableConsumer {
     private final double[] hiBounds_;
     private final String[] colIds_;
     private final String scaleId_;
-    private final Class outType_;
+    private final Class<?> outType_;
     private final Destination dest_;
     private int[] nbins_;
     private double[] binSizes_;
@@ -62,7 +62,7 @@ public class CubeWriter implements TableConsumer {
      */
     public CubeWriter( double[] loBounds, double[] hiBounds, int[] nbins,
                        double[] binSizes, String[] colIds, String scaleId,
-                       Destination dest, Class outType ) {
+                       Destination dest, Class<?> outType ) {
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
         nbins_ = nbins;
@@ -346,7 +346,8 @@ public class CubeWriter implements TableConsumer {
      * @param   out    output stream
      */
     private void writeFits( ValueInfo[] axInfos, ValueInfo binInfo,
-                            double[] cube, Class outType, DataOutputStream out )
+                            double[] cube, Class<?> outType,
+                            DataOutputStream out )
             throws IOException {
         int npix = cube.length;
         int ndim = nbins_.length;
@@ -370,13 +371,13 @@ public class CubeWriter implements TableConsumer {
         }
 
         /* Get a suitable writer for writing the numeric data to FITS. */
-        Class clazz = outType;
+        Class<?> clazz = outType;
         if ( clazz == null ) {
             if ( min == Double.NaN ) {
                 clazz = byte.class;
             }
             else {
-                Class binType = binInfo.getContentClass();
+                Class<?> binType = binInfo.getContentClass();
                 if ( binType == Byte.class ||
                      binType == Short.class ||
                      binType == Integer.class ||
@@ -415,8 +416,8 @@ public class CubeWriter implements TableConsumer {
                           "HDU creation date" );
             hdr.addValue( "BUNIT", "COUNTS",
                           "Number of points per pixel (bin)" );
-            hdr.addValue( "DATAMIN", (double) min, "Minimum value" );
-            hdr.addValue( "DATAMAX", (double) max, "Maximum value" );
+            hdr.addValue( "DATAMIN", min, "Minimum value" );
+            hdr.addValue( "DATAMAX", max, "Maximum value" );
             for ( int id = 0; id < ndim; id++ ) {
                 ValueInfo info = axInfos[ id ];
                 String units = info.getUnitString();
@@ -467,7 +468,7 @@ public class CubeWriter implements TableConsumer {
      * @param   clazz  primitive numeric type for output
      */
     public static NumberWriter createNumberWriter( final DataOutput out,
-                                                   Class clazz ) {
+                                                   Class<?> clazz ) {
         if ( clazz == byte.class ) {
             return new NumberWriter( 8 ) {
                 public void writeNumber( double value ) throws IOException {
@@ -506,7 +507,7 @@ public class CubeWriter implements TableConsumer {
         else if ( clazz == double.class ) {
             return new NumberWriter( -64 ) {
                 public void writeNumber( double value ) throws IOException {
-                    out.writeDouble( (double) value );
+                    out.writeDouble( value );
                 }
             };
         }
@@ -514,7 +515,7 @@ public class CubeWriter implements TableConsumer {
             assert false;
             return new NumberWriter( 64 ) {
                 public void writeNumber( double value ) throws IOException {
-                    out.writeDouble( (double) value );
+                    out.writeDouble( value );
                 }
             };
         }

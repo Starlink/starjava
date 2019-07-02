@@ -218,8 +218,8 @@ public class PixSample extends MapperTask {
             outsysParam_.setNullPermitted( true );
         }
 
-        public Parameter[] getParameters() {
-            return new Parameter[] {
+        public Parameter<?>[] getParameters() {
+            return new Parameter<?>[] {
                 schemeParam_,
                 modeParam_,
                 lonParam_,
@@ -339,8 +339,8 @@ public class PixSample extends MapperTask {
                                                  pixTableParam_, Boolean.TRUE );
         }
 
-        public Parameter[] getParameters() {
-            return new Parameter[] {
+        public Parameter<?>[] getParameters() {
+            return new Parameter<?>[] {
                 inTableParam_,
                 inTableParam_.getFormatParameter(),
                 inFilterParam_,

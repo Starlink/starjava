@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
+import uk.ac.starlink.ttools.plot2.geom.SkyAspect;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkySys;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
@@ -20,7 +21,8 @@ import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
  * @author   Mark Taylor
  * @since    3 Sep 2014
  */
-public class SkyPlot2Task extends TypedPlot2Task {
+public class SkyPlot2Task
+        extends TypedPlot2Task<SkySurfaceFactory.Profile,SkyAspect> {
 
     private static final String viewsysName_ =
         SkySurfaceFactory.VIEWSYS_KEY.getMeta().getShortName();
@@ -31,9 +33,11 @@ public class SkyPlot2Task extends TypedPlot2Task {
     public SkyPlot2Task() {
         super( SkyPlotType.getInstance(), null, new SkyPlotContext() );
         Parameter<SkySys> viewsysParam = null;
-        for ( Parameter param : super.getParameters() ) {
+        for ( Parameter<?> param : super.getParameters() ) {
             if ( viewsysName_.equals( param.getName() ) ) {
-                viewsysParam = param;
+                @SuppressWarnings("unchecked")
+                Parameter<SkySys> vp = (Parameter<SkySys>) param;
+                viewsysParam = vp;
             }
         }
         viewsysParam.setNullPermitted( true );
@@ -51,16 +55,17 @@ public class SkyPlot2Task extends TypedPlot2Task {
      * based on a per-plot SkySys view selection and a per-layer
      * SkySys data selection.
      */
-    private static class SkyPlotContext extends PlotContext {
+    private static class SkyPlotContext
+            extends PlotContext<SkySurfaceFactory.Profile,SkyAspect> {
+        private static final SkyPlotType SKY_TYPE = SkyPlotType.getInstance();
         private Parameter<SkySys> viewsysParam_;
 
         /**
          * Constructor.
          */
         SkyPlotContext() {
-            super( SkyPlotType.getInstance(),
-                   new DataGeom[] { SkyDataGeom.GENERIC },
-                   SingleGanger.FACTORY );
+            super( SKY_TYPE, new DataGeom[] { SkyDataGeom.GENERIC },
+                   SingleGanger.createFactory( SKY_TYPE ) );
         }
 
         /**
@@ -74,8 +79,8 @@ public class SkyPlot2Task extends TypedPlot2Task {
             viewsysParam_ = viewsysParam;
         }
 
-        public Parameter[] getGeomParameters( String suffix ) {
-            return new Parameter[] {
+        public Parameter<?>[] getGeomParameters( String suffix ) {
+            return new Parameter<?>[] {
                 createDataSysParameter( suffix ),
             };
         }

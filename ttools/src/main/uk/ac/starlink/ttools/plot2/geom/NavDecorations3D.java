@@ -370,7 +370,7 @@ public class NavDecorations3D {
                 h2 = Math.max( h2, Math.abs( line.p0_.y ) );
                 h2 = Math.max( h2, Math.abs( line.p1_.y ) );
             }
-            return 2 * (int) h2;
+            return 2 * h2;
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {

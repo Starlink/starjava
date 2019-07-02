@@ -48,7 +48,7 @@ public interface ShapeForm extends ModePlotter.Form {
      *
      * @return   config keys
      */
-    ConfigKey[] getConfigKeys();
+    ConfigKey<?>[] getConfigKeys();
 
     /**
      * Returns an object which will do the work of drawing shapes

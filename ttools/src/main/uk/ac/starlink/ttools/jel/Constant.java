@@ -15,7 +15,7 @@ public interface Constant {
      *
      * @return   content class
      */
-    Class getContentClass();
+    Class<?> getContentClass();
 
     /**
      * Returns this object's value.  Not necessarily always the same.

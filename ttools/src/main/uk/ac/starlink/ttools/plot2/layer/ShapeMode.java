@@ -225,7 +225,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      *
      * @return  array of config keys for mode
      */
-    public abstract ConfigKey[] getConfigKeys();
+    public abstract ConfigKey<?>[] getConfigKeys();
 
     /**
      * Returns an object which will do the work of colouring in shapes
@@ -298,7 +298,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * @param  key   report key for new entry
      * @param  axis   axis along which dimension is to be reported
      */
-    private static void addPixelSize( ReportMap report, ReportKey key,
+    private static void addPixelSize( ReportMap report, ReportKey<Double> key,
                                       Axis axis ) {
         if ( axis.isLinear() ) {
             int g0 = axis.getGraphicsLimits()[ 0 ];
@@ -356,13 +356,13 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             }
         }
 
-        public ConfigKey[] getConfigKeys() {
-            List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+        public ConfigKey<?>[] getConfigKeys() {
+            List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
             keyList.add( StyleKeys.COLOR );
             if ( transparent_ ) {
                 keyList.add( StyleKeys.OPAQUE );
             }
-            return keyList.toArray( new ConfigKey[ 0 ] );
+            return keyList.toArray( new ConfigKey<?>[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {
@@ -600,8 +600,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             } );
         }
 
-        public ConfigKey[] getConfigKeys() {
-            return new ConfigKey[] {
+        public ConfigKey<?>[] getConfigKeys() {
+            return new ConfigKey<?>[] {
                 StyleKeys.COLOR,
                 StyleKeys.TRANSPARENT_LEVEL,
             };
@@ -951,8 +951,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             } );
         }
 
-        public ConfigKey[] getConfigKeys() {
-            return new ConfigKey[] {
+        public ConfigKey<?>[] getConfigKeys() {
+            return new ConfigKey<?>[] {
                 StyleKeys.COLOR,
             };
         }
@@ -1002,11 +1002,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             } );
         }
 
-        public ConfigKey[] getConfigKeys() {
-            List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+        public ConfigKey<?>[] getConfigKeys() {
+            List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
             keyList.add( StyleKeys.COLOR );
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
-            return keyList.toArray( new ConfigKey[ 0 ] );
+            return keyList.toArray( new ConfigKey<?>[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {
@@ -1080,8 +1080,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             return sbuf.toString();
         }
 
-        public ConfigKey[] getConfigKeys() {
-            List<ConfigKey> list = new ArrayList<ConfigKey>();
+        public ConfigKey<?>[] getConfigKeys() {
+            List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
             if ( reportAuxKeys_ ) {
                 list.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
             }
@@ -1089,7 +1089,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             if ( transparent_ ) {
                 list.add( StyleKeys.AUX_OPAQUE );
             }
-            return list.toArray( new ConfigKey[ 0 ] );
+            return list.toArray( new ConfigKey<?>[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {
@@ -1225,14 +1225,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             return sbuf.toString();
         }
 
-        public ConfigKey[] getConfigKeys() {
-            List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+        public ConfigKey<?>[] getConfigKeys() {
+            List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
             keyList.add( StyleKeys.COLOR );
             keyList.add( COMBINER_KEY );
             if ( reportAuxKeys_ ) {
                 keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
             }
-            return keyList.toArray( new ConfigKey[ 0 ] );
+            return keyList.toArray( new ConfigKey<?>[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {

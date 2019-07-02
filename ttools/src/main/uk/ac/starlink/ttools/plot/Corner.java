@@ -6,7 +6,7 @@ package uk.ac.starlink.ttools.plot;
  * @author   Mark Taylor
  * @since    22 Nov 2005
  */
-public class Corner implements Comparable {
+public class Corner implements Comparable<Corner> {
 
     private final int index_;
 
@@ -110,8 +110,8 @@ public class Corner implements Comparable {
     /**
      * Defines some arbitrary but consistent ordering of corners.
      */
-    public int compareTo( Object other ) {
-        int oIndex = ((Corner) other).index_;
+    public int compareTo( Corner other ) {
+        int oIndex = other.index_;
         if ( index_ < oIndex ) {
             return -1;
         }

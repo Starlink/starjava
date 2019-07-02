@@ -20,7 +20,7 @@ import uk.ac.starlink.task.Parameter;
  * @author   Mark Taylor
  * @since    2 Sep 2014
  */ 
-public abstract class ParameterFinder<P extends Parameter> { 
+public abstract class ParameterFinder<P extends Parameter<?>> { 
     
     /**
      * Concrete subclasses must implement this method to create a

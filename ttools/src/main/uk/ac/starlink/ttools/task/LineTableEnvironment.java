@@ -28,11 +28,11 @@ public class LineTableEnvironment extends LineEnvironment
     private boolean debug_;
     private Boolean isStrict_;
 
-    public boolean isHidden( Parameter param ) {
+    public boolean isHidden( Parameter<?> param ) {
         return param.getName().equals( "password" );
     }
 
-    public String getParamHelp( Parameter param ) {
+    public String getParamHelp( Parameter<?> param ) {
         return LineInvoker.getParamHelp( this, null, param );
     }
 
@@ -116,7 +116,7 @@ public class LineTableEnvironment extends LineEnvironment
     /**
      * Uses {@link #normaliseName}.
      */
-    public boolean paramNameMatches( String envName, Parameter param ) {
+    public boolean paramNameMatches( String envName, Parameter<?> param ) {
         boolean matches = normaliseName( param.getName() )
                          .equals( normaliseName( envName ) );
 

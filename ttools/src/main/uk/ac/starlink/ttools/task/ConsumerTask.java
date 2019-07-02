@@ -30,7 +30,7 @@ public abstract class ConsumerTask implements Task {
     private final FilterParameter outFilterParam_;
     private final ProcessingMode outMode_;
     private final String purpose_;
-    private List paramList_;
+    private List<Parameter<?>> paramList_;
 
     /**
      * Constructor.
@@ -44,7 +44,7 @@ public abstract class ConsumerTask implements Task {
                          boolean useOutFilter ) {
         purpose_ = purpose;
         outMode_ = outMode;
-        paramList_ = new ArrayList();
+        paramList_ = new ArrayList<Parameter<?>>();
 
         /* Output filter. */
         if ( useOutFilter ) {
@@ -65,8 +65,8 @@ public abstract class ConsumerTask implements Task {
         return purpose_;
     }
 
-    public Parameter[] getParameters() {
-        return (Parameter[]) paramList_.toArray( new Parameter[ 0 ] );
+    public Parameter<?>[] getParameters() {
+        return paramList_.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -74,7 +74,7 @@ public abstract class ConsumerTask implements Task {
      *
      * @return  parameter list
      */
-    protected List getParameterList() {
+    protected List<Parameter<?>> getParameterList() {
         return paramList_;
     }
 

@@ -25,7 +25,7 @@ public interface PlotLayer {
      *
      * @return   parent plotter
      */
-    Plotter getPlotter();
+    Plotter<?> getPlotter();
 
     /**
      * Returns the plot style used by this layer.

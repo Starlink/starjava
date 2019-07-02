@@ -31,7 +31,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     private final Set<String> namespaceSet_;
 
     private static final Pattern NS_PAT = getNamespaceNamePattern();
-    private final static Map EMPTY_MAP =
+    private final static Map<String,String> EMPTY_MAP =
         Collections.unmodifiableMap( new HashMap<String,String>() );
 
 
@@ -100,8 +100,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         Map<String,AttributeChecker> attCheckers =
             versionDetail_.getAttributeCheckers( localName );
         for ( int i = 0; i < natt; i++ ) {
-            AttributeChecker checker =
-                (AttributeChecker) attCheckers.get( atts.getQName( i ) );
+            AttributeChecker checker = attCheckers.get( atts.getQName( i ) );
             if ( checker != null ) {
                 checker.check( atts.getValue( i ), handler );
             }

@@ -179,7 +179,7 @@ public class JdbcConeSearcher implements ConeSearcher {
         /* Consider doctoring the output table: if the angles are not
          * in degrees as supplied, we need to append columns which
          * are in degrees, since they are required by the interface. */
-        List outInfoList = new ArrayList();
+        List<ColumnInfo> outInfoList = new ArrayList<ColumnInfo>();
         final boolean addDegCols =
             convertAngles && raRsetIndex_ >= 0 && decRsetIndex_ >= 0;
         if ( addDegCols ) {
@@ -200,7 +200,7 @@ public class JdbcConeSearcher implements ConeSearcher {
             ColumnSupplement radecSup =
                 new PermutedColumnSupplement( result, colMap );
             ColumnInfo[] addInfos =
-                (ColumnInfo[]) outInfoList.toArray( new ColumnInfo[ 0 ] );
+                outInfoList.toArray( new ColumnInfo[ 0 ] );
             ColumnSupplement addSup =
                     new CalculatorColumnSupplement( radecSup, addInfos ) {
                 protected Object[] calculate( Object[] inValues ) {

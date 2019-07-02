@@ -10,6 +10,7 @@ import uk.ac.starlink.table.join.Match1Type;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.join.Match1Mapping;
 import uk.ac.starlink.ttools.join.Match1TypeParameter;
@@ -35,7 +36,7 @@ public class TableMatch1 extends SingleMapperTask {
     public TableMatch1() {
         super( "Performs a crossmatch internal to a single table",
                new ChoiceMode(), true, true );
-        List paramList = new ArrayList();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         matcherParam_ = new MatchEngineParameter( "matcher" );
         paramList.add( matcherParam_ );

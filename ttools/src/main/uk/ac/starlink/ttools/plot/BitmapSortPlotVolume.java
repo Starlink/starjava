@@ -154,9 +154,9 @@ public class BitmapSortPlotVolume extends PlotVolume {
         float[] b4 = new float[ 4 ];
         Fogger fogger = getFogger();
         Rectangle clip = getGraphics().getClipBounds();
-        for ( Iterator it = pointStore_.getSortedPointIterator();
+        for ( Iterator<BitmapPoint3D> it = pointStore_.getSortedPointIterator();
               it.hasNext(); ) {
-            BitmapPoint3D point = (BitmapPoint3D) it.next();
+            BitmapPoint3D point = it.next();
             double z = point.getZ();
             int base = point.getPixelBase( this );
 
@@ -279,20 +279,20 @@ public class BitmapSortPlotVolume extends PlotVolume {
          *
          * @return  iterator returning {@link BitmapPoint3D} objects
          */
-        public abstract Iterator getSortedPointIterator();
+        public abstract Iterator<BitmapPoint3D> getSortedPointIterator();
     }
 
     /**
      * Straightforward PointStore implementation based on an ArrayList.
      */
     private static class ObjectPointStore extends PointStore {
-        List pointList_ = new ArrayList();
+        List<BitmapPoint3D> pointList_ = new ArrayList<BitmapPoint3D>();
 
         public void addPoint( int px, int py, double z, double[] coords,
                               int istyle, boolean showPoint, String label,
                               int nerr, int[] xoffs, int[] yoffs ) {
             int np = pointList_.size();
-            Point3D p3;
+            BitmapPoint3D p3;
             if ( nerr > 0 || label != null ) {
                 p3 = new ExtrasBitmapPoint3D( np, z, istyle, px, py, showPoint,
                                               label, nerr, xoffs, yoffs );
@@ -309,10 +309,10 @@ public class BitmapSortPlotVolume extends PlotVolume {
             }
         }
 
-        public Iterator getSortedPointIterator() {
+        public Iterator<BitmapPoint3D> getSortedPointIterator() {
             BitmapPoint3D[] points =
-                (BitmapPoint3D[]) pointList_.toArray( new BitmapPoint3D[ 0 ] );
-            pointList_ = new ArrayList();
+                pointList_.toArray( new BitmapPoint3D[ 0 ] );
+            pointList_ = new ArrayList<BitmapPoint3D>();
             Arrays.sort( points, Point3D.getComparator( true, false ) );
             return Arrays.asList( points ).iterator();
         }
@@ -348,7 +348,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
             if ( rgbaBuf != null ) {
                 final int rgba = packRgba( rgbaBuf );
                 int np = pointList_.size();
-                Point3D p3;
+                BitmapPoint3D p3;
                 if ( nerr > 0 || label != null ) {
                     p3 = new ExtrasBitmapPoint3D( np, z, istyle, px, py,
                                                   showPoint, label,
@@ -448,7 +448,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
             }
         }
 
-        public Iterator getSortedPointIterator() {
+        public Iterator<BitmapPoint3D> getSortedPointIterator() {
             final long[] points = pointList_.toLongArray();
             pointList_ = new LongList();
 
@@ -461,14 +461,14 @@ public class BitmapSortPlotVolume extends PlotVolume {
             Arrays.sort( points );
 
             /* Return an iterator which will return BitmapPoint3D objects. */
-            return new Iterator() {
+            return new Iterator<BitmapPoint3D>() {
                 int ip;
 
                 public boolean hasNext() {
                     return ip < points.length;
                 }
 
-                public Object next() {
+                public BitmapPoint3D next() {
                     long packed = points[ ip++ ];
                     double z = unpackZ( packed );
                     int px = unpackX( packed );
@@ -504,7 +504,7 @@ public class BitmapSortPlotVolume extends PlotVolume {
             assert xp >= 0 && xp < TWO12;
             assert yp >= 0 && yp < TWO12;
             long mis = 0xff - is;
-            return (long) zint << 32 | mis << 24 | xp << 12 | yp << 0;
+            return zint << 32 | mis << 24 | xp << 12 | yp << 0;
         }       
 
         /**     
@@ -664,8 +664,8 @@ public class BitmapSortPlotVolume extends PlotVolume {
             showPoint_ = showPoint;
             label_ = label;
             nerr_ = nerr;
-            xoffs_ = nerr > 0 ? (int[]) xoffs.clone() : null;
-            yoffs_ = nerr > 0 ? (int[]) yoffs.clone() : null;
+            xoffs_ = nerr > 0 ? xoffs.clone() : null;
+            yoffs_ = nerr > 0 ? yoffs.clone() : null;
         }
 
         public Pixellator getPixelOffsets( BitmapSortPlotVolume vol ) {

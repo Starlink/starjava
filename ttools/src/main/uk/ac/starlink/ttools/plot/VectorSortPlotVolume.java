@@ -21,7 +21,7 @@ public class VectorSortPlotVolume extends PlotVolume {
     private final DataColorTweaker markTweaker_;
     private final DataColorTweaker labelTweaker_;
     private final Rectangle bounds_;
-    private List pointList_;
+    private List<VectorPoint3D> pointList_;
     private int iseq_;
     private boolean hasLabels_;
     private final int[] rgbs_;
@@ -57,7 +57,7 @@ public class VectorSortPlotVolume extends PlotVolume {
                                  double fogginess, DataColorTweaker tweaker ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
         bounds_ = c.getBounds();
-        pointList_ = new ArrayList();
+        pointList_ = new ArrayList<VectorPoint3D>();
         markTweaker_ = createFoggingTweaker( tweaker );
         labelTweaker_ = createFoggingTweaker( null );
         int nstyle = styles.length;
@@ -162,9 +162,8 @@ public class VectorSortPlotVolume extends PlotVolume {
      * @return   sorted list of points
      */
     private VectorPoint3D[] getSortedPoints() {
-        VectorPoint3D[] points =
-            (VectorPoint3D[]) pointList_.toArray( new VectorPoint3D[ 0 ] );
-        pointList_ = new ArrayList();
+        VectorPoint3D[] points = pointList_.toArray( new VectorPoint3D[ 0 ] );
+        pointList_ = new ArrayList<VectorPoint3D>();
         Arrays.sort( points, Point3D.getComparator( false, true ) );
         return points;
     }
@@ -385,8 +384,8 @@ public class VectorSortPlotVolume extends PlotVolume {
             label_ = label;
             labelRgb_ = labelRgb;
             nerr_ = nerr;
-            xoffs_ = nerr > 0 ? (int[]) xoffs.clone() : null;
-            yoffs_ = nerr > 0 ? (int[]) yoffs.clone() : null;
+            xoffs_ = nerr > 0 ? xoffs.clone() : null;
+            yoffs_ = nerr > 0 ? yoffs.clone() : null;
         }
 
         public boolean hasLabel() {

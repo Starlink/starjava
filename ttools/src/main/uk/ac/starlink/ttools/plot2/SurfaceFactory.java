@@ -42,7 +42,7 @@ public interface SurfaceFactory<P,A> {
      *
      * @return  profile configuration keys
      */
-    ConfigKey[] getProfileKeys();
+    ConfigKey<?>[] getProfileKeys();
 
     /**
      * Creates a profile that can be used when creating a plot surface.
@@ -65,7 +65,7 @@ public interface SurfaceFactory<P,A> {
      *
      * @return   aspect configuration keys
      */
-    ConfigKey[] getAspectKeys();
+    ConfigKey<?>[] getAspectKeys();
 
     /**
      * Indicates whether ranges should be provided to generate an aspect.
@@ -142,7 +142,7 @@ public interface SurfaceFactory<P,A> {
      *
      * @return   navigator configuration keys
      */
-    ConfigKey[] getNavigatorKeys();
+    ConfigKey<?>[] getNavigatorKeys();
 
     /**
      * Creates a navigator from configuration information.

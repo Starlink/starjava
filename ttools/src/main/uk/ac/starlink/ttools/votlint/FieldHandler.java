@@ -16,8 +16,7 @@ public class FieldHandler extends ParamHandler {
 
         /* Store in the TABLE handler information about how to parse data
          * from this column. */
-        TableHandler table = (TableHandler) 
-                             getAncestry().getAncestor( TableHandler.class );
+        TableHandler table = getAncestry().getAncestor( TableHandler.class );
         if ( table != null ) {
             tableRef_ = table.getRef();
             table.registerField( this );

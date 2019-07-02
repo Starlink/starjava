@@ -52,7 +52,7 @@ public class SkyMultiPointForm extends MultiPointForm {
                               MultiPointCoordSet extraCoordSet,
                               MultiPointConfigKey rendererKey ) {
         super( name, icon, description, extraCoordSet, rendererKey,
-               new ConfigKey[] { UNIT_KEY, SCALE_KEY } );
+               new ConfigKey<?>[] { UNIT_KEY, SCALE_KEY } );
     }
 
     protected double getScaleFactor( ConfigMap config ) {

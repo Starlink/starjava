@@ -177,8 +177,8 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         return fitCoordGrp_;
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( SHOWMEAN_KEY );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
@@ -188,7 +188,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         }
         list.add( NORMALISE_KEY );
         list.add( BINSIZER_KEY );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public StatsStyle createStyle( ConfigMap config ) {

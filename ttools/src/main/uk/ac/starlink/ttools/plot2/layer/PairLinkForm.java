@@ -68,8 +68,8 @@ public class PairLinkForm implements ShapeForm {
         return new Coord[ 0 ];
     }
 
-    public ConfigKey[] getConfigKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getConfigKeys() {
+        return new ConfigKey<?>[] {
         };
     }
 

@@ -11,9 +11,9 @@ import uk.ac.starlink.ttools.plot2.PlotType;
  * @author   Mark Taylor
  * @since    17 Jul 2017
  */
-public class PlotSpec {
+public class PlotSpec<P,A> {
 
-    private final PlotType plotType_;
+    private final PlotType<P,A> plotType_;
     private final Dimension extSize_;
     private final Padding padding_;
     private final ZoneSpec[] zoneSpecs_;
@@ -29,7 +29,7 @@ public class PlotSpec {
      *                      has at least one element
      * @param   layerSpecs   specifications for each plot layer
      */
-    public PlotSpec( PlotType plotType, Dimension extSize, Padding padding,
+    public PlotSpec( PlotType<P,A> plotType, Dimension extSize, Padding padding,
                      ZoneSpec[] zoneSpecs, LayerSpec[] layerSpecs ) {
         plotType_ = plotType;
         extSize_ = extSize;
@@ -43,7 +43,7 @@ public class PlotSpec {
      *
      * @return  plot type
      */
-    public PlotType getPlotType() {
+    public PlotType<P,A> getPlotType() {
         return plotType_;
     }
                      

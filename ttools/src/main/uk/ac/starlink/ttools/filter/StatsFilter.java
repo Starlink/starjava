@@ -278,14 +278,17 @@ public class StatsFilter extends BasicFilter {
             doCard ? new CardinalityChecker[ ncol ] : null;
         QuantCalc[] quantCalcs = new QuantCalc[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            Class clazz = table.getColumnInfo( icol ).getContentClass();
+            Class<?> clazz = table.getColumnInfo( icol ).getContentClass();
             colStats[ icol ] = UnivariateStats.createStats( clazz );
             if ( doCard ) {
                 cardCheckers[ icol ] =
                     new CardinalityChecker( MAX_CARDINALITY );
             }
             if ( doQuant && Number.class.isAssignableFrom( clazz ) ) {
-                quantCalcs[ icol ] = QuantCalc.createInstance( clazz, nrow );
+                @SuppressWarnings("unchecked")
+                Class<? extends Number> nclazz =
+                    (Class<? extends Number>) clazz;
+                quantCalcs[ icol ] = QuantCalc.createInstance( nclazz, nrow );
             }
         }
 
@@ -371,13 +374,11 @@ public class StatsFilter extends BasicFilter {
                 if ( isFinite( kurtosis ) ) {
                     map.put( KURT_INFO, new Float( (float) kurtosis ) );
                 }
-                if ( min instanceof Number &&
-                     isFinite( ((Number) min).doubleValue() ) ) {
+                if ( min != null && isFinite( min.doubleValue() ) ) {
                     map.put( MIN_INFO, min );
                     map.put( MINPOS_INFO, new Long( stats.getMinPos() + 1 ) );
                 }
-                if ( max instanceof Number &&
-                     isFinite( ((Number) max).doubleValue() ) ) {
+                if ( max != null && isFinite( max.doubleValue() ) ) {
                     map.put( MAX_INFO, max );
                     map.put( MAXPOS_INFO, new Long( stats.getMaxPos() + 1 ) );
                 }

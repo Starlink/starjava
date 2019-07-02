@@ -178,7 +178,7 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
      */
     private static class DirLocator implements TableLocator {
         private final File[] dirs_;
-        private final Map tableMap_;
+        private final Map<String,StarTable> tableMap_;
         private final StarTableFactory tfact_;
 
         /**
@@ -194,12 +194,12 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
                     logger_.warning( dirs[ i ] + " not a directory" );
                 }
             }
-            tableMap_ = new WeakHashMap();
+            tableMap_ = new WeakHashMap<String,StarTable>();
             tfact_ = new StarTableFactory();
         }
 
         public StarTable getTable( String location ) throws IOException {
-            StarTable table = (StarTable) tableMap_.get( location );
+            StarTable table = tableMap_.get( location );
             if ( table != null ) {
                 return table;
             }

@@ -155,8 +155,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         } );
     }
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
         list.add( QUANTILES_KEY );
@@ -166,7 +166,7 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         if ( hasVertical_ ) {
             list.add( HORIZONTAL_KEY );
         }
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public TraceStyle createStyle( ConfigMap config ) {

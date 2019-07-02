@@ -25,6 +25,7 @@ public class ThicknessComboBox extends RenderingComboBox {
      *
      * @param   maxThick   maximum line width
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     public ThicknessComboBox( int maxThick ) {
         Integer[] numbers = new Integer[ maxThick ];
         for ( int i = 0; i < maxThick; i++ ) {

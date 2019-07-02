@@ -42,7 +42,7 @@ public class FilterParameter extends Parameter<ProcessingStep[]>
      */
     public final void
             setTableDescription( String shortDescrip,
-                                 AbstractInputTableParameter tableParam,
+                                 AbstractInputTableParameter<?> tableParam,
                                  Boolean isBefore ) {
         setPrompt( "Processing command(s) for " + shortDescrip );
         StringBuffer dbuf = new StringBuffer();

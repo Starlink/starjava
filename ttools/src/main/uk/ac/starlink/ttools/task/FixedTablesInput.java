@@ -18,7 +18,7 @@ public class FixedTablesInput implements TablesInput {
 
     private final InputTableParameter[] inTableParams_;
     private final FilterParameter[] inFilterParams_;
-    private final Parameter[] params_;
+    private final Parameter<?>[] params_;
 
     /**
      * Constructor.
@@ -27,7 +27,7 @@ public class FixedTablesInput implements TablesInput {
      * @param   useInFilters  whether to use input filter parameters
      */
     public FixedTablesInput( int nIn, boolean useInFilters ) {
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         /* Input table parameters. */
         inTableParams_ = new InputTableParameter[ nIn ];
@@ -58,10 +58,10 @@ public class FixedTablesInput implements TablesInput {
             }
         }
 
-        params_ = paramList.toArray( new Parameter[ 0 ] );
+        params_ = paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
         return params_;
     }
 

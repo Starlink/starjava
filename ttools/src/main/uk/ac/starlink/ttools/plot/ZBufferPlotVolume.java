@@ -61,7 +61,7 @@ public class ZBufferPlotVolume extends PlotVolume {
                               DataColorTweaker tweaker, Workspace ws ) {
         super( c, g, styles, padFactor, padBorders, fogginess );
         graphics_ = g;
-        styles_ = (MarkStyle[]) styles.clone();
+        styles_ = styles.clone();
 
         /* Work out the dimensions of the pixel grid that we're going
          * to need. */

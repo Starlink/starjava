@@ -35,7 +35,7 @@ public class PlotExample {
     private final String outFile_;
     private final String[] params_;
     private final String[] comments_;
-    private static final Map INFILE_MAP = createInputFileMap();
+    private static final Map<String,String> INFILE_MAP = createInputFileMap();
 
     /**
      * Constructor.
@@ -56,9 +56,9 @@ public class PlotExample {
         params_ = params;
         comments_ = comments;
 
-        Task task = (Task) Stilts.getTaskFactory().createObject( taskName );
+        Task task = Stilts.getTaskFactory().createObject( taskName );
 
-        List wordList = new ArrayList();
+        List<LineWord> wordList = new ArrayList<LineWord>();
         String omode = null;
         String out = null;
         String ofmt = null;
@@ -103,7 +103,7 @@ public class PlotExample {
         }
         wordList.add( new LineWord( "out=" + out ) );
 
-        LineWord[] words = (LineWord[]) wordList.toArray( new LineWord[ 0 ] );
+        LineWord[] words = wordList.toArray( new LineWord[ 0 ] );
         LineTableEnvironment env = new LineTableEnvironment();
         env.setWords( words );
         exec_ = task.createExecutable( env );
@@ -161,8 +161,8 @@ public class PlotExample {
      *
      * @return  name->location map
      */
-    private static Map createInputFileMap() {
-        Map map = new HashMap();
+    private static Map<String,String> createInputFileMap() {
+        Map<String,String> map = new HashMap<String,String>();
         map.put( "cat.xml", "/mbt/devel/text/cambridge2008/6dfgs_mini.xml" );
         map.put( "6dfgs_mini.xml",
                  "/mbt/devel/text/cambridge2008/6dfgs_mini.xml" );
@@ -423,11 +423,11 @@ public class PlotExample {
             writeExamples( "plot3d", createPlot3dExamples() );
         String[] histFiles =
             writeExamples( "plothist", createPlotHistExamples() );
-        List gfileList = new ArrayList();
+        List<String> gfileList = new ArrayList<String>();
         gfileList.addAll( Arrays.asList( plot3dFiles ) );
         gfileList.addAll( Arrays.asList( plot2dFiles ) );
         gfileList.addAll( Arrays.asList( histFiles ) );
-        String[] gfiles = (String[]) gfileList.toArray( new String[ 0 ] );
+        String[] gfiles = gfileList.toArray( new String[ 0 ] );
         String gfName = "plot-example-files.txt";
         System.out.println( gfName );
         PrintStream gfOut = new PrintStream( new FileOutputStream( gfName ) );

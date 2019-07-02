@@ -137,6 +137,19 @@ public class ConfigParameter<T> extends Parameter<T> {
     }
 
     /**
+     * Returns a ConfigParameter based on the given key.
+     * I think this factory method is required to invoke the constructor
+     * in a typesafe way.
+     *
+     * @param  key  config key
+     * @return  new parameter
+     */
+    public static <T> ConfigParameter<T>
+            createConfigParameter( ConfigKey<T> key ) {
+        return new ConfigParameter<T>( key );
+    }
+
+    /**
      * Returns a layer-indexed config parameter with a given layer suffix.
      * The name is constructed from the key name followed by the suffix.
      *

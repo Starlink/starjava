@@ -124,8 +124,8 @@ public abstract class MarkForm implements ShapeForm {
     public static MarkForm createMarkForm( final int npos ) {
         if ( npos == 1 ) {
             return new MarkForm( 1, "Mark", ResourceIcon.FORM_MARK ) {
-                public ConfigKey[] getConfigKeys() {
-                    return new ConfigKey[] {
+                public ConfigKey<?>[] getConfigKeys() {
+                    return new ConfigKey<?>[] {
                         StyleKeys.MARK_SHAPE,
                         StyleKeys.SIZE,
                     };
@@ -160,8 +160,8 @@ public abstract class MarkForm implements ShapeForm {
                         "</p>",
                     } );
                 }
-                public ConfigKey[] getConfigKeys() {
-                    return new ConfigKey[] {
+                public ConfigKey<?>[] getConfigKeys() {
+                    return new ConfigKey<?>[] {
                         StyleKeys.MARK_SHAPE,
                         StyleKeys.SIZE,
                     };

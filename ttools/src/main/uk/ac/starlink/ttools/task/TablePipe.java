@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.task;
 
-import java.util.Iterator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
@@ -18,8 +17,7 @@ public class TablePipe extends SingleMapperTask {
         super( "Performs pipeline processing on a table", new ChoiceMode(),
                false, true );
         int nfilter = 0;
-        for ( Iterator it = getParameterList().iterator(); it.hasNext(); ) {
-            Parameter param = (Parameter) it.next();
+        for ( Parameter<?> param : getParameterList() ) {
             if ( param instanceof FilterParameter ) {
                 assert param.getName().equals( "icmd" );
                 param.setName( "cmd" );

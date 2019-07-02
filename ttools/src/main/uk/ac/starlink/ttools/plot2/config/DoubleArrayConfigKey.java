@@ -50,6 +50,6 @@ public class DoubleArrayConfigKey extends ConfigKey<double[]> {
     }
 
     public Specifier<double[]> createSpecifier() {
-        return new TextFieldSpecifier( this, new double[ 0 ] );
+        return new TextFieldSpecifier<double[]>( this, new double[ 0 ] );
     }
 }

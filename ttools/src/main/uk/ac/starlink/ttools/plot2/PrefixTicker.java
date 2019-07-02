@@ -70,7 +70,7 @@ public abstract class PrefixTicker implements Ticker {
         return withMinor
              ? PlotUtil
               .arrayConcat( majors,
-                            basicTicker_.getMinorTicks( rule, dlo, dhi ) )
+                            BasicTicker.getMinorTicks( rule, dlo, dhi ) )
              : majors;
     }
 

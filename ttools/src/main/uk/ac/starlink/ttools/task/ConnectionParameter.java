@@ -77,8 +77,8 @@ public class ConnectionParameter extends Parameter<Connection> {
      *
      * @return   array containing user and password parameters
      */
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             userParam_,
             passParam_,
         };

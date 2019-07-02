@@ -24,7 +24,7 @@ public class SubsetSelectionPlotData extends WrapperPlotData {
     public SubsetSelectionPlotData( PlotData base, int[] isets ) {
         super( base );
         base_ = base;
-        isets_ = (int[]) isets.clone();
+        isets_ = isets.clone();
     }
 
     public int getSetCount() {

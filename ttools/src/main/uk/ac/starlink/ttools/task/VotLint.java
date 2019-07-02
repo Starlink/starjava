@@ -109,8 +109,8 @@ public class VotLint implements Task {
         return "Validates VOTable documents";
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             inParam_,
             validParam_,
             versionParam_,

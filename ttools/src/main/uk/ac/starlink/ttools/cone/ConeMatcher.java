@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
@@ -319,7 +318,7 @@ public class ConeMatcher {
                     if ( ( dist <= sr || ! distFilter ) &&
                          ( dist < bestDist || Double.isNaN( bestDist ) ) ) {
                         bestDist = dist;
-                        bestRow = (Object[]) rseq.getRow().clone();
+                        bestRow = rseq.getRow().clone();
                     }
                 }
             }
@@ -569,7 +568,7 @@ public class ConeMatcher {
         private void multiCone() throws IOException {
             int ncIn = iCopyCols_.length;
             int ncCone = -1;
-            List inQueue = null;
+            List<Object[]> inQueue = null;
 
             /* Loop over rows of the input table. */
             for ( int irow = 0; resultSeq_.next(); irow++ ) {
@@ -590,9 +589,7 @@ public class ConeMatcher {
                          * what the result metadata looks like, output
                          * them now. */
                         if ( inQueue != null ) {
-                            for ( Iterator it = inQueue.iterator();
-                                  it.hasNext(); ) {
-                                Object[] inRow = (Object[]) it.next();
+                            for ( Object[] inRow : inQueue ) {
                                 Object[] outRow = new Object[ ncIn + ncCone ];
                                 System.arraycopy( inRow, 0, outRow, 0, ncIn );
                                 rowPipe_.acceptRow( outRow );
@@ -658,7 +655,7 @@ public class ConeMatcher {
                             Object[] inRow = new Object[ ncIn ];
                             copyInCells( inRow );
                             if ( inQueue == null ) {
-                                inQueue = new ArrayList();
+                                inQueue = new ArrayList<Object[]>();
                             }
                             inQueue.add( inRow );
                         }
@@ -738,7 +735,7 @@ public class ConeMatcher {
             }
 
             /* Perform column name deduplication as required. */
-            List colNames = new ArrayList();
+            List<String> colNames = new ArrayList<String>();
             for ( int icol = 0; icol < infos.length; icol++ ) {
                 colNames.add( infos[ icol ].getName() );
             }

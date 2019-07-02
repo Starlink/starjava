@@ -142,8 +142,8 @@ public class CatMapper implements TableMapper {
         } );
     }
 
-    public Parameter[] getParameters() {
-        List paramList = new ArrayList();
+    public Parameter<?>[] getParameters() {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.add( seqParam_ );
         paramList.add( locParam_ );
         paramList.add( ulocParam_ );
@@ -151,7 +151,7 @@ public class CatMapper implements TableMapper {
             paramList.add( lazyParam_ );
         }
         paramList.add( countParam_ );
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     public TableMapping createMapping( Environment env, int nin )
@@ -298,7 +298,7 @@ public class CatMapper implements TableMapper {
                                           String.class, postDesc );
                 String pre = trimmer.getPrefix();
                 String post = trimmer.getPostfix();
-                List outParams = out.getParameters();
+                List<DescribedValue> outParams = out.getParameters();
                 if ( pre.trim().length() > 0 ) {
                     outParams.add( new DescribedValue( preInfo, pre ) );
                 }

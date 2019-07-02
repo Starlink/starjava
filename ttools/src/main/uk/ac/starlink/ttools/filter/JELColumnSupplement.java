@@ -51,7 +51,7 @@ public class JELColumnSupplement implements ColumnSupplement {
         else if ( colInfos.length != ncol_ ) {
             throw new IllegalArgumentException( "How many output columns?" );
         }
-        exprs_ = (String[]) exprs.clone();
+        exprs_ = exprs.clone();
 
         /* Compile the expressions ready for random evaluation. */
         randomReader_ = new RandomJELRowReader( inTable_ );
@@ -66,9 +66,9 @@ public class JELColumnSupplement implements ColumnSupplement {
 
                 /* Set the content class for the new column to be that
                  * returned by the expression. */
-                Class primType =
+                Class<?> primType =
                     JELUtils.getExpressionType( randomLib, inTable_, expr );
-                Class clazz = JELUtils.getWrapperType( primType );
+                Class<?> clazz = JELUtils.getWrapperType( primType );
                 outColInfos_[ icol ] = new ColumnInfo( colInfos[ icol ] );
                 outColInfos_[ icol ].setContentClass( clazz );
             }

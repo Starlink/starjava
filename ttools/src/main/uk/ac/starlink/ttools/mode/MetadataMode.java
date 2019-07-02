@@ -23,8 +23,8 @@ import uk.ac.starlink.ttools.filter.MetadataFilter;
  */
 public class MetadataMode implements ProcessingMode {
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[ 0 ];
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[ 0 ];
     }
 
     public String getDescription() {
@@ -66,12 +66,12 @@ public class MetadataMode implements ProcessingMode {
         out.println( "Rows:    " +
                      ( nrow >= 0 ? Long.toString( nrow ) : "?" ) );
 
-        List params = table.getParameters();
+        List<DescribedValue> params = table.getParameters();
         if ( params.size() > 0 ) {
             out.println();
             out.println( "Parameters" );
             out.println( "----------" );
-            for ( DescribedValue param : table.getParameters() ) {
+            for ( DescribedValue param : params ) {
                 outMeta( out, param.getInfo().getName(), param.getValue() );
             }
         }

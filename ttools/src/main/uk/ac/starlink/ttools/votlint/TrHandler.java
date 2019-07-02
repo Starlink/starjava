@@ -12,8 +12,7 @@ public class TrHandler extends ElementHandler {
         Ancestry family = getAncestry();
 
         /* Checke we've had the right number of cells in this row. */
-        DataHandler data =
-            (DataHandler) family.getAncestor( DataHandler.class );
+        DataHandler data = family.getAncestor( DataHandler.class );
         if ( data != null ) {
             int ncol = data.getColumnCount();
             int nchild = family.getChildCount();
@@ -27,8 +26,7 @@ public class TrHandler extends ElementHandler {
         }
 
         /* Inform the table that another row has gone by. */
-        TableHandler table =
-            (TableHandler) family.getAncestor( TableHandler.class );
+        TableHandler table = family.getAncestor( TableHandler.class );
         if ( table != null ) {
             table.foundRow();
         }

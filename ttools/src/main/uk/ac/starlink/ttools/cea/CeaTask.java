@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.task.OutputModeParameter;
  */
 public class CeaTask {
 
-    private List paramList_;
+    private List<CeaParameter> paramList_;
     private final String name_;
     private final String purpose_;
 
@@ -27,10 +27,10 @@ public class CeaTask {
      * @param   name  public name of the task
      */
     public CeaTask( Task task, String name ) {
-        paramList_  = new ArrayList();
-        Parameter[] params = task.getParameters();
+        paramList_  = new ArrayList<CeaParameter>();
+        Parameter<?>[] params = task.getParameters();
         for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
+            Parameter<?> param = params[ i ];
 
             /* We're not going to try to muck about with output modes 
              * other than "out" for the purposes of CEA; other modes 
@@ -70,8 +70,9 @@ public class CeaTask {
      * @param   name  name of the parameter to remove
      */
     public void removeParameter( String name ) {
-        for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
-            CeaParameter param = (CeaParameter) it.next();
+        for ( Iterator<CeaParameter> it = paramList_.iterator();
+              it.hasNext(); ) {
+            CeaParameter param = it.next();
             if ( name.equals( param.getName() ) ) {
                 it.remove();
                 return;
@@ -87,10 +88,9 @@ public class CeaTask {
      * @return  parameter
      */
     public CeaParameter getParameter( String name ) {
-        for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
-            CeaParameter param = (CeaParameter) it.next();
-            if ( name.equals( param.getName() ) ) {
-                return param;
+        for ( CeaParameter ceaParam : paramList_ ) {
+            if ( name.equals( ceaParam.getName() ) ) {
+                return ceaParam;
             }
         }
         throw new IllegalArgumentException( "No such parameter: " + name );
@@ -103,6 +103,6 @@ public class CeaTask {
      * @return   parameter list
      */
     public CeaParameter[] getParameters() {
-        return (CeaParameter[]) paramList_.toArray( new CeaParameter[ 0 ] );
+        return paramList_.toArray( new CeaParameter[ 0 ] );
     }
 }

@@ -292,10 +292,10 @@ public class CubeSurfaceFactory
                               p.captioner_, p.frame_, p.minor_, p.antialias_ );
     }
 
-    public ConfigKey[] getProfileKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getProfileKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         if ( ! isIso_ ) {
-            list.addAll( Arrays.asList( new ConfigKey[] {
+            list.addAll( Arrays.asList( new ConfigKey<?>[] {
                 XLOG_KEY,
                 YLOG_KEY,
                 ZLOG_KEY,
@@ -311,17 +311,17 @@ public class CubeSurfaceFactory
             } ) );
         }
         else {
-            list.addAll( Arrays.asList( new ConfigKey[] {
+            list.addAll( Arrays.asList( new ConfigKey<?>[] {
                 ISOCROWD_KEY,
             } ) );
         }
-        list.addAll( Arrays.asList( new ConfigKey[] {
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             FRAME_KEY, 
             StyleKeys.MINOR_TICKS,
             StyleKeys.GRID_ANTIALIAS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Profile createProfile( ConfigMap config ) {
@@ -348,29 +348,29 @@ public class CubeSurfaceFactory
                             minor, antialias );
     }
 
-    public ConfigKey[] getAspectKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getAspectKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         if ( isIso_ ) {
-            list.addAll( Arrays.asList( new ConfigKey[] {
+            list.addAll( Arrays.asList( new ConfigKey<?>[] {
                 XC_KEY, YC_KEY, ZC_KEY,
                 SCALE_KEY,
             } ) );
         }
         else {
-            list.addAll( Arrays.asList( new ConfigKey[] {
+            list.addAll( Arrays.asList( new ConfigKey<?>[] {
                 XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
                 YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
                 ZMIN_KEY, ZMAX_KEY, ZSUBRANGE_KEY,
             } ) );
         }
-        list.addAll( Arrays.asList( new ConfigKey[] {
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             PHI_KEY,
             THETA_KEY,
             PSI_KEY,
             ZOOM_KEY,
             XOFF_KEY, YOFF_KEY,
         } ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public boolean useRanges( Profile profile, ConfigMap config ) {
@@ -410,7 +410,7 @@ public class CubeSurfaceFactory
         return ranges;
     }
 
-    public ConfigKey[] getNavigatorKeys() {
+    public ConfigKey<?>[] getNavigatorKeys() {
         return CubeNavigator.getConfigKeys( isIso_ );
     }
 

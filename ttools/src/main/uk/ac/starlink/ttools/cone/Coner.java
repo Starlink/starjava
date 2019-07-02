@@ -17,7 +17,7 @@ public interface Coner {
      *
      * @return  parameter array
      */
-    Parameter[] getParameters();
+    Parameter<?>[] getParameters();
 
     /**
      * Returns the name of the coordinate system used by this Coner.
@@ -46,7 +46,7 @@ public interface Coner {
      * @param  env  execution environment
      * @param  srParam   search radius parameter
      */
-    void configureParams( Environment env, Parameter srParam )
+    void configureParams( Environment env, Parameter<?> srParam )
             throws TaskException;
 
     /**

@@ -30,14 +30,15 @@ import uk.ac.starlink.ttools.plottask.Painter;
  */
 public class MapEnvironment implements TableEnvironment {
 
-    private final Map paramMap_;
-    private final Map outputTables_ = new LinkedHashMap();
+    private final Map<String,Object> paramMap_;
+    private final Map<String,StarTable> outputTables_ =
+        new LinkedHashMap<String,StarTable>();
     private final ByteArrayOutputStream out_ = new ByteArrayOutputStream();
     private final ByteArrayOutputStream err_ = new ByteArrayOutputStream();
     private final PrintStream pout_ = new PrintStream( out_ );
     private final PrintStream perr_ = new PrintStream( err_ );
     private final Set<String> usedNames_ = new HashSet<String>();
-    private Class resourceBase_ = MapEnvironment.class;
+    private Class<?> resourceBase_ = MapEnvironment.class;
     private boolean strictVot_;
     private boolean debug_;
 
@@ -45,7 +46,7 @@ public class MapEnvironment implements TableEnvironment {
      * Constructs a new environment with no values.
      */
     public MapEnvironment() {
-        this( new LinkedHashMap() );
+        this( new LinkedHashMap<String,Object>() );
     }
 
     /**
@@ -54,7 +55,7 @@ public class MapEnvironment implements TableEnvironment {
      *
      * @param  map   parameter map
      */
-    public MapEnvironment( Map map ) {
+    public MapEnvironment( Map<String,Object> map ) {
         paramMap_ = map;
     }
 
@@ -64,7 +65,7 @@ public class MapEnvironment implements TableEnvironment {
      * @param  env  environment to copy
      */
     public MapEnvironment( MapEnvironment env ) {
-        this( new LinkedHashMap( env.paramMap_ ) );
+        this( new LinkedHashMap<String,Object>( env.paramMap_ ) );
         this.resourceBase_ = env.resourceBase_;
         this.debug_ = env.debug_;
         this.strictVot_ = env.strictVot_;
@@ -78,12 +79,12 @@ public class MapEnvironment implements TableEnvironment {
         return perr_;
     }
 
-    public void clearValue( Parameter param ) {
+    public void clearValue( Parameter<?> param ) {
         throw new UnsupportedOperationException();
     }
 
     public String[] getNames() {
-        return (String[]) paramMap_.keySet().toArray( new String[ 0 ] );
+        return paramMap_.keySet().toArray( new String[ 0 ] );
     }
 
     /**
@@ -92,7 +93,7 @@ public class MapEnvironment implements TableEnvironment {
      *
      * @return   content map
      */
-    public Map getMap() {
+    public Map<String,Object> getMap() {
         return paramMap_;
     }
 
@@ -163,7 +164,7 @@ public class MapEnvironment implements TableEnvironment {
      * @return  this
      * @see   java.lang.Class#getResource
      */
-    public MapEnvironment setResourceBase( Class clazz ) {
+    public MapEnvironment setResourceBase( Class<?> clazz ) {
         resourceBase_ = clazz;
         return this;
     }
@@ -177,12 +178,12 @@ public class MapEnvironment implements TableEnvironment {
      * @return   output table stored under <code>name</code>
      */
     public StarTable getOutputTable( String paramName ) {
-        return (StarTable) outputTables_.get( paramName );
+        return outputTables_.get( paramName );
     }
 
-    public void acquireValue( Parameter param ) throws TaskException {
+    public void acquireValue( Parameter<?> param ) throws TaskException {
         final String pname = param.getName();
-        final Class pclazz = param.getValueClass();
+        final Class<?> pclazz = param.getValueClass();
         final Object value;
 
         /* Parameters not explicitly specified. */

@@ -43,9 +43,9 @@ public abstract class TablePlotData implements PlotData {
                              String[] setNames, Style[] setStyles,
                              String labelExpr ) {
         table_ = table;
-        setExprs_ = (String[]) setExprs.clone();
-        setNames_ = (String[]) setNames.clone();
-        setStyles_ = (Style[]) setStyles.clone();
+        setExprs_ = setExprs.clone();
+        setNames_ = setNames.clone();
+        setStyles_ = setStyles.clone();
         nset_ = setExprs_.length;
         labelExpr_ = labelExpr;
         if ( setNames.length != nset_ || setStyles.length != nset_ ) {

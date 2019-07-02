@@ -16,7 +16,7 @@ public class ElementDeclaration {
 
     private final String elName_;
     private final String attList_;
-    private Collection attNames_;
+    private Collection<String> attNames_;
 
     /**
      * Constructs a declaration with a name but no attributes.
@@ -51,9 +51,8 @@ public class ElementDeclaration {
      *          on this element
      */
     public void setAttributeNames( String[] attNames ) {
-        attNames_ =
-             Collections
-            .unmodifiableCollection( new HashSet( Arrays.asList( attNames ) ) );
+        attNames_ = Collections.unmodifiableCollection(
+                        new HashSet<String>( Arrays.asList( attNames ) ) );
     }
 
     /**

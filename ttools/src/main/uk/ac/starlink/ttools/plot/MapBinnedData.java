@@ -13,17 +13,17 @@ import java.util.logging.Logger;
  * @author   Mark Taylor
  * @since    14 Nov 2005
  */
-public class MapBinnedData implements BinnedData {
+public class MapBinnedData<K extends Comparable<K>> implements BinnedData {
 
     /**
      * Map containing the binned data.
-     * The keys are objects managed by the mapper.  The values are int[] 
+     * The keys are objects managed by the mapper.  The values are double[] 
      * arrays giving the bin occupancy counts indexed by subset index.
      */
-    private final SortedMap map_;
+    private final SortedMap<K,double[]> map_;
 
     private final int nset_;
-    private final BinMapper mapper_;
+    private final BinMapper<K> mapper_;
     private boolean isFloat_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot" );
@@ -34,10 +34,10 @@ public class MapBinnedData implements BinnedData {
      * @param  nset  the number of subsets that this BinnedData can deal with
      * @param  mapper  a BinMapper implementation that defines the bin ranges
      */
-    public MapBinnedData( int nset, BinMapper mapper ) {
+    public MapBinnedData( int nset, BinMapper<K> mapper ) {
         nset_ = nset;
         mapper_ = mapper;
-        map_ = new TreeMap();
+        map_ = new TreeMap<K,double[]>();
     }
 
     public void submitDatum( double value, double weight, boolean[] setFlags ) {
@@ -56,9 +56,9 @@ public class MapBinnedData implements BinnedData {
         isFloat_ = isFloat_ || ( weight != (int) weight );
 
         /* Normal value, go ahead. */
-        Object key = mapper_.getKey( value );
+        K key = mapper_.getKey( value );
         if ( key != null ) {
-            double[] counts = (double[]) map_.get( key );
+            double[] counts = map_.get( key );
             if ( counts == null ) {
                 counts = new double[ nset_ ];
                 map_.put( key, counts );
@@ -71,20 +71,20 @@ public class MapBinnedData implements BinnedData {
         }
     }
 
-    public Iterator getBinIterator( boolean includeEmpty ) {
-        final Iterator keyIt = ( includeEmpty && ! map_.isEmpty() )
-                             ? mapper_.keyIterator( map_.firstKey(),
-                                                    map_.lastKey() )
-                             : map_.keySet().iterator();
-        return new Iterator() {
+    public Iterator<Bin> getBinIterator( boolean includeEmpty ) {
+        final Iterator<K> keyIt = ( includeEmpty && ! map_.isEmpty() )
+                                ? mapper_.keyIterator( map_.firstKey(),
+                                                       map_.lastKey() )
+                                : map_.keySet().iterator();
+        return new Iterator<Bin>() {
             final double[] EMPTY_SUMS = new double[ nset_ ];
             public boolean hasNext() {
                 return keyIt.hasNext();
             }
-            public Object next() {
-                Object key = keyIt.next();
+            public Bin next() {
+                K key = keyIt.next();
                 final double[] sums = map_.containsKey( key )
-                                    ? (double[]) map_.get( key )
+                                    ? map_.get( key )
                                     : EMPTY_SUMS; 
                 final double[] bounds = mapper_.getBounds( key );
                 return new Bin() {
@@ -118,7 +118,7 @@ public class MapBinnedData implements BinnedData {
      *
      * @return bin mapper
      */
-    public BinMapper getMapper() {
+    public BinMapper<K> getMapper() {
         return mapper_;
     }
 
@@ -131,10 +131,11 @@ public class MapBinnedData implements BinnedData {
      * @param  binBase   lower bound of one (any) bin; determines bin phase
      * @return   new bin mapper
      */
-    public static BinMapper createBinMapper( boolean logFlag,
-                                             double binWidth, double binBase ) {
-        return logFlag ? (BinMapper) new LogBinMapper( binWidth, binBase )
-                       : (BinMapper) new LinearBinMapper( binWidth, binBase );
+    public static BinMapper<Long> createBinMapper( boolean logFlag,
+                                                   double binWidth,
+                                                   double binBase ) {
+        return logFlag ? new LogBinMapper( binWidth, binBase )
+                       : new LinearBinMapper( binWidth, binBase );
     }
 
     /**
@@ -142,7 +143,7 @@ public class MapBinnedData implements BinnedData {
      * The keys must implement <code>equals</code> and <code>hashCode</code>
      * properly.
      */
-    public interface BinMapper {
+    public interface BinMapper<K extends Comparable<K>> {
 
         /**
          * Returns the key to use for a given value.
@@ -153,7 +154,7 @@ public class MapBinnedData implements BinnedData {
          * @return   object to be used as a key for the bin into which
          *           <code>value</code> falls
          */
-        Comparable getKey( double value );
+        K getKey( double value );
 
         /**
          * Returns the upper and lower bounds of the bin corresponding to
@@ -163,7 +164,7 @@ public class MapBinnedData implements BinnedData {
          * @return   2-element array giving (lower,upper) bound for
          *           bin <code>key</code>
          */
-        double[] getBounds( Object key );
+        double[] getBounds( K key );
 
         /**
          * Returns an iterator which covers all keys between the given
@@ -175,13 +176,21 @@ public class MapBinnedData implements BinnedData {
          * @param  hiKey  upper bound (inclusive) for key iteration
          * @return  iterator
          */
-        Iterator keyIterator( Object loKey, Object hiKey );
+        Iterator<K> keyIterator( K loKey, K hiKey );
+
+        /**
+         * Creates a BinnedData instance based on this mapper.
+         *
+         * @param  nset  the number of subsets that the BinnedData can deal with
+         * @return  binned data instance
+         */
+        MapBinnedData<K> createBinnedData( int nset );
     }
 
     /**
      * Linear scaled implementation of BinMapper.
      */
-    private static class LinearBinMapper implements BinMapper {
+    private static class LinearBinMapper implements BinMapper<Long> {
         final double width_;
         final double base_;
 
@@ -199,11 +208,11 @@ public class MapBinnedData implements BinnedData {
             width_ = binWidth;
             base_ = binBase;
         }
-        public Comparable getKey( double value ) {
+        public Long getKey( double value ) {
             return new Long( (long) Math.floor( ( value - base_ ) / width_ ) );
         }
-        public double[] getBounds( Object key ) {
-            final long keyval = ((Long) key).longValue();
+        public double[] getBounds( Long key ) {
+            final long keyval = key.longValue();
             final double bottom = keyval * width_ + base_;
 
             /* This nonsensical looking test is here as debugging code for
@@ -222,14 +231,15 @@ public class MapBinnedData implements BinnedData {
 
             return new double[] { bottom, bottom + width_ };
         }
-        public Iterator keyIterator( final Object loKey, final Object hiKey ) {
-            return new Iterator() {
-                final long hiVal_ = ((Long) hiKey).longValue();
-                long val_ = ((Long) loKey).longValue();
+        public Iterator<Long> keyIterator( final Long loKey,
+                                           final Long hiKey ) {
+            return new Iterator<Long>() {
+                final long hiVal_ = hiKey.longValue();
+                long val_ = loKey.longValue();
                 public boolean hasNext() {
                     return val_ <= hiVal_;
                 }
-                public Object next() {
+                public Long next() {
                     return new Long( val_++ );
                 }
                 public void remove() {
@@ -237,12 +247,15 @@ public class MapBinnedData implements BinnedData {
                 }
             };
         }
+        public MapBinnedData<Long> createBinnedData( int nset ) {
+            return new MapBinnedData<Long>( nset, this );
+        }
     }
 
     /**
      * Logarithmically scaled implementation of BinMapper.
      */
-    private static class LogBinMapper implements BinMapper {
+    private static class LogBinMapper implements BinMapper<Long> {
         final double factor_;
         final double base_;
         final double logFactor_;
@@ -251,30 +264,34 @@ public class MapBinnedData implements BinnedData {
             base_ = base > 0 ? base : 1.0;
             logFactor_ = Math.log( factor );
         }
-        public Comparable getKey( double value ) {
+        public Long getKey( double value ) {
             return value > 0.0
                  ? new Long( (long) Math.floor( ( Math.log( value / base_ )
                                                   / logFactor_ ) ) )
                  : null;
         }
-        public double[] getBounds( Object key ) {
-            double lo = Math.pow( factor_, ((Long) key).doubleValue() ) * base_;
+        public double[] getBounds( Long key ) {
+            double lo = Math.pow( factor_, key.doubleValue() ) * base_;
             return new double[] { lo, lo * factor_ };
         }
-        public Iterator keyIterator( final Object loKey, final Object hiKey ) {
-            return new Iterator() {
-                final long hiVal_ = ((Long) hiKey).longValue();
-                long val_ = ((Long) loKey).longValue();
+        public Iterator<Long> keyIterator( final Long loKey,
+                                           final Long hiKey ) {
+            return new Iterator<Long>() {
+                final long hiVal_ = hiKey.longValue();
+                long val_ = loKey.longValue();
                 public boolean hasNext() {
                     return val_ <= hiVal_;
                 }
-                public Object next() {
+                public Long next() {
                     return new Long( val_++ );
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();
                 }
             };
+        }
+        public MapBinnedData<Long> createBinnedData( int nset ) {
+            return new MapBinnedData<Long>( nset, this );
         }
     }
 }

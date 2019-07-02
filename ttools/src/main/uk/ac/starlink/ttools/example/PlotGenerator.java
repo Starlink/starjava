@@ -131,10 +131,11 @@ public class PlotGenerator<P,A> {
         cachePolicy.setCacheImage( cacheImage );
         cachePolicy.setUsePlans( true );
         PlotDisplay<P,A> display =
-            new PlotDisplay( surfFact_, layers_, profile_, legend_, legPos_,
-                             title_, aspect_, shadeFact_, shadeFixSpan_,
-                             navigator, ptSel_, compositor_, padding_,
-                             dataStore_, cachePolicy );
+            new PlotDisplay<P,A>( surfFact_, layers_, profile_, legend_,
+                                  legPos_, title_, aspect_,
+                                  shadeFact_, shadeFixSpan_,
+                                  navigator, ptSel_, compositor_, padding_,
+                                  dataStore_, cachePolicy );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
         return display;
     }

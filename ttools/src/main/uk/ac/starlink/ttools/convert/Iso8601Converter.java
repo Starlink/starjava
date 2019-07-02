@@ -51,8 +51,9 @@ public abstract class Iso8601Converter implements ValueConverter {
      * static instances of these, since they are not thread safe.
      * By having one per thread, we get the best of both worlds.
      */
-    private final static ThreadLocal kitHolder_ = new ThreadLocal() {
-        protected Object initialValue() {
+    private final static ThreadLocal<DateKit> kitHolder_ =
+            new ThreadLocal<DateKit>() {
+        protected DateKit initialValue() {
             return new DateKit();
         }
     };
@@ -210,7 +211,7 @@ public abstract class Iso8601Converter implements ValueConverter {
      * @return  milliseconds since the Unix epoch
      */
     public static long mjdToUnixMillis( double mjd ) {
-        return (long) Math.round( ( mjd - MJD_EPOCH ) * MILLIS_PER_DAY );
+        return Math.round( ( mjd - MJD_EPOCH ) * MILLIS_PER_DAY );
     }
 
     /**
@@ -270,7 +271,7 @@ public abstract class Iso8601Converter implements ValueConverter {
      * @return  date kit
      */
     protected static DateKit getKit() {
-        return (DateKit) kitHolder_.get();
+        return kitHolder_.get();
     }
 
     /**

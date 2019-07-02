@@ -13,7 +13,7 @@ import uk.ac.starlink.table.DomainMapper;
 public class Input {
 
     private final InputMeta meta_;
-    private final Class valueClazz_;
+    private final Class<?> valueClazz_;
     private final Class<? extends DomainMapper> domain_;
 
     /**
@@ -23,7 +23,7 @@ public class Input {
      * @param  valueClazz  data value class
      * @param  domain  data value domain, may be null
      */
-    public Input( InputMeta meta, Class valueClazz,
+    public Input( InputMeta meta, Class<?> valueClazz,
                   Class<? extends DomainMapper> domain ) {
         meta_ = meta;
         valueClazz_ = valueClazz;
@@ -44,7 +44,7 @@ public class Input {
      *
      * @return  value data type
      */
-    public Class getValueClass() {
+    public Class<?> getValueClass() {
         return valueClazz_;
     }
 

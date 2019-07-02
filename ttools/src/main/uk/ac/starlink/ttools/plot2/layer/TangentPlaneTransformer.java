@@ -38,7 +38,7 @@ public class TangentPlaneTransformer {
          * these from the view coordinates which is what the client code
          * will have supplied (it is unlikely to have the data coords
          * available). */
-        xyz0_ = (double[]) xyz0.clone();
+        xyz0_ = xyz0.clone();
         geom.unrotate( xyz0_ );
     }
 

@@ -98,15 +98,15 @@ public class SqlUpdate implements Task {
         return "Updates values in an SQL table";
     }
 
-    public Parameter[] getParameters() {
-        List paramList = new ArrayList();
+    public Parameter<?>[] getParameters() {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.add( connParam_ );
         paramList.addAll( Arrays.asList( connParam_
                                         .getAssociatedParameters() ) );
         paramList.add( selectParam_ );
         paramList.add( assignParam_ );
         paramList.add( progressParam_ );
-        return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {

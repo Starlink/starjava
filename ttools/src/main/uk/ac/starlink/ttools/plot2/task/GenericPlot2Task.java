@@ -29,7 +29,7 @@ import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
  */
 public class GenericPlot2Task extends AbstractPlot2Task {
 
-    private final ChoiceParameter<PlotType> typeParam_;
+    private final ChoiceParameter<PlotType<?,?>> typeParam_;
 
     /**
      * Constructor.
@@ -38,7 +38,8 @@ public class GenericPlot2Task extends AbstractPlot2Task {
         super( true, null );
 
         /* Plot type parameter. */
-        typeParam_ = new ChoiceParameter<PlotType>( "type", new PlotType[] {
+        typeParam_ = new ChoiceParameter<PlotType<?,?>>
+                                        ( "type", new PlotType<?,?>[]{
             PlanePlotType.getInstance(),
             SkyPlotType.getInstance(),
             CubePlotType.getInstance(),
@@ -51,14 +52,15 @@ public class GenericPlot2Task extends AbstractPlot2Task {
         return "Draws a generic plot";
     }
 
-    public Parameter[] getParameters() {
-        List<Parameter> paramList = new ArrayList<Parameter>();
+    public Parameter<?>[] getParameters() {
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         paramList.add( typeParam_ );
         paramList.addAll( Arrays.asList( getBasicParameters() ) );
-        return paramList.toArray( new Parameter[ 0 ] );
+        return paramList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public PlotContext getPlotContext( Environment env ) throws TaskException {
+    public PlotContext<?,?> getPlotContext( Environment env )
+            throws TaskException {
         return PlotContext
               .createStandardContext( typeParam_.objectValue( env ), null );
     }

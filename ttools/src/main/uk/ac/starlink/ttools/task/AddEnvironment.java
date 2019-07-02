@@ -43,7 +43,7 @@ public class AddEnvironment implements Environment {
         addMap_ = addMap;
     }
 
-    public void acquireValue( Parameter par ) throws TaskException {
+    public void acquireValue( Parameter<?> par ) throws TaskException {
         String name = par.getName();
         if ( addMap_.containsKey( name ) ) {
             par.setValueFromString( this, addMap_.get( name ) );
@@ -53,7 +53,7 @@ public class AddEnvironment implements Environment {
         }
     }
 
-    public void clearValue( Parameter par ) {
+    public void clearValue( Parameter<?> par ) {
         String name = par.getName();
         if ( addMap_.containsKey( name ) ) {
             addMap_.remove( name );

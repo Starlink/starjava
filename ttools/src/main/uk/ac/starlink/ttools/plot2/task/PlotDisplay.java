@@ -122,14 +122,16 @@ public class PlotDisplay<P,A> extends JComponent {
         ganger_ = ganger;
         surfFact_ = surfFact;
         nz_ = nz;
-        zones_ = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
+        @SuppressWarnings("unchecked")
+        Zone<P,A>[] zs = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
+        zones_ = zs;
         profiles = ganger.adjustProfiles( profiles.clone() );
         boolean usePlans = caching.getUsePlans();
         A[] okAspects = ganger.adjustAspects( aspects.clone(), -1 );
         for ( int iz = 0; iz < nz_; iz++ ) {
-            zones_[ iz ] = new Zone( zoneContents[ iz ], profiles[ iz ],
-                                     shadeFacts[ iz ], shadeFixSpans[ iz ],
-                                     okAspects[ iz ], usePlans );
+            zones_[ iz ] = new Zone<P,A>( zoneContents[ iz ], profiles[ iz ],
+                                          shadeFacts[ iz ], shadeFixSpans[ iz ],
+                                          okAspects[ iz ], usePlans );
         }
         ptSel_ = ptSel;
         compositor_ = compositor;
@@ -180,7 +182,7 @@ public class PlotDisplay<P,A> extends JComponent {
                 final Point p = evt.getPoint();
                 final int iz = getZoneIndex( p );
                 if ( iz >= 0 && pslList_.size() > 0 ) {
-                    Zone zone = zones_[ iz ];
+                    Zone<P,A> zone = zones_[ iz ];
                     final Surface surface = zone.surface_;
                     final PlotLayer[] layers = zone.content_.getLayers();
                     if ( surface != null && layers.length > 0 &&
@@ -269,7 +271,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * data store may have changed.
      */
     public void clearPlot() {
-        for ( Zone zone : zones_ ) {
+        for ( Zone<P,A> zone : zones_ ) {
             zone.surface_ = null;
             zone.icon_ = null;
         }
@@ -403,7 +405,7 @@ public class PlotDisplay<P,A> extends JComponent {
         /* Paint the image to this component. */
         long paintStart = System.currentTimeMillis();
         for ( int iz = 0; iz < nz_; iz++ ) {
-            Zone zone = zones_[ iz ];
+            Zone<P,A> zone = zones_[ iz ];
             zone.icon_.paintIcon( this, g, extBox.x, extBox.y );
             if ( ! cacheImage_ ) {
                 zone.icon_ = null;
@@ -636,7 +638,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @return  new plot component
      */
     @Slow
-    public static <P,A> PlotDisplay
+    public static <P,A> PlotDisplay<P,A>
             createPlotDisplay( PlotLayer[] layers,
                                SurfaceFactory<P,A> surfFact, ConfigMap config,
                                Icon legend, float[] legPos, String title,

@@ -201,7 +201,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         auxLockModel_ =
             new ToggleButtonModel( "Lock Aux Range", ResourceIcon.AUX_LOCK,
                                    "Do not auto-rescale aux scales" );
-        surfFact_ = plotType_.getSurfaceFactory();
+        surfFact_ = (SurfaceFactory<P,A>) plotType_.getSurfaceFactory();
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
                 new SmartColumnFactory( new MemoryColumnFactory() ) );

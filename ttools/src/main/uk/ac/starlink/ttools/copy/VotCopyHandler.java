@@ -586,7 +586,8 @@ public class VotCopyHandler
      * ever either zero or one element on the stack.
      */
     private static class HandlerStack {
-        private final List stack_ = new ArrayList();
+        private final List<ContentHandler> stack_ =
+            new ArrayList<ContentHandler>();
         private ContentHandler top_;
 
         /**
@@ -606,9 +607,9 @@ public class VotCopyHandler
          */
         public ContentHandler pop() {
             int n = stack_.size();
-            top_ = n > 1 ? (ContentHandler) stack_.get( n - 2 )
+            top_ = n > 1 ? stack_.get( n - 2 )
                          : null;
-            return (ContentHandler) stack_.remove( n - 1 );
+            return stack_.remove( n - 1 );
         }
     }
 }

@@ -33,8 +33,8 @@ public class BarStyleFactory extends StyleFactory {
         super( prefix );
     }
 
-    public Parameter[] getParameters( String stSuffix ) {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters( String stSuffix ) {
+        return new Parameter<?>[] {
             createColorParameter( stSuffix ),
             createShapeParameter( stSuffix ),
             createLineWidthParameter( stSuffix ),

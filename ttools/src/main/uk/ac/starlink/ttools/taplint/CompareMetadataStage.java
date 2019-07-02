@@ -196,8 +196,8 @@ public class CompareMetadataStage implements Stage {
         }
 
         /* Report on discrepancies. */
-        List<String> extras1 = new ArrayList( names1 );
-        List<String> extras2 = new ArrayList( names2 );
+        List<String> extras1 = new ArrayList<String>( names1 );
+        List<String> extras2 = new ArrayList<String>( names2 );
         extras1.removeAll( names2 );
         extras2.removeAll( names1 );
         String contextString = context == null ? "" : " from " + context;
@@ -231,7 +231,7 @@ public class CompareMetadataStage implements Stage {
         }
 
         /* Calculate and return intersection set. */
-        List<String> intersect = new ArrayList( names1 );
+        List<String> intersect = new ArrayList<String>( names1 );
         intersect.retainAll( names2 );
         return intersect;
     }

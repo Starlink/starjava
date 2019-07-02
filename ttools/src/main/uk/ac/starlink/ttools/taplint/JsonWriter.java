@@ -78,7 +78,7 @@ public class JsonWriter {
     public void toJson( StringBuffer sbuf, Object item, int level,
                         boolean isPositioned ) {
         if ( item instanceof List ) {
-            List list = (List) item;
+            List<?> list = (List<?>) item;
             if ( list.isEmpty() ) {
                 if ( ! isPositioned ) {
                     sbuf.append( getIndent( level ) );
@@ -88,7 +88,7 @@ public class JsonWriter {
             else {
                 sbuf.append( getIntroIndent( level, '[', isPositioned ) );
                 boolean isPos = ! isPositioned;
-                for ( Iterator it = list.iterator(); it.hasNext(); ) {
+                for ( Iterator<?> it = list.iterator(); it.hasNext(); ) {
                     toJson( sbuf, it.next(), level + 1, isPos );
                     if ( it.hasNext() ) {
                         sbuf.append( "," );
@@ -99,7 +99,7 @@ public class JsonWriter {
             }
         }
         else if ( item instanceof Map ) {
-            Map map = (Map) item;
+            Map<?,?> map = (Map<?,?>) item;
             if ( map.isEmpty() ) {
                 if ( ! isPositioned ) {
                     sbuf.append( getIndent( level ) );
@@ -109,10 +109,11 @@ public class JsonWriter {
             else {
                 sbuf.append( getIntroIndent( level, '{', isPositioned ) );
                 boolean isPos = ! isPositioned;
-                for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
-                    Map.Entry entry = (Map.Entry) it.next();
-                    sbuf.append( jsonPair( entry.getKey().toString(),
-                                           entry.getValue(),
+                for ( Iterator<?> it = map.keySet().iterator();
+                      it.hasNext(); ) {
+                    Object key = it.next();
+                    Object value = map.get( key );
+                    sbuf.append( jsonPair( key.toString(), value,
                                            level + 1, isPos ) );
                     if ( it.hasNext() ) {
                         sbuf.append( "," );

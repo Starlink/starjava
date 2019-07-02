@@ -15,11 +15,9 @@ public class DataHandler extends ElementHandler {
         /* Acquire the list of parsers which the parent TABLE element has
          * accumulated and store them for the convenience of child 
          * elements which actually need to do the encoding. */
-        TableHandler table =
-            (TableHandler) getAncestry().getAncestor( TableHandler.class );
+        TableHandler table = getAncestry().getAncestor( TableHandler.class );
         if ( table != null ) {
-            fields_ = (FieldHandler[])
-                      table.getFields().toArray( new FieldHandler[ 0 ] );
+            fields_ = table.getFields().toArray( new FieldHandler[ 0 ] );
             if ( fields_.length == 0 ) {
                 error( "There are no columns in this table!" );
             }

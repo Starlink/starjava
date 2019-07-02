@@ -44,7 +44,7 @@ public abstract class PlotTask implements Task {
     private final String purpose_;
     private final PlotStateFactory stateFactory_;
     private final TablePlot plot_;
-    private final List<Parameter> paramList_;
+    private final List<Parameter<?>> paramList_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
     private final BooleanParameter legendParam_;
@@ -64,7 +64,7 @@ public abstract class PlotTask implements Task {
         purpose_ = purpose;
         stateFactory_ = stateFactory;
         plot_ = plot;
-        paramList_ = new ArrayList<Parameter>();
+        paramList_ = new ArrayList<Parameter<?>>();
 
         xpixParam_ = new IntegerParameter( "xpix" );
         xpixParam_.setMinimum( 1 );
@@ -120,7 +120,7 @@ public abstract class PlotTask implements Task {
         paramList_.addAll( Arrays.asList( stateFactory_.getParameters() ) );
     }
 
-    protected List<Parameter> getParameterList() {
+    protected List<Parameter<?>> getParameterList() {
         return paramList_;
     }
 
@@ -128,8 +128,8 @@ public abstract class PlotTask implements Task {
         return purpose_;
     }
 
-    public Parameter[] getParameters() {
-        return paramList_.toArray( new Parameter[ 0 ] );
+    public Parameter<?>[] getParameters() {
+        return paramList_.toArray( new Parameter<?>[ 0 ] );
     }
 
     /**
@@ -137,7 +137,7 @@ public abstract class PlotTask implements Task {
      *
      * @return  xpix parameter
      */
-    public Parameter getXpixParameter() {
+    public Parameter<Integer> getXpixParameter() {
         return xpixParam_;
     }
 
@@ -146,7 +146,7 @@ public abstract class PlotTask implements Task {
      *
      * @return  ypix parameter
      */
-    public Parameter getYpixParameter() {
+    public Parameter<Integer> getYpixParameter() {
         return ypixParam_;
     }
 

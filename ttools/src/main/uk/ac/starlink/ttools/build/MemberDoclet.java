@@ -37,7 +37,6 @@ import com.sun.javadoc.Type;
 public abstract class MemberDoclet {
 
     private final RootDoc root_;
-    private final Set packages_ = new HashSet();
 
     private static final Pattern P_PATTERN = 
         Pattern.compile( "\\s*(</*[Pp]>)?\\s+(<[Pp]>)\\s*" );
@@ -174,9 +173,7 @@ public abstract class MemberDoclet {
             ClassDoc clazz = classes[ i ];
             if ( clazz.isPublic() ) {
                 processClass( clazz );
-                if ( ! packages_.contains( clazz ) ) {
-                    processPackage( clazz.containingPackage() );
-                }
+                processPackage( clazz.containingPackage() );
             }
         }
         return true;

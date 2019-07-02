@@ -16,11 +16,14 @@ public class TimeStackGanger
     private static final boolean UP = false;
 
     /** GangerFactory instance that returns TimeStackGangers. */
-    public static final GangerFactory FACTORY = new GangerFactory() {
+    public static final GangerFactory<TimeSurfaceFactory.Profile,TimeAspect>
+            FACTORY =
+            new GangerFactory<TimeSurfaceFactory.Profile,TimeAspect>() {
         public boolean isMultiZone() {
             return true;
         }
-        public Ganger createGanger( Padding padding ) {
+        public Ganger<TimeSurfaceFactory.Profile,TimeAspect>
+                createGanger( Padding padding ) {
             return new TimeStackGanger( padding );
         }
     };

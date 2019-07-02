@@ -260,7 +260,7 @@ public class JELDataSpec extends AbstractDataSpec {
         catch ( CompilationException e ) {
             throw new TaskException( "Bad Expression \"" + expr + "\"", e );
         }
-        Class exprClazz = compex.getTypeC();
+        Class<?> exprClazz = compex.getTypeC();
         if ( ! reqClazz.isAssignableFrom( exprClazz ) ) {
             String msg = new StringBuffer()
                 .append( "Expression wrong type: " )

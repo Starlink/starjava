@@ -172,8 +172,8 @@ public class CartesianPlot3D extends Plot3D {
          * graphics context we're about to set up, but rounding errors
          * or something mean that the rendering isn't so good if you try
          * that, so do it the straightforward way. */
-        double[] d0 = (double[]) p0.clone();
-        double[] d1 = (double[]) p1.clone();
+        double[] d0 = p0.clone();
+        double[] d1 = p1.clone();
         trans.transform( d0 );
         trans.transform( d1 );
         int xp0 = vol.projectX( d0[ 0 ] );

@@ -42,10 +42,11 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  * @author   Mark Taylor
  * @since    15 Aug 2013
  */
-public class TimePlotType implements PlotType {
+public class TimePlotType
+        implements PlotType<TimeSurfaceFactory.Profile,TimeAspect> {
 
     private static final TimePlotType INSTANCE = new TimePlotType();
-    private static final SurfaceFactory SURFACE_FACTORY =
+    private static final TimeSurfaceFactory SURFACE_FACTORY =
         new TimeSurfaceFactory();
 
     /**
@@ -58,7 +59,7 @@ public class TimePlotType implements PlotType {
         return new DataGeom[] { TimeDataGeom.INSTANCE };
     }
 
-    public Plotter[] getPlotters() {
+    public Plotter<?>[] getPlotters() {
         String descrip = PlotUtil.concatLines( new String[] {
             "<p>Plots symmetric or asymmetric error bars in the Y direction.",
             "</p>",
@@ -70,13 +71,13 @@ public class TimePlotType implements PlotType {
                               .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
                                StyleKeys.ERROR_SHAPE_1D, false );
         ShapeForm[] modeForms = new ShapeForm[] { MarkForm.SINGLE };
-        List<Plotter> plotters = new ArrayList<Plotter>();
+        List<Plotter<?>> plotters = new ArrayList<Plotter<?>>();
         PerUnitConfigKey<Unit> unitKey = TimeUnit.createHistogramConfigKey();
         plotters.addAll( Arrays
                         .asList( ShapePlotter
                                 .createShapePlotters( modeForms,
                                                       ShapeMode.MODES_2D ) ) );
-        plotters.addAll( Arrays.asList( new Plotter[] {
+        plotters.addAll( Arrays.asList( new Plotter<?>[] {
             new LinePlotter(),
             new LinearFitPlotter( true ),
             new FillPlotter( false ),
@@ -93,10 +94,11 @@ public class TimePlotType implements PlotType {
             new LabelPlotter(),
             FunctionPlotter.PLANE,
         } ) );
-        return plotters.toArray( new Plotter[ 0 ] );
+        return plotters.toArray( new Plotter<?>[ 0 ] );
     }
 
-    public SurfaceFactory getSurfaceFactory() {
+    public SurfaceFactory<TimeSurfaceFactory.Profile,TimeAspect>
+                          getSurfaceFactory() {
         return SURFACE_FACTORY;
     }
 

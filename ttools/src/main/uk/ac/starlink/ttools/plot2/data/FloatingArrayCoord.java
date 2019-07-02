@@ -54,8 +54,8 @@ public abstract class FloatingArrayCoord extends SingleCoord {
      * coordinate values for floating array coordinates.
      * It's all the primitive numeric array types.
      */
-    public static Class[] getAcceptableClasses() {
-        return new Class[] {
+    public static Class<?>[] getAcceptableClasses() {
+        return new Class<?>[] {
             double[].class,
             float[].class,
             long[].class,

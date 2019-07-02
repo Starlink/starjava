@@ -62,17 +62,18 @@ import uk.ac.starlink.util.ObjectFactory;
  * @author   Mark Taylor
  * @since    12 Feb 2010
  */
+@SuppressWarnings("static")
 public class JyStilts {
 
     private final Stilts stilts_;
     private final Formatter formatter_;
-    private final Map clazzMap_;
+    private final Map<Class<?>,String> clazzMap_;
     private final String[] imports_;
-    private final Map paramAliasMap_;
+    private final Map<String,String> paramAliasMap_;
     private static final String paramAliasDictName_ = "_param_alias_dict";
 
     /** Java classes which are used by python source code. */
-    private static final Class[] IMPORT_CLASSES = new Class[] {
+    private static final Class<?>[] IMPORT_CLASSES = new Class<?>[] {
         java.io.ByteArrayInputStream.class,
         java.io.OutputStream.class,
         java.lang.Class.class,
@@ -105,13 +106,13 @@ public class JyStilts {
         formatter_ = new Formatter();
 
         /* Prepare python imports. */
-        clazzMap_ = new HashMap();
-        Class[] clazzes = IMPORT_CLASSES;
-        List importList = new ArrayList();
+        clazzMap_ = new HashMap<Class<?>,String>();
+        Class<?>[] clazzes = IMPORT_CLASSES;
+        List<String> importList = new ArrayList<String>();
         importList.add( "import jarray.array" );
         importList.add( "from org.python.core.util import StringUtil" );
         for ( int ic = 0; ic < clazzes.length; ic++ ) {
-            Class clazz = clazzes[ ic ];
+            Class<?> clazz = clazzes[ ic ];
             String clazzName = clazz.getName();
             String importName = clazzName;
             importName = importName.replaceFirst( ".*\\.", "_" );
@@ -128,10 +129,10 @@ public class JyStilts {
         }
 
         /* Imports providing calculation static functions for use by users. */
-        Class[] calcClazzes =
-            JELUtils.getStaticClasses().toArray( new Class[ 0 ] );
+        Class<?>[] calcClazzes =
+            JELUtils.getStaticClasses().toArray( new Class<?>[ 0 ] );
         for ( int ic = 0; ic < calcClazzes.length; ic++ ) {
-            Class clazz = calcClazzes[ ic ];
+            Class<?> clazz = calcClazzes[ ic ];
             String clazzName = clazz.getName();
             String importName = clazzName;
             importName = importName.replaceFirst( ".*\\.", "" );
@@ -143,11 +144,11 @@ public class JyStilts {
             importList.add( line );
         }
 
-        imports_ = (String[]) importList.toArray( new String[ 0 ] );
+        imports_ = importList.toArray( new String[ 0 ] );
 
         /* Some parameter names need to be aliased because they are python
          * reserved words. */
-        paramAliasMap_ = new HashMap();
+        paramAliasMap_ = new HashMap<String,String>();
         paramAliasMap_.put( "in", "in_" );
     }
 
@@ -191,8 +192,8 @@ public class JyStilts {
      * @param  clazz  java class
      * @return  python name for <code>clazz</code>
      */
-    private String getImportName( Class clazz ) {
-        String cname = (String) clazzMap_.get( clazz );
+    private String getImportName( Class<?> clazz ) {
+        String cname = clazzMap_.get( clazz );
         if ( cname == null ) {
             throw new IllegalArgumentException( "Class " + clazz.getName()
                                               + " not imported" );
@@ -206,7 +207,8 @@ public class JyStilts {
      * @return  python source code lines
      */
     private String[] defUtils() {
-        List lineList = new ArrayList( Arrays.asList( new String[] {
+        List<String> lineList =
+                new ArrayList<String>( Arrays.asList( new String[] {
 
             /* WrapperStarTable implementation which is a python container. */
             "class RandomJyStarTable(JyStarTable):",
@@ -463,9 +465,7 @@ public class JyStilts {
         /* Creates and populates a dictionary mapping parameter names to
          * their aliases where appropriate. */
         lineList.add( paramAliasDictName_ + " = {}" );
-        for ( Iterator it = paramAliasMap_.entrySet().iterator();
-              it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
+        for ( Map.Entry<String,String> entry : paramAliasMap_.entrySet() ) {
             lineList.add( paramAliasDictName_
                         + "['" + entry.getKey() + "']='"
                                + entry.getValue() + "'" );
@@ -473,7 +473,7 @@ public class JyStilts {
         lineList.add( "" );
 
         /* Return source line list array. */
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -505,7 +505,7 @@ public class JyStilts {
      */
     private String[] defTableClass( String cname )
             throws LoadException, SAXException {
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         lineList.add( "class " + cname + "("
                                + getImportName( WrapperStarTable.class )
                                + "):" );
@@ -674,7 +674,7 @@ public class JyStilts {
         }
 
         /* Return the source code lines. */
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -684,7 +684,7 @@ public class JyStilts {
      * @return  python source code lines
      */
     private String[] defRead( String fname ) {
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         lineList.add( "def " + fname
                              + "(location, fmt='(auto)', random=False):" );
         lineList.add( "    '''Reads a table from a filename, URL or "
@@ -721,7 +721,7 @@ public class JyStilts {
         lineList.add( "    else:" );
         lineList.add( "        table = fact.makeStarTable(location, fmt)" );
         lineList.add( "    return import_star_table(table)" );
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -731,7 +731,7 @@ public class JyStilts {
      * @return  python source code lines
      */
     private String[] defReads( String fname ) {
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         lineList.add( "def " + fname
                              + "(location, fmt='(auto)', random=False):" );
         lineList.add( "    '''Reads multiple tables from a filename, URL or "
@@ -774,7 +774,7 @@ public class JyStilts {
         lineList.add( "    tables = " + getImportName( Tables.class )
                                       + ".tableArray(tseq)" );
         lineList.add( "    return map(import_star_table, tables)" );
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -786,7 +786,7 @@ public class JyStilts {
      */
     private String[] defWrite( String fname, boolean isBound ) {
         String tArgName = isBound ? "self" : "table";
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         lineList.add( "def " + fname + "(" + tArgName
                                      + ", location=None, fmt='(auto)'):" );
         lineList.add( "    '''Writes table to a file." );
@@ -814,7 +814,7 @@ public class JyStilts {
         lineList.add( "            location = '-'" );
         lineList.add( "        sto.writeStarTable(" + tArgName
                                                     + ", location, fmt)" );
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -824,7 +824,7 @@ public class JyStilts {
      * @return  python source code lines
      */
     private String[] defWrites( String fname ) {
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         lineList.add( "def " + fname
                              + "(tables, location=None, fmt='(auto)'):" );
         lineList.add( "    '''Writes a sequence of tables "
@@ -863,7 +863,7 @@ public class JyStilts {
         lineList.add( "        handler = sto.getHandler(fmt, location)" );
         lineList.add( "        _check_multi_handler(handler)" );
         lineList.add( "        handler.writeStarTables(tseq, location, sto)" );
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -903,7 +903,7 @@ public class JyStilts {
         String usage = filter.getUsage();
         boolean hasUsage = usage != null && usage.trim().length() > 0;
         String tArgName = isBound ? "self" : "table";
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         if ( hasUsage ) {
             lineList.add( "def " + fname + "(" + tArgName + ", *args):" );
         }
@@ -938,7 +938,7 @@ public class JyStilts {
         lineList.add( "    step = pfilt.createStep(argList.iterator())" );
         lineList.add( "    return import_star_table(step.wrap(" + tArgName
                                                                 + "))" );
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -957,15 +957,15 @@ public class JyStilts {
             stilts_.getModeFactory().createObject( modeNickName );
 
         /* Assemble mandatory and optional parameters. */
-        Parameter[] params = mode.getAssociatedParameters();
-        List lineList = new ArrayList();
-        List mandArgList = new ArrayList();
-        List optArgList = new ArrayList();
+        Parameter<?>[] params = mode.getAssociatedParameters();
+        List<String> lineList = new ArrayList<String>();
+        List<Arg> mandArgList = new ArrayList<Arg>();
+        List<Arg> optArgList = new ArrayList<Arg>();
         for ( int ip = 0; ip < params.length; ip++ ) {
-            Parameter param = params[ ip ];
+            Parameter<?> param = params[ ip ];
             String name = param.getName();
             if ( paramAliasMap_.containsKey( name ) ) {
-                param.setName( (String) paramAliasMap_.get( name ) );
+                param.setName( paramAliasMap_.get( name ) );
             }
             String pname = param.getName();
             String sdflt = getDefaultString( param );
@@ -979,7 +979,7 @@ public class JyStilts {
 
         /* Begin function definition. */
         String tArgName = isBound ? "self" : "table";
-        List argList = new ArrayList();
+        List<Arg> argList = new ArrayList<Arg>();
         argList.addAll( mandArgList );
         argList.addAll( optArgList );
         StringBuffer sbuf = new StringBuffer()
@@ -987,8 +987,7 @@ public class JyStilts {
             .append( fname )
             .append( "(" )
             .append( tArgName );
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            Arg arg = (Arg) it.next();
+        for ( Arg arg : argList ) {
             sbuf.append( ", " );
             sbuf.append( arg.formalArg_ );
         }
@@ -1003,9 +1002,8 @@ public class JyStilts {
 
         /* Create and populate execution environment. */
         lineList.add( "    env = _JyEnvironment()" );
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            Arg arg = (Arg) it.next();
-            Parameter param = arg.param_;
+        for ( Arg arg : argList ) {
+            Parameter<?> param = arg.param_;
             String name = param.getName();
             lineList.add( "    env.setValue('" + name + "', "
                                           + "_map_env_value(" + name + "))" );
@@ -1020,7 +1018,7 @@ public class JyStilts {
         lineList.add( "    consumer.consume(" + tArgName + ")" );
 
         /* Return the source code lines. */
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -1042,14 +1040,16 @@ public class JyStilts {
             && ((ConsumerTask) task).getOutputMode() instanceof ChoiceMode;
                  
         boolean returnOutput = task instanceof Calc;
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
 
         /* Get a list of the task parameters omitting those which we
          * don't want for jython purposes. */
-        List paramList = new ArrayList( Arrays.asList( task.getParameters() ) );
-        List shunnedList = new ArrayList();
-        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-            Parameter param = (Parameter) it.next();
+        List<Parameter<?>> paramList =
+            new ArrayList<Parameter<?>>( Arrays.asList( task.getParameters() ));
+        List<Parameter<?>> shunnedList = new ArrayList<Parameter<?>>();
+        for ( Iterator<Parameter<?>> it = paramList.iterator();
+              it.hasNext(); ) {
+            Parameter<?> param = it.next();
             if ( param instanceof AbstractInputTableParameter ) {
                 shunnedList.add( ((AbstractInputTableParameter) param)
                                 .getStreamParameter() );
@@ -1069,8 +1069,7 @@ public class JyStilts {
             }
         }
         paramList.removeAll( shunnedList );
-        Parameter[] params =
-            (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        Parameter<?>[] params = paramList.toArray( new Parameter<?>[ 0 ] );
 
         /* Get a list of mandatory and optional parameters which we will
          * declare as part of the python function definition. 
@@ -1083,14 +1082,13 @@ public class JyStilts {
          * tends to be just a few non-problematic an mandatory ones,
          * as well as any which have had their names aliased, so that
          * this is clear from the documentation. */
-        List mandArgList = new ArrayList();
-        List optArgList = new ArrayList();
+        List<Arg> mandArgList = new ArrayList<Arg>();
+        List<Arg> optArgList = new ArrayList<Arg>();
         int iPos = 0;
-        for ( int ip = 0; ip < params.length; ip++ ) {
-            Parameter param = params[ ip ];
+        for ( Parameter<?> param : params ) {
             String name = param.getName();
             if ( paramAliasMap_.containsKey( name ) ) {
-                param.setName( (String) paramAliasMap_.get( name ) );
+                param.setName( paramAliasMap_.get( name ) );
             }
             String pname = param.getName();
             boolean byPos = false;
@@ -1112,15 +1110,14 @@ public class JyStilts {
         }
 
         /* Begin the function definition. */
-        List argList = new ArrayList();
+        List<Arg> argList = new ArrayList<Arg>();
         argList.addAll( mandArgList );
         argList.addAll( optArgList );
         StringBuffer sbuf = new StringBuffer()
             .append( "def " )
             .append( fname )
             .append( "(" );
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            Arg arg = (Arg) it.next();
+        for ( Arg arg : argList ) {
             sbuf.append( arg.formalArg_ )
                 .append( ", " );
         }
@@ -1164,9 +1161,8 @@ public class JyStilts {
 
         /* Populate the environment from the mandatory and optional arguments
          * of the python function.  */
-        for ( Iterator it = mandArgList.iterator(); it.hasNext(); ) {
-            Arg arg = (Arg) it.next();
-            Parameter param = arg.param_;
+        for ( Arg arg : mandArgList ) {
+            Parameter<?> param = arg.param_;
             String name = param.getName();
             lineList.add( "    env.setValue('" + name + "', "
                                           + "_map_env_value(" + name + "))" );
@@ -1199,7 +1195,7 @@ public class JyStilts {
         }
 
         /* Return the source code lines. */
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -1210,7 +1206,7 @@ public class JyStilts {
      * @param  param  STILTS parameter
      * @param  default value, suitable for insertion into python source
      */
-    private String getDefaultString( Parameter param ) {
+    private String getDefaultString( Parameter<?> param ) {
         String dflt = param.getStringDefault();
         boolean isDfltNull = dflt == null || dflt.trim().length() == 0;
         boolean nullable = param.isNullPermitted();
@@ -1244,9 +1240,8 @@ public class JyStilts {
          * formatted with indentation by python help. */
         int csub = 8;
         String text = formatter_.formatXML( xml, csub );
-        List lineList = new ArrayList();
-        for ( Iterator lineIt = lineIterator( text ); lineIt.hasNext(); ) {
-            String line = (String) lineIt.next();
+        List<String> lineList = new ArrayList<String>();
+        for ( String line : lineIterable( text ) ) {
             if ( line.trim().length() == 0 ) {
                 lineList.add( "" );
             }
@@ -1255,7 +1250,7 @@ public class JyStilts {
                 lineList.add( line.substring( csub ) );
             }
         }
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -1265,11 +1260,11 @@ public class JyStilts {
      * @param  params  parameters to document
      * @return  lines of doc text
      */
-    private String[] getParamDocs( Parameter[] params ) throws SAXException {
+    private String[] getParamDocs( Parameter<?>[] params ) throws SAXException {
         if ( params.length == 0 ) {
             return new String[ 0 ];
         }
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         lineList.add( "" );
         lineList.add( "Parameters:" );
         StringBuffer sbuf = new StringBuffer();
@@ -1279,7 +1274,7 @@ public class JyStilts {
         }
         sbuf.append( "</dl>" );
         lineList.addAll( Arrays.asList( formatXml( sbuf.toString() ) ) );
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -1290,11 +1285,11 @@ public class JyStilts {
      * @return  python source code lines for string literal content
      */
     private String[] prefixLines( String prefix, String text ) {
-        List lineList = new ArrayList();
-        for ( Iterator lineIt = lineIterator( text ); lineIt.hasNext(); ) {
-            lineList.add( prefix + (String) lineIt.next() );
+        List<String> lineList = new ArrayList<String>();
+        for ( String line : lineIterable( text ) ) {
+            lineList.add( prefix + line );
         }
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -1305,11 +1300,11 @@ public class JyStilts {
      * @return  output line array
      */
     private String[] prefixLines( String prefix, String[] lines ) {
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         for ( int i = 0; i < lines.length; i++ ) {
             lineList.add( prefix + lines[ i ] );
         }
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -1396,9 +1391,9 @@ public class JyStilts {
      * list.
      */
     private static class Arg {
-        final Parameter param_;
+        final Parameter<?> param_;
         final String formalArg_;
-        Arg( Parameter param, String formalArg ) {
+        Arg( Parameter<?> param, String formalArg ) {
             param_ = param;
             formalArg_ = formalArg;
         }
@@ -1412,23 +1407,27 @@ public class JyStilts {
      * @param  text  input text
      * @return   iterator over lines
      */
-    private static Iterator lineIterator( final String text ) {
-        return new Iterator() {
-            private int pos_;
-            public boolean hasNext() {
-                return pos_ < text.length();
-            }
-            public Object next() {
-                int nextPos = text.indexOf( '\n', pos_ );
-                if ( nextPos < 0 ) {
-                    nextPos = text.length();
-                }
-                String line = text.substring( pos_, nextPos );
-                pos_ = nextPos + 1;
-                return line;
-            }
-            public void remove() {
-                throw new UnsupportedOperationException();
+    private static Iterable<String> lineIterable( final String text ) {
+        return new Iterable<String>() {
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    private int pos_;
+                    public boolean hasNext() {
+                        return pos_ < text.length();
+                    }
+                    public String next() {
+                        int nextPos = text.indexOf( '\n', pos_ );
+                        if ( nextPos < 0 ) {
+                            nextPos = text.length();
+                        }
+                        String line = text.substring( pos_, nextPos );
+                        pos_ = nextPos + 1;
+                        return line;
+                    }
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
             }
         };
     }

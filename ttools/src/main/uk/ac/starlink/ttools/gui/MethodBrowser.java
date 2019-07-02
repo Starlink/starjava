@@ -67,7 +67,7 @@ public class MethodBrowser extends JPanel {
 
     private final JTree tree_;
     private final JEditorPane docPane_;
-    private final Map objLabels_;
+    private final Map<Object,String> objLabels_;
     private static final Pattern TITLE_PATTERN =
         Pattern.compile( ".*<title>([^<&].*?)</title>.*",
                          Pattern.CASE_INSENSITIVE );
@@ -80,7 +80,7 @@ public class MethodBrowser extends JPanel {
     public MethodBrowser() {
         super( new BorderLayout() );
         tree_ = new JTree( new DefaultMutableTreeNode() );
-        objLabels_ = new HashMap();
+        objLabels_ = new HashMap<Object,String>();
 
         /* Arrange for suitable rendering. */
         tree_.setRootVisible( false );
@@ -208,7 +208,7 @@ public class MethodBrowser extends JPanel {
      *
      * @param   clazzes  classes for display
      */
-    public void addStaticClasses( Class[] clazzes ) {
+    public void addStaticClasses( Class<?>[] clazzes ) {
         DefaultMutableTreeNode root = getRoot();
         for ( int i = 0; i < clazzes.length; i++ ) {
             addStaticClass( clazzes[ i ], root );
@@ -222,7 +222,8 @@ public class MethodBrowser extends JPanel {
      * @param  clazz  class to add
      * @param  parent  tree node to append it to
      */
-    public void addStaticClass( Class clazz, DefaultMutableTreeNode parent ) {
+    public void addStaticClass( Class<?> clazz,
+                                DefaultMutableTreeNode parent ) {
 
         /* Add a node based on the class itself. */
         DefaultMutableTreeNode clazzNode = new DefaultMutableTreeNode( clazz );
@@ -317,7 +318,7 @@ public class MethodBrowser extends JPanel {
             }
             if ( text == null ) {
                 if ( userObj instanceof Class ) {
-                    text = ((Class) userObj).getName();
+                    text = ((Class<?>) userObj).getName();
                 }
                 else if ( userObj instanceof Method ) {
                     Method method = (Method) userObj;
@@ -326,7 +327,7 @@ public class MethodBrowser extends JPanel {
                         .append( ' ' )
                         .append( method.getName() )
                         .append( "( " );
-                    Class[] params = method.getParameterTypes();
+                    Class<?>[] params = method.getParameterTypes();
                     for ( int i = 0; i < params.length; i++ ) {
                         if ( i > 0 ) {
                             sbuf.append( ", " );
@@ -342,7 +343,7 @@ public class MethodBrowser extends JPanel {
             }
             objLabels_.put( userObj, text );
         }
-        return (String) objLabels_.get( userObj );
+        return objLabels_.get( userObj );
     }
 
     /**

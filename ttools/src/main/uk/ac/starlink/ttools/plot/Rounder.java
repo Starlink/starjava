@@ -58,7 +58,7 @@ public abstract class Rounder {
 
         private LinearRounder() {
             /* check */
-            double[] roundMantissas = (double[]) roundMantissas_.clone();
+            double[] roundMantissas = roundMantissas_.clone();
             Arrays.sort( roundMantissas );
             if ( roundMantissas[ 0 ] != 1.0 ||
                  roundMantissas[ roundMantissas.length - 1 ] != 10.0 ) {

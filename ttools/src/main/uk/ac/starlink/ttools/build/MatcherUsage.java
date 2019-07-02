@@ -76,7 +76,7 @@ public class MatcherUsage {
             .toString();
     }
 
-    private String getXmlEntry( Parameter param, ValueInfo[] infos ) {
+    private String getXmlEntry( Parameter<?> param, ValueInfo[] infos ) {
         if ( infos.length == 0 ) {
             return "";
         }

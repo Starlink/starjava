@@ -17,11 +17,11 @@ import uk.ac.starlink.ttools.plot2.PlotType;
  * @author   Mark Taylor
  * @since    22 Aug 2014
  */
-public abstract class PlotContext {
+public abstract class PlotContext<P,A> {
 
-    private final PlotType plotType_;
+    private final PlotType<P,A> plotType_;
     private final DataGeom[] exampleGeoms_;
-    private final GangerFactory gangerFact_;
+    private final GangerFactory<P,A> gangerFact_;
 
     /**
      * Constructor.
@@ -32,8 +32,8 @@ public abstract class PlotContext {
      * @param  exampleGeoms   example data geoms
      * @param  gangerFact   defines plot grouping
      */
-    protected PlotContext( PlotType plotType, DataGeom[] exampleGeoms,
-                           GangerFactory gangerFact ) {
+    protected PlotContext( PlotType<P,A> plotType, DataGeom[] exampleGeoms,
+                           GangerFactory<P,A> gangerFact ) {
         plotType_ = plotType;
         exampleGeoms_ = exampleGeoms;
         gangerFact_ = gangerFact;
@@ -44,7 +44,7 @@ public abstract class PlotContext {
      *
      * @return  plot type
      */
-    public PlotType getPlotType() {
+    public PlotType<P,A> getPlotType() {
         return plotType_;
     }
 
@@ -66,7 +66,7 @@ public abstract class PlotContext {
      *
      * @return  gangerFact 
      */
-    public GangerFactory getGangerFactory() {
+    public GangerFactory<P,A> getGangerFactory() {
         return gangerFact_;
     }
 
@@ -77,7 +77,7 @@ public abstract class PlotContext {
      * @param  layerSuffix  parameter suffix string identifying a plot layer
      * @return   list of zero or more parameters used for determining DataGeom
      */
-    public abstract Parameter[] getGeomParameters( String layerSuffix );
+    public abstract Parameter<?>[] getGeomParameters( String layerSuffix );
 
     /**
      * Returns the DataGeom to use for a given layer in the context of a
@@ -102,14 +102,14 @@ public abstract class PlotContext {
      * @param  gangerFact    defines plot grouping
      * @return  standard plot context
      */
-    public static PlotContext
-            createStandardContext( final PlotType plotType,
-                                   GangerFactory gangerFact ) {
+    public static <P,A> PlotContext<P,A>
+            createStandardContext( final PlotType<P,A> plotType,
+                                   GangerFactory<P,A> gangerFact ) {
         final DataGeom[] geoms = plotType.getPointDataGeoms();
-        return new PlotContext( plotType, geoms, gangerFact ) {
+        return new PlotContext<P,A>( plotType, geoms, gangerFact ) {
 
-            public Parameter[] getGeomParameters( String suffix ) {
-                return new Parameter[] { createGeomParameter( suffix ) };
+            public Parameter<?>[] getGeomParameters( String suffix ) {
+                return new Parameter<?>[] { createGeomParameter( suffix ) };
             }
 
             public DataGeom getGeom( Environment env, String suffix )
@@ -142,13 +142,14 @@ public abstract class PlotContext {
      * @param  gangerFact  defines plot grouping
      * @return  fixed-geom plot context
      */
-    public static PlotContext createFixedContext( final PlotType plotType,
-                                                  final DataGeom geom,
-                                                  GangerFactory gangerFact ) {
-        return new PlotContext( plotType, new DataGeom[] { geom },
-                                gangerFact ) {
-            public Parameter[] getGeomParameters( String suffix ) {
-                return new Parameter[ 0 ];
+    public static <P,A> PlotContext<P,A>
+            createFixedContext( final PlotType<P,A> plotType,
+                                final DataGeom geom,
+                                GangerFactory<P,A> gangerFact ) {
+        return new PlotContext<P,A>( plotType, new DataGeom[] { geom },
+                                     gangerFact ) {
+            public Parameter<?>[] getGeomParameters( String suffix ) {
+                return new Parameter<?>[ 0 ];
             }
             public DataGeom getGeom( Environment env, String suffix ) {
                 return geom;

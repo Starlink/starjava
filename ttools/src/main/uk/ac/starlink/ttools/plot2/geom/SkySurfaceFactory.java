@@ -238,9 +238,9 @@ public class SkySurfaceFactory
                                p.sex_, p.crowd_, p.captioner_, p.antialias_ );
     }
 
-    public ConfigKey[] getProfileKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
-        list.addAll( Arrays.asList( new ConfigKey[] {
+    public ConfigKey<?>[] getProfileKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             PROJECTION_KEY,
             VIEWSYS_KEY,
             REFLECT_KEY,
@@ -254,7 +254,7 @@ public class SkySurfaceFactory
             StyleKeys.GRID_ANTIALIAS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Profile createProfile( ConfigMap config ) {
@@ -275,8 +275,8 @@ public class SkySurfaceFactory
                             sex, crowd, captioner, antialias );
     }
 
-    public ConfigKey[] getAspectKeys() {
-        return new ConfigKey[] {
+    public ConfigKey<?>[] getAspectKeys() {
+        return new ConfigKey<?>[] {
             LON_KEY, LAT_KEY, FOV_RADIUS_KEY,
         };
     }
@@ -363,7 +363,7 @@ public class SkySurfaceFactory
         return ranges;
     }
 
-    public ConfigKey[] getNavigatorKeys() {
+    public ConfigKey<?>[] getNavigatorKeys() {
         return SkyNavigator.getConfigKeys();
     }
 

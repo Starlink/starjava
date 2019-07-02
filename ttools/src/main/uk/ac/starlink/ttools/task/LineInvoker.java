@@ -69,7 +69,7 @@ public class LineInvoker {
      *                         logging configuration (may be null)
      */
     public int invoke( String[] args, Runnable loggedConfig ) {
-        List argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         LineTableEnvironment env = new LineTableEnvironment();
         int verbosity = 0;
         boolean bench = false;
@@ -79,13 +79,13 @@ public class LineInvoker {
         PrintStream err = System.err;
 
         /* Treat flags. */
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.startsWith( "-" ) || arg.startsWith( "+" ) ) {
                 if ( arg.equals( "-help" ) ||
                      arg.equals( "-h" ) ) {
                     it.remove();
-                    String topic = it.hasNext() ? (String) it.next() : null;
+                    String topic = it.hasNext() ? it.next() : null;
                     out.println( "\n" + getUsage( topic ) );
                     return 0;
                 }
@@ -174,7 +174,7 @@ public class LineInvoker {
                 }
                 else if ( arg.equals( "-checkversion" ) && it.hasNext() ) {
                     it.remove();
-                    String vers = (String) it.next();
+                    String vers = it.next();
                     it.remove();
                     if ( ! vers.equals( Stilts.getVersion() ) ) {
                         err.println( "Version mismatch: "
@@ -184,7 +184,7 @@ public class LineInvoker {
                 }
                 else if ( arg.equals( "-stdout" ) && it.hasNext() ) {
                     it.remove();
-                    String outName = (String) it.next();
+                    String outName = it.next();
                     it.remove();
                     if ( outName == null || outName.trim().length() == 0 ||
                          "-".equals( outName ) ) {
@@ -212,7 +212,7 @@ public class LineInvoker {
                 }
                 else if ( arg.equals( "-stderr" ) && it.hasNext() ) {
                     it.remove();
-                    String errName = (String) it.next();
+                    String errName = it.next();
                     it.remove();
                     if ( errName == null || errName.trim().length() == 0 ||
                          "=".equals( errName ) ) {
@@ -264,13 +264,12 @@ public class LineInvoker {
             loggedConfig.run();
         }
 
-        String taskName = (String) argList.remove( 0 );
+        String taskName = argList.remove( 0 );
         if ( taskFactory_.isRegistered( taskName ) ) {
             Task task = null;
             try {
                 task = taskFactory_.createObject( taskName );
-                String[] taskArgs = (String[])
-                                    argList.toArray( new String[ 0 ] );
+                String[] taskArgs = argList.toArray( new String[ 0 ] );
                 LineWord[] words = new LineWord[ taskArgs.length ];
                 for ( int i = 0; i < taskArgs.length; i++ ) {
                     words[ i ] = new LineWord( taskArgs[ i ] );
@@ -317,7 +316,7 @@ public class LineInvoker {
             catch ( TaskException e ) {
                 reportError( env, e );
                 if ( e instanceof ParameterValueException && task != null ) {
-                    Parameter param =
+                    Parameter<?> param =
                         ((ParameterValueException) e).getParameter();
                     try {
                         err.println( "Value was: " + param.getName() + "=\""
@@ -466,7 +465,7 @@ public class LineInvoker {
                 helpFor = arg.substring( 0, arg.length() - 2 );
             }
             if ( "*".equals( helpFor ) ) {
-                Parameter [] params = task.getParameters();
+                Parameter<?>[] params = task.getParameters();
                 StringBuffer sbuf = new StringBuffer();
                 for ( int j = 0; j < params.length; j++ ) {
                     sbuf.append( getParamHelp( env, taskName, params[ j ] ) );
@@ -478,9 +477,9 @@ public class LineInvoker {
 
                 /* Look for an exact (case-insensitive) match of the requested
                  * name with one of the task's parameters. */
-                Parameter[] params = task.getParameters();
+                Parameter<?>[] params = task.getParameters();
                 for ( int j = 0; j < params.length; j++ ) {
-                    Parameter param = params[ j ];
+                   Parameter<?> param = params[ j ];
                     if ( env.paramNameMatches( helpFor, param ) ) {
                         return getParamHelp( env, taskName, param );
                     }
@@ -488,7 +487,7 @@ public class LineInvoker {
 
                 /* If that fails, look for environment-sensitive parameters. */
                 if ( task instanceof DynamicTask ) {
-                    Parameter param =
+                    Parameter<?> param =
                         ((DynamicTask) task).getParameterByName( env, helpFor );
                     if ( param != null ) {
                         return getParamHelp( env, taskName, param );
@@ -511,7 +510,7 @@ public class LineInvoker {
                     .append( '$' )
                     .toString();
                 for ( int j = 0; j < params.length; j++ ) {
-                    Parameter param = params[ j ];
+                    Parameter<?> param = params[ j ];
                     String pname = param.getName().replaceFirst( stripper, "" );
                     if ( LineTableEnvironment.normaliseName( helpFor )
                         .equals( LineTableEnvironment
@@ -683,9 +682,9 @@ public class LineInvoker {
     private static String getTaskUsage( Environment env, Task task,
                                         String taskName )
             throws TaskException {
-        Parameter[] params = task instanceof DynamicTask && env != null
-                           ? ((DynamicTask) task).getContextParameters( env )
-                           : task.getParameters();
+        Parameter<?>[] params = task instanceof DynamicTask && env != null
+                              ? ((DynamicTask) task).getContextParameters( env )
+                              : task.getParameters();
         return getPrefixedParameterUsage( params, "Usage: " + taskName );
     }
 
@@ -697,19 +696,19 @@ public class LineInvoker {
      * @param   prefix   string to prepend to the first line
      * @return   usage string
      */
-    public static String getPrefixedParameterUsage( Parameter[] params,
+    public static String getPrefixedParameterUsage( Parameter<?>[] params,
                                                     String prefix ) {
 
         /* Assemble two lists of usage elements: one for parameters 
          * which must be specified by name, and another for parameters
          * which can be specified only by position. */
-        List namedWords = new ArrayList();
-        List numberedWords = new ArrayList();
+        List<String> namedWords = new ArrayList<String>();
+        List<String> numberedWords = new ArrayList<String>();
         int iPos = 0;
         for ( int i = 0; i < params.length; i++ ) {
             StringBuffer word = new StringBuffer();
             word.append( ' ' );
-            Parameter param = params[ i ];
+            Parameter<?> param = params[ i ];
             int pos = param.getPosition();
             boolean byPos = false;
             if ( param.getPosition() > 0 ) {
@@ -742,8 +741,7 @@ public class LineInvoker {
 
         /* Add the named usage elements. */
         if ( namedWords.size() > 0 ) {
-            for ( Iterator it = namedWords.iterator(); it.hasNext(); ) {
-                String word = (String) it.next();
+            for ( String word : namedWords ) {
                 if ( line.length() + word.length() > 78 ) {
                     usage.append( line )
                          .append( '\n' );
@@ -758,8 +756,7 @@ public class LineInvoker {
 
         /* Add the numbered usage elements. */
         if ( numberedWords.size() > 0 ) {
-            for ( Iterator it = numberedWords.iterator(); it.hasNext(); ) {
-                String word = (String) it.next();
+            for ( String word : numberedWords ) {
                 if ( line.length() + word.length() > 78 ) {
                     usage.append( line )
                          .append( '\n' );
@@ -795,7 +792,7 @@ public class LineInvoker {
      * @return   usage message
      */
     public static String getParamHelp( TableEnvironment env, String taskName,
-                                       Parameter param ) {
+                                       Parameter<?> param ) {
         boolean byPos = param.getPosition() > 0;
         boolean isOptional = param.getStringDefault() != null 
                           || param.isNullPermitted();
@@ -831,7 +828,7 @@ public class LineInvoker {
         catch ( SAXException e ) {
             sbuf.append( "      ???" );
         }
-        Class clazz = param.getValueClass();
+        Class<?> clazz = param.getValueClass();
         String clazzName = clazz.getCanonicalName();
         String javaPrefix = "java.lang.";
         String clazzAbbrev = clazzName.startsWith( javaPrefix )

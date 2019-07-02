@@ -109,7 +109,7 @@ public class ColumnIdentifier {
      */
     public int[] getColumnIndices( String colidList ) throws IOException {
         String[] colIds = colidList.trim().split( "\\s+" );
-        List icolList = new ArrayList();
+        List<Integer> icolList = new ArrayList<Integer>();
         for ( int i = 0; i < colIds.length; i++ ) {
             String colId = colIds[ i ];
             int icol = getScalarColumnIndex( colId );
@@ -147,7 +147,7 @@ public class ColumnIdentifier {
         int ncol = icolList.size();
         int[] icols = new int[ ncol ];
         for ( int i = 0; i < ncol; i++ ) {
-            icols[ i ] = ((Integer) icolList.get( i )).intValue();
+            icols[ i ] = icolList.get( i ).intValue();
         }
         return icols;
     }
@@ -266,7 +266,7 @@ public class ColumnIdentifier {
                                               + glob );
         }
         int ncol = table_.getColumnCount();
-        List icolList = new ArrayList();
+        List<Integer> icolList = new ArrayList<Integer>();
         for ( int icol = 0; icol < ncol; icol++ ) {
             String colName = table_.getColumnInfo( icol ).getName();
             if ( colName != null ) {
@@ -278,7 +278,7 @@ public class ColumnIdentifier {
         int nfound = icolList.size();
         int[] icols = new int[ nfound ];
         for ( int i = 0; i < nfound; i++ ) {
-            icols[ i ] = ((Integer) icolList.get( i )).intValue();
+            icols[ i ] = icolList.get( i ).intValue();
         }
         return icols;
     }

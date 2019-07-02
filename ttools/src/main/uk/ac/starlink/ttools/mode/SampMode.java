@@ -115,8 +115,8 @@ public class SampMode implements ProcessingMode {
         } );
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             formatsParam_,
             clientParam_,
         };
@@ -165,7 +165,7 @@ public class SampMode implements ProcessingMode {
         private final HubConnection connection_;
         private final HttpServer httpd_;
         private final ResponseCollector responseCollector_;
-        private final Map nameMap_;
+        private final Map<String,String> nameMap_;
 
         /**
          * Constructor.
@@ -190,7 +190,7 @@ public class SampMode implements ProcessingMode {
             table_ = table;
             targetClient_ = targetClient;
             out_ = out;
-            nameMap_ = new HashMap();
+            nameMap_ = new HashMap<String,String>();
 
             /* Register with hub. */
             connection_ = DefaultClientProfile.getProfile().register();
@@ -239,7 +239,7 @@ public class SampMode implements ProcessingMode {
 
             /* Do the sends. */
             String msgTag = responseCollector_.getTag();
-            Collection recipientList;
+            Collection<String> recipientList;
 
             /* If we are targetting a single client, locate the target,
              * then go one format at a time until we find an acceptable one. */
@@ -286,15 +286,17 @@ public class SampMode implements ProcessingMode {
                 Message msg =
                     createSendMessage( table_, formats_[ 0 ], writers_[ 0 ],
                                        resourceHandler );
-                Map recipientMap = connection_.callAll( msgTag, msg );
+                @SuppressWarnings("unchecked")
+                Map<String,String> recipientMap =
+                    connection_.callAll( msgTag, msg );
                 recipientList = recipientMap.keySet();
                 StringBuffer sbuf = new StringBuffer()
                     .append( "Broadcast " )
                     .append( msg.getMType() )
                     .append( " to " );
-                for ( Iterator it = recipientList.iterator();
+                for ( Iterator<String> it = recipientList.iterator();
                       it.hasNext(); ) {
-                    String clientId = (String) it.next();
+                    String clientId = it.next();
                     sbuf.append( formatId( clientId ) );
                     if ( it.hasNext() ) {
                         sbuf.append( ", " );
@@ -307,17 +309,17 @@ public class SampMode implements ProcessingMode {
              * careful - can't broadcast each one because it risks sending
              * the same table multiple times to some of the clients. */
             else {
-                recipientList = new HashSet();
+                recipientList = new HashSet<String>();
                 for ( int i = 0; i < formats_.length; i++ ) {
                     Message msg =
                         createSendMessage( table_, formats_[ i ], writers_[ i ],
                                            resourceHandler );
-                    Set clientIdSet =
-                        connection_.getSubscribedClients( msg.getMType() )
-                                   .keySet();
-                    for ( Iterator it = clientIdSet.iterator();
-                          it.hasNext(); ) {
-                        String clientId = (String) it.next();
+                    @SuppressWarnings("unchecked")
+                    Set<String> clientIdSet =
+                        ((Map<String,?>)
+                         connection_.getSubscribedClients( msg.getMType() ))
+                       .keySet();
+                    for ( String clientId : clientIdSet ) {
                         if ( ! recipientList.contains( clientId ) ) {
                             connection_.call( clientId, msgTag, msg );
                             recipientList.add( clientId );
@@ -335,8 +337,8 @@ public class SampMode implements ProcessingMode {
              * reading them.  */
             try {
                 responseCollector_
-                    .waitForResponses( (String[]) recipientList
-                                                 .toArray( new String[ 0 ] ) );
+                    .waitForResponses( recipientList
+                                      .toArray( new String[ 0 ] ) );
             }
             catch ( InterruptedException e ) {
                 logger_.warning( "Interrupted" );
@@ -383,7 +385,7 @@ public class SampMode implements ProcessingMode {
                 }
                 nameMap_.put( clientId, name );
             }
-            return (String) nameMap_.get( clientId );
+            return nameMap_.get( clientId );
         }
 
         /**
@@ -470,7 +472,7 @@ public class SampMode implements ProcessingMode {
 
         private final TableTransmitter transmitter_;
         private String[] recipientIds_;
-        private final Map responseMap_;
+        private final Map<String,Response> responseMap_;
         private boolean interrupted_;
 
         /**
@@ -478,7 +480,7 @@ public class SampMode implements ProcessingMode {
          */
         ResponseCollector( TableTransmitter transmitter ) {
             transmitter_ = transmitter;
-            responseMap_ = new HashMap();
+            responseMap_ = new HashMap<String,Response>();
         }
 
         /**
@@ -500,8 +502,8 @@ public class SampMode implements ProcessingMode {
          */
         public synchronized void waitForResponses( String[] recipientIds )
                 throws InterruptedException {
-            Collection recipientIdList =
-                new HashSet( Arrays.asList( recipientIds ) );
+            Collection<String> recipientIdList =
+                new HashSet<String>( Arrays.asList( recipientIds ) );
             while ( ! responseMap_.keySet().containsAll( recipientIdList ) &&
                     ! interrupted_ ) {
                 if ( interrupted_ ) {

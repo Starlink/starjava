@@ -98,8 +98,9 @@ public class Times {
      * static instances of these, since they are not thread safe.  
      * By having one per thread, we get the best of both worlds.
      */
-    private final static ThreadLocal kitHolder_ = new ThreadLocal() {
-        protected Object initialValue() {
+    private final static ThreadLocal<DateKit> kitHolder_ =
+            new ThreadLocal<DateKit>() {
+        protected DateKit initialValue() {
             return new DateKit();
         }
     };
@@ -230,7 +231,7 @@ public class Times {
         long y0 = cal.getTimeInMillis();
         cal.set( Calendar.YEAR, year + 1 );
         long y1 = cal.getTimeInMillis();
-        long t = y0 + (long) Math.round( frac * ( y1 - y0 ) );
+        long t = y0 + Math.round( frac * ( y1 - y0 ) );
         return unixMillisToMjd( t );
     }
 
@@ -503,7 +504,7 @@ public class Times {
      * @return  milliseconds since the Unix epoch
      */
     public static long mjdToUnixMillis( double mjd ) {
-        return (long) Math.round( ( mjd - MJD_EPOCH ) * MILLIS_PER_DAY );
+        return Math.round( ( mjd - MJD_EPOCH ) * MILLIS_PER_DAY );
     }
 
     /**
@@ -512,7 +513,7 @@ public class Times {
      * @return  date kit
      */
     private static DateKit getKit() {
-        return (DateKit) kitHolder_.get();
+        return kitHolder_.get();
     }
 
     /**
@@ -525,11 +526,11 @@ public class Times {
      * @return   new or old date format
      */
     private static DateFormat getFormat( String pattern ) {
-        Map map = getKit().patternMap_;
+        Map<String,DateFormat> map = getKit().patternMap_;
         if ( ! map.containsKey( pattern ) ) {
             map.put( pattern, newDateFormat( pattern ) );
         }
-        return (DateFormat) map.get( pattern );
+        return map.get( pattern );
     }
 
     /**
@@ -563,7 +564,8 @@ public class Times {
      */
     private static class DateKit {
         final Calendar calendar_ = newCalendar();
-        final Map patternMap_ = new HashMap();
+        final Map<String,DateFormat> patternMap_ =
+            new HashMap<String,DateFormat>();
         final DateFormat isoDateTimeFormat_ =
             newDateFormat( DATE_PATTERN + "'" + DATE_SEP + "'" + TIME_PATTERN );
         final DateFormat isoDateFormat_ = newDateFormat( DATE_PATTERN );

@@ -26,9 +26,9 @@ public class ElementHandler {
 
     private String name_;
     private VotLintContext context_;
-    private Map attributes_;
+    private Map<String,String> attributes_;
     private Ancestry ancestry_;
-    private Map childNames_;
+    private Map<String,ElementRef> childNames_;
     private ElementRef ref_;
 
     /**
@@ -88,7 +88,7 @@ public class ElementHandler {
      *
      * @param  atts  name -&gt; value map representing this element's attributes
      */
-    public void setAttributes( Map atts ) {
+    public void setAttributes( Map<String,String> atts ) {
         attributes_ = atts;
     }
 
@@ -99,7 +99,7 @@ public class ElementHandler {
      * @return  attribute value
      */
     public String getAttribute( String name ) {
-        return (String) attributes_.get( name );
+        return attributes_.get( name );
     }
 
     /**
@@ -131,10 +131,10 @@ public class ElementHandler {
      */
     public void registerChildName( ElementRef child, String name ) {
         if ( childNames_ == null ) {
-            childNames_ = new HashMap();
+            childNames_ = new HashMap<String,ElementRef>();
         }
         if ( childNames_.containsKey( name ) ) {
-            ElementRef ref = (ElementRef) childNames_.get( name );
+            ElementRef ref = childNames_.get( name );
             if ( ! name.equals( "QUERY_STATUS" ) ) {  // DAL special case
                 warning( "Name '" + name + "' already used in this " + this );
             }

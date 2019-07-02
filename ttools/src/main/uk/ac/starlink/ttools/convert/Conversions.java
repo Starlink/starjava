@@ -68,7 +68,7 @@ public class Conversions {
                                .getAuxDatumValue( VOStarTable.XTYPE_INFO,
                                                   String.class )
                      : null;
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
 
         /* If it's numeric, no problem. */
         if ( Number.class.isAssignableFrom( clazz ) ) {

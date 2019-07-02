@@ -78,7 +78,7 @@ public class SinePlot {
         boolean dataWillChange = updateMillis >= 0;
 
         /* This does the work of turning the table into a plot. */
-        final PlotDisplay plotComp =
+        final PlotDisplay<?,?> plotComp =
             planePlotter_.createPlotComponent( table_, dataWillChange );
 
         /* If we are doing animation, set up a timer to change the table
@@ -139,8 +139,8 @@ public class SinePlot {
          * @param   dataMayChange  true if the table data may change during
          *                         the lifetime of the plot
          */
-        PlotDisplay createPlotComponent( StarTable table,
-                                         boolean dataMayChange )
+        PlotDisplay<?,?> createPlotComponent( StarTable table,
+                                              boolean dataMayChange )
             throws Exception;
     }
 

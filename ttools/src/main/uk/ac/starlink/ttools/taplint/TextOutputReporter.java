@@ -42,7 +42,7 @@ public class TextOutputReporter implements OutputReporter {
     public TextOutputReporter( PrintStream out, ReportType[] types,
                                int maxRepeat, boolean debug, int maxChar ) {
         out_ = out;
-        typeList_ = new HashSet( Arrays.asList( types ) );
+        typeList_ = new HashSet<ReportType>( Arrays.asList( types ) );
         maxRepeat_ = maxRepeat;
         debug_ = debug;
         maxChar_ = maxChar;

@@ -117,8 +117,8 @@ public class StiltsServer implements Task {
         return "Runs an HTTP server to perform STILTS commands";
     }
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getParameters() {
+        return new Parameter<?>[] {
             portParam_,
             baseParam_,
             tasksParam_,
@@ -146,14 +146,14 @@ public class StiltsServer implements Task {
                 HttpContext context = server.getContext( "/" );
                 ServletHandler handler = new ServletHandler();
                 context.addHandler( handler );
-                List baseList = new ArrayList();
+                List<String> baseList = new ArrayList<String>();
                 handler.addServlet( "STILTS Tasks", base + "/task/*",
                                     TaskServlet.class.getName() );
                 baseList.add( base + "/task/" );
                 handler.addServlet( "STILTS Forms", base + "/form/*",
                                     FormServlet.class.getName() );
                 baseList.add( base + "/form/" );
-                String[] bases = (String[]) baseList.toArray( new String[ 0 ] );
+                String[] bases = baseList.toArray( new String[ 0 ] );
                 context.addHandler( new FallbackHandler( bases ) );
 
                 context.setInitParameter( StiltsContext.TASKBASE_PARAM,

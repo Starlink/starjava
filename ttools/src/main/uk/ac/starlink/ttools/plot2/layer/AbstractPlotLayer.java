@@ -23,7 +23,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
  */
 public abstract class AbstractPlotLayer implements PlotLayer {
 
-    private final Plotter plotter_;
+    private final Plotter<?> plotter_;
     private final DataGeom geom_;
     private final DataSpec dataSpec_;
     private final Style style_;
@@ -38,7 +38,7 @@ public abstract class AbstractPlotLayer implements PlotLayer {
      * @param  style  plotting style
      * @param  opt   layer optimisation option
      */
-    protected AbstractPlotLayer( Plotter plotter, DataGeom geom,
+    protected AbstractPlotLayer( Plotter<?> plotter, DataGeom geom,
                                  DataSpec dataSpec, Style style,
                                  LayerOpt opt ) {
         plotter_ = plotter;
@@ -48,7 +48,7 @@ public abstract class AbstractPlotLayer implements PlotLayer {
         opt_ = opt;
     }
 
-    public Plotter getPlotter() {
+    public Plotter<?> getPlotter() {
         return plotter_;
     }
 

@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.task;
 
-import java.util.Iterator;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.task.StringParameter;
 
@@ -42,10 +41,9 @@ public class OutputFormatParameter extends StringParameter
         sbuf.append( "      " )
             .append( StarTableOutput.AUTO_HANDLER )
             .append( '\n' );
-        for ( Iterator it = env.getTableOutput().getKnownFormats().iterator();
-              it.hasNext(); ) {
+        for ( String fmt : env.getTableOutput().getKnownFormats() ) {
             sbuf.append( "      " )
-                .append( ((String) it.next()).toLowerCase() )
+                .append( fmt.toLowerCase() )
                 .append( '\n' );
         }
         return sbuf.toString();

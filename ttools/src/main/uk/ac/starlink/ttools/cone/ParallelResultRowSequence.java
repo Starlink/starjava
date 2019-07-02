@@ -26,7 +26,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
     private final boolean distFilter_;
     private final String distanceCol_;
     private final int poolMax_;
-    private final SortedSet resultPool_;
+    private final SortedSet<Result> resultPool_;
     private final Worker[] workers_;
     private long submitIndex_;
     private long nextIndex_;
@@ -90,7 +90,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
         distFilter_ = distFilter;
         distanceCol_ = distanceCol;
         poolMax_ = parallelism * 3;
-        resultPool_ = new TreeSet();
+        resultPool_ = new TreeSet<Result>();
 
         /* Prepare the worker threads. */
         workers_ = new Worker[ parallelism ];
@@ -116,8 +116,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
              * or we know that no more will be forthcoming. */
             try {
                 while ( ( ( resultPool_.size() == 0 ) ||
-                          ((Result) resultPool_.first()).index_
-                                                != nextIndex_ ) &&
+                          resultPool_.first().index_ != nextIndex_ ) &&
                         ! workersFinished() ) {
                     resultPool_.wait();
                 }
@@ -142,7 +141,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
              * first item from the ordered set, it's the next one in the
              * output sequence, not necessarily the most recently acquired. */
             if ( resultPool_.size() > 0 ) {
-                currentResult_ = (Result) resultPool_.first();
+                currentResult_ = resultPool_.first();
                 assert currentResult_.index_ == nextIndex_;
                 nextIndex_++;
                 boolean removed = resultPool_.remove( currentResult_ );
@@ -296,7 +295,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      * index value is created within the lifetime of the containing object.
      * That condition should not be violated by the containing object.
      */
-    private class Result implements Comparable {
+    private class Result implements Comparable<Result> {
         private final long index_;
         private final double ra_;
         private final double dec_;
@@ -328,8 +327,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
         /**
          * Compares on index value only.
          */
-        public int compareTo( Object o ) {
-            Result other = (Result) o;
+        public int compareTo( Result other ) {
             if ( this.index_ < other.index_ ) {
                 return -1;
             }
@@ -429,7 +427,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
                     ra = querySeq_.getRa();
                     dec = querySeq_.getDec();
                     radius = querySeq_.getRadius();
-                    row = (Object[]) querySeq_.getRow().clone();
+                    row = querySeq_.getRow().clone();
                     index = submitIndex_++;
                 }
 
@@ -488,8 +486,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
              * present. */
             synchronized ( resultPool_ ) {
                 while ( resultPool_.size() > poolMax_ &&
-                        result.compareTo( ((Result)
-                                          resultPool_.last()) ) > 0 ) {
+                        result.compareTo( resultPool_.last() ) > 0 ) {
                     resultPool_.wait();
                 }
 

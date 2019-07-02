@@ -7,6 +7,7 @@ package uk.ac.starlink.ttools.func;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,8 +45,10 @@ public class Distances {
     /** Number of seconds in a year. */
     public static final double SEC_PER_YEAR = 60 * 60 * 24 * 365.25;
 
-    private static final Map distIntegratorMap_ = new HashMap();
-    private static final Map timeIntegratorMap_ = new HashMap();
+    private static final Map<List<Double>,Integrator> distIntegratorMap_ =
+        new HashMap<List<Double>,Integrator>();
+    private static final Map<List<Double>,Integrator> timeIntegratorMap_ =
+        new HashMap<List<Double>,Integrator>();
 
     private static final double EXAMPLE_H0 = 71;
     private static final double EXAMPLE_OMEGA_M = 0.27;
@@ -304,7 +307,7 @@ public class Distances {
      */
     private static Integrator getDistIntegrator( final double omegaM,
                                                  final double omegaLambda ) {
-        Object key = createKey( omegaM, omegaLambda );
+        List<Double> key = createKey( omegaM, omegaLambda );
         if ( ! distIntegratorMap_.containsKey( key ) ) {
             distIntegratorMap_.put( key, new Integrator( 0.0, 0.02 ) {
                 public double function( double z ) {
@@ -312,7 +315,7 @@ public class Distances {
                 }
             } );
         }
-        return (Integrator) distIntegratorMap_.get( key );
+        return distIntegratorMap_.get( key );
     }
 
     /**
@@ -326,7 +329,7 @@ public class Distances {
      */
     private static Integrator getTimeIntegrator( final double omegaM,
                                                  final double omegaLambda ) {
-        Object key = createKey( omegaM, omegaLambda );
+        List<Double> key = createKey( omegaM, omegaLambda );
         if ( ! timeIntegratorMap_.containsKey( key ) ) {
             timeIntegratorMap_.put( key, new Integrator( 0.0, 0.02 ) {
                 public double function( double z ) {
@@ -334,7 +337,7 @@ public class Distances {
                 }
             } );
         }
-        return (Integrator) timeIntegratorMap_.get( key );
+        return timeIntegratorMap_.get( key );
     }
 
     /**
@@ -346,7 +349,7 @@ public class Distances {
      * @param   omegaM  first value
      * @param   omegaLambda  second value
      */
-    private static Object createKey( double omegaM, double omegaLambda ) {
+    private static List<Double> createKey( double omegaM, double omegaLambda ) {
         return Arrays.asList( new Double[] { new Double( omegaM ),
                                              new Double( omegaLambda ), } );
     }

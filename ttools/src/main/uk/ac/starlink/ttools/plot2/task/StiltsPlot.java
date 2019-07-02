@@ -144,10 +144,10 @@ public class StiltsPlot {
      * @param  plotSpec  programmatic representation of a plot
      * @param  formatter  defines details of how formatting will take place
      */
-    public static StiltsPlot createPlot( PlotSpec plotSpec,
-                                         StiltsPlotFormatter formatter )
+    public static <P,A> StiltsPlot createPlot( PlotSpec<P,A> plotSpec,
+                                               StiltsPlotFormatter formatter )
             throws LoadException {
-        PlotType plotType = plotSpec.getPlotType();
+        PlotType<P,A> plotType = plotSpec.getPlotType();
         Dimension extSize = plotSpec.getExtSize();
         ZoneSpec[] zoneSpecs = plotSpec.getZoneSpecs();
         LayerSpec[] layerSpecs = plotSpec.getLayerSpecs();
@@ -175,12 +175,12 @@ public class StiltsPlot {
         } ) );
 
         /* Plot surface settings. */
-        SurfaceFactory sfact = plotType.getSurfaceFactory();
-        ConfigKey[] profileKeys = sfact.getProfileKeys();
-        ConfigKey[] aspectKeys = sfact.getAspectKeys();
-        ConfigKey[] auxKeys = PlotUtil.arrayConcat(
+        SurfaceFactory<P,A> sfact = plotType.getSurfaceFactory();
+        ConfigKey<?>[] profileKeys = sfact.getProfileKeys();
+        ConfigKey<?>[] aspectKeys = sfact.getAspectKeys();
+        ConfigKey<?>[] auxKeys = PlotUtil.arrayConcat(
             StyleKeys.AUX_RAMP.getKeys(),
-            new ConfigKey[] { StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH }
+            new ConfigKey<?>[] { StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH }
         );
         Map<String,List<Setting>> zoneSettings =
             new LinkedHashMap<String,List<Setting>>();
@@ -274,7 +274,7 @@ public class StiltsPlot {
             lsettings.add( null );
 
             /* Work out the layer type and possibly associated shading type. */
-            Plotter plotter = lspec.getPlotter();
+            Plotter<?> plotter = lspec.getPlotter();
             final String ltype;
             List<Setting> modeSettings = new ArrayList<Setting>();
             if ( plotter instanceof ShapePlotter.ShapeModePlotter ) {
@@ -311,7 +311,8 @@ public class StiltsPlot {
                 String leglabel = lspec.getLegendLabel();
                 if ( leglabel != null ) {
                     lsettings.add(
-                        createParamSetting( task.createLabelParameter( "" ),
+                        createParamSetting( AbstractPlot2Task
+                                           .createLabelParameter( "" ),
                         leglabel ) );
                     legKeys.add( lkey );
                 }
@@ -347,8 +348,9 @@ public class StiltsPlot {
                                          legKeys.toArray( new String[ 0 ] ) ) );
         }
         trailSettings.add( null );
-        trailSettings.add( createParamSetting( task.createPaintModeParameter()
-                                                   .getOutputParameter(),
+        trailSettings.add( createParamSetting( AbstractPlot2Task
+                                              .createPaintModeParameter()
+                                              .getOutputParameter(),
                                                null ) );
 
         /* Collect all the settings together and return them as a
@@ -381,7 +383,7 @@ public class StiltsPlot {
      * @param  ptype  plot type
      * @return  stilts task name
      */
-    private static String getPlotTaskName( PlotType ptype ) {
+    private static String getPlotTaskName( PlotType<?,?> ptype ) {
         if ( ptype instanceof PlanePlotType ) {
             return "plot2plane";
         }
@@ -526,7 +528,7 @@ public class StiltsPlot {
      * @return   list of settings, one for each supplied key
      */
     private static List<Setting> getConfigSettings( ConfigMap config,
-                                                    ConfigKey[] keys ) {
+                                                    ConfigKey<?>[] keys ) {
         int nk = keys.length;
         List<Setting> settings = new ArrayList<Setting>( nk );
         for ( int ik = 0; ik < nk; ik++ ) {
@@ -739,7 +741,7 @@ public class StiltsPlot {
      */
     private static ZoneAdjuster createZoneAdjuster( ZoneSpec zspec,
                                                     List<LayerSpec> lspecs,
-                                                    PlotType plotType ) {
+                                                    PlotType<?,?> plotType ) {
         if ( plotType instanceof SkyPlotType ) {
             return new SkySysZoneAdjuster( zspec, lspecs );
         }

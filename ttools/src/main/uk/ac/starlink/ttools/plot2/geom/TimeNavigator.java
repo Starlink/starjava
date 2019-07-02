@@ -178,8 +178,8 @@ public class TimeNavigator implements Navigator<TimeAspect> {
      *
      * @return  config keys
      */
-    public static ConfigKey[] getConfigKeys() {
-        return new ConfigKey[] {
+    public static ConfigKey<?>[] getConfigKeys() {
+        return new ConfigKey<?>[] {
             NAVAXES_KEY,
             StyleKeys.ZOOM_FACTOR,
         };

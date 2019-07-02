@@ -73,7 +73,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     public SkyConeMatch2( String purpose, Coner coner, int maxParallel ) {
         super( purpose, new ChoiceMode(), true, true );
         coner_ = coner;
-        List<Parameter> paramList = new ArrayList<Parameter>();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
         String system = coner.getSkySystem();
         String inDescrip = "the input table";
     

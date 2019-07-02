@@ -35,7 +35,7 @@ public class RegQuery extends ConsumerTask {
      */
     public RegQuery() {
         super( "Queries the VO registry", new ChoiceMode(), true );
-        List paramList = new ArrayList();
+        List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         queryParam_ = new StringParameter( "query" );
         queryParam_.setPrompt( "Text of registry query" );

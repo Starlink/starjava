@@ -102,7 +102,7 @@ public enum ReportType {
      */
     public static ReportType forChar( char chr ) {
         if ( charMap_ == null ) {
-            Map map = new HashMap<Character,ReportType>();
+            Map<Character,ReportType> map = new HashMap<Character,ReportType>();
             ReportType[] types = values();
             for ( int i = 0; i < types.length; i++ ) {
                 ReportType type = types[ i ];

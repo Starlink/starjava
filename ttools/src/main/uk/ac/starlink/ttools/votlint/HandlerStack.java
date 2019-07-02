@@ -13,7 +13,7 @@ import java.util.List;
 public class HandlerStack {
 
     /** The stack is implemented using a List of Item objects. */
-    private final List stack_ = new ArrayList();
+    private final List<Item> stack_ = new ArrayList<Item>();
 
     /** The number of items currently in the list. */
     private int nItem = 0;
@@ -25,7 +25,7 @@ public class HandlerStack {
      */
     public ElementHandler pop() {
         if ( nItem > 0 ) {
-            return ((Item) stack_.remove( --nItem )).handler_;
+            return stack_.remove( --nItem ).handler_;
         }
         else {
             throw new IllegalStateException( "Empty stack" );
@@ -39,7 +39,7 @@ public class HandlerStack {
      */
     public void push( ElementHandler handler ) {
         if ( nItem > 0 ) {
-            ((Item) stack_.get( nItem - 1 )).nChild_++;
+            stack_.get( nItem - 1 ).nChild_++;
         }
         stack_.add( new Item( handler ) );
         nItem++;
@@ -51,7 +51,7 @@ public class HandlerStack {
      * @return   top element
      */
     public ElementHandler top() {
-        return nItem > 0 ? ((Item) stack_.get( nItem - 1 )).handler_
+        return nItem > 0 ? stack_.get( nItem - 1 ).handler_
                          : null;
     }
 
@@ -65,9 +65,9 @@ public class HandlerStack {
      */
     public Ancestry getAncestry() {
         final int point = nItem - 1;
-        final Item self = (Item) stack_.get( point );
+        final Item self = stack_.get( point );
         final int siblingIndex = point > 0
-                               ? ((Item) stack_.get( point - 1 )).nChild_ - 1
+                               ? stack_.get( point - 1 ).nChild_ - 1
                                : 0;
         return new Ancestry() {
             public int getSiblingIndex() {
@@ -78,29 +78,22 @@ public class HandlerStack {
             }
             public ElementHandler getSelf() {
                 check();
-                return ((Item) stack_.get( point )).handler_;
+                return stack_.get( point ).handler_;
             }
             public ElementHandler getParent() {
                 check();
-                return point > 0 ? ((Item) stack_.get( point - 1 )).handler_
+                return point > 0 ? stack_.get( point - 1 ).handler_
                                  : null;
             }
-            public ElementHandler getAncestor( Class clazz ) {
+            public <H extends ElementHandler> H getAncestor( Class<H> clazz ) {
                 check();
-                if ( ElementHandler.class.isAssignableFrom( clazz ) ) {
-                    for ( int i = point - 1; i >= 0; i-- ) {
-                        ElementHandler handler = 
-                            ((Item) stack_.get( i )).handler_;
-                        if ( clazz.isAssignableFrom( handler.getClass() ) ) {
-                            return handler;
-                        }
+                for ( int i = point - 1; i >= 0; i-- ) {
+                    ElementHandler handler = stack_.get( i ).handler_;
+                    if ( clazz.isAssignableFrom( handler.getClass() ) ) {
+                        return clazz.cast( handler );
                     }
-                    return null;
                 }
-                else {
-                    throw new IllegalArgumentException( clazz.getName() + 
-                                                        " not ElementHandler" );
-                }
+                return null;
             }
             private void check() {
                 if ( stack_.get( point ) != self ) {

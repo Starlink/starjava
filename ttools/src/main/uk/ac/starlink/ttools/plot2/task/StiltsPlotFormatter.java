@@ -173,7 +173,7 @@ public class StiltsPlotFormatter {
         /* Populate an execution environment that will throw an
          * exception if there is an attempt to add the same parameter twice. */
         MapEnvironment env = new MapEnvironment() {
-            final Map<String,String> map = getMap();
+            final Map<String,Object> map = getMap();
             @Override
             public MapEnvironment setValue( String paramName, Object value ) {
                 if ( map.containsKey( paramName ) ) {
@@ -212,7 +212,8 @@ public class StiltsPlotFormatter {
      * @return  plot display component
      * @see   AbstractPlot2Task#createPlotComponent
      */
-    public PlotDisplay createPlotComponent( StiltsPlot plot, boolean caching )
+    public PlotDisplay<?,?> createPlotComponent( StiltsPlot plot,
+                                                 boolean caching )
             throws TaskException, IOException, InterruptedException {
         MapEnvironment env = new MapEnvironment();
         populateEnvironment( plot, env );
@@ -326,7 +327,8 @@ public class StiltsPlotFormatter {
          * If that happens, it looks like there is a problem because
          * settings have not been used.  This routine pulls them out
          * so the warning goes away. */
-        InputTableParameter inParam = task.createTableParameter( "" );
+        InputTableParameter inParam =
+            AbstractPlot2Task.createTableParameter( "" );
         String fmtName = inParam.getFormatParameter().getName();
         String strmName = inParam.getStreamParameter().getName();
         List<String> list = new ArrayList<String>();

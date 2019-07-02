@@ -190,13 +190,13 @@ public class CubeNavigator implements Navigator<CubeAspect> {
      * @param   isIso  whether navigator will be configured for isotropic mode
      * @return  config keys
      */
-    public static ConfigKey[] getConfigKeys( boolean isIso ) {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public static ConfigKey<?>[] getConfigKeys( boolean isIso ) {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         if ( ! isIso ) {
             list.add( ZOOMAXES_KEY );
         }
         list.add( StyleKeys.ZOOM_FACTOR );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     /**

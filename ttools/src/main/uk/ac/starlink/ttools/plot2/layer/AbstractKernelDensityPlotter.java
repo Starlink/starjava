@@ -87,7 +87,7 @@ public abstract class AbstractKernelDensityPlotter
      *
      * @return   list of implementation-specific kernel config keys
      */
-    protected abstract ConfigKey[] getKernelConfigKeys();
+    protected abstract ConfigKey<?>[] getKernelConfigKeys();
 
     /**
      * Constructs an object for plot-time kernel construction based on
@@ -99,8 +99,8 @@ public abstract class AbstractKernelDensityPlotter
     protected abstract KernelFigure createKernelFigure( ConfigMap config )
             throws ConfigException;
 
-    public ConfigKey[] getStyleKeys() {
-        List<ConfigKey> list = new ArrayList<ConfigKey>();
+    public ConfigKey<?>[] getStyleKeys() {
+        List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
         list.addAll( Arrays.asList( getKernelConfigKeys() ) );
@@ -112,7 +112,7 @@ public abstract class AbstractKernelDensityPlotter
         list.add( NORMALISE_KEY );
         list.add( StyleKeys.FILL );
         list.add( THICK_KEY );
-        return list.toArray( new ConfigKey[ 0 ] );
+        return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public KDenseStyle createStyle( ConfigMap config ) throws ConfigException {
@@ -183,7 +183,7 @@ public abstract class AbstractKernelDensityPlotter
         Rectangle clip = surface.getPlotBounds();
         int yClipMin = clip.y - 64;
         int yClipMax = clip.y + clip.height + 64;
-        gy0 = (int) clip( gy0, yClipMin, yClipMax );
+        gy0 = clip( gy0, yClipMin, yClipMax );
 
         /* Work out the range of bin indices that need to be painted. */
         int ixlo = binArray.getBinIndex( clip.x );

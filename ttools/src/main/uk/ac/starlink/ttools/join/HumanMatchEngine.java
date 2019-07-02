@@ -174,11 +174,11 @@ public class HumanMatchEngine implements MatchEngine {
      * @param  objs  objects
      * @return   comparable array with the same contents as <code>objs</code>
      */
-    private Comparable[] toComparables( Object[] objs ) {
-        Comparable[] comps = new Comparable[ objs.length ];
+    private Comparable<?>[] toComparables( Object[] objs ) {
+        Comparable<?>[] comps = new Comparable<?>[ objs.length ];
         for ( int i = 0; i < comps.length; i++ ) {
             comps[ i ] = objs[ i ] instanceof Comparable 
-                       ? (Comparable) objs[ i ]
+                       ? (Comparable<?>) objs[ i ]
                        : null;
         }
         return comps;
@@ -194,7 +194,7 @@ public class HumanMatchEngine implements MatchEngine {
      */
     private ValueWrapper createWrapper( ValueInfo info ) {
         String units = info == null ? null : info.getUnitString();
-        Class clazz = info == null ? null : info.getContentClass();
+        Class<?> clazz = info == null ? null : info.getContentClass();
 
         /* If the units are radians, change them to something more
          * comprehensible. */

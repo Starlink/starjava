@@ -26,15 +26,15 @@ import uk.ac.starlink.ttools.task.OutputTableParameter;
 public class CopyMode implements ProcessingMode {
 
     private final OutputTableParameter locParam_;
-    private final Parameter formatParam_;
+    private final Parameter<?> formatParam_;
 
     public CopyMode() {
         locParam_ = new OutputTableParameter( "out" );
         formatParam_ = locParam_.getFormatParameter();
     }
 
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] {
+    public Parameter<?>[] getAssociatedParameters() {
+        return new Parameter<?>[] {
             locParam_,
             formatParam_,
         };

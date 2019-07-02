@@ -17,7 +17,7 @@ import uk.ac.starlink.ttools.plot.Style;
 public abstract class StyleFactory {
 
     private final String prefix_;
-    private final List suffixList_;
+    private final List<String> suffixList_;
 
     /**
      * Constructor.
@@ -27,7 +27,7 @@ public abstract class StyleFactory {
      */
     protected StyleFactory( String prefix ) {
         prefix_ = prefix;
-        suffixList_ = new ArrayList();
+        suffixList_ = new ArrayList<String>();
     }
 
     /**
@@ -36,7 +36,7 @@ public abstract class StyleFactory {
      * @param  stSuffix  label identifying the data set for which the style
      *                   will be required
      */
-    public abstract Parameter[] getParameters( String stSuffix );
+    public abstract Parameter<?>[] getParameters( String stSuffix );
 
     /**
      * Obtains a Style object from the environment by examining parameters.

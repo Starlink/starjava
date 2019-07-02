@@ -28,8 +28,9 @@ public class Formats {
      * of these, since they are not thread safe.
      * By having one per thread, we get the best of both worlds.
      */
-    private final static ThreadLocal kitHolder_ = new ThreadLocal() {
-        protected Object initialValue() {
+    private final static ThreadLocal<FormatKit> kitHolder_ =
+            new ThreadLocal<FormatKit>() {
+        protected FormatKit initialValue() {
             return new FormatKit();
         }
     };
@@ -121,8 +122,8 @@ public class Formats {
      * @return  format object
      */
     private static DecimalFormat getFormat( String format, boolean local ) {
-        Map fmap = local ? getKit().localFormatMap_
-                         : getKit().englishFormatMap_;
+        Map<String,DecimalFormat> fmap = local ? getKit().localFormatMap_
+                                               : getKit().englishFormatMap_;
         if ( ! fmap.containsKey( format ) ) {
             DecimalFormat dfmt;
             Locale locale = local ? Locale.getDefault() : Locale.ENGLISH;
@@ -136,7 +137,7 @@ public class Formats {
             }
             fmap.put( format, dfmt );
         }
-        return (DecimalFormat) fmap.get( format );
+        return fmap.get( format );
     }
 
     /**
@@ -170,7 +171,7 @@ public class Formats {
      * @return  format kit
      */
     private static FormatKit getKit() {
-        return (FormatKit) kitHolder_.get();
+        return kitHolder_.get();
     }
 
     /**
@@ -188,8 +189,10 @@ public class Formats {
      * An instance of this class is managed by a ThreadLocal.
      */
     private static class FormatKit {
-        final Map localFormatMap_ = new HashMap();
-        final Map englishFormatMap_ = new HashMap();
+        final Map<String,DecimalFormat> localFormatMap_ =
+            new HashMap<String,DecimalFormat>();
+        final Map<String,DecimalFormat> englishFormatMap_ =
+            new HashMap<String,DecimalFormat>();
         DecimalFormat[] dpFormats_ = new DecimalFormat[ 0 ];
     }
 }

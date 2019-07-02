@@ -63,12 +63,12 @@ public class ImplementationCeaWriter extends CeaWriter {
     }
 
     public int configure( String[] args ) {
-        List argList = new ArrayList( Arrays.asList( args ) );
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( "-path".equals( arg ) && it.hasNext() && appPath_ == null ) {
                 it.remove();
-                appPath_ = (String) it.next();
+                appPath_ = it.next();
                 it.remove();
             }
         }

@@ -15,16 +15,6 @@ public class SingleGanger<P,A> implements Ganger<P,A> {
 
     private final Padding padding_;
 
-    /** GangerFactory instance that returns SingleGangers. */
-    public static final GangerFactory FACTORY = new GangerFactory() {
-        public boolean isMultiZone() {
-            return false;
-        }
-        public Ganger createGanger( Padding padding ) {
-            return new SingleGanger( padding );
-        }
-    };
-
     /**
      * Constructs a ganger with no specified padding.
      */
@@ -87,6 +77,24 @@ public class SingleGanger<P,A> implements Ganger<P,A> {
 
     public P[] adjustProfiles( P[] oldProfiles ) {
         return oldProfiles;
+    }
+
+    /**
+     * Returns a factory that creates SingleGangers.
+     *
+     * @param  plotType  plot type, only used for generic typing
+     * @return  ganger factory
+     */
+    public static <P,A> GangerFactory<P,A>
+            createFactory( PlotType<P,A> plotType ) {
+        return new GangerFactory<P,A>() {
+            public boolean isMultiZone() {
+                return false;
+            }
+            public Ganger<P,A> createGanger( Padding padding ) {
+                return new SingleGanger<P,A>( padding );
+            }
+        };
     }
 
     /**

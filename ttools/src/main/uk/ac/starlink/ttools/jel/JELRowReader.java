@@ -98,7 +98,7 @@ public abstract class JELRowReader extends DVMap {
     /** Constant which effectively returns a null primitive. */
     private final Constant NULL_EXPRESSION_CONST = new Constant() {
         private final Byte b0 = new Byte( (byte) 0 );
-        public Class getContentClass() {
+        public Class<?> getContentClass() {
             return Byte.class;
         }
         public Object getValue() {
@@ -169,7 +169,7 @@ public abstract class JELRowReader extends DVMap {
      * @param  icol   non-negative column index
      * @return  value class, or null for non-existent column
      */
-    protected abstract Class getColumnClass( int icol );
+    protected abstract Class<?> getColumnClass( int icol );
 
     /**
      * Returns a boolean value for a cell of the current row.
@@ -384,7 +384,7 @@ public abstract class JELRowReader extends DVMap {
         /* See if it's a known column, and get the return value type if so. */
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
-            Class clazz = getColumnClass( icol ); 
+            Class<?> clazz = getColumnClass( icol ); 
             if ( clazz != null ) {
                 return getTypeName( clazz );
             }
@@ -897,7 +897,7 @@ public abstract class JELRowReader extends DVMap {
      * @return  the corresponding method name fragment
      * @see   "JEL manual"
      */
-    private static String getTypeName( Class clazz ) {
+    private static String getTypeName( Class<?> clazz ) {
         if ( clazz.equals( Boolean.class ) ) {
             return "Boolean";
         }
@@ -1014,7 +1014,7 @@ public abstract class JELRowReader extends DVMap {
             return name_;
         }
 
-        public Class getContentClass() {
+        public Class<?> getContentClass() {
             return konst_.getContentClass();
         }
 

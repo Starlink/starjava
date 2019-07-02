@@ -48,7 +48,7 @@ public class FloatingCoord extends SingleCoord {
      * @param   domain  DomainMapper subtype for this coord, or null
      */
     private FloatingCoord( InputMeta meta, boolean isRequired,
-                           boolean isDouble, Class inputClass,
+                           boolean isDouble, Class<?> inputClass,
                            Class<? extends DomainMapper> domain ) {
         super( meta, isRequired, inputClass,
                isDouble ? StorageType.DOUBLE : StorageType.FLOAT, domain );

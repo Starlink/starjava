@@ -28,7 +28,7 @@ public interface ProcessingMode {
      *
      * @return  parameter list
      */
-    Parameter[] getAssociatedParameters();
+    Parameter<?>[] getAssociatedParameters();
 
     /**
      * Returns a textual description of this processing mode.  This will

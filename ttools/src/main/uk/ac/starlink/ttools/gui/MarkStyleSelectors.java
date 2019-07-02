@@ -29,6 +29,7 @@ import uk.ac.starlink.util.IconUtils;
  * @author   Mark Taylor
  * @since    6 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class MarkStyleSelectors {
 
     private static final int MAX_SIZE = 5;
@@ -141,7 +142,7 @@ public class MarkStyleSelectors {
         private final ErrorRenderer[] allRenderers_;
         private final ErrorRenderer defaultRenderer_;
         private final ErrorModeSelection[] modeSelections_;
-        private List activeRendererList_;
+        private List<ErrorRenderer> activeRendererList_;
         private ErrorRenderer selected_;
 
         /**
@@ -170,7 +171,7 @@ public class MarkStyleSelectors {
         }
 
         public Object getElementAt( int index ) {
-            return (ErrorRenderer) activeRendererList_.get( index );
+            return activeRendererList_.get( index );
         }
 
         public int getSize() {
@@ -213,7 +214,7 @@ public class MarkStyleSelectors {
 
             /* Assemble a list of the renderers which know how to render
              * error bars in this dimensionality. */
-            List rendererList = new ArrayList();
+            List<ErrorRenderer> rendererList = new ArrayList<ErrorRenderer>();
             for ( int ir = 0; ir < allRenderers_.length; ir++ ) {
                 ErrorRenderer renderer = allRenderers_[ ir ];
                 if ( renderer.supportsDimensionality( ndim ) ) {
