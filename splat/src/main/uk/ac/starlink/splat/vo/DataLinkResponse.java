@@ -17,8 +17,8 @@ import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOTableBuilder;
 
 public class DataLinkResponse {
-	
-	
+
+
 	private StarTable linksTable;
 	private DataLinkServices services;
 
@@ -30,44 +30,42 @@ public class DataLinkResponse {
 	int serviceDefIndex =-1;    // index of service_def column
 	int errorMessageIndex = -1; // index of error_message column
 	int descriptionIndex = -1; // index of description column
-//	private ImageIcon preview;
-	
+	//	private ImageIcon preview;
+
 	public DataLinkResponse ( StarTable table ) {
 		linksTable = table;
 		getTableIndexes();
 	}
-	
-	
- /**
-  * Constructs the DataLink Parameters from an URL string pointing to a
-  *  VOTable with DataLink information, resulted as a response from a query.
-  *  The VOTABLE must contain only Datalink info and service resources
-  * @throws IOException 
-  * @throws SAXException 
-  */
-	public DataLinkResponse ( String dataLinksrc ) throws IOException, SAXException {
-	
-	
-        URL dataLinkURL = new URL(dataLinksrc);
-        DataSource  datsrc = new URLDataSource( dataLinkURL );
 
-        VOElement votable =  new VOElementFactory( StoragePolicy.getDefaultPolicy() ).makeVOElement( datsrc.getInputStream(), datsrc.getURL().toString() );
-  //      linksTable =
-  //              new VOTableBuilder().makeStarTable( datsrc, true,
-   //                     StoragePolicy.getDefaultPolicy() );
-        linksTable = DalResourceXMLFilter.getDalResultTable(votable);
-        
-        getTableIndexes();
-        	    
-        services =  DalResourceXMLFilter.getDalGetServiceElement(votable); 
-       
-    }
-    
- 	
-	
+
+	/**
+	 * Constructs the DataLink Parameters from an URL string pointing to a
+	 *  VOTable with DataLink information, resulted as a response from a query.
+	 *  The VOTABLE must contain only Datalink info and service resources
+	 * @throws IOException 
+	 * @throws SAXException 
+	 */
+	public DataLinkResponse ( String dataLinksrc ) throws IOException, SAXException {
+
+
+		URL dataLinkURL = new URL(dataLinksrc);
+		DataSource  datsrc = new URLDataSource( dataLinkURL );
+
+		VOElement votable =  new VOElementFactory( StoragePolicy.getDefaultPolicy() ).makeVOElement( datsrc.getInputStream(), datsrc.getURL().toString() );
+		//      linksTable =
+		//              new VOTableBuilder().makeStarTable( datsrc, true,
+		//                     StoragePolicy.getDefaultPolicy() );
+		linksTable = DalResourceXMLFilter.getDalResultTable(votable);
+
+		getTableIndexes();
+
+		services =  DalResourceXMLFilter.getDalGetServiceElement(votable); 
+	}
+
+
+
 	private void getTableIndexes() {
-		
-	    
+
 		for (int i=0;i<linksTable.getColumnCount();i++) {
 			ColumnInfo ci =  linksTable.getColumnInfo(i);
 			String colname = ci.getName().replaceAll( "\\s", "_" );
@@ -94,43 +92,59 @@ public class DataLinkResponse {
 				descriptionIndex=i;
 				break;
 			case access_url:
-				accessUrlIndex =i;   
+				accessUrlIndex =i;
 
 			}
 		}
 	}
-	
-	public String getAccessURL( String semantics ) throws IOException   {
-		for (int i=0;i<linksTable.getRowCount();i++) {
+
+	public String getAccessURL( String semantics ) throws IOException, SplatException {
+
+		String error=null;
+		int count = (int) linksTable.getRowCount();
+		/*	if (count == 1) { // it's probably an error message, so send the error.
+			error = (String) linksTable.getCell(0, errorMessageIndex);
+			if (error != null && !error.isEmpty()) {
+				Logger.info(this,  error);
+				throw new SplatException( error);
+			}
+		}
+		 */
+		for (int i=0;i<count;i++) {
 			String value = (String) linksTable.getCell(i, semanticsIndex);
-			
-	
+
 			if (value.equalsIgnoreCase(semantics)) {
 				if (errorMessageIndex != -1 ) {
-					String error = (String) linksTable.getCell(i, errorMessageIndex);
-					if (error != null) {
+					error = (String) linksTable.getCell(i, errorMessageIndex);
+					if (error != null && !error.isEmpty()) {
 						Logger.info(this,  error);
-						return null;
+						throw new SplatException( error);
 					}
 				}
 				return	(String) linksTable.getCell(i, accessUrlIndex);
 			}
 		}
-		return null;
+		/*if (error != null && !error.isEmpty()) {
+			error=semantics+" link not found";
+			Logger.info(this, error);
+			throw new SplatException( error);
+		}*/
+		throw new SplatException("Not Found");
 
 	}
-	
-	public String getContentType( String semantics ) throws IOException   {
-		for (int i=0;i<linksTable.getRowCount();i++) {
+
+	public String getContentType( String semantics ) throws IOException, SplatException   {
+		int count = (int) linksTable.getRowCount();
+
+		for (int i=0;i<count;i++) {
 			String value = (String)  linksTable.getCell(i, semanticsIndex);
-			
-	
+
 			if (value.equalsIgnoreCase(semantics)) {
 				if (errorMessageIndex != -1 ) {
 					String error = (String) linksTable.getCell(i, errorMessageIndex);
 					if (error != null) {
 						Logger.info(this,  error);
-						return null;
+						throw new SplatException( error);
 					}
 				}
 				return	(String) linksTable.getCell(i, contentTypeIndex);
@@ -139,7 +153,7 @@ public class DataLinkResponse {
 		return null;
 
 	}
-	
+
 	public int getIdIndex() {
 		return semanticsIndex;
 	}
@@ -172,11 +186,11 @@ public class DataLinkResponse {
 	}
 
 	public StarTable getLinksTable() {
-		
+
 		return linksTable;
 	}
 
-	
+
 	public String getIDValue(int row)   {
 		try {
 			return (String) linksTable.getCell(row, idIndex);
@@ -213,7 +227,7 @@ public class DataLinkResponse {
 	}
 
 	public String getContentLengthValue( int row )   {
-		
+
 		try {
 			return (String) linksTable.getCell(row, contentLengthIndex);
 		} catch (Exception e) {
@@ -223,7 +237,7 @@ public class DataLinkResponse {
 	}
 
 	public String getServiceDefValue( int row )   {
-		
+
 		try {
 			return (String) linksTable.getCell(row, serviceDefIndex);
 		} catch (Exception e) {
@@ -253,44 +267,45 @@ public class DataLinkResponse {
 		try {
 			return getAccessURL("#this");
 		} catch (IOException e) {
-			
+
 			throw new SplatException( "no #this link found");
 		}
-		
+
 	}
-	
+
 	public String getThisContentType() throws SplatException {
-	
+
 		try {
 			return getContentType("#this");
 		} catch (IOException e) {
-			
+
 			throw new SplatException( "no #this link found");
 		}
-		
+
 	}
-	
+
 	public String getLinkAccessURL( String semantics ) throws SplatException {
-		
+
 		try {
-			return getContentType(semantics);
+			//return getContentType(semantics);
+			return getAccessURL(semantics);
 		} catch (IOException e) {
-			
+
 			throw new SplatException( "no #this link found");
 		}
-		
+
 	}
 
 
 	public DataLinkServiceResource getDataLinkService(String serviceDef) {
-		
+
 		return services.getDataLinkService(serviceDef);
 	}
 
 
 	public DataLinkServices getServices() {
-		
+
 		return services;
 	}
-	
+
 }
