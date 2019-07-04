@@ -39,6 +39,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -90,6 +92,7 @@ import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.NameParser;
+import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -279,6 +282,11 @@ public class SplatBrowser
     protected HistoryStringDialog locationChooser = null;
 
     /**
+     * property listener
+     */
+    protected MainSplatToFrontListener splatToFrontListener = new MainSplatToFrontListener();
+
+    /**
      *  SSAP browser.
      */
     protected SSAQueryBrowser ssapBrowser = null;
@@ -351,6 +359,11 @@ public class SplatBrowser
      * one of the SpecDataFactory constants.
      */
     protected int openUsertypeIndex = SpecDataFactory.DEFAULT;
+
+    /**
+     * The object type of data: spectra (default) or timeseries
+     */
+    protected ObjectTypeEnum objectType = ObjectTypeEnum.SPECTRUM;
 
     /**
      * The type of data that spectra are saved in by default. This is the
@@ -527,6 +540,7 @@ public class SplatBrowser
             }
             this.communicator = communicator;
             initComponents();
+ //           this.addPropertyChangeListener( splatToFrontListener);
         }
         catch ( Exception e ) {
             logger.log( Level.SEVERE, e.getMessage(), e );
@@ -1644,6 +1658,10 @@ public class SplatBrowser
             dispAxis = (Integer) keyvalue.getValue();
             keyvalue = (KeyValue) selectAxisBox.getSelectedItem();
             selectAxis = (Integer) keyvalue.getValue();
+            
+            // set the object type            
+            keyvalue = (KeyValue) objectTypeBox.getSelectedItem();
+            objectType = (ObjectTypeEnum) keyvalue.getValue();
 
             //  Load the spectra.
             threadLoadChosenSpectra();
@@ -1751,6 +1769,7 @@ public class SplatBrowser
     protected JComboBox ndActionBox = null;
     protected JComboBox dispersionAxisBox = null;
     protected JComboBox selectAxisBox = null;
+    protected JComboBox objectTypeBox = null;
 
     /**
      * Initialise the accessory components for opening spectra. Currently
@@ -1815,11 +1834,17 @@ public class SplatBrowser
         selectAxisBox.addItem( new KeyValue( "3", new Integer( 2 ) ) );
         selectAxisBox.setToolTipText
             ( "Select a non-dispersion axis for 3D data" );
-
         ndLayouter.add( "Select axis:", false );
         ndLayouter.add( selectAxisBox, true );
-
         layouter.add( ndPanel, true );
+        
+        objectTypeBox = new JComboBox();
+        objectTypeBox.addItem( new KeyValue( "SPECTRUM", ObjectTypeEnum.SPECTRUM ) );
+        objectTypeBox.addItem( new KeyValue( "TIMESERIES", ObjectTypeEnum.TIMESERIES ) );
+        objectTypeBox.setToolTipText("set object type of file content: spectrum or timeseries");
+        layouter.add( "Object type:", false );
+        layouter.add( objectTypeBox, true );
+        
         layouter.eatSpare();
     }
     
@@ -2156,7 +2181,7 @@ public class SplatBrowser
     protected void threadLoadChosenSpectra()
     {
         SpectrumIO sio = SpectrumIO.getInstance();
-        sio.load( this, newFiles, displayNewFiles, openUsertypeIndex );
+        sio.load( this, newFiles, displayNewFiles, openUsertypeIndex, objectType );
     }
 
     /**
@@ -2395,8 +2420,9 @@ public class SplatBrowser
                 List<SpecData> spectra;
                     if (props.getType() == SpecDataFactory.DATALINK) {
                        
-                    	DataLinkResponse dlparams = new DataLinkResponse(props.getSpectrum()); // get SODA Params
-                        props.setSpectrum(dlparams.getThisLink()); // get the accessURL for the first service read 
+                    	DataLinkResponse dlparams = new DataLinkResponse(props.getSpectrum()); // get SODA Params   
+                    	
+                    	props.setSpectrum(dlparams.getThisLink()); // get the accessURL for the first service read 
                         String stype = null;
                         if (props.getDataLinkFormat() != null ) { // see if user has changed the output format
                         	stype = props.getDataLinkFormat();
@@ -3105,7 +3131,8 @@ public class SplatBrowser
         if ( addSpectrum( spectrum ) ) {
             SpecData specData =
                 globalList.getSpectrum( globalList.specCount() - 1 );
-            return displaySpectrum( specData );
+            PlotControlFrame plot = displaySpectrum( specData );
+            return plot;
         }
         return null;
     }
@@ -3118,7 +3145,8 @@ public class SplatBrowser
      */
     public PlotControlFrame displaySpectrum( SpecData spectrum )
     {
-        return displaySpectrum( -1, spectrum );
+    	  PlotControlFrame plot = displaySpectrum( -1, spectrum );
+          return plot;
     }
 
     /**
@@ -3171,6 +3199,7 @@ public class SplatBrowser
                                            JOptionPane.ERROR_MESSAGE );
             if ( plot != null ) {
                 plot.setVisible( false );
+                plot.setBrowser(this);
             }
             plot = null;
         }
@@ -3178,6 +3207,7 @@ public class SplatBrowser
             //  Always make sure we reset the cursor.
             resetWaitCursor();
         }
+       //plot.addPropertyChangeListener(splatToFrontListener);
         return plot;
     }
 
@@ -3512,7 +3542,7 @@ public class SplatBrowser
         if ( colourAsLoaded ) {
             spectrum.setLineColour( MathUtils.getRandomRGB());
         }
-        selectedProperties.setObjectType( spectrum.getObjectType());
+       // selectedProperties.setObjectType( spectrum.getObjectType());
     }
 
     /**
@@ -3974,6 +4004,21 @@ public class SplatBrowser
 			obscorePanel.repaint();
 		}
 		
+	}
+	
+	public class MainSplatToFrontListener implements PropertyChangeListener {
+		
+		MainSplatToFrontListener() {
+			
+		}
+
+		@Override
+		public void propertyChange(PropertyChangeEvent pvt) {
+			if (pvt.getPropertyName().equals("mainSPLATToFront")) {
+				toFront();
+			}
+
+		}
 	}
 
 	

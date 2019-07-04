@@ -21,6 +21,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.prefs.Preferences;
 
@@ -214,6 +215,8 @@ public class PlotControlFrame
 	private double boxSpacingFactor=20.;
 
 	private SplatBrowser browser = null;
+	
+	private PropertyChangeSupport propSupport = new PropertyChangeSupport(this);
 
     /**
      *  Create an instance using an existing SpecDataComp.
@@ -431,8 +434,15 @@ public class PlotControlFrame
             ImageHolder.class.getResource( "config.gif" ) );
         ImageIcon pannerImage = new ImageIcon(
             ImageHolder.class.getResource( "panner.gif" ) );
+        ImageIcon splatImage = new ImageIcon(
+            ImageHolder.class.getResource( "splatlogo.gif" ) );
       
-
+        // add action to bring main splat window to front
+        MainToFrontAction mainToFrontAction  =
+                new  MainToFrontAction( "SPLAT window", splatImage,
+                                 "Bring main SPLAT window to front" );
+            fileMenu.add( mainToFrontAction );//.setMnemonic( KeyEvent.VK_P );
+            toolBar.add( mainToFrontAction );
         //  Add action to print figure.
         PrintAction printAction  =
             new PrintAction( "Print", printImage,
@@ -927,6 +937,11 @@ public class PlotControlFrame
                                             "Printer warning",
                                             JOptionPane.ERROR_MESSAGE );
         }
+    }
+    
+    protected void mainSplatWindowToFront() {
+    	browser.toFront();
+    	//propSupport.firePropertyChange("mainSPLATToFront", false, true);
     }
 
     /**
@@ -1654,6 +1669,24 @@ public class PlotControlFrame
             closeWindow();
         }
     }
+    
+    /**
+     *  Inner class defining Action for printing.
+     */
+    protected class MainToFrontAction extends AbstractAction
+    {
+        public MainToFrontAction( String name, Icon icon, String help )
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+
+           // putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            mainSplatWindowToFront();
+        }
+    }
 
     /**
      *  Inner class defining Action for printing.
@@ -2248,5 +2281,9 @@ public class PlotControlFrame
         return;
     }
 */    
-    //  add listener to slap browser -> load spectral line frames
+    //  the main browser
+
+	public void setBrowser(SplatBrowser splatBrowser) {
+		browser=splatBrowser;
+	}
 }
